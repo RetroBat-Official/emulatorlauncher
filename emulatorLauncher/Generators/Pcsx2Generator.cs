@@ -22,6 +22,8 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetupPaths();
+
             romName = Path.GetFileNameWithoutExtension(rom);
 
             RestoreIni(path, null, "GSdx.ini", true);
@@ -36,6 +38,42 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = "--portable --fullscreen --nogui \"" + rom + "\"",            
             };
+        }
+
+        private void SetupPaths()
+        {
+            string iniFile = Path.Combine(path, "inis", "PCSX2_ui.ini");
+            if (File.Exists(iniFile))
+            {
+                try
+                {
+                    using (var ini = new IniFile(iniFile))
+                    {
+                        Uri relRoot = new Uri(path, UriKind.Absolute);
+
+                        string biosPath = AppConfig.GetFullPath("bios");
+                        if (!string.IsNullOrEmpty(biosPath))
+                        {
+                            string relPath = relRoot.MakeRelativeUri(new Uri(biosPath, UriKind.Absolute)).ToString().Replace("/", "\\");
+                            ini.WriteValue("Folders", "UseDefaultBios", "disabled");
+                            ini.WriteValue("Folders", "Bios", relPath);
+                        }
+
+                        string savesPath = AppConfig.GetFullPath("saves");
+                        if (!string.IsNullOrEmpty(savesPath))
+                        {
+                            savesPath = Path.Combine(savesPath, "pcsx2");
+                            if (!Directory.Exists(savesPath))
+                                try { Directory.CreateDirectory(savesPath); }
+                                catch { }
+
+                            string relPath = relRoot.MakeRelativeUri(new Uri(savesPath, UriKind.Absolute)).ToString().Replace("/", "\\");
+                            ini.WriteValue("Folders", "Savestates", Path.Combine(relPath, "pcsx2"));
+                        }
+                    }
+                }
+                catch { }
+            }
         }
 
         public override void Cleanup()

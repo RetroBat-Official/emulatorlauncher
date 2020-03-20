@@ -52,11 +52,14 @@
     <Compile Include="Generators\OpenBorGenerator.cs" />
     <Compile Include="Generators\Model2Generator.cs" />
     <Compile Include="Tools\ConfigFile.cs" />
+    <Compile Include="Tools\IniFile.cs" />
+    <Compile Include="Tools\SimpleYml.cs" />
     <Compile Include="Tools\SystemDefaults.cs" />
     <Compile Include="Tools\Generator.cs" />
     <Compile Include="Generators\LibRetroGenerator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tools\SystemShaders.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

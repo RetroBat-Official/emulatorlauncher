@@ -84,9 +84,12 @@ namespace emulatorLauncher.libRetro
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
         }
 
-        private void Configure(string system)
+        private void Configure(string system, string rom, string gameResolution)
         {
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
+
+            retroarchConfig["rgui_extended_ascii"] = "true";
+            retroarchConfig["rgui_show_start_screen"] = "false";
 
             retroarchConfig["quit_press_twice"] = "false";
             retroarchConfig["pause_nonactive"] = "false";
@@ -114,12 +117,10 @@ namespace emulatorLauncher.libRetro
             else
                 retroarchConfig["video_smooth"] = "false";
 
-
-
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
             {
                 retroarchConfig["video_shader_enable"] = "true";
-                retroarchConfig["video_smooth"]        = "false";     // seems to be necessary for weaker SBCs
+                retroarchConfig["video_smooth"] = "false";     // seems to be necessary for weaker SBCs
                 retroarchConfig["video_shader_dir"] = AppConfig.GetFullPath("shaders");
             }
             else
@@ -235,6 +236,10 @@ namespace emulatorLauncher.libRetro
             else
                 retroarchConfig["ai_service_enable"] = "false";
             
+            // bezel
+
+            writeBezelConfig(retroarchConfig, system, rom, gameResolution);
+
             // custom : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
             foreach (var user_config in SystemConfig)
                 if (user_config.Name.StartsWith("retroarch."))
@@ -244,9 +249,79 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
         }
 
+        private void writeBezelConfig(ConfigFile retroarchConfig, string systemName, string rom, string gameResolution)
+        {
+            string path = AppConfig.GetFullPath("decorations");
+
+            string bezel = Directory.Exists(path) && !string.IsNullOrEmpty(SystemConfig["bezel"]) ? SystemConfig["bezel"] : "default";
+            if (SystemConfig.isOptSet("forceNoBezel") && SystemConfig.getOptBoolean("forceNoBezel"))
+                bezel = null;
+            
+            retroarchConfig["input_overlay_hide_in_menu"] = "false";    
+            retroarchConfig["input_overlay_enable"] = "false";
+            retroarchConfig["video_message_pos_x"]  = "0.05";
+            retroarchConfig["video_message_pos_y"]  = "0.05";
+
+            if (string.IsNullOrEmpty(bezel) || bezel == "none")
+                return;
+
+            string romBase = Path.GetFileNameWithoutExtension(rom);
+
+            string overlay_info_file = path + "/" + bezel + "/games/" + systemName + "/" + romBase + ".info";
+            string overlay_png_file  = path + "/" + bezel + "/games/" + systemName + "/" + romBase + ".png";
+
+            if (!File.Exists(overlay_png_file))
+            {
+                overlay_info_file = path + "/" + bezel + "/games/" + systemName + "/" + romBase + ".info";
+                overlay_png_file = path + "/" + bezel + "/games/" + systemName + "/" + romBase + ".png";
+
+                if (!File.Exists(overlay_png_file))
+                {
+                    overlay_info_file = path + "/" + bezel + "/games/" + romBase + ".info";
+                    overlay_png_file = path + "/" + bezel + "/games/" + romBase + ".png";
+                }
+
+                if (!File.Exists(overlay_png_file))
+                {
+                    overlay_info_file = path + "/" + bezel + "/systems/" + systemName + ".info";
+                    overlay_png_file = path + "/" + bezel + "/systems/" + systemName + ".png";
+                }
+
+                if (!File.Exists(overlay_png_file))
+                {
+                    overlay_info_file = path + "/" + bezel + "/default.info";
+                    overlay_png_file = path + "/" + bezel + "/default.png";
+                }
+
+                if (!File.Exists(overlay_png_file))
+                {
+                    overlay_info_file = path + "/default/systems/" + systemName + ".info";
+                    overlay_png_file = path + "/default/systems/" + systemName + ".png";
+                }
+
+                if (!File.Exists(overlay_png_file))
+                    return;
+            }
+
+            string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
+
+            retroarchConfig["input_overlay_enable"]       = "true";
+            retroarchConfig["input_overlay_scale"]        = "1.0";
+            retroarchConfig["input_overlay"]              = overlay_cfg_file;
+            retroarchConfig["input_overlay_hide_in_menu"] = "true";
+            retroarchConfig["input_overlay_opacity"] = "1.0";
+            
+            StringBuilder fd = new StringBuilder();
+            fd.AppendLine("overlays = 1");
+            fd.AppendLine("overlay0_overlay = \"" + overlay_png_file + "\"");
+            fd.AppendLine("overlay0_full_screen = true");
+            fd.AppendLine("overlay0_descs = 0");
+            File.WriteAllText(overlay_cfg_file, fd.ToString());            
+        }
+
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, string gameResolution)
         {
-            Configure(system);
+            Configure(system, rom, gameResolution);
             ConfigureCoreOptions(system, core);
 
             List<string> commandArray = new List<string>();
@@ -263,10 +338,24 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
+            // RetroArch 1.7.8 requires the shaders to be passed as command line argument      
+            if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
+            {
+                string shaderFilename = SystemConfig["shader"] + ".glslp";
+                string videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");
+                if (File.Exists(videoShader))
+                {
+                    commandArray.Add("--set-shader");
+                    commandArray.Add("\"" + videoShader + "\"");
+                }                
+            }
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = Path.Combine(RetroarchPath, "retroarch.exe"),
-                Arguments = "-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + string.Join(" ", commandArray)
+                Arguments = "-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args
             };
         }
 

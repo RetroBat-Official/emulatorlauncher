@@ -15,7 +15,8 @@ namespace emulatorLauncher
             { "libretro", () => new LibRetroGenerator() },
             { "model2", () => new Model2Generator() },
             { "openbor", () => new OpenBorGenerator() },
-            { "rpcs3", () => new Rpcs3Generator() },  
+            { "ps3", () => new Rpcs3Generator() },  
+            { "ps2", () => new Pcsx2Generator() },  
             { "fpinball", () => new FpinballGenerator() },
             
     /*,
@@ -54,6 +55,8 @@ namespace emulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileNameWithoutExtension(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
+            ImportShaderOverrides();
+            
             if (!SystemConfig.isOptSet("rom"))
                 return;
 
@@ -72,6 +75,7 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemConfig["system"];
 
+
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null)
                 generator = generators.Where(g => g.Key == SystemConfig["system"]).Select(g => g.Value()).FirstOrDefault();
@@ -81,13 +85,29 @@ namespace emulatorLauncher
                 ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, null);
                 if (path != null)
                 {
-                    path.UseShellExecute = true;                    
+                    path.UseShellExecute = true;
+
+                    Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
 
                     try { Process.Start(path).WaitForExit(); }
                     catch { }
 
                     generator.Cleanup();
                 }              
+            }
+        }
+
+        private static void ImportShaderOverrides()
+        {
+            if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shaderset") && SystemConfig["shaderset"] != "none")
+            {
+                string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
+                if (File.Exists(path))
+                {
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"]);
+                    if (!string.IsNullOrEmpty(renderconfig))
+                        SystemConfig["shader"] = renderconfig;
+                }
             }
         }
     }
