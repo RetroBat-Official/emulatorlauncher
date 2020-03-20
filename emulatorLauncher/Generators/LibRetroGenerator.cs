@@ -95,6 +95,26 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["pause_nonactive"] = "false";
             retroarchConfig["video_fullscreen"] = "true";
             // retroarchConfig["menu_driver"] = "ozone";
+            
+            if (string.IsNullOrEmpty(gameResolution) || gameResolution == "auto")
+                retroarchConfig["video_windowed_fullscreen"] = "true";
+            else 
+            {
+                var values = gameResolution.Split(new char[] { 'x' }, StringSplitOptions.RemoveEmptyEntries);
+                if (values.Length != 4)
+                    retroarchConfig["video_windowed_fullscreen"] = "true";
+                else
+                {
+                    int x;
+                    if (int.TryParse(values[0], out x))
+                        retroarchConfig["video_fullscreen_x"] = x.ToString();
+
+                    if (int.TryParse(values[1], out x))
+                        retroarchConfig["video_fullscreen_y"] = x.ToString();
+
+                    retroarchConfig["video_windowed_fullscreen"] = "false";
+                }
+            }
 
             if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
                 retroarchConfig["system_directory"] = AppConfig["bios"];
@@ -261,7 +281,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["input_overlay_enable"] = "false";
             retroarchConfig["video_message_pos_x"]  = "0.05";
             retroarchConfig["video_message_pos_y"]  = "0.05";
-
+            
             if (string.IsNullOrEmpty(bezel) || bezel == "none")
                 return;
 
@@ -310,7 +330,8 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["input_overlay"]              = overlay_cfg_file;
             retroarchConfig["input_overlay_hide_in_menu"] = "true";
             retroarchConfig["input_overlay_opacity"] = "1.0";
-            
+            retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
+
             StringBuilder fd = new StringBuilder();
             fd.AppendLine("overlays = 1");
             fd.AppendLine("overlay0_overlay = \"" + overlay_png_file + "\"");

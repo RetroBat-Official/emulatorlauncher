@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using Microsoft.Win32;
+using System.Windows.Forms;
 
 namespace emulatorLauncher
 {
@@ -27,7 +28,7 @@ namespace emulatorLauncher
                 SetAsAdmin(bam);
 
             SetAsAdmin(exe);
-            SetupOptions();
+            SetupOptions(gameResolution);
 
             return new ProcessStartInfo()
             {
@@ -48,7 +49,7 @@ namespace emulatorLauncher
             }
         }
 
-        private static void SetupOptions()
+        private static void SetupOptions(string gameResolution)
         {
             RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
             if (regKeyc != null)
@@ -57,9 +58,26 @@ namespace emulatorLauncher
             if (regKeyc != null)
             {
                 regKeyc.SetValue("FullScreen", 1);
-                //  regKeyc.SetValue("Height", Screen.PrimaryScreen.Bounds.Height);
-                //  regKeyc.SetValue("Width", Screen.PrimaryScreen.Bounds.Width);
-                //  regKeyc.SetValue("BitsPerPixel", Screen.PrimaryScreen.BitsPerPixel);
+                regKeyc.SetValue("Height", Screen.PrimaryScreen.Bounds.Height);
+                regKeyc.SetValue("Width", Screen.PrimaryScreen.Bounds.Width);
+                regKeyc.SetValue("BitsPerPixel", Screen.PrimaryScreen.BitsPerPixel);
+
+                if (!string.IsNullOrEmpty(gameResolution) && gameResolution != "auto")
+                {
+                    var values = gameResolution.Split(new char[] { 'x' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (values.Length == 4)
+                    {
+                        int x;
+                        if (int.TryParse(values[0], out x))
+                            regKeyc.SetValue("Width", x);
+
+                        if (int.TryParse(values[1], out x))
+                            regKeyc.SetValue("Height", x);
+
+                        if (int.TryParse(values[2], out x))
+                            regKeyc.SetValue("BitsPerPixel", x);
+                    }
+                }
 
                 if (regKeyc.GetValue("DefaultCamera") == null)
                     regKeyc.SetValue("DefaultCamera", 1);

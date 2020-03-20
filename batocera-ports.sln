@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-info", "batocera-i
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "emulatorLauncher", "emulatorLauncher\emulatorLauncher.csproj", "{BD82A5AA-00AD-40BF-BAE6-EF29FA1FC7C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-resolution", "batocera-resolution\batocera-resolution.csproj", "{0B596DA4-CF26-403D-80FC-6D05DBFDD435}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -43,6 +45,10 @@ Global
 		{BD82A5AA-00AD-40BF-BAE6-EF29FA1FC7C1}.Debug|x86.Build.0 = Debug|x86
 		{BD82A5AA-00AD-40BF-BAE6-EF29FA1FC7C1}.Release|x86.ActiveCfg = Release|x86
 		{BD82A5AA-00AD-40BF-BAE6-EF29FA1FC7C1}.Release|x86.Build.0 = Release|x86
+		{0B596DA4-CF26-403D-80FC-6D05DBFDD435}.Debug|x86.ActiveCfg = Debug|x86
+		{0B596DA4-CF26-403D-80FC-6D05DBFDD435}.Debug|x86.Build.0 = Debug|x86
+		{0B596DA4-CF26-403D-80FC-6D05DBFDD435}.Release|x86.ActiveCfg = Release|x86
+		{0B596DA4-CF26-403D-80FC-6D05DBFDD435}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

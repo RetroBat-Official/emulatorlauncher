@@ -50,6 +50,7 @@ namespace emulatorLauncher
             AppConfig = ConfigFile.FromFile(Path.Combine(LocalPath, "emulatorLauncher.cfg"));
 
             SystemConfig = ConfigFile.LoadEmulationStationSettings(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_settings.cfg"));
+            SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll("global"));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"]));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileNameWithoutExtension(SystemConfig["rom"]) + "\"]"));
@@ -74,15 +75,15 @@ namespace emulatorLauncher
 
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemConfig["system"];
-
-
+            
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null)
                 generator = generators.Where(g => g.Key == SystemConfig["system"]).Select(g => g.Value()).FirstOrDefault();
 
             if (generator != null)
             {
-                ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, null);
+                string videoMode = SystemConfig["videomode"];
+                ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, videoMode);
                 if (path != null)
                 {
                     path.UseShellExecute = true;
