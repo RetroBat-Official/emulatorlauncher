@@ -44,6 +44,8 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
+            SimpleLogger.Instance.Info("emulatorLauncher " + string.Join(" ", args));
+
            // MessageBox.Show("attach");
 
             LocalPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
@@ -98,6 +100,11 @@ namespace emulatorLauncher
                 ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, videoMode);
                 if (path != null)
                 {
+                    if (path.Arguments != null)
+                        SimpleLogger.Instance.Info("Run :" + path.FileName+" "+path.Arguments);
+                    else
+                        SimpleLogger.Instance.Info("Run :" + path.FileName);
+
                     path.UseShellExecute = true;
 
                     Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
