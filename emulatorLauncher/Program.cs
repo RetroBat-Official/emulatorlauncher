@@ -44,7 +44,7 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
-            SimpleLogger.Instance.Info("emulatorLauncher " + string.Join(" ", args));
+            SimpleLogger.Instance.Info(Environment.CommandLine);
 
            // MessageBox.Show("attach");
 
@@ -101,9 +101,9 @@ namespace emulatorLauncher
                 if (path != null)
                 {
                     if (path.Arguments != null)
-                        SimpleLogger.Instance.Info("Run :" + path.FileName+" "+path.Arguments);
+                        SimpleLogger.Instance.Info("->  " + path.FileName + " " + path.Arguments);
                     else
-                        SimpleLogger.Instance.Info("Run :" + path.FileName);
+                        SimpleLogger.Instance.Info("->  " + path.FileName);
 
                     path.UseShellExecute = true;
 
