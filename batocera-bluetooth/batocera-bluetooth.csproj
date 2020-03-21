@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{BD82A5AA-00AD-40BF-BAE6-EF29FA1FC7C1}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <ProjectGuid>{1CC1B79B-CCD2-445A-89CC-BEA265B36CD0}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>emulatorLauncher</RootNamespace>
-    <AssemblyName>emulatorLauncher</AssemblyName>
+    <RootNamespace>batocera_bluetooth</RootNamespace>
+    <AssemblyName>batocera-bluetooth</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\EmulationStation\</OutputPath>
+    <OutputPath>..\..\EmulationStation\.emulationstation\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -40,47 +40,15 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Generators\FpinballGenerator.cs" />
-    <Compile Include="Generators\Pcsx2Generator.cs" />
-    <Compile Include="Generators\Rpcs3Generator.cs" />
-    <Compile Include="Generators\OpenBorGenerator.cs" />
-    <Compile Include="Generators\Model2Generator.cs" />
-    <Compile Include="Tools\ConfigFile.cs" />
-    <Compile Include="Tools\IniFile.cs" />
-    <Compile Include="Tools\SimpleLogger.cs" />
-    <Compile Include="Tools\SimpleYml.cs" />
-    <Compile Include="Tools\SystemDefaults.cs" />
-    <Compile Include="Tools\Generator.cs" />
-    <Compile Include="Generators\LibRetroGenerator.cs" />
+    <Compile Include="Lib\BLUETOOTH_DEVICE_INFO.cs" />
+    <Compile Include="Lib\BLUETOOTH_DEVICE_SEARCH_PARAMS.cs" />
+    <Compile Include="Lib\NativeMethods.cs" />
+    <Compile Include="Lib\SYSTEMTIME.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tools\SystemShaders.cs" />
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <None Include="Resources\configgen-defaults.yml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

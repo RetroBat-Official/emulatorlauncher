@@ -57,15 +57,24 @@ namespace emulatorLauncher
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
             ImportShaderOverrides();
-            
+
             if (!SystemConfig.isOptSet("rom"))
+            {
+                SimpleLogger.Instance.Error("rom not set");
                 return;
+            }
 
             if (!File.Exists(SystemConfig["rom"]))
+            {
+                SimpleLogger.Instance.Error("rom does not exist");
                 return;
+            }
 
             if (!SystemConfig.isOptSet("system"))
+            {
+                SimpleLogger.Instance.Error("system not set");
                 return;
+            }
 
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemDefaults.GetDefaultEmulator(SystemConfig["system"]);
@@ -95,7 +104,11 @@ namespace emulatorLauncher
 
                     generator.Cleanup();
                 }              
+                else
+                    SimpleLogger.Instance.Error("generator failed");
             }
+            else
+                SimpleLogger.Instance.Error("cant find generator");
         }
 
         private static void ImportShaderOverrides()
