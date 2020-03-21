@@ -89,6 +89,9 @@ namespace emulatorLauncher
             if (generator == null)
                 generator = generators.Where(g => g.Key == SystemConfig["system"]).Select(g => g.Value()).FirstOrDefault();
 
+            if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
+                generator = new LibRetroGenerator();
+
             if (generator != null)
             {
                 string videoMode = SystemConfig["videomode"];
