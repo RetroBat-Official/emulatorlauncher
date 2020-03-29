@@ -30,5 +30,7 @@ artifacts:
 # - path: batocera-resolution\bin\Release\batocera-resolution.exe
 deploy:
 - provider: GitHub
+  tag: master
+  release: master
   auth_token:
     secure: gCm0RpSlfboTKUWIY8Sf7aWrrcZq+1bMtQo/yoZ3y34N21bHbnO6C+T4+0k6sZUX
