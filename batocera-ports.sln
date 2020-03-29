@@ -17,6 +17,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-resolution", "bato
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-bluetooth", "batocera-bluetooth\batocera-bluetooth.csproj", "{1CC1B79B-CCD2-445A-89CC-BEA265B36CD0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{56B39FFD-1B80-497D-BA0E-1B9D59CB9313}"
+	ProjectSection(SolutionItems) = preProject
+		build\appveyor.yml = build\appveyor.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
