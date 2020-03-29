@@ -8,17 +8,17 @@ after_build:
 - copy emulatorLauncher\bin\Release\emulatorLauncher.exe .
 - 7z a batocera-ports.zip emulatorLauncher.exe
 - copy batocera-info\bin\Release\batocera-info.exe .
-- 7z a batocera-ports.zip batocera-info\bin\Release\batocera-info.exe
+- 7z a batocera-ports.zip batocera-info.exe
 - copy batocera-retroachievements-info\bin\Release\batocera-retroachievements-info.exe .
-- 7z a batocera-ports.zip batocera-retroachievements-info\bin\Release\batocera-retroachievements-info.exe
+- 7z a batocera-ports.zip batocera-retroachievements-info.exe
 - copy batocera-systems\bin\Release\batocera-systems.exe .
-- 7z a batocera-ports.zip batocera-systems\bin\Release\batocera-systems.exe
+- 7z a batocera-ports.zip batocera-systems.exe
 - copy batocera-wifi\bin\Release\batocera-wifi.exe .
-- 7z a batocera-ports.zip batocera-wifi\bin\Release\batocera-wifi.exe
+- 7z a batocera-ports.zip batocera-wifi.exe
 - copy batocera-install\bin\Release\batocera-install.exe .
-- 7z a batocera-ports.zip batocera-install\bin\Release\batocera-install.exe
+- 7z a batocera-ports.zip batocera-install.exe
 - copy batocera-resolution\bin\Release\batocera-resolution.exe .
-- 7z a batocera-ports.zip batocera-resolution\bin\Release\batocera-resolution.exe
+- 7z a batocera-ports.zip batocera-resolution.exe
 artifacts:
 - path: batocera-ports.zip 
 # - path: emulatorLauncher\bin\Release\emulatorLauncher.exe
