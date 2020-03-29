@@ -91,7 +91,7 @@ namespace emulatorLauncher
 
         public string GetFullPath(string key)
         {
-            string data = Program.AppConfig[key];
+            string data = this[key];
             if (string.IsNullOrEmpty(data))
                 return string.Empty;
 

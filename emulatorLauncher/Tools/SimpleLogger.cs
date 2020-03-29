@@ -34,17 +34,17 @@ namespace emulatorLauncher
             datetimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
             logFilename = Path.ChangeExtension(System.Reflection.Assembly.GetEntryAssembly().Location, FILE_EXT);
 
-            try
+            if (File.Exists(logFilename))
             {
-                if (File.Exists(logFilename))
-                    File.Delete(logFilename);
-            }
-            catch { }
+                if (new FileInfo(logFilename).Length > 1024)
+                {
+                    string prevLog = logFilename + ".old";
+                    if (File.Exists(prevLog))
+                        File.Delete(prevLog);
 
-            // Log file header line
-            string logHeader = logFilename + " is created.";
-            if (!System.IO.File.Exists(logFilename))
-                WriteLine(System.DateTime.Now.ToString(datetimeFormat) + " " + logHeader, false);
+                    File.Move(logFilename, prevLog);
+                }
+            }
         }
 
         /// <summary>

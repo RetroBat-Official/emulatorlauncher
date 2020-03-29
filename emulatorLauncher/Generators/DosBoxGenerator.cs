@@ -1,0 +1,64 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Diagnostics;
+
+namespace emulatorLauncher
+{
+    class DosBoxGenerator : Generator
+    {
+        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, string gameResolution)
+        {
+            string batFile = Path.Combine(rom, "dosbox.bat");
+            string gameConfFile =  Path.Combine(rom, "dosbox.cfg");
+           
+            string path = AppConfig.GetFullPath("dosbox");
+            if (string.IsNullOrEmpty(path))
+                return null;
+                        
+            string exe = Path.Combine(path, "dosbox.exe");
+            if (!File.Exists(exe))
+                return null;
+
+            List<string> commandArray = new List<string>();
+            commandArray.Add("\"" + batFile + "\"");
+
+            if (File.Exists(gameConfFile))
+            {
+                commandArray.Add("-conf");
+                commandArray.Add("\"" + gameConfFile + "\"");
+            }
+            else
+            {
+                commandArray.Add("-conf");
+                commandArray.Add("\"" + Path.Combine(path, "dosbox.conf") + "\"");
+            }
+
+            string args = string.Join(" ", commandArray);
+
+            return new ProcessStartInfo()
+            {
+                FileName = exe,
+                WorkingDirectory = path,
+                Arguments = args + " -fullscreen -noconsole -exit -c \"set ROOT=" + rom + "\" ",
+            };
+            /*
+            commandArray = [batoceraFiles.batoceraBins[system.config['emulator']], 
+			    "-userconf", 
+			    "-exit", 
+			    """{}""".format(batFile),
+			    "-c", """set ROOT={}""".format(gameDir)]
+             * 
+            if os.path.isfile(gameConfFile):
+                commandArray.append("-conf")
+                commandArray.append("""{}""".format(gameConfFile))
+            else:
+                commandArray.append("-conf")
+                commandArray.append("""{}""".format(batoceraFiles.dosboxConfig))
+
+            return Command.Command(array=commandArray, env={"SDL_VIDEO_GL_DRIVER":"/usr/lib/libGLESv2.so"})*/
+        }
+    }
+}

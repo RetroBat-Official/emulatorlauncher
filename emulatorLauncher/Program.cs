@@ -18,6 +18,8 @@ namespace emulatorLauncher
             { "ps3", () => new Rpcs3Generator() },  
             { "ps2", () => new Pcsx2Generator() },  
             { "fpinball", () => new FpinballGenerator() },
+            { "dos", () => new DosBoxGenerator() },
+            { "pc", () => new DosBoxGenerator() },
             
     /*,
             'moonlight': MoonlightGenerator(),
@@ -44,9 +46,8 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
+            SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info(Environment.CommandLine);
-
-           // MessageBox.Show("attach");
 
             LocalPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             AppConfig = ConfigFile.FromFile(Path.Combine(LocalPath, "emulatorLauncher.cfg"));
@@ -66,7 +67,7 @@ namespace emulatorLauncher
                 return;
             }
 
-            if (!File.Exists(SystemConfig["rom"]))
+            if (!File.Exists(SystemConfig.GetFullPath("rom")) && !Directory.Exists(SystemConfig.GetFullPath("rom")))
             {
                 SimpleLogger.Instance.Error("rom does not exist");
                 return;
@@ -88,11 +89,10 @@ namespace emulatorLauncher
                 SystemConfig["emulator"] = SystemConfig["system"];
             
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
-            if (generator == null)
-                generator = generators.Where(g => g.Key == SystemConfig["system"]).Select(g => g.Value()).FirstOrDefault();
-
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
                 generator = new LibRetroGenerator();
+            if (generator == null)
+                generator = generators.Where(g => g.Key == SystemConfig["system"]).Select(g => g.Value()).FirstOrDefault();
 
             if (generator != null)
             {

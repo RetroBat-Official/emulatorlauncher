@@ -7,6 +7,57 @@ using System.Diagnostics;
 
 namespace emulatorLauncher.libRetro
 {
+
+    class SubSystem
+    {
+        static public List<SubSystem> subSystems = new List<SubSystem>()
+        {
+            new SubSystem("fbneo", "colecovision", "cv"),
+
+            new SubSystem("fbneo", "msx", "msx"),                        
+            new SubSystem("fbneo", "msx1", "msx"),
+
+            new SubSystem("fbneo", "supergrafx", "sgx"),
+            new SubSystem("fbneo", "pcengine", "pce"),
+            new SubSystem("fbneo", "pcenginecd", "pce"),
+
+            new SubSystem("fbneo", "turbografx", "tg"),
+            new SubSystem("fbneo", "turbografx16", "tg"),
+            
+            new SubSystem("fbneo", "gamegear", "gg"),
+            new SubSystem("fbneo", "mastersystem", "sms"),
+            new SubSystem("fbneo", "megadrive", "md"),
+
+            new SubSystem("fbneo", "sg1000", "sg1k"),
+            new SubSystem("fbneo", "sg-1000", "sg1k"),
+            
+            new SubSystem("fbneo", "zxspectrum", "spec"),
+
+            new SubSystem("fbneo", "neogeocd", "neocd")            
+        };
+
+        public static string GetSubSystem(string core, string system)
+        {
+            var sub = subSystems.FirstOrDefault(s => s.Core.Equals(core, StringComparison.InvariantCultureIgnoreCase) && s.System.Equals(system, StringComparison.InvariantCultureIgnoreCase));
+            if (sub != null)
+                return sub.SubSystemId;
+
+            return null;
+        }
+
+        public SubSystem(string core, string system, string subSystem)
+        {
+            System = system;
+            Core = core;
+            SubSystemId = subSystem;
+        }
+        
+        public string System { get; set; }
+        public string Core { get; set; }
+        public string SubSystemId { get; set; }        
+    }
+
+
     class LibRetroGenerator : Generator
     {
         public string RetroarchPath { get; set; }
@@ -117,19 +168,19 @@ namespace emulatorLauncher.libRetro
             }
 
             if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
-                retroarchConfig["system_directory"] = AppConfig["bios"];
+                retroarchConfig["system_directory"] = AppConfig.GetFullPath("bios");
             else 
                 retroarchConfig["system_directory"] = @":\system";
 
             if (!string.IsNullOrEmpty(AppConfig["thumbnails"]) && Directory.Exists(AppConfig["thumbnails"]))
-                retroarchConfig["thumbnails_directory"] = AppConfig["thumbnails"];
+                retroarchConfig["thumbnails_directory"] = AppConfig.GetFullPath("thumbnails");
             else 
                 retroarchConfig["system_directory"] = @":\thumbnails";
 
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
             {
-                retroarchConfig["savestate_directory"] = Path.Combine(AppConfig["saves"], system);
-                retroarchConfig["savefile_directory"] = Path.Combine(AppConfig["saves"], system);
+                retroarchConfig["savestate_directory"] = Path.Combine(AppConfig.GetFullPath("saves"), system);
+                retroarchConfig["savefile_directory"] = Path.Combine(AppConfig.GetFullPath("saves"), system);
             }
 
             if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
@@ -342,10 +393,25 @@ namespace emulatorLauncher.libRetro
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, string gameResolution)
         {
+            if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
+            {
+                string bat = Path.Combine(rom, "dosbox.bat");           
+                if (File.Exists(bat))
+                    rom = bat;
+            }
+
             Configure(system, rom, gameResolution);
             ConfigureCoreOptions(system, core);
 
             List<string> commandArray = new List<string>();
+
+
+            string subSystem = SubSystem.GetSubSystem(core, system);
+            if (!string.IsNullOrEmpty(subSystem))
+            {
+                commandArray.Add("--subsystem");
+                commandArray.Add(subSystem);
+            }
 
             if (!string.IsNullOrEmpty(SystemConfig["netplaymode"]))
             {
