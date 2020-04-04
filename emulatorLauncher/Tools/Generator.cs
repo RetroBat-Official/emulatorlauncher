@@ -13,5 +13,7 @@ namespace emulatorLauncher
 
         public abstract ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, string gameResolution);
         public virtual void Cleanup() { }
+
+        public virtual bool DependsOnDesktopResolution { get { return false; } }
     }
 }

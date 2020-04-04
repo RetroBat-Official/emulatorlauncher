@@ -53,6 +53,7 @@
     <Compile Include="Generators\OpenBorGenerator.cs" />
     <Compile Include="Generators\Model2Generator.cs" />
     <Compile Include="Tools\ConfigFile.cs" />
+    <Compile Include="Tools\ScreenResolution.cs" />
     <Compile Include="Tools\IniFile.cs" />
     <Compile Include="Tools\SimpleLogger.cs" />
     <Compile Include="Tools\SimpleYml.cs" />

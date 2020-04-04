@@ -9,6 +9,13 @@ namespace emulatorLauncher
 {
     class Pcsx2Generator : Generator
     {
+        public override bool DependsOnDesktopResolution
+        {
+            get
+            {
+                return true;
+            }
+        }
         private string path;
         private string romName;
 
@@ -31,12 +38,12 @@ namespace emulatorLauncher
 
             SaveIni(path, romName, "GSdx.ini");
             SaveIni(path, romName, "PCSX2_vm.ini");
-
+         
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "--portable --fullscreen --nogui \"" + rom + "\"",            
+                Arguments = "--portable --fullscreen --nogui \"" + rom + "\"", 
             };
         }
 
@@ -53,8 +60,9 @@ namespace emulatorLauncher
 
                         string biosPath = AppConfig.GetFullPath("bios");
                         if (!string.IsNullOrEmpty(biosPath))
-                        {
+                        {                            
                             string relPath = relRoot.MakeRelativeUri(new Uri(biosPath, UriKind.Absolute)).ToString().Replace("/", "\\");
+                            relPath = relPath.Replace("\\", "\\\\");
                             ini.WriteValue("Folders", "UseDefaultBios", "disabled");
                             ini.WriteValue("Folders", "Bios", relPath);
                         }
@@ -68,6 +76,7 @@ namespace emulatorLauncher
                                 catch { }
 
                             string relPath = relRoot.MakeRelativeUri(new Uri(savesPath, UriKind.Absolute)).ToString().Replace("/", "\\");
+                            relPath = relPath.Replace("\\", "\\\\");
                             ini.WriteValue("Folders", "Savestates", Path.Combine(relPath, "pcsx2"));
                         }
                     }

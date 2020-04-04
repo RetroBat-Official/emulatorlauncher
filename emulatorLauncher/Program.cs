@@ -107,10 +107,13 @@ namespace emulatorLauncher
 
                     path.UseShellExecute = true;
 
-                    Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
+                    using (ScreenResolution.FromStringResolution(generator.DependsOnDesktopResolution ? videoMode : null))
+                    {
+                        Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
 
-                    try { Process.Start(path).WaitForExit(); }
-                    catch { }
+                        try { Process.Start(path).WaitForExit(); }
+                        catch { }
+                    }
 
                     generator.Cleanup();
                 }              
