@@ -13,7 +13,18 @@ namespace emulatorLauncher
         {
             string batFile = Path.Combine(rom, "dosbox.bat");
             string gameConfFile =  Path.Combine(rom, "dosbox.cfg");
-           
+
+            string exeFile = Path.Combine(rom, "dosbox.exe");
+            if (File.Exists(exeFile))
+            {
+                return new ProcessStartInfo()
+                {
+                    FileName = exeFile,
+                    WorkingDirectory = rom,
+                    Arguments = "-noconsole -exit"
+                };                
+            }
+
             string path = AppConfig.GetFullPath("dosbox");
             if (string.IsNullOrEmpty(path))
                 return null;

@@ -17,15 +17,26 @@ namespace batocera_resolution
             {
                 if (vDevMode.dmDisplayFixedOutput == 0)
                 {
-                    Console.WriteLine("{0}x{1}x{2}x{3}:{4}x{5}x{6} {7}Hz",
+                    if (vDevMode.dmBitsPerPel == 32)
+
+                        Console.WriteLine("{0}x{1}x{2}x{3}:{4}x{5} {6}Hz",
                                             vDevMode.dmPelsWidth,
                                             vDevMode.dmPelsHeight,
                                             vDevMode.dmBitsPerPel,
-                                            vDevMode.dmDisplayFrequency, 
+                                            vDevMode.dmDisplayFrequency,
                                             vDevMode.dmPelsWidth,
                                             vDevMode.dmPelsHeight,
-                                            vDevMode.dmBitsPerPel,
                                             vDevMode.dmDisplayFrequency);
+                    else
+                        Console.WriteLine("{0}x{1}x{2}x{3}:{4}x{5}x{6} {7}Hz",
+                                                vDevMode.dmPelsWidth,
+                                                vDevMode.dmPelsHeight,
+                                                vDevMode.dmBitsPerPel,
+                                                vDevMode.dmDisplayFrequency,
+                                                vDevMode.dmPelsWidth,
+                                                vDevMode.dmPelsHeight,
+                                                vDevMode.dmBitsPerPel,
+                                                vDevMode.dmDisplayFrequency);
                 }
 
                 i++;
