@@ -18,6 +18,7 @@ namespace emulatorLauncher
             { "ps3", () => new Rpcs3Generator() },  
             { "ps2", () => new Pcsx2Generator() },  
             { "fpinball", () => new FpinballGenerator() },
+            { "vpinball", () => new VPinballGenerator() },
             { "dos", () => new DosBoxGenerator() },
             { "pc", () => new DosBoxGenerator() },
             
@@ -96,29 +97,30 @@ namespace emulatorLauncher
 
             if (generator != null)
             {
-                string videoMode = SystemConfig["videomode"];
-                ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, videoMode);
-                if (path != null)
+                using (var screenResolution = ScreenResolution.Parse(SystemConfig["videomode"]))
                 {
-                    if (path.Arguments != null)
-                        SimpleLogger.Instance.Info("->  " + path.FileName + " " + path.Arguments);
-                    else
-                        SimpleLogger.Instance.Info("->  " + path.FileName);
-
-                    path.UseShellExecute = true;
-
-                    using (ScreenResolution.FromStringResolution(generator.DependsOnDesktopResolution ? videoMode : null))
+                    ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, screenResolution);
+                    if (path != null)
                     {
+                        if (path.Arguments != null)
+                            SimpleLogger.Instance.Info("->  " + path.FileName + " " + path.Arguments);
+                        else
+                            SimpleLogger.Instance.Info("->  " + path.FileName);
+
+                        path.UseShellExecute = true;
+
+                        if (screenResolution != null && generator.DependsOnDesktopResolution)
+                            screenResolution.Apply();
+
                         Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
 
-                        try { Process.Start(path).WaitForExit(); }
-                        catch { }
+                        generator.RunAndWait(path);
                     }
+                    else
+                        SimpleLogger.Instance.Error("generator failed");
+                }
 
-                    generator.Cleanup();
-                }              
-                else
-                    SimpleLogger.Instance.Error("generator failed");
+                generator.Cleanup();
             }
             else
                 SimpleLogger.Instance.Error("cant find generator");

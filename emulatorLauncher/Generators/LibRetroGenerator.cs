@@ -135,7 +135,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
         }
 
-        private void Configure(string system, string rom, string gameResolution)
+        private void Configure(string system, string rom, ScreenResolution resolution)
         {
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
 
@@ -146,36 +146,39 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["pause_nonactive"] = "false";
             retroarchConfig["video_fullscreen"] = "true";
             // retroarchConfig["menu_driver"] = "ozone";
-            
-            if (string.IsNullOrEmpty(gameResolution) || gameResolution == "auto")
+
+            if (resolution == null)
                 retroarchConfig["video_windowed_fullscreen"] = "true";
             else 
             {
-                var values = gameResolution.Split(new char[] { 'x' }, StringSplitOptions.RemoveEmptyEntries);
-                if (values.Length != 4)
-                    retroarchConfig["video_windowed_fullscreen"] = "true";
-                else
-                {
-                    int x;
-                    if (int.TryParse(values[0], out x))
-                        retroarchConfig["video_fullscreen_x"] = x.ToString();
-
-                    if (int.TryParse(values[1], out x))
-                        retroarchConfig["video_fullscreen_y"] = x.ToString();
-
-                    retroarchConfig["video_windowed_fullscreen"] = "false";
-                }
+                retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
+                retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
+                retroarchConfig["video_windowed_fullscreen"] = "false";
             }
 
-            if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
-                retroarchConfig["system_directory"] = AppConfig.GetFullPath("bios");
-            else 
-                retroarchConfig["system_directory"] = @":\system";
+            if (!string.IsNullOrEmpty(AppConfig["bios"]))
+            {
+                if (Directory.Exists(AppConfig["bios"]))
+                    retroarchConfig["system_directory"] = AppConfig.GetFullPath("bios");
+                else if (retroarchConfig["system_directory"] != @":\system" && !Directory.Exists(retroarchConfig["system_directory"]))
+                    retroarchConfig["system_directory"] = @":\system";
+            }
 
-            if (!string.IsNullOrEmpty(AppConfig["thumbnails"]) && Directory.Exists(AppConfig["thumbnails"]))
-                retroarchConfig["thumbnails_directory"] = AppConfig.GetFullPath("thumbnails");
-            else
-                retroarchConfig["thumbnails_directory"] = @":\thumbnails";
+            if (!string.IsNullOrEmpty(AppConfig["thumbnails"]))
+            {
+                if (Directory.Exists(AppConfig["thumbnails"]))
+                    retroarchConfig["thumbnails_directory"] = AppConfig.GetFullPath("thumbnails");
+                else if (retroarchConfig["thumbnails_directory"] != @":\thumbnails" && !Directory.Exists(retroarchConfig["thumbnails_directory"]))
+                    retroarchConfig["thumbnails_directory"] = @":\thumbnails";
+            }
+
+            if (!string.IsNullOrEmpty(AppConfig["screenshots"]))
+            {
+                if (Directory.Exists(AppConfig["screenshots"]))
+                    retroarchConfig["screenshot_directory"] = AppConfig.GetFullPath("screenshots");
+                else if (retroarchConfig["screenshot_directory"] != @":\screenshots" && !Directory.Exists(retroarchConfig["screenshot_directory"]))
+                    retroarchConfig["screenshot_directory"] = @":\screenshots";
+            }
 
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
             {
@@ -309,7 +312,7 @@ namespace emulatorLauncher.libRetro
             
             // bezel
 
-            writeBezelConfig(retroarchConfig, system, rom, gameResolution);
+            writeBezelConfig(retroarchConfig, system, rom, resolution);
 
             // custom : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
             foreach (var user_config in SystemConfig)
@@ -320,7 +323,7 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
         }
 
-        private void writeBezelConfig(ConfigFile retroarchConfig, string systemName, string rom, string gameResolution)
+        private void writeBezelConfig(ConfigFile retroarchConfig, string systemName, string rom, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("decorations");
 
@@ -391,7 +394,7 @@ namespace emulatorLauncher.libRetro
             File.WriteAllText(overlay_cfg_file, fd.ToString());            
         }
 
-        public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, string gameResolution)
+        public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
@@ -400,7 +403,7 @@ namespace emulatorLauncher.libRetro
                     rom = bat;
             }
 
-            Configure(system, rom, gameResolution);
+            Configure(system, rom, resolution);
             ConfigureCoreOptions(system, core);
 
             List<string> commandArray = new List<string>();

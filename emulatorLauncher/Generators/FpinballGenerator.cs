@@ -6,16 +6,23 @@ using System.IO;
 using System.Diagnostics;
 using Microsoft.Win32;
 using System.Windows.Forms;
+using emulatorLauncher.Tools;
+using System.Threading;
 
 namespace emulatorLauncher
 {
     class FpinballGenerator : Generator
     {
-        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, string gameResolution)
+        string _bam;
+        string _rom;
+
+        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("fpinball");
 
-            string bam = Path.Combine(path, "BAM", "FPLoader.exe");
+            _rom = rom;
+            _bam = Path.Combine(path, "BAM", "FPLoader.exe");
+
             string exe = Path.Combine(path, "Future Pinball.exe");
             if (!File.Exists(exe))
             {
@@ -24,17 +31,64 @@ namespace emulatorLauncher
                     return null;
             }
 
-            if (File.Exists(bam))
-                SetAsAdmin(bam);
+            if (File.Exists(_bam))
+                SetAsAdmin(_bam);
 
             SetAsAdmin(exe);
-            SetupOptions(gameResolution);
+            SetupOptions(resolution);
 
             return new ProcessStartInfo()
             {
-                FileName = File.Exists(bam) ? bam : exe,
+                FileName = File.Exists(_bam) ? _bam : exe,
                 Arguments = "/open \"" + rom + "\" /play /exit",            
             };
+        }
+
+        public override void RunAndWait(ProcessStartInfo path)
+        {
+            Process process = null;
+
+            if (File.Exists(_bam))
+            {
+                Process.Start(path);
+
+                int tickCount = Environment.TickCount;
+                string fileNameWithoutExtension = "Future Pinball";
+
+                process = Process.GetProcessesByName(fileNameWithoutExtension).FirstOrDefault<Process>();
+                while (process == null && (Environment.TickCount - tickCount < 1000))
+                {
+                    process = Process.GetProcessesByName(fileNameWithoutExtension).FirstOrDefault<Process>();
+                    if (process == null)
+                        Thread.Sleep(10);
+                }
+            }
+            else
+                process = Process.Start(path);
+
+            if (process != null)
+                process.WaitForExit();
+        }
+
+        public override void Cleanup()
+        {
+            PerformBamCapture();
+            base.Cleanup();
+        }
+
+        private void PerformBamCapture()
+        {
+            if (!File.Exists(_bam))
+                return;
+
+            string bam = Path.Combine(Path.GetDirectoryName(_bam), Path.ChangeExtension(Path.GetFileName(_rom), ".png"));
+            if (File.Exists(bam))
+            {
+                ScreenCapture.AddImageToGameList(_rom, bam);
+
+                try { File.Delete(bam); }
+                catch { }
+            }
         }
 
         private static void SetAsAdmin(string path)
@@ -49,7 +103,7 @@ namespace emulatorLauncher
             }
         }
 
-        private static void SetupOptions(string gameResolution)
+        private static void SetupOptions(ScreenResolution resolution)
         {
             RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
             if (regKeyc != null)
@@ -58,25 +112,18 @@ namespace emulatorLauncher
             if (regKeyc != null)
             {
                 regKeyc.SetValue("FullScreen", 1);
-                regKeyc.SetValue("Height", Screen.PrimaryScreen.Bounds.Height);
-                regKeyc.SetValue("Width", Screen.PrimaryScreen.Bounds.Width);
-                regKeyc.SetValue("BitsPerPixel", Screen.PrimaryScreen.BitsPerPixel);
 
-                if (!string.IsNullOrEmpty(gameResolution) && gameResolution != "auto")
+                if (resolution != null)
                 {
-                    var values = gameResolution.Split(new char[] { 'x' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (values.Length == 4)
-                    {
-                        int x;
-                        if (int.TryParse(values[0], out x))
-                            regKeyc.SetValue("Width", x);
-
-                        if (int.TryParse(values[1], out x))
-                            regKeyc.SetValue("Height", x);
-
-                        if (int.TryParse(values[2], out x))
-                            regKeyc.SetValue("BitsPerPixel", x);
-                    }
+                    regKeyc.SetValue("Width", resolution.Width);
+                    regKeyc.SetValue("Height", resolution.Height);
+                    regKeyc.SetValue("BitsPerPixel", resolution.BitsPerPel);
+                }
+                else
+                {
+                    regKeyc.SetValue("Height", Screen.PrimaryScreen.Bounds.Height);
+                    regKeyc.SetValue("Width", Screen.PrimaryScreen.Bounds.Width);
+                    regKeyc.SetValue("BitsPerPixel", Screen.PrimaryScreen.BitsPerPixel);
                 }
 
                 if (regKeyc.GetValue("DefaultCamera") == null)

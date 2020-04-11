@@ -52,7 +52,11 @@
     <Compile Include="Generators\Rpcs3Generator.cs" />
     <Compile Include="Generators\OpenBorGenerator.cs" />
     <Compile Include="Generators\Model2Generator.cs" />
+    <Compile Include="Generators\VPinballGenerator.cs" />
     <Compile Include="Tools\ConfigFile.cs" />
+    <Compile Include="Tools\GameList.cs" />
+    <Compile Include="Tools\KeyboardManager.cs" />
+    <Compile Include="Tools\ScreenCapture.cs" />
     <Compile Include="Tools\ScreenResolution.cs" />
     <Compile Include="Tools\IniFile.cs" />
     <Compile Include="Tools\SimpleLogger.cs" />
@@ -63,6 +67,11 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools\SystemShaders.cs" />
+    <Compile Include="Tools\Tools.cs" />
+    <Compile Include="VPinball\LoadingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="VPinball\ScreenRes.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -84,6 +93,7 @@
     </Compile>
     <None Include="Resources\configgen-defaults.yml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

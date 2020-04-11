@@ -21,7 +21,7 @@ namespace emulatorLauncher
 
         private const string savDirName = "tmp";
 
-        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, string gameResolution)
+        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             path = AppConfig.GetFullPath("pcsx2");
 

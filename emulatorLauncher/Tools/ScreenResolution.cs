@@ -9,7 +9,7 @@ namespace emulatorLauncher
 {
     class ScreenResolution : IDisposable
     {
-        public static ScreenResolution FromStringResolution(string gameResolution)
+        public static ScreenResolution Parse(string gameResolution)
         {
             if (string.IsNullOrEmpty(gameResolution))
                 return null;
@@ -37,10 +37,28 @@ namespace emulatorLauncher
             return new ScreenResolution(width, height, bitCount, frequency);
         }
 
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+        public int BitsPerPel { get; private set; }
+        public int DisplayFrequency { get; private set; }
+
         DEVMODE originalMode = new DEVMODE();
         bool changed = false;
 
-        public ScreenResolution(int width, int height, int bitCount, int frequency)
+        private ScreenResolution(int width, int height, int bitCount, int frequency)
+        {
+            changed = false;
+            
+            Width = width;
+            Height = height;
+            BitsPerPel = bitCount;
+            DisplayFrequency = frequency;
+        }
+
+        /// <summary>
+        /// Changing the settings
+        /// </summary>
+        public void Apply()
         {
             originalMode.dmSize = (short)Marshal.SizeOf(originalMode);
 
@@ -53,10 +71,10 @@ namespace emulatorLauncher
             DEVMODE newMode = originalMode;
 
             // Changing the settings
-            newMode.dmPelsWidth = width;
-            newMode.dmPelsHeight = height;
-            newMode.dmBitsPerPel = bitCount;
-            newMode.dmDisplayFrequency = frequency;
+            newMode.dmPelsWidth = Width;
+            newMode.dmPelsHeight = Height;
+            newMode.dmBitsPerPel = BitsPerPel;
+            newMode.dmDisplayFrequency = DisplayFrequency;
 
             changed = ChangeDisplaySettings(ref newMode, 0) == DISP_CHANGE_SUCCESSFUL;
         }
@@ -95,7 +113,7 @@ namespace emulatorLauncher
         }
 
         [Flags()]
-        public enum ChangeDisplaySettingsFlags : uint
+        enum ChangeDisplaySettingsFlags : uint
         {
             CDS_NONE = 0,
             CDS_UPDATEREGISTRY = 0x00000001,
@@ -112,7 +130,7 @@ namespace emulatorLauncher
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct DEVMODE
+        struct DEVMODE
         {
             private const int CCHDEVICENAME = 0x20;
             private const int CCHFORMNAME = 0x20;

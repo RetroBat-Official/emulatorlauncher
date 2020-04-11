@@ -9,7 +9,7 @@ namespace emulatorLauncher
 {
     class Rpcs3Generator : Generator
     {
-        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, string gameResolution)
+        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("rpcs3");
 
