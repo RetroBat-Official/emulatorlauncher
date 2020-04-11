@@ -174,8 +174,8 @@ namespace emulatorLauncher.libRetro
 
             if (!string.IsNullOrEmpty(AppConfig["thumbnails"]) && Directory.Exists(AppConfig["thumbnails"]))
                 retroarchConfig["thumbnails_directory"] = AppConfig.GetFullPath("thumbnails");
-            else 
-                retroarchConfig["system_directory"] = @":\thumbnails";
+            else
+                retroarchConfig["thumbnails_directory"] = @":\thumbnails";
 
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
             {
