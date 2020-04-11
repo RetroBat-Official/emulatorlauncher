@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace emulatorLauncher
 {
     class OpenBorGenerator : Generator
-    {
+    {        
         private string destFile;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)

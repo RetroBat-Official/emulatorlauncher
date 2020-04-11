@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>-system vpinball "H:\[Emulz]\roms\vpinball\4 Queens (Bally 1970).vpx"</StartArguments>
+    <StartArguments>-system openbor "H:\[Emulz]\roms\openbor\Crime Busters [ver. 3 2017][v.3.0 Build 4086].pak"</StartArguments>
   </PropertyGroup>
 </Project>

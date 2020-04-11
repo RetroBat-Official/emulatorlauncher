@@ -21,7 +21,9 @@ namespace emulatorLauncher
             string path = AppConfig.GetFullPath("fpinball");
 
             _rom = rom;
-            _bam = Path.Combine(path, "BAM", "FPLoader.exe");
+
+            if ("bam".Equals(emulator, StringComparison.InvariantCultureIgnoreCase) || "bam".Equals(core, StringComparison.InvariantCultureIgnoreCase))
+                _bam = Path.Combine(path, "BAM", "FPLoader.exe");
 
             string exe = Path.Combine(path, "Future Pinball.exe");
             if (!File.Exists(exe))
@@ -31,7 +33,7 @@ namespace emulatorLauncher
                     return null;
             }
 
-            if (File.Exists(_bam))
+            if (_bam != null && File.Exists(_bam))
                 SetAsAdmin(_bam);
 
             SetAsAdmin(exe);
@@ -39,7 +41,7 @@ namespace emulatorLauncher
 
             return new ProcessStartInfo()
             {
-                FileName = File.Exists(_bam) ? _bam : exe,
+                FileName = _bam != null && File.Exists(_bam) ? _bam : exe,
                 Arguments = "/open \"" + rom + "\" /play /exit",            
             };
         }
@@ -48,7 +50,7 @@ namespace emulatorLauncher
         {
             Process process = null;
 
-            if (File.Exists(_bam))
+            if (_bam != null && File.Exists(_bam))
             {
                 Process.Start(path);
 
@@ -78,15 +80,15 @@ namespace emulatorLauncher
 
         private void PerformBamCapture()
         {
-            if (!File.Exists(_bam))
+            if (_bam != null && !File.Exists(_bam))
                 return;
 
-            string bam = Path.Combine(Path.GetDirectoryName(_bam), Path.ChangeExtension(Path.GetFileName(_rom), ".png"));
-            if (File.Exists(bam))
+            string bamPng = Path.Combine(Path.GetDirectoryName(_bam), Path.ChangeExtension(Path.GetFileName(_rom), ".png"));
+            if (File.Exists(bamPng))
             {
-                ScreenCapture.AddImageToGameList(_rom, bam);
+                ScreenCapture.AddImageToGameList(_rom, bamPng);
 
-                try { File.Delete(bam); }
+                try { File.Delete(bamPng); }
                 catch { }
             }
         }
