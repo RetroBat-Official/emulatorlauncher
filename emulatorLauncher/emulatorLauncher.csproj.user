@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>-system openbor "H:\[Emulz]\roms\openbor\Crime Busters [ver. 3 2017][v.3.0 Build 4086].pak"</StartArguments>
+    <StartArguments>-monitor 1 -system n64 -emulator libretro -core parallel_n64  -rom "H:\[Emulz]\roms\n64\Mario Kart 64 (USA).z64"</StartArguments>
   </PropertyGroup>
 </Project>

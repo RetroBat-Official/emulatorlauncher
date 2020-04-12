@@ -147,6 +147,17 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["video_fullscreen"] = "true";
             // retroarchConfig["menu_driver"] = "ozone";
 
+            if (SystemConfig.isOptSet("monitor"))
+            {
+                int monitorId;
+                if (int.TryParse(SystemConfig["monitor"], out monitorId))
+                    retroarchConfig["video_monitor_index"] = (monitorId+1).ToString();
+                else
+                    retroarchConfig["video_monitor_index"] = "0";
+            }
+            else
+                retroarchConfig["video_monitor_index"] = "0";
+
             if (resolution == null)
                 retroarchConfig["video_windowed_fullscreen"] = "true";
             else 
