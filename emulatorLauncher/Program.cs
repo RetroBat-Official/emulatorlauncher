@@ -20,6 +20,7 @@ namespace emulatorLauncher
             { "fpinball", () => new FpinballGenerator() }, { "bam", () => new FpinballGenerator() },
             { "vpinball", () => new VPinballGenerator() },
             { "dos", () => new DosBoxGenerator() }, { "pc", () => new DosBoxGenerator() },
+            { "ppsspp", () => new PpssppGenerator() },
             
     /*,
             'moonlight': MoonlightGenerator(),

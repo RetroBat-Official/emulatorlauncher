@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generators\PpssppGenerator.cs" />
     <Compile Include="Generators\DosBoxGenerator.cs" />
     <Compile Include="Generators\FpinballGenerator.cs" />
     <Compile Include="Generators\Pcsx2Generator.cs" />
