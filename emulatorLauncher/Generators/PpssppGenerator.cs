@@ -25,7 +25,7 @@ namespace emulatorLauncher
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-fullscreen \"" + rom + "\"",
+                Arguments = "-escapeexitsemu -fullscreen \"" + rom + "\"",
                 WorkingDirectory = path,
             };
         }
@@ -38,7 +38,7 @@ namespace emulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(iniFile))
+                using (var ini = new IniFile(iniFile, true))
                 {
                     //if (SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS"))
                     if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))

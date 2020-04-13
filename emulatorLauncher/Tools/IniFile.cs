@@ -10,8 +10,9 @@ namespace emulatorLauncher
 {
 	public class IniFile : IDisposable
 	{
-        public IniFile(string path)
+        public IniFile(string path, bool useSpaces = false)
 		{
+            _useSpaces = false;
             _path = path;
             _dirty = false;
 
@@ -44,12 +45,13 @@ namespace emulatorLauncher
                                     currentSection = "ROOT";
 
                                 sectionPair.Section = currentSection;
-                                sectionPair.Key = keyPair[0];
+                                sectionPair.Key = keyPair[0].Trim();
 
                                 if (keyPair.Length > 1)
-                                    value = keyPair[1];
+                                    value = keyPair[1].Trim();
 
-                                _keyPairs.Add(sectionPair, value);
+                                if (!_keyPairs.ContainsKey(sectionPair))
+                                    _keyPairs.Add(sectionPair, value);
                             }
                         }
 
@@ -134,7 +136,15 @@ namespace emulatorLauncher
                         continue;
 
                     sb.Append(entry.Key.Key);
+
+                    if (_useSpaces)
+                        sb.Append(" ");
+
                     sb.Append("=");
+
+                    if (_useSpaces)
+                        sb.Append(" ");
+
                     sb.AppendLine(entry.Value);                    
                 }
 
@@ -162,6 +172,7 @@ namespace emulatorLauncher
             Save();
         }
 
+        private bool _useSpaces;
         private bool _dirty;
         private string _path;
         private Dictionary<SectionPair, string> _keyPairs = new Dictionary<SectionPair, string>();
@@ -170,6 +181,22 @@ namespace emulatorLauncher
         {
             public string Section;
             public string Key;
+
+            public override string ToString()
+            {
+                return "["+Section+"] "+Key;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is SectionPair)
+                {
+                    SectionPair sp = (SectionPair)obj;
+                    return (Section == sp.Section && Key == sp.Key);
+                }
+
+                return base.Equals(obj);
+            }
         }
 
         /*
