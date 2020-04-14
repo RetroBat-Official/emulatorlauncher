@@ -105,7 +105,7 @@ namespace emulatorLauncher
             }
         }
 
-        private static void SetupOptions(ScreenResolution resolution)
+        private void SetupOptions(ScreenResolution resolution)
         {
             RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
             if (regKeyc != null)
@@ -114,6 +114,21 @@ namespace emulatorLauncher
             if (regKeyc != null)
             {
                 regKeyc.SetValue("FullScreen", 1);
+
+                if (SystemConfig.isOptSet("arcademode") && SystemConfig["arcademode"] == "1")
+                    regKeyc.SetValue("ArcadeMode", 1);
+                else
+                    regKeyc.SetValue("ArcadeMode", 0);
+
+                if (SystemConfig.isOptSet("ratio"))
+                {
+                    if (SystemConfig["ratio"] == "4/3")
+                        regKeyc.SetValue("AspectRatio", 43);
+                    else if (SystemConfig["ratio"] == "16/9")
+                        regKeyc.SetValue("AspectRatio", 169);
+                }
+                else
+                    regKeyc.SetValue("AspectRatio", 169);
 
                 if (resolution != null)
                 {
@@ -134,9 +149,74 @@ namespace emulatorLauncher
                 if (regKeyc.GetValue("CameraFollowsTheBall") == null)
                     regKeyc.SetValue("CameraFollowsTheBall", 0);
 
-                //  if (regKeyc.GetValue("AspectRatio") == null && Screen.PrimaryScreen.Bounds.Height == 1080 && Screen.PrimaryScreen.Bounds.Width == 1920)
-                //      regKeyc.SetValue("AspectRatio", 169);
+                if (SystemConfig.isOptSet("preset") && SystemConfig["preset"] == "medium")
+                {
+                    regKeyc.SetValue("RenderGameRoom", 1);
+                    regKeyc.SetValue("RenderOrnaments", 1);
+                    regKeyc.SetValue("GlassOverlay", 1);
+                    regKeyc.SetValue("LightFacets", 0x20);
+                    regKeyc.SetValue("GlassReflections", 0);
+                    regKeyc.SetValue("PlayfieldReflections", 1);
+                    regKeyc.SetValue("RenderBallMirrors", 0);
+                    regKeyc.SetValue("SuperNiceCrystal", 0);
+                    regKeyc.SetValue("HighQualityPinballs", 1);
+                    regKeyc.SetValue("BallDirt", 1);
+                    regKeyc.SetValue("DisableShaders", 0);
+                    regKeyc.SetValue("ModelRenderQuality", 1);
+                    regKeyc.SetValue("RubberFacets", 0x10);
+                    regKeyc.SetValue("RubberSides", 0x0c);
+                    regKeyc.SetValue("WireGuideSides", 0x0c);
+                    regKeyc.SetValue("HighQualityTextures", 1);                 
+                }
+                else if (SystemConfig.isOptSet("preset") && SystemConfig["preset"] == "min")
+                {
+                    regKeyc.SetValue("RenderGameRoom", 0);
+                    regKeyc.SetValue("RenderOrnaments", 0);
+                    regKeyc.SetValue("GlassOverlay", 0);
+                    regKeyc.SetValue("LightFacets", 0x10);
+                    regKeyc.SetValue("GlassReflections", 0);
+                    regKeyc.SetValue("PlayfieldReflections", 0);
+                    regKeyc.SetValue("RenderBallMirrors", 0);
+                    regKeyc.SetValue("SuperNiceCrystal", 0);
+                    regKeyc.SetValue("HighQualityPinballs", 0);
+                    regKeyc.SetValue("BallDirt", 0);
+                    regKeyc.SetValue("DisableShaders", 1);
+                    regKeyc.SetValue("ModelRenderQuality", 0);
+                    regKeyc.SetValue("RubberFacets", 0x08);
+                    regKeyc.SetValue("RubberSides", 0x06);
+                    regKeyc.SetValue("WireGuideSides", 0x06);
+                    regKeyc.SetValue("HighQualityTextures", 0);
+                }
+                else
+                {
+                    regKeyc.SetValue("RenderGameRoom", 1);
+                    regKeyc.SetValue("RenderOrnaments", 1);
+                    regKeyc.SetValue("GlassOverlay", 1);
+                    regKeyc.SetValue("LightFacets", 0x40);
+                    regKeyc.SetValue("GlassReflections", 1);
+                    regKeyc.SetValue("PlayfieldReflections", 1);
+                    regKeyc.SetValue("RenderBallMirrors", 1);
+                    regKeyc.SetValue("SuperNiceCrystal", 1);
+                    regKeyc.SetValue("HighQualityPinballs", 1);
+                    regKeyc.SetValue("BallDirt", 1);
+                    regKeyc.SetValue("DisableShaders", 0);
+                    regKeyc.SetValue("ModelRenderQuality", 2);
+                    regKeyc.SetValue("RubberFacets", 0x40);
+                    regKeyc.SetValue("RubberSides", 0x14);
+                    regKeyc.SetValue("WireGuideSides", 0x14);
+                    regKeyc.SetValue("HighQualityTextures", 1);
+                }
 
+                regKeyc.Close();
+            }
+
+            regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
+            if (regKeyc != null)
+                regKeyc = regKeyc.CreateSubKey("Future Pinball").CreateSubKey("Editor");
+
+            if (regKeyc != null)
+            {
+                regKeyc.SetValue("LoadImagesIntoEditor", 0);
                 regKeyc.Close();
             }
         }

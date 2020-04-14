@@ -21,6 +21,7 @@ namespace emulatorLauncher
             { "vpinball", () => new VPinballGenerator() },
             { "dos", () => new DosBoxGenerator() }, { "pc", () => new DosBoxGenerator() },
             { "ppsspp", () => new PpssppGenerator() },
+            { "dolphin", () => new DolphinGenerator() },
             
     /*,
             'moonlight': MoonlightGenerator(),
@@ -30,8 +31,6 @@ namespace emulatorLauncher
             'fsuae': FsuaeGenerator(),
             'amiberry': AmiberryGenerator(),
             'reicast': ReicastGenerator(),
-            'dolphin': DolphinGenerator(),         
-            'ppsspp': PPSSPPGenerator(),
             'citra' : CitraGenerator()*/
         };
 

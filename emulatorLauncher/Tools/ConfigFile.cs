@@ -93,7 +93,26 @@ namespace emulatorLauncher
         {
             string data = this[key];
             if (string.IsNullOrEmpty(data))
+            {
+                if (key == "home" && Directory.Exists(Path.Combine(Program.LocalPath, ".emulationstation")))                        
+                    return Path.Combine(Program.LocalPath, ".emulationstation");
+
+                if (key == "bios" || key == "saves" || key == "thumbnails" || key == "shaders" || key == "decorations" || key == "screenshots")
+                {
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", key)));
+                }
+                else
+                {
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, key))); 
+                    
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", key)));
+                }
+                
                 return string.Empty;
+            }
 
             if (data.StartsWith("."))
                 return Path.GetFullPath(Path.Combine(Program.LocalPath, data));

@@ -407,6 +407,9 @@ namespace emulatorLauncher.libRetro
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            if (string.IsNullOrEmpty(RetroarchPath))
+                return null;
+
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
                 string bat = Path.Combine(rom, "dosbox.bat");           
