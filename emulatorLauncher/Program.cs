@@ -19,7 +19,7 @@ namespace emulatorLauncher
             { "ps2", () => new Pcsx2Generator() },  { "pcsx2", () => new Pcsx2Generator() },  
             { "fpinball", () => new FpinballGenerator() }, { "bam", () => new FpinballGenerator() },
             { "vpinball", () => new VPinballGenerator() },
-            { "dos", () => new DosBoxGenerator() }, { "pc", () => new DosBoxGenerator() },
+            { "dosbox", () => new DosBoxGenerator() },
             { "ppsspp", () => new PpssppGenerator() },
             { "dolphin", () => new DolphinGenerator() },
             

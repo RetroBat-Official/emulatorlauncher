@@ -12,7 +12,12 @@ namespace emulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string batFile = Path.Combine(rom, "dosbox.bat");
+
             string gameConfFile =  Path.Combine(rom, "dosbox.cfg");
+
+            string ext = Path.GetExtension(rom).ToLower();
+            if ((ext == ".dosbox" || ext == ".dos" || ext == ".pc" || ext == ".conf") && File.Exists(rom))
+                gameConfFile = rom;
 
             string exeFile = Path.Combine(rom, "dosbox.exe");
             if (File.Exists(exeFile))
