@@ -405,6 +405,16 @@ namespace emulatorLauncher.libRetro
             File.WriteAllText(overlay_cfg_file, fd.ToString());            
         }
 
+        private string _dosBoxTempRom;
+
+        public override void Cleanup()
+        {
+            if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
+                File.Delete(_dosBoxTempRom);
+
+            base.Cleanup();
+        }
+
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             if (string.IsNullOrEmpty(RetroarchPath))
@@ -412,9 +422,37 @@ namespace emulatorLauncher.libRetro
 
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
-                string bat = Path.Combine(rom, "dosbox.bat");           
+                string bat = Path.Combine(rom, "dosbox.bat");
                 if (File.Exists(bat))
                     rom = bat;
+                else
+                {
+                    string ext = Path.GetExtension(rom).ToLower();
+                    if ((ext == ".dosbox" || ext == ".dos" || ext == ".pc") && File.Exists(rom))
+                    {
+                        string tempRom = Path.Combine(Path.GetDirectoryName(rom), "dosbox.conf");
+                        if (File.Exists(tempRom) && !new FileInfo(tempRom).Attributes.HasFlag(FileAttributes.Hidden))
+                            rom = tempRom;
+                        else
+                        {
+                            try 
+                            { 
+                                if (File.Exists(tempRom))
+                                    File.Delete(tempRom); 
+                            }
+                            catch { }
+
+                            try
+                            {
+                                File.Copy(rom, tempRom);
+                                new FileInfo(tempRom).Attributes |= FileAttributes.Hidden;
+                                rom = tempRom;
+                                _dosBoxTempRom = tempRom;
+                            }
+                            catch { }
+                        }                            
+                    }
+                }
             }
 
             Configure(system, rom, resolution);
@@ -459,7 +497,8 @@ namespace emulatorLauncher.libRetro
             return new ProcessStartInfo()
             {
                 FileName = Path.Combine(RetroarchPath, "retroarch.exe"),
-                Arguments = "-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args
+                WorkingDirectory = RetroarchPath,                
+                Arguments = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
             };
         }
 
