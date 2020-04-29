@@ -10,6 +10,7 @@ namespace emulatorLauncher
     {
         protected ConfigFile AppConfig { get { return Program.AppConfig; } }
         protected ConfigFile SystemConfig { get { return Program.SystemConfig; } }
+        protected List<Controller> Controllers { get { return Program.Controllers; } }
 
         public abstract ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution);
         public virtual void Cleanup() { }

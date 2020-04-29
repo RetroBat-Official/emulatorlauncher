@@ -12,6 +12,13 @@ namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        public static int ToInteger(this string value)
+        {
+            int ret = 0;
+            int.TryParse(value, out ret);
+            return ret;
+        }
+
         public static T FromXml<T>(string xmlPathName) where T : class
         {
             if (string.IsNullOrEmpty(xmlPathName))

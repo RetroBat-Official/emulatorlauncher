@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using emulatorLauncher.libRetro;
 using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -37,6 +38,7 @@ namespace emulatorLauncher
         public static ConfigFile AppConfig { get; private set; }
         public static string LocalPath { get; private set; }
         public static ConfigFile SystemConfig { get; private set; }
+        public static List<Controller> Controllers { get; set; }
 
         /// <summary>
         /// The main entry point for the application.
@@ -57,6 +59,7 @@ namespace emulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileNameWithoutExtension(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
+            LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
             if (!SystemConfig.isOptSet("rom"))
@@ -123,6 +126,69 @@ namespace emulatorLauncher
                 SimpleLogger.Instance.Error("cant find generator");
         }
 
+        private static void LoadControllerConfiguration(string[] args)
+        {
+            Controllers = new List<Controller>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i].StartsWith("-p") && args[i].Length > 3)
+                {
+                    int playerId;
+                    int.TryParse(args[i].Substring(2, 1), out playerId);
+
+                    Controller player = Controllers.FirstOrDefault(c => c.Index == playerId);
+                    if (player == null)
+                    {
+                        player = new Controller() { Index = playerId };
+                        Controllers.Add(player);
+                    }
+
+                    if (args.Length < i + 1)
+                        break;
+
+                    string var = args[i].Substring(3);
+                    string val = args[i + 1];
+                    if (val.StartsWith("-"))
+                        continue;
+
+                    switch (var)
+                    {
+                        case "guid": player.Guid = val; break;
+                        case "name": player.Name = val; break;
+                        case "nbbuttons": player.Buttons = val.ToInteger(); break;
+                        case "nbhats": player.Hats = val.ToInteger(); break;
+                        case "nbaxes": player.Axes = val.ToInteger(); break;
+                    }
+                }
+            }
+
+            try
+            {
+                var inputConfig = InputList.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_input.cfg"));
+                if (inputConfig != null)
+                {
+                    if (!Controllers.Any())
+                    {
+                        var pi = new Controller() { Index = 1 };
+                        pi.Input = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
+                        if (pi.Input != null)
+                            Controllers.Add(pi);
+                    }
+                    else
+                    {
+                        foreach (var pi in Controllers)
+                        {
+                            pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID == pi.Guid && c.DeviceName == pi.Name);
+                            if (pi.Input == null)
+                                pi.Input = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
         private static void ImportShaderOverrides()
         {
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shaderset") && SystemConfig["shaderset"] != "none")
@@ -137,4 +203,19 @@ namespace emulatorLauncher
             }
         }
     }
+
+    class Controller
+    {
+        public int Index { get; set; }
+        public string Guid { get; set; }
+        public string Name { get; set; }
+        public int Buttons { get; set; }
+        public int Hats { get; set; }
+        public int Axes { get; set; }
+
+        public InputConfig Input { get; set; }
+
+        public override string ToString() { return Name; }
+    }
+
 }

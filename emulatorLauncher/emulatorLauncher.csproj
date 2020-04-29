@@ -57,10 +57,12 @@
     <Compile Include="Generators\VPinballGenerator.cs" />
     <Compile Include="Tools\ConfigFile.cs" />
     <Compile Include="Tools\GameList.cs" />
+    <Compile Include="Tools\InputList.cs" />
     <Compile Include="Tools\KeyboardManager.cs" />
     <Compile Include="Tools\ScreenCapture.cs" />
     <Compile Include="Tools\ScreenResolution.cs" />
     <Compile Include="Tools\IniFile.cs" />
+    <Compile Include="Tools\SDL2.cs" />
     <Compile Include="Tools\SimpleLogger.cs" />
     <Compile Include="Tools\SimpleYml.cs" />
     <Compile Include="Tools\SystemDefaults.cs" />
