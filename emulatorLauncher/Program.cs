@@ -40,6 +40,14 @@ namespace emulatorLauncher
         public static ConfigFile SystemConfig { get; private set; }
         public static List<Controller> Controllers { get; set; }
 
+        public static bool EnableHotKeyStart
+        {
+            get
+            {
+                return Process.GetProcessesByName("JoyToKey").Length == 0;
+            }
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -156,9 +164,9 @@ namespace emulatorLauncher
                     {
                         case "guid": player.Guid = val; break;
                         case "name": player.Name = val; break;
-                        case "nbbuttons": player.Buttons = val.ToInteger(); break;
-                        case "nbhats": player.Hats = val.ToInteger(); break;
-                        case "nbaxes": player.Axes = val.ToInteger(); break;
+                        case "nbbuttons": player.NbButtons = val.ToInteger(); break;
+                        case "nbhats": player.NbHats = val.ToInteger(); break;
+                        case "nbaxes": player.NbAxes = val.ToInteger(); break;
                     }
                 }
             }
@@ -209,9 +217,9 @@ namespace emulatorLauncher
         public int Index { get; set; }
         public string Guid { get; set; }
         public string Name { get; set; }
-        public int Buttons { get; set; }
-        public int Hats { get; set; }
-        public int Axes { get; set; }
+        public int NbButtons { get; set; }
+        public int NbHats { get; set; }
+        public int NbAxes { get; set; }
 
         public InputConfig Input { get; set; }
 
