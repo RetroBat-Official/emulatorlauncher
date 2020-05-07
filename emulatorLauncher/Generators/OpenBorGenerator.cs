@@ -176,6 +176,9 @@ namespace emulatorLauncher
         #region Ini file
         private void setupControllers(ConfigFile ini)
         {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
             if (!Controllers.Any())
                 return;
 
@@ -277,9 +280,7 @@ namespace emulatorLauncher
             conf["fullscreen"] = "1";
             conf["vsync"] = "1";
             conf["usegl"] = "1";
-
-            if( SystemConfig.isOptSet("ratio"))
-                conf["stretch"] = SystemConfig["ratio"] == "1" ? "1" : "0";
+            conf["stretch"] = SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1" ? "1" : "0";
 
             if (SystemConfig.isOptSet("filter"))
                 conf["swfilter"] = SystemConfig["filter"];
@@ -315,6 +316,9 @@ namespace emulatorLauncher
         #region bor.cfg
         private void setupControllersCfg(savedata conf)
         {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
             if (!Controllers.Any())
                 return;
 
@@ -435,6 +439,7 @@ namespace emulatorLauncher
             conf.fullscreen = 1;
             conf.vsync = 1;
             conf.usegl = 1;
+            conf.stretch = SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1" ? 1 : 0;
 
             try
             {
