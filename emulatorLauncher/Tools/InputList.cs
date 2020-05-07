@@ -5,6 +5,9 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 using System.Windows.Forms;
+using System.Management;
+using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace emulatorLauncher.Tools
 {
@@ -101,6 +104,129 @@ namespace emulatorLauncher.Tools
             }
         }
 
+        bool IsXInputDevice(string vendorId, string productId)
+        {
+            var ParseIds = new Regex(@"([VP])ID_([\da-fA-F]{4})");
+            // Used to grab the VID/PID components from the device ID string.                
+            // Iterate over all PNP devices.                
+
+            using (var QueryPnp = new ManagementObjectSearcher(@"\\.\root\cimv2", string.Format("Select * FROM Win32_PNPEntity"), new EnumerationOptions() { BlockSize = 20 }))
+            {
+                foreach (var PnpDevice in QueryPnp.Get())
+                {
+                    // Check if the DeviceId contains the tell-tale "IG_".                        
+                    var DeviceId = (string)PnpDevice.Properties["DeviceID"].Value;
+                    if (DeviceId.Contains("IG_"))
+                    {
+                        // Check the VID/PID components against the joystick's.                            
+                        var Ids = ParseIds.Matches(DeviceId);
+                        if (Ids.Count == 2)
+                        {
+                            ushort? VId = null, PId = null;
+                            foreach (Match M in Ids)
+                            {
+                                ushort Value = ushort.Parse(M.Groups[2].Value, NumberStyles.HexNumber);
+                                switch (M.Groups[1].Value)
+                                {
+                                    case "V": VId = Value; break;
+                                    case "P": PId = Value; break;
+                                }
+                            }
+
+                            //if (VId.HasValue && this.VendorId == VId && PId.HasValue && this.ProductId == PId) return true; 
+                            if (VId.HasValue && vendorId == VId.Value.ToString("X4") && PId.HasValue && productId == PId.Value.ToString("X4"))
+                                return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool? _isXinput;
+
+        public bool IsXInputDevice()
+        {
+            if (_isXinput.HasValue)
+                return _isXinput.Value;
+
+            if (DeviceGUID == null || DeviceGUID.Length < 32 || !DeviceGUID.StartsWith("03000000"))
+                _isXinput = false;
+            else
+            {
+                string vendorId = (DeviceGUID.Substring(10, 2) + DeviceGUID.Substring(8, 2)).ToUpper();
+                string productId = (DeviceGUID.Substring(18, 2) + DeviceGUID.Substring(16, 2)).ToUpper();
+
+                _isXinput = IsXInputDevice(vendorId, productId);
+            }
+
+            return _isXinput.Value;
+        }
+
+        /// <summary>
+        /// Translate XInput to DirectInput calls
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Input ToDirectInputCodes(InputKey key)
+        {
+            Input input = this[key];
+            if (input == null)
+                return null;
+
+            if (!IsXInputDevice())
+                return input;
+
+            Input ret = new Input();
+            ret.Name = input.Name;
+            ret.Type = input.Type;
+            ret.Id = input.Id;
+            ret.Value = input.Value;
+
+            if (input.Type == "button")
+            {
+                XINPUT_GAMEPAD xButton = (XINPUT_GAMEPAD)input.Id;
+
+                SDL_CONTROLLER_BUTTON btn;
+                if (!Enum.TryParse(xButton.ToString(), out btn))
+                    return input;
+                                
+                ret.Type = "button";
+                ret.Id = (int)btn;
+                ret.Value = 1;
+            }
+
+            if (input.Type == "hat")
+            {
+                XINPUT_HATS xButton = (XINPUT_HATS)input.Value;
+
+                SDL_CONTROLLER_BUTTON btn;
+                if (!Enum.TryParse(xButton.ToString(), out btn))
+                    return input;
+
+                ret.Type = "button";
+                ret.Id = (int)btn;
+                ret.Value = 1;
+            }
+
+            if (input.Type == "axis")
+            {
+                if (ret.Id == 3 || ret.Id == 4) // Analog right
+                    ret.Id--;
+                else if (ret.Id == 2) // L2
+                {
+                    ret.Value = -ret.Value;
+                    ret.Id = 4;
+                }
+                else if (ret.Id == 2) // R2
+                {
+                    ret.Value = -ret.Value;
+                    ret.Id = 5;
+                }
+            }
+
+            return ret;
+        }
     }
 
     public class Input
@@ -135,7 +261,16 @@ namespace emulatorLauncher.Tools
 
     [Flags]
     public enum InputKey
-    {
+    {        
+        // batocera ES compatibility
+        hotkey = 8,
+        pageup = 512,
+        pagedown = 131072,
+        l2 = 1024,
+        r2 = 262144,
+        l3 = 2048,
+        r3 = 524288,
+
         a = 1,
         b = 2,
         down = 4,
@@ -162,19 +297,58 @@ namespace emulatorLauncher.Tools
         x = 8388608,
         y = 16777216,
 
-        // batocera ES compatibility
-        hotkey = 8,
-        pagedown = 512,
-        pageup = 131072,
-        l2 = 1024,
-        r2 = 262144,
-        l3 = 2048,
-        r3 = 524288,
+
 
         joystick1left = 64,
         joystick1up = 256,
         joystick2left = 32768,
         joystick2up = 8192
 
-    }    
+    }
+
+
+
+    enum XINPUT_GAMEPAD
+    {
+        A = 0,
+        B = 1,
+        X = 2,
+        Y = 3,
+        LEFTSHOULDER = 4,
+        RIGHTSHOULDER = 5,
+
+        BACK = 6,
+        START = 7,
+
+        LEFTSTICK = 8,
+        RIGHTSTICK = 9,
+        GUIDE = 10
+    }
+
+    enum XINPUT_HATS
+    {
+        DPAD_UP = 1,
+        DPAD_RIGHT = 2,
+        DPAD_DOWN = 4,
+        DPAD_LEFT = 8
+    }
+
+    enum SDL_CONTROLLER_BUTTON
+    {
+        A = 0,
+        B = 1,
+        X = 2,
+        Y = 3,
+        BACK = 4,
+        GUIDE = 5,
+        START = 6,
+        LEFTSTICK = 7,
+        RIGHTSTICK = 8,
+        LEFTSHOULDER = 9,
+        RIGHTSHOULDER = 10,
+        DPAD_UP = 11,
+        DPAD_DOWN = 12,
+        DPAD_LEFT = 13,
+        DPAD_RIGHT = 14
+    };    
 }

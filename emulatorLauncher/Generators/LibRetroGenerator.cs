@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher.libRetro
 {
@@ -51,10 +52,10 @@ namespace emulatorLauncher.libRetro
             Core = core;
             SubSystemId = subSystem;
         }
-        
+
         public string System { get; set; }
         public string Core { get; set; }
-        public string SubSystemId { get; set; }        
+        public string SubSystemId { get; set; }
     }
 
 
@@ -62,7 +63,7 @@ namespace emulatorLauncher.libRetro
     {
         public string RetroarchPath { get; set; }
         public string RetroarchCorePath { get; set; }
-        
+
         public LibRetroGenerator()
         {
             RetroarchPath = AppConfig.GetFullPath("retroarch");
@@ -108,7 +109,7 @@ namespace emulatorLauncher.libRetro
                     coreSettings["bluemsx_msxtype"] = "MSX2+";
                 else if (system == "msxturbor")
                     coreSettings["bluemsx_msxtype"] = "MSXturboR";
-                else 
+                else
                     coreSettings["bluemsx_msxtypec"] = "Auto";
             }
 
@@ -145,13 +146,13 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["quit_press_twice"] = "false";
             retroarchConfig["pause_nonactive"] = "false";
             retroarchConfig["video_fullscreen"] = "true";
-            // retroarchConfig["menu_driver"] = "ozone";
+            retroarchConfig["menu_driver"] = "ozone";
 
             if (SystemConfig.isOptSet("monitor"))
             {
                 int monitorId;
                 if (int.TryParse(SystemConfig["monitor"], out monitorId))
-                    retroarchConfig["video_monitor_index"] = (monitorId+1).ToString();
+                    retroarchConfig["video_monitor_index"] = (monitorId + 1).ToString();
                 else
                     retroarchConfig["video_monitor_index"] = "0";
             }
@@ -160,7 +161,7 @@ namespace emulatorLauncher.libRetro
 
             if (resolution == null)
                 retroarchConfig["video_windowed_fullscreen"] = "true";
-            else 
+            else
             {
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
@@ -231,9 +232,19 @@ namespace emulatorLauncher.libRetro
                 }
             }
             else
-                retroarchConfig["aspect_ratio_index"] = "";
+            {
+                if (SystemConfig["core"] == "tgbdual")
+                    retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
 
-            if (SystemConfig.isOptSet("rewind") && SystemConfig.getOptBoolean("rewind"))
+                retroarchConfig["aspect_ratio_index"] = "";
+            }
+
+            if (SystemConfig["core"] == "cap32")
+                retroarchConfig["cap32_combokey"] = "y";
+
+            if (!SystemConfig.isOptSet("rewind"))
+                retroarchConfig["rewind_enable"] = systemNoRewind.Contains(system) ? "false" : "true"; // AUTO
+            else if (SystemConfig.getOptBoolean("rewind"))
                 retroarchConfig["rewind_enable"] = "true";
             else
                 retroarchConfig["rewind_enable"] = "false";
@@ -244,14 +255,31 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_scale_integer"] = "false";
 
             if (SystemConfig.isOptSet("video_threaded") && SystemConfig.getOptBoolean("video_threaded"))
-                retroarchConfig["video_threaded"] = "true";               
+                retroarchConfig["video_threaded"] = "true";
             else
                 retroarchConfig["video_threaded"] = "false";
 
             if (SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS"))
                 retroarchConfig["fps_show"] = "true";
             else
-                retroarchConfig["fps_show"] = "false";
+                retroarchConfig["fps_show"] = "false";            
+
+            if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToInteger() > 0 && !systemNoRunahead.Contains(system))
+            {
+                retroarchConfig["run_ahead_enabled"] = "true";
+                retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"];
+
+                if (SystemConfig.isOptSet("secondinstance") && SystemConfig.getOptBoolean("secondinstance"))
+                    retroarchConfig["run_ahead_secondary_instance"] = "true";
+                else
+                    retroarchConfig["run_ahead_secondary_instance"] = "false";
+            }
+            else
+            {
+                retroarchConfig["run_ahead_enabled"] = "false";
+                retroarchConfig["run_ahead_frames"] = "0";
+                retroarchConfig["run_ahead_secondary_instance"] = "false";
+            }
 
             if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
             {
@@ -262,6 +290,33 @@ namespace emulatorLauncher.libRetro
             {
                 retroarchConfig["savestate_auto_save"] = "false";
                 retroarchConfig["savestate_auto_load"] = "false";
+            }
+
+            retroarchConfig["input_libretro_device_p1"] = "1";
+            retroarchConfig["input_libretro_device_p2"] = "1";
+            
+            if (coreToP1Device.ContainsKey(SystemConfig["core"]))
+                retroarchConfig["input_libretro_device_p1"] = coreToP1Device[SystemConfig["core"]];
+
+            if (coreToP2Device.ContainsKey(SystemConfig["core"]))
+                retroarchConfig["input_libretro_device_p2"] = coreToP2Device[SystemConfig["core"]];
+
+            if (Controllers.Count > 2 && (SystemConfig["core"] == "snes9x_next" || SystemConfig["core"] == "snes9x"))
+                retroarchConfig["input_libretro_device_p2"] = "257";
+
+            if (SystemConfig["core"] == "atari800")
+            {
+                retroarchConfig["input_libretro_device_p1"] = "513";
+                retroarchConfig["input_libretro_device_p2"] = "513";
+            }
+            
+            if (SystemConfig["core"] == "bluemsx")
+            {
+                if (systemToP1Device.ContainsKey(system))
+                    retroarchConfig["input_libretro_device_p1"] = systemToP1Device[system];
+
+                if (systemToP2Device.ContainsKey(system))
+                    retroarchConfig["input_libretro_device_p2"] = systemToP2Device[system];
             }
 
             if (SystemConfig["retroachievements"] == "true" && systemToRetroachievements.Contains(system))
@@ -320,10 +375,14 @@ namespace emulatorLauncher.libRetro
             }
             else
                 retroarchConfig["ai_service_enable"] = "false";
-            
+
             // bezel
 
             writeBezelConfig(retroarchConfig, system, rom, resolution);
+
+            if (LibretroControllers.WriteControllersConfig(retroarchConfig, system))
+                UsePadToKey = false;
+            //  return;
 
             // custom : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
             foreach (var user_config in SystemConfig)
@@ -341,19 +400,19 @@ namespace emulatorLauncher.libRetro
             string bezel = Directory.Exists(path) && !string.IsNullOrEmpty(SystemConfig["bezel"]) ? SystemConfig["bezel"] : "default";
             if (SystemConfig.isOptSet("forceNoBezel") && SystemConfig.getOptBoolean("forceNoBezel"))
                 bezel = null;
-            
-            retroarchConfig["input_overlay_hide_in_menu"] = "false";    
+
+            retroarchConfig["input_overlay_hide_in_menu"] = "false";
             retroarchConfig["input_overlay_enable"] = "false";
-            retroarchConfig["video_message_pos_x"]  = "0.05";
-            retroarchConfig["video_message_pos_y"]  = "0.05";
-            
+            retroarchConfig["video_message_pos_x"] = "0.05";
+            retroarchConfig["video_message_pos_y"] = "0.05";
+
             if (string.IsNullOrEmpty(bezel) || bezel == "none")
                 return;
 
             string romBase = Path.GetFileNameWithoutExtension(rom);
 
             string overlay_info_file = path + "/" + bezel + "/games/" + systemName + "/" + romBase + ".info";
-            string overlay_png_file  = path + "/" + bezel + "/games/" + systemName + "/" + romBase + ".png";
+            string overlay_png_file = path + "/" + bezel + "/games/" + systemName + "/" + romBase + ".png";
 
             if (!File.Exists(overlay_png_file))
             {
@@ -390,9 +449,9 @@ namespace emulatorLauncher.libRetro
 
             string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
 
-            retroarchConfig["input_overlay_enable"]       = "true";
-            retroarchConfig["input_overlay_scale"]        = "1.0";
-            retroarchConfig["input_overlay"]              = overlay_cfg_file;
+            retroarchConfig["input_overlay_enable"] = "true";
+            retroarchConfig["input_overlay_scale"] = "1.0";
+            retroarchConfig["input_overlay"] = overlay_cfg_file;
             retroarchConfig["input_overlay_hide_in_menu"] = "true";
             retroarchConfig["input_overlay_opacity"] = "1.0";
             retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
@@ -402,7 +461,7 @@ namespace emulatorLauncher.libRetro
             fd.AppendLine("overlay0_overlay = \"" + overlay_png_file + "\"");
             fd.AppendLine("overlay0_full_screen = true");
             fd.AppendLine("overlay0_descs = 0");
-            File.WriteAllText(overlay_cfg_file, fd.ToString());            
+            File.WriteAllText(overlay_cfg_file, fd.ToString());
         }
 
         private string _dosBoxTempRom;
@@ -420,6 +479,9 @@ namespace emulatorLauncher.libRetro
             if (string.IsNullOrEmpty(RetroarchPath))
                 return null;
 
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
+                core = Path.GetFileNameWithoutExtension(rom);
+
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
                 string bat = Path.Combine(rom, "dosbox.bat");
@@ -435,10 +497,10 @@ namespace emulatorLauncher.libRetro
                             rom = tempRom;
                         else
                         {
-                            try 
-                            { 
+                            try
+                            {
                                 if (File.Exists(tempRom))
-                                    File.Delete(tempRom); 
+                                    File.Delete(tempRom);
                             }
                             catch { }
 
@@ -450,7 +512,7 @@ namespace emulatorLauncher.libRetro
                                 _dosBoxTempRom = tempRom;
                             }
                             catch { }
-                        }                            
+                        }
                     }
                 }
             }
@@ -489,7 +551,7 @@ namespace emulatorLauncher.libRetro
                 {
                     commandArray.Add("--set-shader");
                     commandArray.Add("\"" + videoShader + "\"");
-                }                
+                }
             }
 
             string args = string.Join(" ", commandArray);
@@ -497,18 +559,29 @@ namespace emulatorLauncher.libRetro
             return new ProcessStartInfo()
             {
                 FileName = Path.Combine(RetroarchPath, "retroarch.exe"),
-                WorkingDirectory = RetroarchPath,                
-                Arguments = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
+                WorkingDirectory = RetroarchPath,
+                Arguments =
+                    Path.GetExtension(rom).ToLowerInvariant() == ".libretro" ?
+                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim() :
+                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
             };
         }
 
-        List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
+        static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
                 "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom" };
 
-        List<string> systemToRetroachievements = new List<string> { 
+        static List<string> systemToRetroachievements = new List<string> { 
             "atari2600", "atari7800", "atarijaguar", "colecovision", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
             "segacd", "sega32x", "saturn", "pcengine", "pcenginecd", "supergrafx", "psx", "mame", "fbneo", "neogeo", "lightgun", "apple2", 
-            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc"}; 
+            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc"};
 
+        static List<string> systemNoRewind = new List<string>() { "sega32x", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn", "mame", "fbneo" };
+        static List<string> systemNoRunahead = new List<string>() { "sega32x", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn" };
+
+        static Dictionary<string, string> systemToP1Device = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
+        static Dictionary<string, string> systemToP2Device = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
+
+        static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
+        static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "fuse", "513" } };
     }
 }

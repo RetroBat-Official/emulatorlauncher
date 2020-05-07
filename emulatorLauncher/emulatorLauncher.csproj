@@ -33,9 +33,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generators\Model3Generator.cs" />
     <Compile Include="Generators\DolphinGenerator.cs" />
     <Compile Include="Generators\PpssppGenerator.cs" />
     <Compile Include="Generators\DosBoxGenerator.cs" />
@@ -55,6 +60,9 @@
     <Compile Include="Generators\OpenBorGenerator.cs" />
     <Compile Include="Generators\Model2Generator.cs" />
     <Compile Include="Generators\VPinballGenerator.cs" />
+    <Compile Include="PadToKey\JoystickListener.cs" />
+    <Compile Include="PadToKey\PadToKey.cs" />
+    <Compile Include="PadToKey\SendKeys.cs" />
     <Compile Include="Tools\ConfigFile.cs" />
     <Compile Include="Tools\GameList.cs" />
     <Compile Include="Tools\InputList.cs" />
@@ -68,6 +76,9 @@
     <Compile Include="Tools\SystemDefaults.cs" />
     <Compile Include="Tools\Generator.cs" />
     <Compile Include="Generators\LibRetroGenerator.cs" />
+    <Compile Include="Generators\LibretroControllers.cs">
+      <DependentUpon>LibRetroGenerator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools\SystemShaders.cs" />
@@ -97,8 +108,14 @@
     </Compile>
     <None Include="Resources\configgen-defaults.yml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -8,6 +8,11 @@ namespace emulatorLauncher
 {
     abstract class Generator
     {
+        public Generator()
+        {
+            UsePadToKey = true;
+        }
+
         protected ConfigFile AppConfig { get { return Program.AppConfig; } }
         protected ConfigFile SystemConfig { get { return Program.SystemConfig; } }
         protected List<Controller> Controllers { get { return Program.Controllers; } }
@@ -23,5 +28,6 @@ namespace emulatorLauncher
             catch { }
         }
 
+        public bool UsePadToKey { get; protected set; }
     }
 }

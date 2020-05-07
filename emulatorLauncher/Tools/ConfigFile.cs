@@ -219,6 +219,13 @@ namespace emulatorLauncher
         {
             return _data.GetEnumerator();
         }
+
+        public void DisableAll(string name)
+        {
+            for (int i = _data.Count - 1; i >= 0; i--)
+                if (_data[i].Name.Contains(name))
+                    _data.RemoveAt(i);
+        }
     }
     
     class ConfigItem

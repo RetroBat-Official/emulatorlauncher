@@ -86,7 +86,7 @@ namespace emulatorLauncher
         }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
-        {
+        {            
             string path = AppConfig.GetFullPath("openbor");
 
             string exe = Path.Combine(path, "OpenBOR.exe");
@@ -102,13 +102,15 @@ namespace emulatorLauncher
 
             if (setupConfigIni(path))
             {
+                UsePadToKey = false;
+
                 return new ProcessStartInfo()
                 {
                     FileName = exe,
                     Arguments = "\"" + rom + "\"",
                     WorkingDirectory = path
                 };
-            }
+            }       
 
             if (build == "4432")
                 setupConfigBor4432Cfg(path);

@@ -6,6 +6,15 @@ using emulatorLauncher.libRetro;
 using System.IO;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
+using System.Text.RegularExpressions;
+using System.Management;
+using System.Globalization;
+using emulatorLauncher.PadToKeyboard;
+
+// XBox
+// -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
+// 8bitdo
+// -p1index 0 -p1guid 030000004c050000c405000000006800 -p1name "PS4 Controller" -p1nbbuttons 16 -p1nbhats 0 -p1nbaxes 6  -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
 
 namespace emulatorLauncher
 {
@@ -15,6 +24,7 @@ namespace emulatorLauncher
         {
             { "libretro", () => new LibRetroGenerator() },
             { "model2", () => new Model2Generator() },
+            { "model3", () => new Model3Generator() }, { "supermodel", () => new Model3Generator() },
             { "openbor", () => new OpenBorGenerator() },
             { "ps3", () => new Rpcs3Generator() },  
             { "ps2", () => new Pcsx2Generator() },  { "pcsx2", () => new Pcsx2Generator() },  
@@ -67,7 +77,7 @@ namespace emulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileNameWithoutExtension(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
-            LoadControllerConfiguration(args);
+            var inputConfig = LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
             if (!SystemConfig.isOptSet("rom"))
@@ -87,7 +97,7 @@ namespace emulatorLauncher
                 SimpleLogger.Instance.Error("system not set");
                 return;
             }
-
+            
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemDefaults.GetDefaultEmulator(SystemConfig["system"]);
 
@@ -122,7 +132,12 @@ namespace emulatorLauncher
 
                         Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
 
-                        generator.RunAndWait(path);
+                        PadToKey mapping = null;
+                        if (generator.UsePadToKey)
+                            mapping = PadToKey.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_padtokey.cfg"));
+
+                        using (new JoystickListener(inputConfig, mapping))
+                            generator.RunAndWait(path);
                     }
                     else
                         SimpleLogger.Instance.Error("generator failed");
@@ -134,7 +149,7 @@ namespace emulatorLauncher
                 SimpleLogger.Instance.Error("cant find generator");
         }
 
-        private static void LoadControllerConfiguration(string[] args)
+        private static InputConfig[] LoadControllerConfiguration(string[] args)
         {
             Controllers = new List<Controller>();
 
@@ -173,6 +188,8 @@ namespace emulatorLauncher
 
             try
             {
+              
+
                 var inputConfig = InputList.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_input.cfg"));
                 if (inputConfig != null)
                 {
@@ -189,13 +206,24 @@ namespace emulatorLauncher
                         {
                             pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID == pi.Guid && c.DeviceName == pi.Name);
                             if (pi.Input == null)
+                                pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID == pi.Guid);
+                            if (pi.Input == null)
+                                pi.Input = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
+                            if (pi.Input == null)
                                 pi.Input = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
                         }
                     }
+
+                          
                 }
+
+                return inputConfig;
             }
             catch { }
+
+            return null;
         }
+
 
         private static void ImportShaderOverrides()
         {

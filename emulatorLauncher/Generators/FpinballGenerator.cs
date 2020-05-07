@@ -80,7 +80,7 @@ namespace emulatorLauncher
 
         private void PerformBamCapture()
         {
-            if (_bam != null && !File.Exists(_bam))
+            if (_bam == null || !File.Exists(_bam))
                 return;
 
             string bamPng = Path.Combine(Path.GetDirectoryName(_bam), Path.ChangeExtension(Path.GetFileName(_rom), ".png"));
@@ -97,9 +97,10 @@ namespace emulatorLauncher
         {
             RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", true);
             if (regKeyc != null)
-            {
-                if (regKeyc.GetValue(path) == null)
-                    regKeyc.SetValue(path, "~ RUNASADMIN");
+            {                
+                regKeyc.SetValue(path, "");
+                //if (regKeyc.GetValue(path) == null)
+                  //  regKeyc.SetValue(path, "~ RUNASADMIN");
 
                 regKeyc.Close();
             }
@@ -113,7 +114,7 @@ namespace emulatorLauncher
 
             if (regKeyc != null)
             {
-                regKeyc.SetValue("FullScreen", 1);
+                regKeyc.SetValue("FullScreen", 1); regKeyc.SetValue("FullScreen", 0);
 
                 if (SystemConfig.isOptSet("arcademode") && SystemConfig["arcademode"] == "1")
                     regKeyc.SetValue("ArcadeMode", 1);
@@ -144,7 +145,7 @@ namespace emulatorLauncher
                 }
 
                 if (regKeyc.GetValue("DefaultCamera") == null)
-                    regKeyc.SetValue("DefaultCamera", 1);
+                    regKeyc.SetValue("DefaultCamera", 0);
 
                 if (regKeyc.GetValue("CameraFollowsTheBall") == null)
                     regKeyc.SetValue("CameraFollowsTheBall", 0);
