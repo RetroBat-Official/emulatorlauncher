@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Management;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using SharpDX.DirectInput;
 
 namespace emulatorLauncher.Tools
 {
@@ -67,9 +68,11 @@ namespace emulatorLauncher.Tools
                     esGuidString.Substring(2, 2) +
                     esGuidString.Substring(0, 2) +
                     "-" +
-                    esGuidString.Substring(8, 4) +
+                    esGuidString.Substring(10, 2) +
+                    esGuidString.Substring(8, 2) +
                     "-" +
-                    esGuidString.Substring(12, 4) +
+                    esGuidString.Substring(14, 2) +
+                    esGuidString.Substring(12, 2) +
                     "-" +
                     esGuidString.Substring(16, 4) +
                     "-" +
@@ -116,6 +119,8 @@ namespace emulatorLauncher.Tools
                 {
                     // Check if the DeviceId contains the tell-tale "IG_".                        
                     var DeviceId = (string)PnpDevice.Properties["DeviceID"].Value;
+
+
                     if (DeviceId.Contains("IG_"))
                     {
                         // Check the VID/PID components against the joystick's.                            
@@ -162,6 +167,84 @@ namespace emulatorLauncher.Tools
 
             return _isXinput.Value;
         }
+
+        public class DirectInputInfo
+        {
+            public string Name { get; set; }
+            public Guid InstanceGuid { get; set; }
+            public Guid ProductGuid { get; set; }
+            public bool IsXInput { get; set; }
+        }
+
+        public DirectInputInfo GetDirectInputInfo()
+        {
+            if (this.Type == "keyboard")
+                return null;
+
+            if (string.IsNullOrEmpty(DeviceGUID))
+                return null;
+
+            try
+            {
+                using (DirectInput directInput = new DirectInput())
+                {
+                    foreach (var deviceInstance in directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AttachedOnly))
+                    {
+                        var ret = TestDirectInputDevice(deviceInstance);
+                        if (ret != null)
+                            return ret;
+                    }
+
+                    foreach (var deviceInstance in directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AttachedOnly))
+                    {
+                        var ret = TestDirectInputDevice(deviceInstance);
+                        if (ret != null)
+                            return ret;
+                    }
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        private DirectInputInfo TestDirectInputDevice(DeviceInstance deviceInstance)
+        {
+            string vendorId = (this.DeviceGUID.Substring(10, 2) + this.DeviceGUID.Substring(8, 2)).ToUpper();
+            string productId = (this.DeviceGUID.Substring(18, 2) + this.DeviceGUID.Substring(16, 2)).ToUpper();
+
+            if (this.IsXInputDevice())
+            {
+                string guidString = deviceInstance.ProductGuid.ToString().Replace("-", "");
+                if (guidString.EndsWith("504944564944"))
+                {
+                    string dxproductId = guidString.Substring(0, 4).ToUpper();
+                    string dxvendorId = guidString.Substring(4, 4).ToUpper();
+
+                    if (vendorId == dxvendorId && productId == dxproductId)
+                    {
+                        DirectInputInfo info = new DirectInputInfo();
+                        info.Name = deviceInstance.InstanceName;
+                        info.ProductGuid = deviceInstance.ProductGuid;
+                        info.InstanceGuid = deviceInstance.InstanceGuid;
+                        info.IsXInput = true;
+                        return info;
+                    }
+                }
+            }
+            else if (this.ProductGuid == deviceInstance.ProductGuid || this.ProductGuid == deviceInstance.InstanceGuid)
+            {
+                DirectInputInfo info = new DirectInputInfo();
+                info.Name = deviceInstance.InstanceName;
+                info.ProductGuid = deviceInstance.ProductGuid;
+                info.InstanceGuid = deviceInstance.InstanceGuid;
+                info.IsXInput = true;
+                return info;
+            }
+
+            return null;
+        }
+
 
         /// <summary>
         /// Translate XInput to DirectInput calls

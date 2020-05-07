@@ -9,13 +9,11 @@ namespace emulatorLauncher
 {
     class Pcsx2Generator : Generator
     {
-        public override bool DependsOnDesktopResolution
+        public Pcsx2Generator()
         {
-            get
-            {
-                return true;
-            }
+            DependsOnDesktopResolution = true;
         }
+
         private string path;
         private string romName;
 

@@ -12,6 +12,11 @@ namespace emulatorLauncher
 {
     class OpenBorGenerator : Generator
     {
+        public OpenBorGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private string destFile;
 
         public static int JoystickValue(InputKey key, Controller c)

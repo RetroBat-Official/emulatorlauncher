@@ -8,57 +8,6 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher.libRetro
 {
-
-    class SubSystem
-    {
-        static public List<SubSystem> subSystems = new List<SubSystem>()
-        {
-            new SubSystem("fbneo", "colecovision", "cv"),
-
-            new SubSystem("fbneo", "msx", "msx"),                        
-            new SubSystem("fbneo", "msx1", "msx"),
-
-            new SubSystem("fbneo", "supergrafx", "sgx"),
-            new SubSystem("fbneo", "pcengine", "pce"),
-            new SubSystem("fbneo", "pcenginecd", "pce"),
-
-            new SubSystem("fbneo", "turbografx", "tg"),
-            new SubSystem("fbneo", "turbografx16", "tg"),
-            
-            new SubSystem("fbneo", "gamegear", "gg"),
-            new SubSystem("fbneo", "mastersystem", "sms"),
-            new SubSystem("fbneo", "megadrive", "md"),
-
-            new SubSystem("fbneo", "sg1000", "sg1k"),
-            new SubSystem("fbneo", "sg-1000", "sg1k"),
-            
-            new SubSystem("fbneo", "zxspectrum", "spec"),
-
-            new SubSystem("fbneo", "neogeocd", "neocd")            
-        };
-
-        public static string GetSubSystem(string core, string system)
-        {
-            var sub = subSystems.FirstOrDefault(s => s.Core.Equals(core, StringComparison.InvariantCultureIgnoreCase) && s.System.Equals(system, StringComparison.InvariantCultureIgnoreCase));
-            if (sub != null)
-                return sub.SubSystemId;
-
-            return null;
-        }
-
-        public SubSystem(string core, string system, string subSystem)
-        {
-            System = system;
-            Core = core;
-            SubSystemId = subSystem;
-        }
-
-        public string System { get; set; }
-        public string Core { get; set; }
-        public string SubSystemId { get; set; }
-    }
-
-
     class LibRetroGenerator : Generator
     {
         public string RetroarchPath { get; set; }
@@ -583,5 +532,55 @@ namespace emulatorLauncher.libRetro
 
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "fuse", "513" } };
+    }
+
+
+    class SubSystem
+    {
+        static public List<SubSystem> subSystems = new List<SubSystem>()
+        {
+            new SubSystem("fbneo", "colecovision", "cv"),
+
+            new SubSystem("fbneo", "msx", "msx"),                        
+            new SubSystem("fbneo", "msx1", "msx"),
+
+            new SubSystem("fbneo", "supergrafx", "sgx"),
+            new SubSystem("fbneo", "pcengine", "pce"),
+            new SubSystem("fbneo", "pcenginecd", "pce"),
+
+            new SubSystem("fbneo", "turbografx", "tg"),
+            new SubSystem("fbneo", "turbografx16", "tg"),
+            
+            new SubSystem("fbneo", "gamegear", "gg"),
+            new SubSystem("fbneo", "mastersystem", "sms"),
+            new SubSystem("fbneo", "megadrive", "md"),
+
+            new SubSystem("fbneo", "sg1000", "sg1k"),
+            new SubSystem("fbneo", "sg-1000", "sg1k"),
+            
+            new SubSystem("fbneo", "zxspectrum", "spec"),
+
+            new SubSystem("fbneo", "neogeocd", "neocd")            
+        };
+
+        public static string GetSubSystem(string core, string system)
+        {
+            var sub = subSystems.FirstOrDefault(s => s.Core.Equals(core, StringComparison.InvariantCultureIgnoreCase) && s.System.Equals(system, StringComparison.InvariantCultureIgnoreCase));
+            if (sub != null)
+                return sub.SubSystemId;
+
+            return null;
+        }
+
+        public SubSystem(string core, string system, string subSystem)
+        {
+            System = system;
+            Core = core;
+            SubSystemId = subSystem;
+        }
+
+        public string System { get; set; }
+        public string Core { get; set; }
+        public string SubSystemId { get; set; }
     }
 }

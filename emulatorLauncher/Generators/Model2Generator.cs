@@ -9,6 +9,11 @@ namespace emulatorLauncher
 {
     class Model2Generator : Generator
     {
+        public Model2Generator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private string destFile;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)

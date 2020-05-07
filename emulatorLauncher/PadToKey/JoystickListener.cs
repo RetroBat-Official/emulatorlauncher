@@ -266,7 +266,6 @@ namespace emulatorLauncher.PadToKeyboard
                     if (mapping != null && mapping[keyMap.Name] != null)
                         continue;
 
-
                     if (keyMap.Key != null && (keyMap.Key.StartsWith("(") || keyMap.Key.StartsWith("{")))
                     {
                         if (!prevState.HasFlag(keyMap.Name) && keyState.HasFlag(keyMap.Name))

@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace emulatorLauncher
 {
     class Model3Generator : Generator
-    {
+    {        
         private string destFile;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -42,8 +42,6 @@ namespace emulatorLauncher
                 WorkingDirectory = path,                
             };            
         }
-
-        public override bool DependsOnDesktopResolution { get { return false; } }
 
         public override void Cleanup()
         {

@@ -9,6 +9,11 @@ namespace emulatorLauncher
 {
     class DosBoxGenerator : Generator
     {
+        public DosBoxGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string batFile = Path.Combine(rom, "dosbox.bat");

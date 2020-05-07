@@ -13,6 +13,93 @@ namespace emulatorLauncher
 {
     class FpinballGenerator : Generator
     {
+        public FpinballGenerator()                
+        {
+            SetupControllers();
+        }
+
+        public static int JoystickValue(InputKey key, Controller c)
+        {
+            var a = c.Input[key];
+            if (a == null)
+                return -1;
+
+            if (a.Type == "button")
+                return (int) a.Id;
+
+            return -1;
+        }
+
+        private void SetupControllers()
+        {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            var controller = Controllers.FirstOrDefault(c => c.Index == 1 && c.Input != null && c.Input.Type != "keyboard");
+            if (controller != null)
+            {
+                var directInput = controller.Input.GetDirectInputInfo();
+                if (directInput != null)
+                {
+                    string fpinballName = directInput.Name.Length > 47 ? directInput.Name.Substring(0, 47) : directInput.Name;
+
+                    RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
+                    if (regKeyc != null)
+                        regKeyc = regKeyc.CreateSubKey("Future Pinball").CreateSubKey("GamePlayer").CreateSubKey("JoyPads");
+
+                    if (regKeyc != null)
+                    {
+                        foreach (var name in regKeyc.GetValueNames())
+                            regKeyc.DeleteValue(name);
+
+                        regKeyc = regKeyc.CreateSubKey(fpinballName);
+                        if (regKeyc != null)
+                        {
+                            regKeyc.SetValue("JoypadSupport", 1);
+                            
+                            regKeyc.SetValue("JoypadDigitalPlunger", JoystickValue(InputKey.a, controller));
+                            regKeyc.SetValue("JoypadToggleHud", JoystickValue(InputKey.y, controller));
+                            regKeyc.SetValue("JoypadNextCamera", JoystickValue(InputKey.b, controller));
+                            regKeyc.SetValue("JoypadExit", JoystickValue(InputKey.x, controller));
+                            regKeyc.SetValue("JoypadLeftFlipper", JoystickValue(InputKey.pageup, controller));
+                            regKeyc.SetValue("JoypadRightFlipper", JoystickValue(InputKey.pagedown, controller));
+
+                            regKeyc.SetValue("JoypadStartGame", JoystickValue(InputKey.start, controller));
+                            regKeyc.SetValue("JoypadInsertCoin", JoystickValue(InputKey.select, controller));
+
+                            regKeyc.SetValue("JoypadSpecial1", -1);
+                            regKeyc.SetValue("JoypadSpecial2", -1);
+                            regKeyc.SetValue("JoypadInsertCoin2", -1);
+                            regKeyc.SetValue("JoypadInsertCoin3", -1);
+                            regKeyc.SetValue("JoypadLeft2ndFlipper", -1);
+                            regKeyc.SetValue("JoypadRight2ndFlipper", -1);
+                            regKeyc.SetValue("JoypadTest", -1);
+                            regKeyc.SetValue("JoypadVolumeUp", -1);
+                            regKeyc.SetValue("JoypadVolumeDown", -1);
+                            regKeyc.SetValue("JoypadMusicUp", -1);
+                            regKeyc.SetValue("JoypadMusicDown", -1);
+                            regKeyc.SetValue("JoypadService", -1);
+                            regKeyc.SetValue("JoypadPinballRoller", -1);
+                            regKeyc.SetValue("JoypadPlungerAxis", -1);
+                            regKeyc.SetValue("JoypadNudgeAxisX", -1);
+                            regKeyc.SetValue("JoypadNudgeAxisY", -1);
+                            regKeyc.SetValue("JoypadPinballRollerAxisX", -1);
+                            regKeyc.SetValue("JoypadPinballRollerAxisY", -1);
+                           
+                            if (controller.Input.IsXInputDevice())
+                            {
+                                regKeyc.SetValue("JoypadPause", 9);
+                                regKeyc.SetValue("JoypadBackbox", 8);
+                            }
+
+                            regKeyc.Close();
+                        }
+                    }
+                }
+            }
+        }
+
+
         string _bam;
         string _rom;
 
@@ -93,14 +180,16 @@ namespace emulatorLauncher
             }
         }
 
-        private static void SetAsAdmin(string path)
+
+        private void SetAsAdmin(string path)
         {
             RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", true);
             if (regKeyc != null)
             {                
-                regKeyc.SetValue(path, "");
-                //if (regKeyc.GetValue(path) == null)
-                  //  regKeyc.SetValue(path, "~ RUNASADMIN");
+            //    if (UsePadToKey)
+                   regKeyc.SetValue(path, "");
+           //     else                                  
+         //           regKeyc.SetValue(path, "~ RUNASADMIN");
 
                 regKeyc.Close();
             }
@@ -114,7 +203,8 @@ namespace emulatorLauncher
 
             if (regKeyc != null)
             {
-                regKeyc.SetValue("FullScreen", 1); regKeyc.SetValue("FullScreen", 0);
+                regKeyc.SetValue("FullScreen", 1); 
+                //regKeyc.SetValue("FullScreen", 0);
 
                 if (SystemConfig.isOptSet("arcademode") && SystemConfig["arcademode"] == "1")
                     regKeyc.SetValue("ArcadeMode", 1);
