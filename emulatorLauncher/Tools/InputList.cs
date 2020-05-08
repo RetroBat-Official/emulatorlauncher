@@ -245,13 +245,61 @@ namespace emulatorLauncher.Tools
             return null;
         }
 
+        public Input ToSdlCode(InputKey key)
+        {
+            Input input = this[key];
+            if (input == null)
+                return null;
+
+            Input ret = new Input();
+            ret.Name = input.Name;
+            ret.Type = input.Type;
+            ret.Id = input.Id;
+            ret.Value = input.Value;
+            ret.Type = "button";
+            ret.Value = 1;
+
+            switch(key)
+            {
+                case InputKey.a:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.A; break;
+                case InputKey.b:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.B; break;
+                case InputKey.x:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.X; break;
+                case InputKey.y:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.Y; break;
+                case InputKey.start:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.START; break;
+                case InputKey.select:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.BACK; break;
+                case InputKey.hotkey:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.GUIDE; break;
+                case InputKey.up:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.DPAD_UP; break;
+                case InputKey.down:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.DPAD_DOWN; break;
+                case InputKey.left:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.DPAD_LEFT; break;
+                case InputKey.right:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.DPAD_RIGHT; break;
+                case InputKey.pagedown:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.LEFTSHOULDER; break;
+                case InputKey.pageup:
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.RIGHTSHOULDER; break;
+                default:
+                    return ToXInputCodes(key);
+            }
+                      
+            return ret;
+        }
 
         /// <summary>
         /// Translate XInput to DirectInput calls
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Input ToDirectInputCodes(InputKey key)
+        public Input ToXInputCodes(InputKey key)
         {
             Input input = this[key];
             if (input == null)
@@ -266,48 +314,28 @@ namespace emulatorLauncher.Tools
             ret.Id = input.Id;
             ret.Value = input.Value;
 
-            if (input.Type == "button")
-            {
-                XINPUT_GAMEPAD xButton = (XINPUT_GAMEPAD)input.Id;
-
-                SDL_CONTROLLER_BUTTON btn;
-                if (!Enum.TryParse(xButton.ToString(), out btn))
-                    return input;
-                                
-                ret.Type = "button";
-                ret.Id = (int)btn;
-                ret.Value = 1;
-            }
-
-            if (input.Type == "hat")
-            {
-                XINPUT_HATS xButton = (XINPUT_HATS)input.Value;
-
-                SDL_CONTROLLER_BUTTON btn;
-                if (!Enum.TryParse(xButton.ToString(), out btn))
-                    return input;
-
-                ret.Type = "button";
-                ret.Id = (int)btn;
-                ret.Value = 1;
-            }
+            // Inverstion de start et select
+            if (input.Type == "button" && input.Id == 6)
+                ret.Id = 7;
+            else if (input.Type == "button" && input.Id == 7)
+                ret.Id = 6;
 
             if (input.Type == "axis")
             {
-                if (ret.Id == 3 || ret.Id == 4) // Analog right
-                    ret.Id--;
-                else if (ret.Id == 2) // L2
-                {
+                // Axe 1 (up/down) inversé
+                if (ret.Id == 1)
                     ret.Value = -ret.Value;
+                else if (ret.Id == 2) // Axe 2 (l2) devient axe 4
                     ret.Id = 4;
-                }
-                else if (ret.Id == 2) // R2
+                else if (ret.Id == 3) // Analog right left/right
+                    ret.Id--;
+                else if (ret.Id == 4) // Analog right up/down
                 {
+                    ret.Id = 3;
                     ret.Value = -ret.Value;
-                    ret.Id = 5;
-                }
+                }                
             }
-
+         
             return ret;
         }
     }
@@ -388,8 +416,6 @@ namespace emulatorLauncher.Tools
         joystick2up = 8192
 
     }
-
-
 
     enum XINPUT_GAMEPAD
     {

@@ -129,7 +129,7 @@ namespace emulatorLauncher.libRetro
             if (c0 == null || c0.Input == null)
                 return;
 
-            var hotKey = c0.Input.ToDirectInputCodes(Tools.InputKey.hotkey);
+            var hotKey = c0.Input.ToXInputCodes(Tools.InputKey.hotkey);
             if (hotKey != null)
             {
                 if (hotKey.Type != "key")
@@ -144,7 +144,7 @@ namespace emulatorLauncher.libRetro
         {
             foreach (var dirkey in retroarchdirs)
             {
-                var k = controller.Input.ToDirectInputCodes(dirkey);
+                var k = controller.Input.ToXInputCodes(dirkey);
                 if (k != null && k.Type == "button" || k.Type == "hat")
                     return "1";
             }
@@ -172,7 +172,7 @@ namespace emulatorLauncher.libRetro
 
             foreach (var btnkey in retroarchbtns)
             {
-                var input = controller.Input.ToDirectInputCodes(btnkey.Key);
+                var input = controller.Input.ToXInputCodes(btnkey.Key);
                 if (input == null)
                     continue;
 
@@ -184,7 +184,7 @@ namespace emulatorLauncher.libRetro
 
             foreach (var btnkey in retroarchdirs)
             {
-                var input = controller.Input.ToDirectInputCodes(btnkey);
+                var input = controller.Input.ToXInputCodes(btnkey);
                 if (input == null)
                     continue;
 
@@ -196,19 +196,27 @@ namespace emulatorLauncher.libRetro
 
             foreach (var btnkey in retroarchjoysticks)
             {
-                var input = controller.Input.ToDirectInputCodes(btnkey.Key);
+                var input = controller.Input.ToXInputCodes(btnkey.Key);
                 if (input == null)
                     continue;
 
-                config[string.Format("input_player{0}_{1}_minus_axis", controller.Index, btnkey.Value)] = "-" + input.Id.ToString();
-                config[string.Format("input_player{0}_{1}_plus_axis", controller.Index, btnkey.Value)] = "+" + input.Id.ToString();
+                if (input.Value < 0)
+                {
+                    config[string.Format("input_player{0}_{1}_minus_axis", controller.Index, btnkey.Value)] = "-" + input.Id.ToString();
+                    config[string.Format("input_player{0}_{1}_plus_axis", controller.Index, btnkey.Value)] = "+" + input.Id.ToString();
+                }
+                else
+                {
+                    config[string.Format("input_player{0}_{1}_minus_axis", controller.Index, btnkey.Value)] = "+" + input.Id.ToString();
+                    config[string.Format("input_player{0}_{1}_plus_axis", controller.Index, btnkey.Value)] = "-" + input.Id.ToString();
+                }
             }
 
             if (controller.Index == 1)
             {
                 foreach (var specialkey in retroarchspecials)
                 {
-                    var input = controller.Input.ToDirectInputCodes(specialkey.Key);
+                    var input = controller.Input.ToXInputCodes(specialkey.Key);
                     if (input == null)
                         continue;
 
@@ -223,7 +231,7 @@ namespace emulatorLauncher.libRetro
 
         private static void WriteControllerConfig(ConfigFile retroconfig, Controller controller, string system)
         {
-            retroconfig["input_joypad_driver"] = "sdl2";
+            retroconfig["input_joypad_driver"] = "xinput";
 
             // keyboard_gamepad_enable = "true"
             // keyboard_gamepad_mapping_type = "1"
@@ -252,7 +260,7 @@ namespace emulatorLauncher.libRetro
          //   if input.type == 'hat':
        // return 'h' + input.id + hatstoname[input.value]
             // DirectInput
-            /*
+            
             if (input.Type == "hat")
             {
                 if (input.Value == 2) // SDL_HAT_RIGHT
@@ -263,8 +271,8 @@ namespace emulatorLauncher.libRetro
                     return "h" + input.Id + "left";
 
                 return "h" + input.Id + "up"; // UP
-            }*/
-            
+            }
+            /* // sdl2
             if (input.Type == "hat")
             {
                 if (input.Value == 2) // SDL_HAT_RIGHT
@@ -275,7 +283,7 @@ namespace emulatorLauncher.libRetro
                     return "13";
 
                 return "11"; // UP
-            }
+            }*/
 
             if (input.Type == "key")
             {
