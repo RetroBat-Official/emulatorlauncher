@@ -330,9 +330,7 @@ namespace emulatorLauncher.libRetro
             writeBezelConfig(retroarchConfig, system, rom, resolution);
 
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system))
-                ; // UsePadToKey = false;
-            //  return;
-            UsePadToKey = true;
+                UsePadToKey = false;
 
             // custom : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
             foreach (var user_config in SystemConfig)
@@ -509,12 +507,11 @@ namespace emulatorLauncher.libRetro
             return new ProcessStartInfo()
             {
                 FileName = Path.Combine(RetroarchPath, "retroarch.exe"),
-                WorkingDirectory = RetroarchPath/*,
-                
+                WorkingDirectory = RetroarchPath,                
                 Arguments =
                     Path.GetExtension(rom).ToLowerInvariant() == ".libretro" ?
                         ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim() :
-                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()*/
+                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
             };
         }
 

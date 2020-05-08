@@ -259,6 +259,50 @@ namespace emulatorLauncher.Tools
             ret.Type = "button";
             ret.Value = 1;
 
+            if (IsXInputDevice())
+            {
+                if (input.Type == "button")
+                {
+                    XINPUT_GAMEPAD xButton = (XINPUT_GAMEPAD)input.Id;
+
+                    SDL_CONTROLLER_BUTTON btn;
+                    if (!Enum.TryParse(xButton.ToString(), out btn))
+                        return input;
+
+                    ret.Type = "button";
+                    ret.Id = (int)btn;
+                    ret.Value = 1;
+                    return ret;
+                }
+
+                if (input.Type == "hat")
+                {
+                    XINPUT_HATS xButton = (XINPUT_HATS)input.Value;
+
+                    SDL_CONTROLLER_BUTTON btn;
+                    if (!Enum.TryParse(xButton.ToString(), out btn))
+                        return input;
+
+                    ret.Type = "button";
+                    ret.Id = (int)btn;
+                    ret.Value = 1;
+                    return ret;
+                }
+
+                if (input.Type == "axis")
+                {
+                    ret.Value = input.Value;
+                    ret.Type = "axis";                    
+
+                    if (ret.Id == 3 || ret.Id == 4) // Analog right
+                        ret.Id--;
+                    else if (ret.Id == 2) // L2
+                        ret.Id = 4;
+
+                    return ret;
+                }
+            }
+            
             switch(key)
             {
                 case InputKey.a:
@@ -274,7 +318,7 @@ namespace emulatorLauncher.Tools
                 case InputKey.select:
                     ret.Id = (int)SDL_CONTROLLER_BUTTON.BACK; break;
                 case InputKey.hotkey:
-                    ret.Id = (int)SDL_CONTROLLER_BUTTON.GUIDE; break;
+                    ret.Id = (int)SDL_CONTROLLER_BUTTON.BACK; break; // GUIDE 
                 case InputKey.up:
                     ret.Id = (int)SDL_CONTROLLER_BUTTON.DPAD_UP; break;
                 case InputKey.down:
