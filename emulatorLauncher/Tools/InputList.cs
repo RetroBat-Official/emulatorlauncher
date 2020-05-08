@@ -213,23 +213,20 @@ namespace emulatorLauncher.Tools
             string vendorId = (this.DeviceGUID.Substring(10, 2) + this.DeviceGUID.Substring(8, 2)).ToUpper();
             string productId = (this.DeviceGUID.Substring(18, 2) + this.DeviceGUID.Substring(16, 2)).ToUpper();
 
-            if (this.IsXInputDevice())
+            string guidString = deviceInstance.ProductGuid.ToString().Replace("-", "");
+            if (guidString.EndsWith("504944564944"))
             {
-                string guidString = deviceInstance.ProductGuid.ToString().Replace("-", "");
-                if (guidString.EndsWith("504944564944"))
-                {
-                    string dxproductId = guidString.Substring(0, 4).ToUpper();
-                    string dxvendorId = guidString.Substring(4, 4).ToUpper();
+                string dxproductId = guidString.Substring(0, 4).ToUpper();
+                string dxvendorId = guidString.Substring(4, 4).ToUpper();
 
-                    if (vendorId == dxvendorId && productId == dxproductId)
-                    {
-                        DirectInputInfo info = new DirectInputInfo();
-                        info.Name = deviceInstance.InstanceName;
-                        info.ProductGuid = deviceInstance.ProductGuid;
-                        info.InstanceGuid = deviceInstance.InstanceGuid;
-                        info.IsXInput = true;
-                        return info;
-                    }
+                if (vendorId == dxvendorId && productId == dxproductId)
+                {
+                    DirectInputInfo info = new DirectInputInfo();
+                    info.Name = deviceInstance.InstanceName;
+                    info.ProductGuid = deviceInstance.ProductGuid;
+                    info.InstanceGuid = deviceInstance.InstanceGuid;
+                    info.IsXInput = true;
+                    return info;
                 }
             }
             else if (this.ProductGuid == deviceInstance.ProductGuid || this.ProductGuid == deviceInstance.InstanceGuid)
