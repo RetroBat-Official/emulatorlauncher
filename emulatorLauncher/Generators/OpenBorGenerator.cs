@@ -19,7 +19,7 @@ namespace emulatorLauncher
 
         private string destFile;
 
-        public static int JoystickValue(InputKey key, Controller c)
+        public static int JoystickValue(InputKey key, Controller c, bool invertAxis = false)
         {
             var a = c.Input[key];
             if (a == null)
@@ -52,7 +52,7 @@ namespace emulatorLauncher
             else if (a.Type == "axis")
             {
                 int axisfirst = 1 + (c.Index - 1) * JOY_MAX_INPUTS + c.NbButtons + 2 * (int)a.Id;
-                if (a.Value > 0) axisfirst++;
+                if ((invertAxis && a.Value < 0) || (!invertAxis && a.Value > 0)) axisfirst++;
                 value = axisfirst;
             }
 
@@ -204,6 +204,10 @@ namespace emulatorLauncher
                         ini["keys." + idx + ".10"] = "0";
                         ini["keys." + idx + ".11"] = "0";
                         ini["keys." + idx + ".12"] = "0";
+                        ini["keys." + idx + ".13"] = "0"; // axis up
+                        ini["keys." + idx + ".14"] = "0"; // axis down
+                        ini["keys." + idx + ".15"] = "0"; // axis left
+                        ini["keys." + idx + ".16"] = "0"; // axis right
                     }
                     else
                     {
@@ -220,6 +224,10 @@ namespace emulatorLauncher
                         ini["keys." + idx + ".10"] = "40";
                         ini["keys." + idx + ".11"] = "69";
                         ini["keys." + idx + ".12"] = "41"; // Esc
+                        ini["keys." + idx + ".13"] = "0"; // axis up
+                        ini["keys." + idx + ".14"] = "0"; // axis down
+                        ini["keys." + idx + ".15"] = "0"; // axis left
+                        ini["keys." + idx + ".16"] = "0"; // axis right
                         hasKeyb = true;
                     }
 
@@ -242,6 +250,10 @@ namespace emulatorLauncher
                     ini["keys." + idx + ".10"] = KeyboardValue(InputKey.start, c).ToString();
                     ini["keys." + idx + ".11"] = "69"; // F12
                     ini["keys." + idx + ".12"] = "41"; // Esc
+                    ini["keys." + idx + ".13"] = "0"; // axis up
+                    ini["keys." + idx + ".14"] = "0"; // axis down
+                    ini["keys." + idx + ".15"] = "0"; // axis left
+                    ini["keys." + idx + ".16"] = "0"; // axis right
                     continue;
                 }
 
@@ -262,6 +274,11 @@ namespace emulatorLauncher
                     ini["keys." + idx + ".12"] = JoystickValue(InputKey.hotkey, c).ToString(); // esc
                 else
                     ini["keys." + idx + ".12"] = "0";
+
+                ini["keys." + idx + ".13"] = JoystickValue(InputKey.joystick1up, c).ToString();
+                ini["keys." + idx + ".14"] = JoystickValue(InputKey.joystick1up, c, true).ToString();
+                ini["keys." + idx + ".15"] = JoystickValue(InputKey.joystick1left, c).ToString();
+                ini["keys." + idx + ".16"] = JoystickValue(InputKey.joystick1left, c, true).ToString();
             }
         }
 
