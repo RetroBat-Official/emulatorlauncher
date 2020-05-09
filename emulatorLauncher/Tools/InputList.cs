@@ -248,6 +248,9 @@ namespace emulatorLauncher.Tools
             if (input == null)
                 return null;
 
+            if (input.Type == "key")
+                return input;
+
             Input ret = new Input();
             ret.Name = input.Name;
             ret.Type = input.Type;
@@ -345,6 +348,9 @@ namespace emulatorLauncher.Tools
             Input input = this[key];
             if (input == null)
                 return null;
+
+            if (input.Type == "key")
+                return input;
 
             if (!IsXInputDevice())
                 return input;
