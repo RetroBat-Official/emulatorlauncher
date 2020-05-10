@@ -203,10 +203,10 @@ namespace emulatorLauncher
             writeIni("22", InputKey.joystick2up, true);
             writeIni("23", InputKey.joystick2left, false);
             writeIni("24", InputKey.joystick2left, true);
-
-            if (api == "XInput")
-                writeIni("26", InputKey.hotkeyenable, false);
-            else
+            /*
+            if (joy[InputKey.select] != null && !joy[InputKey.select].Equals(joy[InputKey.hotkey]))
+                writeIni("26", InputKey.hotkey, false);
+            else*/
                 ini.WriteValue("Controller", "26", null);
         }
 
@@ -286,6 +286,12 @@ namespace emulatorLauncher
                 else
                     val = 0;
             }
+
+            // Invert start/select on XInput
+            if (api == "XInput" && val == 7)
+                val = 6;
+            else if (api == "XInput" && val == 6)
+                val = 7;
 
             //(GetCEmuInputIndex(ik, api == "XInput") + (invertAxis ? 1 : 0)).ToString() + " = 
             string ret = "button_" + (pid << (int)val).ToString("X");

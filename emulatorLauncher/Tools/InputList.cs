@@ -424,6 +424,23 @@ namespace emulatorLauncher.Tools
 
             return sb.ToString().Trim();
         }
+
+        public override bool Equals(object obj)
+        {
+            if (base.Equals(obj))
+                return true;
+            
+            Input src = obj as Input;
+            if (src == null)
+                return false;
+
+            return Name == src.Name && Id == src.Id && Value == src.Value && Type == src.Type;            
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 
     [Flags]
