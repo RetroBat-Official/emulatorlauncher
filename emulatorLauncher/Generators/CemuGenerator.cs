@@ -19,136 +19,118 @@ namespace emulatorLauncher
                 return null;
 
             CreateControllerConfiguration(path);
-            //     AutoSelectControllerProfile(path);
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-f -g \"" + rom + "\"",
+              //  Arguments = "-f -g \"" + rom + "\"",
                 WorkingDirectory = path,
             };
         }
-        /*
-        private static void AutoSelectControllerProfile(string path)
-        {
-            List<ControllerProfile> profiles = new List<ControllerProfile>();
-
-            string[] files = Directory.GetFiles(Path.Combine(path, "controllerProfiles"), "*.txt");
-            foreach (var file in files.Where(f => !Path.GetFileName(f).StartsWith("controller")))
-            {
-                string emulate = GetPrivateProfileString("General", "emulate", file);
-                if (emulate != "Wii U GamePad")
-                    continue;
-
-                string api = GetPrivateProfileString("General", "api", file);
-                string controller = GetPrivateProfileString("General", "controller", file);
-                if (controller == null)
-                    controller = string.Empty;
-
-                profiles.Add(new ControllerProfile()
-                {
-                    FileName = file,
-                    Api = api,
-                    DeviceGuid = controller.ToUpper() // !string.IsNullOrEmpty(controller) && api == "DirectInput" ? new Guid(controller) : Guid.Empty,
-                });
-            }
-
-            ControllerProfile toAssign = null;
-
-            if (InputDevices.NvidiaShieldExists())
-            {
-                string nvGuid = new Guid("ECBB3D3D-C2EA-4861-983F-B3E15BDC6C52").ToString().ToUpper();
-                var nvidiaProfile = profiles.FirstOrDefault(p => p.DeviceGuid == nvGuid);
-                if (nvidiaProfile != null)
-                    toAssign = nvidiaProfile;
-            }
-
-            if (toAssign == null)
-                toAssign = profiles.FirstOrDefault(p => InputDevices.JoystickExists(p.Guid));
-
-            if (toAssign == null && InputDevices.IsXInputControllerConnected(0))
-                toAssign = profiles.FirstOrDefault(p => p.Api == "XInput" && p.DeviceGuid == "0");
-
-            if (toAssign == null)
-                toAssign = profiles.FirstOrDefault(p => p.Api == "Keyboard");
-
-            if (toAssign != null)
-            {
-                try { File.Copy(toAssign.FileName, Path.Combine(Path.GetDirectoryName(toAssign.FileName), "controller0.txt"), true); }
-                catch { }
-            }
-        }
-        */
-
+        
         private void CreateControllerConfiguration(string path)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            string controllerProfiles = Path.Combine(path, "controllerProfiles");
 
             foreach (var controller in this.Controllers)
             {
                 if (controller.Input == null)
                     continue;
 
-                string file = Path.Combine(path, "controllerProfiles", controller.Input.DeviceName + ".txt");
-
-                string sb = ConfigureInput(controller.Input);
-                if (sb != null)
+                string controllerTxt = Path.Combine(controllerProfiles, "controller" + (controller.Index - 1) + ".txt");
+                using (IniFile ini = new IniFile(controllerTxt, true))
                 {
-                    try { File.WriteAllText(file, sb); }
-                    catch { }
+                    ConfigureInput(ini, controller.Input);
+                    ini.Save();
                 }
             }
         }
 
-        private static string ConfigureInput(InputConfig input)
+        private static void ConfigureInput(IniFile ini, InputConfig input)
         {
             if (input == null)
-                return null;
-
+                return;
+        
             if (input.Type == "joystick")
-                return ConfigureJoystick(input);
-
-            return ConfigureKeyboard(input);
+                ConfigureJoystick(ini, input);
+            else
+                ConfigureKeyboard(ini, input);
         }
 
 
-        private static string ConfigureKeyboard(InputConfig keyboard)
+        private static void ConfigureKeyboard(IniFile ini, InputConfig keyboard)
         {
             if (keyboard == null)
-                return null;
+                return;
 
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("[General]");
-            sb.AppendLine("emulate = Wii U GamePad");
-            sb.AppendLine("api = Keyboard");
-            sb.AppendLine();
+            ini.WriteValue("General", "emulate", "Wii U GamePad");
+            ini.WriteValue("General", "api", "Keyboard");
+            ini.WriteValue("General", "controller", null);
 
-            sb.AppendLine("[Controller]");
-            sb.AppendLine("rumble = 0,000000");
-            sb.AppendLine("leftRange = 1,000000");
-            sb.AppendLine("rightRange = 1,000000");
-            sb.AppendLine("leftDeadzone = 0,000000");
-            sb.AppendLine("rightDeadzone = 0,000000");
+            ini.WriteValue("Controller", "rumble", "0");
+            ini.WriteValue("Controller", "leftRange", "1");
+            ini.WriteValue("Controller", "rightRange", "1");
+            ini.WriteValue("Controller", "leftDeadzone", "0.15");
+            ini.WriteValue("Controller", "rightDeadzone", "0.15");
+            ini.WriteValue("Controller", "buttonThreshold", "0.5");
 
-            foreach (InputKey ik in Enum.GetValues(typeof(InputKey)).Cast<InputKey>().OrderBy(i => GetCEmuInputIndex(i)))
+            Action<string, InputKey> writeIni = (v, k) =>
             {
-                var a = keyboard[ik];
-                if (a == null)
-                    continue;
+                var a = keyboard[k];
+                if (a != null)
+                {
+                    byte value = SdlToKeyCode(a.Id);
+                    ini.WriteValue("Controller", v, "key_" + value.ToString());
+                }
+                else if (ini.GetValue("Controller", v) != null && ini.GetValue("Controller", v).StartsWith("button"))
+                    ini.WriteValue("Controller", v, "");
+            };
 
-                byte value = SdlToKeyCode(a.Id);
+            writeIni("1", InputKey.a);
+            writeIni("2", InputKey.b);
+            writeIni("3", InputKey.x);
+            writeIni("4", InputKey.y);
 
-                sb.AppendLine(GetCEmuInputIndex(ik).ToString() + " = key_" + value.ToString());
-            }
+            writeIni("5", InputKey.pageup);
+            writeIni("6", InputKey.pagedown);
 
-            return sb.ToString();
+            writeIni("7", InputKey.lefttrigger);
+            writeIni("8", InputKey.righttrigger);
+
+            writeIni("9", InputKey.start);
+            writeIni("10", InputKey.select);
+
+            writeIni("11", InputKey.up);
+            writeIni("12", InputKey.down);
+            writeIni("13", InputKey.left);
+            writeIni("14", InputKey.right);
+
+            if (ini.GetValue("Controller", "15") != null && ini.GetValue("Controller", "15").StartsWith("button"))
+                ini.WriteValue("Controller", "15", null);
+
+            if (ini.GetValue("Controller", "16") != null && ini.GetValue("Controller", "16").StartsWith("button"))
+                ini.WriteValue("Controller", "16", null);
+
+            writeIni("17", InputKey.joystick1up);
+            writeIni("18", InputKey.joystick1up);
+            writeIni("19", InputKey.joystick1left);
+            writeIni("20", InputKey.joystick1left);
+
+            writeIni("21", InputKey.joystick2up);
+            writeIni("22", InputKey.joystick2up);
+            writeIni("23", InputKey.joystick2left);
+            writeIni("24", InputKey.joystick2left);
+
+            writeIni("26", InputKey.hotkeyenable);
         }
 
-        private static string ConfigureJoystick(InputConfig joy)
+        private static void ConfigureJoystick(IniFile ini, InputConfig joy)
         {
             if (joy == null)
-                return null;
+                return;
 
             string api;
             string guid = string.Empty;
@@ -163,100 +145,151 @@ namespace emulatorLauncher
                 api = "DirectInput";
                 Guid gd = joy.GetJoystickInstanceGuid();
                 if (gd == Guid.Empty)
-                    return null;
+                    return;
 
                 guid = gd.ToString().ToUpper();
             }
 
-            StringBuilder sbJoy = new StringBuilder();
+            ini.WriteValue("General", "emulate", "Wii U GamePad");
+            ini.WriteValue("General", "api", api);
+            ini.WriteValue("General", "controller", guid);
 
-            sbJoy.AppendLine("[General]");
-            sbJoy.AppendLine("emulate = Wii U GamePad");
-            sbJoy.AppendLine("api = " + api);
-            sbJoy.AppendLine("controller = " + guid);
-            sbJoy.AppendLine();
+            ini.WriteValue("Controller", "rumble", "0");
+            ini.WriteValue("Controller", "leftRange", "1");
+            ini.WriteValue("Controller", "rightRange", "1");
+            ini.WriteValue("Controller", "leftDeadzone", "0.15");
+            ini.WriteValue("Controller", "rightDeadzone", "0.15");
+            ini.WriteValue("Controller", "buttonThreshold", "0.5");
 
-            sbJoy.AppendLine("[Controller]");
-            sbJoy.AppendLine("rumble = 0,000000");
-            sbJoy.AppendLine("leftRange = 1,000000");
-            sbJoy.AppendLine("rightRange = 1,000000");
-            sbJoy.AppendLine("leftDeadzone = 0,250000");
-            sbJoy.AppendLine("rightDeadzone = 0,250000");
+            Action<string, InputKey, bool> writeIni = (v, k, r) =>
+                { var val = GetInputValue(joy, k, api, r); ini.WriteValue("Controller", v, val); };             // if (val != null) 
 
-            foreach (InputKey ik in Enum.GetValues(typeof(InputKey)).Cast<InputKey>().OrderBy(i => GetCEmuInputIndex(i, api == "XInput")))
+            writeIni("1", InputKey.a, false);
+            writeIni("2", InputKey.b, false);
+            writeIni("3", InputKey.x, false);
+            writeIni("4", InputKey.y, false);
+
+            writeIni("5", InputKey.pageup, false);
+            writeIni("6", InputKey.pagedown, false);
+
+            writeIni("7", InputKey.lefttrigger, false);
+            writeIni("8", InputKey.righttrigger, false);
+
+            writeIni("9", InputKey.start, false);
+            writeIni("10", InputKey.select, false);
+
+            writeIni("11", InputKey.up, false);
+            writeIni("12", InputKey.down, false);
+            writeIni("13", InputKey.left, false);
+            writeIni("14", InputKey.right, false);
+
+            if (api == "XInput")
             {
-                var a = joy[ik];
-                if (a == null)
-                {
-                    if (api == "XInput" && GetCEmuInputIndex(ik) == 7)
-                        sbJoy.AppendLine("7 = button_1000000");
-                    else if (api == "XInput" && GetCEmuInputIndex(ik) == 8)
-                        sbJoy.AppendLine("8 = button_2000000");
-
-                    continue;
-                }
-
-                Int64 val = a.Id;
-                Int64 pid = 1;
-
-                if (a.Type == "hat")
-                {
-                    pid = a.Value;
-                    if (val == 0)
-                    {
-                        switch (pid)
-                        {
-                            case 1: pid = 0x4000000; break;
-                            case 2: pid = 0x20000000; break;
-                            case 4: pid = 0x8000000; break;
-                            case 8: pid = 0x10000000; break;
-                        }
-
-                        val = 0;
-                    }
-                    else
-                    {
-                        pid = 0x2000000 * pid;
-                        val = 0;
-                    }
-                }
-
-                if (a.Type == "axis")
-                {
-                    pid = a.Value;
-
-                    switch (val)
-                    {
-                        case 0: // X      
-                            if (pid == 1) pid = 0x40000000; else pid = 0x1000000000;
-                            break;
-                        case 1: // Y
-                            if (pid == 1) pid = 0x80000000; else pid = 0x2000000000;
-                            break;
-                        case 2: // Triggers Analogiques L+R
-                            if (pid == 1) pid = 0x100000000; else pid = 0x4000000000;
-                            break;
-                        case 3: // X
-                            if (pid == 1) pid = 0x800000000; else pid = 0x20000000000;
-                            //if (pid == 1) pid = 0x200000000; else pid = 0x8000000000;
-                            break;
-                        case 4: // Y
-
-                            if (pid == 1) pid = 0x400000000; else pid = 0x10000000000;
-                            break;
-                    }
-
-                    if (pid == 1 && val == 1)
-                        pid = 0x80000000;
-                    else
-                        val = 0;
-                }
-
-                string name = GetCEmuInputIndex(ik, api == "XInput").ToString() + " = button_" + (pid << (int)val).ToString("X");
-                sbJoy.AppendLine(name);
+                ini.WriteValue("Controller", "15", "button_100");
+                ini.WriteValue("Controller", "16", "button_200");
+            }
+            else
+            {
+                ini.WriteValue("Controller", "15", null);
+                ini.WriteValue("Controller", "16", null);
             }
 
-            return sbJoy.ToString();
+            writeIni("17", InputKey.joystick1up, false);
+            writeIni("18", InputKey.joystick1up, true);
+            writeIni("19", InputKey.joystick1left, false);
+            writeIni("20", InputKey.joystick1left, true);
+
+            writeIni("21", InputKey.joystick2up, false);
+            writeIni("22", InputKey.joystick2up, true);
+            writeIni("23", InputKey.joystick2left, false);
+            writeIni("24", InputKey.joystick2left, true);
+
+            if (api == "XInput")
+                writeIni("26", InputKey.hotkeyenable, false);
+            else
+                ini.WriteValue("Controller", "26", null);
+        }
+
+        private static string GetInputValue(InputConfig joy, InputKey ik, string api, bool invertAxis = false)
+        {
+            var a = joy[ik];
+            if (a == null)
+            {
+                if (api == "XInput" && GetCEmuInputIndex(ik) == 7)
+                    return "button_1000000";
+                else if (api == "XInput" && GetCEmuInputIndex(ik) == 8)
+                    return "button_2000000";
+
+                return null;
+            }
+
+            Int64 val = a.Id;
+            Int64 pid = 1;
+
+            if (a.Type == "hat")
+            {
+                pid = a.Value;
+                if (val == 0)
+                {
+                    switch (pid)
+                    {
+                        case 1: pid = 0x04000000; break;
+                        case 2: pid = 0x20000000; break;
+                        case 4: pid = 0x08000000; break;
+                        case 8: pid = 0x10000000; break;
+                    }
+
+                    val = 0;
+                }
+                else
+                {
+                    pid = 0x2000000 * pid;
+                    val = 0;
+                }
+            }
+
+            if (a.Type == "axis")
+            {
+                pid = a.Value;
+
+                int axisVal = invertAxis ? -1 : 1;
+
+                if (api == "XInput" && val == 1 || val == 4)
+                    axisVal = -axisVal;
+
+                switch (val)
+                {
+                    case 0: // left analog left/right
+                        if (pid == axisVal)     pid = 0x0040000000;                                
+                        else                    pid = 0x1000000000;
+                        break;
+                    case 1: // left analog up/down
+                        if (pid == axisVal)     pid = 0x0080000000; 
+                        else                    pid = 0x2000000000;
+                        break;
+                    case 2: // Triggers Analogiques L+R
+                        if (pid == axisVal)     pid = 0x0100000000;                                 
+                        else                    pid = 0x4000000000;
+                        break;
+                    case 3: // right analog left/right
+                        if (pid == axisVal)     pid = 0x0200000000; 
+                        else                    pid = 0x8000000000;
+                        break;
+                    case 4: // right analog up/down
+                        if (pid == axisVal)     pid = 0x0400000000; 
+                        else                    pid = 0x10000000000;
+                        break;
+                }
+
+                if (pid == axisVal && val == 1)
+                    pid = 0x80000000;
+                else
+                    val = 0;
+            }
+
+            //(GetCEmuInputIndex(ik, api == "XInput") + (invertAxis ? 1 : 0)).ToString() + " = 
+            string ret = "button_" + (pid << (int)val).ToString("X");
+            return ret;
         }
 
         public static int GetCEmuInputIndex(InputKey k, bool XInput = false)
@@ -337,8 +370,7 @@ namespace emulatorLauncher
 
                 case 0x40000049: return 45; // Insert = 0x40000049,
                 case 0x0000007f: return 46; // Delete = 0x0000007f,
-
-
+                    
                 case 0x40000059: return 97; //KP_1 = 0x40000059,
                 case 0X4000005A: return 98; //KP_2 = 0X4000005A,
                 case 0x4000005b: return 99; // KP_3 = ,

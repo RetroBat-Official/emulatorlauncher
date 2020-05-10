@@ -170,20 +170,9 @@ namespace emulatorLauncher.Tools
 
         public Guid GetJoystickInstanceGuid()
         {
-            if (ProductGuid == Guid.Empty)
-                return Guid.Empty;
-
-            try
-            {
-
-                using (var directInput = new DirectInput())
-                {
-                    var dev = directInput.GetDevices().FirstOrDefault(d => d.ProductGuid == ProductGuid);
-                    if (dev != null)
-                        return dev.InstanceGuid;
-                }
-            }
-            catch { }
+            var info = GetDirectInputInfo();
+            if (info != null)
+                return info.InstanceGuid;
 
             return Guid.Empty;
         }
