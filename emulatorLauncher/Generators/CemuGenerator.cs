@@ -23,7 +23,7 @@ namespace emulatorLauncher
             return new ProcessStartInfo()
             {
                 FileName = exe,
-              //  Arguments = "-f -g \"" + rom + "\"",
+                Arguments = "-f -g \"" + rom + "\"",
                 WorkingDirectory = path,
             };
         }
@@ -355,50 +355,49 @@ namespace emulatorLauncher
 
                 case 0x4000009e: return 13; // Return2
 
-                case 0x400000e1: return 16;// Shift = 
+                case 0x400000e1: return 16; // Shift = 
                 case 0x400000e0: return 17; // Ctrl = 
-                case 0x400000e2: return 18; //Alt = 
+                case 0x400000e2: return 18; // Alt = 
 
                 case 0x4000004b: return 33; // PageUp = ,
                 case 0x4000004e: return 34; // PageDown = ,
                 case 0x4000004d: return 35; // End = ,
-                case 0x4000004a: return 36; //Home = ,
+                case 0x4000004a: return 36; // Home = ,
                 case 0x40000050: return 37; // Left = ,
                 case 0x40000052: return 38; // Up = ,
-                case 0x4000004f: return 39; //Right = ,
-                case 0x40000051: return 40; //Down = 0x40000051,
+                case 0x4000004f: return 39; // Right = ,
+                case 0x40000051: return 40; // Down = 0x40000051,
 
                 case 0x40000049: return 45; // Insert = 0x40000049,
                 case 0x0000007f: return 46; // Delete = 0x0000007f,
                     
-                case 0x40000059: return 97; //KP_1 = 0x40000059,
-                case 0X4000005A: return 98; //KP_2 = 0X4000005A,
-                case 0x4000005b: return 99; // KP_3 = ,
+                case 0x40000059: return 97;  //KP_1 = 0x40000059,
+                case 0X4000005A: return 98;  //KP_2 = 0X4000005A,
+                case 0x4000005b: return 99;  // KP_3 = ,
                 case 0x4000005c: return 100; // KP_4 = ,
                 case 0x4000005d: return 101; // KP_5 = ,
                 case 0x4000005e: return 102; // KP_6 = ,
                 case 0x4000005f: return 103; // KP_7 = ,
                 case 0x40000060: return 104; // KP_8 = ,
                 case 0x40000061: return 105; // KP_9 = ,
-                case 0x40000062: return 96; //KP_0 = 0x40000062,
+                case 0x40000062: return 96;  // KP_0 = 0x40000062,
                 case 0x40000055: return 106; // KP_Multiply
                 case 0x40000057: return 107; // KP_Plus
                 case 0x40000056: return 109; // KP_Minus
 
                 case 0x4000003a: return 112; // F1
-                case 0x4000003b: return 113; // F1
-                case 0x4000003c: return 114; // F1
-                case 0x4000003d: return 115; // F1
-                case 0x4000003e: return 116; // F1
-                case 0x4000003f: return 117; // F1
-                case 0x40000040: return 118; // F1
-                case 0x40000041: return 119; // F1
-                case 0x40000042: return 120; // F1
-                case 0x40000043: return 121; // F1
-                case 0x40000044: return 122; // F1
-                case 0x40000045: return 123; // F1
-                /*
-        
+                case 0x4000003b: return 113; // F2
+                case 0x4000003c: return 114; // F3
+                case 0x4000003d: return 115; // F4
+                case 0x4000003e: return 116; // F5
+                case 0x4000003f: return 117; // F6
+                case 0x40000040: return 118; // F7
+                case 0x40000041: return 119; // F8
+                case 0x40000042: return 120; // F9
+                case 0x40000043: return 121; // F10
+                case 0x40000044: return 122; // F11
+                case 0x40000045: return 123; // F12
+                /*        
             KP_Period = 0x40000063,
             KP_Divide = 0x40000054,
                    
