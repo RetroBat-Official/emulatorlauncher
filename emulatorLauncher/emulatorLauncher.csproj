@@ -72,6 +72,7 @@
     <Compile Include="Generators\Rpcs3Generator.cs" />
     <Compile Include="Generators\OpenBorGenerator.cs" />
     <Compile Include="Generators\Model2Generator.cs" />
+    <Compile Include="Generators\UaeGenerator.cs" />
     <Compile Include="Generators\VPinballGenerator.cs" />
     <Compile Include="PadToKey\JoystickListener.cs" />
     <Compile Include="PadToKey\PadToKey.cs" />

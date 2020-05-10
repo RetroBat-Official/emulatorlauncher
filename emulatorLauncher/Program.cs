@@ -39,7 +39,8 @@ namespace emulatorLauncher
             { "ppsspp", () => new PpssppGenerator() },
             { "dolphin", () => new DolphinGenerator() },
             { "cemu", () => new CemuGenerator() },  { "wiiu", () => new CemuGenerator() },  
-            
+            { "winuae", () => new UaeGenerator() }
+                        
     /*,
             'moonlight': MoonlightGenerator(),
             'scummvm': ScummVMGenerator(),
