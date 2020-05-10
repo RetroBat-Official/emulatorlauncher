@@ -168,6 +168,26 @@ namespace emulatorLauncher.Tools
             return _isXinput.Value;
         }
 
+        public Guid GetJoystickInstanceGuid()
+        {
+            if (ProductGuid == Guid.Empty)
+                return Guid.Empty;
+
+            try
+            {
+
+                using (var directInput = new DirectInput())
+                {
+                    var dev = directInput.GetDevices().FirstOrDefault(d => d.ProductGuid == ProductGuid);
+                    if (dev != null)
+                        return dev.InstanceGuid;
+                }
+            }
+            catch { }
+
+            return Guid.Empty;
+        }
+
         public class DirectInputInfo
         {
             public string Name { get; set; }

@@ -62,6 +62,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generators\CemuGenerator.cs" />
     <Compile Include="Generators\Model3Generator.cs" />
     <Compile Include="Generators\DolphinGenerator.cs" />
     <Compile Include="Generators\PpssppGenerator.cs" />
