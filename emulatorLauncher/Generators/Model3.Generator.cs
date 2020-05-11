@@ -29,8 +29,10 @@ namespace emulatorLauncher
 
             // if (SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1")
                 args.Add("-stretch");
-            
-            args.Add("-vsync");
+                            
+            if (SystemConfig["VSync"] != "false")
+                args.Add("-vsync");
+
             args.Add("\""+rom+"\"");
 
             // -res=1920,1080 -fullscreen -wide-screen -stretch -vsync %ROM%

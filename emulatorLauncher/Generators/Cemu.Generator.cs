@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
+using System.Xml.Linq;
 
 namespace emulatorLauncher
 {
@@ -17,6 +18,27 @@ namespace emulatorLauncher
             string exe = Path.Combine(path, "cemu.exe");
             if (!File.Exists(exe))
                 return null;
+
+            string settingsFile = Path.Combine(path, "settings.xml");
+            if (File.Exists(settingsFile))
+            {
+                try
+                {
+                    XDocument settings = XDocument.Load(settingsFile);
+
+                    var fps = settings.Descendants().FirstOrDefault(d => d.Name == "FPS");
+                    if (fps != null)
+                    {                        
+                        bool showFPS = SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS");
+                        if (showFPS.ToString().ToLower() != fps.Value)
+                        {
+                            fps.SetValue(showFPS);
+                            settings.Save(settingsFile);
+                        }
+                    }
+                }
+                catch { }
+            }
 
             CreateControllerConfiguration(path);
 

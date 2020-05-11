@@ -17,8 +17,10 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupGeneralConfig(path);
+            SetupGeneralConfig(path, system);
             SetupGfxConfig(path);
+
+            DolphinControllers.WriteControllersConfig(system, rom);
 
             return new ProcessStartInfo()
             {
@@ -53,6 +55,8 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "ShowFPS", "True");
                     else
                         ini.WriteValue("Settings", "ShowFPS", "False");
+                    
+                    ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");                    
 
                     // search for custom textures
                     ini.WriteValue("Settings", "HiresTextures", "True");
@@ -88,7 +92,7 @@ namespace emulatorLauncher
             return ret.ToString();
         }
 
-        private void SetupGeneralConfig(string path)
+        private void SetupGeneralConfig(string path, string system)
         {
             string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
             if (!File.Exists(iniFile))
@@ -122,6 +126,27 @@ namespace emulatorLauncher
 
                     // wiimote scanning
                     ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
+
+                    // gamecube pads forced as standard pad
+                    if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
+                    {
+                        bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
+
+                        for (int i = 0; i < 4; i++)
+                        {
+                            var ctl = Controllers.FirstOrDefault(c => c.Index == i + 1);
+
+                            if (ctl != null && ctl.Input != null && !emulatedWiiMote)
+                            {
+                                /*if (ctl.Input.Type == "keyboard")
+                                    ini.WriteValue("Core", "SIDevice" + i, "7");
+                                else*/
+                                    ini.WriteValue("Core", "SIDevice" + i, "6");
+                            }
+                            else
+                                ini.WriteValue("Core", "SIDevice" + i, "0");
+                        }
+                    }
                 }
             }
 

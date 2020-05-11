@@ -295,7 +295,7 @@ namespace emulatorLauncher
             setupControllers(conf);
 
             conf["fullscreen"] = "1";
-            conf["vsync"] = "1";
+            conf["vsync"] = SystemConfig["VSync"] != "false" ? "1" : "0";
             conf["usegl"] = "1";
             conf["stretch"] = SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1" ? "1" : "0";
 

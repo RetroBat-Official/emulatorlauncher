@@ -12,7 +12,7 @@ namespace emulatorLauncher
 	{
         public IniFile(string path, bool useSpaces = false)
 		{
-            _useSpaces = false;
+            _useSpaces = useSpaces;
             _path = path;
             _dirty = false;
 
@@ -81,6 +81,18 @@ namespace emulatorLauncher
                     ret.Add(pair.Key);
 
             return ret.Distinct().ToArray();
+        }
+
+        public void ClearSection(string section)
+        {
+            foreach (var sectionPair in _keyPairs.Keys.ToArray())
+            {
+                if (sectionPair.Section == section)
+                {
+                    _keyPairs.Remove(sectionPair);
+                    _dirty = true;
+                }
+            }
         }
 
         public void WriteValue(string section, string key, string value)

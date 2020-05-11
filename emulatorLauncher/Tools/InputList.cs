@@ -394,6 +394,64 @@ namespace emulatorLauncher.Tools
          
             return ret;
         }
+
+        public XINPUTMAPPING GetXInputMapping(InputKey key, bool revertAxis = false)
+        {
+            Input input = this[key];
+            if (input == null)
+                return XINPUTMAPPING.UNKNOWN;
+
+            if (input.Type == "key")
+                return XINPUTMAPPING.UNKNOWN;
+
+            if (!IsXInputDevice())
+                return XINPUTMAPPING.UNKNOWN;
+            
+            if (input.Type == "button")
+                return (XINPUTMAPPING)input.Id;
+
+            if (input.Type == "hat")
+                return (XINPUTMAPPING) (input.Value + 10);
+
+            if (input.Type == "axis")
+            {
+                switch (input.Id)
+                {
+                    case 2:
+                        return XINPUTMAPPING.LEFTTRIGGER;
+
+                    case 5:
+                        return XINPUTMAPPING.RIGHTTRIGGER;
+                    
+                    case 0:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.LEFTANALOG_RIGHT;
+
+                        return XINPUTMAPPING.LEFTANALOG_LEFT;
+
+                    case 1:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.LEFTANALOG_DOWN;
+
+                        return XINPUTMAPPING.LEFTANALOG_UP;
+
+                    case 4:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.RIGHTANALOG_DOWN;
+
+                        return XINPUTMAPPING.RIGHTANALOG_UP;
+
+                    case 3:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.RIGHTANALOG_RIGHT;
+
+                        return XINPUTMAPPING.RIGHTANALOG_LEFT;
+                }
+            }
+
+            return XINPUTMAPPING.UNKNOWN;
+        }
+
     }
 
     public class Input
@@ -489,6 +547,44 @@ namespace emulatorLauncher.Tools
         joystick2up = 8192
 
     }
+    
+    public enum XINPUTMAPPING
+    {
+        UNKNOWN = -1,
+
+        A = 0,
+        B = 1,
+        Y = 2,
+        X = 3,        
+        LEFTSHOULDER = 4,
+        RIGHTSHOULDER = 5,
+
+        BACK = 6,
+        START = 7,
+
+        LEFTSTICK = 8,
+        RIGHTSTICK = 9,
+        GUIDE = 10,
+
+        DPAD_UP = 11,
+        DPAD_RIGHT = 12,
+        DPAD_DOWN = 14,
+        DPAD_LEFT = 18,
+
+        LEFTANALOG_UP = 21,
+        LEFTANALOG_RIGHT = 22,
+        LEFTANALOG_DOWN = 24,
+        LEFTANALOG_LEFT = 28,
+
+        RIGHTANALOG_UP = 31,
+        RIGHTANALOG_RIGHT = 32,
+        RIGHTANALOG_DOWN = 34,
+        RIGHTANALOG_LEFT = 38,
+
+        RIGHTTRIGGER = 51,
+        LEFTTRIGGER = 52
+    }
+
 
     enum XINPUT_GAMEPAD
     {
