@@ -20,9 +20,9 @@ namespace emulatorLauncher
         {
             string path = AppConfig.GetFullPath("m2emulator");
 
-            string exe = Path.Combine(path, "emulator.exe");
-            if (emulator == "model2")
-                exe = Path.Combine(path, "emulator_multicpu.exe");
+            string exe = Path.Combine(path, "emulator_multicpu.exe");
+            if (core != null && core.ToLower().Contains("singlecpu"))
+                exe = Path.Combine(path, "emulator.exe");
 
             if (!File.Exists(exe))
                 return null;

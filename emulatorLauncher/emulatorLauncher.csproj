@@ -62,7 +62,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\Cemu.Generator.cs" />
+    <Compile Include="Generators\Demul.Generator.cs" />
+    <Compile Include="Generators\ExeLauncher.Generator.cs" />
+    <Compile Include="Generators\Mednafen.Generator.cs" />
+    <Compile Include="Generators\Redream.Generator.cs" />
+    <Compile Include="Generators\Cxbx.Generator.cs" />
+    <Compile Include="Generators\SimCoupe.Generator.cs" />
     <Compile Include="Generators\Model3.Generator.cs" />
     <Compile Include="Generators\Dolphin.Generator.cs" />
     <Compile Include="Generators\Dolphin.Controllers.cs">

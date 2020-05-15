@@ -41,17 +41,14 @@ namespace emulatorLauncher
             { "ppsspp", () => new PpssppGenerator() },
             { "dolphin", () => new DolphinGenerator() },
             { "cemu", () => new CemuGenerator() },  { "wiiu", () => new CemuGenerator() },  
-            { "winuae", () => new UaeGenerator() }
-                        
-    /*,
-            'moonlight': MoonlightGenerator(),
-            'scummvm': ScummVMGenerator(),
-            'mupen64plus': MupenGenerator(),
-            'vice': ViceGenerator(),
-            'fsuae': FsuaeGenerator(),
-            'amiberry': AmiberryGenerator(),
-            'reicast': ReicastGenerator(),
-            'citra' : CitraGenerator()*/
+            { "winuae", () => new UaeGenerator() },
+            { "applewin", () => new AppleWinGenerator() }, { "apple2", () => new AppleWinGenerator() },
+            { "simcoupe", () => new SimCoupeGenerator() },               
+            { "cxbx", () => new CxbxGenerator() }, { "chihiro", () => new CxbxGenerator() }, { "xbox", () => new CxbxGenerator() },               
+            { "redream", () => new RedreamGenerator() },                  
+            { "mugen", () => new ExeLauncherGenerator() }, { "windows", () => new ExeLauncherGenerator() }, 
+            { "demul", () => new DemulGenerator() }, { "demul-old", () => new DemulGenerator() }, 
+            { "mednafen", () => new MednafenGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
@@ -78,6 +75,7 @@ namespace emulatorLauncher
 
             LocalPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             AppConfig = ConfigFile.FromFile(Path.Combine(LocalPath, "emulatorLauncher.cfg"));
+            AppConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
             SystemConfig = ConfigFile.LoadEmulationStationSettings(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_settings.cfg"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));

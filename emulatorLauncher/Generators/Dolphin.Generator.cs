@@ -17,6 +17,9 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("dolphin");
 
+            if (string.IsNullOrEmpty(path))
+                path = AppConfig.GetFullPath("dolphin-emu");
+
             string exe = Path.Combine(path, "Dolphin.exe");
             if (!File.Exists(exe))
                 exe = Path.Combine(path, "DolphinWX.exe");
