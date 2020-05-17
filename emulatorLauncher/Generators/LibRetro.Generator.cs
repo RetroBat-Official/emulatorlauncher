@@ -85,7 +85,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
         }
 
-        private void Configure(string system, string rom, ScreenResolution resolution)
+        private void Configure(string system, string core, string rom, ScreenResolution resolution)
         {
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
 
@@ -340,9 +340,18 @@ namespace emulatorLauncher.libRetro
                 if (user_config.Name.StartsWith("retroarch."))
                     retroarchConfig[user_config.Name.Substring("retroarch.".Length)] = user_config.Value;
 
+
+            if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11")
+            {
+                _video_driver = retroarchConfig["video_driver"];
+                retroarchConfig["video_driver"] = "d3d11";
+            }
+
             if (retroarchConfig.IsDirty)
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
         }
+
+        private string _video_driver;
 
         private void writeBezelConfig(ConfigFile retroarchConfig, string systemName, string rom, ScreenResolution resolution)
         {
@@ -424,6 +433,13 @@ namespace emulatorLauncher.libRetro
         {
             if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
                 File.Delete(_dosBoxTempRom);
+            
+            if (!string.IsNullOrEmpty(_video_driver))
+            {
+                var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
+                retroarchConfig["video_driver"] = _video_driver;
+                retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+            }                
 
             base.Cleanup();
         }
@@ -471,7 +487,7 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
-            Configure(system, rom, resolution);
+            Configure(system, core, rom, resolution);
             ConfigureCoreOptions(system, core);
 
             List<string> commandArray = new List<string>();
