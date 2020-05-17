@@ -59,10 +59,8 @@ namespace emulatorLauncher
                         string biosPath = AppConfig.GetFullPath("bios");
                         if (!string.IsNullOrEmpty(biosPath))
                         {                            
-                            string relPath = relRoot.MakeRelativeUri(new Uri(biosPath, UriKind.Absolute)).ToString().Replace("/", "\\");
-                            relPath = relPath.Replace("\\", "\\\\");
                             ini.WriteValue("Folders", "UseDefaultBios", "disabled");
-                            ini.WriteValue("Folders", "Bios", relPath);
+                            ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
                         }
 
                         string savesPath = AppConfig.GetFullPath("saves");
@@ -73,9 +71,7 @@ namespace emulatorLauncher
                                 try { Directory.CreateDirectory(savesPath); }
                                 catch { }
 
-                            string relPath = relRoot.MakeRelativeUri(new Uri(savesPath, UriKind.Absolute)).ToString().Replace("/", "\\");
-                            relPath = relPath.Replace("\\", "\\\\");
-                            ini.WriteValue("Folders", "Savestates", Path.Combine(relPath, "pcsx2"));
+                            ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\")); // Path.Combine(relPath, "pcsx2")
                         }
                     }
                 }
