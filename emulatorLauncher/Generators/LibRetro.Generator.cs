@@ -340,8 +340,12 @@ namespace emulatorLauncher.libRetro
                 if (user_config.Name.StartsWith("retroarch."))
                     retroarchConfig[user_config.Name.Substring("retroarch.".Length)] = user_config.Value;
 
-
-            if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11")
+            if (SystemConfig.isOptSet("video_driver"))
+            {
+                _video_driver = retroarchConfig["video_driver"];
+                retroarchConfig["video_driver"] = SystemConfig["video_driver"];
+            }
+            else if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan")
             {
                 _video_driver = retroarchConfig["video_driver"];
                 retroarchConfig["video_driver"] = "d3d11";
@@ -450,7 +454,16 @@ namespace emulatorLauncher.libRetro
                 return null;
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
+            {
                 core = Path.GetFileNameWithoutExtension(rom);
+
+                if (core == "xrick")
+                    rom = Path.Combine(Path.GetDirectoryName(rom), "xrick", "data.zip");
+                else if (core == "dinothawr")
+                    rom = Path.Combine(Path.GetDirectoryName(rom), "dinothawr", "dinothawr.game");
+                else
+                    rom = null;
+            }
 
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
@@ -530,7 +543,7 @@ namespace emulatorLauncher.libRetro
                 FileName = Path.Combine(RetroarchPath, "retroarch.exe"),
                 WorkingDirectory = RetroarchPath,                
                 Arguments =
-                    Path.GetExtension(rom).ToLowerInvariant() == ".libretro" ?
+                    string.IsNullOrEmpty(rom) ?
                         ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim() :
                         ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
             };
