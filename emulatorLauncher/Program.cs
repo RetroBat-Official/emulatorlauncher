@@ -48,7 +48,8 @@ namespace emulatorLauncher
             { "redream", () => new RedreamGenerator() },                  
             { "mugen", () => new ExeLauncherGenerator() }, { "windows", () => new ExeLauncherGenerator() }, 
             { "demul", () => new DemulGenerator() }, { "demul-old", () => new DemulGenerator() }, 
-            { "mednafen", () => new MednafenGenerator() }
+            { "mednafen", () => new MednafenGenerator() },
+            { "solarus", () => new SolarusGenerator() }            
         };
 
         public static ConfigFile AppConfig { get; private set; }
@@ -81,7 +82,7 @@ namespace emulatorLauncher
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll("global"));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"]));
-            SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileNameWithoutExtension(SystemConfig["rom"]) + "\"]"));
+            SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
             var inputConfig = LoadControllerConfiguration(args);

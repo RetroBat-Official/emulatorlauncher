@@ -64,6 +64,7 @@
   <ItemGroup>
     <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\Cemu.Generator.cs" />
+    <Compile Include="Generators\Solarus.Generator.cs" />
     <Compile Include="Generators\Demul.Generator.cs" />
     <Compile Include="Generators\ExeLauncher.Generator.cs" />
     <Compile Include="Generators\Mednafen.Generator.cs" />

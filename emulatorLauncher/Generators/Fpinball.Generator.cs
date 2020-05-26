@@ -173,7 +173,7 @@ namespace emulatorLauncher
             string bamPng = Path.Combine(Path.GetDirectoryName(_bam), Path.ChangeExtension(Path.GetFileName(_rom), ".png"));
             if (File.Exists(bamPng))
             {
-                ScreenCapture.AddImageToGameList(_rom, bamPng);
+                ScreenCapture.AddImageToGameList(_rom, bamPng, false);
 
                 try { File.Delete(bamPng); }
                 catch { }

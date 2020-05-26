@@ -11,7 +11,7 @@ namespace emulatorLauncher.Tools
 {
     class ScreenCapture
     {
-        public static void AddImageToGameList(string rom, string imagePath)
+        public static void AddImageToGameList(string rom, string imagePath, bool resizeTo43 = true)
         {
             if (string.IsNullOrEmpty(rom))
                 return;
@@ -46,22 +46,35 @@ namespace emulatorLauncher.Tools
                 string partialImagePath = ".\\" + Path.Combine("images", Path.GetFileNameWithoutExtension(romName) + ".jpg");
                 using (Image img = (imagePath == null ? CaptureScreen() : Image.FromFile(imagePath)))
                 {
-                    using (Bitmap bmp = new Bitmap(1280, 1024))
+                    if (!resizeTo43)
                     {
-                        using (Graphics g = Graphics.FromImage(bmp))
-                        {
-                            Rectangle rect = Misc.GetPictureRect(img.Size, new Rectangle(0, 0, bmp.Width, bmp.Height), true);
-                            g.DrawImage(img, rect);
-                        }
-
                         var codecInfo = GetEncoderInfo("image/jpeg");
                         if (codecInfo == null)
                             return;
 
                         var encoderParameters = new EncoderParameters(1);
                         encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 75L);
+                        img.Save(fullImagePath, codecInfo, encoderParameters);
+                    }
+                    else
+                    {
+                        using (Bitmap bmp = new Bitmap(1280, 1024))
+                        {
+                            using (Graphics g = Graphics.FromImage(bmp))
+                            {
+                                Rectangle rect = Misc.GetPictureRect(img.Size, new Rectangle(0, 0, bmp.Width, bmp.Height), true);
+                                g.DrawImage(img, rect);
+                            }
 
-                        bmp.Save(fullImagePath, codecInfo, encoderParameters);
+                            var codecInfo = GetEncoderInfo("image/jpeg");
+                            if (codecInfo == null)
+                                return;
+
+                            var encoderParameters = new EncoderParameters(1);
+                            encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 75L);
+
+                            bmp.Save(fullImagePath, codecInfo, encoderParameters);
+                        }
                     }
                 }
 
