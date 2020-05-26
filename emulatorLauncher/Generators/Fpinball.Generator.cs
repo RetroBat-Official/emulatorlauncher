@@ -67,6 +67,9 @@ namespace emulatorLauncher
                             regKeyc.SetValue("JoypadStartGame", JoystickValue(InputKey.start, controller));
                             regKeyc.SetValue("JoypadInsertCoin", JoystickValue(InputKey.select, controller));
 
+                            regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.r3, controller));
+                            regKeyc.SetValue("JoypadBackbox", JoystickValue(InputKey.l3, controller));
+
                             regKeyc.SetValue("JoypadSpecial1", -1);
                             regKeyc.SetValue("JoypadSpecial2", -1);
                             regKeyc.SetValue("JoypadInsertCoin2", -1);
@@ -85,12 +88,7 @@ namespace emulatorLauncher
                             regKeyc.SetValue("JoypadNudgeAxisY", -1);
                             regKeyc.SetValue("JoypadPinballRollerAxisX", -1);
                             regKeyc.SetValue("JoypadPinballRollerAxisY", -1);
-                           
-                            if (controller.Input.IsXInputDevice())
-                            {
-                                regKeyc.SetValue("JoypadPause", 9);
-                                regKeyc.SetValue("JoypadBackbox", 8);
-                            }
+                          
 
                             regKeyc.Close();
                         }

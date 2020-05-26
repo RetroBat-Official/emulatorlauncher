@@ -69,5 +69,20 @@ namespace emulatorLauncher.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # Game Controller DB for SDL in 2.0.10 format
+        ///# Source: https://github.com/gabomdq/SDL_GameControllerDB
+        ///
+        ///# Windows
+        ///03000000fa2d00000100000000000000,3DRUDDER,leftx:a0,lefty:a1,rightx:a5,righty:a2,platform:Windows,
+        ///03000000c82d00002038000000000000,8bitdo,a:b1,b:b0,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b2,leftshoulder:b6,leftstick:b13,lefttrigger:b8,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b14,righttrigger:b9,rightx:a3,righty:a4,start:b11,x:b4,y:b3,platform:Windows,
+        ///03000000c82d000 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string gamecontrollerdb {
+            get {
+                return ResourceManager.GetString("gamecontrollerdb", resourceCulture);
+            }
+        }
     }
 }

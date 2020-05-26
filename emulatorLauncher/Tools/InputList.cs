@@ -311,6 +311,9 @@ namespace emulatorLauncher.Tools
                     return ret;
                 }
             }
+
+            if (!GameControllerDb.Controllers.Any(c => c.Guid == DeviceGUID))
+                return input;
             
             switch(key)
             {
@@ -628,5 +631,46 @@ namespace emulatorLauncher.Tools
         DPAD_DOWN = 12,
         DPAD_LEFT = 13,
         DPAD_RIGHT = 14
-    };    
+    };
+
+    // Controllers known by SDL2 & Retroarch
+    class GameControllerDb
+    {
+        static GameControllerDb()
+        {
+            Controllers = new List<GameControllerDb>();
+
+            foreach(var line in Properties.Resources.gamecontrollerdb.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (line.StartsWith("#"))
+                    continue;
+
+                var items = line.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (items.Length > 2)
+                {
+                    if (items.Last() == "platform:Windows")
+                    {
+                        var ctrl = new GameControllerDb();
+                        ctrl.Guid = items[0];
+                        ctrl.Name = items[1];
+                        Controllers.Add(ctrl);
+                    }
+                }
+            }
+        }
+
+        public static List<GameControllerDb> Controllers { get; private set; }
+
+        public string Guid { get; set; }
+        public string Name { get; set; }
+
+        public override string ToString()
+        {
+            return Guid + " " + Name;
+        }
+
+    }
+
+
 }
