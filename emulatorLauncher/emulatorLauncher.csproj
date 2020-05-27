@@ -96,6 +96,7 @@
     <Compile Include="Tools\ScreenResolution.cs" />
     <Compile Include="Tools\IniFile.cs" />
     <Compile Include="Tools\SDL2.cs" />
+    <Compile Include="Tools\SdlGameControllers.cs" />
     <Compile Include="Tools\SimpleLogger.cs" />
     <Compile Include="Tools\SimpleYml.cs" />
     <Compile Include="Tools\SystemDefaults.cs" />
@@ -135,7 +136,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
-    <None Include="Resources\gamecontrollerdb.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
