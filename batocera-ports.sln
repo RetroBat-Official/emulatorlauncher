@@ -17,11 +17,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-bluetooth", "batoc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{56B39FFD-1B80-497D-BA0E-1B9D59CB9313}"
 	ProjectSection(SolutionItems) = preProject
+		7za.dll = 7za.dll
+		7za.exe = 7za.exe
+		7zxa.dll = 7zxa.dll
 		build\appveyor.yml = build\appveyor.yml
 		ILMerge.exe = ILMerge.exe
+		pdftoppm.exe = pdftoppm.exe
 		SharpDX.DirectInput.dll = SharpDX.DirectInput.dll
 		SharpDX.dll = SharpDX.dll
 		SharpDX.XInput.dll = SharpDX.XInput.dll
+		unzip.exe = unzip.exe
+		unzip32.dll = unzip32.dll
 	EndProjectSection
 EndProject
 Global

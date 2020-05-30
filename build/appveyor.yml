@@ -11,6 +11,12 @@ after_build:
 - 7z a batocera-ports.zip batocera-retroachievements-info.exe
 - copy batocera-systems\bin\Release\batocera-systems.exe .
 - 7z a batocera-ports.zip batocera-systems.exe
+- 7z a batocera-ports.zip 7za.exe
+- 7z a batocera-ports.zip 7za.dll
+- 7z a batocera-ports.zip 7zxa.dll
+- 7z a batocera-ports.zip unzip.exe
+- 7z a batocera-ports.zip unzip32.dll
+- 7z a batocera-ports.zip pdftoppm.exe
 artifacts:
 - path: batocera-ports.zip 
 deploy:
