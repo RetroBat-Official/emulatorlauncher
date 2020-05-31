@@ -17,6 +17,7 @@ after_build:
 - 7z a batocera-ports.zip unzip.exe
 - 7z a batocera-ports.zip unzip32.dll
 - 7z a batocera-ports.zip pdftoppm.exe
+- 7z a batocera-ports.zip pdfinfo.exe
 artifacts:
 - path: batocera-ports.zip 
 deploy:
