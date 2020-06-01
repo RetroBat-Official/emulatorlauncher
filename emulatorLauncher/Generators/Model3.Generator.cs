@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace emulatorLauncher
 {
     class Model3Generator : Generator
     {        
-        private string destFile;
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("supermodel");
@@ -23,11 +22,13 @@ namespace emulatorLauncher
 
             if (resolution != null)
                 args.Add("-res=" + resolution.Width + "," + resolution.Height);
+            else
+                args.Add("-res=" + Screen.PrimaryScreen.Bounds.Width + "," + Screen.PrimaryScreen.Bounds.Height);
               
             args.Add("-fullscreen");
             args.Add("-wide-screen");
 
-            // if (SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1")
+            if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] != "4/3")
                 args.Add("-stretch");
                             
             if (SystemConfig["VSync"] != "false")
@@ -43,12 +44,6 @@ namespace emulatorLauncher
                 Arguments = string.Join(" ", args),
                 WorkingDirectory = path,                
             };            
-        }
-
-        public override void Cleanup()
-        {
-            if (destFile != null && File.Exists(destFile))
-                File.Delete(destFile);
         }
     }
 }

@@ -384,7 +384,17 @@ namespace emulatorLauncher.PadToKeyboard
                 if (p != null && p.MainWindowHandle != IntPtr.Zero && p.MainWindowHandle != GetDesktopWindow())
                     hMainWnd = p.MainWindowHandle;
 
-                string fn = Path.GetFileNameWithoutExtension(p.MainModule.FileName).ToLower();
+                string fn = null;
+
+                try
+                {
+                    fn = Path.GetFileNameWithoutExtension(p.MainModule.FileName).ToLower();
+                }
+                catch
+                {
+                    fn = p.ProcessName.ToLower();
+                }
+
                 if (fn == "explorer")
                 {
                     int style = GetWindowLong(hwnd, -16);
