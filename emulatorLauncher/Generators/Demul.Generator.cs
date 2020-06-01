@@ -29,7 +29,7 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupGeneralConfig(path, rom, system);
+            SetupGeneralConfig(path, rom, system, core);
             SetupDx11Config(path, rom, system);
 
             string demulCore = "dreamcast";
@@ -151,7 +151,7 @@ namespace emulatorLauncher
         }
         #endregion
 
-        private void SetupGeneralConfig(string path, string rom, string system)
+        private void SetupGeneralConfig(string path, string rom, string system, string core)
         {
             string iniFile = Path.Combine(path, "Demul.ini");
             if (!File.Exists(iniFile))
@@ -167,8 +167,11 @@ namespace emulatorLauncher
 
                     ini.WriteValue("plugins", "directory", @".\plugins\");
 
-                    if (string.IsNullOrEmpty(ini.GetValue("plugins", "gpu")))
-                        ini.WriteValue("plugins", "gpu", _oldVersion ? "gpuDX11old.dll" : "gpuDX11.dll");
+                    string gpu = "gpuDX11.dll";
+                    if (_oldVersion || core == "gaelco" || system == "galeco")
+                        gpu = "gpuDX11old.dll";
+
+                    ini.WriteValue("plugins", "gpu", gpu);
 
                     if (string.IsNullOrEmpty(ini.GetValue("plugins", "gpu")))
                         ini.WriteValue("plugins", "pad", "padDemul.dll");

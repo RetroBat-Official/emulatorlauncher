@@ -366,8 +366,11 @@ namespace emulatorLauncher.libRetro
                 overlaySystem = Path.Combine(AppConfig.GetFullPath("home"), "decorations");
 
             string bezel = Directory.Exists(overlayUser) && !string.IsNullOrEmpty(SystemConfig["bezel"]) ? SystemConfig["bezel"] : "default";
+            
             if (SystemConfig.isOptSet("forceNoBezel") && SystemConfig.getOptBoolean("forceNoBezel"))
                 bezel = null;
+            else if (!SystemConfig.isOptSet("bezel"))
+                bezel = "thebezelproject";
 
             retroarchConfig["input_overlay_hide_in_menu"] = "false";
             retroarchConfig["input_overlay_enable"] = "false";
@@ -425,6 +428,18 @@ namespace emulatorLauncher.libRetro
             {
                 overlay_info_file = overlaySystem + "/" + bezel + "/default.info";
                 overlay_png_file = overlaySystem + "/" + bezel + "/default.png";
+            }
+
+            if (!File.Exists(overlay_png_file))
+            {
+                overlay_info_file = overlayUser + "/default_unglazed/systems/" + systemName + ".info";
+                overlay_png_file = overlayUser + "/default_unglazed/systems/" + systemName + ".png";
+            }
+
+            if (!string.IsNullOrEmpty(overlaySystem) && !File.Exists(overlay_png_file))
+            {
+                overlay_info_file = overlaySystem + "/default_unglazed/systems/" + systemName + ".info";
+                overlay_png_file = overlaySystem + "/default_unglazed/systems/" + systemName + ".png";
             }
 
             if (!File.Exists(overlay_png_file))
