@@ -13,9 +13,13 @@ namespace emulatorLauncher
 {
     class DemulGenerator : Generator
     {
+        bool _oldVersion = false;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string folderName = (emulator == "demul-old" || core == "demul-old") ? "demul-old" : "demul";
+            if (folderName == "demul-old")
+                _oldVersion = true;
 
             string path = AppConfig.GetFullPath(folderName);
             if (string.IsNullOrEmpty(path))
@@ -162,13 +166,17 @@ namespace emulatorLauncher
                     ini.WriteValue("files", "romsPathsCount", "2");
 
                     ini.WriteValue("plugins", "directory", @".\plugins\");
-                    ini.WriteValue("plugins", "gpu", "gpuDX11.dll");
-                    ini.WriteValue("plugins", "pad", "padDemul.dll");
 
-                    if (ini.GetValue("plugins", "gpu") == null)
+                    if (string.IsNullOrEmpty(ini.GetValue("plugins", "gpu")))
+                        ini.WriteValue("plugins", "gpu", _oldVersion ? "gpuDX11old.dll" : "gpuDX11.dll");
+
+                    if (string.IsNullOrEmpty(ini.GetValue("plugins", "gpu")))
+                        ini.WriteValue("plugins", "pad", "padDemul.dll");
+
+                    if (string.IsNullOrEmpty(ini.GetValue("plugins", "gdr")))
                         ini.WriteValue("plugins", "gdr", "gdrCHD.dll");
 
-                    if (ini.GetValue("plugins", "spu") == null)
+                    if (string.IsNullOrEmpty(ini.GetValue("plugins", "spu")))
                         ini.WriteValue("plugins", "spu", "spuDemul.dll");
 
                     if (ini.GetValue("plugins", "net") == null)
