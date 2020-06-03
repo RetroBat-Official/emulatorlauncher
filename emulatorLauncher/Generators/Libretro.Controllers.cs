@@ -9,10 +9,15 @@ namespace emulatorLauncher.libRetro
 {
     class LibretroControllers
     {
-        public static bool WriteControllersConfig(ConfigFile retroconfig, string system)
+        private static string _inputDriver = "sdl2";
+
+        public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
+
+            //if (core == "fbalpha2012")
+            //    _inputDriver = "xinput";
 
             // no menu in non full uimode
             if (Program.SystemConfig.isOptSet("uimode") && Program.SystemConfig["uimode"] != "Full" && retroarchspecials.ContainsKey(InputKey.a))
@@ -129,7 +134,7 @@ namespace emulatorLauncher.libRetro
             if (c0 == null || c0.Input == null)
                 return;
 
-            var hotKey = c0.Input.ToSdlCode(Tools.InputKey.hotkey);
+            var hotKey = GetInputCode(c0, Tools.InputKey.hotkey);
             if (hotKey != null)
             {
                 if (hotKey.Type != "key")
@@ -144,7 +149,7 @@ namespace emulatorLauncher.libRetro
         {
             foreach (var dirkey in retroarchdirs)
             {
-                var k = controller.Input.ToSdlCode(dirkey);
+                var k = GetInputCode(controller, dirkey);
                 if (k != null && k.Type == "button" || k.Type == "hat")
                     return "1";
             }
@@ -172,7 +177,7 @@ namespace emulatorLauncher.libRetro
 
             foreach (var btnkey in retroarchbtns)
             {
-                var input = controller.Input.ToSdlCode(btnkey.Key);
+                var input = GetInputCode(controller, btnkey.Key);
                 if (input == null)
                     continue;
 
@@ -184,7 +189,7 @@ namespace emulatorLauncher.libRetro
 
             foreach (var btnkey in retroarchdirs)
             {
-                var input = controller.Input.ToSdlCode(btnkey);
+                var input = GetInputCode(controller, btnkey);
                 if (input == null)
                     continue;
 
@@ -196,7 +201,7 @@ namespace emulatorLauncher.libRetro
 
             foreach (var btnkey in retroarchjoysticks)
             {
-                var input = controller.Input.ToSdlCode(btnkey.Key);
+                var input = GetInputCode(controller, btnkey.Key);
                 if (input == null)
                     continue;
 
@@ -216,7 +221,7 @@ namespace emulatorLauncher.libRetro
             {
                 foreach (var specialkey in retroarchspecials)
                 {
-                    var input = controller.Input.ToSdlCode(specialkey.Key);
+                    var input = GetInputCode(controller, specialkey.Key);
                     if (input == null)
                         continue;
 
@@ -229,10 +234,18 @@ namespace emulatorLauncher.libRetro
             return config;
         }
 
+        private static Input GetInputCode(Controller controller, InputKey btnkey)
+        {
+            if (_inputDriver == "sdl2")
+                return controller.Input.ToSdlCode(btnkey);
+
+            return controller.Input.ToXInputCodes(btnkey);
+        }
+
         private static void WriteControllerConfig(ConfigFile retroconfig, Controller controller, string system)
         {
             // Seul sdl2 reconnait le bouton Guide
-            retroconfig["input_joypad_driver"] = "sdl2";
+            retroconfig["input_joypad_driver"] = _inputDriver;
 
             // keyboard_gamepad_enable = "true"
             // keyboard_gamepad_mapping_type = "1"
@@ -258,32 +271,34 @@ namespace emulatorLauncher.libRetro
                     return "+" + input.Id.ToString();
             }
 
-         //   if input.type == 'hat':
-       // return 'h' + input.id + hatstoname[input.value]
-            
-            // xinput / directInput            
-            /*if (input.Type == "hat")
-            {
-                if (input.Value == 2) // SDL_HAT_RIGHT
-                    return "h" + input.Id + "right";
-                else if (input.Value == 4) // SDL_HAT_DOWN
-                    return "h" + input.Id + "down";
-                else if (input.Value == 8) // SDL_HAT_LEFT
-                    return "h" + input.Id + "left";
+            if (_inputDriver == "sdl2")
+            {            // sdl2
+                if (input.Type == "hat")
+                {
+                    if (input.Value == 2) // SDL_HAT_RIGHT
+                        return "14";
+                    else if (input.Value == 4) // SDL_HAT_DOWN
+                        return "12";
+                    else if (input.Value == 8) // SDL_HAT_LEFT
+                        return "13";
 
-                return "h" + input.Id + "up"; // UP
-            }*/
-            // sdl2
-            if (input.Type == "hat")
+                    return "11"; // UP
+                }
+            }
+            else
             {
-                if (input.Value == 2) // SDL_HAT_RIGHT
-                    return "14";
-                else if (input.Value == 4) // SDL_HAT_DOWN
-                    return "12";
-                else if (input.Value == 8) // SDL_HAT_LEFT
-                    return "13";
+                // xinput / directInput            
+                if (input.Type == "hat")
+                {
+                    if (input.Value == 2) // SDL_HAT_RIGHT
+                        return "h" + input.Id + "right";
+                    else if (input.Value == 4) // SDL_HAT_DOWN
+                        return "h" + input.Id + "down";
+                    else if (input.Value == 8) // SDL_HAT_LEFT
+                        return "h" + input.Id + "left";
 
-                return "11"; // UP
+                    return "h" + input.Id + "up"; // UP
+                }
             }
 
             if (input.Type == "key")
