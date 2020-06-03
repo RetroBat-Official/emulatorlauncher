@@ -10,7 +10,7 @@ namespace emulatorLauncher
 {
     class DolphinControllers
     {
-        public static bool WriteControllersConfig(string system, string rom)
+        public static bool WriteControllersConfig(string path, string system, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
@@ -19,15 +19,15 @@ namespace emulatorLauncher
             {
                 if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"))
                 {
-                    generateControllerConfig_emulatedwiimotes(rom);
+                    generateControllerConfig_emulatedwiimotes(path, rom);
                     //removeControllerConfig_gamecube(); // because pads will already be used as emulated wiimotes
                     return true;
                 }
                 else
-                    generateControllerConfig_realwiimotes("WiimoteNew.ini", "Wiimote");                    
+                    generateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");                    
             }
 
-            generateControllerConfig_gamecube(rom);
+            generateControllerConfig_gamecube(path, rom);
             return true;            
         }
         
@@ -108,7 +108,7 @@ namespace emulatorLauncher
             { "Classic/Left Stick/Left" , "Classic/Left Stick/Right" }
         };
 
-        private static void generateControllerConfig_emulatedwiimotes(string rom)
+        private static void generateControllerConfig_emulatedwiimotes(string path, string rom)
         {
             var extraOptions = new Dictionary<string, string>();
             extraOptions["Source"] = "1";
@@ -192,12 +192,12 @@ namespace emulatorLauncher
                 wiiMapping[InputKey.joystick2left] = "Classic/Right Stick/Left";
              }
 
-            generateControllerConfig_any("WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, extraOptions);
+            generateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, extraOptions);
         }
 
-        private static void generateControllerConfig_gamecube(string rom)
+        private static void generateControllerConfig_gamecube(string path, string rom)
         {
-            generateControllerConfig_any("GCPadNew.ini", "GCPad", gamecubeMapping, gamecubeReverseAxes, gamecubeReplacements);        
+            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", gamecubeMapping, gamecubeReverseAxes, gamecubeReplacements);        
         }
 
         static Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()
@@ -239,10 +239,8 @@ namespace emulatorLauncher
             File.Delete(iniFile);
         }*/
 
-        private static void generateControllerConfig_realwiimotes(string filename, string anyDefKey)
+        private static void generateControllerConfig_realwiimotes(string path, string filename, string anyDefKey)
         {
-            string path = Program.AppConfig.GetFullPath("dolphin");
-
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
             using (IniFile ini = new IniFile(iniFile, true))
@@ -257,9 +255,9 @@ namespace emulatorLauncher
             }
         }
         
-        private static void generateControllerConfig_any(string filename, string anyDefKey, Dictionary<InputKey, string> anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> anyReplacements, Dictionary<string, string> extraOptions = null)
+        private static void generateControllerConfig_any(string path, string filename, string anyDefKey, Dictionary<InputKey, string> anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> anyReplacements, Dictionary<string, string> extraOptions = null)
         {
-            string path = Program.AppConfig.GetFullPath("dolphin");
+            //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
             int nsamepad = 0;

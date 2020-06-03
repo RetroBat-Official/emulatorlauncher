@@ -9,6 +9,8 @@ namespace emulatorLauncher
 {
     class DolphinGenerator : Generator
     {
+        private bool _triforce = false;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string folderName = (system == "triforce" || emulator == "dolphin-triforce" || core == "dolphin-triforce" || emulator == "triforce" || core == "triforce") ? "dolphin-triforce" : "dolphin";
@@ -22,7 +24,10 @@ namespace emulatorLauncher
 
             string exe = Path.Combine(path, "Dolphin.exe");
             if (!File.Exists(exe))
+            {
+                _triforce = true;
                 exe = Path.Combine(path, "DolphinWX.exe");
+            }
 
             if (!File.Exists(exe))
                 return null;
@@ -34,7 +39,7 @@ namespace emulatorLauncher
             SetupGeneralConfig(path, system);
             SetupGfxConfig(path);
 
-            DolphinControllers.WriteControllersConfig(system, rom);
+            DolphinControllers.WriteControllersConfig(path, system, rom);
 
             return new ProcessStartInfo()
             {
@@ -143,9 +148,17 @@ namespace emulatorLauncher
                     // wiimote scanning
                     ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 
-                    // gamecube pads forced as standard pad
-                    if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
+                    if (_triforce)
                     {
+                        ini.WriteValue("Core", "SerialPort1", "6");                        
+                        ini.WriteValue("Core", "SIDevice0", "11");
+                        ini.WriteValue("Core", "SIDevice1", "0");
+                        ini.WriteValue("Core", "SIDevice2", "0");
+                        ini.WriteValue("Core", "SIDevice3", "0");
+                    }
+                    else if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
+                    {
+                        // gamecube pads forced as standard pad
                         bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
 
                         for (int i = 0; i < 4; i++)
@@ -157,7 +170,7 @@ namespace emulatorLauncher
                                 /*if (ctl.Input.Type == "keyboard")
                                     ini.WriteValue("Core", "SIDevice" + i, "7");
                                 else*/
-                                    ini.WriteValue("Core", "SIDevice" + i, "6");
+                                ini.WriteValue("Core", "SIDevice" + i, "6");
                             }
                             else
                                 ini.WriteValue("Core", "SIDevice" + i, "0");
