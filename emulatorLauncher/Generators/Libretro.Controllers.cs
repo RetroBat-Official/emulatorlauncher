@@ -16,8 +16,9 @@ namespace emulatorLauncher.libRetro
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
 
-            //if (core == "fbalpha2012")
-            //    _inputDriver = "xinput";
+            bool allXInput = !Program.Controllers.Where(c => c.Input != null && c.Input.Type != "keyboard").Any(j => !j.Input.IsXInputDevice());
+            if (allXInput)
+                _inputDriver = "xinput";
 
             // no menu in non full uimode
             if (Program.SystemConfig.isOptSet("uimode") && Program.SystemConfig["uimode"] != "Full" && retroarchspecials.ContainsKey(InputKey.a))

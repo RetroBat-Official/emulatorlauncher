@@ -508,6 +508,16 @@ namespace emulatorLauncher.libRetro
                     rom = null;
             }
 
+            // Extension used by hypseus .daphne but lr-daphne starts with .zip
+            if (system == "daphne" || core == "daphne")
+            {
+                string datadir = Path.GetDirectoryName(rom);
+                string romName = Path.GetFileNameWithoutExtension(rom);
+
+                //romName = os.path.splitext(os.path.basename(rom))[0]
+                rom = Path.GetFullPath(datadir + "/roms/" + romName + ".zip");
+            }
+
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
                 string bat = Path.Combine(rom, "dosbox.bat");
