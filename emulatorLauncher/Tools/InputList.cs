@@ -259,14 +259,19 @@ namespace emulatorLauncher.Tools
 
             if (input.Type == "key")
                 return input;
-            
-            var mapping = SdlGameControllers.GetGameControllerMapping(ProductGuid);
-            if (mapping == null)
+
+            var ctrl = SdlGameControllers.GetGameController(ProductGuid);
+            if (ctrl == null)
                 return input;
-            
+
+            var mapping = ctrl.Mapping;
+
             var sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Value == input.Value && m.Input.Id == input.Id);
             if (sdlret == null)
+            {
+                SimpleLogger.Instance.Warning("ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
                 return input;
+            }
 
             Input ret = new Input() { Name = input.Name };
            

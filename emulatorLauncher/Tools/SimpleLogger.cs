@@ -36,7 +36,7 @@ namespace emulatorLauncher
 
             if (File.Exists(logFilename))
             {
-                if (new FileInfo(logFilename).Length > 1024)
+                if (new FileInfo(logFilename).Length > 1024 * 1024)
                 {
                     string prevLog = logFilename + ".old";
                     if (File.Exists(prevLog))
