@@ -187,7 +187,7 @@ namespace emulatorLauncher
 
                     switch (var)
                     {
-                        case "guid": player.Guid = val; break;
+                        case "guid": player.Guid = val.ToUpper(); break;
                         case "name": player.Name = val; break;
                         case "nbbuttons": player.NbButtons = val.ToInteger(); break;
                         case "nbhats": player.NbHats = val.ToInteger(); break;
@@ -214,9 +214,9 @@ namespace emulatorLauncher
                     {
                         foreach (var pi in Controllers)
                         {
-                            pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID == pi.Guid && c.DeviceName == pi.Name);
+                            pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid && c.DeviceName == pi.Name);
                             if (pi.Input == null)
-                                pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID == pi.Guid);
+                                pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
                             if (pi.Input == null)
                                 pi.Input = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
                             if (pi.Input == null)

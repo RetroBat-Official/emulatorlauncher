@@ -269,7 +269,28 @@ namespace emulatorLauncher.Tools
             var sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Value == input.Value && m.Input.Id == input.Id);
             if (sdlret == null)
             {
-                SimpleLogger.Instance.Warning("ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
+                if (mapping.All(m => m.Axis == SDL_CONTROLLER_AXIS.INVALID))
+                {
+                    switch (key)
+                    {
+                        case InputKey.left:
+                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_LEFT);
+                            break;
+                        case InputKey.right:
+                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_RIGHT);
+                            break;
+                        case InputKey.up:
+                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_UP);
+                            break;
+                        case InputKey.down:
+                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_DOWN);
+                            break;
+                    }
+                }
+
+                if (sdlret == null)
+                    SimpleLogger.Instance.Warning("ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
+
                 return input;
             }
 

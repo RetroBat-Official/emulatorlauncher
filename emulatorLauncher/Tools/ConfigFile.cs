@@ -134,7 +134,7 @@ namespace emulatorLauncher
 
         private List<ConfigItem> _data = new List<ConfigItem>();
 
-        private ConfigFile() { }
+        public ConfigFile() { }
 
         public string this[string key]
         {

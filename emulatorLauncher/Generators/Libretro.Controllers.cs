@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using emulatorLauncher.Tools;
 using System.Globalization;
+using System.IO;
 
 namespace emulatorLauncher.libRetro
 {
@@ -15,10 +16,14 @@ namespace emulatorLauncher.libRetro
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
-
+           
+            /*
             bool allXInput = !Program.Controllers.Where(c => c.Input != null && c.Input.Type != "keyboard").Any(j => !j.Input.IsXInputDevice());
             if (allXInput)
                 _inputDriver = "xinput";
+            else
+                SetupAutoConfig();
+            */
 
             // no menu in non full uimode
             if (Program.SystemConfig.isOptSet("uimode") && Program.SystemConfig["uimode"] != "Full" && retroarchspecials.ContainsKey(InputKey.a))
@@ -31,6 +36,48 @@ namespace emulatorLauncher.libRetro
 
             WriteHotKeyConfig(retroconfig);
             return true;
+        }
+
+        private static void SetupAutoConfig()
+        {
+            List<Controller> excludedControllers = new List<Controller>();
+
+            var retroarchPath = Path.Combine(Program.AppConfig.GetFullPath("retroarch"), "autoconfig", _inputDriver);
+            if (Directory.Exists(retroarchPath))
+            {
+                foreach (var file in Directory.GetFiles(retroarchPath, "*.cfg", SearchOption.AllDirectories))
+                {
+                    var cfg = ConfigFile.FromFile(file);
+                    if (cfg == null || cfg["input_driver"] != "sdl2")
+                        continue;
+
+                    var sdl = SdlGameControllers.GetGameController(cfg["input_device"]);
+                    if (sdl != null)
+                    {
+                        var ctl = Program.Controllers.FirstOrDefault(f => f.Input.ProductGuid == sdl.Guid);
+                        if (ctl != null)
+                            excludedControllers.Add(ctl);
+                    }
+                }
+
+                foreach (var controller in Program.Controllers.Where(c => !excludedControllers.Contains(c)))
+                {
+                    var sdl = SdlGameControllers.GetGameController(controller.Input.ProductGuid);
+                    if (sdl != null)
+                    {
+                        var cfg = new ConfigFile();
+
+                        cfg["input_device"] = sdl.Name;
+                        if (sdl.Name != controller.Input.DeviceName)
+                            cfg["input_device_display_name"] = controller.Input.DeviceName;
+
+                        cfg["input_driver"] = "sdl2";
+                        cfg["input_vendor_id"] = sdl.VendorId.ToString();
+                        cfg["input_product_id"] = sdl.ProductId.ToString();
+                        cfg.Save(Path.Combine(retroarchPath, sdl.Name + ".cfg"), true);
+                    }
+                }
+            }
         }
 
 

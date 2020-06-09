@@ -23,7 +23,7 @@ namespace emulatorLauncher.Tools
                     var mappingString = SDL.SDL_GameControllerMappingForDeviceIndex(i);
                     if (mappingString == null)
                         continue;
-
+                    
                     string[] mapArray = mappingString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     if (mapArray.Length == 0)
                         continue;
@@ -33,6 +33,8 @@ namespace emulatorLauncher.Tools
                     SdlGameControllers ctl = new SdlGameControllers();
 
                     ctl.Guid = SDL.SDL_JoystickGetDeviceGUID(i);
+                    ctl.VendorId =  int.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                    ctl.ProductId = int.Parse((mapArray[0].Substring(18, 2) + mapArray[0].Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                     ctl.Name = SDL.SDL_GameControllerNameForIndex(i);
                     ctl.Mapping = sdlMapping;
                     ctl.SdlBinding = mappingString;
@@ -53,6 +55,8 @@ namespace emulatorLauncher.Tools
 
                 SdlGameControllers ctl = new SdlGameControllers();
                 ctl.Guid = InputConfig.FromEmulationStationGuidString(mapArray[0]);
+                ctl.VendorId = int.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                ctl.ProductId = int.Parse((mapArray[0].Substring(18, 2) + mapArray[0].Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.Name = mapArray[1];
                 ctl.Mapping = ExtractMapping(mapArray.Skip(2).ToArray());
                 ctl.SdlBinding = mappingString;
@@ -197,6 +201,11 @@ namespace emulatorLauncher.Tools
             return _controllers.Where(c => c.Guid == guid).FirstOrDefault();
         }
 
+        public static SdlGameControllers GetGameController(string name)
+        {
+            return _controllers.Where(c => c.Name == name).FirstOrDefault();
+        }
+
         static List<SdlGameControllers> _controllers;
 
         public Guid Guid { get; set; }
@@ -210,6 +219,10 @@ namespace emulatorLauncher.Tools
         }
 
         public string SdlBinding { get; set; }
+
+        public int VendorId { get; set; }
+
+        public int ProductId { get; set; }
     }
 
     class SdlControllerMapping
