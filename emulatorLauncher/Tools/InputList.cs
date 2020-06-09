@@ -289,9 +289,10 @@ namespace emulatorLauncher.Tools
                 }
 
                 if (sdlret == null)
+                {
                     SimpleLogger.Instance.Warning("ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
-
-                return input;
+                    return input;
+                }
             }
 
             Input ret = new Input() { Name = input.Name };
