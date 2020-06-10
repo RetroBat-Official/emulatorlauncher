@@ -284,13 +284,14 @@ namespace emulatorLauncher.libRetro
             else
                 retroarchConfig["cheevos_enable"] = "false";
 
+            retroarchConfig["netplay_mode"] = "false";
+
             // Netplay management : netplaymode client -netplayport " + std::to_string(options.port) + " -netplayip
             if (SystemConfig["netplay"] == "true" && !string.IsNullOrEmpty(SystemConfig["netplaymode"]))
             {
                 // Security : hardcore mode disables save states, which would kill netplay
                 retroarchConfig["cheevos_hardcore_mode_enable"] = "false";
 
-                retroarchConfig["netplay_mode"] = "false";
                 retroarchConfig["netplay_ip_port"] = SystemConfig["netplay.port"]; // netplayport
                 retroarchConfig["netplay_nickname"] = SystemConfig["netplay.nickname"];
                 retroarchConfig["netplay_mitm_server"] = SystemConfig["netplay.relay"];
@@ -572,8 +573,8 @@ namespace emulatorLauncher.libRetro
                     commandArray.Add("--host");
                 else if (SystemConfig["netplaymode"] == "client")
                 {
-                    commandArray.Add("--connect");
-                    commandArray.Add(SystemConfig["netplay.server.address"]);
+                    commandArray.Add("--connect " + SystemConfig["netplayip"]);
+                    commandArray.Add("--port " + SystemConfig["netplayport"]);
                 }
             }
 
