@@ -311,7 +311,7 @@ namespace emulatorLauncher
                 Uri relRoot = new Uri(path, UriKind.Absolute);
                 string relPath = relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
 
-                conf["screenShotsDir"] = dir; // ".\\" + relPath;
+                conf["screenShotsDir"] = dir+"//"; // ".\\" + relPath;
             }
 
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
@@ -322,7 +322,7 @@ namespace emulatorLauncher
                 string relPath = relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
 
                 Directory.CreateDirectory(dir);
-                conf["savesDir"] = dir; // ".\\" + relPath;
+                conf["savesDir"] = dir+"//"; // ".\\" + relPath;
             }
 
             conf.Save(ini, false);
