@@ -146,6 +146,7 @@ namespace emulatorLauncher
                         if (generator.UsePadToKey)
                             mapping = PadToKey.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_padtokey.cfg"));
 
+                        using (new HighPerformancePowerScheme())
                         using (new JoystickListener(inputConfig, mapping))
                             generator.RunAndWait(path);
                     }

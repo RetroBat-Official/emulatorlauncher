@@ -48,7 +48,9 @@ namespace emulatorLauncher.libRetro
             {
                 coreSettings["bluemsx_overscan"] = "enabled";
 
-                if (system == "colecovision")
+                if (system == "spectravideo")
+                    coreSettings["bluemsx_msxtype"] = "SVI - Spectravideo SVI-328";
+                else if (system == "colecovision")
                     coreSettings["bluemsx_msxtype"] = "ColecoVision";
                 else if (system == "msx1")
                     coreSettings["bluemsx_msxtype"] = "MSX";
@@ -143,8 +145,15 @@ namespace emulatorLauncher.libRetro
 
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
             {
-                retroarchConfig["savestate_directory"] = Path.Combine(AppConfig.GetFullPath("saves"), system);
-                retroarchConfig["savefile_directory"] = Path.Combine(AppConfig.GetFullPath("saves"), system);
+                string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
+                if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); } catch { }
+
+                retroarchConfig["savestate_directory"] = savePath;
+                retroarchConfig["savefile_directory"] = savePath; 
+               
+                retroarchConfig["savestate_thumbnail_enable"] = "true";                 
+                retroarchConfig["savestates_in_content_dir"] = "false";
+                retroarchConfig["savefiles_in_content_dir"] = "false";                                       
             }
 
             if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))

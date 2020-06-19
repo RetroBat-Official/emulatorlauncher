@@ -92,6 +92,7 @@
     <Compile Include="Tools\GameList.cs" />
     <Compile Include="Tools\InputList.cs" />
     <Compile Include="Tools\KeyboardManager.cs" />
+    <Compile Include="Tools\HighPerformancePowerScheme.cs" />
     <Compile Include="Tools\ScreenCapture.cs" />
     <Compile Include="Tools\ScreenResolution.cs" />
     <Compile Include="Tools\IniFile.cs" />

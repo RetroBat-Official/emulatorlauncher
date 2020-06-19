@@ -322,37 +322,52 @@ namespace emulatorLauncher
 
             RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
 
-            RegistryKey vp10 = regKeyc.CreateSubKey("Visual Pinball").CreateSubKey("VP10");
+            RegistryKey vp = regKeyc.CreateSubKey("Visual Pinball");
+            if (vp == null)
+                return;
 
-            if (vp10 != null)
+            regKeyc = vp.CreateSubKey("Controller");
+            if (regKeyc != null)
             {
-                regKeyc = vp10.CreateSubKey("Player");
+                if (Screen.AllScreens.Length >= 1 && Program.AppConfig["enableb2s"] == "1")
+                    SetOption(regKeyc, "ForceDisableB2S", 0);
+                else
+                    SetOption(regKeyc, "ForceDisableB2S", 1);
 
-                if (regKeyc != null)
-                {
-                    SetOption(regKeyc, "DisableESC", 1);
-                    SetOption(regKeyc, "Width", resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-                    SetOption(regKeyc, "Height", resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
-                    SetOption(regKeyc, "FullScreen", resolution == null ? 0 : 1);
-
-                    regKeyc.Close();
-                }
-
-                regKeyc = vp10.CreateSubKey("Editor");
-
-                if (regKeyc != null)
-                {
-                    SetOption(regKeyc, "WindowTop", Screen.PrimaryScreen.Bounds.Height / 2 - 300);
-                    SetOption(regKeyc, "WindowBottom", Screen.PrimaryScreen.Bounds.Height / 2 + 300);
-                    SetOption(regKeyc, "WindowLeft", Screen.PrimaryScreen.Bounds.Width / 2 - 400);
-                    SetOption(regKeyc, "WindowRight", Screen.PrimaryScreen.Bounds.Width / 2 + 400);
-                    SetOption(regKeyc, "WindowMaximized", 0);
-
-                    regKeyc.Close();
-                }
-
-                vp10.Close();
+                regKeyc.Close();
             }
+
+            RegistryKey vp10 = vp.CreateSubKey("VP10");
+            if (vp10 == null)
+                return;
+
+            regKeyc = vp10.CreateSubKey("Player");
+            if (regKeyc != null)
+            {
+                SetOption(regKeyc, "DisableESC", 1);
+                SetOption(regKeyc, "Width", resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
+                SetOption(regKeyc, "Height", resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+                SetOption(regKeyc, "FullScreen", resolution == null ? 0 : 1);
+                SetOption(regKeyc, "AdaptiveVSync", Program.SystemConfig["VSync"] != "false" ? 1 : 0);
+                SetOption(regKeyc, "BGSet", Program.AppConfig["arcademode"] == "1" ? 1 : 0);
+
+                regKeyc.Close();
+            }
+
+            regKeyc = vp10.CreateSubKey("Editor");
+            if (regKeyc != null)
+            {
+                SetOption(regKeyc, "WindowTop", Screen.PrimaryScreen.Bounds.Height / 2 - 300);
+                SetOption(regKeyc, "WindowBottom", Screen.PrimaryScreen.Bounds.Height / 2 + 300);
+                SetOption(regKeyc, "WindowLeft", Screen.PrimaryScreen.Bounds.Width / 2 - 400);
+                SetOption(regKeyc, "WindowRight", Screen.PrimaryScreen.Bounds.Width / 2 + 400);
+                SetOption(regKeyc, "WindowMaximized", 0);
+
+                regKeyc.Close();
+            }
+
+            vp10.Close();
+            vp.Close();
 
             SetupVPinMameOptions(path, romPath);
         }
