@@ -85,6 +85,13 @@ namespace emulatorLauncher
 
                             ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\")); // Path.Combine(relPath, "pcsx2")
                         }
+
+                        if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
+                            ini.WriteValue("GSWindow", "AspectRatio", SystemConfig["ratio"]);
+                        else
+                            ini.WriteValue("GSWindow", "AspectRatio", "Stretch");
+
+                        ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
                     }
                 }
                 catch { }
@@ -100,7 +107,7 @@ namespace emulatorLauncher
                 {
                     using (var ini = new IniFile(iniFile))
                     {
-                        string negdivhack = Program.AppConfig["negdivhack"] == "1" ? "enabled" : "disabled";
+                        string negdivhack = SystemConfig["negdivhack"] == "1" ? "enabled" : "disabled";
 
                         ini.WriteValue("EmuCore/CPU/Recompiler", "vuExtraOverflow", negdivhack);
                         ini.WriteValue("EmuCore/CPU/Recompiler", "vuSignOverflow", negdivhack);
