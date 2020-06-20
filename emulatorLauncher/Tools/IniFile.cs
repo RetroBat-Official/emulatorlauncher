@@ -97,6 +97,9 @@ namespace emulatorLauncher
 
         public void WriteValue(string section, string key, string value)
         {
+            if (string.IsNullOrEmpty(section))
+                section = "ROOT";
+
             if (GetValue(section, key) == value)
                 return;
 

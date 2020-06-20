@@ -109,6 +109,8 @@ namespace emulatorLauncher
                     {
                         string negdivhack = SystemConfig["negdivhack"] == "1" ? "enabled" : "disabled";
 
+                        ini.WriteValue("EmuCore/Speedhacks", "vuThread", negdivhack);
+
                         ini.WriteValue("EmuCore/CPU/Recompiler", "vuExtraOverflow", negdivhack);
                         ini.WriteValue("EmuCore/CPU/Recompiler", "vuSignOverflow", negdivhack);
                         ini.WriteValue("EmuCore/CPU/Recompiler", "fpuExtraOverflow", negdivhack);
