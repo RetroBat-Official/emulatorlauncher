@@ -316,7 +316,7 @@ namespace emulatorLauncher
             catch { }
         }
 
-        private static void SetupOptions(string path, string romPath, ScreenResolution resolution)
+        private void SetupOptions(string path, string romPath, ScreenResolution resolution)
         {
             //HKEY_CURRENT_USER\Software\Visual Pinball\VP10\Player
 
@@ -329,7 +329,7 @@ namespace emulatorLauncher
             regKeyc = vp.CreateSubKey("Controller");
             if (regKeyc != null)
             {
-                if (Screen.AllScreens.Length >= 1 && Program.AppConfig["enableb2s"] == "1")
+                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] == "1")
                     SetOption(regKeyc, "ForceDisableB2S", 0);
                 else
                     SetOption(regKeyc, "ForceDisableB2S", 1);
@@ -348,8 +348,8 @@ namespace emulatorLauncher
                 SetOption(regKeyc, "Width", resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
                 SetOption(regKeyc, "Height", resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
                 SetOption(regKeyc, "FullScreen", resolution == null ? 0 : 1);
-                SetOption(regKeyc, "AdaptiveVSync", Program.SystemConfig["VSync"] != "false" ? 1 : 0);
-                SetOption(regKeyc, "BGSet", Program.AppConfig["arcademode"] == "1" ? 1 : 0);
+                SetOption(regKeyc, "AdaptiveVSync", SystemConfig["VSync"] != "false" ? 1 : 0);
+                SetOption(regKeyc, "BGSet", SystemConfig["arcademode"] == "1" ? 1 : 0);
 
                 regKeyc.Close();
             }
