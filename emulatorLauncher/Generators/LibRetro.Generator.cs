@@ -590,8 +590,24 @@ namespace emulatorLauncher.libRetro
             // RetroArch 1.7.8 requires the shaders to be passed as command line argument      
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
             {
-                string shaderFilename = SystemConfig["shader"] + ".slangp";
+                string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
+                bool isOpenGL = (emulator != "angle") && (videoDriver == "gl");
+
+                string shaderFilename = SystemConfig["shader"] + (isOpenGL ? ".glslp" : ".slangp");
+
                 string videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "glsl" : "slang", shaderFilename).Replace("/", "\\");
+                
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader) && !isOpenGL && shaderFilename.Contains("zfast-"))
+                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", "crt/crt-geom.slangp").Replace("/", "\\");
+                
                 if (File.Exists(videoShader))
                 {
                     commandArray.Add("--set-shader");
