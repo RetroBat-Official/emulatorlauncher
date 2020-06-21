@@ -590,7 +590,7 @@ namespace emulatorLauncher.libRetro
             // RetroArch 1.7.8 requires the shaders to be passed as command line argument      
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
             {
-                string shaderFilename = SystemConfig["shader"] + ".glslp";
+                string shaderFilename = SystemConfig["shader"] + ".slangp";
                 string videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");
                 if (File.Exists(videoShader))
                 {
@@ -603,7 +603,7 @@ namespace emulatorLauncher.libRetro
 
             return new ProcessStartInfo()
             {
-                FileName = Path.Combine(RetroarchPath, "retroarch.exe"),
+                FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
                 WorkingDirectory = RetroarchPath,                
                 Arguments =
                     string.IsNullOrEmpty(rom) ?
