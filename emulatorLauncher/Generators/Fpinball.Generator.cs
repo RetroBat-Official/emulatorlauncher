@@ -202,12 +202,22 @@ namespace emulatorLauncher
             if (regKeyc != null)
             {
                 regKeyc.SetValue("FullScreen", 1); 
-                //regKeyc.SetValue("FullScreen", 0);
-
+                 
                 if (SystemConfig.isOptSet("arcademode") && SystemConfig["arcademode"] == "1")
+                {
+                    if (Screen.PrimaryScreen.Bounds.Height > Screen.PrimaryScreen.Bounds.Width)
+                        regKeyc.SetValue("RotateDegrees", 0); // Already rotated by system
+                    else
+                        regKeyc.SetValue("RotateDegrees", 3);
+
                     regKeyc.SetValue("ArcadeMode", 1);
+                }
                 else
+                {
+                    regKeyc.SetValue("RotateDegrees", 0);
                     regKeyc.SetValue("ArcadeMode", 0);
+                }
+                
 
                 if (SystemConfig.isOptSet("ratio"))
                 {
