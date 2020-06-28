@@ -22,6 +22,17 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("cxbx-reloaded");
 
+            string loaderExe = Path.Combine(path, "cxbxr-ldr.exe");
+            if (File.Exists(loaderExe))
+            {
+                return new ProcessStartInfo()
+                {
+                    FileName = loaderExe,
+                    WorkingDirectory = path,
+                    Arguments = "/load \"" + rom + "\"",
+                };
+            }
+
             string exe = Path.Combine(path, "cxbx.exe");
             if (!File.Exists(exe))
                 return null;
