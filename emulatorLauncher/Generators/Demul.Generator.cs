@@ -36,7 +36,7 @@ namespace emulatorLauncher
 
             if (emulator == "demul-hikaru" || core == "hikaru")
                 demulCore = "hikaru";
-            else if (emulator == "demul-gaelco" || core == "hikaru")
+            else if (emulator == "demul-gaelco" || core == "gaelco")
                 demulCore = "gaelco";
             else if (emulator == "demul-atomiswave" || core == "atomiswave")
                 demulCore = "awave";
