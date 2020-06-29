@@ -51,6 +51,7 @@ namespace emulatorLauncher
             { "mugen", () => new ExeLauncherGenerator() }, { "windows", () => new ExeLauncherGenerator() }, 
             { "demul", () => new DemulGenerator() }, { "demul-old", () => new DemulGenerator() }, 
             { "mednafen", () => new MednafenGenerator() },
+            { "daphne", () => new DaphneGenerator() },
             { "solarus", () => new SolarusGenerator() }            
         };
 
