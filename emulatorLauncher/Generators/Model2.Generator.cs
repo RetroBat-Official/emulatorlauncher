@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace emulatorLauncher
 {
@@ -11,10 +12,10 @@ namespace emulatorLauncher
     {
         public Model2Generator()
         {
-            DependsOnDesktopResolution = true;
+            DependsOnDesktopResolution = false;
         }
 
-        private string destFile;
+        private string _destFile;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -28,6 +29,9 @@ namespace emulatorLauncher
                 return null;
 
             string pakDir = Path.Combine(path, "roms");
+            if (!Directory.Exists(pakDir))
+                Directory.CreateDirectory(pakDir);
+
             foreach (var file in Directory.GetFiles(pakDir))
             {
                 if (Path.GetFileName(file) == Path.GetFileName(rom))
@@ -36,11 +40,13 @@ namespace emulatorLauncher
                 File.Delete(file);
             }
 
-            destFile = Path.Combine(pakDir, Path.GetFileName(rom));
-            if (!File.Exists(destFile))
-                File.Copy(rom, destFile);
-
-            string arg = Path.GetFileNameWithoutExtension(destFile);
+            _destFile = Path.Combine(pakDir, Path.GetFileName(rom));
+            if (!File.Exists(_destFile))
+                File.Copy(rom, _destFile);
+            
+            SetupConfig(path, resolution);
+            
+            string arg = Path.GetFileNameWithoutExtension(_destFile);
 
             return new ProcessStartInfo()
             {
@@ -50,10 +56,29 @@ namespace emulatorLauncher
             };            
         }
 
+        private void SetupConfig(string path, ScreenResolution resolution)
+        {
+            string iniFile = Path.Combine(path, "Emulator.ini");
+
+            try
+            {
+                using (var ini = new IniFile(iniFile, true))
+                {
+                    ini.WriteValue("Renderer", "FullMode", "4");
+                    ini.WriteValue("Renderer", "AutoFull", "1");                    
+                    ini.WriteValue("Renderer", "FullScreenWidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
+                    ini.WriteValue("Renderer", "FullScreenHeight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
+                    ini.WriteValue("Renderer", "ForceSync", SystemConfig["VSync"] != "false" ? "1" : "0");                              
+                }
+            }
+
+            catch { }
+        }
+
         public override void Cleanup()
         {
-            if (destFile != null && File.Exists(destFile))
-                File.Delete(destFile);
+            if (_destFile != null && File.Exists(_destFile))
+                File.Delete(_destFile);
         }
     }
 }

@@ -123,7 +123,9 @@ namespace emulatorLauncher
                 setupConfigBorCfg(path);
 
             string pakDir = Path.Combine(path, "Paks");
-            Directory.CreateDirectory(pakDir);
+            if (!Directory.Exists(pakDir))
+                Directory.CreateDirectory(pakDir); 
+
             foreach (var file in Directory.GetFiles(pakDir))
             {
                 if (Path.GetFileName(file) == Path.GetFileName(rom))
