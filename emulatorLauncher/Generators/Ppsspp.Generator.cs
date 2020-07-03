@@ -45,6 +45,8 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, true))
                 {
+                    ini.WriteValue("Graphics", "FullScreen", "True");
+
                     //if (SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS"))
                     if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
                         ini.WriteValue("Graphics", "ShowFPSCounter", "3");

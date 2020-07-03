@@ -27,6 +27,7 @@ namespace emulatorLauncher
 
             SetupPaths();
             SetupVM();
+            SetupLilyPad();
             SetupGSDx(resolution);
 
             /*
@@ -92,6 +93,22 @@ namespace emulatorLauncher
                             ini.WriteValue("GSWindow", "AspectRatio", "Stretch");
 
                         ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
+                    }
+                }
+                catch { }
+            }
+        }
+
+        private void SetupLilyPad()
+        {
+            string iniFile = Path.Combine(_path, "inis", "LilyPad.ini");
+            if (File.Exists(iniFile))
+            {
+                try
+                {
+                    using (var ini = new IniFile(iniFile))
+                    {
+                        ini.WriteValue("General Settings", "Keyboard Mode", "1");
                     }
                 }
                 catch { }
