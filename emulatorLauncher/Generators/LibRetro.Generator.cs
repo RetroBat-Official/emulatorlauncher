@@ -98,7 +98,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["pause_nonactive"] = "false";
             retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["menu_driver"] = "ozone";
-
+            
             if (SystemConfig.isOptSet("monitor"))
             {
                 int monitorId;
@@ -146,14 +146,15 @@ namespace emulatorLauncher.libRetro
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
             {
                 string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
-                if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); } catch { }
+                if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
+                    catch { }
 
                 retroarchConfig["savestate_directory"] = savePath;
-                retroarchConfig["savefile_directory"] = savePath; 
-               
-                retroarchConfig["savestate_thumbnail_enable"] = "true";                 
+                retroarchConfig["savefile_directory"] = savePath;
+
+                retroarchConfig["savestate_thumbnail_enable"] = "true";
                 retroarchConfig["savestates_in_content_dir"] = "false";
-                retroarchConfig["savefiles_in_content_dir"] = "false";                                       
+                retroarchConfig["savefiles_in_content_dir"] = "false";
             }
 
             if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
@@ -223,7 +224,7 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS"))
                 retroarchConfig["fps_show"] = "true";
             else
-                retroarchConfig["fps_show"] = "false";            
+                retroarchConfig["fps_show"] = "false";
 
             if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToInteger() > 0 && !systemNoRunahead.Contains(system))
             {
@@ -255,7 +256,7 @@ namespace emulatorLauncher.libRetro
 
             retroarchConfig["input_libretro_device_p1"] = "1";
             retroarchConfig["input_libretro_device_p2"] = "1";
-            
+
             if (coreToP1Device.ContainsKey(SystemConfig["core"]))
                 retroarchConfig["input_libretro_device_p1"] = coreToP1Device[SystemConfig["core"]];
 
@@ -270,7 +271,7 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_libretro_device_p1"] = "513";
                 retroarchConfig["input_libretro_device_p2"] = "513";
             }
-            
+
             if (SystemConfig["core"] == "bluemsx")
             {
                 if (systemToP1Device.ContainsKey(system))
@@ -361,8 +362,49 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_driver"] = "d3d11";
             }
 
+            SetLanguage(retroarchConfig);
+
             if (retroarchConfig.IsDirty)
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+        }
+
+        private void SetLanguage(ConfigFile retroarchConfig)
+        {
+            Func<string, string> shortLang = new Func<string, string>(s =>
+            {
+                s = s.ToLowerInvariant();
+
+                int cut = s.IndexOf("_");
+                if (cut >= 0)
+                    return s.Substring(0, cut);
+
+                return s;
+            });
+
+            var lang = SystemConfig["Language"];
+            bool foundLang = false;
+
+            retro_language rl = (retro_language)9999999;
+            if (Languages.TryGetValue(lang, out rl))
+                foundLang = true;
+            else
+            {
+                lang = shortLang(lang);
+
+                foundLang = Languages.TryGetValue(lang, out rl);
+                if (!foundLang)
+                {
+                    var ret = Languages.Where(l => shortLang(l.Key) == lang).ToList();
+                    if (ret.Any())
+                    {
+                        foundLang = true;
+                        rl = ret.First().Value;
+                    }
+                }
+            }
+
+            if (foundLang)
+                retroarchConfig["user_language"] = ((int)rl).ToString();
         }
 
         private string _video_driver;
@@ -376,7 +418,7 @@ namespace emulatorLauncher.libRetro
                 overlaySystem = Path.Combine(AppConfig.GetFullPath("home"), "decorations");
 
             string bezel = Directory.Exists(overlayUser) && !string.IsNullOrEmpty(SystemConfig["bezel"]) ? SystemConfig["bezel"] : "default";
-            
+
             if (SystemConfig.isOptSet("forceNoBezel") && SystemConfig.getOptBoolean("forceNoBezel"))
                 bezel = null;
             else if (!SystemConfig.isOptSet("bezel"))
@@ -466,7 +508,7 @@ namespace emulatorLauncher.libRetro
 
             if (!File.Exists(overlay_png_file))
                 return;
-            
+
             string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
 
             retroarchConfig["input_overlay_enable"] = "true";
@@ -490,13 +532,13 @@ namespace emulatorLauncher.libRetro
         {
             if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
                 File.Delete(_dosBoxTempRom);
-            
+
             if (!string.IsNullOrEmpty(_video_driver))
             {
                 var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
                 retroarchConfig["video_driver"] = _video_driver;
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
-            }                
+            }
 
             base.Cleanup();
         }
@@ -601,13 +643,13 @@ namespace emulatorLauncher.libRetro
 
                 if (!File.Exists(videoShader))
                     videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "glsl" : "slang", shaderFilename).Replace("/", "\\");
-                
+
                 if (!File.Exists(videoShader))
                     videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
 
                 if (!File.Exists(videoShader) && !isOpenGL && shaderFilename.Contains("zfast-"))
                     videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", "crt/crt-geom.slangp").Replace("/", "\\");
-                
+
                 if (File.Exists(videoShader))
                 {
                     commandArray.Add("--set-shader");
@@ -620,7 +662,7 @@ namespace emulatorLauncher.libRetro
             return new ProcessStartInfo()
             {
                 FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
-                WorkingDirectory = RetroarchPath,                
+                WorkingDirectory = RetroarchPath,
                 Arguments =
                     string.IsNullOrEmpty(rom) ?
                         ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim() :
@@ -644,8 +686,65 @@ namespace emulatorLauncher.libRetro
 
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "fuse", "513" } };
+
+        static Dictionary<string, retro_language> Languages = new Dictionary<string, retro_language>()
+        {
+            {"en", retro_language.RETRO_LANGUAGE_ENGLISH},
+            {"ja", retro_language.RETRO_LANGUAGE_JAPANESE},
+            {"fr", retro_language.RETRO_LANGUAGE_FRENCH},
+            {"es", retro_language.RETRO_LANGUAGE_SPANISH},
+            {"de", retro_language.RETRO_LANGUAGE_GERMAN},
+            {"it", retro_language.RETRO_LANGUAGE_ITALIAN},
+            {"nl", retro_language.RETRO_LANGUAGE_DUTCH},
+            {"pt_BR", retro_language.RETRO_LANGUAGE_PORTUGUESE_BRAZIL},
+            {"pt_PT", retro_language.RETRO_LANGUAGE_PORTUGUESE_PORTUGAL},
+            {"pt", retro_language.RETRO_LANGUAGE_PORTUGUESE_PORTUGAL},
+            {"ru", retro_language.RETRO_LANGUAGE_RUSSIAN},
+            {"ko", retro_language.RETRO_LANGUAGE_KOREAN},
+            {"zh_CN", retro_language.RETRO_LANGUAGE_CHINESE_SIMPLIFIED},
+            {"zh_SG", retro_language.RETRO_LANGUAGE_CHINESE_SIMPLIFIED},
+            {"zh_HK", retro_language.RETRO_LANGUAGE_CHINESE_TRADITIONAL},
+            {"zh_TW", retro_language.RETRO_LANGUAGE_CHINESE_TRADITIONAL},
+            {"zh", retro_language.RETRO_LANGUAGE_CHINESE_SIMPLIFIED},
+            {"eo", retro_language.RETRO_LANGUAGE_ESPERANTO},
+            {"pl", retro_language.RETRO_LANGUAGE_POLISH},
+            {"vi", retro_language.RETRO_LANGUAGE_VIETNAMESE},
+            {"ar", retro_language.RETRO_LANGUAGE_ARABIC},
+            {"el", retro_language.RETRO_LANGUAGE_GREEK},
+        };
     }
 
+    // https://github.com/libretro/RetroArch/blob/master/libretro-common/include/libretro.h#L260
+    enum retro_language
+    {
+        RETRO_LANGUAGE_ENGLISH = 0,
+        RETRO_LANGUAGE_JAPANESE = 1,
+        RETRO_LANGUAGE_FRENCH = 2,
+        RETRO_LANGUAGE_SPANISH = 3,
+        RETRO_LANGUAGE_GERMAN = 4,
+        RETRO_LANGUAGE_ITALIAN = 5,
+        RETRO_LANGUAGE_DUTCH = 6,
+        RETRO_LANGUAGE_PORTUGUESE_BRAZIL = 7,
+        RETRO_LANGUAGE_PORTUGUESE_PORTUGAL = 8,
+        RETRO_LANGUAGE_RUSSIAN = 9,
+        RETRO_LANGUAGE_KOREAN = 10,
+        RETRO_LANGUAGE_CHINESE_TRADITIONAL = 11,
+        RETRO_LANGUAGE_CHINESE_SIMPLIFIED = 12,
+        RETRO_LANGUAGE_ESPERANTO = 13,
+        RETRO_LANGUAGE_POLISH = 14,
+        RETRO_LANGUAGE_VIETNAMESE = 15,
+        RETRO_LANGUAGE_ARABIC = 16,
+        RETRO_LANGUAGE_GREEK = 17,
+        RETRO_LANGUAGE_TURKISH = 18,
+        RETRO_LANGUAGE_SLOVAK = 19,
+        RETRO_LANGUAGE_PERSIAN = 20,
+        RETRO_LANGUAGE_HEBREW = 21,
+        RETRO_LANGUAGE_ASTURIAN = 22//,
+        //      RETRO_LANGUAGE_LAST,
+
+        /* Ensure sizeof(enum) == sizeof(int) */
+        //        RETRO_LANGUAGE_DUMMY = INT_MAX
+    };
 
     class SubSystem
     {
