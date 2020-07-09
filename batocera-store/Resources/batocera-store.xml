@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<packages>
+  <package>
+    <name>bezels-default-glazed</name>
+    <repository>batocera</repository>
+    <available_version>1.0.0-2</available_version>
+    <description>Batocera bezels with a CRT effect</description>
+    <url>https://github.com/batocera-linux/batocera-bezel</url>
+    <packager>lbrpdx</packager>
+    <download_size>0</download_size>
+    <installed_size>0</installed_size>
+    <status>none</status>
+  </package>
+  <package>
+    <name>gb-into-the-blue</name>
+    <repository>batocera</repository>
+    <available_version>1.0.0-1</available_version>
+    <description>GB puzzle game - close to "Tetris Attack" for GameBoy</description>
+    <url>https://the-green-screen.com/278-2/</url>
+    <packager>lbrpdx</packager>
+    <download_size>0</download_size>
+    <installed_size>0</installed_size>
+    <status>none</status>
+  </package>
+  <package>
+    <name>gb-retroid</name>
+    <repository>batocera</repository>
+    <available_version>1.0.0-2</available_version>
+    <description>GB breakout game - tribute to retro brick/paddle games like Arkanoid</description>
+    <url>https://the-green-screen.com/292-2/</url>
+    <packager>lbrpdx</packager>
+    <download_size>0</download_size>
+    <installed_size>0</installed_size>
+    <status>none</status>
+  </package>
+  <package>
+    <name>nes-alter-ego</name>
+    <repository>batocera</repository>
+    <available_version>1.0.0-2</available_version>
+    <description>NES freeware puzzle game - manual provided as a pdf</description>
+    <url>https://www.romhacking.net/homebrew/1/</url>
+    <packager>lbrpdx</packager>
+    <download_size>0</download_size>
+    <installed_size>0</installed_size>
+    <status>none</status>
+  </package>
+  <package>
+    <name>nes-legends-of-owlia</name>
+    <repository>batocera</repository>
+    <available_version>1.0.0-2</available_version>
+    <description>NES freeware action-adventure game (inspired by Zelda)</description>
+    <url>http://www.gradualgames.com/p/the-legends-of-owlia_1.html</url>
+    <packager>lbrpdx</packager>
+    <download_size>0</download_size>
+    <installed_size>0</installed_size>
+    <status>none</status>
+  </package>
+  <package>
+    <name>openbor-gudule</name>
+    <repository>batocera</repository>
+    <available_version>1.0.0-1</available_version>
+    <description>OpenBOR Gudule - a dumb barbarian</description>
+    <url>https://gamejolt.com/games/gudule/328805</url>
+    <packager>lbrpdx</packager>
+    <download_size>0</download_size>
+    <installed_size>0</installed_size>
+    <status>none</status>
+  </package>
+  <package>
+    <name>oxu4-ogst</name>
+    <repository>batocera</repository>
+    <available_version>1.0.0-1</available_version>
+    <description>Support for Odroid XU4 OGST screen</description>
+    <url>https://batocera.org</url>
+    <packager>batocera-makepkg</packager>
+    <download_size>0</download_size>
+    <installed_size>0</installed_size>
+    <status>none</status>
+  </package>
+  <package>
+    <name>ports-quake-shareware</name>
+    <repository>batocera</repository>
+    <available_version>1.0.0-1</available_version>
+    <description>Quake game files (shareware version)</description>
+    <url>https://www.dosgamesarchive.com/download/quake/</url>
+    <packager>lbrpdx</packager>
+    <download_size>0</download_size>
+    <installed_size>0</installed_size>
+    <status>none</status>
+  </package>
+</packages>

@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		unzip32.dll = unzip32.dll
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-store", "batocera-store\batocera-store.csproj", "{2F5E074A-27DC-4551-BE24-95BB2C45BA4E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -65,6 +67,10 @@ Global
 		{1CC1B79B-CCD2-445A-89CC-BEA265B36CD0}.Debug|x86.Build.0 = Debug|x86
 		{1CC1B79B-CCD2-445A-89CC-BEA265B36CD0}.Release|x86.ActiveCfg = Release|x86
 		{1CC1B79B-CCD2-445A-89CC-BEA265B36CD0}.Release|x86.Build.0 = Release|x86
+		{2F5E074A-27DC-4551-BE24-95BB2C45BA4E}.Debug|x86.ActiveCfg = Debug|x86
+		{2F5E074A-27DC-4551-BE24-95BB2C45BA4E}.Debug|x86.Build.0 = Debug|x86
+		{2F5E074A-27DC-4551-BE24-95BB2C45BA4E}.Release|x86.ActiveCfg = Release|x86
+		{2F5E074A-27DC-4551-BE24-95BB2C45BA4E}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

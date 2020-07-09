@@ -71,7 +71,7 @@ namespace emulatorLauncher
 
                         string biosPath = AppConfig.GetFullPath("bios");
                         if (!string.IsNullOrEmpty(biosPath))
-                        {                            
+                        {
                             ini.WriteValue("Folders", "UseDefaultBios", "disabled");
                             ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
                         }
@@ -92,7 +92,10 @@ namespace emulatorLauncher
                         else
                             ini.WriteValue("GSWindow", "AspectRatio", "Stretch");
 
+                        ini.WriteValue("ProgramLog", "Visible", "disabled");
                         ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
+
+                        ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
                     }
                 }
                 catch { }
