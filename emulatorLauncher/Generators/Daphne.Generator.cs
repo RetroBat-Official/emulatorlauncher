@@ -53,8 +53,8 @@ namespace emulatorLauncher
             commandArray.Add("-fullscreen");
             commandArray.Add("-opengl");            
             commandArray.Add("-fastboot");
-            commandArray.Add("-datadir");
-            commandArray.Add(daphneDatadir);
+//            commandArray.Add("-datadir");
+//            commandArray.Add(daphneDatadir);
             commandArray.Add("-homedir");
             commandArray.Add(_daphneHomedir);
             
@@ -93,15 +93,11 @@ namespace emulatorLauncher
             {
                 string ram = Path.Combine(_daphneHomedir, "ram");
                 if (Directory.Exists(ram))
-                    Directory.Delete(ram);
+                    new DirectoryInfo(ram).Delete(true);
 
                 string frameFile = Path.Combine(_daphneHomedir, "framefile");
                 if (Directory.Exists(frameFile))
-                    Directory.Delete(frameFile);
-
-                string logFile = Path.Combine(_daphneHomedir, "daphne_log.txt");
-                if (File.Exists(frameFile))
-                    File.Delete(frameFile);                
+                    new DirectoryInfo(frameFile).Delete(true);     
             }
             catch { }
         }
