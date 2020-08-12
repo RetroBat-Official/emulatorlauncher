@@ -80,8 +80,8 @@
 
     "prboom": { "name": "Doom (PrBoom)", "biosFiles": [ { "md5": "", "file": "roms/prboom/prboom.wad" } ] },
 
-    "dreamcast":    { "name": "Dreamcast", "biosFiles":    [ { "md5": "e10c53c2f8b90bab96ead2d368858623", "file": "bios/dc_boot.bin"   	  },
-													         { "md5": "0a93f7940c455905bea6e392dfde92a4", "file": "bios/dc_flash.bin"  	  } ] },
+    "dreamcast":    { "name": "Dreamcast", "biosFiles":    [ { "md5": "e10c53c2f8b90bab96ead2d368858623", "file": "bios/dc/dc_boot.bin"   	  },
+													         { "md5": "0a93f7940c455905bea6e392dfde92a4", "file": "bios/dc/dc_flash.bin"  	  } ] },
     "gamegear":     { "name": "Game Gear", "biosFiles":    [ { "md5": "672e104c3be3a238301aceffc3b23fd6", "file": "bios/bios.gg" 	   	  } ] },
     "mastersystem": { "name": "MasterSystem", "biosFiles": [ { "md5": "840481177270d5642a14ca71ee72844c", "file": "bios/bios_E.sms"    	  },
 															 { "md5": "840481177270d5642a14ca71ee72844c", "file": "bios/bios_U.sms"    	  },
@@ -98,9 +98,9 @@
     "segacd":       { "name": "Sega CD", "biosFiles":      [ { "md5": "e66fa1dc5820d254611fdcdba0662372", "file": "bios/bios_CD_E.bin" 	  },
 												             { "md5": "854b9150240a198070150e4566ae1290", "file": "bios/bios_CD_U.bin" 	  },
 												             { "md5": "278a9397d192149e84e820ac621a8edd", "file": "bios/bios_CD_J.bin" 	  } ] },
-    "naomi":        { "name": "Naomi", "biosFiles":        [ { "md5": "3bffafac42a7767d8dcecf771f5552ba", "file": "bios/naomi.bin"        },
-                                                             { "md5": "eb4099aeb42ef089cfe94f8fe95e51f6", "file": "bios/naomi.zip"        } ] },
-    "atomiswave":   { "name": "Atomiswave", "biosFiles":   [ { "md5": "0ec5ae5b5a5c4959fa8b43fcf8687f7c", "file": "bios/awbios.zip"       } ] },
+    "naomi":        { "name": "Naomi", "biosFiles":        [ { "md5": "3bffafac42a7767d8dcecf771f5552ba", "file": "bios/dc/naomi.bin"        },
+                                                             { "md5": "eb4099aeb42ef089cfe94f8fe95e51f6", "file": "bios/dc/naomi.zip"        } ] },
+    "atomiswave":   { "name": "Atomiswave", "biosFiles":   [ { "md5": "0ec5ae5b5a5c4959fa8b43fcf8687f7c", "file": "bios/dc/awbios.zip"       } ] },
 
     "x68000": { "name": "Sharp x68000", "biosFiles": [ { "md5": "", "file": "bios/keropi/iplrom.dat"   },
 													   { "md5": "", "file": "bios/keropi/iplrom30.dat" },
@@ -108,11 +108,10 @@
 													   { "md5": "", "file": "bios/keropi/iplromxv.dat" },
 													   { "md5": "", "file": "bios/keropi/cgrom.dat"	   } ] },
 
-	"neogeo":   { "name": "NeoGeo", "biosFiles":    [ { "md5": "", "file": "roms/neogeo/neogeo.zip" } ] },
+	"neogeo":   { "name": "NeoGeo", "biosFiles":    [ { "md5": "", "file": "bios/neogeo.zip" } ] },
 	"neogeocd": { "name": "NeoGeo CD", "biosFiles": [ { "md5": "", "file": "bios/neogeo.zip" },
 													  { "md5": "", "file": "bios/neocdz.zip" },
-                                                      { "md5": "", "file": "bios/ng-lo.rom"  },
-                                                      { "md5": "", "file": "bios/neocd_z.rom"} ] },
+													  { "md5": "", "file": "bios/neocd/neocdz.zip"} ] },                                                    
 
     "psx": { "name": "PSX", "biosFiles": [ { "md5": "6e3735ff4c7dc899ee98981385f6f3d0", "file": "bios/scph101.bin"    },
                                            { "md5": "dc2b9bf8da62ec93e868cfd29f0d067d", "file": "bios/scph1001.bin"   },
