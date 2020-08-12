@@ -68,8 +68,10 @@
     <Compile Include="Generators\Solarus.Generator.cs" />
     <Compile Include="Generators\Demul.Generator.cs" />
     <Compile Include="Generators\ExeLauncher.Generator.cs" />
+	<Compile Include="Generators\mGBA.Generator.cs" />
     <Compile Include="Generators\Mednafen.Generator.cs" />
     <Compile Include="Generators\Redream.Generator.cs" />
+    <Compile Include="Generators\Raine.Generator.cs" />
     <Compile Include="Generators\Cxbx.Generator.cs" />
     <Compile Include="Generators\SimCoupe.Generator.cs" />
     <Compile Include="Generators\Model3.Generator.cs" />
@@ -85,6 +87,10 @@
     <Compile Include="Generators\OpenBor.Generator.cs" />
     <Compile Include="Generators\Model2.Generator.cs" />
     <Compile Include="Generators\Uae.Generator.cs" />
+    <Compile Include="Generators\Snes9x.Generator.cs" />
+    <Compile Include="Generators\Citra.Generator.cs" />
+    <Compile Include="Generators\Xenia.Generator.cs" />
+    <Compile Include="Generators\Project64.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
     <Compile Include="PadToKey\JoystickListener.cs" />
     <Compile Include="PadToKey\PadToKey.cs" />
