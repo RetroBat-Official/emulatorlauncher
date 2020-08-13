@@ -31,7 +31,8 @@ namespace emulatorLauncher
     {
         static Dictionary<string, Func<Generator>> generators = new Dictionary<string, Func<Generator>>
         {
-            { "libretro", () => new LibRetroGenerator() }, { "angle", () => new LibRetroGenerator() },      
+            { "libretro", () => new LibRetroGenerator() }, { "angle", () => new LibRetroGenerator() },
+			{ "mgba", () => new mGBAGenerator() },			
             { "model2", () => new Model2Generator() },
             { "model3", () => new Model3Generator() }, { "supermodel", () => new Model3Generator() },
             { "openbor", () => new OpenBorGenerator() },
@@ -41,6 +42,7 @@ namespace emulatorLauncher
             { "vpinball", () => new VPinballGenerator() },
             { "dosbox", () => new DosBoxGenerator() },
             { "ppsspp", () => new PpssppGenerator() },
+			{ "project64", () => new Project64Generator() },
             { "dolphin", () => new DolphinGenerator() },
             { "cemu", () => new CemuGenerator() },  { "wiiu", () => new CemuGenerator() },  
             { "winuae", () => new UaeGenerator() },
@@ -52,6 +54,10 @@ namespace emulatorLauncher
             { "demul", () => new DemulGenerator() }, { "demul-old", () => new DemulGenerator() }, 
             { "mednafen", () => new MednafenGenerator() },
             { "daphne", () => new DaphneGenerator() },
+			{ "raine", () => new RaineGenerator() },
+			{ "snes9x", () => new Snes9xGenerator() },
+			{ "citra", () => new CitraGenerator() },
+            { "xenia", () => new XeniaGenerator() },
             { "solarus", () => new SolarusGenerator() }            
         };
 
