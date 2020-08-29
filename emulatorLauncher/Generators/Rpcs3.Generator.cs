@@ -28,7 +28,9 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "--no-gui \"" + rom + "\"",                
+                Arguments = "\"" + rom + "\"",                
+                WindowStyle = ProcessWindowStyle.Minimized
+                //Arguments = "--no-gui \"" + rom + "\"",                
             };
         }
     }
