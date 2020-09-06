@@ -5,6 +5,11 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
+using System.Runtime.Serialization.Json;
+using System.Runtime.Serialization;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Globalization;
 
 namespace emulatorLauncher.libRetro
 {
@@ -509,13 +514,171 @@ namespace emulatorLauncher.libRetro
             if (!File.Exists(overlay_png_file))
                 return;
 
-            string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
+            BezelInfo infos = new BezelInfo();
 
+            if (File.Exists(overlay_info_file))
+            {
+                try { infos = JsonSerializer.DeserializeFile<BezelInfo>(overlay_info_file); }
+                catch { }
+            }
+
+             // if image is not at the correct size, find the correct size
+            bool bezelNeedAdaptation = false;
+            bool viewPortUsed = true;
+
+            if (!infos.width.HasValue || !infos.height.HasValue || !infos.top.HasValue || !infos.left.HasValue || !infos.bottom.HasValue || !infos.right.HasValue)
+                viewPortUsed = false;
+
+         // for testing ->   resolution = ScreenResolution.Parse("2280x1080x32x60");
+
+            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
+            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+
+            float gameRatio  = (float) resX / (float) resY;
+            float infosRatio = 1920f / 1080f;
+
+            if (viewPortUsed)
+            {
+                if (resX != infos.width || resY != infos.height)
+                {
+                    infosRatio = (float)infos.width / (float)infos.height;
+
+                    if (gameRatio < infosRatio - 0.1) // keep a margin
+                        return;
+                    else
+                        bezelNeedAdaptation = true;
+                }
+                                    
+                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file                
+            }
+            else
+            {
+                 // when there is no information about width and height in the .info, assume that the tv is HD 16/9 and infos are core provided
+                if (gameRatio < infosRatio - 0.1) // keep a margin
+                    return;
+                else
+                {
+
+                    // No info on the bezel, let's get the bezel image width and height and apply the
+                    // ratios from usual 4:3 1920x1080 bezels (example: theBezelProject)
+
+                    using (Image img = Image.FromFile(overlay_png_file))
+                    {
+                        infos.width = img.Width;
+                        infos.height = img.Height;
+                    }
+                    infos.top    = (int)infos.height * 2 / 1080;
+                    infos.left   = (int)infos.width * 241 / 1920; // 241 = (1920 - (1920 / (4:3))) / 2 + 1 pixel = where viewport start;
+                    infos.bottom = (int)infos.height * 2 / 1080;
+                    infos.right  = (int)infos.width * 241 / 1920;
+                    bezelNeedAdaptation = true;
+                }
+                
+                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString(); // overwritten from the beginning of this file
+            }
+
+            string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
+            
             retroarchConfig["input_overlay_enable"] = "true";
             retroarchConfig["input_overlay_scale"] = "1.0";
             retroarchConfig["input_overlay"] = overlay_cfg_file;
             retroarchConfig["input_overlay_hide_in_menu"] = "true";
-            retroarchConfig["input_overlay_opacity"] = "1.0";
+                    
+            if (!infos.opacity.HasValue)
+                infos.opacity = 1.0f;
+            if (!infos.messagex.HasValue)
+                infos.messagex = 0.0f;
+            if (!infos.messagey.HasValue)
+                infos.messagey = 0.0f;
+
+            retroarchConfig["input_overlay_opacity"] = infos.opacity.ToString().Replace(",", "."); // "1.0";
+            // for testing : retroarchConfig["input_overlay_opacity"] = "0.5";
+
+            if (bezelNeedAdaptation)
+            {
+                float wratio = resX / (float) infos.width;
+                float hratio = resY / (float) infos.height;
+
+                bool bezel_stretch = false;
+
+                // If width or height < original, can't add black borders, need to stretch
+                if (resX < infos.width || resY < infos.height)
+                    bezel_stretch = true;
+
+                if (bezel_stretch)
+                {
+                    retroarchConfig["custom_viewport_x"] = ((int) (infos.left * wratio)).ToString();
+                    retroarchConfig["custom_viewport_y"] = ((int)(infos.top * hratio)).ToString();
+                    retroarchConfig["custom_viewport_width"] = ((int) ((infos.width - infos.left - infos.right) * wratio)).ToString();
+                    retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom) * hratio)).ToString();
+                    retroarchConfig["video_message_pos_x"] = (infos.messagex.Value * wratio).ToString(CultureInfo.InvariantCulture);
+                    retroarchConfig["video_message_pos_y"] = (infos.messagey.Value * hratio).ToString(CultureInfo.InvariantCulture);
+                }
+                else
+                {                    
+                    int xoffset = resX - infos.width.Value;
+                    int yoffset = resY - infos.height.Value;
+                    retroarchConfig["custom_viewport_x"]      = ((int) (infos.left.Value + xoffset/2)).ToString();
+                    retroarchConfig["custom_viewport_y"]      = ((int) (infos.top.Value + yoffset/2)).ToString();
+                    retroarchConfig["custom_viewport_width"]  = ((int) ((infos.width.Value - infos.left.Value - infos.right.Value))).ToString();
+                    retroarchConfig["custom_viewport_height"] = ((int)((infos.height.Value - infos.top.Value - infos.bottom.Value))).ToString();
+                    retroarchConfig["video_message_pos_x"] = (infos.messagex.Value + xoffset / 2).ToString(CultureInfo.InvariantCulture);
+                    retroarchConfig["video_message_pos_y"] = (infos.messagey.Value + yoffset / 2).ToString(CultureInfo.InvariantCulture);
+
+                    int borderw = 0;
+                    int borderh = 0;
+                    if (wratio > 1)
+                        borderw = xoffset / 2;
+                    if (hratio > 1)
+                        borderh = yoffset / 2;
+
+                    var f = Path.GetFileNameWithoutExtension(overlay_png_file);
+                    var d = Path.GetFileName(Path.GetDirectoryName(overlay_png_file));
+                    var fn = "bezel." + d + "." + f + "." + resX +"x" + resY + ".png";
+                    string output_png_file = Path.Combine(Path.GetTempPath(), fn);
+
+                    if (File.Exists(output_png_file))
+                        overlay_png_file = output_png_file;
+                    else
+                    {
+                        try
+                        {
+                            using (Image img = Image.FromFile(overlay_png_file))
+                            {
+                                using (Bitmap bmp = new Bitmap(infos.width.Value + 2 * borderw, infos.height.Value + 2 * borderh))
+                                {
+                                    using (Graphics g = Graphics.FromImage(bmp))
+                                    {
+                                        g.ExcludeClip(new Rectangle(borderw, borderh, img.Width, img.Height));
+                                        g.FillRectangle(Brushes.Black, new Rectangle(0, 0, bmp.Width, bmp.Height));
+                                        g.ResetClip();
+
+                                        g.DrawImage(img, new Rectangle(borderw, borderh, img.Width, img.Height));
+                                    }
+
+                                    bmp.Save(output_png_file, System.Drawing.Imaging.ImageFormat.Png);
+                                    overlay_png_file = output_png_file;
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            else
+            {
+                if (viewPortUsed)
+                {
+                    retroarchConfig["custom_viewport_x"] = infos.left.Value.ToString();
+                    retroarchConfig["custom_viewport_y"] = infos.top.Value.ToString();
+                    retroarchConfig["custom_viewport_width"] = (infos.width.Value - infos.left.Value - infos.right.Value).ToString();
+                    retroarchConfig["custom_viewport_height"] = (infos.height.Value - infos.top.Value - infos.bottom.Value).ToString();
+                }
+
+                retroarchConfig["video_message_pos_x"] = infos.messagex.Value.ToString(CultureInfo.InvariantCulture);
+                retroarchConfig["video_message_pos_y"] = infos.messagey.Value.ToString(CultureInfo.InvariantCulture);
+            }
+            
             retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
 
             StringBuilder fd = new StringBuilder();
@@ -794,4 +957,28 @@ namespace emulatorLauncher.libRetro
         public string Core { get; set; }
         public string SubSystemId { get; set; }
     }
+    
+    [DataContract]
+    class BezelInfo
+    {
+        [DataMember]
+        public int? width { get; set; }
+        [DataMember]
+        public int? height { get; set; }
+        [DataMember]
+        public int? top { get; set; }
+        [DataMember]
+        public int? left { get; set; }
+        [DataMember]
+        public int? bottom { get; set; }
+        [DataMember]
+        public int? right { get; set; }
+        [DataMember]
+        public float? opacity { get; set; }
+        [DataMember]
+        public float? messagex { get; set; }
+        [DataMember]
+        public float? messagey { get; set; }
+    }
+
 }

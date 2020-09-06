@@ -52,6 +52,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -68,7 +69,7 @@
     <Compile Include="Generators\Solarus.Generator.cs" />
     <Compile Include="Generators\Demul.Generator.cs" />
     <Compile Include="Generators\ExeLauncher.Generator.cs" />
-	<Compile Include="Generators\mGBA.Generator.cs" />
+    <Compile Include="Generators\mGBA.Generator.cs" />
     <Compile Include="Generators\Mednafen.Generator.cs" />
     <Compile Include="Generators\Redream.Generator.cs" />
     <Compile Include="Generators\Raine.Generator.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="Tools\ConfigFile.cs" />
     <Compile Include="Tools\GameList.cs" />
     <Compile Include="Tools\InputList.cs" />
+    <Compile Include="Tools\JsonSerializer.cs" />
     <Compile Include="Tools\KeyboardManager.cs" />
     <Compile Include="Tools\HighPerformancePowerScheme.cs" />
     <Compile Include="Tools\ScreenCapture.cs" />

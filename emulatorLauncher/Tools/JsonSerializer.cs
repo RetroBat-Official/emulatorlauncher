@@ -1,0 +1,27 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Runtime.Serialization.Json;
+
+namespace emulatorLauncher.Tools
+{
+    static class JsonSerializer
+    {
+        public static T DeserializeFile<T>(string fileName) where T : new()
+        {
+            T deserializedObj = new T();
+
+            using (Stream ms = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            {
+                DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(T));
+                deserializedObj = (T)ser.ReadObject(ms);                
+                ms.Close();
+            }
+
+            return deserializedObj;
+        }
+
+    }
+}
