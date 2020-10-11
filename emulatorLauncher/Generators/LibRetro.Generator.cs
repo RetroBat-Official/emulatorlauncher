@@ -250,11 +250,13 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
             {
+              //  retroarchConfig["menu_show_load_content_animation"] = "false";
                 retroarchConfig["savestate_auto_save"] = "true";
                 retroarchConfig["savestate_auto_load"] = "true";
             }
             else
             {
+              //  retroarchConfig["menu_show_load_content_animation"] = "true";
                 retroarchConfig["savestate_auto_save"] = "false";
                 retroarchConfig["savestate_auto_load"] = "false";
             }
@@ -315,12 +317,42 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["netplay_spectator_mode_enable"] = SystemConfig.getOptBoolean("netplay.spectator") ? "true" : "false";
                 retroarchConfig["netplay_client_swap_input"] = "false";
 
-                if (SystemConfig["netplaymode"] == "client")
+                if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
                 {
                     retroarchConfig["netplay_mode"] = "true";
                     retroarchConfig["netplay_ip_address"] = SystemConfig["netplayip"];
                     retroarchConfig["netplay_ip_port"] = SystemConfig["netplayport"];
                     retroarchConfig["netplay_client_swap_input"] = "true";
+                }
+
+                  // connect as client
+                if (SystemConfig["netplaymode"] == "client")
+                {
+                    if (SystemConfig.isOptSet("netplaypass"))
+                        retroarchConfig["netplay_password"] = SystemConfig["netplaypass"];
+                    else
+                        retroarchConfig.DisableAll("netplay_password");
+                }
+
+                // connect as spectator
+                if (SystemConfig["netplaymode"] == "spectator")
+                {
+                    retroarchConfig["netplay_spectator_mode_enable"] = "true";
+                    retroarchConfig["netplay_start_as_spectator"] = "true";
+
+                    if (SystemConfig.isOptSet("netplaypass"))
+                        retroarchConfig["netplay_spectate_password"] = SystemConfig["netplaypass"];
+                    else
+                        retroarchConfig.DisableAll("netplay_spectate_password");
+                }
+                else
+                    retroarchConfig["netplay_start_as_spectator"] = "false";
+
+                // Netplay host passwords
+                if (SystemConfig["netplaymode"] == "host")
+                {
+                    retroarchConfig["netplay_password"] = SystemConfig["netplay.password"];
+                    retroarchConfig["netplay_spectate_password"] = SystemConfig["netplay.spectatepassword"];
                 }
             }
 
@@ -573,8 +605,8 @@ namespace emulatorLauncher.libRetro
                     infos.right  = (int)infos.width * 241 / 1920;
                     bezelNeedAdaptation = true;
                 }
-                
-                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString(); // overwritten from the beginning of this file
+
+                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file
             }
 
             string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
@@ -601,8 +633,9 @@ namespace emulatorLauncher.libRetro
 
                 bool bezel_stretch = false;
 
-                // If width or height < original, can't add black borders, need to stretch
-                if (resX < infos.width || resY < infos.height)
+                if (resX < infos.width || resY < infos.height) // If width or height < original, can't add black borders. Just stretch
+                    bezel_stretch = true;
+                else if (Math.Abs(gameRatio - infosRatio) < 0.2) // FCA : About the same ratio ? Just stretch
                     bezel_stretch = true;
 
                 if (bezel_stretch)
@@ -785,7 +818,7 @@ namespace emulatorLauncher.libRetro
                 // Netplay mode
                 if (SystemConfig["netplaymode"] == "host")
                     commandArray.Add("--host");
-                else if (SystemConfig["netplaymode"] == "client")
+                else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
                 {
                     commandArray.Add("--connect " + SystemConfig["netplayip"]);
                     commandArray.Add("--port " + SystemConfig["netplayport"]);
