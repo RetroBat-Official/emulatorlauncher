@@ -14,8 +14,6 @@ namespace batocera_systems
             {
                 @".\..\bios",
                 @".\..\..\bios",
-                @".\..\EmulationStation\Retroarch\system",
-                @".\..\..\EmulationStation\Retroarch\system",
             };
 
         static string[] rompaths = 
@@ -40,10 +38,7 @@ namespace batocera_systems
             }
 
             if (root == null)
-            {
-                Environment.Exit(2);
-                return;
-            }
+                root = Path.GetFullPath(Path.Combine(path, @".\..\bios"));
 
             string romRoot = null;            
 
