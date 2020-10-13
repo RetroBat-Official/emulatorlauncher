@@ -74,8 +74,8 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "ShowFPS", "True");
                     else
                         ini.WriteValue("Settings", "ShowFPS", "False");
-                    
-                    ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");                    
+
+                    ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
 
                     // search for custom textures
                     ini.WriteValue("Settings", "HiresTextures", "True");
@@ -85,9 +85,77 @@ namespace emulatorLauncher
                         ini.WriteValue("Graphics", "InternalResolution", SystemConfig["internalresolution"]);
                     else
                         ini.WriteValue("Graphics", "InternalResolution", "0");
+
+                    // HiResTextures - Default On
+                    if (SystemConfig.isOptSet("hires_textures"))
+                    {
+                        if (!SystemConfig.getOptBoolean("hires_textures"))
+                        {
+                            ini.WriteValue("Settings", "HiresTextures", "False");
+                            ini.WriteValue("Settings", "CacheHiresTextures", "False");
+                        }
+                        else
+                        {
+                            ini.WriteValue("Settings", "HiresTextures", "True");
+                            ini.WriteValue("Settings", "CacheHiresTextures", "True");
+                        }
+                    }
+
+                    // anisotropic filtering - Auto 0
+                    if (SystemConfig.isOptSet("anisotropic_filtering"))                    
+                        ini.WriteValue("Enhancements", "MaxAnisotropy", SystemConfig["anisotropic_filtering"]);
+                    else
+                        ini.WriteValue("Enhancements", "MaxAnisotropy", "0");
+
+                    // anisotropic filtering - Auto 0
+                    if (SystemConfig.isOptSet("antialiasing"))
+                        ini.WriteValue("Enhancements", "MSAA", SystemConfig["antialiasing"]);
+                    else
+                        ini.WriteValue("Enhancements", "MSAA", "0");
+
+                    // widescreen hack but only if enable cheats is not enabled - Default Off
+                    if (SystemConfig.isOptSet("widescreen_hack"))
+                    {
+                        if (SystemConfig.getOptBoolean("widescreen_hack"))
+                            ini.WriteValue("Settings", "wideScreenHack", "True");
+                        else
+                            ini.Remove("Settings", "wideScreenHack");
+                    }
+
+                    // various performance hacks - Default Off
+                    if (SystemConfig.isOptSet("perf_hacks"))
+                    {
+                        if (SystemConfig.getOptBoolean("perf_hacks"))
+                        {
+                            ini.WriteValue("Hacks", "BBoxEnable", "False");
+                            ini.WriteValue("Hacks", "DeferEFBCopies", "True");
+                            ini.WriteValue("Hacks", "EFBEmulateFormatChanges", "False");
+                            ini.WriteValue("Hacks", "EFBScaledCopy", "True");
+                            ini.WriteValue("Hacks", "EFBToTextureEnable", "True");
+                            ini.WriteValue("Hacks", "SkipDuplicateXFBs", "True");
+                            ini.WriteValue("Hacks", "XFBToTextureEnable", "True");
+                            ini.WriteValue("Enhancements", "ForceFiltering", "True");
+                            ini.WriteValue("Enhancements", "ArbitraryMipmapDetection", "True");
+                            ini.WriteValue("Enhancements", "DisableCopyFilter", "True");
+                            ini.WriteValue("Enhancements", "ForceTrueColor", "True");
+                        }
+                        else
+                        {
+                            ini.Remove("Hacks", "BBoxEnable");
+                            ini.Remove("Hacks", "DeferEFBCopies");
+                            ini.Remove("Hacks", "EFBEmulateFormatChanges");
+                            ini.Remove("Hacks", "EFBScaledCopy");
+                            ini.Remove("Hacks", "EFBToTextureEnable");
+                            ini.Remove("Hacks", "SkipDuplicateXFBs");
+                            ini.Remove("Hacks", "XFBToTextureEnable");
+                            ini.Remove("Enhancements", "ForceFiltering");
+                            ini.Remove("Enhancements", "ArbitraryMipmapDetection");
+                            ini.Remove("Enhancements", "DisableCopyFilter");
+                            ini.Remove("Enhancements", "ForceTrueColor");
+                        }
+                    }
                 }
             }
-
             catch { }
         }
     
@@ -145,6 +213,36 @@ namespace emulatorLauncher
                     ini.WriteValue("Core", "SelectedLanguage", getGameCubeLangFromEnvironment());
                     ini.WriteValue("Core", "GameCubeLanguage", getGameCubeLangFromEnvironment());
 
+                    // backend - Default
+                    if (SystemConfig.isOptSet("gfxbackend"))
+                        ini.WriteValue("Core", "GFXBackend", SystemConfig["gfxbackend"]);
+                    else
+                        ini.WriteValue("Core", "GFXBackend", "Vulkan");
+
+                    // Cheats - default false
+                    if (SystemConfig.isOptSet("enable_cheats"))
+                    {
+                        if (SystemConfig.getOptBoolean("enable_cheats"))
+                            ini.WriteValue("Core", "EnableCheats", "True");
+                        else
+                            ini.WriteValue("Core", "EnableCheats", "False");
+                    }
+
+                    // Fast Disc Speed - Default Off
+                    if (SystemConfig.isOptSet("enable_fastdisc"))
+                    {
+                        if (SystemConfig.getOptBoolean("enable_fastdisc"))
+                            ini.WriteValue("Core", "FastDiscSpeed", "True");
+                        else
+                            ini.WriteValue("Core", "FastDiscSpeed", "False");
+                    }
+
+                    // Enable MMU - Default On
+                    if (!SystemConfig.isOptSet("enable_mmu") ||SystemConfig.getOptBoolean("enable_mmu"))
+                        ini.WriteValue("Core", "MMU", "True");
+                    else
+                        ini.WriteValue("Core", "MMU", "False");
+                    
                     // wiimote scanning
                     ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 

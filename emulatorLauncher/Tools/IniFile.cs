@@ -116,6 +116,16 @@ namespace emulatorLauncher
                 _keyPairs.Add(sectionPair, value);
         }
 
+        public void Remove(string section, string key)
+        {
+            SectionPair sectionPair;
+            sectionPair.Section = section;
+            sectionPair.Key = key;
+
+            if (_keyPairs.ContainsKey(sectionPair))
+                _keyPairs.Remove(sectionPair);
+        }
+
         public string GetValue(string section, string key)
         {
             SectionPair sectionPair;

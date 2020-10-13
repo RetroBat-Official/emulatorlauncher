@@ -311,10 +311,10 @@ namespace emulatorLauncher.libRetro
 
                 retroarchConfig["netplay_ip_port"] = SystemConfig["netplay.port"]; // netplayport
                 retroarchConfig["netplay_nickname"] = SystemConfig["netplay.nickname"];
-                retroarchConfig["netplay_mitm_server"] = SystemConfig["netplay.relay"];
-                retroarchConfig["netplay_use_mitm_server"] = string.IsNullOrEmpty(SystemConfig["netplay.relay"]) ? "true" : "false";
 
-                retroarchConfig["netplay_spectator_mode_enable"] = SystemConfig.getOptBoolean("netplay.spectator") ? "true" : "false";
+                retroarchConfig["netplay_mitm_server"] = SystemConfig["netplay.relay"];
+                retroarchConfig["netplay_use_mitm_server"] = string.IsNullOrEmpty(SystemConfig["netplay.relay"]) ? "false" : "true";
+
                 retroarchConfig["netplay_client_swap_input"] = "false";
 
                 if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
@@ -346,11 +346,17 @@ namespace emulatorLauncher.libRetro
                         retroarchConfig.DisableAll("netplay_spectate_password");
                 }
                 else
+                {
+                    if (SystemConfig["netplaymode"] != "host")
+                        retroarchConfig["netplay_spectator_mode_enable"] = "false";
+
                     retroarchConfig["netplay_start_as_spectator"] = "false";
+                }
 
                 // Netplay host passwords
                 if (SystemConfig["netplaymode"] == "host")
                 {
+                    retroarchConfig["netplay_spectator_mode_enable"] = SystemConfig.getOptBoolean("netplay.spectator") ? "true" : "false";
                     retroarchConfig["netplay_password"] = SystemConfig["netplay.password"];
                     retroarchConfig["netplay_spectate_password"] = SystemConfig["netplay.spectatepassword"];
                 }
