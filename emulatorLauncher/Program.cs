@@ -58,6 +58,7 @@ namespace emulatorLauncher
 			{ "snes9x", () => new Snes9xGenerator() },
 			{ "citra", () => new CitraGenerator() },
             { "xenia", () => new XeniaGenerator() },
+            { "mame64", () => new Mame64Generator() },
             { "solarus", () => new SolarusGenerator() }            
         };
 

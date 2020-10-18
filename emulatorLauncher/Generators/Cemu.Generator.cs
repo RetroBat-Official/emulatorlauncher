@@ -73,21 +73,21 @@ namespace emulatorLauncher
                 string controllerTxt = Path.Combine(controllerProfiles, "controller" + (controller.Index - 1) + ".txt");
                 using (IniFile ini = new IniFile(controllerTxt, true))
                 {
-                    ConfigureInput(ini, controller.Input);
+                    ConfigureInput(ini, controller);
                     ini.Save();
                 }
             }
         }
 
-        private static void ConfigureInput(IniFile ini, InputConfig input)
+        private static void ConfigureInput(IniFile ini, Controller controller)
         {
-            if (input == null)
+            if (controller == null || controller.Input == null)
                 return;
-        
-            if (input.Type == "joystick")
-                ConfigureJoystick(ini, input);
+
+            if (controller.Input.Type == "joystick")
+                ConfigureJoystick(ini, controller.Input, controller.Index -1);
             else
-                ConfigureKeyboard(ini, input);
+                ConfigureKeyboard(ini, controller.Input);
         }
 
 
@@ -157,7 +157,7 @@ namespace emulatorLauncher
             writeIni("26", InputKey.hotkeyenable);
         }
 
-        private static void ConfigureJoystick(IniFile ini, InputConfig joy)
+        private static void ConfigureJoystick(IniFile ini, InputConfig joy, int playerIndex)
         {
             if (joy == null)
                 return;
@@ -180,7 +180,11 @@ namespace emulatorLauncher
                 guid = gd.ToString().ToUpper();
             }
 
-            ini.WriteValue("General", "emulate", "Wii U GamePad");
+            if (playerIndex == 0)
+                ini.WriteValue("General", "emulate", "Wii U GamePad");
+            else
+                ini.WriteValue("General", "emulate", "Wii U Classic Controller");
+            
             ini.WriteValue("General", "api", api);
             ini.WriteValue("General", "controller", guid);
 

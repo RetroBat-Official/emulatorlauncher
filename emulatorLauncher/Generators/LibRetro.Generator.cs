@@ -750,7 +750,7 @@ namespace emulatorLauncher.libRetro
             if (string.IsNullOrEmpty(RetroarchPath))
                 return null;
 
-            if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro" || Path.GetExtension(rom).ToLowerInvariant() == ".game")
             {
                 core = Path.GetFileNameWithoutExtension(rom);
 
@@ -758,7 +758,7 @@ namespace emulatorLauncher.libRetro
                     rom = Path.Combine(Path.GetDirectoryName(rom), "xrick", "data.zip");
                 else if (core == "dinothawr")
                     rom = Path.Combine(Path.GetDirectoryName(rom), "dinothawr", "dinothawr.game");
-                else
+                else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
                     rom = null;
             }
 
