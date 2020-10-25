@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Management;
 using System.Globalization;
 using emulatorLauncher.PadToKeyboard;
+using System.Runtime.InteropServices;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -75,6 +76,9 @@ namespace emulatorLauncher
             }
         }
 
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDPIAware();
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -83,6 +87,9 @@ namespace emulatorLauncher
         {
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info(Environment.CommandLine);
+
+            try { SetProcessDPIAware(); }
+            catch { }
 
             LocalPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             AppConfig = ConfigFile.FromFile(Path.Combine(LocalPath, "emulatorLauncher.cfg"));
