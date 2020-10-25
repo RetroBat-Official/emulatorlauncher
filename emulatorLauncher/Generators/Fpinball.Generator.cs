@@ -8,11 +8,14 @@ using Microsoft.Win32;
 using System.Windows.Forms;
 using emulatorLauncher.Tools;
 using System.Threading;
+using VPinballLauncher;
 
 namespace emulatorLauncher
 {
     class FpinballGenerator : Generator
     {
+        private LoadingForm _splash;
+
         public FpinballGenerator()                
         {
             SetupControllers();
@@ -106,6 +109,7 @@ namespace emulatorLauncher
             string path = AppConfig.GetFullPath("fpinball");
 
             _rom = rom;
+            _splash = ShowSplash(rom);
 
             if ("bam".Equals(emulator, StringComparison.InvariantCultureIgnoreCase) || "bam".Equals(core, StringComparison.InvariantCultureIgnoreCase))
                 _bam = Path.Combine(path, "BAM", "FPLoader.exe");
@@ -159,6 +163,12 @@ namespace emulatorLauncher
 
         public override void Cleanup()
         {
+            if (_splash != null)
+            {
+                _splash.Dispose();
+                _splash = null;
+            }
+
             PerformBamCapture();
             base.Cleanup();
         }
@@ -319,5 +329,25 @@ namespace emulatorLauncher
                 regKeyc.Close();
             }
         }
+
+        private LoadingForm ShowSplash(string rom)
+        {
+            if (rom == null)
+                return null;
+
+            if (Misc.IsWindowsEightOrTen && !Misc.IsDeveloperModeEnabled)
+            {
+                var controller = Controllers.FirstOrDefault(c => c.Index == 1 && c.Input != null && c.Input.Type != "keyboard");
+                if (controller != null)
+                {
+                    LoadingForm frm = new LoadingForm();
+                    frm.WarningText = "Warning : Future Pinball requires developper mode enabled in Windows control panel";
+                    frm.Show();
+                }
+            }
+
+            return null;
+        }
+
     }
 }

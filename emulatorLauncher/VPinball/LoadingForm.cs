@@ -106,14 +106,28 @@ namespace VPinballLauncher
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            if (Image == null)
-                return;
+            if (Image != null)
+            {
+                Size sz = new System.Drawing.Size(1024, 768);
 
-            Size sz = new System.Drawing.Size(1024, 768);
+                Rectangle zz = ClientRectangle;
+                Rectangle rc = new Rectangle(zz.Width / 2 - sz.Width / 2, zz.Height / 2 - sz.Height / 2, sz.Width, sz.Height);
+                e.Graphics.DrawImage(Image, rc);
+            }
 
-            Rectangle zz = ClientRectangle;
-            Rectangle rc = new Rectangle(zz.Width / 2 - sz.Width / 2, zz.Height / 2 - sz.Height / 2, sz.Width, sz.Height);
-            e.Graphics.DrawImage(Image, rc);
+            if (!string.IsNullOrEmpty(WarningText))
+            {
+                Rectangle rc = ClientRectangle;
+                int h = rc.Height / 3;
+                rc.Y += h + h;
+                rc.Height = h;
+
+                TextRenderer.DrawText(e.Graphics, WarningText, this.Font, rc, Color.White, Color.Transparent, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+            }
         }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public string WarningText { get; set; }
     }
 }

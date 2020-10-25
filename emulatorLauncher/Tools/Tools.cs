@@ -7,11 +7,38 @@ using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
+using Microsoft.Win32;
 
 namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        public static bool IsDeveloperModeEnabled
+        {
+            get
+            {
+                object val = RegistryKeyEx.GetRegistryValue(RegistryKeyEx.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock", "AllowDevelopmentWithoutDevLicense", RegistryKeyEx.Is64BitOperatingSystem ? RegistryViewEx.Registry64 : RegistryViewEx.Registry32);
+                if (val != null && val is int)
+                    return (int) val == 1;
+                
+                return false;                
+            }
+        }
+
+        public static bool IsWindowsEightOrTen
+        {
+            get
+            {
+                if (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 2)
+                    return true;
+
+                if (Environment.OSVersion.Version.Major >= 7)
+                    return true;
+
+                return false;
+            }
+        }
+
         public static int ToInteger(this string value)
         {
             int ret = 0;

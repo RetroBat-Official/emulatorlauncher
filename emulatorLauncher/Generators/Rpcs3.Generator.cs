@@ -19,8 +19,12 @@ namespace emulatorLauncher
 
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
+                string romPath = Path.GetDirectoryName(rom);
                 rom = File.ReadAllText(rom);
-                if (rom.StartsWith("\\"))
+
+                if (rom.StartsWith(".\\") || rom.StartsWith("./"))
+                    rom = Path.Combine(romPath, rom.Substring(2));
+                else if (rom.StartsWith("\\") || rom.StartsWith("/"))
                     rom = Path.Combine(path, rom.Substring(1));
             }
 
