@@ -9,6 +9,11 @@ namespace emulatorLauncher
 {
     class DolphinGenerator : Generator
     {
+        public DolphinGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private bool _triforce = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -82,9 +87,11 @@ namespace emulatorLauncher
                     ini.WriteValue("Settings", "CacheHiresTextures", "True");
 
                     if (SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
-                        ini.WriteValue("Graphics", "InternalResolution", SystemConfig["internalresolution"]);
+                        ini.WriteValue("Settings", "InternalResolution", SystemConfig["internalresolution"]);
+                    else if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
+                        ini.WriteValue("Settings", "InternalResolution", SystemConfig["internal_resolution"]);
                     else
-                        ini.WriteValue("Graphics", "InternalResolution", "0");
+                        ini.WriteValue("Settings", "InternalResolution", "0");
 
                     // HiResTextures - Default On
                     if (SystemConfig.isOptSet("hires_textures"))
@@ -109,9 +116,11 @@ namespace emulatorLauncher
 
                     // anisotropic filtering - Auto 0
                     if (SystemConfig.isOptSet("antialiasing"))
-                        ini.WriteValue("Enhancements", "MSAA", SystemConfig["antialiasing"]);
+                        ini.WriteValue("Settings", "MSAA", "0x0000000" + SystemConfig["antialiasing"]);
                     else
-                        ini.WriteValue("Enhancements", "MSAA", "0");
+                        ini.WriteValue("Settings", "MSAA", "0x00000001");
+
+                    // SSAA = True
 
                     // widescreen hack but only if enable cheats is not enabled - Default Off
                     if (SystemConfig.isOptSet("widescreen_hack"))

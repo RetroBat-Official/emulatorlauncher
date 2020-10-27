@@ -4,11 +4,32 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace emulatorLauncher
 {
     class ScreenResolution : IDisposable
     {
+        public static void SetHighDpiAware(string processPath)
+        {
+            try
+            {
+                RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", true);
+                if (regKeyc != null)
+                {
+                    var val = regKeyc.GetValue(processPath, "").ToString();
+
+                    if (string.IsNullOrEmpty(val))
+                        regKeyc.SetValue(processPath, "~ HIGHDPIAWARE");
+                    else if (!val.Contains("HIGHDPIAWARE"))
+                        regKeyc.SetValue(processPath, val + " HIGHDPIAWARE");
+
+                    regKeyc.Close();
+                }
+            }
+            catch { }
+        }
+
         public static ScreenResolution Parse(string gameResolution)
         {
             if (string.IsNullOrEmpty(gameResolution))

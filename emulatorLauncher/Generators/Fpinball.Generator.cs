@@ -123,9 +123,10 @@ namespace emulatorLauncher
             }
 
             if (_bam != null && File.Exists(_bam))
-                SetAsAdmin(_bam);
+                ScreenResolution.SetHighDpiAware(_bam);
 
-            SetAsAdmin(exe);
+            ScreenResolution.SetHighDpiAware(exe);
+
             SetupOptions(resolution);
 
             return new ProcessStartInfo()
@@ -185,21 +186,6 @@ namespace emulatorLauncher
 
                 try { File.Delete(bamPng); }
                 catch { }
-            }
-        }
-
-
-        private void SetAsAdmin(string path)
-        {
-            RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", true);
-            if (regKeyc != null)
-            {                
-            //    if (UsePadToKey)
-                   regKeyc.SetValue(path, "");
-           //     else                                  
-         //           regKeyc.SetValue(path, "~ RUNASADMIN");
-
-                regKeyc.Close();
             }
         }
 
@@ -341,7 +327,7 @@ namespace emulatorLauncher
                 if (controller != null)
                 {
                     LoadingForm frm = new LoadingForm();
-                    frm.WarningText = "Warning : Future Pinball requires developper mode enabled in Windows control panel";
+                    frm.WarningText = "Warning : Future Pinball requires developper mode enabled in Windows settings";
                     frm.Show();
                 }
             }
