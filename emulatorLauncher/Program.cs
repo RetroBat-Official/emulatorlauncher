@@ -179,7 +179,9 @@ namespace emulatorLauncher
 
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
         {
-            EvMapyKeysFile gameMapping = EvMapyKeysFile.TryLoad(SystemConfig["rom"] + ".keys");
+            string filePath = SystemConfig["rom"] + (Directory.Exists(SystemConfig["system"]) ? "\\padto.keys" : ".keys");
+
+            EvMapyKeysFile gameMapping = EvMapyKeysFile.TryLoad(filePath);
             if (gameMapping == null && SystemConfig["system"] != null)
             {
                 var systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", SystemConfig["system"] + ".keys");
