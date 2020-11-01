@@ -510,12 +510,15 @@ namespace emulatorLauncher.Tools
         y = 16777216,
 
 
-
+        joystick1down = 32,
         joystick1left = 64,
+        joystick1right = 128,
         joystick1up = 256,
-        joystick2left = 32768,
-        joystick2up = 8192
 
+        joystick2up = 8192,
+        joystick2down = 16384,
+        joystick2left = 32768,
+        joystick2right = 65536
     }
     
     public enum XINPUTMAPPING

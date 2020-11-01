@@ -220,7 +220,7 @@ namespace emulatorLauncher.PadToKeyboard
             {
                 foreach (var keyMap in mapping.Input)
                 {
-                    if (string.IsNullOrEmpty(keyMap.Key) && string.IsNullOrEmpty(keyMap.Code))
+                    if (string.IsNullOrEmpty(keyMap.Key) && keyMap.ScanCodes.Length == 0)
                         continue;
 
                     if (keyMap.Key != null && (keyMap.Key.StartsWith("(") || keyMap.Key.StartsWith("{")))
@@ -250,7 +250,7 @@ namespace emulatorLauncher.PadToKeyboard
                                 SendKeys.SendWait(keyMap.Key);
                         }
                     }
-                    else if (keyMap.Keys != 0 || keyMap.ScanCode != 0)
+                    else if (keyMap.Keys != 0 || keyMap.ScanCodes.Length != 0)
                         SendKeyMap(keyMap, prevState, keyState, process);
                 }
             }
@@ -295,7 +295,7 @@ namespace emulatorLauncher.PadToKeyboard
                         }
 
                     }
-                    else if (keyMap.Keys != 0 || keyMap.ScanCode != 0)
+                    else if (keyMap.Keys != 0 || keyMap.ScanCodes.Length != 0)
                         SendKeyMap(keyMap, prevState, keyState, process);
                 }
             }
@@ -325,9 +325,12 @@ namespace emulatorLauncher.PadToKeyboard
                 else
                     SimpleLogger.Instance.Info("SendKey : Release '" + input.Keys + "' to " + processName);
 
-                if (input.ScanCode != 0)
-                    SendKey.Send(input.ScanCode, false);
-                else
+                if (input.ScanCodes.Length != 0)
+                {
+                    foreach(uint sc in input.ScanCodes)
+                        SendKey.SendScanCode(sc, false);
+                }
+                else if (input.Keys != Keys.None)
                     SendKey.Send(input.Keys, false);
             }
             else if (!prevState.HasFlag(input.Name) && keyState.HasFlag(input.Name))
@@ -337,9 +340,12 @@ namespace emulatorLauncher.PadToKeyboard
                 else
                     SimpleLogger.Instance.Info("SendKey : Press '" + input.Keys + "' to " + processName);
 
-                if (input.ScanCode != 0)
-                    SendKey.Send(input.ScanCode, false);
-                else
+                if (input.ScanCodes.Length != 0)
+                {
+                    foreach (uint sc in input.ScanCodes)
+                        SendKey.SendScanCode(sc, true);
+                }
+                else if (input.Keys != Keys.None)
                     SendKey.Send(input.Keys, true);
             }
         }

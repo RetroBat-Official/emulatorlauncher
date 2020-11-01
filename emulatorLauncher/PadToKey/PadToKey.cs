@@ -54,7 +54,19 @@ namespace emulatorLauncher.PadToKeyboard
         }
 
         [XmlElement("app")]
-        public List<PadToKeyApp> Applications { get; set; }
+        public List<PadToKeyApp> Applications
+        {
+            get 
+            {
+                if (_applications == null)
+                    _applications = new List<PadToKeyApp>();
+
+                return _applications; 
+            }
+            set { _applications = value; }
+        }
+
+        private List<PadToKeyApp> _applications;
     }
 
     public class PadToKeyApp
@@ -88,7 +100,19 @@ namespace emulatorLauncher.PadToKeyboard
         public string Name { get; set; }
 
         [XmlElement("input")]
-        public List<PadToKeyInput> Input { get; set; }
+        public List<PadToKeyInput> Input 
+        {
+            get 
+            {
+                if (_input == null)
+                    _input = new List<PadToKeyInput>();
+
+                return _input; 
+            }
+            set { _input = value; }
+        }
+
+        private List<PadToKeyInput> _input;
 
         [XmlIgnore]
         public PadToKeyInput this[InputKey key]
@@ -127,20 +151,38 @@ namespace emulatorLauncher.PadToKeyboard
         }
 
         [XmlIgnore]
-        public ScanCode ScanCode
+        public uint[] ScanCodes
         {
             get
             {
+                if (_scanCodes != null)
+                    return _scanCodes.ToArray();
+
                 if (string.IsNullOrEmpty(Code))
-                    return (ScanCode)0;
+                    return new uint[] { };
 
                 string code = Code.ToLowerInvariant();
+                
                 foreach (var fld in typeof(ScanCode).GetFields(BindingFlags.Static | BindingFlags.Public))
                     if (fld.Name.ToLowerInvariant() == code || fld.Name.ToLowerInvariant() == "key_"+ code)
-                        return (ScanCode)fld.GetValue(null);
+                        return new uint[] { (uint)fld.GetValue(null) };
+
+                foreach (var fld in typeof(LinuxScanCode).GetFields(BindingFlags.Static | BindingFlags.Public))
+                    if (fld.Name.ToLowerInvariant() == code)
+                        return new uint[] { (uint)fld.GetValue(null) }; 
                 
-                return (ScanCode) 0;
+                return new uint[] { };
             }
+        }
+
+        List<uint> _scanCodes;
+
+        public void SetScanCode(uint scanCode)
+        {
+            if (_scanCodes == null)
+                _scanCodes = new List<uint>();
+
+            _scanCodes.Add(scanCode);
         }
 
         public override string ToString()

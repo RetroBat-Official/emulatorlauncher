@@ -161,6 +161,8 @@ namespace emulatorLauncher
                         if (generator.UsePadToKey)
                             mapping = PadToKey.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_padtokey.cfg"));
 
+                        mapping = LoadGamePadToKeyMapping(path, mapping);
+                                                
                         using (new HighPerformancePowerScheme())
                         using (new JoystickListener(inputConfig, mapping))
                             generator.RunAndWait(path);
@@ -173,6 +175,64 @@ namespace emulatorLauncher
             }
             else
                 SimpleLogger.Instance.Error("cant find generator");
+        }
+
+        private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
+        {
+            EvMapyKeysFile gameMapping = EvMapyKeysFile.TryLoad(SystemConfig["rom"] + ".keys");
+            if (gameMapping == null && SystemConfig["system"] != null)
+            {
+                var systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", SystemConfig["system"] + ".keys");
+                gameMapping = EvMapyKeysFile.TryLoad(systemMapping);
+            }
+
+            if (gameMapping == null || gameMapping.Count == 0)
+                return mapping;
+
+            PadToKeyApp app = new PadToKeyApp();
+            app.Name = Path.GetFileNameWithoutExtension(path.FileName).ToLower();
+
+            foreach (var player in gameMapping)
+            {
+                foreach (var action in player)
+                {
+                    if (action.type != "key")
+                        continue;
+
+                    InputKey k;
+                    if (!Enum.TryParse<InputKey>(string.Join(", ", action.Triggers.ToArray()).ToLower(), out k))
+                        continue;
+
+                    PadToKeyInput input = new PadToKeyInput();
+                    input.Name = k;
+
+                    foreach (var target in action.Targets)
+                    {
+                        LinuxScanCode sc;
+                        if (!Enum.TryParse<LinuxScanCode>(target.ToUpper(), out sc))
+                            continue;
+
+                        input.SetScanCode((uint)sc);
+                    }
+
+                    if (input.ScanCodes.Length > 0)
+                        app.Input.Add(input);
+                }
+            }
+
+            if (app.Input.Count > 0)
+            {
+                if (mapping == null)
+                    mapping = new PadToKey();
+
+                var existing = mapping.Applications.FirstOrDefault(a => a.Name == app.Name);
+                if (existing != null)
+                    mapping.Applications.Remove(existing);
+
+                mapping.Applications.Add(app);
+            }
+
+            return mapping;
         }
 
         private static InputConfig[] LoadControllerConfiguration(string[] args)

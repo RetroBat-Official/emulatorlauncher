@@ -78,8 +78,6 @@
 											{ "md5": "35fa1a1ebaaeea286dc5cd15487c13ea", "file": "bios/sanyotry.bin"		},
 											{ "md5": "8970fc987ab89a7f64da9f8a8c4333ff", "file": "bios/3do_arcade_saot.bin" } ] },
 
-    "prboom": { "name": "Doom (PrBoom)", "biosFiles": [ { "md5": "", "file": "roms/prboom/prboom.wad" } ] },
-
     "dreamcast":    { "name": "Dreamcast", "biosFiles":    [ { "md5": "e10c53c2f8b90bab96ead2d368858623", "file": "bios/dc/dc_boot.bin"   	  },
 													         { "md5": "0a93f7940c455905bea6e392dfde92a4", "file": "bios/dc/dc_flash.bin"  	  } ] },
     "gamegear":     { "name": "Game Gear", "biosFiles":    [ { "md5": "672e104c3be3a238301aceffc3b23fd6", "file": "bios/bios.gg" 	   	  } ] },

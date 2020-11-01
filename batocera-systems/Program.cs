@@ -52,11 +52,16 @@ namespace batocera_systems
                 }
             }
 
+            string filter = args.SkipWhile(a => a != "--filter").Skip(1).FirstOrDefault();
+
             var serializer = new JavaScriptSerializer();
             var deserializedResult = serializer.Deserialize<Dictionary<string, SystemInfo>>(Encoding.UTF8.GetString(Properties.Resources.batocera_systems));
 
             foreach (var item in deserializedResult)
             {
+                if (filter != null && filter != item.Key)
+                    continue;
+
                 List<string> lines = new List<string>();
 
                 foreach (var bios in item.Value.biosFiles)

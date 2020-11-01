@@ -94,6 +94,7 @@
     <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\Project64.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
+    <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoystickListener.cs" />
     <Compile Include="PadToKey\PadToKey.cs" />
     <Compile Include="PadToKey\SendKeys.cs" />

@@ -147,14 +147,14 @@ namespace emulatorLauncher.PadToKeyboard
                 inp.type = INPUT_KEYBOARD;
                 inp.ki.wVk = (ushort)key;
                 inp.ki.wScan = (ushort)MapVirtualKey(inp.ki.wVk, 0);
-                inp.ki.dwFlags = (uint)(((isEXTEND) ? (KEYEVENTF_EXTENDEDKEY) : 0x0) | (keyDown ? KEYEVENTF_KEYDOWN : KEYEVENTF_KEYUP));                
+                inp.ki.dwFlags = (uint)(((isEXTEND) ? (KEYEVENTF_EXTENDEDKEY) : 0x0) | (keyDown ? KEYEVENTF_KEYDOWN : KEYEVENTF_KEYUP));
                 inp.ki.time = 0;
                 inp.ki.dwExtraInfo = IntPtr.Zero;
                 SendInput(1, ref inp, Marshal.SizeOf(inp));
             }
         }
 
-        public static void Send(ScanCode scanCode, bool keyDown, bool isEXTEND = false)
+        public static void SendScanCode(uint scanCode, bool keyDown, bool isEXTEND = false)
         {
             Debug.WriteLine(scanCode.ToString() + " " + (keyDown ? "(DOWN)" : "(UP)"));
 
@@ -163,8 +163,12 @@ namespace emulatorLauncher.PadToKeyboard
                 INPUT64 inp = new INPUT64();
 
                 inp.type = INPUT_KEYBOARD;
-                inp.ki.wScan = (short)scanCode;
+                inp.ki.wScan = (short)(scanCode & 0xFF);
+
                 inp.ki.dwFlags = (uint)(KEYEVENTF_SCANCODE | (keyDown ? KEYEVENTF_KEYDOWN : KEYEVENTF_KEYUP));
+                if ((scanCode & 0xE000) != 0)
+                    inp.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+
                 inp.ki.time = 0;
                 inp.ki.dwExtraInfo = IntPtr.Zero;
                 SendInput64(1, ref inp, Marshal.SizeOf(inp));
@@ -174,17 +178,20 @@ namespace emulatorLauncher.PadToKeyboard
                 INPUT inp = new INPUT();
 
                 inp.type = INPUT_KEYBOARD;
-                inp.ki.wScan = (ushort)scanCode;
+                inp.ki.wScan = (ushort)(scanCode & 0xFFFF);
+                
                 inp.ki.dwFlags = (uint)(KEYEVENTF_SCANCODE | (keyDown ? KEYEVENTF_KEYDOWN : KEYEVENTF_KEYUP));
+                if ((scanCode & 0xE000) != 0)
+                    inp.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+
                 inp.ki.time = 0;
                 inp.ki.dwExtraInfo = IntPtr.Zero;
                 SendInput(1, ref inp, Marshal.SizeOf(inp));
             }
         }
     }
-
-
-    public enum ScanCode : short
+    
+    public enum ScanCode : uint
     {
         LBUTTON = 0,
         RBUTTON = 0,
@@ -360,4 +367,110 @@ namespace emulatorLauncher.PadToKeyboard
         OEM_CLEAR = 0,
     }
 
+    public enum LinuxScanCode : uint
+    {
+        KEY_ESC = 1,
+        KEY_1 = 2,
+        KEY_2 = 3,
+        KEY_3 = 4,
+        KEY_4 = 5,
+        KEY_5 = 6,
+        KEY_6 = 7,
+        KEY_7 = 8,
+        KEY_8 = 9,
+        KEY_9 = 10,
+        KEY_0 = 11,
+        KEY_MINUS = 12,
+        KEY_EQUAL = 13,
+        KEY_BACKSPACE = 14,
+        KEY_TAB = 15,
+        KEY_Q = 0x10,
+        KEY_W = 0x11,
+        KEY_E = 0x12,
+        KEY_R = 0x13,
+        KEY_T = 0x14,
+        KEY_Y = 0x15,
+        KEY_U = 0x16,
+        KEY_I = 0x17,
+        KEY_O = 0x18,
+        KEY_P = 0x19,
+        KEY_LEFTBRACE = 0x1a,
+        KEY_RIGHTBRACE = 0x1b,
+        KEY_ENTER = 0x1c,
+        KEY_LEFTCTL = 0x1D,
+        KEY_A = 0x1e,
+        KEY_S = 0x1f,
+        KEY_D = 0x20,
+        KEY_F = 0x21,
+        KEY_G = 0x22,
+        KEY_H = 0x23,
+        KEY_J = 0x24,
+        KEY_K = 0x25,
+        KEY_L = 0x26,
+        KEY_SEMICOLON = 0x27,
+        KEY_APOSTROPHE = 0x28,
+        KEY_GRAVE = 0x29,
+        KEY_LEFTSHIFT = 0x2a,
+        KEY_BACKSLASH = 0x2b,
+        KEY_Z = 0x2c,
+        KEY_X = 0x2d,
+        KEY_C = 0x2e,
+        KEY_V = 0x2f,
+        KEY_B = 0x30,
+        KEY_N = 0x31,
+        KEY_M = 0x32,
+        KEY_COMMA = 0x33,
+        KEY_DOT = 0x34,
+        KEY_SLASH = 0x35,
+        KEY_RIGHTSHIFT = 0x36,
+        KEY_KPASTERISK = 0x37,
+        KEY_LEFTALT = 0x38,
+        KEY_SPACE = 0x39,
+        KEY_CAPSLOCK = 0x3a,
+        KEY_F1 = 0x3b,
+        KEY_F2 = 0x3c,
+        KEY_F3 = 0x3d,
+        KEY_F4 = 0x3e,
+        KEY_F5 = 0x3f,
+        KEY_F6 = 0x40,
+        KEY_F7 = 0x41,
+        KEY_F8 = 0x42,
+        KEY_F9 = 0x43,
+        KEY_F10 = 0x44,
+        KEY_NUMLOCK = 0x45,
+        KEY_SCROLLLOCK = 0x46,
+        KEY_KP7 = 71,
+        KEY_KP8 = 72,
+        KEY_KP9 = 73,
+        KEY_KPMINUS = 74,
+        KEY_KP4 = 75,
+        KEY_KP5 = 76,
+        KEY_KP6 = 77,
+        KEY_KPPLUS = 78,
+        KEY_KP1 = 79,
+        KEY_KP2 = 80,
+        KEY_KP3 = 81,
+        KEY_KP0 = 83,
+        KEY_KPDOT = 84,
+        KEY_F11 = 0x57,
+        KEY_F12 = 0x58,
+        
+        KEY_KPENTER = 0xE01C,
+        KEY_RIGHTCTRL = 0xE01D,
+        KEY_KPSLASH = 0xE035,
+        KEY_RIGHTALT = 0xE038,
+        KEY_HOME = 0xE047,
+        KEY_UP = 0xE048,
+        KEY_PAGEUP = 0xE049,
+        KEY_LEFT = 0xE04B,
+        KEY_RIGHT = 0xE04D,
+        KEY_END = 0xE04F,
+        KEY_DOWN = 0xE050,
+        KEY_PAGEDOWN = 0xE051,
+        KEY_INSERT = 0xE052,
+        KEY_DELETE = 0xE053,
+        KEY_PAUSE = 0xE046,
+        KEY_PRINT = 0xE037,
+        KEY_MENU = 0xE05D // 	sc_application = 0xE05D,
+    }
 }
