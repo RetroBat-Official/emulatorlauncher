@@ -53,6 +53,192 @@ namespace emulatorLauncher.PadToKeyboard
             }
         }
 
+        class InputKeyInfo
+        {
+            public InputKeyInfo()
+            {
+            }
+
+            public InputKeyInfo(InputKey k, int v = 1, bool isAxis = false)
+            {
+                _keys.Add((int)k, new InputValue(v, false));
+            }
+
+            public void Add(InputKey k, int v = 1, bool isAxis = false)
+            {
+                _keys.Remove((int)k);
+                _keys.Add((int)k, new InputValue(v, isAxis));
+            }
+
+            private bool _isAxis;
+
+            public void Remove(InputKey key)
+            {
+                _keys.Remove((int)key);
+            }
+
+            class InputValue
+            {
+                public InputValue(int val, bool isAxis = false)
+                {
+                    Value = val;
+                    IsAxis = isAxis;
+                }
+
+                public int Value { get; set; }
+                public bool IsAxis { get; set; }
+
+                public override string ToString()
+                {
+                    if (IsAxis)
+                        return "axis:"+Value;
+
+                    return Value.ToString();
+                }
+            };
+
+            private Dictionary<int, InputValue> _keys = new Dictionary<int, InputValue>();
+
+            public static InputKeyInfo operator | (InputKeyInfo a, InputKeyInfo b)
+            {
+                InputKeyInfo ret = new InputKeyInfo();
+                ret._keys = new Dictionary<int, InputValue>(a._keys);
+
+                foreach (var kb in b._keys)
+                    ret._keys[kb.Key] = kb.Value;
+                
+                return ret;
+            }
+
+            public override bool Equals(object obj)
+            {
+                InputKeyInfo c1 = this;
+                InputKeyInfo c2 = obj as InputKeyInfo;
+                if (c2 == null)
+                    return false;
+
+                if (c1._keys.Count != c2._keys.Count)
+                    return false;
+
+                foreach (var key in c1._keys)
+                {
+                    InputValue value;
+                    if (!c2._keys.TryGetValue(key.Key, out value))
+                        return false;
+
+                    if (value.Value != key.Value.Value || value.IsAxis != key.Value.IsAxis)
+                        return false;
+                }
+
+                return true;
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public static bool operator ==(InputKeyInfo c1, InputKeyInfo c2)
+            {
+                return !object.ReferenceEquals(c1, null) && !object.ReferenceEquals(c2, null) && c1.Equals(c2);
+            }
+
+            public static bool operator !=(InputKeyInfo c1, InputKeyInfo c2)
+            {
+                if (c1 == null && c2 != null)
+                    return true;
+
+                return !c1.Equals(c2);
+            }
+
+            public override string ToString()
+            {
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var kb in _keys)
+                {
+                    if (sb.Length > 0)
+                        sb.Append(" | ");
+
+                    sb.Append(((InputKey)kb.Key).ToString() + ":" + kb.Value);
+                }
+
+                return sb.ToString();
+            }
+            
+            public bool HasFlag(InputKey k)
+            {
+                return _keys.ContainsKey((int)k);
+            }
+
+            public int GetMouseInputValue(InputKey k)
+            {
+                InputValue newValue;
+                if (!_keys.TryGetValue((int)k, out newValue))
+                    return 0;
+
+                if (k == InputKey.rightanalogright || k == InputKey.rightanalogdown || k == InputKey.leftanalogright || k == InputKey.leftanalogdown)
+                    return Math.Abs(newValue.Value);
+
+                return -Math.Abs(newValue.Value);
+            }
+
+            public bool HasNewInput(InputKey k, InputKeyInfo old, bool checkAxisChanged = false)
+            {
+                InputValue newValue;
+                if (!_keys.TryGetValue((int) k, out newValue))
+                    return false;
+
+                InputValue oldValue;
+                if (!old._keys.TryGetValue((int) k, out oldValue))
+                {
+                    if (newValue.IsAxis)
+                        oldValue = new InputValue(0, true);
+                    else
+                        return true;
+                }
+
+                if (oldValue.IsAxis)
+                {
+                    if (checkAxisChanged)
+                        return oldValue.Value != newValue.Value;
+
+                    const int DEADZONE = 20000;
+
+                    bool oldOutOfDeadZone = Math.Abs(oldValue.Value) >= DEADZONE;
+                    bool newOutOfDeadZone = Math.Abs(newValue.Value) >= DEADZONE;
+
+                    return newOutOfDeadZone && !oldOutOfDeadZone;
+                }
+                else 
+                    return HasFlag(k) && !old.HasFlag(k);
+            }
+
+            public InputKeyInfo Clone()
+            {
+                InputKeyInfo clone = new InputKeyInfo();
+                clone._keys = new Dictionary<int, InputValue>(_keys);
+                return clone;
+            }
+        }
+
+        public static InputKey RevertedAxis(InputKey key)
+        {
+            if (key == InputKey.leftanalogleft)
+                return InputKey.leftanalogright;
+
+            else if (key == InputKey.leftanalogup)
+                return InputKey.leftanalogdown;
+
+            if (key == InputKey.rightanalogleft)
+                return InputKey.rightanalogright;
+
+            if (key == InputKey.rightanalogup)
+                return InputKey.rightanalogdown;
+
+            return key;
+        }
+
         public void DoWork()
         {
             JoyInputs joysticks = new JoyInputs();
@@ -66,8 +252,8 @@ namespace emulatorLauncher.PadToKeyboard
             for (int i = 0; i < numJoysticks; i++)
                 AddJoystick(joysticks, i);
 
-            InputKey oldState = (InputKey)0;
-            InputKey state = (InputKey)0;
+            InputKeyInfo oldIState = new InputKeyInfo();
+            InputKeyInfo istate = new InputKeyInfo();
 
             while (true)
             {
@@ -85,15 +271,15 @@ namespace emulatorLauncher.PadToKeyboard
                         switch (evt.type)
                         {
                             case SDL.SDL_EventType.SDL_JOYAXISMOTION:
-                                {
-                                    /*
-                                     const int DEADZONE = 23000;
+                                {                                   
+                                     const int DEADZONE = 500;
                                      int initialValue = 0;
 
                                      int normValue = 0;
-                                     if (Math.Abs(evt.jaxis.axisValue - initialValue) > DEADZONE) // batocera
+
+                                     if (Math.Abs(evt.jaxis.axisValue - initialValue) > DEADZONE)
                                      {
-                                         if (evt.jaxis.axisValue - initialValue > 0) // batocera
+                                         if (evt.jaxis.axisValue - initialValue > 0)
                                              normValue = 1;
                                          else
                                              normValue = -1;
@@ -102,12 +288,36 @@ namespace emulatorLauncher.PadToKeyboard
                                      var axis = joysticks.FindInputMapping(evt.jaxis.which, "axis", evt.jaxis.axis);
                                      if (axis != null)
                                      {
-                                         if (normValue == 1)
-                                             state |= axis.Name;
+                                         var axisName = axis.Name;
+                                         var revertedAxis = RevertedAxis(axisName);
+                                         int value = evt.jaxis.axisValue;
+
+                                         if (value != 0 && (Math.Abs(value) / value) == -axis.Value)
+                                         {
+                                             if (revertedAxis != axisName)
+                                             {
+                                                 axisName = revertedAxis;
+                                                 revertedAxis = axis.Name;
+                                                 value = -value;
+                                             }
+                                             else
+                                             {
+                                                 normValue = 0;
+                                                 value = 0;
+                                             }
+                                         }
+
+                                         if (normValue != 0)
+                                         {
+                                             istate.Remove(revertedAxis);
+                                             istate.Add(axisName, value, true);
+                                         }
                                          else
-                                             state &= ~axis.Name;
-                                     }
-                                  */
+                                         {
+                                             istate.Remove(revertedAxis);
+                                             istate.Remove(axisName);
+                                         }
+                                     }                                  
                                 }
                                 break;
 
@@ -120,9 +330,9 @@ namespace emulatorLauncher.PadToKeyboard
                                         foreach (var conf in js.Config.Input.Where(i => i.Type == "button" && i.Id == evt.jbutton.button))
                                         {
                                             if (evt.jbutton.state == SDL.SDL_PRESSED)
-                                                state |= conf.Name;
+                                                istate.Add(conf.Name);
                                             else
-                                                state &= ~conf.Name;
+                                                istate.Remove(conf.Name);
                                         }
                                     }
                                 }
@@ -137,36 +347,36 @@ namespace emulatorLauncher.PadToKeyboard
                                         if (up != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_UP) == SDL.SDL_HAT_UP)
-                                                state |= up.Name;
+                                                istate.Add(up.Name);
                                             else
-                                                state &= ~up.Name;
+                                                istate.Remove(up.Name);
                                         }
 
                                         var right = js.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_RIGHT);
                                         if (right != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_RIGHT) == SDL.SDL_HAT_RIGHT)
-                                                state |= right.Name;
+                                                istate.Add(right.Name);
                                             else
-                                                state &= ~right.Name;
+                                                istate.Remove(right.Name);
                                         }
 
                                         var down = js.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_DOWN);
                                         if (down != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_DOWN) == SDL.SDL_HAT_DOWN)
-                                                state |= down.Name;
+                                                istate.Add(down.Name);
                                             else
-                                                state &= ~down.Name;
+                                                istate.Remove(down.Name);
                                         }
 
                                         var left = js.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_LEFT);
                                         if (left != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_LEFT) == SDL.SDL_HAT_LEFT)
-                                                state |= left.Name;
+                                                istate.Add(left.Name);
                                             else
-                                                state &= ~left.Name;
+                                                istate.Remove(left.Name);
                                         }
                                     }
                                 }
@@ -190,10 +400,15 @@ namespace emulatorLauncher.PadToKeyboard
                                 break;
                         }
 
-                        if (state != oldState)
+                        if (istate != oldIState)
                         {
-                            ProcessJoystickState(state, oldState);
-                            oldState = state;
+                            Debug.WriteLine("State : " + istate.ToString() + " - OldState : " + oldIState.ToString());
+
+                            //istate.HasNewInput(InputKey.leftanalogleft, oldIState, true);
+
+                            ProcessJoystickState(istate, oldIState);
+
+                            oldIState = istate.Clone();                            
                         }
 
                         Thread.Sleep(1);
@@ -209,7 +424,7 @@ namespace emulatorLauncher.PadToKeyboard
             SDL.SDL_Quit();
         }
 
-        private void ProcessJoystickState(InputKey keyState, InputKey prevState)
+        private void ProcessJoystickState(InputKeyInfo keyState, InputKeyInfo prevState)
         {
             IntPtr hWndProcess;
             bool isDesktop;
@@ -220,38 +435,10 @@ namespace emulatorLauncher.PadToKeyboard
             {
                 foreach (var keyMap in mapping.Input)
                 {
-                    if (string.IsNullOrEmpty(keyMap.Key) && keyMap.ScanCodes.Length == 0)
+                    if (!keyMap.IsValid())
                         continue;
 
-                    if (keyMap.Key != null && (keyMap.Key.StartsWith("(") || keyMap.Key.StartsWith("{")))
-                    {
-                        if (!prevState.HasFlag(keyMap.Name) && keyState.HasFlag(keyMap.Name))
-                        {
-                            if (keyMap.Keys != 0)
-                            {
-                                if (process == null)
-                                    SimpleLogger.Instance.Info("SendKey : " + keyMap.Key + " to <unknown process>");
-                                else
-                                    SimpleLogger.Instance.Info("SendKey : " + keyMap.Key + " to " + process);
-                            }
-
-                            if (keyMap.Key == "(%{CLOSE})" && hWndProcess != IntPtr.Zero)
-                            {
-                                SendMessage(hWndProcess, WM_CLOSE, 0, 0);
-                            }
-                            else if (keyMap.Key == "(%{F4})" && process == "emulationstation")
-                            {
-                                SendKey.Send(Keys.Alt, true);
-                                SendKey.Send(Keys.F4, true);
-                                SendKey.Send(Keys.Alt, false);
-                                SendKey.Send(Keys.F4, false);
-                            }
-                            else
-                                SendKeys.SendWait(keyMap.Key);
-                        }
-                    }
-                    else if (keyMap.Keys != 0 || keyMap.ScanCodes.Length != 0)
-                        SendKeyMap(keyMap, prevState, keyState, process);
+                    SendInput(keyState, prevState, hWndProcess, process, keyMap);
                 }
             }
 
@@ -260,65 +447,165 @@ namespace emulatorLauncher.PadToKeyboard
             {
                 foreach (var keyMap in commonMapping.Input)
                 {
-                    if (string.IsNullOrEmpty(keyMap.Key) && string.IsNullOrEmpty(keyMap.Code))
+                    if (!keyMap.IsValid())
                         continue;
 
                     if (mapping != null && mapping[keyMap.Name] != null)
                         continue;
 
-                    if (keyMap.Key != null && (keyMap.Key.StartsWith("(") || keyMap.Key.StartsWith("{")))
-                    {
-                        if (!prevState.HasFlag(keyMap.Name) && keyState.HasFlag(keyMap.Name))
-                        {
-
-                            if (keyMap.Keys != 0)
-                            {
-                                if (process == null)
-                                    SimpleLogger.Instance.Info("SendKey : " + keyMap.Key + " to <unknown process>");
-                                else
-                                    SimpleLogger.Instance.Info("SendKey : " + keyMap.Key + " to " + process);
-                            }
-
-                            if (keyMap.Key == "(%{CLOSE})" && hWndProcess != IntPtr.Zero)
-                            {
-                                SendMessage(hWndProcess, WM_CLOSE, 0, 0);
-                            }
-                            else if (keyMap.Key == "(%{F4})" && process == "emulationstation")
-                            {
-                                SendKey.Send(Keys.Alt, true);
-                                SendKey.Send(Keys.F4, true);
-                                SendKey.Send(Keys.Alt, false);
-                                SendKey.Send(Keys.F4, false);
-                            }
-                            else
-                                SendKeys.SendWait(keyMap.Key);
-                        }
-
-                    }
-                    else if (keyMap.Keys != 0 || keyMap.ScanCodes.Length != 0)
-                        SendKeyMap(keyMap, prevState, keyState, process);
+                    SendInput(keyState, prevState, hWndProcess, process, keyMap);
                 }
             }
         }
 
-        private void AddJoystick(JoyInputs joysticks, int i)
+        private void SendInput(InputKeyInfo newState, InputKeyInfo oldState, IntPtr hWndProcess, string process, PadToKeyInput input)
         {
-            IntPtr joy = SDL.SDL_JoystickOpen(i);
-            var guid = SDL.SDL_JoystickGetGUID(joy);
-            var guid2 = SDL.SDL_JoystickGetDeviceGUID(i);
-            var name = SDL.SDL_JoystickName(joy);
+            if (input.Type == PadToKeyType.Mouse && (input.Code == "CLICK" || input.Code == "RCLICK" || input.Code == "MCLICK"))
+            {
+                if (oldState.HasNewInput(input.Name, newState)) // Released
+                {
+                    if (input.Code == "CLICK")
+                        SendKey.SendMouseInput(SendKey.MouseInput.Click, false);
+                    else if (input.Code == "RCLICK")
+                        SendKey.SendMouseInput(SendKey.MouseInput.RClick, false);
+                    else if (input.Code == "MCLICK")
+                        SendKey.SendMouseInput(SendKey.MouseInput.MClick, false);
+                }
+                else if (newState.HasNewInput(input.Name, oldState)) // Pressed
+                {
+                    if (input.Code == "CLICK")
+                        SendKey.SendMouseInput(SendKey.MouseInput.Click, true);
+                    else if (input.Code == "RCLICK")
+                        SendKey.SendMouseInput(SendKey.MouseInput.RClick, true);
+                    else if (input.Code == "MCLICK")
+                        SendKey.SendMouseInput(SendKey.MouseInput.MClick, true);
+                }
 
-            var conf = _inputList.FirstOrDefault(cfg => cfg.ProductGuid == guid);
-            if (conf == null)
-                conf = _inputList.FirstOrDefault(cfg => cfg.DeviceName == name);
+                return;
+            }
+            
+            if (input.Type == PadToKeyType.Mouse && (input.Code == "X" || input.Code == "Y"))
+            {
+                if (!newState.HasFlag(input.Name) && !newState.HasFlag(RevertedAxis(input.Name)))
+                {
+                    Debug.WriteLine("STOP MOUSE MOVE " + input.Code);
 
-            if (conf != null)
-                joysticks.Add(new JoyInput(SDL.SDL_JoystickInstanceID(joy), joy, conf));
+                    // Stop 
+                    if (input.Code == "X")
+                        _mouseMove.X = 0;
+                    else
+                        _mouseMove.Y = 0;
+
+                    if (_mouseMove.IsEmpty && _mouseTimer != null)
+                    {
+                        _mouseTimer.Dispose();
+                        _mouseTimer = null;
+                    }
+                }
+                else if (newState.HasNewInput(input.Name, oldState, true))
+                {
+                    // Moving
+                    if (input.Code == "X")
+                        _mouseMove.X = newState.GetMouseInputValue(input.Name);
+                    else
+                        _mouseMove.Y = newState.GetMouseInputValue(input.Name);
+
+                    Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
+
+                    if (_mouseMove.IsEmpty)
+                    {
+                        if (_mouseTimer != null)
+                            _mouseTimer.Dispose();
+
+                        _mouseTimer = null;
+                    }
+                    else if (_mouseTimer == null)
+                        _mouseTimer = new System.Threading.Timer(new TimerCallback(OnMouseTimerProc), this, 0, 1);
+                }
+                else if (newState.HasNewInput(RevertedAxis(input.Name), oldState, true))
+                {
+                    // Moving
+                    if (input.Code == "X")
+                        _mouseMove.X = newState.GetMouseInputValue(RevertedAxis(input.Name));
+                    else
+                        _mouseMove.Y = newState.GetMouseInputValue(RevertedAxis(input.Name));
+
+                    Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
+
+                    if (_mouseMove.IsEmpty)
+                    {
+                        if (_mouseTimer != null)
+                            _mouseTimer.Dispose();
+
+                        _mouseTimer = null;
+                    }
+                    else if (_mouseTimer == null)
+                        _mouseTimer = new System.Threading.Timer(new TimerCallback(OnMouseTimerProc), this, 0, 5);
+                }
+
+                return;
+            }
+
+            if (input.Key != null && (input.Key.StartsWith("(") || input.Key.StartsWith("{")))
+            {
+                if (newState.HasNewInput(input.Name, oldState))
+                {
+                    if (input.Keys != 0)
+                    {
+                        if (process == null)
+                            SimpleLogger.Instance.Info("SendKey : " + input.Key + " to <unknown process>");
+                        else
+                            SimpleLogger.Instance.Info("SendKey : " + input.Key + " to " + process);
+                    }
+
+                    if (input.Key == "(%{CLOSE})" && hWndProcess != IntPtr.Zero)
+                    {
+                        SendMessage(hWndProcess, WM_CLOSE, 0, 0);
+                    }
+                    else if (input.Key == "(%{F4})" && process == "emulationstation")
+                    {
+                        SendKey.Send(Keys.Alt, true);
+                        SendKey.Send(Keys.F4, true);
+                        SendKey.Send(Keys.Alt, false);
+                        SendKey.Send(Keys.F4, false);
+                    }
+                    else
+                        SendKeys.SendWait(input.Key);
+                }
+            }
+            else if (input.Keys != 0 || input.ScanCodes.Length != 0)
+                SendKeyMap(input, oldState, newState, process);
         }
 
-        private void SendKeyMap(PadToKeyInput input, InputKey prevState, InputKey keyState, string processName)
+        private System.Threading.Timer _mouseTimer = null;
+        private System.Drawing.Point _mouseMove = new System.Drawing.Point();
+
+        private double EaseMouse(double x)
         {
-            if (prevState.HasFlag(input.Name) && !keyState.HasFlag(input.Name))
+            double v = x / 32768.0f;
+
+            if (v < 0)
+                return -(1 - Math.Sqrt(1 - Math.Pow(v, 2))) * 24.0;
+
+            return (1 - Math.Sqrt(1 - Math.Pow(v, 2))) * 24.0;
+            // return (v*v*v) * 24.0;
+        }
+
+        private void OnMouseTimerProc(object state)
+        {
+            JoystickListener t = (JoystickListener)state;
+
+            var pos = Cursor.Position;
+
+            pos.X += (int) EaseMouse((double) t._mouseMove.X);
+            pos.Y += (int) EaseMouse((double) t._mouseMove.Y);
+
+            Cursor.Position = pos;
+        }
+
+        private void SendKeyMap(PadToKeyInput input, InputKeyInfo oldState, InputKeyInfo newState, string processName)
+        {
+            if (oldState.HasNewInput(input.Name, newState))
             {
                 if (processName == null)
                     SimpleLogger.Instance.Info("SendKey : Release '" + input.Keys + "' to <unknown process>");
@@ -333,7 +620,7 @@ namespace emulatorLauncher.PadToKeyboard
                 else if (input.Keys != Keys.None)
                     SendKey.Send(input.Keys, false);
             }
-            else if (!prevState.HasFlag(input.Name) && keyState.HasFlag(input.Name))
+            else if (newState.HasNewInput(input.Name, oldState))
             {
                 if (processName == null)
                     SimpleLogger.Instance.Info("SendKey : Press '" + input.Keys + "' to <unknown process>");
@@ -348,6 +635,21 @@ namespace emulatorLauncher.PadToKeyboard
                 else if (input.Keys != Keys.None)
                     SendKey.Send(input.Keys, true);
             }
+        }
+        
+        private void AddJoystick(JoyInputs joysticks, int i)
+        {
+            IntPtr joy = SDL.SDL_JoystickOpen(i);
+            var guid = SDL.SDL_JoystickGetGUID(joy);
+            var guid2 = SDL.SDL_JoystickGetDeviceGUID(i);
+            var name = SDL.SDL_JoystickName(joy);
+
+            var conf = _inputList.FirstOrDefault(cfg => cfg.ProductGuid == guid);
+            if (conf == null)
+                conf = _inputList.FirstOrDefault(cfg => cfg.DeviceName == name);
+
+            if (conf != null)
+                joysticks.Add(new JoyInput(SDL.SDL_JoystickInstanceID(joy), joy, conf));
         }
 
         const int WM_CLOSE = 0x0010;
@@ -440,7 +742,7 @@ namespace emulatorLauncher.PadToKeyboard
 
                 if (type == "hat")
                     return js.Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id && i.Value == value);
-
+                
                 return js.Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id);
             }
 

@@ -478,8 +478,10 @@ namespace emulatorLauncher.Tools
         hotkey = 8,
         pageup = 512,
         pagedown = 131072,
+
         l2 = 1024,
         r2 = 262144,
+
         l3 = 2048,
         r3 = 524288,
 
@@ -488,27 +490,33 @@ namespace emulatorLauncher.Tools
         down = 4,
         hotkeyenable = 8,
         left = 16,
+        
         leftanalogdown = 32,
         leftanalogleft = 64,
         leftanalogright = 128,
         leftanalogup = 256,
-        leftshoulder = 512,
-        leftthumb = 1024,
-        lefttrigger = 2048,
-        right = 4096,
+
+
         rightanalogup = 8192,
         rightanalogdown = 16384,
         rightanalogleft = 32768,
         rightanalogright = 65536,
-        rightshoulder = 131072,
+
+        leftthumb = 1024,
         rightthumb = 262144,
+
+        leftshoulder = 512,        
+        lefttrigger = 2048,
+
+        rightshoulder = 131072,        
         righttrigger = 524288,
+
+        right = 4096,
         select = 1048576,
         start = 2097152,
         up = 4194304,
         x = 8388608,
         y = 16777216,
-
 
         joystick1down = 32,
         joystick1left = 64,

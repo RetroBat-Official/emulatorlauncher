@@ -58,7 +58,7 @@ namespace emulatorLauncher.PadToKeyboard
             [FieldOffset(0)]
             public uint type;
             [FieldOffset(4)]
-            public MOUSEINPUT no;
+            public MOUSEINPUT mi;
             [FieldOffset(4)]
             public KEYBDINPUT ki;
             [FieldOffset(4)]
@@ -116,13 +116,55 @@ namespace emulatorLauncher.PadToKeyboard
         [DllImport("user32.dll", EntryPoint = "MapVirtualKeyA")]
         private extern static int MapVirtualKey(int wCode, int wMapType);
 
-        private const int INPUT_KEYBOARD = 1;
+        const int INPUT_MOUSE = 0;
+        const int INPUT_KEYBOARD = 1;
 
-        private const int KEYEVENTF_KEYDOWN = 0x0;
-        private const int KEYEVENTF_EXTENDEDKEY = 0x1;
-        private const int KEYEVENTF_KEYUP = 0x2;
-        private const int KEYEVENTF_UNICODE = 0x4;
-        private const int KEYEVENTF_SCANCODE = 0x8;
+        const int KEYEVENTF_KEYDOWN = 0x0;
+        const int KEYEVENTF_EXTENDEDKEY = 0x1;
+        const int KEYEVENTF_KEYUP = 0x2;
+        const int KEYEVENTF_UNICODE = 0x4;
+        const int KEYEVENTF_SCANCODE = 0x8;
+
+        const uint MOUSEEVENTF_ABSOLUTE = 0x8000;
+        const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
+        const uint MOUSEEVENTF_LEFTUP = 0x0004;
+        const uint MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+        const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
+        const uint MOUSEEVENTF_MOVE = 0x0001;
+        const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
+        const uint MOUSEEVENTF_RIGHTUP = 0x0010;
+        const uint MOUSEEVENTF_XDOWN = 0x0080;
+        const uint MOUSEEVENTF_XUP = 0x0100;
+        const uint MOUSEEVENTF_WHEEL = 0x0800;
+        const uint MOUSEEVENTF_HWHEEL = 0x01000;
+
+        public enum MouseInput : int
+        {
+            Click = 0x110,
+            RClick = 0x111,
+            MClick = 0x112
+        }
+
+        [DllImport("user32.dll")]
+        private static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, int dwExtraInfo);
+
+        public static void SendMouseInput(MouseInput key, bool pressed)
+        {
+            Debug.WriteLine(key.ToString() + " " + (pressed ? "(DOWN)" : "(UP)"));
+
+            switch (key)
+            {
+                case MouseInput.Click:
+                    mouse_event(pressed ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    break;
+                case MouseInput.RClick:
+                    mouse_event(pressed ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+                    break;
+                case MouseInput.MClick:
+                    mouse_event(pressed ? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+                    break;
+            }
+        }
 
         public static void Send(Keys key, bool keyDown, bool isEXTEND = false)
         {
@@ -156,6 +198,12 @@ namespace emulatorLauncher.PadToKeyboard
 
         public static void SendScanCode(uint scanCode, bool keyDown, bool isEXTEND = false)
         {
+            if ((scanCode & 0x0100) == 0x0100)
+            {
+                SendMouseInput((MouseInput)scanCode, keyDown);
+                return;
+            }
+
             Debug.WriteLine(scanCode.ToString() + " " + (keyDown ? "(DOWN)" : "(UP)"));
 
             if (IntPtr.Size == 8)
@@ -471,6 +519,11 @@ namespace emulatorLauncher.PadToKeyboard
         KEY_DELETE = 0xE053,
         KEY_PAUSE = 0xE046,
         KEY_PRINT = 0xE037,
-        KEY_MENU = 0xE05D // 	sc_application = 0xE05D,
+        KEY_MENU = 0xE05D, // 	sc_application = 0xE05D,
+
+        // Mouse clic
+        BTN_LEFT		= 0x110,
+        BTN_RIGHT		= 0x111,
+        BTN_MIDDLE		= 0x112,
     }
 }

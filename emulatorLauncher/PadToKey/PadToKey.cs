@@ -125,8 +125,19 @@ namespace emulatorLauncher.PadToKeyboard
 
     }
 
+    public enum PadToKeyType
+    {
+        Keyboard,
+        Mouse
+    }
+
     public class PadToKeyInput
     {
+        public PadToKeyInput()
+        {
+            Type = PadToKeyType.Keyboard;
+        }
+
         [XmlAttribute("name")]
         public InputKey Name { get; set; }
 
@@ -135,6 +146,13 @@ namespace emulatorLauncher.PadToKeyboard
 
         [XmlAttribute("code")]
         public string Code { get; set; }
+
+        public PadToKeyType Type { get; set; }
+
+        public bool IsValid()
+        {
+             return !string.IsNullOrEmpty(Key) || ScanCodes.Length >= 0;
+        }
 
         [XmlIgnore]
         public Keys Keys

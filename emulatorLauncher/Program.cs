@@ -198,6 +198,43 @@ namespace emulatorLauncher
             {
                 foreach (var action in player)
                 {
+                    if (action.type == "mouse")
+                    {
+                        if (action.Triggers == null || action.Triggers.Length == 0)
+                            continue;
+
+                        if (action.Triggers.FirstOrDefault() == "joystick1")
+                        {
+                            PadToKeyInput mouseInput = new PadToKeyInput();
+                            mouseInput.Name = InputKey.leftanalogleft;
+                            mouseInput.Type = PadToKeyType.Mouse;
+                            mouseInput.Code = "X";
+                            app.Input.Add(mouseInput);
+
+                            mouseInput = new PadToKeyInput();
+                            mouseInput.Name = InputKey.leftanalogup;
+                            mouseInput.Type = PadToKeyType.Mouse;
+                            mouseInput.Code = "Y";
+                            app.Input.Add(mouseInput);
+                        }
+                        else if (action.Triggers.FirstOrDefault() == "joystick2")
+                        {
+                            PadToKeyInput mouseInput = new PadToKeyInput();
+                            mouseInput.Name = InputKey.rightanalogleft;
+                            mouseInput.Type = PadToKeyType.Mouse;
+                            mouseInput.Code = "X";
+                            app.Input.Add(mouseInput);
+
+                            mouseInput = new PadToKeyInput();
+                            mouseInput.Name = InputKey.rightanalogup;
+                            mouseInput.Type = PadToKeyType.Mouse;
+                            mouseInput.Code = "Y";
+                            app.Input.Add(mouseInput);
+                        }
+                        
+                        continue;
+                    }
+
                     if (action.type != "key")
                         continue;
 
