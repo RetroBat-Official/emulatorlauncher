@@ -27,7 +27,8 @@ namespace emulatorLauncher.libRetro
                 RetroarchCorePath = Path.Combine(RetroarchPath, "cores");
         }
 
-        private void ConfigureCoreOptions(string system, string core)
+
+        private void ConfigureCoreOptions(ConfigFile retroarchConfig, string system, string core)
         {
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"));
 
@@ -85,16 +86,153 @@ namespace emulatorLauncher.libRetro
             if (core == "virtualjaguar")
                 coreSettings["virtualjaguar_usefastblitter"] = "enabled";
 
-            if (core == "flycast")
-                coreSettings["reicast_threaded_rendering"] = "enabled";
+            ConfigureSNes9xNext(coreSettings, system, core);
+            ConfigureMupen64(coreSettings, system, core);
+            ConfigurePuae(coreSettings, system, core);
+            ConfigureFlycast(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
+        }
+        
+        private void ConfigureSNes9xNext(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "snes9x")
+                return;
+
+            // Reduce slowdown
+            if (SystemConfig.isOptSet("reduce_slowdown"))
+                coreSettings["snes9x_2010_overclock_cycles"] = SystemConfig["reduce_slowdown"];
+        }
+
+        private void ConfigureMupen64(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mupen64plus_next" && core != "mupen64plus_next_gles3")
+                return;
+
+            // BilinearMode
+            if (SystemConfig.isOptSet("BilinearMode"))
+                coreSettings["mupen64plus-BilinearMode"] = SystemConfig["BilinearMode"];
+
+            // Multisampling aa
+            if (SystemConfig.isOptSet("MultiSampling"))
+                coreSettings["mupen64plus-MultiSampling"] = SystemConfig["MultiSampling"];
+
+            // Texture filter
+            if (SystemConfig.isOptSet("Texture_filter"))
+                coreSettings["mupen64plus-txFilterMode"] = SystemConfig["Texture_filter"];
+
+            // Texture Enhancement
+            if (SystemConfig.isOptSet("Texture_Enhancement"))
+                coreSettings["mupen64plus-txEnhancementMode"] = SystemConfig["Texture_Enhancement"];
+        }
+
+        private void ConfigurePuae(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "puae")
+                return;
+
+            // video resolution
+            if (SystemConfig.isOptSet("video_resolution"))
+                coreSettings["puae_video_resolution"] = SystemConfig["video_resolution"];
+
+            // zoom_mode
+            if (SystemConfig.isOptSet("zoom_mode"))
+                coreSettings["puae_zoom_mode"] = SystemConfig["zoom_mode"];
+
+            // video_standard
+            if (SystemConfig.isOptSet("video_standard"))
+                coreSettings["puae_video_standard"] = SystemConfig["video_standard"];
+            else if (!coreSettings.isOptSet("puae_video_standard"))
+                coreSettings["puae_video_standard"] = SystemConfig["PAL"];
+
+            // whdload
+            if (SystemConfig.isOptSet("whdload"))
+                coreSettings["puae_use_whdload_prefs"] = SystemConfig["whdload"];
+
+            // Jump on B
+            if (SystemConfig.isOptSet("pad_options"))
+                coreSettings["puae_retropad_options"] = SystemConfig["pad_options"];
+        }
+
+        private void ConfigureFlycast(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "flycast")
+                return;
+
+            coreSettings["reicast_threaded_rendering"] = "enabled";
+
+            // widescreen hack
+            if (SystemConfig.isOptSet("widescreen_hack"))
+            {
+                coreSettings["reicast_widescreen_hack"] = SystemConfig["widescreen_hack"];
+
+                if (SystemConfig["widescreen_hack"] == "enabled" && !SystemConfig.isOptSet("ratio"))
+                {
+                    int idx = ratioIndexes.IndexOf("16/9");
+                    if (idx >= 0)
+                    {
+                        retroarchConfig["aspect_ratio_index"] = idx.ToString();
+                        retroarchConfig["video_aspect_ratio_auto"] = "false";
+                        SystemConfig["bezel"] = "none";
+                    }
+                }
+            }
+
+            // anisotropic filtering
+            if (SystemConfig.isOptSet("anisotropic_filtering"))
+                coreSettings["reicast_anisotropic_filtering"] = SystemConfig["anisotropic_filtering"];
+
+            // texture upscaling (xBRZ)
+            if (SystemConfig.isOptSet("texture_upscaling"))
+                coreSettings["reicast_texupscale"] = SystemConfig["texture_upscaling"];
+
+            // render to texture upscaling
+            if (SystemConfig.isOptSet("render_to_texture_upscaling"))
+                coreSettings["reicast_render_to_texture_upscaling"] = SystemConfig["render_to_texture_upscaling"];
+        }
+
+        private void ConfigureMednafenPsxHW(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_psx_hw")
+                return;
+
+            // video resolution
+            if (SystemConfig.isOptSet("internal_resolution"))
+                coreSettings["beetle_psx_hw_internal_resolution"] = SystemConfig["internal_resolution"];
+
+            // texture filtering
+            if (SystemConfig.isOptSet("texture_filtering"))
+                coreSettings["beetle_psx_hw_filter"] = SystemConfig["texture_filtering"];
+
+            // widescreen
+            if (SystemConfig.isOptSet("widescreen_hack"))
+            {
+                coreSettings["beetle_psx_hw_widescreen_hack"] = SystemConfig["widescreen_hack"];
+
+                if (SystemConfig["widescreen_hack"] == "enabled" && !SystemConfig.isOptSet("ratio"))
+                {
+                    int idx = ratioIndexes.IndexOf("16/9");
+                    if (idx >= 0)
+                    {
+                        retroarchConfig["aspect_ratio_index"] = idx.ToString();
+                        retroarchConfig["video_aspect_ratio_auto"] = "false";
+                        SystemConfig["bezel"] = "none";
+                    }
+                }
+            }
         }
 
         private void Configure(string system, string core, string rom, ScreenResolution resolution)
         {
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
+
+            retroarchConfig["global_core_options"] = "true";
+            retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')
+
+            retroarchConfig["input_autodetect_enable"] = "false";
+            retroarchConfig["audio_volume"] = "8.0";
 
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
@@ -384,6 +522,7 @@ namespace emulatorLauncher.libRetro
 
             // bezel
 
+            ConfigureCoreOptions(retroarchConfig, system, core);
             writeBezelConfig(retroarchConfig, system, rom, resolution);
 
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
@@ -552,6 +691,17 @@ namespace emulatorLauncher.libRetro
             if (!File.Exists(overlay_png_file))
                 return;
 
+            Size imageSize;
+
+            try
+            {
+                imageSize = GetImageSize(overlay_png_file);
+            }
+            catch 
+            {
+                return;
+            }
+
             BezelInfo infos = new BezelInfo();
 
             if (File.Exists(overlay_info_file))
@@ -567,52 +717,51 @@ namespace emulatorLauncher.libRetro
             if (!infos.width.HasValue || !infos.height.HasValue || !infos.top.HasValue || !infos.left.HasValue || !infos.bottom.HasValue || !infos.right.HasValue)
                 viewPortUsed = false;
 
-         // for testing ->   resolution = ScreenResolution.Parse("2280x1080x32x60");
-
+         // for testing ->   
+            //resolution = ScreenResolution.Parse("2280x1080x32x60");
+            //resolution = ScreenResolution.Parse("3840x2160x32x60");                    
+            
             int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
             int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
 
-            float gameRatio  = (float) resX / (float) resY;
-            float infosRatio = 1920f / 1080f;
+            float screenRatio  = (float) resX / (float) resY;
+            float bezelRatio = (float)imageSize.Width / (float) imageSize.Height;
 
             if (viewPortUsed)
             {
-                if (resX != infos.width || resY != infos.height)
+                if (resX != infos.width.GetValueOrDefault() || resY != infos.height.GetValueOrDefault())
                 {
-                    infosRatio = (float)infos.width / (float)infos.height;
-
-                    if (gameRatio < infosRatio - 0.1) // keep a margin
+                    if (screenRatio < 1.6) // use bezels only for 16:10, 5:3, 16:9 and wider aspect ratios
                         return;
                     else
                         bezelNeedAdaptation = true;
                 }
-                                    
-                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file                
+
+                if (!SystemConfig.isOptSet("ratio"))
+                {
+                    if (systemName == "mame")
+                        retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
+                    else
+                        retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file                
+                }
             }
             else
             {
                  // when there is no information about width and height in the .info, assume that the tv is HD 16/9 and infos are core provided
-                if (gameRatio < infosRatio - 0.1) // keep a margin
+                if (screenRatio < 1.6) // use bezels only for 16:10, 5:3, 16:9 and wider aspect ratios
                     return;
+
+                if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
+                    bezelNeedAdaptation = false; // Widers screens
                 else
                 {
-
-                    // No info on the bezel, let's get the bezel image width and height and apply the
-                    // ratios from usual 4:3 1920x1080 bezels (example: theBezelProject)
-
-                    using (Image img = Image.FromFile(overlay_png_file))
-                    {
-                        infos.width = img.Width;
-                        infos.height = img.Height;
-                    }
-                    infos.top    = (int)infos.height * 2 / 1080;
-                    infos.left   = (int)infos.width * 241 / 1920; // 241 = (1920 - (1920 / (4:3))) / 2 + 1 pixel = where viewport start;
-                    infos.bottom = (int)infos.height * 2 / 1080;
-                    infos.right  = (int)infos.width * 241 / 1920;
+                    infos.width = imageSize.Width;
+                    infos.height = imageSize.Height;
                     bezelNeedAdaptation = true;
                 }
 
-                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file
+                if (!SystemConfig.isOptSet("ratio"))
+                    retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString(); // overwritten from the beginning of this file
             }
 
             string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
@@ -634,74 +783,78 @@ namespace emulatorLauncher.libRetro
 
             if (bezelNeedAdaptation)
             {
-                float wratio = resX / (float) infos.width;
-                float hratio = resY / (float) infos.height;
+                float wratio = resX / (float)infos.width;
+                float hratio = resY / (float)infos.height;
 
-                bool bezel_stretch = false;
+                int xoffset = resX - infos.width.Value;
+                int yoffset = resY - infos.height.Value;
 
-                if (resX < infos.width || resY < infos.height) // If width or height < original, can't add black borders. Just stretch
-                    bezel_stretch = true;
-                else if (Math.Abs(gameRatio - infosRatio) < 0.2) // FCA : About the same ratio ? Just stretch
-                    bezel_stretch = true;
-
-                if (bezel_stretch)
+                if (viewPortUsed)
                 {
-                    retroarchConfig["custom_viewport_x"] = ((int) (infos.left * wratio)).ToString();
-                    retroarchConfig["custom_viewport_y"] = ((int)(infos.top * hratio)).ToString();
-                    retroarchConfig["custom_viewport_width"] = ((int) ((infos.width - infos.left - infos.right) * wratio)).ToString();
-                    retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom) * hratio)).ToString();
-                    retroarchConfig["video_message_pos_x"] = (infos.messagex.Value * wratio).ToString(CultureInfo.InvariantCulture);
-                    retroarchConfig["video_message_pos_y"] = (infos.messagey.Value * hratio).ToString(CultureInfo.InvariantCulture);
-                }
-                else
-                {                    
-                    int xoffset = resX - infos.width.Value;
-                    int yoffset = resY - infos.height.Value;
-                    retroarchConfig["custom_viewport_x"]      = ((int) (infos.left.Value + xoffset/2)).ToString();
-                    retroarchConfig["custom_viewport_y"]      = ((int) (infos.top.Value + yoffset/2)).ToString();
-                    retroarchConfig["custom_viewport_width"]  = ((int) ((infos.width.Value - infos.left.Value - infos.right.Value))).ToString();
-                    retroarchConfig["custom_viewport_height"] = ((int)((infos.height.Value - infos.top.Value - infos.bottom.Value))).ToString();
-                    retroarchConfig["video_message_pos_x"] = (infos.messagex.Value + xoffset / 2).ToString(CultureInfo.InvariantCulture);
-                    retroarchConfig["video_message_pos_y"] = (infos.messagey.Value + yoffset / 2).ToString(CultureInfo.InvariantCulture);
+                    bool stretchViewport = false;
 
-                    int borderw = 0;
-                    int borderh = 0;
-                    if (wratio > 1)
-                        borderw = xoffset / 2;
-                    if (hratio > 1)
-                        borderh = yoffset / 2;
+                    if (resX < infos.width || resY < infos.height) // If width or height < original, can't add black borders. Just stretch
+                        stretchViewport = true;
+                    else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
+                        stretchViewport = true;
 
-                    var f = Path.GetFileNameWithoutExtension(overlay_png_file);
-                    var d = Path.GetFileName(Path.GetDirectoryName(overlay_png_file));
-                    var fn = "bezel." + d + "." + f + "." + resX +"x" + resY + ".png";
-                    string output_png_file = Path.Combine(Path.GetTempPath(), fn);
-
-                    if (File.Exists(output_png_file))
-                        overlay_png_file = output_png_file;
+                    if (stretchViewport)
+                    {
+                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left * wratio)).ToString();
+                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top * hratio)).ToString();
+                        retroarchConfig["custom_viewport_width"] = ((int)((infos.width - infos.left - infos.right) * wratio)).ToString();
+                        retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom) * hratio)).ToString();
+                        retroarchConfig["video_message_pos_x"] = (infos.messagex.Value * wratio).ToString(CultureInfo.InvariantCulture);
+                        retroarchConfig["video_message_pos_y"] = (infos.messagey.Value * hratio).ToString(CultureInfo.InvariantCulture);
+                    }
                     else
                     {
-                        try
+                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left.Value + xoffset / 2)).ToString();
+                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top.Value + yoffset / 2)).ToString();
+                        retroarchConfig["custom_viewport_width"] = ((int)((infos.width.Value - infos.left.Value - infos.right.Value))).ToString();
+                        retroarchConfig["custom_viewport_height"] = ((int)((infos.height.Value - infos.top.Value - infos.bottom.Value))).ToString();
+                        retroarchConfig["video_message_pos_x"] = (infos.messagex.Value + xoffset / 2).ToString(CultureInfo.InvariantCulture);
+                        retroarchConfig["video_message_pos_y"] = (infos.messagey.Value + yoffset / 2).ToString(CultureInfo.InvariantCulture);
+                    }
+                }
+
+                int borderw = 0;
+                int borderh = 0;
+                if (wratio > 1)
+                    borderw = xoffset / 2;
+                if (hratio > 1)
+                    borderh = yoffset / 2;
+
+                var f = Path.GetFileNameWithoutExtension(overlay_png_file);
+                var d = Path.GetFileName(Path.GetDirectoryName(overlay_png_file));
+                var fn = "bezel." + d + "." + f + "." + resX + "x" + resY + ".png";
+                string output_png_file = Path.Combine(Path.GetTempPath(), fn);
+
+                if (File.Exists(output_png_file))
+                    overlay_png_file = output_png_file;
+                else
+                {
+                    try
+                    {
+                        using (Image img = Image.FromFile(overlay_png_file))
                         {
-                            using (Image img = Image.FromFile(overlay_png_file))
+                            using (Bitmap bmp = new Bitmap(infos.width.Value + 2 * borderw, infos.height.Value + 2 * borderh))
                             {
-                                using (Bitmap bmp = new Bitmap(infos.width.Value + 2 * borderw, infos.height.Value + 2 * borderh))
+                                using (Graphics g = Graphics.FromImage(bmp))
                                 {
-                                    using (Graphics g = Graphics.FromImage(bmp))
-                                    {
-                                        g.ExcludeClip(new Rectangle(borderw, borderh, img.Width, img.Height));
-                                        g.FillRectangle(Brushes.Black, new Rectangle(0, 0, bmp.Width, bmp.Height));
-                                        g.ResetClip();
+                                    g.ExcludeClip(new Rectangle(borderw, borderh, img.Width, img.Height));
+                                    g.FillRectangle(Brushes.Black, new Rectangle(0, 0, bmp.Width, bmp.Height));
+                                    g.ResetClip();
 
-                                        g.DrawImage(img, new Rectangle(borderw, borderh, img.Width, img.Height));
-                                    }
-
-                                    bmp.Save(output_png_file, System.Drawing.Imaging.ImageFormat.Png);
-                                    overlay_png_file = output_png_file;
+                                    g.DrawImage(img, new Rectangle(borderw, borderh, img.Width, img.Height));
                                 }
+
+                                bmp.Save(output_png_file, System.Drawing.Imaging.ImageFormat.Png);
+                                overlay_png_file = output_png_file;
                             }
                         }
-                        catch { }
                     }
+                    catch { }
                 }
             }
             else
@@ -726,6 +879,12 @@ namespace emulatorLauncher.libRetro
             fd.AppendLine("overlay0_full_screen = true");
             fd.AppendLine("overlay0_descs = 0");
             File.WriteAllText(overlay_cfg_file, fd.ToString());
+        }
+
+        private static Size GetImageSize(string file)
+        {
+            using (Image img = Image.FromFile(file))
+                return img.Size;
         }
 
         private string _dosBoxTempRom;
@@ -809,8 +968,7 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
-            Configure(system, core, rom, resolution);
-            ConfigureCoreOptions(system, core);
+            Configure(system, core, rom, resolution);            
 
             List<string> commandArray = new List<string>();
 

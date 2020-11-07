@@ -146,7 +146,12 @@ namespace emulatorLauncher.PadToKeyboard
         }
 
         [DllImport("user32.dll")]
-        private static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, int dwExtraInfo);
+        private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, int dwExtraInfo);
+
+        public static void MoveMouseBy(int dx, int dy)
+        {
+            mouse_event(MOUSEEVENTF_MOVE, dx, dy, 0, 0);
+        }
 
         public static void SendMouseInput(MouseInput key, bool pressed)
         {

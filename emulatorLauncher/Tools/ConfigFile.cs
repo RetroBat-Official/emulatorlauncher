@@ -112,6 +112,9 @@ namespace emulatorLauncher
 
                     if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", key))))
                         return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", key)));
+
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", key)));
                 }
                 
                 return string.Empty;
@@ -128,6 +131,9 @@ namespace emulatorLauncher
 
             if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", data))))
                 return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", data)));
+
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", data)));
 
             return data;
         }

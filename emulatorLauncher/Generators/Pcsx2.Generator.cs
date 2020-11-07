@@ -153,6 +153,8 @@ namespace emulatorLauncher
                 {
                     using (var ini = new IniFile(iniFile))
                     {
+                        ini.WriteValue("Settings", "UserHacks", "1");
+
                         if (!string.IsNullOrEmpty(SystemConfig["internalresolution"]))
                             ini.WriteValue("Settings", "upscale_multiplier", SystemConfig["internalresolution"]);
                         else
@@ -177,7 +179,20 @@ namespace emulatorLauncher
                         else
                             ini.WriteValue("Settings", "interlace", "7");
 
+                        if (SystemConfig.isOptSet("anisotropic_filtering") && !string.IsNullOrEmpty(SystemConfig["anisotropic_filtering"]))
+                            ini.WriteValue("Settings", "MaxAnisotropy", SystemConfig["anisotropic_filtering"]);
+                        else
+                            ini.WriteValue("Settings", "MaxAnisotropy", "0");
 
+                        if (SystemConfig.isOptSet("align_sprite") && !string.IsNullOrEmpty(SystemConfig["align_sprite"]))
+                            ini.WriteValue("Settings", "UserHacks_align_sprite_X", SystemConfig["align_sprite"]);
+                        else
+                            ini.WriteValue("Settings", "UserHacks_align_sprite_X", "0");
+
+                        if (SystemConfig.isOptSet("skipdraw") && !string.IsNullOrEmpty(SystemConfig["skipdraw"]))
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", SystemConfig["skipdraw"]);
+                        else
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
 
                         if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
                         {

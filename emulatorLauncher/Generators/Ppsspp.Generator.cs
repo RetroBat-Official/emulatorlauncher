@@ -54,7 +54,7 @@ namespace emulatorLauncher
                         ini.WriteValue("Graphics", "ShowFPSCounter", "0");
 
                     if (SystemConfig.isOptSet("frameskip") && SystemConfig.getOptBoolean("frameskip"))
-                        ini.WriteValue("Graphics", "FrameSkip", "1");
+                        ini.WriteValue("Graphics", "FrameSkip", SystemConfig["frameskip"]);
                     else
                         ini.WriteValue("Graphics", "FrameSkip", "0");
 

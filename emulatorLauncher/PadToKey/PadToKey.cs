@@ -179,15 +179,24 @@ namespace emulatorLauncher.PadToKeyboard
                 if (string.IsNullOrEmpty(Code))
                     return new uint[] { };
 
+                HashSet<uint> values = new HashSet<uint>();
+
+                var codes = Code.ToLowerInvariant().Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 string code = Code.ToLowerInvariant();
-                
-                foreach (var fld in typeof(ScanCode).GetFields(BindingFlags.Static | BindingFlags.Public))
-                    if (fld.Name.ToLowerInvariant() == code || fld.Name.ToLowerInvariant() == "key_"+ code)
-                        return new uint[] { (uint)fld.GetValue(null) };
+
+                /*
+                InputKey k;
+                if (!Enum.TryParse<InputKey>(string.Join(", ", action.Triggers.ToArray()).ToLower(), out k))
+                    continue;
+                */
 
                 foreach (var fld in typeof(LinuxScanCode).GetFields(BindingFlags.Static | BindingFlags.Public))
                     if (fld.Name.ToLowerInvariant() == code)
-                        return new uint[] { (uint)fld.GetValue(null) }; 
+                        values.Add((uint)fld.GetValue(null));
+
+                foreach (var fld in typeof(ScanCode).GetFields(BindingFlags.Static | BindingFlags.Public))
+                    if (fld.Name.ToLowerInvariant() == code || fld.Name.ToLowerInvariant() == "key_" + code)
+                        values.Add((uint)fld.GetValue(null));
                 
                 return new uint[] { };
             }

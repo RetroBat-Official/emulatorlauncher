@@ -67,6 +67,7 @@
     <Compile Include="Generators\Cemu.Generator.cs" />
     <Compile Include="Generators\Mame64.Generator.cs" />
     <Compile Include="Generators\Daphne.Generator.cs" />
+    <Compile Include="Generators\Oricutron.Generator.cs" />
     <Compile Include="Generators\Solarus.Generator.cs" />
     <Compile Include="Generators\Demul.Generator.cs" />
     <Compile Include="Generators\ExeLauncher.Generator.cs" />

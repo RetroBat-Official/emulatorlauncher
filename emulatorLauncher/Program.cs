@@ -60,6 +60,7 @@ namespace emulatorLauncher
 			{ "citra", () => new CitraGenerator() },
             { "xenia", () => new XeniaGenerator() },
             { "mame64", () => new Mame64Generator() },
+            { "oricutron", () => new OricutronGenerator() },            
             { "solarus", () => new SolarusGenerator() }            
         };
 
@@ -162,7 +163,7 @@ namespace emulatorLauncher
                             mapping = PadToKey.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_padtokey.cfg"));
 
                         mapping = LoadGamePadToKeyMapping(path, mapping);
-                                                
+
                         using (new HighPerformancePowerScheme())
                         using (new JoystickListener(inputConfig, mapping))
                             generator.RunAndWait(path);
@@ -184,8 +185,12 @@ namespace emulatorLauncher
             EvMapyKeysFile gameMapping = EvMapyKeysFile.TryLoad(filePath);
             if (gameMapping == null && SystemConfig["system"] != null)
             {
-                var systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", SystemConfig["system"] + ".keys");
-                gameMapping = EvMapyKeysFile.TryLoad(systemMapping);
+                var systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", SystemConfig["system"] + ".keys");
+                if (!File.Exists(systemMapping))
+                    systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), SystemConfig["system"] + ".keys");
+
+                if (File.Exists(systemMapping))
+                    gameMapping = EvMapyKeysFile.TryLoad(systemMapping);
             }
 
             if (gameMapping == null || gameMapping.Count == 0)
@@ -264,11 +269,18 @@ namespace emulatorLauncher
                 if (mapping == null)
                     mapping = new PadToKey();
 
-                var existing = mapping.Applications.FirstOrDefault(a => a.Name == app.Name);
-                if (existing != null)
-                    mapping.Applications.Remove(existing);
-
-                mapping.Applications.Add(app);
+                var existingApp = mapping.Applications.FirstOrDefault(a => a.Name == app.Name);
+                if (existingApp != null)
+                {
+                    // Merge with existing by replacing inputs
+                    foreach (var input in app.Input)
+                    {
+                        existingApp.Input.RemoveAll(i => i.Name == input.Name);
+                        existingApp.Input.Add(input);
+                    }
+                }
+                else
+                    mapping.Applications.Add(app);
             }
 
             return mapping;

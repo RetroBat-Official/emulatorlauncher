@@ -168,7 +168,7 @@ namespace emulatorLauncher.PadToKeyboard
             
             public bool HasFlag(InputKey k)
             {
-                return _keys.ContainsKey((int)k);
+                return FromInputKey(k).Count > 0;
             }
 
             public int GetMouseInputValue(InputKey k)
@@ -183,35 +183,74 @@ namespace emulatorLauncher.PadToKeyboard
                 return -Math.Abs(newValue.Value);
             }
 
+            Dictionary<int, InputValue> FromInputKey(InputKey k)
+            {
+                Dictionary<int, InputValue> ret = new Dictionary<int, InputValue>();
+
+                int kz = 0;
+
+                foreach(var key in _keys)
+                {
+                    if (((int) k & key.Key) == key.Key)
+                    {
+                        ret[key.Key] = key.Value;
+                        kz |= key.Key;
+                    }
+                }
+
+                if (kz != (int)k)
+                    return new Dictionary<int, InputValue>();
+
+                return ret;
+            }
+
             public bool HasNewInput(InputKey k, InputKeyInfo old, bool checkAxisChanged = false)
             {
-                InputValue newValue;
-                if (!_keys.TryGetValue((int) k, out newValue))
+                var newValues = FromInputKey(k);
+                if (newValues.Count == 0)
                     return false;
 
-                InputValue oldValue;
-                if (!old._keys.TryGetValue((int) k, out oldValue))
+                var oldValues = old.FromInputKey(k);
+                if (oldValues.Count == 0)
                 {
-                    if (newValue.IsAxis)
-                        oldValue = new InputValue(0, true);
+                    if (newValues.Any(v => v.Value.IsAxis))
+                    {
+                        foreach(var nv in newValues.Where(v => v.Value.IsAxis))
+                            oldValues[nv.Key] = new InputValue(0, true);
+                    }
                     else
                         return true;
                 }
-
-                if (oldValue.IsAxis)
+                
+                foreach (var ov in oldValues)
                 {
-                    if (checkAxisChanged)
-                        return oldValue.Value != newValue.Value;
+                    if (!newValues.ContainsKey(ov.Key))
+                        return false;
 
-                    const int DEADZONE = 20000;
+                    var oldVal = oldValues[ov.Key];
+                    var newVal = newValues[ov.Key];
 
-                    bool oldOutOfDeadZone = Math.Abs(oldValue.Value) >= DEADZONE;
-                    bool newOutOfDeadZone = Math.Abs(newValue.Value) >= DEADZONE;
+                    if (oldVal.IsAxis)
+                    {
+                        if (checkAxisChanged)
+                        {
+                            if (oldVal.Value != newVal.Value)
+                                return true;
+                        }
 
-                    return newOutOfDeadZone && !oldOutOfDeadZone;
+                        const int DEADZONE = 20000;
+
+                        bool oldOutOfDeadZone = Math.Abs(oldVal.Value) >= DEADZONE;
+                        bool newOutOfDeadZone = Math.Abs(newVal.Value) >= DEADZONE;
+
+                        if (newOutOfDeadZone && !oldOutOfDeadZone)
+                            return true;
+                    }
+                    else if (oldVal.Value != newVal.Value)
+                        return true;
                 }
-                else 
-                    return HasFlag(k) && !old.HasFlag(k);
+
+                return false;                
             }
 
             public InputKeyInfo Clone()
@@ -562,6 +601,10 @@ namespace emulatorLauncher.PadToKeyboard
                     {
                         SendMessage(hWndProcess, WM_CLOSE, 0, 0);
                     }
+                    else if (input.Key == "(%{KILL})" && hWndProcess != IntPtr.Zero)
+                    {
+                        KillProcess(hWndProcess, process);
+                    }
                     else if (input.Key == "(%{F4})" && process == "emulationstation")
                     {
                         SendKey.Send(Keys.Alt, true);
@@ -595,12 +638,9 @@ namespace emulatorLauncher.PadToKeyboard
         {
             JoystickListener t = (JoystickListener)state;
 
-            var pos = Cursor.Position;
-
-            pos.X += (int) EaseMouse((double) t._mouseMove.X);
-            pos.Y += (int) EaseMouse((double) t._mouseMove.Y);
-
-            Cursor.Position = pos;
+            int x = (int) EaseMouse((double) t._mouseMove.X);;
+            int y = (int) EaseMouse((double) t._mouseMove.Y);;
+            SendKey.MoveMouseBy(x, y);
         }
 
         private void SendKeyMap(PadToKeyInput input, InputKeyInfo oldState, InputKeyInfo newState, string processName)
@@ -672,6 +712,19 @@ namespace emulatorLauncher.PadToKeyboard
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
+
+        private void KillProcess(IntPtr hWndProcess, string process)
+        {
+            uint pid;
+            GetWindowThreadProcessId(hWndProcess, out pid);
+
+            try
+            {
+                Process p = Process.GetProcessById((int)pid);
+                p.Kill();
+            }
+            catch { }
+        }
 
         string GetActiveProcessFileName(out bool isDesktop, out IntPtr hMainWnd)
         {
