@@ -21,7 +21,11 @@ namespace emulatorLauncher
             if (_ymlShadersCache == null)
                 _ymlShadersCache = new SimpleYml<YmlShader>(yml);
 
-            return _ymlShadersCache.Where(i => i.system == system).Select(i => i.shader).FirstOrDefault();
+            var ret = _ymlShadersCache.Where(i => i.system == system).Select(i => i.shader).FirstOrDefault();
+            if( ret == null)
+                ret = _ymlShadersCache.Where(i => i.system == "default").Select(i => i.shader).FirstOrDefault();
+
+            return ret;
         }
 
         private static SimpleYml<YmlShader> _ymlShadersCache;

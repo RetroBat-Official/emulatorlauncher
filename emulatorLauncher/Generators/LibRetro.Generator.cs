@@ -232,8 +232,6 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')
 
             retroarchConfig["input_autodetect_enable"] = "false";
-            retroarchConfig["audio_volume"] = "8.0";
-
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
 
@@ -306,11 +304,7 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_smooth"] = "false";
 
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
-            {
                 retroarchConfig["video_shader_enable"] = "true";
-                retroarchConfig["video_smooth"] = "false";     // seems to be necessary for weaker SBCs
-                retroarchConfig["video_shader_dir"] = AppConfig.GetFullPath("shaders");
-            }
             else
                 retroarchConfig["video_shader_enable"] = "false";
 
