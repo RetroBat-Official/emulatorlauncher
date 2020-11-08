@@ -66,9 +66,17 @@ namespace batocera_retroachievements_info
                         var achievements = RemoveHtmlTags(ExtractString(game, "<br>Earned ", " achievements,"));
                         var points = RemoveHtmlTags(ExtractString(game, "achievements, ", " points.<br>"));
 
-                        var badgeDiv = ExtractStrings(game, "<div class='bb_inline'", "/>")
-                            .Select(b => ExtractString(b, "img src=\\'", "\\'"))
+                        var badgeDiv = ExtractStrings(game, "<div class='bb_inline'", "/>", true)
+                            .Select(b => ExtractString(b, "<img ", ">"))
+                            .Select(b => ExtractString(b, "src=\"", "\""))
+                            .Where(b => !string.IsNullOrEmpty(b))
                             .ToArray();
+
+                        if (badgeDiv.Length == 0)                        
+                            badgeDiv = ExtractStrings(game, "<div class='bb_inline'", "/>")
+                                .Select(b => ExtractString(b, "img src=\\'", "\\'"))
+                                .Where(b => !string.IsNullOrEmpty(b))
+                                .ToArray();
 
                         var badge = badgeDiv.LastOrDefault(b => !b.Contains("_lock"));
                         if (badge == null)
