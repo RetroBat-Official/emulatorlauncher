@@ -110,7 +110,7 @@ namespace emulatorLauncher.libRetro
             { InputKey.l3, "l3"}, 
             { InputKey.r3, "r3"},
             { InputKey.start, "start"}, 
-            { InputKey.select, "r"} // select
+            { InputKey.pagedown, "select"} // select
         };
 
 
@@ -315,7 +315,7 @@ namespace emulatorLauncher.libRetro
             // keyboard_gamepad_enable = "true"
             // keyboard_gamepad_mapping_type = "1"
 
-            var generatedConfig = generateControllerConfig(controller);
+            var generatedConfig = generateControllerConfig(controller, system);
             foreach (var key in generatedConfig)
                 retroconfig[key.Key] = key.Value;
 
