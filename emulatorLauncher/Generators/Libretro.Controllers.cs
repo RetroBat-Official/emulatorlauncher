@@ -103,14 +103,14 @@ namespace emulatorLauncher.libRetro
             { InputKey.a, "b" }, // A et B inversés par rapport à batocera
             { InputKey.x, "x" }, 
             { InputKey.y, "y" },
-            { InputKey.pageup, "l" },
-            { InputKey.pagedown, "r"}, 
-            //{ InputKey.l2, "l2"},
-            //{ InputKey.r2, "r2"},
+            //{ InputKey.pageup, "l" },
+            //{ InputKey.pagedown, "r"}, 
+            { InputKey.l2, "l2"},
+            { InputKey.r2, "r2"},
             { InputKey.l3, "l3"}, 
             { InputKey.r3, "r3"},
             { InputKey.start, "start"}, 
-            { InputKey.r2, "select"}
+            { InputKey.select, "r"} // select
         };
 
 
