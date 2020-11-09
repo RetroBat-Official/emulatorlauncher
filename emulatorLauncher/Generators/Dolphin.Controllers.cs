@@ -24,15 +24,41 @@ namespace emulatorLauncher
                     return true;
                 }
                 else
-                    generateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");                    
-            }
+                    generateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");
 
-            generateControllerConfig_gamecube(path, rom);
+                generateControllerConfig_gamecube(path, rom, gamecubeWiiMapping);
+            }
+            else
+                generateControllerConfig_gamecube(path, rom, gamecubeMapping);
             return true;            
         }
-        
 
         static Dictionary<InputKey, string> gamecubeMapping = new Dictionary<InputKey, string>()
+        { 
+            { InputKey.l3,              "Main Stick/Modifier"},
+            { InputKey.r3,              "C-Stick/Modifier"},
+//            { InputKey.l2,              "Triggers/L-Analog" },    
+//            { InputKey.r2,              "Triggers/R-Analog"},
+            { InputKey.y,               "Buttons/X" },  
+            { InputKey.b,               "Buttons/A" },
+            { InputKey.x,               "Buttons/Y" },  
+            { InputKey.a,               "Buttons/B" },
+            { InputKey.r2,              "Buttons/Z" },  
+            { InputKey.start,           "Buttons/Start" },
+            { InputKey.pageup,          "Triggers/L" }, 
+            { InputKey.pagedown,        "Triggers/R" },
+            { InputKey.up,              "D-Pad/Up" }, 
+            { InputKey.down,            "D-Pad/Down" }, 
+            { InputKey.left,            "D-Pad/Left" }, 
+            { InputKey.right,           "D-Pad/Right" },
+            { InputKey.joystick1up,     "Main Stick/Up" }, 
+            { InputKey.joystick1left,   "Main Stick/Left" },
+            { InputKey.joystick2up,     "C-Stick/Up" },    
+            { InputKey.joystick2left,   "C-Stick/Left"},
+            { InputKey.hotkey,          "Buttons/Hotkey" },
+        };
+
+        static Dictionary<InputKey, string> gamecubeWiiMapping = new Dictionary<InputKey, string>()
         { 
             { InputKey.l3,              "Main Stick/Modifier"},
             { InputKey.r3,              "C-Stick/Modifier"},
@@ -195,9 +221,9 @@ namespace emulatorLauncher
             generateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, extraOptions);
         }
 
-        private static void generateControllerConfig_gamecube(string path, string rom)
+        private static void generateControllerConfig_gamecube(string path, string rom, Dictionary<InputKey, string> anyMapping)
         {
-            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", gamecubeMapping, gamecubeReverseAxes, gamecubeReplacements);        
+            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, gamecubeReverseAxes, gamecubeReplacements);        
         }
 
         static Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()

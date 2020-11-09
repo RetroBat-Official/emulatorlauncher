@@ -97,6 +97,23 @@ namespace emulatorLauncher.libRetro
             { InputKey.select, "select"}
         };
 
+        static public Dictionary<InputKey, string> gamecubeButtons = new Dictionary<InputKey, string>()
+        {
+            { InputKey.b, "a" },
+            { InputKey.a, "b" }, // A et B inversés par rapport à batocera
+            { InputKey.x, "x" }, 
+            { InputKey.y, "y" },
+            { InputKey.pageup, "l" },
+            { InputKey.pagedown, "r"}, 
+            //{ InputKey.l2, "l2"},
+            //{ InputKey.r2, "r2"},
+            { InputKey.l3, "l3"}, 
+            { InputKey.r3, "r3"},
+            { InputKey.start, "start"}, 
+            { InputKey.r2, "select"}
+        };
+
+
         static public List<InputKey> retroarchdirs = new List<InputKey>() { InputKey.up, InputKey.down, InputKey.left, InputKey.right };
 
         static public Dictionary<InputKey, string> retroarchjoysticks = new Dictionary<InputKey, string>()
@@ -219,11 +236,11 @@ namespace emulatorLauncher.libRetro
             return "standard";
         }*/
 
-        private static Dictionary<string, string> generateControllerConfig(Controller controller)
+        private static Dictionary<string, string> generateControllerConfig(Controller controller, string system)
         {
             var config = new Dictionary<string, string>();
 
-            foreach (var btnkey in retroarchbtns)
+            foreach (var btnkey in (system == "gamecube" ? gamecubeButtons : retroarchbtns))
             {
                 var input = GetInputCode(controller, btnkey.Key);
                 if (input == null)
