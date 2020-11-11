@@ -198,14 +198,20 @@ namespace emulatorLauncher.libRetro
             if (core != "mednafen_psx_hw")
                 return;
 
+            coreSettings["beetle_psx_hw_skip_bios"] = "enabled";
+
             // video resolution
             if (SystemConfig.isOptSet("internal_resolution"))
                 coreSettings["beetle_psx_hw_internal_resolution"] = SystemConfig["internal_resolution"];
-
+            else 
+                coreSettings["beetle_psx_hw_internal_resolution"] = "1x(native)";
+                
             // texture filtering
             if (SystemConfig.isOptSet("texture_filtering"))
                 coreSettings["beetle_psx_hw_filter"] = SystemConfig["texture_filtering"];
-
+            else 
+                coreSettings["beetle_psx_hw_filter"] = "nearest";
+                
             // widescreen
             if (SystemConfig.isOptSet("widescreen_hack"))
             {
@@ -221,6 +227,35 @@ namespace emulatorLauncher.libRetro
                         SystemConfig["bezel"] = "none";
                     }
                 }
+            }
+            else 
+                coreSettings["beetle_psx_hw_widescreen_hack"] = "disabled";
+
+
+            // 32BPP
+            if (SystemConfig.isOptSet("32bits_color_depth") && SystemConfig.getOptBoolean("32bits_color_depth"))
+            {
+                coreSettings["beetle_psx_hw_depth"] = "32bpp";
+                coreSettings["beetle_psx_hw_dither_mode"] = "disabled";
+            }
+            else 
+            {
+                coreSettings["beetle_psx_hw_depth"] = "16bpp(native)";
+                coreSettings["beetle_psx_hw_dither_mode"] = "1x(native)";
+            }
+                        
+            // PGXP
+            if (SystemConfig.isOptSet("pgxp") && SystemConfig.getOptBoolean("pgxp"))
+            {                
+                coreSettings["beetle_psx_hw_pgxp_mode"] = "memory only";
+                coreSettings["beetle_psx_hw_pgxp_texture"] = "enabled";
+                coreSettings["beetle_psx_hw_pgxp_vertex"] = "enabled";
+            }
+            else 
+            {
+                coreSettings["beetle_psx_hw_pgxp_mode"] = "disabled";
+                coreSettings["beetle_psx_hw_pgxp_texture"] = "disabled";
+                coreSettings["beetle_psx_hw_pgxp_vertex"] = "disabled";
             }
         }
 
