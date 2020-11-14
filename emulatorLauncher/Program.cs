@@ -60,7 +60,9 @@ namespace emulatorLauncher
 			{ "citra", () => new CitraGenerator() },
             { "xenia", () => new XeniaGenerator() },
             { "mame64", () => new Mame64Generator() },
-            { "oricutron", () => new OricutronGenerator() },            
+            { "oricutron", () => new OricutronGenerator() },
+            { "switch", () => new YuzuGenerator() }, { "yuzu", () => new YuzuGenerator() },
+            { "ryunjin", () => new RyujinxGenerator() },
             { "solarus", () => new SolarusGenerator() }            
         };
 
