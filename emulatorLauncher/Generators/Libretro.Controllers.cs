@@ -11,6 +11,7 @@ namespace emulatorLauncher.libRetro
     class LibretroControllers
     {
         private static string _inputDriver = "sdl2";
+        private static HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
 
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
         {
@@ -80,40 +81,6 @@ namespace emulatorLauncher.libRetro
             }
         }
 
-
-        static public Dictionary<InputKey, string> retroarchbtns = new Dictionary<InputKey, string>()
-        {
-            { InputKey.b, "a" },
-            { InputKey.a, "b" }, // A et B inversés par rapport à batocera
-            { InputKey.x, "x" }, 
-            { InputKey.y, "y" },
-            { InputKey.pageup, "l" },
-            { InputKey.pagedown, "r"}, 
-            { InputKey.l2, "l2"},
-            { InputKey.r2, "r2"},
-            { InputKey.l3, "l3"}, 
-            { InputKey.r3, "r3"},
-            { InputKey.start, "start"}, 
-            { InputKey.select, "select"}
-        };
-
-        static public Dictionary<InputKey, string> gamecubeButtons = new Dictionary<InputKey, string>()
-        {
-            { InputKey.b, "a" },
-            { InputKey.a, "b" }, // A et B inversés par rapport à batocera
-            { InputKey.x, "x" }, 
-            { InputKey.y, "y" },
-            //{ InputKey.pageup, "l" },
-            //{ InputKey.pagedown, "r"}, 
-            { InputKey.l2, "l2"},
-            { InputKey.r2, "r2"},
-            { InputKey.l3, "l3"}, 
-            { InputKey.r3, "r3"},
-            { InputKey.start, "start"}, 
-            { InputKey.pagedown, "select"} // select
-        };
-
-
         static public List<InputKey> retroarchdirs = new List<InputKey>() { InputKey.up, InputKey.down, InputKey.left, InputKey.right };
 
         static public Dictionary<InputKey, string> retroarchjoysticks = new Dictionary<InputKey, string>()
@@ -157,8 +124,7 @@ namespace emulatorLauncher.libRetro
             { InputKey.right, "hold_fast_forward"}, 
             { InputKey.l2, "shader_prev"},  
             { InputKey.r2, "shader_next"},              
-            { InputKey.pagedown, "ai_service"}
-      
+            { InputKey.pagedown, "ai_service"}      
         };
         
         private static void cleanControllerConfig(ConfigFile retroconfig)
@@ -207,11 +173,16 @@ namespace emulatorLauncher.libRetro
   //              else
                     config[string.Format("input_enable_hotkey_{0}", typetoname[hotKey.Type])] = getConfigValue(hotKey);
             }
-
         }
 
-        private static string getAnalogMode(Controller controller)
+        private static string getAnalogMode(Controller controller, string system)
         {
+            if (disabledAnalogModeSystems.Contains(system))
+                return "0";
+
+            if (system == "psx" && Program.SystemConfig.isOptSet("forceanalogsticks") && Program.SystemConfig.getOptBoolean("forceanalogsticks"))
+                return "0";
+            
             foreach (var dirkey in retroarchdirs)
             {
                 var k = GetInputCode(controller, dirkey);
@@ -222,25 +193,57 @@ namespace emulatorLauncher.libRetro
             return "0";
         }
 
-        // return the playstation analog mode for a controller
-        /*
-        private static string getAnalogCoreMode(Controller controller)
-        {
-            foreach (var dirkey in retroarchdirs)
-            {
-                var k = controller.Input.XInputTranslated(dirkey);
-                if (k != null && k.Type == "button" || k.Type == "hat")
-                    return "analog";
-            }
-
-            return "standard";
-        }*/
-
         private static Dictionary<string, string> generateControllerConfig(Controller controller, string system)
         {
+            Dictionary<InputKey, string> retroarchbtns = new Dictionary<InputKey, string>()
+            {
+                { InputKey.b, "a" },
+                { InputKey.a, "b" }, // A et B inversés par rapport à batocera
+                { InputKey.x, "x" }, 
+                { InputKey.y, "y" },
+                { InputKey.pageup, "l" },
+                { InputKey.pagedown, "r"}, 
+                { InputKey.l2, "l2"},
+                { InputKey.r2, "r2"},
+                { InputKey.l3, "l3"}, 
+                { InputKey.r3, "r3"},
+                { InputKey.start, "start"}, 
+                { InputKey.select, "select"}
+            };
+
+            if (system == "gamecube")
+            {
+                retroarchbtns = new Dictionary<InputKey, string>()
+                {
+                    { InputKey.b, "a" },
+                    { InputKey.a, "b" }, // A et B inversés par rapport à batocera
+                    { InputKey.x, "x" }, 
+                    { InputKey.y, "y" },
+                    { InputKey.l2, "l2"},
+                    { InputKey.r2, "r2"},
+                    { InputKey.l3, "l3"}, 
+                    { InputKey.r3, "r3"},
+                    { InputKey.start, "start"}, 
+                    { InputKey.pagedown, "select"} // select
+                };
+            }
+
+
+
+            if (system == "n64")
+            {
+                // some input adaptations for some cores...
+                // z is important, in case l2 (z) is not available for this pad, use l1
+                if (controller.Input != null && controller.Input.Input != null && !controller.Input.Input.Any(i => i.Name == InputKey.r2))
+                {
+                    retroarchbtns[InputKey.pageup] = "l2";
+                    retroarchbtns[InputKey.l2] = "l";
+                }
+            }
+
             var config = new Dictionary<string, string>();
 
-            foreach (var btnkey in (system == "gamecube" ? gamecubeButtons : retroarchbtns))
+            foreach (var btnkey in retroarchbtns)
             {
                 var input = GetInputCode(controller, btnkey.Key);
                 if (input == null)
@@ -320,7 +323,7 @@ namespace emulatorLauncher.libRetro
                 retroconfig[key.Key] = key.Value;
 
             retroconfig[string.Format("input_player{0}_joypad_index", controller.Index)] = (controller.Index-1).ToString();
-            retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.Index)] = getAnalogMode(controller);
+            retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.Index)] = getAnalogMode(controller, system);
         }
 
         private static string getConfigValue(Input input)
