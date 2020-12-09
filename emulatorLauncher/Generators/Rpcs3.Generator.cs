@@ -17,7 +17,15 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            if (Path.GetExtension(rom).ToLower() == ".m3u")
+            if (Path.GetExtension(rom).ToLower() == ".ps3")
+            {
+                string eboot = Path.Combine(rom, "PS3_GAME\\USRDIR\\EBOOT.BIN");
+                if (!File.Exists(eboot))
+                    eboot = Path.Combine(rom, "USRDIR\\EBOOT.BIN");
+
+                rom = eboot;
+            }
+            else if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
                 rom = File.ReadAllText(rom);
@@ -28,13 +36,20 @@ namespace emulatorLauncher
                     rom = Path.Combine(path, rom.Substring(1));
             }
 
+            List<string> commandArray = new List<string>();
+            commandArray.Add("\"" + rom + "\"");
+
+            if (SystemConfig.isOptSet("gui") && !SystemConfig.getOptBoolean("gui"))
+                commandArray.Add("--no-gui");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "\"" + rom + "\"",                
+                Arguments = args,                
                 WindowStyle = ProcessWindowStyle.Minimized
-                //Arguments = "--no-gui \"" + rom + "\"",                
             };
         }
     }
