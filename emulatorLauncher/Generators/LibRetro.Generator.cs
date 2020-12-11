@@ -549,15 +549,10 @@ namespace emulatorLauncher.libRetro
                 if (screenRatio < 1.6) // use bezels only for 16:10, 5:3, 16:9 and wider aspect ratios
                     return;
 
-                if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
-                    bezelNeedAdaptation = false; // Widers screens
-                else
-                {
-                    infos.width = imageSize.Width;
-                    infos.height = imageSize.Height;
-                    bezelNeedAdaptation = true;
-                }
-
+                infos.width = imageSize.Width;
+                infos.height = imageSize.Height;
+                bezelNeedAdaptation = true;
+                
                 if (!SystemConfig.isOptSet("ratio"))
                     retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString(); // overwritten from the beginning of this file
             }
@@ -587,16 +582,16 @@ namespace emulatorLauncher.libRetro
                 int xoffset = resX - infos.width.Value;
                 int yoffset = resY - infos.height.Value;
 
+                bool stretchImage = false;
+
+                if (resX < infos.width || resY < infos.height) // If width or height < original, can't add black borders. Just stretch
+                    stretchImage = true;
+                else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
+                    stretchImage = true;
+
                 if (viewPortUsed)
                 {
-                    bool stretchViewport = false;
-
-                    if (resX < infos.width || resY < infos.height) // If width or height < original, can't add black borders. Just stretch
-                        stretchViewport = true;
-                    else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
-                        stretchViewport = true;
-
-                    if (stretchViewport)
+                    if (stretchImage)
                     {
                         retroarchConfig["custom_viewport_x"] = ((int)(infos.left * wratio)).ToString();
                         retroarchConfig["custom_viewport_y"] = ((int)(infos.top * hratio)).ToString();
@@ -607,52 +602,52 @@ namespace emulatorLauncher.libRetro
                     }
                     else
                     {
-                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left.Value + xoffset / 2)).ToString();
-                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top.Value + yoffset / 2)).ToString();
-                        retroarchConfig["custom_viewport_width"] = ((int)((infos.width.Value - infos.left.Value - infos.right.Value))).ToString();
-                        retroarchConfig["custom_viewport_height"] = ((int)((infos.height.Value - infos.top.Value - infos.bottom.Value))).ToString();
+                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left + xoffset / 2)).ToString();
+                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top + yoffset / 2)).ToString();
+                        retroarchConfig["custom_viewport_width"] = ((int)((infos.width - infos.left - infos.right))).ToString();
+                        retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom))).ToString();
                         retroarchConfig["video_message_pos_x"] = (infos.messagex.Value + xoffset / 2).ToString(CultureInfo.InvariantCulture);
                         retroarchConfig["video_message_pos_y"] = (infos.messagey.Value + yoffset / 2).ToString(CultureInfo.InvariantCulture);
                     }
                 }
 
-                int borderw = 0;
-                int borderh = 0;
-                if (wratio > 1)
-                    borderw = xoffset / 2;
-                if (hratio > 1)
-                    borderh = yoffset / 2;
-
-                var f = Path.GetFileNameWithoutExtension(overlay_png_file);
-                var d = Path.GetFileName(Path.GetDirectoryName(overlay_png_file));
-                var fn = "bezel." + d + "." + f + "." + resX + "x" + resY + ".png";
-                string output_png_file = Path.Combine(Path.GetTempPath(), fn);
-
-                if (File.Exists(output_png_file))
-                    overlay_png_file = output_png_file;
-                else
+                if (!stretchImage)
                 {
-                    try
+                    var f = Path.GetFileNameWithoutExtension(overlay_png_file);
+                    var d = Path.GetFileName(Path.GetDirectoryName(overlay_png_file));
+                    var fn = "bezel." + d + "." + f + "." + resX + "x" + resY + ".png";
+                    string output_png_file = Path.Combine(Path.GetTempPath(), fn);
+
+                    if (File.Exists(output_png_file))
+                        overlay_png_file = output_png_file;
+                    else
                     {
-                        using (Image img = Image.FromFile(overlay_png_file))
+                        try
                         {
-                            using (Bitmap bmp = new Bitmap(infos.width.Value + 2 * borderw, infos.height.Value + 2 * borderh))
+                            using (Image img = Image.FromFile(overlay_png_file))
                             {
-                                using (Graphics g = Graphics.FromImage(bmp))
+                                using (Bitmap bmp = new Bitmap(resX, resY))
                                 {
-                                    g.ExcludeClip(new Rectangle(borderw, borderh, img.Width, img.Height));
-                                    g.FillRectangle(Brushes.Black, new Rectangle(0, 0, bmp.Width, bmp.Height));
-                                    g.ResetClip();
+                                    using (Graphics g = Graphics.FromImage(bmp))
+                                    {
+                                        Rectangle rect = Misc.GetPictureRect(img.Size, new Rectangle(0, 0, resX, resY));
+                                        if (rect.X != 0 && rect.Y != 0)
+                                        {
+                                            g.ExcludeClip(rect);
+                                            g.FillRectangle(Brushes.Black, new Rectangle(0, 0, bmp.Width, bmp.Height));
+                                            g.ResetClip();
+                                        }
 
-                                    g.DrawImage(img, new Rectangle(borderw, borderh, img.Width, img.Height));
+                                        g.DrawImage(img, rect);
+                                    }
+
+                                    bmp.Save(output_png_file, System.Drawing.Imaging.ImageFormat.Png);
+                                    overlay_png_file = output_png_file;
                                 }
-
-                                bmp.Save(output_png_file, System.Drawing.Imaging.ImageFormat.Png);
-                                overlay_png_file = output_png_file;
                             }
                         }
+                        catch { }
                     }
-                    catch { }
                 }
             }
             else
