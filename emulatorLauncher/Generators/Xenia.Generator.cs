@@ -24,6 +24,9 @@ namespace emulatorLauncher
             {
                 _canary = true;
                 exe = Path.Combine(path, "xenia-canary.exe");
+
+                if (!File.Exists(exe))
+                    exe = Path.Combine(path, "xenia_canary.exe");
             }
 
             if (!File.Exists(exe))

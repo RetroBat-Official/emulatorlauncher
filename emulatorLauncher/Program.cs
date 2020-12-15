@@ -63,6 +63,7 @@ namespace emulatorLauncher
             { "oricutron", () => new OricutronGenerator() },
             { "switch", () => new YuzuGenerator() }, { "yuzu", () => new YuzuGenerator() },
             { "ryunjin", () => new RyujinxGenerator() },
+            { "teknoparrot", () => new TeknoParrotGenerator() },            
             { "solarus", () => new SolarusGenerator() }            
         };
 
@@ -165,6 +166,7 @@ namespace emulatorLauncher
                             mapping = PadToKey.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_padtokey.cfg"));
 
                         mapping = LoadGamePadToKeyMapping(path, mapping);
+                        mapping = generator.SetupCustomPadToKeyMapping(mapping);
 
                         using (new HighPerformancePowerScheme())
                         using (new JoystickListener(inputConfig, mapping))

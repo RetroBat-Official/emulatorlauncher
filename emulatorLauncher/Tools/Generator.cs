@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using emulatorLauncher.PadToKeyboard;
 
 namespace emulatorLauncher
 {
@@ -29,5 +30,10 @@ namespace emulatorLauncher
 
         public bool DependsOnDesktopResolution { get; protected set; }
         public bool UsePadToKey { get; protected set; }
+
+        public virtual PadToKey SetupCustomPadToKeyMapping(PadToKeyboard.PadToKey mapping)
+        {
+            return mapping;
+        }
     }
 }

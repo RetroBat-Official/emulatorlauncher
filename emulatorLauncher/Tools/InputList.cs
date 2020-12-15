@@ -566,6 +566,24 @@ namespace emulatorLauncher.Tools
         LEFTTRIGGER = 52
     }
 
+    [Flags]
+    public enum GamepadButtonFlags : ushort
+    {
+        DPAD_UP = 1,
+        DPAD_DOWN = 2,
+        DPAD_LEFT = 4,
+        DPAD_RIGHT = 8,
+        START = 16,
+        BACK = 32,
+        LEFTTRIGGER = 64,
+        RIGHTTRIGGER = 128,
+        LEFTSHOULDER = 256,
+        RIGHTSHOULDER = 512,
+        A = 4096,
+        B = 8192,
+        X = 16384,
+        Y = 32768
+    }
 
     enum XINPUT_GAMEPAD
     {
