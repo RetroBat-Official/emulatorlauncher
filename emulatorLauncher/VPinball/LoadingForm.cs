@@ -20,6 +20,7 @@ namespace VPinballLauncher
             InitializeComponent();
 
             this.Size = new System.Drawing.Size(1024 + 20, 768 + 20);
+            this.Font = SystemFonts.MessageBoxFont;
 
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             ShowInTaskbar = false;            
@@ -106,6 +107,7 @@ namespace VPinballLauncher
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
+
             if (Image != null)
             {
                 Size sz = new System.Drawing.Size(1024, 768);
@@ -118,9 +120,13 @@ namespace VPinballLauncher
             if (!string.IsNullOrEmpty(WarningText))
             {
                 Rectangle rc = ClientRectangle;
-                int h = rc.Height / 3;
-                rc.Y += h + h;
-                rc.Height = h;
+
+                if (Image != null)
+                {
+                    int h = rc.Height / 3;
+                    rc.Y += h + h;
+                    rc.Height = h;
+                }
 
                 TextRenderer.DrawText(e.Graphics, WarningText, this.Font, rc, Color.White, Color.Transparent, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
             }
