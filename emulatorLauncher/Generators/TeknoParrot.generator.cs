@@ -234,7 +234,7 @@ namespace emulatorLauncher
                 FileName = exe,
                 Verb = userProfile.RequiresAdmin ? "runas" : null,
                 WorkingDirectory = path,
-                Arguments = "--profile=" + profileName + " --startMinimized",
+                Arguments = "--profile=" + profileName // + " --startMinimized",
             };
         }
 
