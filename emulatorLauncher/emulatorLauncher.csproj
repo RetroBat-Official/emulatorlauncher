@@ -64,8 +64,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Generators\AppleWin.Generator.cs" />
+	<Compile Include="Generators\AmigaForever.Generator.cs" />
     <Compile Include="Generators\Cemu.Generator.cs" />
-    <Compile Include="Generators\Ryujin.Generator.cs" />
+	<Compile Include="Generators\Duckstation.Generator.cs" />
+	<Compile Include="Generators\KegaFusion.Generator.cs" />
+	<Compile Include="Generators\Mesen.Generator.cs" />
+    <Compile Include="Generators\Ryujinx.Generator.cs" />
     <Compile Include="Generators\TeknoParrot.generator.cs" />
     <Compile Include="Generators\Yuzu.Generator.cs" />
     <Compile Include="Generators\LibRetro.CoreOptions.cs">

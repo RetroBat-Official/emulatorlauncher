@@ -33,6 +33,10 @@ namespace emulatorLauncher
         static Dictionary<string, Func<Generator>> generators = new Dictionary<string, Func<Generator>>
         {
             { "libretro", () => new LibRetroGenerator() }, { "angle", () => new LibRetroGenerator() },
+			{ "amigaforever", () => new AmigaForeverGenerator() },
+			{ "duckstation", () => new DuckstationGenerator() },
+			{ "kega-fusion", () => new KegaFusionGenerator() },
+			{ "mesen", () => new MesenGenerator() },
 			{ "mgba", () => new mGBAGenerator() },			
             { "model2", () => new Model2Generator() },
             { "model3", () => new Model3Generator() }, { "supermodel", () => new Model3Generator() },
@@ -62,7 +66,7 @@ namespace emulatorLauncher
             { "mame64", () => new Mame64Generator() },
             { "oricutron", () => new OricutronGenerator() },
             { "switch", () => new YuzuGenerator() }, { "yuzu", () => new YuzuGenerator() },
-            { "ryunjin", () => new RyujinxGenerator() },
+            { "ryujinx", () => new RyujinxGenerator() },
             { "teknoparrot", () => new TeknoParrotGenerator() },            
             { "solarus", () => new SolarusGenerator() }            
         };
