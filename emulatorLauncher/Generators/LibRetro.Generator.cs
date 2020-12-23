@@ -623,6 +623,19 @@ namespace emulatorLauncher.libRetro
             }
         }
 
+        public static BezelFiles GetBezelFiles(string systemName, string rom, ScreenResolution resolution)
+        {     
+            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
+            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+
+            float screenRatio = (float)resX / (float)resY;
+
+            if (screenRatio < 1.4)
+                return null;
+
+            return GetBezelFiles(systemName, rom);
+        }
+
         public static BezelFiles GetBezelFiles(string systemName, string rom)
         {            
             string overlayUser = Program.AppConfig.GetFullPath("decorations");

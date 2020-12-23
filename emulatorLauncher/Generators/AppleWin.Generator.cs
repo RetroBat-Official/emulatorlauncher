@@ -21,7 +21,8 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupBezel(system, rom, resolution);
+            _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
+            _resolution = resolution;
 
             return new ProcessStartInfo()
             {
@@ -29,19 +30,6 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = "-f -d1 \"" + rom + "\"",
             };
-        }
-
-        private void SetupBezel(string system, string rom, ScreenResolution resolution)
-        {
-            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
-
-            float screenRatio = (float)resX / (float)resY;
-
-            if (screenRatio > 1.4)
-                _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom);
-
-            _resolution = resolution;
         }
 
         public override void RunAndWait(ProcessStartInfo path)

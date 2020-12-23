@@ -48,13 +48,9 @@ namespace emulatorLauncher
             SetupLilyPad();
             SetupGSDx(resolution);
 
-            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+            if (SystemConfig["ratio"] == "4:3")
+                _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
 
-            float screenRatio = (float)resX / (float)resY;
-
-            if (SystemConfig["ratio"] == "4:3" && screenRatio > 1.4)
-                _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom);
             _resolution = resolution;
 
             List<string> commandArray = new List<string>();
