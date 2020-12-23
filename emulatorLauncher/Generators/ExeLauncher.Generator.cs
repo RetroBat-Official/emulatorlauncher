@@ -12,6 +12,35 @@ namespace emulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = Path.GetDirectoryName(rom);
+            
+            if (Directory.Exists(rom)) // If rom is a directory ( .pc .win .windows, .wine )
+            {
+                path = rom;
+                if (File.Exists(Path.Combine(rom, "autorun.cmd")))
+                    rom = Path.Combine(rom, "autorun.cmd");
+                else if (File.Exists(Path.Combine(rom, "autorun.bat")))
+                    rom = Path.Combine(rom, "autorun.bat");
+                else if (File.Exists(Path.Combine(rom, "autoexec.cmd")))
+                    rom = Path.Combine(rom, "autoexec.cmd");
+                else if (File.Exists(Path.Combine(rom, "autoexec.bat")))
+                    rom = Path.Combine(rom, "autoexec.bat");
+                else
+                    rom = Directory.GetFiles(path, "*.exe").FirstOrDefault();
+                
+                if (Path.GetFileName(rom) == "autorun.cmd")
+                {                    
+                    var wine = File.ReadAllText(rom);
+                    int idx = wine.IndexOf("CMD=");
+                    if (idx >= 0)
+                    {
+                        rom = Path.ChangeExtension(rom, ".win.cmd");
+                        File.WriteAllText(rom, wine.Substring(idx + 4));
+                    }
+                }
+            }
+
+            if (!File.Exists(rom))
+                return null;
 
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
