@@ -9,7 +9,10 @@ using System.Windows.Forms;
 namespace emulatorLauncher
 {
     class Model3Generator : Generator
-    {        
+    {
+        private libRetro.LibRetroGenerator.BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("supermodel");
@@ -24,19 +27,24 @@ namespace emulatorLauncher
                 args.Add("-res=" + resolution.Width + "," + resolution.Height);
             else
                 args.Add("-res=" + Screen.PrimaryScreen.Bounds.Width + "," + Screen.PrimaryScreen.Bounds.Height);
-              
-            args.Add("-fullscreen");
-            args.Add("-wide-screen");
 
-            if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] != "4/3")
-                args.Add("-stretch");
+            _resolution = resolution;
+            _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
+            if (_bezelFileInfo == null)
+            {
+                args.Add("-fullscreen");
+
+                if (SystemConfig["ratio"] != "4:3")
+                {
+                    args.Add("-wide-screen");
+                    args.Add("-stretch");
+                }
+            }
                             
             if (SystemConfig["VSync"] != "false")
                 args.Add("-vsync");
 
             args.Add("\""+rom+"\"");
-
-            // -res=1920,1080 -fullscreen -wide-screen -stretch -vsync %ROM%
 
             return new ProcessStartInfo()
             {
@@ -45,5 +53,51 @@ namespace emulatorLauncher
                 WorkingDirectory = path,                
             };            
         }
+
+
+        public override void RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            try
+            {
+                var px = Process.Start(path);
+
+                while (!px.HasExited)
+                {
+                    if (px.WaitForExit(10))
+                        break;
+
+                    if (_bezelFileInfo != null)
+                    {
+                        IntPtr hWnd = User32.FindHwnds(px.Id).FirstOrDefault(h => User32.GetWindowText(h).StartsWith("Supermodel"));
+                        if (hWnd != IntPtr.Zero)
+                        {
+                            var style = User32.GetWindowStyle(hWnd);
+                            if (style.HasFlag(User32.WS.CAPTION))
+                            {
+                                int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
+                                int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
+
+                                User32.SetWindowStyle(hWnd, style & ~User32.WS.CAPTION);
+                                User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, User32.SWP.NOZORDER | User32.SWP.FRAMECHANGED);
+
+                                if (_bezelFileInfo != null && bezel == null)
+                                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+                            }
+                        }
+                    }
+
+                    Application.DoEvents();
+                }
+            }
+            catch { }
+            finally
+            {
+                if (bezel != null)
+                    bezel.Dispose();
+            }
+        }
+
     }
 }

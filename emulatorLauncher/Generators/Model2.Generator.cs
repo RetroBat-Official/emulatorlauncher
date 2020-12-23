@@ -64,9 +64,10 @@ namespace emulatorLauncher
             { "zerogunj", "zerogun" },
             { "zeroguna", "zerogun" },
         };
- 
 
-
+        private libRetro.LibRetroGenerator.BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+        
         public Model2Generator()
         {
             DependsOnDesktopResolution = false;
@@ -120,9 +121,11 @@ namespace emulatorLauncher
                     try { new FileInfo(_destParent).Attributes &= ~FileAttributes.ReadOnly; }
                     catch { }
                 }
-
             }
             
+            _resolution = resolution;
+            _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
+
             SetupConfig(path, resolution);
             
             string arg = Path.GetFileNameWithoutExtension(_destFile);
@@ -143,8 +146,19 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, true))
                 {
-                    ini.WriteValue("Renderer", "FullMode", "4");
-                    ini.WriteValue("Renderer", "AutoFull", "1");                    
+                    if (_bezelFileInfo == null)
+                    {
+                        ini.WriteValue("Renderer", "FullMode", "4");
+                        ini.WriteValue("Renderer", "AutoFull", "1");
+                        ini.WriteValue("Renderer", "WideScreenWindow", "0");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Renderer", "FullMode", "4");
+                        ini.WriteValue("Renderer", "AutoFull", "0");
+                        ini.WriteValue("Renderer", "WideScreenWindow", "1");
+                    }
+
                     ini.WriteValue("Renderer", "FullScreenWidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
                     ini.WriteValue("Renderer", "FullScreenHeight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
                     ini.WriteValue("Renderer", "ForceSync", SystemConfig["VSync"] != "false" ? "1" : "0");                              
@@ -161,6 +175,51 @@ namespace emulatorLauncher
 
             if (_destParent != null && File.Exists(_destParent))
                 File.Delete(_destParent);            
+        }
+
+        public override void RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            try
+            {
+                var px = Process.Start(path);
+
+                while (!px.HasExited)
+                {
+                    if (px.WaitForExit(10))
+                        break;
+
+                    if (_bezelFileInfo != null)
+                    {
+                        IntPtr hWnd = User32.FindHwnds(px.Id).FirstOrDefault(h => User32.GetClassName(h) == "MYWIN");
+                        if (hWnd != IntPtr.Zero)
+                        {
+                            var style = User32.GetWindowStyle(hWnd);
+                            if (style.HasFlag(User32.WS.CAPTION))
+                            {
+                                int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
+                                int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
+
+                                User32.SetWindowStyle(hWnd, style & ~User32.WS.CAPTION);
+                                User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, User32.SWP.NOZORDER | User32.SWP.FRAMECHANGED);
+                                User32.SetMenu(hWnd, IntPtr.Zero);
+                                
+                                if (_bezelFileInfo != null && bezel == null)
+                                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+                            }
+                        }
+                    }
+
+                    Application.DoEvents();
+                }
+            }
+            catch { }
+            finally
+            {
+                if (bezel != null)
+                    bezel.Dispose();
+            }
         }
     }
 }

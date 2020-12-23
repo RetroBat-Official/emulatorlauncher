@@ -78,11 +78,11 @@ namespace emulatorLauncher
                     break;
                 }
 
-                var hWnd = FindHwnd(process.Id);
+                var hWnd = User32.FindHwnd(process.Id);
                 if (hWnd == IntPtr.Zero)
                     continue;
                 
-                var name = GetWindowText(hWnd);
+                var name = User32.GetWindowText(hWnd);
                 if (name != null && name.StartsWith("gpu"))
                 {                    
                     SendKeys.SendWait("%~");
@@ -93,63 +93,6 @@ namespace emulatorLauncher
             if (process != null)
                 process.WaitForExit();
         }
-
-        #region Apis
-        private IntPtr FindHwnd(int processId)
-        {
-            IntPtr hWnd = GetWindow(GetDesktopWindow(), GW.CHILD);
-            while (hWnd != IntPtr.Zero)
-            {
-                if (IsWindowVisible(hWnd))
-                {
-                    uint wndProcessId;
-                    GetWindowThreadProcessId(hWnd, out wndProcessId);
-                    if (wndProcessId == processId)
-                        return hWnd;
-                }
-
-                hWnd = GetWindow(hWnd, GW.HWNDNEXT);
-            }
-
-            return IntPtr.Zero;
-        }
-
-        [DllImport("user32.dll", SetLastError = false)]
-        public static extern IntPtr GetDesktopWindow();
-
-        [DllImport("user32.dll")]
-        public static extern bool IsWindowVisible(IntPtr hWnd);
-
-        [DllImport("User32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr GetWindow(IntPtr hWnd, GW cmd);
-
-        public enum GW : int
-        {
-            HWNDFIRST = 0,
-            HWNDLAST = 1,
-            HWNDNEXT = 2,
-            HWNDPREV = 3,
-            OWNER = 4,
-            CHILD = 5
-        }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern int GetWindowTextLength(IntPtr hWnd);
-
-        public static string GetWindowText(IntPtr hWnd)
-        {
-            int capacity = GetWindowTextLength(hWnd) * 2;
-            StringBuilder lpString = new StringBuilder(capacity);
-            GetWindowText(hWnd, lpString, lpString.Capacity);
-            return lpString.ToString();
-        }
-        #endregion
 
         private void SetupGeneralConfig(string path, string rom, string system, string core)
         {
