@@ -14,7 +14,22 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private libRetro.LibRetroGenerator.BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
         private bool _triforce = false;
+
+        public override void RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+        }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -41,6 +56,11 @@ namespace emulatorLauncher
             if (!File.Exists(portableFile))
                 File.WriteAllText(portableFile, "");
 
+            if ((system == "gamecube" && SystemConfig["ratio"] == "") || SystemConfig["ratio"] == "4/3")
+                _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
+
             SetupGeneralConfig(path, system);
             SetupGfxConfig(path);
 
@@ -51,6 +71,7 @@ namespace emulatorLauncher
                 FileName = exe,
                 Arguments = "-b -e \"" + rom + "\"",
                 WorkingDirectory = path,
+                WindowStyle = (_bezelFileInfo == null ? ProcessWindowStyle.Normal : ProcessWindowStyle.Maximized)
             };
         }
 
@@ -73,12 +94,19 @@ namespace emulatorLauncher
                         else
                             ini.WriteValue("Settings", "AspectRatio", "0");
                     }
+                    else
+                        ini.WriteValue("Settings", "AspectRatio", "0");
 
                     // draw or not FPS
                     if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
                         ini.WriteValue("Settings", "ShowFPS", "True");
                     else
                         ini.WriteValue("Settings", "ShowFPS", "False");
+
+                    if (_bezelFileInfo != null)
+                        ini.WriteValue("Settings", "BorderlessFullscreen", "True");
+                    else 
+                        ini.WriteValue("Settings", "BorderlessFullscreen", "False");
 
                     ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
 
