@@ -13,15 +13,24 @@ namespace emulatorLauncher
         {
             string path = AppConfig.GetFullPath("yuzu");
 
-            string exe = Path.Combine(path, "yuzu-cmd.exe");
+            string exe = Path.Combine(path, "yuzu.exe");
             if (!File.Exists(exe))
                 return null;
-
+            
+            string conf = Path.Combine(path, "user", "config", "qt-config.ini");
+            if (File.Exists(conf))
+            {
+                var ini = new IniFile(conf);
+                ini.WriteValue("UI", "fullscreen\\default", "false");
+                ini.WriteValue("UI", "fullscreen", "true");
+                ini.Save();
+            }
+            
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-f \"" + rom + "\"",
+                Arguments = "\"" + rom + "\"",
             };
         }
     }
