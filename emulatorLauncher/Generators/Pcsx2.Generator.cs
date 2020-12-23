@@ -55,6 +55,7 @@ namespace emulatorLauncher
 
             if (SystemConfig["ratio"] == "4:3" && screenRatio > 1.4)
                 _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom);
+            _resolution = resolution;
 
             List<string> commandArray = new List<string>();
             commandArray.Add("--portable");
