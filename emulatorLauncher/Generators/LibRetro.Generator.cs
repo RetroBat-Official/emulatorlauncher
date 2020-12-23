@@ -109,8 +109,6 @@ namespace emulatorLauncher.libRetro
 
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
                 retroarchConfig["video_shader_enable"] = "true";
-            else
-                retroarchConfig["video_shader_enable"] = "false";
 
             if (SystemConfig.isOptSet("ratio"))
             {
