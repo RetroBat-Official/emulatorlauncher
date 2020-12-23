@@ -168,6 +168,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <None Include="Resources\configgen-defaults.yml" />
+    <None Include="Resources\mame.ini" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />

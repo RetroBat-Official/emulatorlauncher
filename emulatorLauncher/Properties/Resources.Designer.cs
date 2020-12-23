@@ -69,5 +69,34 @@ namespace emulatorLauncher.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #
+        ///# CORE CONFIGURATION OPTIONS
+        ///#
+        ///readconfig                1
+        ///writeconfig               0
+        ///
+        ///#
+        ///# CORE SEARCH PATH OPTIONS
+        ///#
+        ///homepath                  .
+        ///rompath                   roms
+        ///hashpath                  hash
+        ///samplepath                samples
+        ///artpath                   artwork
+        ///ctrlrpath                 ctrlr
+        ///inipath                   .;ini;ini/presets
+        ///fontpath                  .
+        ///cheatpath                 cheat
+        ///crosshairpath             crosshair
+        ///pluginspath               plugins
+        ///languag [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string mame {
+            get {
+                return ResourceManager.GetString("mame", resourceCulture);
+            }
+        }
     }
 }
