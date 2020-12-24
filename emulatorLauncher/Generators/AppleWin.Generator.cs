@@ -28,7 +28,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-f -d1 \"" + rom + "\"",
+                Arguments = "-f -no-printscreen-dlg -d1 \"" + rom + "\"",
             };
         }
 
