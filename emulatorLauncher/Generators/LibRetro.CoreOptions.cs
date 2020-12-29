@@ -10,7 +10,7 @@ namespace emulatorLauncher.libRetro
     {
         private void ConfigureCoreOptions(ConfigFile retroarchConfig, string system, string core)
         {
-            var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"));
+            var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
 
             if (core == "atari800")
             {

@@ -55,7 +55,7 @@ namespace emulatorLauncher
             return ret;
         }
 
-        public static ConfigFile FromFile(string file)
+        public static ConfigFile FromFile(string file, bool caseSentitive = false)
         {
             var ret = new ConfigFile();
             if (!File.Exists(file))
@@ -76,7 +76,10 @@ namespace emulatorLauncher
                     if (value.EndsWith("\""))
                         value = value.Substring(0, value.Length-1);
 
-                    ret[line.Substring(0, idx).ToLower().Trim()] = value;
+                    if (caseSentitive)
+                        ret[line.Substring(0, idx).Trim()] = value;
+                    else
+                        ret[line.Substring(0, idx).ToLower().Trim()] = value;
                 }
             }
 
@@ -146,7 +149,7 @@ namespace emulatorLauncher
         {
             get
             {
-                var item = _data.FirstOrDefault(d => d.Name == key);
+                var item = _data.FirstOrDefault(d => key.Equals(d.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (item != null)
                     return item.Value;
 
@@ -154,7 +157,7 @@ namespace emulatorLauncher
             }
             set
             {
-                var item = _data.FirstOrDefault(d => d.Name == key);
+                var item = _data.FirstOrDefault(d => key.Equals(d.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (item == null)
                 {
                     if (string.IsNullOrEmpty(value))
