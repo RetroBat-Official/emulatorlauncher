@@ -136,6 +136,7 @@ namespace emulatorLauncher.PadToKeyboard
         public PadToKeyInput()
         {
             Type = PadToKeyType.Keyboard;
+            ControllerIndex = -1;
         }
 
         [XmlAttribute("name")]
@@ -147,7 +148,11 @@ namespace emulatorLauncher.PadToKeyboard
         [XmlAttribute("code")]
         public string Code { get; set; }
 
+        [XmlIgnore]
         public PadToKeyType Type { get; set; }
+
+        [XmlIgnore]
+        public int ControllerIndex { get; set; }
 
         public bool IsValid()
         {

@@ -291,9 +291,6 @@ namespace emulatorLauncher.PadToKeyboard
             for (int i = 0; i < numJoysticks; i++)
                 AddJoystick(joysticks, i);
 
-            InputKeyInfo oldIState = new InputKeyInfo();
-            InputKeyInfo istate = new InputKeyInfo();
-
             while (true)
             {
                 if (_waitHandle.WaitOne(1))
@@ -324,54 +321,58 @@ namespace emulatorLauncher.PadToKeyboard
                                              normValue = -1;
                                      }
 
-                                     var axis = joysticks.FindInputMapping(evt.jaxis.which, "axis", evt.jaxis.axis);
-                                     if (axis != null)
+                                     var joy = joysticks.FindJoyInput(evt.jaxis.which);
+                                     if (joy != null)
                                      {
-                                         var axisName = axis.Name;
-                                         var revertedAxis = RevertedAxis(axisName);
-                                         int value = evt.jaxis.axisValue;
-
-                                         if (value != 0 && (Math.Abs(value) / value) == -axis.Value)
+                                         var axis = joy.FindMapping("axis", evt.jaxis.axis);
+                                         if (axis != null)
                                          {
-                                             if (revertedAxis != axisName)
+                                             var axisName = axis.Name;
+                                             var revertedAxis = RevertedAxis(axisName);
+                                             int value = evt.jaxis.axisValue;
+
+                                             if (value != 0 && (Math.Abs(value) / value) == -axis.Value)
                                              {
-                                                 axisName = revertedAxis;
-                                                 revertedAxis = axis.Name;
-                                                 value = -value;
+                                                 if (revertedAxis != axisName)
+                                                 {
+                                                     axisName = revertedAxis;
+                                                     revertedAxis = axis.Name;
+                                                     value = -value;
+                                                 }
+                                                 else
+                                                 {
+                                                     normValue = 0;
+                                                     value = 0;
+                                                 }
+                                             }
+
+                                             if (normValue != 0)
+                                             {
+                                                 joy.State.Remove(revertedAxis);
+                                                 joy.State.Add(axisName, value, true);
                                              }
                                              else
                                              {
-                                                 normValue = 0;
-                                                 value = 0;
+                                                 joy.State.Remove(revertedAxis);
+                                                 joy.State.Remove(axisName);
                                              }
                                          }
-
-                                         if (normValue != 0)
-                                         {
-                                             istate.Remove(revertedAxis);
-                                             istate.Add(axisName, value, true);
-                                         }
-                                         else
-                                         {
-                                             istate.Remove(revertedAxis);
-                                             istate.Remove(axisName);
-                                         }
-                                     }                                  
+                                     }
                                 }
                                 break;
 
                             case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
                             case SDL.SDL_EventType.SDL_JOYBUTTONUP:
                                 {
-                                    var js = joysticks.FirstOrDefault(j => j.Id == evt.jbutton.which);
-                                    if (js != null)
+                                    var joy = joysticks.FindJoyInput(evt.jbutton.which);
+                                    if (joy != null)
                                     {
-                                        foreach (var conf in js.Config.Input.Where(i => i.Type == "button" && i.Id == evt.jbutton.button))
+                                        foreach (var conf in joy.Config.Input.Where(i => i.Type == "button" && i.Id == evt.jbutton.button))
                                         {
                                             if (evt.jbutton.state == SDL.SDL_PRESSED)
-                                                istate.Add(conf.Name);
+                                                joy.State.Add(conf.Name);
                                             else
-                                                istate.Remove(conf.Name);
+                                                joy.State.Remove(conf.Name);
                                         }
                                     }
                                 }
@@ -379,43 +380,43 @@ namespace emulatorLauncher.PadToKeyboard
 
                             case SDL.SDL_EventType.SDL_JOYHATMOTION:
                                 {
-                                    var js = joysticks.FirstOrDefault(j => j.Id == evt.jhat.which);
-                                    if (js != null)
+                                    var joy = joysticks.FindJoyInput(evt.jhat.which);
+                                    if (joy != null)
                                     {
-                                        var up = js.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_UP);
+                                        var up = joy.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_UP);
                                         if (up != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_UP) == SDL.SDL_HAT_UP)
-                                                istate.Add(up.Name);
+                                                joy.State.Add(up.Name);
                                             else
-                                                istate.Remove(up.Name);
+                                                joy.State.Remove(up.Name);
                                         }
 
-                                        var right = js.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_RIGHT);
+                                        var right = joy.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_RIGHT);
                                         if (right != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_RIGHT) == SDL.SDL_HAT_RIGHT)
-                                                istate.Add(right.Name);
+                                                joy.State.Add(right.Name);
                                             else
-                                                istate.Remove(right.Name);
+                                                joy.State.Remove(right.Name);
                                         }
 
-                                        var down = js.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_DOWN);
+                                        var down = joy.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_DOWN);
                                         if (down != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_DOWN) == SDL.SDL_HAT_DOWN)
-                                                istate.Add(down.Name);
+                                                joy.State.Add(down.Name);
                                             else
-                                                istate.Remove(down.Name);
+                                                joy.State.Remove(down.Name);
                                         }
 
-                                        var left = js.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_LEFT);
+                                        var left = joy.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_LEFT);
                                         if (left != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_LEFT) == SDL.SDL_HAT_LEFT)
-                                                istate.Add(left.Name);
+                                                joy.State.Add(left.Name);
                                             else
-                                                istate.Remove(left.Name);
+                                                joy.State.Remove(left.Name);
                                         }
                                     }
                                 }
@@ -434,20 +435,20 @@ namespace emulatorLauncher.PadToKeyboard
                                 break;
 
                             case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                                if (!joysticks.Any(j => j.Id == evt.jdevice.which))
-                                    AddJoystick(joysticks, evt.jdevice.which);
+                                AddJoystick(joysticks, evt.jdevice.which);
                                 break;
                         }
 
-                        if (istate != oldIState)
+
+                        foreach (var joy in joysticks)
                         {
-                            Debug.WriteLine("State : " + istate.ToString() + " - OldState : " + oldIState.ToString());
+                            if (joy.State == joy.OldState)
+                                continue;
 
-                            //istate.HasNewInput(InputKey.leftanalogleft, oldIState, true);
-
-                            ProcessJoystickState(istate, oldIState);
-
-                            oldIState = istate.Clone();                            
+                            Debug.WriteLine("State : " + joy.State.ToString() + " - OldState : " + joy.OldState.ToString());
+                            ProcessJoystickState(joysticks.IndexOf(joy), joy.State, joy.OldState);
+                            
+                            joy.OldState = joy.State.Clone();                            
                         }
 
                         Thread.Sleep(1);
@@ -463,7 +464,7 @@ namespace emulatorLauncher.PadToKeyboard
             SDL.SDL_Quit();
         }
 
-        private void ProcessJoystickState(InputKeyInfo keyState, InputKeyInfo prevState)
+        private void ProcessJoystickState(int playerIndex, InputKeyInfo keyState, InputKeyInfo prevState)
         {
             IntPtr hWndProcess;
             bool isDesktop;
@@ -475,6 +476,9 @@ namespace emulatorLauncher.PadToKeyboard
                 foreach (var keyMap in mapping.Input)
                 {
                     if (!keyMap.IsValid())
+                        continue;
+
+                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != playerIndex)
                         continue;
 
                     SendInput(keyState, prevState, hWndProcess, process, keyMap);
@@ -489,8 +493,11 @@ namespace emulatorLauncher.PadToKeyboard
                     if (!keyMap.IsValid())
                         continue;
 
-                    if (mapping != null && mapping[keyMap.Name] != null)
+                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != playerIndex)
                         continue;
+
+                    if (mapping != null && mapping[keyMap.Name] != null)
+                        continue;                 
 
                     SendInput(keyState, prevState, hWndProcess, process, keyMap);
                 }
@@ -679,6 +686,10 @@ namespace emulatorLauncher.PadToKeyboard
         
         private void AddJoystick(JoyInputs joysticks, int i)
         {
+            var instanceId = SDL.SDL_JoystickGetDeviceInstanceID(i);
+            if (joysticks.Any(j => j.Id == instanceId))
+                return;
+
             IntPtr joy = SDL.SDL_JoystickOpen(i);
             var guid = SDL.SDL_JoystickGetGUID(joy);
             var guid2 = SDL.SDL_JoystickGetDeviceGUID(i);
@@ -689,7 +700,7 @@ namespace emulatorLauncher.PadToKeyboard
                 conf = _inputList.FirstOrDefault(cfg => cfg.DeviceName == name);
 
             if (conf != null)
-                joysticks.Add(new JoyInput(SDL.SDL_JoystickInstanceID(joy), joy, conf));
+                joysticks.Add(new JoyInput(instanceId, joy, conf));
         }
 
         const int WM_CLOSE = 0x0010;
@@ -781,12 +792,30 @@ namespace emulatorLauncher.PadToKeyboard
                 Id = id;
                 SdlJoystick = joystick;
                 Config = conf;
+
+                State = new InputKeyInfo();
+                OldState = new InputKeyInfo();
+            }
+
+            public InputKeyInfo OldState { get; set; }
+            public InputKeyInfo State { get; private set; }
+
+            public Input FindMapping(string type, int id, int value = -1)
+            {
+                if (type == "hat")
+                    return Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id && i.Value == value);
+
+                return Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id);
             }
         }
 
         class JoyInputs : List<JoyInput>
         {
-
+            public JoyInput FindJoyInput(int which)
+            {
+                return this.FirstOrDefault(j => j.Id == which);
+            }
+            /*
             public Input FindInputMapping(int which, string type, int id, int value = -1)
             {
                 var js = this.FirstOrDefault(j => j.Id == which);
@@ -798,7 +827,7 @@ namespace emulatorLauncher.PadToKeyboard
                 
                 return js.Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id);
             }
-
+            */
         }
     }
 }

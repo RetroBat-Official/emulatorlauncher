@@ -75,13 +75,7 @@ namespace emulatorLauncher.PadToKeyboard
             List<List<EvMapyAction>> ret = new List<List<EvMapyAction>>();
 
             for (int i = 0; i < 4; i++)
-            {
-                var item = this[i];
-                if (item == null)
-                    break;
-
-                ret.Add(item);
-            }
+                ret.Add(this[i]);
 
             return ret.GetEnumerator();
         }
@@ -91,13 +85,7 @@ namespace emulatorLauncher.PadToKeyboard
             List<List<EvMapyAction>> ret = new List<List<EvMapyAction>>();
 
             for (int i = 0; i < 4; i++)
-            {
-                var item = this[i];
-                if (item == null)
-                    break;
-
-                ret.Add(item);
-            }
+                ret.Add(this[i]);
 
             return ret.GetEnumerator();
         }

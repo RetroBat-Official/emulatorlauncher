@@ -201,14 +201,22 @@ namespace emulatorLauncher
                     gameMapping = EvMapyKeysFile.TryLoad(systemMapping);
             }
 
-            if (gameMapping == null || gameMapping.Count == 0)
+            if (gameMapping == null || gameMapping.All(c => c == null))
                 return mapping;
 
             PadToKeyApp app = new PadToKeyApp();
             app.Name = Path.GetFileNameWithoutExtension(path.FileName).ToLower();
 
+            int controllerIndex = 0;
+
             foreach (var player in gameMapping)
             {
+                if (player == null)
+                {
+                    controllerIndex++;
+                    continue;
+                }
+
                 foreach (var action in player)
                 {
                     if (action.type == "mouse")
@@ -257,6 +265,7 @@ namespace emulatorLauncher
 
                     PadToKeyInput input = new PadToKeyInput();
                     input.Name = k;
+                    input.ControllerIndex = controllerIndex;
 
                     foreach (var target in action.Targets)
                     {
@@ -270,6 +279,8 @@ namespace emulatorLauncher
                     if (input.ScanCodes.Length > 0)
                         app.Input.Add(input);
                 }
+
+                controllerIndex++;
             }
 
             if (app.Input.Count > 0)
