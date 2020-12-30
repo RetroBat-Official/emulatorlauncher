@@ -277,7 +277,7 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            bool xInput = Program.Controllers.All(c => c.Input != null && c.Input.IsXInputDevice());
+            bool xInput = Program.Controllers.All(c => c.Config != null && c.Config.IsXInputDevice());
 
             var inputAPI = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Input API");
             if (inputAPI != null)
@@ -290,7 +290,7 @@ namespace emulatorLauncher
 
             foreach (var c in Program.Controllers)
             {
-                if (c.Input == null || c.Input.Type == "key")
+                if (c.Config == null || c.Config.Type == "key")
                     continue;
 
                 if (xInput)
@@ -300,76 +300,76 @@ namespace emulatorLauncher
 
                     if (userProfile.EmulationProfile == EmulationProfile.NamcoMachStorm)
                     {
-                        ImportXInputButton(userProfile, c.Input, InputKey.select, InputMapping.Service1);
+                        ImportXInputButton(userProfile, c.Config, InputKey.select, InputMapping.Service1);
 
-                        ImportXInputButton(userProfile, c.Input, InputKey.leftanalogup, InputMapping.Analog6);
-                        ImportXInputButton(userProfile, c.Input, InputKey.leftanalogleft, InputMapping.Analog4);
-                        ImportXInputButton(userProfile, c.Input, InputKey.rightthumb, InputMapping.Analog2);
+                        ImportXInputButton(userProfile, c.Config, InputKey.leftanalogup, InputMapping.Analog6);
+                        ImportXInputButton(userProfile, c.Config, InputKey.leftanalogleft, InputMapping.Analog4);
+                        ImportXInputButton(userProfile, c.Config, InputKey.rightthumb, InputMapping.Analog2);
 
-                        ImportXInputButton(userProfile, c.Input, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
-                        ImportXInputButton(userProfile, c.Input, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
+                        ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
+                        ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
 
-                        ImportXInputButton(userProfile, c.Input, InputKey.a, InputMapping.JvsTwoP1Button1, InputMapping.P1Button1);
-                        ImportXInputButton(userProfile, c.Input, InputKey.b, InputMapping.ExtensionOne12);
-                        ImportXInputButton(userProfile, c.Input, InputKey.x, InputMapping.ExtensionOne11);
+                        ImportXInputButton(userProfile, c.Config, InputKey.a, InputMapping.JvsTwoP1Button1, InputMapping.P1Button1);
+                        ImportXInputButton(userProfile, c.Config, InputKey.b, InputMapping.ExtensionOne12);
+                        ImportXInputButton(userProfile, c.Config, InputKey.x, InputMapping.ExtensionOne11);
                     }
                     else
                     {
-                        if (c.Input[InputKey.leftanalogleft] != null)
+                        if (c.Config[InputKey.leftanalogleft] != null)
                         {
                             if (userProfile.HasAnyXInputButton(InputMapping.Analog0))
                             {
-                                ImportXInputButton(userProfile, c.Input, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
-                                ImportXInputButton(userProfile, c.Input, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
-                                ImportXInputButton(userProfile, c.Input, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
-                                ImportXInputButton(userProfile, c.Input, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
+                                ImportXInputButton(userProfile, c.Config, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
+                                ImportXInputButton(userProfile, c.Config, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
+                                ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
+                                ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
 
                                 // Wheel
-                                ImportXInputButton(userProfile, c.Input, InputKey.leftanalogleft, InputMapping.Analog0);
-                                ImportXInputButton(userProfile, c.Input, InputKey.leftanalogup, InputMapping.Analog1);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogleft, InputMapping.Analog0);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogup, InputMapping.Analog1);
 
                                 // Gas
-                                ImportXInputButton(userProfile, c.Input, InputKey.rightthumb, InputMapping.Analog2);
+                                ImportXInputButton(userProfile, c.Config, InputKey.rightthumb, InputMapping.Analog2);
 
                                 // Brake
-                                ImportXInputButton(userProfile, c.Input, InputKey.leftthumb, InputMapping.Analog4);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftthumb, InputMapping.Analog4);
                             }
                             else
                             {
-                                ImportXInputButton(userProfile, c.Input, InputKey.leftanalogleft, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
-                                ImportXInputButton(userProfile, c.Input, InputKey.leftanalogright, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
-                                ImportXInputButton(userProfile, c.Input, InputKey.leftanalogup, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
-                                ImportXInputButton(userProfile, c.Input, InputKey.leftanalogdown, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogleft, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogright, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogup, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogdown, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
                             }
                         }
                         else
                         {
-                            ImportXInputButton(userProfile, c.Input, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
-                            ImportXInputButton(userProfile, c.Input, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
-                            ImportXInputButton(userProfile, c.Input, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
-                            ImportXInputButton(userProfile, c.Input, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
+                            ImportXInputButton(userProfile, c.Config, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
+                            ImportXInputButton(userProfile, c.Config, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
+                            ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
+                            ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
                         }
 
                         if (userProfile.HasAnyXInputButton(InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart, InputMapping.JvsTwoCoin1, InputMapping.Coin1))
                         {
-                            ImportXInputButton(userProfile, c.Input, InputKey.start, InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart);
-                            ImportXInputButton(userProfile, c.Input, InputKey.select, InputMapping.JvsTwoCoin1, InputMapping.Coin1);
+                            ImportXInputButton(userProfile, c.Config, InputKey.start, InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart);
+                            ImportXInputButton(userProfile, c.Config, InputKey.select, InputMapping.JvsTwoCoin1, InputMapping.Coin1);
                         }
                         else
-                            ImportXInputButton(userProfile, c.Input, InputKey.start, InputMapping.Service1, InputMapping.JvsTwoService1);
+                            ImportXInputButton(userProfile, c.Config, InputKey.start, InputMapping.Service1, InputMapping.JvsTwoService1);
 
-                        ImportXInputButton(userProfile, c.Input, InputKey.a, InputMapping.JvsTwoP1Button1, InputMapping.P1Button1);
-                        ImportXInputButton(userProfile, c.Input, InputKey.b, InputMapping.JvsTwoP1Button2, InputMapping.P1Button2);
-                        ImportXInputButton(userProfile, c.Input, InputKey.x, InputMapping.JvsTwoP1Button3, InputMapping.P1Button3);
-                        ImportXInputButton(userProfile, c.Input, InputKey.y, InputMapping.JvsTwoP1Button4, InputMapping.P1Button4);
+                        ImportXInputButton(userProfile, c.Config, InputKey.a, InputMapping.JvsTwoP1Button1, InputMapping.P1Button1);
+                        ImportXInputButton(userProfile, c.Config, InputKey.b, InputMapping.JvsTwoP1Button2, InputMapping.P1Button2);
+                        ImportXInputButton(userProfile, c.Config, InputKey.x, InputMapping.JvsTwoP1Button3, InputMapping.P1Button3);
+                        ImportXInputButton(userProfile, c.Config, InputKey.y, InputMapping.JvsTwoP1Button4, InputMapping.P1Button4);
 
-                        ImportXInputButton(userProfile, c.Input, InputKey.leftshoulder, InputMapping.JvsTwoP1Button5, InputMapping.P1Button5);
-                        ImportXInputButton(userProfile, c.Input, InputKey.rightshoulder, InputMapping.JvsTwoP1Button6, InputMapping.P1Button6);
+                        ImportXInputButton(userProfile, c.Config, InputKey.leftshoulder, InputMapping.JvsTwoP1Button5, InputMapping.P1Button5);
+                        ImportXInputButton(userProfile, c.Config, InputKey.rightshoulder, InputMapping.JvsTwoP1Button6, InputMapping.P1Button6);
 
                         if (userProfile.HasAnyXInputButton(InputMapping.ExtensionOne2) && !userProfile.HasAnyXInputButton(InputMapping.P1Button2))
-                            ImportXInputButton(userProfile, c.Input, InputKey.b, InputMapping.ExtensionOne2);
+                            ImportXInputButton(userProfile, c.Config, InputKey.b, InputMapping.ExtensionOne2);
                         else
-                            ImportXInputButton(userProfile, c.Input, InputKey.b, InputMapping.JvsTwoP1Button2, InputMapping.P1Button2);
+                            ImportXInputButton(userProfile, c.Config, InputKey.b, InputMapping.JvsTwoP1Button2, InputMapping.P1Button2);
                     }
                 }
                 else
@@ -377,29 +377,29 @@ namespace emulatorLauncher
            //         foreach (var btn in userProfile.JoystickButtons)
           //              btn.DirectInputButton = null;
 
-                    if (c.Input[InputKey.leftanalogleft] != null)
+                    if (c.Config[InputKey.leftanalogleft] != null)
                     {
-                        ImportDirectInputButton(userProfile, c.Input, InputKey.leftanalogup, new InputMapping[] { InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp });
-                        ImportDirectInputButton(userProfile, c.Input, InputKey.leftanalogleft, new InputMapping[] { InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft });
-                        ImportDirectInputButton(userProfile, c.Input, InputKey.leftanalogdown, new InputMapping[] { InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown });
-                        ImportDirectInputButton(userProfile, c.Input, InputKey.leftanalogright, new InputMapping[] { InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight });
+                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogup, new InputMapping[] { InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp });
+                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogleft, new InputMapping[] { InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft });
+                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogdown, new InputMapping[] { InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown });
+                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogright, new InputMapping[] { InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight });
                     }
                     else
                     {
-                        ImportDirectInputButton(userProfile, c.Input, InputKey.up, new InputMapping[] { InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp });
-                        ImportDirectInputButton(userProfile, c.Input, InputKey.left, new InputMapping[] { InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft });
-                        ImportDirectInputButton(userProfile, c.Input, InputKey.down, new InputMapping[] { InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown });
-                        ImportDirectInputButton(userProfile, c.Input, InputKey.right, new InputMapping[] { InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight });
+                        ImportDirectInputButton(userProfile, c.Config, InputKey.up, new InputMapping[] { InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp });
+                        ImportDirectInputButton(userProfile, c.Config, InputKey.left, new InputMapping[] { InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft });
+                        ImportDirectInputButton(userProfile, c.Config, InputKey.down, new InputMapping[] { InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown });
+                        ImportDirectInputButton(userProfile, c.Config, InputKey.right, new InputMapping[] { InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight });
                     }
 
-                    ImportDirectInputButton(userProfile, c.Input, InputKey.select, new InputMapping[] { InputMapping.JvsTwoCoin1, InputMapping.Coin1 });
-                    ImportDirectInputButton(userProfile, c.Input, InputKey.start, new InputMapping[] { InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart });
-                    ImportDirectInputButton(userProfile, c.Input, InputKey.a, new InputMapping[] { InputMapping.JvsTwoP1Button1, InputMapping.P1Button1 });
-                    ImportDirectInputButton(userProfile, c.Input, InputKey.b, new InputMapping[] { InputMapping.JvsTwoP1Button2, InputMapping.P1Button2 });
-                    ImportDirectInputButton(userProfile, c.Input, InputKey.x, new InputMapping[] { InputMapping.JvsTwoP1Button3, InputMapping.P1Button3 });
-                    ImportDirectInputButton(userProfile, c.Input, InputKey.y, new InputMapping[] { InputMapping.JvsTwoP1Button4, InputMapping.P1Button4 });
-                    ImportDirectInputButton(userProfile, c.Input, InputKey.lefttrigger, new InputMapping[] { InputMapping.JvsTwoP1Button5, InputMapping.P1Button5 });
-                    ImportDirectInputButton(userProfile, c.Input, InputKey.righttrigger, new InputMapping[] { InputMapping.JvsTwoP1Button6, InputMapping.P1Button6 });
+                    ImportDirectInputButton(userProfile, c.Config, InputKey.select, new InputMapping[] { InputMapping.JvsTwoCoin1, InputMapping.Coin1 });
+                    ImportDirectInputButton(userProfile, c.Config, InputKey.start, new InputMapping[] { InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart });
+                    ImportDirectInputButton(userProfile, c.Config, InputKey.a, new InputMapping[] { InputMapping.JvsTwoP1Button1, InputMapping.P1Button1 });
+                    ImportDirectInputButton(userProfile, c.Config, InputKey.b, new InputMapping[] { InputMapping.JvsTwoP1Button2, InputMapping.P1Button2 });
+                    ImportDirectInputButton(userProfile, c.Config, InputKey.x, new InputMapping[] { InputMapping.JvsTwoP1Button3, InputMapping.P1Button3 });
+                    ImportDirectInputButton(userProfile, c.Config, InputKey.y, new InputMapping[] { InputMapping.JvsTwoP1Button4, InputMapping.P1Button4 });
+                    ImportDirectInputButton(userProfile, c.Config, InputKey.lefttrigger, new InputMapping[] { InputMapping.JvsTwoP1Button5, InputMapping.P1Button5 });
+                    ImportDirectInputButton(userProfile, c.Config, InputKey.righttrigger, new InputMapping[] { InputMapping.JvsTwoP1Button6, InputMapping.P1Button6 });
 
                 }
 
@@ -677,7 +677,7 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(_exename))
                 return mapping;
 
-            if (Program.Controllers.Count(c => c.Input != null && c.Input.DeviceName != "Keyboard") == 0)
+            if (Program.Controllers.Count(c => c.Config != null && c.Config.DeviceName != "Keyboard") == 0)
                 return mapping;
 
             if (mapping == null)

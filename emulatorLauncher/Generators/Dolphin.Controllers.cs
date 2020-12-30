@@ -294,10 +294,10 @@ namespace emulatorLauncher
             {
                 foreach (var pad in Program.Controllers)
                 {
-                    string gcpad = anyDefKey + pad.Index;
+                    string gcpad = anyDefKey + pad.PlayerIndex;
                     ini.ClearSection(gcpad);
 
-                    if (pad.Input == null)
+                    if (pad.Config == null)
                         continue;
                   
                     // SIDevice0 = 7 -> Keyb GCKeyNew.ini
@@ -306,14 +306,14 @@ namespace emulatorLauncher
                     string tech = "XInput";
                     string deviceName = "Gamepad";
 
-                    if (pad.Input.Type == "keyboard")
+                    if (pad.Config.Type == "keyboard")
                     {
                         tech = "DInput";
                         deviceName = "Keyboard Mouse";                        
                     } 
-                    else if (!pad.Input.IsXInputDevice())
+                    else if (!pad.Config.IsXInputDevice())
                     {
-                        var di = pad.Input.GetDirectInputInfo();
+                        var di = pad.Config.GetDirectInputInfo();
                         if (di == null)
                             continue;
                         
@@ -338,7 +338,7 @@ namespace emulatorLauncher
                     {
                         string keyName = x.Value;
 
-                        if (pad.Input.Type == "keyboard")
+                        if (pad.Config.Type == "keyboard")
                         {
                             var value = x.Value;
 
@@ -358,7 +358,7 @@ namespace emulatorLauncher
                             if (x.Key == InputKey.joystick1left || x.Key == InputKey.joystick1up)
                                 continue;
 
-                            var input = pad.Input[x.Key];
+                            var input = pad.Config[x.Key];
                             if (input == null)
                                 continue;
 
@@ -367,21 +367,21 @@ namespace emulatorLauncher
                         }
                         else if (tech == "XInput")
                         {
-                            var mapping = pad.Input.GetXInputMapping(x.Key);
+                            var mapping = pad.Config.GetXInputMapping(x.Key);
                             if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                 ini.WriteValue(gcpad, x.Value, xInputMapping[mapping]);
 
                             string reverseAxis;
                             if (anyReverseAxes.TryGetValue(x.Value, out reverseAxis))
                             {
-                                mapping = pad.Input.GetXInputMapping(x.Key, true);
+                                mapping = pad.Config.GetXInputMapping(x.Key, true);
                                 if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }
                         }
                         else
                         {
-                            var input = pad.Input[x.Key];
+                            var input = pad.Config[x.Key];
                             if (input == null)
                                 continue;
 

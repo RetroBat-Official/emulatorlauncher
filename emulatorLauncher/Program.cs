@@ -110,7 +110,7 @@ namespace emulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
-            var inputConfig = LoadControllerConfiguration(args);
+            LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
             if (!SystemConfig.isOptSet("rom"))
@@ -173,7 +173,7 @@ namespace emulatorLauncher
                         mapping = generator.SetupCustomPadToKeyMapping(mapping);
 
                         using (new HighPerformancePowerScheme())
-                        using (new JoystickListener(inputConfig, mapping))
+                        using (new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
                             generator.RunAndWait(path);
                     }
                     else
@@ -183,7 +183,7 @@ namespace emulatorLauncher
                 generator.Cleanup();
             }
             else
-                SimpleLogger.Instance.Error("cant find generator");
+                SimpleLogger.Instance.Error("Can't find generator");
         }
 
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
@@ -316,10 +316,10 @@ namespace emulatorLauncher
                     int playerId;
                     int.TryParse(args[i].Substring(2, 1), out playerId);
 
-                    Controller player = Controllers.FirstOrDefault(c => c.Index == playerId);
+                    Controller player = Controllers.FirstOrDefault(c => c.PlayerIndex == playerId);
                     if (player == null)
                     {
-                        player = new Controller() { Index = playerId };
+                        player = new Controller() { PlayerIndex = playerId };
                         Controllers.Add(player);
                     }
 
@@ -344,33 +344,35 @@ namespace emulatorLauncher
 
             try
             {
-              
-
                 var inputConfig = InputList.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_input.cfg"));
                 if (inputConfig != null)
                 {
                     if (!Controllers.Any())
                     {
-                        var pi = new Controller() { Index = 1 };
-                        pi.Input = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
-                        if (pi.Input != null)
+                        var pi = new Controller() { PlayerIndex = 1 };
+                        pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
+                        if (pi.Config != null)
+                        {
+                            pi.Name = "Keyboard";
+                            pi.Guid = pi.Config.ProductGuid.ToString();
                             Controllers.Add(pi);
+                        }
                     }
                     else
                     {
                         foreach (var pi in Controllers)
                         {
-                            pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid && c.DeviceName == pi.Name);
-                            if (pi.Input == null)
-                                pi.Input = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
-                            if (pi.Input == null)
-                                pi.Input = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
-                            if (pi.Input == null)
-                                pi.Input = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid && c.DeviceName == pi.Name);
+                            if (pi.Config == null)
+                                pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
+                            if (pi.Config == null)
+                                pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
+                            if (pi.Config == null)
+                                pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
                         }
                     }
 
-                          
+                    Controllers.RemoveAll(c => c.Config == null);
                 }
 
                 return inputConfig;
@@ -398,15 +400,15 @@ namespace emulatorLauncher
 
     class Controller
     {
-        public int Index { get; set; }
+        public int PlayerIndex { get; set; }
         public string Guid { get; set; }
         public string Name { get; set; }
         public int NbButtons { get; set; }
         public int NbHats { get; set; }
         public int NbAxes { get; set; }
 
-        public InputConfig Input { get; set; }
+        public InputConfig Config { get; set; }
 
-        public override string ToString() { return Name; }
+        public override string ToString() { return Name + " (" + PlayerIndex.ToString()+")"; }
     }
 }

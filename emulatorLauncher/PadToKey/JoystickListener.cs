@@ -14,12 +14,12 @@ namespace emulatorLauncher.PadToKeyboard
     class JoystickListener : IDisposable
     {
         private PadToKey _mapping;
-        private InputConfig[] _inputList;
+        private Controller[] _inputList;
 
         private AutoResetEvent _waitHandle;
         private Thread thread;
 
-        public JoystickListener(InputConfig[] inputList, PadToKey mapping)
+        public JoystickListener(Controller[] inputList, PadToKey mapping)
         {
             bool joy2Key = Process.GetProcessesByName("JoyToKey").Length > 0;
             if (joy2Key)
@@ -28,10 +28,11 @@ namespace emulatorLauncher.PadToKeyboard
             _inputList = inputList;
             _mapping = mapping;
 
-            _waitHandle = new AutoResetEvent(false);
-
             if (_mapping != null && _inputList != null && _inputList.Length > 0)
+            {
+                _waitHandle = new AutoResetEvent(false);
                 Start();
+            }
         }
 
         public void Start()
@@ -50,214 +51,6 @@ namespace emulatorLauncher.PadToKeyboard
             {
                 _waitHandle.Set();
                 thread = null;
-            }
-        }
-
-        class InputKeyInfo
-        {
-            public InputKeyInfo()
-            {
-            }
-
-            public InputKeyInfo(InputKey k, int v = 1, bool isAxis = false)
-            {
-                _keys.Add((int)k, new InputValue(v, false));
-            }
-
-            public void Add(InputKey k, int v = 1, bool isAxis = false)
-            {
-                _keys.Remove((int)k);
-                _keys.Add((int)k, new InputValue(v, isAxis));
-            }
-
-            private bool _isAxis;
-
-            public void Remove(InputKey key)
-            {
-                _keys.Remove((int)key);
-            }
-
-            class InputValue
-            {
-                public InputValue(int val, bool isAxis = false)
-                {
-                    Value = val;
-                    IsAxis = isAxis;
-                }
-
-                public int Value { get; set; }
-                public bool IsAxis { get; set; }
-
-                public override string ToString()
-                {
-                    if (IsAxis)
-                        return "axis:"+Value;
-
-                    return Value.ToString();
-                }
-            };
-
-            private Dictionary<int, InputValue> _keys = new Dictionary<int, InputValue>();
-
-            public static InputKeyInfo operator | (InputKeyInfo a, InputKeyInfo b)
-            {
-                InputKeyInfo ret = new InputKeyInfo();
-                ret._keys = new Dictionary<int, InputValue>(a._keys);
-
-                foreach (var kb in b._keys)
-                    ret._keys[kb.Key] = kb.Value;
-                
-                return ret;
-            }
-
-            public override bool Equals(object obj)
-            {
-                InputKeyInfo c1 = this;
-                InputKeyInfo c2 = obj as InputKeyInfo;
-                if (c2 == null)
-                    return false;
-
-                if (c1._keys.Count != c2._keys.Count)
-                    return false;
-
-                foreach (var key in c1._keys)
-                {
-                    InputValue value;
-                    if (!c2._keys.TryGetValue(key.Key, out value))
-                        return false;
-
-                    if (value.Value != key.Value.Value || value.IsAxis != key.Value.IsAxis)
-                        return false;
-                }
-
-                return true;
-            }
-
-            public override int GetHashCode()
-            {
-                return base.GetHashCode();
-            }
-
-            public static bool operator ==(InputKeyInfo c1, InputKeyInfo c2)
-            {
-                return !object.ReferenceEquals(c1, null) && !object.ReferenceEquals(c2, null) && c1.Equals(c2);
-            }
-
-            public static bool operator !=(InputKeyInfo c1, InputKeyInfo c2)
-            {
-                if (c1 == null && c2 != null)
-                    return true;
-
-                return !c1.Equals(c2);
-            }
-
-            public override string ToString()
-            {
-                StringBuilder sb = new StringBuilder();
-
-                foreach (var kb in _keys)
-                {
-                    if (sb.Length > 0)
-                        sb.Append(" | ");
-
-                    sb.Append(((InputKey)kb.Key).ToString() + ":" + kb.Value);
-                }
-
-                return sb.ToString();
-            }
-            
-            public bool HasFlag(InputKey k)
-            {
-                return FromInputKey(k).Count > 0;
-            }
-
-            public int GetMouseInputValue(InputKey k)
-            {
-                InputValue newValue;
-                if (!_keys.TryGetValue((int)k, out newValue))
-                    return 0;
-
-                if (k == InputKey.rightanalogright || k == InputKey.rightanalogdown || k == InputKey.leftanalogright || k == InputKey.leftanalogdown)
-                    return Math.Abs(newValue.Value);
-
-                return -Math.Abs(newValue.Value);
-            }
-
-            Dictionary<int, InputValue> FromInputKey(InputKey k)
-            {
-                Dictionary<int, InputValue> ret = new Dictionary<int, InputValue>();
-
-                int kz = 0;
-
-                foreach(var key in _keys)
-                {
-                    if (((int) k & key.Key) == key.Key)
-                    {
-                        ret[key.Key] = key.Value;
-                        kz |= key.Key;
-                    }
-                }
-
-                if (kz != (int)k)
-                    return new Dictionary<int, InputValue>();
-
-                return ret;
-            }
-
-            public bool HasNewInput(InputKey k, InputKeyInfo old, bool checkAxisChanged = false)
-            {
-                var newValues = FromInputKey(k);
-                if (newValues.Count == 0)
-                    return false;
-
-                var oldValues = old.FromInputKey(k);
-                if (oldValues.Count == 0)
-                {
-                    if (newValues.Any(v => v.Value.IsAxis))
-                    {
-                        foreach(var nv in newValues.Where(v => v.Value.IsAxis))
-                            oldValues[nv.Key] = new InputValue(0, true);
-                    }
-                    else
-                        return true;
-                }
-                
-                foreach (var ov in oldValues)
-                {
-                    if (!newValues.ContainsKey(ov.Key))
-                        return false;
-
-                    var oldVal = oldValues[ov.Key];
-                    var newVal = newValues[ov.Key];
-
-                    if (oldVal.IsAxis)
-                    {
-                        if (checkAxisChanged)
-                        {
-                            if (oldVal.Value != newVal.Value)
-                                return true;
-                        }
-
-                        const int DEADZONE = 20000;
-
-                        bool oldOutOfDeadZone = Math.Abs(oldVal.Value) >= DEADZONE;
-                        bool newOutOfDeadZone = Math.Abs(newVal.Value) >= DEADZONE;
-
-                        if (newOutOfDeadZone && !oldOutOfDeadZone)
-                            return true;
-                    }
-                    else if (oldVal.Value != newVal.Value)
-                        return true;
-                }
-
-                return false;                
-            }
-
-            public InputKeyInfo Clone()
-            {
-                InputKeyInfo clone = new InputKeyInfo();
-                clone._keys = new Dictionary<int, InputValue>(_keys);
-                return clone;
             }
         }
 
@@ -280,7 +73,7 @@ namespace emulatorLauncher.PadToKeyboard
 
         public void DoWork()
         {
-            JoyInputs joysticks = new JoyInputs();
+            Joysticks joysticks = new Joysticks(_inputList);
 
             SDL.SDL_SetHint(SDL.SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
             SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK);
@@ -289,7 +82,7 @@ namespace emulatorLauncher.PadToKeyboard
 
             int numJoysticks = SDL.SDL_NumJoysticks();
             for (int i = 0; i < numJoysticks; i++)
-                AddJoystick(joysticks, i);
+                joysticks.AddJoystick(i);
 
             while (true)
             {
@@ -321,10 +114,10 @@ namespace emulatorLauncher.PadToKeyboard
                                              normValue = -1;
                                      }
 
-                                     var joy = joysticks.FindJoyInput(evt.jaxis.which);
+                                     var joy = joysticks[evt.jaxis.which];
                                      if (joy != null)
                                      {
-                                         var axis = joy.FindMapping("axis", evt.jaxis.axis);
+                                         var axis = joy.GetInput("axis", evt.jaxis.axis);
                                          if (axis != null)
                                          {
                                              var axisName = axis.Name;
@@ -364,10 +157,10 @@ namespace emulatorLauncher.PadToKeyboard
                             case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
                             case SDL.SDL_EventType.SDL_JOYBUTTONUP:
                                 {
-                                    var joy = joysticks.FindJoyInput(evt.jbutton.which);
+                                    var joy = joysticks[evt.jbutton.which];
                                     if (joy != null)
-                                    {
-                                        foreach (var conf in joy.Config.Input.Where(i => i.Type == "button" && i.Id == evt.jbutton.button))
+                                    {                                        
+                                        foreach (var conf in joy.GetButtons(evt.jbutton.button))
                                         {
                                             if (evt.jbutton.state == SDL.SDL_PRESSED)
                                                 joy.State.Add(conf.Name);
@@ -380,10 +173,10 @@ namespace emulatorLauncher.PadToKeyboard
 
                             case SDL.SDL_EventType.SDL_JOYHATMOTION:
                                 {
-                                    var joy = joysticks.FindJoyInput(evt.jhat.which);
+                                    var joy = joysticks[evt.jhat.which];
                                     if (joy != null)
                                     {
-                                        var up = joy.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_UP);
+                                        var up = joy.GetInput("hat", evt.jhat.hat, (int) SDL.SDL_HAT_UP);
                                         if (up != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_UP) == SDL.SDL_HAT_UP)
@@ -392,7 +185,7 @@ namespace emulatorLauncher.PadToKeyboard
                                                 joy.State.Remove(up.Name);
                                         }
 
-                                        var right = joy.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_RIGHT);
+                                        var right = joy.GetInput("hat", evt.jhat.hat, (int)SDL.SDL_HAT_RIGHT);
                                         if (right != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_RIGHT) == SDL.SDL_HAT_RIGHT)
@@ -401,7 +194,7 @@ namespace emulatorLauncher.PadToKeyboard
                                                 joy.State.Remove(right.Name);
                                         }
 
-                                        var down = joy.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_DOWN);
+                                        var down = joy.GetInput("hat", evt.jhat.hat, (int)SDL.SDL_HAT_DOWN);
                                         if (down != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_DOWN) == SDL.SDL_HAT_DOWN)
@@ -410,7 +203,7 @@ namespace emulatorLauncher.PadToKeyboard
                                                 joy.State.Remove(down.Name);
                                         }
 
-                                        var left = joy.Config.Input.FirstOrDefault(i => i.Type == "hat" && i.Id == evt.jhat.hat && i.Value == SDL.SDL_HAT_LEFT);
+                                        var left = joy.GetInput("hat", evt.jhat.hat, (int)SDL.SDL_HAT_LEFT);
                                         if (left != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_LEFT) == SDL.SDL_HAT_LEFT)
@@ -423,30 +216,20 @@ namespace emulatorLauncher.PadToKeyboard
                                 break;
 
                             case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
-                                {
-                                    var js = joysticks.FirstOrDefault(j => j.Id == evt.jdevice.which);
-                                    if (js != null)
-                                    {
-                                        SDL.SDL_JoystickClose(js.SdlJoystick);
-                                        joysticks.Remove(js);
-                                    }
-                                }
-
+                                joysticks.RemoveJoystick(evt.jdevice.which);
                                 break;
 
                             case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                                AddJoystick(joysticks, evt.jdevice.which);
+                                joysticks.AddJoystick(evt.jdevice.which);
                                 break;
                         }
-
 
                         foreach (var joy in joysticks)
                         {
                             if (joy.State == joy.OldState)
                                 continue;
 
-                            Debug.WriteLine("State : " + joy.State.ToString() + " - OldState : " + joy.OldState.ToString());
-                            ProcessJoystickState(joysticks.IndexOf(joy), joy.State, joy.OldState);
+                            ProcessJoystickState(joy.Controller.PlayerIndex - 1, joy.State, joy.OldState);
                             
                             joy.OldState = joy.State.Clone();                            
                         }
@@ -464,8 +247,10 @@ namespace emulatorLauncher.PadToKeyboard
             SDL.SDL_Quit();
         }
 
-        private void ProcessJoystickState(int playerIndex, InputKeyInfo keyState, InputKeyInfo prevState)
+        private void ProcessJoystickState(int playerIndex, JoyInputState keyState, JoyInputState prevState)
         {
+            //Debug.WriteLine("ProcessJoystickState : " + keyState.ToString() + " - OldState : " + prevState.ToString());
+
             IntPtr hWndProcess;
             bool isDesktop;
             string process = GetActiveProcessFileName(out isDesktop, out hWndProcess);
@@ -504,7 +289,7 @@ namespace emulatorLauncher.PadToKeyboard
             }
         }
 
-        private void SendInput(InputKeyInfo newState, InputKeyInfo oldState, IntPtr hWndProcess, string process, PadToKeyInput input)
+        private void SendInput(JoyInputState newState, JoyInputState oldState, IntPtr hWndProcess, string process, PadToKeyInput input)
         {
             if (input.Type == PadToKeyType.Mouse && (input.Code == "CLICK" || input.Code == "RCLICK" || input.Code == "MCLICK"))
             {
@@ -534,7 +319,7 @@ namespace emulatorLauncher.PadToKeyboard
             {
                 if (!newState.HasFlag(input.Name) && !newState.HasFlag(RevertedAxis(input.Name)))
                 {
-                    Debug.WriteLine("STOP MOUSE MOVE " + input.Code);
+                   // Debug.WriteLine("STOP MOUSE MOVE " + input.Code);
 
                     // Stop 
                     if (input.Code == "X")
@@ -556,7 +341,7 @@ namespace emulatorLauncher.PadToKeyboard
                     else
                         _mouseMove.Y = newState.GetMouseInputValue(input.Name);
 
-                    Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
+                   // Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
 
                     if (_mouseMove.IsEmpty)
                     {
@@ -576,7 +361,7 @@ namespace emulatorLauncher.PadToKeyboard
                     else
                         _mouseMove.Y = newState.GetMouseInputValue(RevertedAxis(input.Name));
 
-                    Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
+                  //  Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
 
                     if (_mouseMove.IsEmpty)
                     {
@@ -606,7 +391,8 @@ namespace emulatorLauncher.PadToKeyboard
 
                     if (input.Key == "(%{CLOSE})" && hWndProcess != IntPtr.Zero)
                     {
-                        SendMessage(hWndProcess, WM_CLOSE, 0, 0);
+                        const int WM_CLOSE = 0x0010;
+                        User32.SendMessage(hWndProcess, WM_CLOSE, 0, 0);
                     }
                     else if (input.Key == "(%{KILL})" && hWndProcess != IntPtr.Zero)
                     {
@@ -638,7 +424,6 @@ namespace emulatorLauncher.PadToKeyboard
                 return -(1 - Math.Sqrt(1 - Math.Pow(v, 2))) * 24.0;
 
             return (1 - Math.Sqrt(1 - Math.Pow(v, 2))) * 24.0;
-            // return (v*v*v) * 24.0;
         }
 
         private void OnMouseTimerProc(object state)
@@ -650,7 +435,7 @@ namespace emulatorLauncher.PadToKeyboard
             SendKey.MoveMouseBy(x, y);
         }
 
-        private void SendKeyMap(PadToKeyInput input, InputKeyInfo oldState, InputKeyInfo newState, string processName)
+        private void SendKeyMap(PadToKeyInput input, JoyInputState oldState, JoyInputState newState, string processName)
         {
             if (oldState.HasNewInput(input.Name, newState))
             {
@@ -683,51 +468,12 @@ namespace emulatorLauncher.PadToKeyboard
                     SendKey.Send(input.Keys, true);
             }
         }
-        
-        private void AddJoystick(JoyInputs joysticks, int i)
-        {
-            var instanceId = SDL.SDL_JoystickGetDeviceInstanceID(i);
-            if (joysticks.Any(j => j.Id == instanceId))
-                return;
-
-            IntPtr joy = SDL.SDL_JoystickOpen(i);
-            var guid = SDL.SDL_JoystickGetGUID(joy);
-            var guid2 = SDL.SDL_JoystickGetDeviceGUID(i);
-            var name = SDL.SDL_JoystickName(joy);
-
-            var conf = _inputList.FirstOrDefault(cfg => cfg.ProductGuid == guid);
-            if (conf == null)
-                conf = _inputList.FirstOrDefault(cfg => cfg.DeviceName == name);
-
-            if (conf != null)
-                joysticks.Add(new JoyInput(instanceId, joy, conf));
-        }
-
-        const int WM_CLOSE = 0x0010;
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll", EntryPoint = "GetDesktopWindow")]
-        static extern IntPtr GetDesktopWindow();
-
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern bool IsChild(IntPtr hwndParent, IntPtr hwnd);
-
-        [DllImport("User32.dll", CharSet = CharSet.Auto)]
-        static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
 
         private void KillProcess(IntPtr hWndProcess, string process)
         {
             uint pid;
-            GetWindowThreadProcessId(hWndProcess, out pid);
+            User32.GetWindowThreadProcessId(hWndProcess, out pid);
 
             try
             {
@@ -742,18 +488,18 @@ namespace emulatorLauncher.PadToKeyboard
             isDesktop = false;
             hMainWnd = IntPtr.Zero;
 
-            IntPtr hwnd = GetForegroundWindow();
-            if (hwnd != GetDesktopWindow())
+            IntPtr hwnd = User32.GetForegroundWindow();
+            if (hwnd != User32.GetDesktopWindow())
                 hMainWnd = hwnd;
 
             uint pid;
-            GetWindowThreadProcessId(hwnd, out pid);
+            User32.GetWindowThreadProcessId(hwnd, out pid);
 
             try
             {
                 Process p = Process.GetProcessById((int)pid);
 
-                if (p != null && p.MainWindowHandle != IntPtr.Zero && p.MainWindowHandle != GetDesktopWindow())
+                if (p != null && p.MainWindowHandle != IntPtr.Zero && p.MainWindowHandle != User32.GetDesktopWindow())
                     hMainWnd = p.MainWindowHandle;
 
                 string fn = null;
@@ -769,7 +515,7 @@ namespace emulatorLauncher.PadToKeyboard
 
                 if (fn == "explorer")
                 {
-                    int style = GetWindowLong(hwnd, -16);
+                    int style = User32.GetWindowLong(hwnd, GWL.STYLE);
                     if (style == -1778384896)
                         isDesktop = true;
                 }
@@ -779,55 +525,6 @@ namespace emulatorLauncher.PadToKeyboard
             catch { }
 
             return null;
-        }
-
-        class JoyInput
-        {
-            public int Id { get; private set; }
-            public IntPtr SdlJoystick { get; private set; }
-            public InputConfig Config { get; private set; }
-
-            public JoyInput(int id, IntPtr joystick, InputConfig conf)
-            {
-                Id = id;
-                SdlJoystick = joystick;
-                Config = conf;
-
-                State = new InputKeyInfo();
-                OldState = new InputKeyInfo();
-            }
-
-            public InputKeyInfo OldState { get; set; }
-            public InputKeyInfo State { get; private set; }
-
-            public Input FindMapping(string type, int id, int value = -1)
-            {
-                if (type == "hat")
-                    return Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id && i.Value == value);
-
-                return Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id);
-            }
-        }
-
-        class JoyInputs : List<JoyInput>
-        {
-            public JoyInput FindJoyInput(int which)
-            {
-                return this.FirstOrDefault(j => j.Id == which);
-            }
-            /*
-            public Input FindInputMapping(int which, string type, int id, int value = -1)
-            {
-                var js = this.FirstOrDefault(j => j.Id == which);
-                if (js == null)
-                    return null;
-
-                if (type == "hat")
-                    return js.Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id && i.Value == value);
-                
-                return js.Config.Input.FirstOrDefault(i => i.Type == type && i.Id == id);
-            }
-            */
         }
     }
 }

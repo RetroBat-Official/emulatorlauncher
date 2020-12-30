@@ -23,7 +23,7 @@ namespace emulatorLauncher
 
         public static int JoystickValue(InputKey key, Controller c)
         {
-            var a = c.Input[key];
+            var a = c.Config[key];
             if (a == null)
                 return -1;
 
@@ -38,10 +38,10 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            var controller = Controllers.FirstOrDefault(c => c.Index == 1 && c.Input != null && c.Input.Type != "keyboard");
+            var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
             if (controller != null)
             {
-                var directInput = controller.Input.GetDirectInputInfo();
+                var directInput = controller.Config.GetDirectInputInfo();
                 if (directInput != null)
                 {
                     string fpinballName = directInput.Name.Length > 47 ? directInput.Name.Substring(0, 47) : directInput.Name;
@@ -323,7 +323,7 @@ namespace emulatorLauncher
 
             if (Misc.IsWindowsEightOrTen && !Misc.IsDeveloperModeEnabled)
             {
-                var controller = Controllers.FirstOrDefault(c => c.Index == 1 && c.Input != null && c.Input.Type != "keyboard");
+                var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
                 if (controller != null)
                 {
                     LoadingForm frm = new LoadingForm();

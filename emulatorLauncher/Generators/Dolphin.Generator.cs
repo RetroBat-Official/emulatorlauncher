@@ -298,9 +298,9 @@ namespace emulatorLauncher
 
                         for (int i = 0; i < 4; i++)
                         {
-                            var ctl = Controllers.FirstOrDefault(c => c.Index == i + 1);
+                            var ctl = Controllers.FirstOrDefault(c => c.PlayerIndex == i + 1);
 
-                            if (ctl != null && ctl.Input != null && !emulatedWiiMote)
+                            if (ctl != null && ctl.Config != null && !emulatedWiiMote)
                             {
                                 /*if (ctl.Input.Type == "keyboard")
                                     ini.WriteValue("Core", "SIDevice" + i, "7");

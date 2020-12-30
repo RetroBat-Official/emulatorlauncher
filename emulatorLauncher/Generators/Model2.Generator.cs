@@ -196,13 +196,13 @@ namespace emulatorLauncher
                         if (hWnd != IntPtr.Zero)
                         {
                             var style = User32.GetWindowStyle(hWnd);
-                            if (style.HasFlag(User32.WS.CAPTION))
+                            if (style.HasFlag(WS.CAPTION))
                             {
                                 int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
                                 int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
 
-                                User32.SetWindowStyle(hWnd, style & ~User32.WS.CAPTION);
-                                User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, User32.SWP.NOZORDER | User32.SWP.FRAMECHANGED);
+                                User32.SetWindowStyle(hWnd, style & ~WS.CAPTION);
+                                User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
                                 User32.SetMenu(hWnd, IntPtr.Zero);
                                 
                                 if (_bezelFileInfo != null && bezel == null)

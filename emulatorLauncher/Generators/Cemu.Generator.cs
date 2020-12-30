@@ -78,10 +78,10 @@ namespace emulatorLauncher
 
             foreach (var controller in this.Controllers)
             {
-                if (controller.Input == null)
+                if (controller.Config == null)
                     continue;
 
-                string controllerTxt = Path.Combine(controllerProfiles, "controller" + (controller.Index - 1) + ".txt");
+                string controllerTxt = Path.Combine(controllerProfiles, "controller" + (controller.PlayerIndex - 1) + ".txt");
                 using (IniFile ini = new IniFile(controllerTxt, true))
                 {
                     ConfigureInput(ini, controller);
@@ -92,13 +92,13 @@ namespace emulatorLauncher
 
         private static void ConfigureInput(IniFile ini, Controller controller)
         {
-            if (controller == null || controller.Input == null)
+            if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.Input.Type == "joystick")
-                ConfigureJoystick(ini, controller.Input, controller.Index -1);
+            if (controller.Config.Type == "joystick")
+                ConfigureJoystick(ini, controller.Config, controller.PlayerIndex -1);
             else
-                ConfigureKeyboard(ini, controller.Input);
+                ConfigureKeyboard(ini, controller.Config);
         }
 
 

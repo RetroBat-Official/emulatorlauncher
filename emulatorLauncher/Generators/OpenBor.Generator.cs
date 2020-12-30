@@ -21,11 +21,11 @@ namespace emulatorLauncher
 
         public static int JoystickValue(InputKey key, Controller c, bool invertAxis = false)
         {
-            var a = c.Input[key];
+            var a = c.Config[key];
             if (a == null)
             {
                 if (key == InputKey.hotkey)
-                    a = c.Input[InputKey.hotkeyenable];
+                    a = c.Config[InputKey.hotkeyenable];
 
                 if (a == null)
                     return 0;
@@ -36,10 +36,10 @@ namespace emulatorLauncher
             int value = 0;
 
             if (a.Type == "button")
-                value = 1 + (c.Index - 1) * JOY_MAX_INPUTS + (int)a.Id;
+                value = 1 + (c.PlayerIndex - 1) * JOY_MAX_INPUTS + (int)a.Id;
             else if (a.Type == "hat")
             {
-                int hatfirst = 1 + (c.Index - 1) * JOY_MAX_INPUTS + c.NbButtons + 2 * c.NbAxes + 4 * (int)a.Id;
+                int hatfirst = 1 + (c.PlayerIndex - 1) * JOY_MAX_INPUTS + c.NbButtons + 2 * c.NbAxes + 4 * (int)a.Id;
                 if (a.Value == 2) // SDL_HAT_RIGHT
                     hatfirst += 1;
                 else if (a.Value == 4) // SDL_HAT_DOWN
@@ -51,12 +51,12 @@ namespace emulatorLauncher
             }
             else if (a.Type == "axis")
             {
-                int axisfirst = 1 + (c.Index - 1) * JOY_MAX_INPUTS + c.NbButtons + 2 * (int)a.Id;
+                int axisfirst = 1 + (c.PlayerIndex - 1) * JOY_MAX_INPUTS + c.NbButtons + 2 * (int)a.Id;
                 if ((invertAxis && a.Value < 0) || (!invertAxis && a.Value > 0)) axisfirst++;
                 value = axisfirst;
             }
 
-            if (c.Input.Type != "keyboard")
+            if (c.Config.Type != "keyboard")
                 value += 600;
 
             return value;
@@ -64,7 +64,7 @@ namespace emulatorLauncher
 
         public int KeyboardValue(InputKey key, Controller c)
         {
-            var a = c.Input[key];
+            var a = c.Config[key];
             if (a == null)
                 return 0;
 
@@ -188,8 +188,8 @@ namespace emulatorLauncher
 
             for (int idx = 0; idx < 4; idx++)
             {
-                var c = Controllers.FirstOrDefault(j => j.Index == idx + 1);
-                if (c == null || c.Input == null)
+                var c = Controllers.FirstOrDefault(j => j.PlayerIndex == idx + 1);
+                if (c == null || c.Config == null)
                 {
                     if (hasKeyb)
                     {
@@ -236,7 +236,7 @@ namespace emulatorLauncher
                     continue;
                 }
 
-                if (c.Input.Type == "keyboard")
+                if (c.Config.Type == "keyboard")
                 {
                     hasKeyb = true;
                     ini["keys." + idx + ".0"] = KeyboardValue(InputKey.up, c).ToString();
@@ -345,8 +345,8 @@ namespace emulatorLauncher
 
             for (int idx = 0; idx < 4; idx++)
             {
-                var c = Controllers.FirstOrDefault(j => j.Index == idx + 1);
-                if (c == null || c.Input == null)
+                var c = Controllers.FirstOrDefault(j => j.PlayerIndex == idx + 1);
+                if (c == null || c.Config == null)
                 {
                     if (hasKeyb)
                     {
@@ -385,7 +385,7 @@ namespace emulatorLauncher
                     continue;
                 }
 
-                if (c.Input.Type == "keyboard")
+                if (c.Config.Type == "keyboard")
                 {
                     hasKeyb = true;
                     conf.keys[idx].up = KeyboardValue(InputKey.up, c);

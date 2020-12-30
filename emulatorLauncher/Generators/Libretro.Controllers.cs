@@ -55,7 +55,7 @@ namespace emulatorLauncher.libRetro
                     var sdl = SdlGameControllers.GetGameController(cfg["input_device"]);
                     if (sdl != null)
                     {
-                        var ctl = Program.Controllers.FirstOrDefault(f => f.Input.ProductGuid == sdl.Guid);
+                        var ctl = Program.Controllers.FirstOrDefault(f => f.Config.ProductGuid == sdl.Guid);
                         if (ctl != null)
                             excludedControllers.Add(ctl);
                     }
@@ -63,14 +63,14 @@ namespace emulatorLauncher.libRetro
 
                 foreach (var controller in Program.Controllers.Where(c => !excludedControllers.Contains(c)))
                 {
-                    var sdl = SdlGameControllers.GetGameController(controller.Input.ProductGuid);
+                    var sdl = SdlGameControllers.GetGameController(controller.Config.ProductGuid);
                     if (sdl != null)
                     {
                         var cfg = new ConfigFile();
 
                         cfg["input_device"] = sdl.Name;
-                        if (sdl.Name != controller.Input.DeviceName)
-                            cfg["input_device_display_name"] = controller.Input.DeviceName;
+                        if (sdl.Name != controller.Config.DeviceName)
+                            cfg["input_device_display_name"] = controller.Config.DeviceName;
 
                         cfg["input_driver"] = "sdl2";
                         cfg["input_vendor_id"] = sdl.VendorId.ToString();
@@ -161,8 +161,8 @@ namespace emulatorLauncher.libRetro
 
             //config["input_ai_service"] = "nul";
 
-            var c0 = Program.Controllers.FirstOrDefault(c => c.Index == 1);
-            if (c0 == null || c0.Input == null)
+            var c0 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+            if (c0 == null || c0.Config == null)
                 return;
 
             var hotKey = GetInputCode(c0, Tools.InputKey.hotkey);
@@ -234,7 +234,7 @@ namespace emulatorLauncher.libRetro
             {
                 // some input adaptations for some cores...
                 // z is important, in case l2 (z) is not available for this pad, use l1
-                if (controller.Input != null && controller.Input.Input != null && !controller.Input.Input.Any(i => i.Name == InputKey.r2))
+                if (controller.Config != null && controller.Config.Input != null && !controller.Config.Input.Any(i => i.Name == InputKey.r2))
                 {
                     retroarchbtns[InputKey.pageup] = "l2";
                     retroarchbtns[InputKey.l2] = "l";
@@ -250,9 +250,9 @@ namespace emulatorLauncher.libRetro
                     continue;
 
                 if (input.Type == "key")
-                    config[string.Format("input_player{0}_{1}", controller.Index, btnkey.Value)] = getConfigValue(input);
+                    config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey.Value)] = getConfigValue(input);
                 else
-                    config[string.Format("input_player{0}_{1}_{2}", controller.Index, btnkey.Value, typetoname[input.Type])] = getConfigValue(input);
+                    config[string.Format("input_player{0}_{1}_{2}", controller.PlayerIndex, btnkey.Value, typetoname[input.Type])] = getConfigValue(input);
             }
 
             foreach (var btnkey in retroarchdirs)
@@ -262,9 +262,9 @@ namespace emulatorLauncher.libRetro
                     continue;
 
                 if (input.Type == "key")
-                    config[string.Format("input_player{0}_{1}", controller.Index, btnkey)] = getConfigValue(input);
+                    config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey)] = getConfigValue(input);
                 else
-                    config[string.Format("input_player{0}_{1}_{2}", controller.Index, btnkey, typetoname[input.Type])] = getConfigValue(input);
+                    config[string.Format("input_player{0}_{1}_{2}", controller.PlayerIndex, btnkey, typetoname[input.Type])] = getConfigValue(input);
             }
 
             foreach (var btnkey in retroarchjoysticks)
@@ -275,17 +275,17 @@ namespace emulatorLauncher.libRetro
 
                 if (input.Value < 0)
                 {
-                    config[string.Format("input_player{0}_{1}_minus_axis", controller.Index, btnkey.Value)] = "-" + input.Id.ToString();
-                    config[string.Format("input_player{0}_{1}_plus_axis", controller.Index, btnkey.Value)] = "+" + input.Id.ToString();
+                    config[string.Format("input_player{0}_{1}_minus_axis", controller.PlayerIndex, btnkey.Value)] = "-" + input.Id.ToString();
+                    config[string.Format("input_player{0}_{1}_plus_axis", controller.PlayerIndex, btnkey.Value)] = "+" + input.Id.ToString();
                 }
                 else
                 {
-                    config[string.Format("input_player{0}_{1}_minus_axis", controller.Index, btnkey.Value)] = "+" + input.Id.ToString();
-                    config[string.Format("input_player{0}_{1}_plus_axis", controller.Index, btnkey.Value)] = "-" + input.Id.ToString();
+                    config[string.Format("input_player{0}_{1}_minus_axis", controller.PlayerIndex, btnkey.Value)] = "+" + input.Id.ToString();
+                    config[string.Format("input_player{0}_{1}_plus_axis", controller.PlayerIndex, btnkey.Value)] = "-" + input.Id.ToString();
                 }
             }
 
-            if (controller.Index == 1)
+            if (controller.PlayerIndex == 1)
             {
                 foreach (var specialkey in retroarchspecials)
                 {
@@ -305,9 +305,9 @@ namespace emulatorLauncher.libRetro
         private static Input GetInputCode(Controller controller, InputKey btnkey)
         {
             if (_inputDriver == "sdl2")
-                return controller.Input.ToSdlCode(btnkey);
+                return controller.Config.ToSdlCode(btnkey);
 
-            return controller.Input.ToXInputCodes(btnkey);
+            return controller.Config.ToXInputCodes(btnkey);
         }
 
         private static void WriteControllerConfig(ConfigFile retroconfig, Controller controller, string system)
@@ -322,8 +322,8 @@ namespace emulatorLauncher.libRetro
             foreach (var key in generatedConfig)
                 retroconfig[key.Key] = key.Value;
 
-            retroconfig[string.Format("input_player{0}_joypad_index", controller.Index)] = (controller.Index-1).ToString();
-            retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.Index)] = getAnalogMode(controller, system);
+            retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = (controller.PlayerIndex-1).ToString();
+            retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.PlayerIndex)] = getAnalogMode(controller, system);
         }
 
         private static string getConfigValue(Input input)
