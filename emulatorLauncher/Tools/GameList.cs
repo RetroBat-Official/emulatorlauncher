@@ -39,7 +39,7 @@ namespace emulatorLauncher.Tools
                 }
                 catch { }
             }
-            
+
             GameList gameList = new GameList();
             gameList.FilePath = xmlFile;
             gameList.Games = new BindingList<Game>();
@@ -47,11 +47,9 @@ namespace emulatorLauncher.Tools
 
             return gameList;
         }
-        
+
         public void Save(bool createCopy = true)
         {
-        
-
             foreach (var s in DeletionRepository)
             {
                 if (File.Exists(s))
@@ -84,7 +82,7 @@ namespace emulatorLauncher.Tools
         [DefaultValue(null)]
         [XmlAttribute("defaultView")]
         public string DefaultView { get; set; }
-        
+
         [XmlElement("game")]
         public BindingList<Game> Games { get; set; }
 
@@ -124,7 +122,7 @@ namespace emulatorLauncher.Tools
 
         private bool? _imageExists = false;
         private bool? _thumbNailExists = false;
-        private bool? _marqueeExists = false;        
+        private bool? _marqueeExists = false;
         private bool? _videoExists = false;
 
         public bool ImageExists(MetadataType type = MetadataType.Image)
@@ -134,7 +132,7 @@ namespace emulatorLauncher.Tools
                 if (_marqueeExists.HasValue)
                     return _marqueeExists.Value;
 
-                if (string.IsNullOrEmpty(Video))
+                if (string.IsNullOrEmpty(Marquee))
                     _marqueeExists = false;
                 else
                     _marqueeExists = File.Exists(GetImageFile(type));
@@ -168,6 +166,9 @@ namespace emulatorLauncher.Tools
                 return _thumbNailExists.Value;
             }
 
+            if (type != MetadataType.Image)
+                return File.Exists(GetImageFile(type));
+
             if (_imageExists.HasValue)
                 return _imageExists.Value;
 
@@ -189,6 +190,10 @@ namespace emulatorLauncher.Tools
                 value = this.Video;
             else if (type == MetadataType.Marquee)
                 value = this.Marquee;
+            else if (type == MetadataType.Fanart)
+                value = this.FanArt;
+            else if (type == MetadataType.TitleShot)
+                value = this.Titleshot;
 
             if (string.IsNullOrEmpty(value))
                 return null;
@@ -204,9 +209,13 @@ namespace emulatorLauncher.Tools
                 this.Video = path;
             else if (type == MetadataType.Marquee)
                 this.Marquee = path;
+            else if (type == MetadataType.Fanart)
+                this.FanArt = path;
+            else if (type == MetadataType.TitleShot)
+                this.Titleshot = path;
             else
                 this.Image = path;
-            
+
         }
 
         private bool? _romExists = false;
@@ -219,7 +228,10 @@ namespace emulatorLauncher.Tools
             if (string.IsNullOrEmpty(this.path))
                 _romExists = false;
             else
-                _romExists = File.Exists(GetRomFile());
+            {
+                var fn = GetRomFile();
+                _romExists = File.Exists(fn) || Directory.Exists(fn);
+            }
 
             return _romExists.Value;
         }
@@ -254,10 +266,10 @@ namespace emulatorLauncher.Tools
         [XmlElement("name")]
         public string Name
         {
-            get { return _name??""; }
+            get { return _name ?? ""; }
             set { _name = value; }
         }
-        
+
         [XmlElement("desc")]
         public string Description { get; set; }
 
@@ -267,10 +279,10 @@ namespace emulatorLauncher.Tools
         public string Image
         {
             get { return formatPath(_image); }
-            set 
+            set
             {
-                _image = value; 
-                _imageExists = null; 
+                _image = value;
+                _imageExists = null;
             }
         }
 
@@ -326,6 +338,78 @@ namespace emulatorLauncher.Tools
         {
             get { return formatPath(_video); }
             set { _video = value; _videoExists = null; }
+        }
+
+        private string _fanart;
+
+        [XmlElement("fanart")]
+        public string FanArt
+        {
+            get { return formatPath(_fanart); }
+            set { _fanart = value; }
+        }
+
+        private string _titleshot;
+
+        [XmlElement("titleshot")]
+        public string Titleshot
+        {
+            get { return formatPath(_titleshot); }
+            set { _titleshot = value; }
+        }
+
+        private string _map;
+
+        [XmlElement("map")]
+        public string Map
+        {
+            get { return formatPath(_map); }
+            set { _map = value; }
+        }
+
+        private string _cartridge;
+
+        [XmlElement("cartridge")]
+        public string Cartridge
+        {
+            get { return formatPath(_cartridge); }
+            set { _cartridge = value; }
+        }
+
+        private string _boxart;
+
+        [XmlElement("boxart")]
+        public string Boxart
+        {
+            get { return formatPath(_boxart); }
+            set { _boxart = value; }
+        }
+
+        private string _manual;
+
+        [XmlElement("manual")]
+        public string Manual
+        {
+            get { return formatPath(_manual); }
+            set { _manual = value; }
+        }
+
+        private string _wheel;
+
+        [XmlElement("wheel")]
+        public string Wheel
+        {
+            get { return formatPath(_wheel); }
+            set { _wheel = value; }
+        }
+
+        private string _mix;
+
+        [XmlElement("mix")]
+        public string Mix
+        {
+            get { return formatPath(_mix); }
+            set { _mix = value; }
         }
 
         [XmlElement("rating")]
@@ -394,7 +478,40 @@ namespace emulatorLauncher.Tools
         [DefaultValue("")]
         public string Emulator { get { return _emulator ?? ""; } set { _emulator = value; } }
         private string _emulator;
-        
+
+        [XmlAttribute("id")]
+        [DefaultValue("")]
+        public string GameId { get; set; }
+
+        [XmlElement("arcadesystemname")]
+        [DefaultValue("")]
+        public string ArcadeSystemName { get; set; }
+
+        [XmlElement("crc32")]
+        [DefaultValue("")]
+        public string Crc32 { get; set; }
+
+        [XmlElement("md5")]
+        [DefaultValue("")]
+        public string Md5 { get; set; }
+
+        [XmlElement("lang")]
+        [DefaultValue("")]
+        public string Language { get; set; }
+
+        [XmlElement("region")]
+        [DefaultValue("")]
+        public string Region { get; set; }
+
+        [XmlElement("cheevosHash")]
+        [DefaultValue("")]
+        public string CheevosHash { get; set; }
+
+        [XmlAttribute("cheevosId")]
+        [DefaultValue(0)]
+        public int CheevosId { get; set; }
+
+
         [XmlIgnore]
         public System.Drawing.Image Picture { get; set; }
 
@@ -408,30 +525,7 @@ public enum MetadataType
     Image = 0,
     Thumbnail = 1,
     Marquee = 2,
-    Video = 3
+    Fanart = 3,
+    TitleShot = 4,
+    Video = 5
 }
-
-/*type GameXML struct {
-    XMLName     xml.Name `xml:"game"`
-    ID          string   `xml:"id,attr"`
-    Source      string   `xml:"source,attr"`
-    Path        string   `xml:"path"`
-    GameTitle   string   `xml:"name"`
-    Overview    string   `xml:"desc"`
-    Image       string   `xml:"image,omitempty"`
-    Thumb       string   `xml:"thumbnail,omitempty"`
-    Rating      float64  `xml:"rating,omitempty"`
-    ReleaseDate string   `xml:"releasedate"`
-    Developer   string   `xml:"developer"`
-    Publisher   string   `xml:"publisher"`
-    Genre       string   `xml:"genre"`
-    Players     string   `xml:"players,omitempty"`
-    PlayCount   string   `xml:"playcount,omitempty"`
-    LastPlayed  string   `xml:"lastplayed,omitempty"`
-    Favorite    string   `xml:"favorite,omitempty"`
-    Marquee     string   `xml:"marquee,omitempty"`
-    Video       string   `xml:"video,omitempty"`
-    CloneOf     string   `xml:"cloneof,omitempty"`
-    Hidden      string   `xml:"hidden,omitempty"`
-    KidGame     string   `xml:"kidgame,omitempty"`
-}*/
