@@ -279,9 +279,15 @@ namespace emulatorLauncher
                         ini.WriteValue("Core", "MMU", "True");
                     else
                         ini.WriteValue("Core", "MMU", "False");
+
+                    // gamecube pads forced as standard pad
+                    bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
                     
                     // wiimote scanning
-                    ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
+                    if (emulatedWiiMote || system == "gamecube")
+                        ini.WriteValue("Core", "WiimoteContinuousScanning", "False");
+                    else
+                        ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 
                     if (_triforce)
                     {
@@ -293,9 +299,6 @@ namespace emulatorLauncher
                     }
                     else if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
                     {
-                        // gamecube pads forced as standard pad
-                        bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
-
                         for (int i = 0; i < 4; i++)
                         {
                             var ctl = Controllers.FirstOrDefault(c => c.PlayerIndex == i + 1);
