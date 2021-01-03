@@ -211,6 +211,24 @@ namespace emulatorLauncher.libRetro
                 { InputKey.select, "select"}
             };
 
+            if (system == "atari800")
+            {
+                retroarchbtns[InputKey.b] = "b";
+                retroarchbtns[InputKey.a] = "a";
+            }
+            else if (system == "atari5200")
+            {
+                retroarchbtns = new Dictionary<InputKey, string>()
+                {
+                    { InputKey.b, "x" },
+                    { InputKey.a, "a" },
+                    { InputKey.x, "b" }, 
+                    { InputKey.y, "y" },
+                    { InputKey.start, "start"}, 
+                    { InputKey.pagedown, "select"} // select
+                };
+            }
+
             if (system == "gamecube")
             {
                 retroarchbtns = new Dictionary<InputKey, string>()

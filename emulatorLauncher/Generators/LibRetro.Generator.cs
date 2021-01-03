@@ -18,6 +18,8 @@ namespace emulatorLauncher.libRetro
         public string RetroarchPath { get; set; }
         public string RetroarchCorePath { get; set; }
 
+        public string CurrentHomeDirectory { get; set; }
+
         public LibRetroGenerator()
         {
             RetroarchPath = AppConfig.GetFullPath("retroarch");
@@ -30,7 +32,7 @@ namespace emulatorLauncher.libRetro
 
         private void Configure(string system, string core, string rom, ScreenResolution resolution)
         {
-            var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+            var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
             retroarchConfig["global_core_options"] = "true";
             retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')
@@ -739,6 +741,9 @@ namespace emulatorLauncher.libRetro
 
         public override void Cleanup()
         {
+            if (SystemConfig["core"] == "atari800")
+                Environment.SetEnvironmentVariable("HOME", CurrentHomeDirectory);
+
             if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
                 File.Delete(_dosBoxTempRom);
 
@@ -868,6 +873,13 @@ namespace emulatorLauncher.libRetro
             }
 
             string args = string.Join(" ", commandArray);
+
+            if (SystemConfig["core"] == "atari800")
+            {
+                // Special case : .atari800.cfg is loaded from path in 'HOME' environment variable
+                CurrentHomeDirectory = Environment.GetEnvironmentVariable("HOME");
+                Environment.SetEnvironmentVariable("HOME", RetroarchPath);
+            }
 
             return new ProcessStartInfo()
             {

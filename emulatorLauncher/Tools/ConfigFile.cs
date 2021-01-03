@@ -9,6 +9,8 @@ namespace emulatorLauncher
 {
     class ConfigFile : IEnumerable<ConfigItem>
     {
+        public ConfigFileOptions Options { get; set; }
+
         public static ConfigFile FromArguments(string[] args)
         {
             ConfigFile arguments = new ConfigFile();
@@ -55,9 +57,12 @@ namespace emulatorLauncher
             return ret;
         }
 
-        public static ConfigFile FromFile(string file, bool caseSentitive = false)
+        private static string EmptyLine = "------------EmptyLine----------------";
+
+        public static ConfigFile FromFile(string file, ConfigFileOptions options = null)
         {
             var ret = new ConfigFile();
+            ret.Options = options;
             if (!File.Exists(file))
                 return ret;
 
@@ -76,11 +81,13 @@ namespace emulatorLauncher
                     if (value.EndsWith("\""))
                         value = value.Substring(0, value.Length-1);
 
-                    if (caseSentitive)
+                    if (options != null && options.CaseSensitive)
                         ret[line.Substring(0, idx).Trim()] = value;
                     else
                         ret[line.Substring(0, idx).ToLower().Trim()] = value;
                 }
+                else
+                    ret[line] = EmptyLine;
             }
 
             return ret;
@@ -160,7 +167,7 @@ namespace emulatorLauncher
                 var item = _data.FirstOrDefault(d => key.Equals(d.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (item == null)
                 {
-                    if (string.IsNullOrEmpty(value))
+                    if ((this.Options == null || !Options.KeepEmptyLines) && string.IsNullOrEmpty(value))
                         return;
 
                     item = new ConfigItem() { Name = key };
@@ -184,6 +191,13 @@ namespace emulatorLauncher
             foreach (var item in _data)
             {
                 sb.Append(item.Name);
+
+                if (item.Value == EmptyLine)
+                {
+                    sb.AppendLine();
+                    continue;
+                }
+
                 if (retroarchformat)
                 {
                     sb.Append(" = ");
@@ -247,6 +261,8 @@ namespace emulatorLauncher
                 if (_data[i].Name.Contains(name))
                     _data.RemoveAt(i);
         }
+
+  
     }
     
     class ConfigItem
@@ -258,6 +274,12 @@ namespace emulatorLauncher
 
         public string Name { get; set; }
         public string Value { get; set; }
+    }
+
+    public class ConfigFileOptions
+    {
+        public bool KeepEmptyLines { get; set; }
+        public bool CaseSensitive { get; set; }
     }
 
 }

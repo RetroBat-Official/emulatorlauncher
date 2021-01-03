@@ -10,25 +10,7 @@ namespace emulatorLauncher.libRetro
     {
         private void ConfigureCoreOptions(ConfigFile retroarchConfig, string system, string core)
         {
-            var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
-
-            if (core == "atari800")
-            {
-                if (system == "atari800")
-                {
-                    coreSettings["atari800_system"] = "800XL (64K)";
-                    coreSettings["RAM_SIZE"] = "64";
-                    coreSettings["STEREO_POKEY"] = "1";
-                    coreSettings["BUILTIN_BASIC"] = "1";
-                }
-                else
-                {
-                    coreSettings["atari800_system"] = "5200";
-                    coreSettings["RAM_SIZE"] = "16";
-                    coreSettings["STEREO_POKEY"] = "0";
-                    coreSettings["BUILTIN_BASIC"] = "0";
-                }
-            }
+            var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
             if (core == "bluemsx")
             {
@@ -66,6 +48,7 @@ namespace emulatorLauncher.libRetro
             if (core == "theodore")
                 coreSettings["theodore_autorun"] = "enabled";
 
+            ConfigureAtari800(coreSettings, system, core);
             ConfigureVirtualJaguar(coreSettings, system, core);
             ConfigureSNes9xNext(coreSettings, system, core);
             ConfigureMupen64(coreSettings, system, core);
@@ -75,6 +58,60 @@ namespace emulatorLauncher.libRetro
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
+        }
+
+        private void ConfigureAtari800(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "atari800")
+                return;
+
+            if (system == "atari800")
+            {
+                coreSettings["atari800_system"] = "800XL (64K)";
+                coreSettings["RAM_SIZE"] = "64";
+                coreSettings["STEREO_POKEY"] = "1";
+                coreSettings["BUILTIN_BASIC"] = "1";
+            }
+            else
+            {
+                coreSettings["atari800_system"] = "5200";
+                coreSettings["RAM_SIZE"] = "16";
+                coreSettings["STEREO_POKEY"] = "0";
+                coreSettings["BUILTIN_BASIC"] = "0";
+            }
+
+            if (string.IsNullOrEmpty(AppConfig["bios"]))
+                return;
+
+            var atariCfg = ConfigFile.FromFile(Path.Combine(RetroarchPath, ".atari800.cfg"), new ConfigFileOptions() { CaseSensitive = true, KeepEmptyLines = true });
+
+            string biosPath = AppConfig.GetFullPath("bios");
+
+            if (system == "atari800")
+            {
+                atariCfg["ROM_OS_A_PAL"] = Path.Combine(biosPath, "ATARIOSA.ROM");
+                atariCfg["ROM_OS_BB01R2"] = Path.Combine(biosPath, "ATARIXL.ROM");
+                atariCfg["ROM_BASIC_C"] = Path.Combine(biosPath, "ATARIBAS.ROM");
+                atariCfg["ROM_400/800_CUSTOM"] = Path.Combine(biosPath, "ATARIOSB.ROM");
+
+                atariCfg["MACHINE_TYPE"] = "Atari XL/XE";
+                atariCfg["RAM_SIZE"] = "64";
+            }
+            else
+            {
+                atariCfg["ROM_OS_A_PAL"] = "";
+                atariCfg["ROM_OS_BB01R2"] = "";
+                atariCfg["ROM_BASIC_C"] = "";
+                atariCfg["ROM_400/800_CUSTOM"] = "";
+
+                atariCfg["ROM_5200"] = Path.Combine(biosPath, "5200.ROM");
+                atariCfg["ROM_5200_CUSTOM"] = Path.Combine(biosPath, "atari5200.ROM");
+                atariCfg["MACHINE_TYPE"] = "Atari 5200";
+                atariCfg["RAM_SIZE"] = "16";
+                
+            }
+
+            atariCfg.Save(Path.Combine(RetroarchPath, ".atari800.cfg"), false);
         }
 
         private void ConfigureVirtualJaguar(ConfigFile coreSettings, string system, string core)
