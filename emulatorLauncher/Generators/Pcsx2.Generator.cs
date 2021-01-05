@@ -31,7 +31,7 @@ namespace emulatorLauncher
 
 
         private string _path;
-        private libRetro.LibRetroGenerator.BezelFiles _bezelFileInfo;
+        private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -49,7 +49,7 @@ namespace emulatorLauncher
             SetupGSDx(resolution);
 
             if (SystemConfig["ratio"] == "4:3")
-                _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
 

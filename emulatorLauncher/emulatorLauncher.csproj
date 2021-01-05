@@ -63,6 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BezelFiles.cs" />
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -114,6 +115,12 @@
     <Compile Include="PadToKey\Joysticks.cs" />
     <Compile Include="PadToKey\PadToKey.cs" />
     <Compile Include="PadToKey\SendKeys.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Reshader\ReshadeManager.cs" />
     <Compile Include="Teknoparrot\ConfigTemplate.cs" />
     <Compile Include="Teknoparrot\Description.cs" />
     <Compile Include="Teknoparrot\EmulationProfile.cs" />
@@ -152,14 +159,9 @@
     <Compile Include="VPinball\ScreenRes.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -169,11 +171,15 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Reshader\ReShade.ini" />
     <None Include="Resources\configgen-defaults.yml" />
     <None Include="Resources\mame.ini" />
+    <None Include="Reshader\ReShade.fxh" />
+    <None Include="Reshader\ReShadeUI.fxh" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <None Include="Reshader\Bezel.fx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -63,6 +63,16 @@ namespace emulatorLauncher.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] Bezel {
+            get {
+                object obj = ResourceManager.GetObject("Bezel", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] configgen_defaults {
             get {
                 object obj = ResourceManager.GetObject("configgen_defaults", resourceCulture);
@@ -96,6 +106,58 @@ namespace emulatorLauncher.Properties {
         internal static string mame {
             get {
                 return ResourceManager.GetString("mame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ReShade {
+            get {
+                object obj = ResourceManager.GetObject("ReShade", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [D3D9]
+        ///DepthCopyAtClearIndex=0
+        ///DepthCopyBeforeClears=0
+        ///DisableINTZ=0
+        ///UseAspectRatioHeuristics=1
+        ///
+        ///[OPENGL]
+        ///ForceMainDepthBuffer=0
+        ///UseAspectRatioHeuristics=1
+        ///
+        ///[GENERAL]
+        ///EffectSearchPaths=.\reshade-shaders\Shaders
+        ///PerformanceMode=0
+        ///PreprocessorDefinitions=
+        ///PresetPath=.\ReShadePreset.ini
+        ///PresetFiles=.\ReShadePreset.ini
+        ///PresetTransitionDelay=1000
+        ///SkipLoadingDisabledEffects=0
+        ///TextureSearchPaths=.\reshade-shaders\Textures
+        ///TutorialProgress=4
+        ///
+        ///[INPUT]
+        ///ForceShortcutModifiers=1
+        ///InputProcessing=2 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ReShadeIni {
+            get {
+                return ResourceManager.GetString("ReShadeIni", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ReShadeUI {
+            get {
+                object obj = ResourceManager.GetObject("ReShadeUI", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

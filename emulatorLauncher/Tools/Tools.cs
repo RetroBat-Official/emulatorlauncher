@@ -39,6 +39,19 @@ namespace emulatorLauncher.Tools
             }
         }
 
+        public static string ExtractString(this string html, string start, string end)
+        {
+            int idx1 = html.IndexOf(start);
+            if (idx1 < 0)
+                return "";
+
+            int idx2 = html.IndexOf(end, idx1 + start.Length);
+            if (idx2 > idx1)
+                return html.Substring(idx1 + start.Length, idx2 - idx1 - start.Length);
+
+            return "";
+        }
+
         public static int ToInteger(this string value)
         {
             int ret = 0;

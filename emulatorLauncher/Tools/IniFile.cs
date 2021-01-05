@@ -129,7 +129,7 @@ namespace emulatorLauncher
         public string GetValue(string section, string key)
         {
             SectionPair sectionPair;
-            sectionPair.Section = section;
+            sectionPair.Section = string.IsNullOrEmpty(section) ? "ROOT" : section;
             sectionPair.Key = key;
 
             if (_keyPairs.ContainsKey(sectionPair))

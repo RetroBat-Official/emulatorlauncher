@@ -10,7 +10,7 @@ namespace emulatorLauncher
 {
     class Model3Generator : Generator
     {
-        private libRetro.LibRetroGenerator.BezelFiles _bezelFileInfo;
+        private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -29,15 +29,22 @@ namespace emulatorLauncher
                 args.Add("-res=" + Screen.PrimaryScreen.Bounds.Width + "," + Screen.PrimaryScreen.Bounds.Height);
 
             _resolution = resolution;
-            _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
-            if (_bezelFileInfo == null)
-            {
-                args.Add("-fullscreen");
 
-                if (SystemConfig["ratio"] != "4:3")
+            if (ReshadeManager.Setup(ReshadeBezelType.opengl, system, rom, path, resolution))
+                args.Add("-fullscreen");
+            else
+            {
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+                if (_bezelFileInfo == null)
                 {
-                    args.Add("-wide-screen");
-                    args.Add("-stretch");
+                    args.Add("-fullscreen");
+
+                    if (SystemConfig["ratio"] != "4:3")
+                    {
+                        args.Add("-wide-screen");
+                        args.Add("-stretch");
+                    }
                 }
             }
                             

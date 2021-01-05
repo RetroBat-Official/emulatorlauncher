@@ -14,7 +14,7 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private libRetro.LibRetroGenerator.BezelFiles _bezelFileInfo;
+        private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _triforce = false;
 
@@ -57,7 +57,7 @@ namespace emulatorLauncher
                 File.WriteAllText(portableFile, "");
 
             if ((system == "gamecube" && SystemConfig["ratio"] == "") || SystemConfig["ratio"] == "4/3")
-                _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
 

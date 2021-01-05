@@ -65,9 +65,9 @@ namespace emulatorLauncher
             { "zeroguna", "zerogun" },
         };
 
-        private libRetro.LibRetroGenerator.BezelFiles _bezelFileInfo;
+        private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-        
+
         public Model2Generator()
         {
             DependsOnDesktopResolution = false;
@@ -124,7 +124,9 @@ namespace emulatorLauncher
             }
             
             _resolution = resolution;
-            _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
+
+            if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             SetupConfig(path, resolution);
             

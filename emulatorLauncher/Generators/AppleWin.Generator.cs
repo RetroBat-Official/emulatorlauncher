@@ -10,7 +10,7 @@ namespace emulatorLauncher
 {
     class AppleWinGenerator : Generator
     {
-        private libRetro.LibRetroGenerator.BezelFiles _bezelFileInfo;
+        private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -21,7 +21,7 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            _bezelFileInfo = libRetro.LibRetroGenerator.GetBezelFiles(system, rom, resolution);
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
 
             return new ProcessStartInfo()
