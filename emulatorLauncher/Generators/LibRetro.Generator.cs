@@ -88,6 +88,14 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
             }
 
+            try 
+            {
+                string cacheDirectory = Path.Combine(Path.GetTempPath(), "retroarch");
+                Directory.CreateDirectory(cacheDirectory);
+                retroarchConfig["cache_directory"] = cacheDirectory;
+            }
+            catch { }
+            
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
             {
                 string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
