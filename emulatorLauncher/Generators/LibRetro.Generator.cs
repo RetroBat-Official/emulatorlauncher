@@ -203,6 +203,23 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["savestate_auto_load"] = "false";
             }
 
+            // SaveState To add
+            if (SystemConfig.isOptSet("state_slot"))
+            {
+                retroarchConfig["menu_show_load_content_animation"] = "false";
+                retroarchConfig["savestate_auto_save"] = "false";
+                retroarchConfig["video_gpu_screenshot"] = "false";
+                retroarchConfig["savestate_thumbnail_enable"] = "true";
+                retroarchConfig["savestates_in_content_dir"] = "false";
+                retroarchConfig["state_slot"] = SystemConfig["state_slot"];
+            }
+            else
+            {
+                retroarchConfig["state_slot"] = "0";
+                retroarchConfig["menu_show_load_content_animation"] = "true";
+                retroarchConfig["video_gpu_screenshot"] = "true";
+            }
+
             retroarchConfig["input_libretro_device_p1"] = "1";
             retroarchConfig["input_libretro_device_p2"] = "1";
 
@@ -230,6 +247,14 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_libretro_device_p2"] = systemToP2Device[system];
             }
 
+            if (SystemConfig["core"] == "mednafen_psx" || SystemConfig["core"] == "pcsx_rearmed" || SystemConfig["core"] == "duckstation")
+            {
+                if (SystemConfig.isOptSet("psxcontroller1"))
+                    retroarchConfig["input_libretro_device_p1"] = SystemConfig["psxcontroller1"];
+                if (SystemConfig.isOptSet("psxcontroller2"))
+                    retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
+            }
+            
             if (SystemConfig["retroachievements"] == "true" && systemToRetroachievements.Contains(system))
             {
                 retroarchConfig["cheevos_enable"] = "true";

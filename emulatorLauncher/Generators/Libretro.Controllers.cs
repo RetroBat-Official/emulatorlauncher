@@ -179,10 +179,7 @@ namespace emulatorLauncher.libRetro
         {
             if (disabledAnalogModeSystems.Contains(system))
                 return "0";
-
-            if (system == "psx" && Program.SystemConfig.isOptSet("forceanalogsticks") && Program.SystemConfig.getOptBoolean("forceanalogsticks"))
-                return "0";
-            
+           
             foreach (var dirkey in retroarchdirs)
             {
                 var k = GetInputCode(controller, dirkey);

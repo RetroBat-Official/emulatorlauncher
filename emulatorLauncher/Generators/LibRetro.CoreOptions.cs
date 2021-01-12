@@ -55,9 +55,56 @@ namespace emulatorLauncher.libRetro
             ConfigurePuae(coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
+            ConfigureCap32(coreSettings, system, core);
+            ConfigureQuasi88(coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
+        }
+
+        private void ConfigureQuasi88(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "quasi88")
+                return;
+            
+            if (SystemConfig.isOptSet("q88_basic_mode"))
+                coreSettings["q88_basic_mode"] = SystemConfig["q88_basic_mode"];
+            else
+                coreSettings["q88_basic_mode"] = "N88 V2";
+
+            if (SystemConfig.isOptSet("q88_cpu_clock"))
+                coreSettings["q88_cpu_clock"] = SystemConfig["q88_cpu_clock"];
+            else
+                coreSettings["q88_cpu_clock"] = "4";
+
+            if (SystemConfig.isOptSet("q88_pcg-8100"))
+                coreSettings["q88_pcg-8100"] = SystemConfig["q88_pcg-8100"];
+            else
+                coreSettings["q88_pcg-8100"] = "disabled";
+
+        }
+
+        private void ConfigureCap32(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "cap32")
+                return;
+
+            // Virtual Keyboard by default (select+start) change to (start+Y)
+            coreSettings["cap32_combokey"] = "y";
+
+            //  Auto Select Model
+            if (system == "gx4000")
+                coreSettings["cap32_model"] = "6128+";
+            else if (SystemConfig.isOptSet("cap32_model"))
+                coreSettings["cap32_model"] = SystemConfig["cap32_model"];
+            else
+                coreSettings["cap32_model"] = "6128";
+
+            //  Ram size
+            if (SystemConfig.isOptSet("cap32_ram"))
+                coreSettings["cap32_ram"] = SystemConfig["cap32_ram"];
+            else
+                coreSettings["cap32_ram"] = "128";
         }
 
         private void ConfigureAtari800(ConfigFile coreSettings, string system, string core)
@@ -66,11 +113,35 @@ namespace emulatorLauncher.libRetro
                 return;
 
             if (system == "atari800")
-            {
-                coreSettings["atari800_system"] = "800XL (64K)";
+            {               
                 coreSettings["RAM_SIZE"] = "64";
                 coreSettings["STEREO_POKEY"] = "1";
                 coreSettings["BUILTIN_BASIC"] = "1";
+                
+                if (SystemConfig.isOptSet("atari800_system"))
+                    coreSettings["atari800_system"] = SystemConfig["atari800_system"];
+                else
+                    coreSettings["atari800_system"] = "800XL (64K)";
+
+                if (SystemConfig.isOptSet("atari800_system"))
+                    coreSettings["atari800_system"] = SystemConfig["atari800_system"];
+                else
+                    coreSettings["atari800_system"] = "800XL (64K)";
+
+                if (SystemConfig.isOptSet("atari800_ntscpal"))
+                    coreSettings["atari800_ntscpal"] = SystemConfig["atari800_ntscpal"];
+                else
+                    coreSettings["atari800_ntscpal"] = "NTSC";
+
+                if (SystemConfig.isOptSet("atari800_sioaccel"))
+                    coreSettings["atari800_sioaccel"] = SystemConfig["atari800_sioaccel"];
+                else
+                    coreSettings["atari800_sioaccel"] = "enabled";
+
+                if (SystemConfig.isOptSet("atari800_artifacting"))
+                    coreSettings["atari800_artifacting"] = SystemConfig["atari800_artifacting"];
+                else
+                    coreSettings["atari800_artifacting"] = "disabled";
             }
             else
             {
@@ -79,6 +150,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["STEREO_POKEY"] = "0";
                 coreSettings["BUILTIN_BASIC"] = "0";
             }
+
 
             if (string.IsNullOrEmpty(AppConfig["bios"]))
                 return;
@@ -239,6 +311,27 @@ namespace emulatorLauncher.libRetro
                 coreSettings["reicast_render_to_texture_upscaling"] = SystemConfig["render_to_texture_upscaling"];
             else
                 coreSettings["reicast_render_to_texture_upscaling"] = "1x";
+        }
+
+        private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "pcsx_rearmed")
+                return;
+
+            // video resolution
+            if (SystemConfig.isOptSet("neon_enhancement") && SystemConfig["neon_enhancement"] != "disabled")
+            {
+                if (SystemConfig["neon_enhancement"] == "enabled")
+                {
+                    coreSettings["pcsx_rearmed_neon_enhancement_enable"] = "enabled";
+                    coreSettings["pcsx_rearmed_neon_enhancement_no_main"] = "disabled";
+                }
+                else if (SystemConfig["neon_enhancement"] == "enabled_with_speedhack")
+                {
+                    coreSettings["pcsx_rearmed_neon_enhancement_enable"] = "enabled";
+                    coreSettings["pcsx_rearmed_neon_enhancement_no_main"] = "enabled";
+                }
+            }
         }
 
         private void ConfigureMednafenPsxHW(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

@@ -141,7 +141,7 @@ namespace emulatorLauncher
 
             var wiiMapping = new Dictionary<InputKey, string>(_wiiMapping);
 
-            if (rom.Contains(".side."))
+            if (rom.Contains(".side.") && Program.SystemConfig["controller_mode"] != "disabled" && Program.SystemConfig["controller_mode"] != "cc")
             {
                 extraOptions["Options/Sideways Wiimote"] = "1";
                 wiiMapping[InputKey.x] = "Buttons/B";
@@ -153,31 +153,51 @@ namespace emulatorLauncher
                 wiiMapping[InputKey.l2] = "Shake/Z";
             }
 
-            if (rom.Contains(".is.") || rom.Contains(".it.") || rom.Contains(".in."))
+            // i: infrared, s: swing, t: tilt, n: nunchuk
+            // 12 possible combinations : is si / it ti / in ni / st ts / sn ns / tn nt
+
+            // i
+            if (rom.Contains(".is.") || rom.Contains(".it.") || rom.Contains(".in.") ||
+                (Program.SystemConfig.isOptSet("controller_mode") && Program.SystemConfig["controller_mode"] != "disabled" && Program.SystemConfig["controller_mode"] != "in" && Program.SystemConfig["controller_mode"] != "cc"))
             {
                 wiiMapping[InputKey.joystick1up] = "IR/Up";
                 wiiMapping[InputKey.joystick1left] = "IR/Left";
             }
 
-            if (rom.Contains(".si.") || rom.Contains(".ti.") || rom.Contains(".ni."))
+            if (rom.Contains(".si.") || rom.Contains(".ti.") || rom.Contains(".ni.") || Program.SystemConfig["controller_mode"] == "in")
             {
                 wiiMapping[InputKey.joystick2up] = "IR/Up";
                 wiiMapping[InputKey.joystick2left] = "IR/Left";
             }
 
+            // s
+            if (rom.Contains(".si.") || rom.Contains(".st.") || rom.Contains(".sn."))
+            {
+                wiiMapping[InputKey.joystick1up]   = "Swing/Up";
+                wiiMapping[InputKey.joystick1left] = "Swing/Left";
+            }
+
+            if (rom.Contains(".is.") || rom.Contains(".ts.") || rom.Contains(".ns.") || Program.SystemConfig["controller_mode"] == "is")
+            {
+                wiiMapping[InputKey.joystick2up]   = "Swing/Up";
+                wiiMapping[InputKey.joystick2left] = "Swing/Left";
+            }
+
+            // t
             if (rom.Contains(".ti.") || rom.Contains(".ts.") || rom.Contains(".tn."))
             {
                 wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
                 wiiMapping[InputKey.joystick2left] = "Tilt/Left";
             }
 
-            if (rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt."))
+            if (rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt.") || Program.SystemConfig["controller_mode"] == "it")
             {
                 wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
                 wiiMapping[InputKey.joystick2left] = "Tilt/Left";
             }
 
-            if (rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt."))
+            // n
+            if (rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt.") || Program.SystemConfig["controller_mode"] == "in")
             {
                 extraOptions["Extension"] = "Nunchuk";
                 wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
@@ -195,9 +215,10 @@ namespace emulatorLauncher
                 wiiMapping[InputKey.joystick2left] = "Nunchuk/Stick/Left";
             }
 
-             if (rom.Contains(".cc.")) //  Classic Controller Settings
-             {
-                extraOptions["Extension"]   = "Classic";
+            // cc : Classic Controller Settings
+            if (rom.Contains(".cc.") || Program.SystemConfig["controller_mode"] == "cc")
+            {
+                extraOptions["Extension"] = "Classic";
                 wiiMapping[InputKey.x] = "Classic/Buttons/X";
                 wiiMapping[InputKey.y] = "Classic/Buttons/Y";
                 wiiMapping[InputKey.b] = "Classic/Buttons/B";
@@ -216,7 +237,7 @@ namespace emulatorLauncher
                 wiiMapping[InputKey.joystick1left] = "Classic/Left Stick/Left";
                 wiiMapping[InputKey.joystick2up] = "Classic/Right Stick/Up";
                 wiiMapping[InputKey.joystick2left] = "Classic/Right Stick/Left";
-             }
+            }
 
             generateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, extraOptions);
         }
