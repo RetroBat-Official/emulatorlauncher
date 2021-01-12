@@ -52,6 +52,7 @@ namespace emulatorLauncher
             { "cemu", () => new CemuGenerator() },  { "wiiu", () => new CemuGenerator() },  
             { "winuae", () => new UaeGenerator() },
             { "applewin", () => new AppleWinGenerator() }, { "apple2", () => new AppleWinGenerator() },
+            { "gsplus", () => new GsPlusGenerator() }, { "apple2gs", () => new GsPlusGenerator() },
             { "simcoupe", () => new SimCoupeGenerator() },               
             { "cxbx", () => new CxbxGenerator() }, { "chihiro", () => new CxbxGenerator() }, { "xbox", () => new CxbxGenerator() },               
             { "redream", () => new RedreamGenerator() },                  
