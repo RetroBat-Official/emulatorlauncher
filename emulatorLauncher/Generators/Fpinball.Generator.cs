@@ -129,13 +129,36 @@ namespace emulatorLauncher
 
             SetupOptions(resolution);
 
-            return new ProcessStartInfo()
+            var ret = new ProcessStartInfo()
             {
                 FileName = _bam != null && File.Exists(_bam) ? _bam : exe,
                 Arguments = "/open \"" + rom + "\" /play /exit",            
             };
-        }
 
+            // Check If COM components are well registered. If not : run elevated to register them.
+            bool runAs = false;
+            var key = Registry.ClassesRoot.OpenSubKey("TypeLib\\{FB22A459-4AD0-4CB3-B959-15158F7139F5}\\1.0\\0\\win32", false);
+            if (key != null)
+            {
+                object registeredPath = key.GetValue(null);
+                if (registeredPath == null)
+                    runAs = true;
+
+                var rp = registeredPath.ToString();
+                if (rp != exe)
+                    runAs = true;
+
+                key.Close();
+            }
+            else
+                runAs = true;
+
+            if (runAs)
+                ret.Verb = "runas";
+
+            return ret;
+        }
+                
         public override void RunAndWait(ProcessStartInfo path)
         {
             Process process = null;
