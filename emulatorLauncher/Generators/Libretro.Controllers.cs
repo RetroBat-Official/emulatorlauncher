@@ -208,6 +208,13 @@ namespace emulatorLauncher.libRetro
                 { InputKey.select, "select"}
             };
 
+            if (system == "mame")
+            {
+                // Invert Dip switches and set it on r3 instead ( less annoying )
+                retroarchbtns[InputKey.l3] = "r3";
+                retroarchbtns[InputKey.r3] = "l3";
+            }
+
             if (system == "atari800")
             {
                 retroarchbtns[InputKey.b] = "b";
@@ -242,9 +249,7 @@ namespace emulatorLauncher.libRetro
                     { InputKey.pagedown, "select"} // select
                 };
             }
-
-
-
+            
             if (system == "n64")
             {
                 // some input adaptations for some cores...

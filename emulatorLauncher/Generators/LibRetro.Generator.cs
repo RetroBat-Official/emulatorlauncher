@@ -203,22 +203,14 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["savestate_auto_load"] = "false";
             }
 
+//            retroarchConfig["menu_show_load_content_animation"] = "true";
+//            retroarchConfig["video_gpu_screenshot"] = "false";
+
             // SaveState To add
             if (SystemConfig.isOptSet("state_slot"))
-            {
-                retroarchConfig["menu_show_load_content_animation"] = "false";
-                retroarchConfig["savestate_auto_save"] = "false";
-                retroarchConfig["video_gpu_screenshot"] = "false";
-                retroarchConfig["savestate_thumbnail_enable"] = "true";
-                retroarchConfig["savestates_in_content_dir"] = "false";
                 retroarchConfig["state_slot"] = SystemConfig["state_slot"];
-            }
             else
-            {
                 retroarchConfig["state_slot"] = "0";
-                retroarchConfig["menu_show_load_content_animation"] = "true";
-                retroarchConfig["video_gpu_screenshot"] = "true";
-            }
 
             retroarchConfig["input_libretro_device_p1"] = "1";
             retroarchConfig["input_libretro_device_p2"] = "1";
