@@ -81,10 +81,10 @@ namespace emulatorLauncher
             }
             
             commandArray.Add("-GAMEPORT0");
-
+            /*
             if (Program.Controllers.Any(c => c.Config != null && c.Config.Type != "keyboard"))
                 commandArray.Add("PHYS0");
-            else
+            else*/
                 commandArray.Add("KEY");
 
             commandArray.Add("-GAMEPORT1");
