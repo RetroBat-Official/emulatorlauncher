@@ -21,7 +21,41 @@ namespace emulatorLauncher
 
             if (!File.Exists(exe))
                 return null;
-         
+
+            if (core == "fmtownsux" || core == "fmtowns")
+            {
+                string args = "-cdrom \"" + rom + "\"";
+
+                SetupFmTownsRomPaths(path, rom);
+
+                if (Directory.Exists(rom))
+                {
+                    var cueFile = Directory.GetFiles(rom, "*.cue").FirstOrDefault();
+                    if (!string.IsNullOrEmpty(cueFile))
+                        args = "-cdrom \"" + cueFile + "\"";
+                    else
+                    {
+                        SimpleLogger.Instance.Info("TsugaruGenerator : Cue file not found");
+                        return null;
+                    }
+                }
+                else
+                {
+                    string ext = Path.GetExtension(rom).ToLowerInvariant();
+                    if (ext == ".cue" || ext == ".iso")
+                        args = "-cdrom \"" + rom + "\"";
+                    else
+                        args = "-flop1 \"" + rom + "\"";
+                }
+
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = path,
+                    Arguments = "fmtownsux -cdrm \"" + rom + "\"",
+                };
+            }
+            
             SetupRomPaths(path, rom);
 
             return new ProcessStartInfo()
@@ -30,6 +64,43 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = "\"" + rom + "\"",
             };
+        }
+
+        private void SetupFmTownsRomPaths(string path, string rom)
+        {
+            try
+            {
+                string biosPath = null;
+
+                if (!string.IsNullOrEmpty(AppConfig["bios"]))
+                {
+                    if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtownsux")))
+                        biosPath = Path.Combine(AppConfig.GetFullPath("bios"));
+                }
+
+                if (string.IsNullOrEmpty(biosPath))
+                    return;
+
+                string iniFile = Path.Combine(path, "fmtownsux.ini");
+                if (!File.Exists(iniFile))
+                    File.WriteAllText(iniFile, Properties.Resources.mame);
+
+                var lines = File.ReadAllLines(iniFile).ToList();
+                int idx = lines.FindIndex(l => l.StartsWith("rompath"));
+                if (idx >= 0)
+                {
+                    var line = lines[idx];
+                    var name = line.Substring(0, 26);
+                    var paths = line.Substring(26).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    if (!paths.Contains(biosPath))
+                    {
+                        paths.Add(biosPath);
+                        lines[idx] = name + string.Join(";", paths.ToArray());
+                        File.WriteAllLines(iniFile, lines);
+                    }
+                }
+            }
+            catch { }
         }
 
         private static void SetupRomPaths(string path, string rom)

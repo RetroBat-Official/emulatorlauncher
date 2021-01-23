@@ -5,6 +5,8 @@ using System.Text;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
+using System.Security;
 
 namespace emulatorLauncher
 {
@@ -30,7 +32,9 @@ namespace emulatorLauncher
 
             if (!string.IsNullOrEmpty(AppConfig["bios"]))
             {
-                if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns")))
+                if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtownsux")))
+                    biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fmtownsux");
+                else if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns")))
                     biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns");
                 else if (Directory.Exists(Path.Combine(path, "roms")))
                     biosPath = Path.Combine(path, "roms");
@@ -68,7 +72,7 @@ namespace emulatorLauncher
             else
             {
                 string ext = Path.GetExtension(rom).ToLowerInvariant();
-                if (ext == ".cue")
+                if (ext == ".cue" || ext == ".iso")
                 {
                     commandArray.Add("-CD");
                     commandArray.Add(rom);
@@ -81,10 +85,23 @@ namespace emulatorLauncher
             }
             
             commandArray.Add("-GAMEPORT0");
-            /*
-            if (Program.Controllers.Any(c => c.Config != null && c.Config.Type != "keyboard"))
-                commandArray.Add("PHYS0");
-            else*/
+
+            int joyIndex = -1;
+            int joys = WinMM.joyGetNumDevs();
+            for (int i = 0 ; i < joys ; i++)
+            {
+                WinMM.JOYCAPS caps = new WinMM.JOYCAPS();
+                int ret = WinMM.joyGetDevCapsA(i, ref caps, Marshal.SizeOf(caps));
+                if (ret == 0)
+                {
+                    joyIndex = i;
+                    break;
+                }
+            }
+
+            if (joyIndex >= 0)
+                commandArray.Add("PHYS"+joyIndex.ToString());
+            else
                 commandArray.Add("KEY");
 
             commandArray.Add("-GAMEPORT1");
@@ -94,12 +111,12 @@ namespace emulatorLauncher
             commandArray.Add("-MAXIMIZE");
 
             commandArray.Add("-FREQ");
-            commandArray.Add("25");
+            commandArray.Add("33");
 
             commandArray.Add("-MEMSIZE");
-            commandArray.Add("4");
+            commandArray.Add("8");
 
-            commandArray.Add("-NOCATCHUPREALTIME");
+           // commandArray.Add("-NOCATCHUPREALTIME");
 
             commandArray.Add("-MOUSEINTEGSPD");
             commandArray.Add("32");
@@ -171,5 +188,49 @@ namespace emulatorLauncher
                 bezel.Dispose();
         }
 
+    }
+
+    static class WinMM
+    {
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct JOYCAPS
+        {
+            public UInt16 wMid;
+            public UInt16 wPid;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string szPname;
+            public Int32 wXmin;
+            public Int32 wXmax;
+            public Int32 wYmin;
+            public Int32 wYmax;
+            public Int32 wZmin;
+            public Int32 wZmax;
+            public Int32 wNumButtons;
+            public Int32 wPeriodMin;
+            public Int32 wPeriodMax;
+            public Int32 wRmin;
+            public Int32 wRmax;
+            public Int32 wUmin;
+            public Int32 wUmax;
+            public Int32 wVmin;
+            public Int32 wVmax;
+            public Int32 wCaps;
+            public Int32 wMaxAxes;
+            public Int32 wNumAxes;
+            public Int32 wMaxButtons;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string szRegKey;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+            public string szOEMVxD;
+        }
+
+        private const string WINMM_NATIVE_LIBRARY = "winmm.dll";
+        private const CallingConvention CALLING_CONVENTION = CallingConvention.StdCall;
+
+        [DllImport(WINMM_NATIVE_LIBRARY, CallingConvention = CALLING_CONVENTION), SuppressUnmanagedCodeSecurity]
+        public static extern int joyGetNumDevs();
+
+        [DllImport(WINMM_NATIVE_LIBRARY, CallingConvention = CALLING_CONVENTION, EntryPoint = "joyGetDevCaps"), SuppressUnmanagedCodeSecurity]
+        public static extern int joyGetDevCapsA(int id, ref JOYCAPS lpCaps, int uSize);
     }
 }
