@@ -52,7 +52,7 @@ namespace emulatorLauncher
                 {
                     FileName = exe,
                     WorkingDirectory = path,
-                    Arguments = "fmtownsux -cdrm \"" + rom + "\"",
+                    Arguments = "fmtownsux " + args,
                 };
             }
             
