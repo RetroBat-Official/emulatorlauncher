@@ -68,7 +68,8 @@ namespace emulatorLauncher
             { "oricutron", () => new OricutronGenerator() },
             { "switch", () => new YuzuGenerator() }, { "yuzu", () => new YuzuGenerator() },
             { "ryujinx", () => new RyujinxGenerator() },
-            { "teknoparrot", () => new TeknoParrotGenerator() },            
+            { "teknoparrot", () => new TeknoParrotGenerator() },          
+            { "fmtowns", () => new TsugaruGenerator() }, { "tsugaru", () => new TsugaruGenerator() },            
             { "solarus", () => new SolarusGenerator() }            
         };
 
