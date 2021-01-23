@@ -67,8 +67,17 @@ namespace emulatorLauncher
             }
             else
             {
-                commandArray.Add("-CD");
-                commandArray.Add(rom);
+                string ext = Path.GetExtension(rom).ToLowerInvariant();
+                if (ext == ".cue")
+                {
+                    commandArray.Add("-CD");
+                    commandArray.Add(rom);
+                }
+                else
+                {
+                    commandArray.Add("-FD0");
+                    commandArray.Add(rom);
+                }                
             }
             
             commandArray.Add("-GAMEPORT0");
