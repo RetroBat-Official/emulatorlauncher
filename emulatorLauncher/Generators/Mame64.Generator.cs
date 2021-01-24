@@ -81,7 +81,14 @@ namespace emulatorLauncher
                 if (string.IsNullOrEmpty(biosPath))
                     return;
 
-                string iniFile = Path.Combine(path, "fmtownsux.ini");
+                string iniFile = GetIniPaths(path)
+                        .Select(p => Path.Combine(AbsolutePath(path, p), "fmtownsux.ini"))
+                        .Where(p => File.Exists(p))
+                        .FirstOrDefault();
+
+                if (string.IsNullOrEmpty(iniFile))
+                    iniFile = Path.Combine(path, "fmtownsux.ini");
+
                 if (!File.Exists(iniFile))
                     File.WriteAllText(iniFile, Properties.Resources.mame);
 
@@ -101,6 +108,40 @@ namespace emulatorLauncher
                 }
             }
             catch { }
+        }
+
+        private string AbsolutePath(string path, string val)
+        {
+            if (string.IsNullOrEmpty(val))
+                return val;
+
+            if (val == ".")
+                return path;
+
+            return Path.Combine(path, val);
+        }
+
+        private string[] GetIniPaths(string path)
+        {
+            try
+            {
+                string iniFile = Path.Combine(path, "mame.ini");
+                if (File.Exists(iniFile))
+                {
+                    var lines = File.ReadAllLines(iniFile).ToList();
+                    int idx = lines.FindIndex(l => l.StartsWith("inipath"));
+                    if (idx >= 0)
+                    {
+                        return lines[idx]
+                            .Substring(26)
+                            .Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                            .ToArray();
+                    }
+                }
+            }
+            catch { }
+
+            return new string[] { ".", "ini", "ini/presets" };
         }
 
         private static void SetupRomPaths(string path, string rom)
