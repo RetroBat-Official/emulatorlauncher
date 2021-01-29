@@ -33,7 +33,38 @@ namespace emulatorLauncher
             return true;            
         }
 
-        static Dictionary<InputKey, string> gamecubeMapping = new Dictionary<InputKey, string>()
+        class InputKeyMapping : List<KeyValuePair<InputKey, string>>
+        {
+            public InputKeyMapping() { }
+
+            public InputKeyMapping(InputKeyMapping source)
+            {
+                this.AddRange(source);
+            }
+
+            public void Add(InputKey key, string value)
+            {
+                this.Add(new KeyValuePair<InputKey, string>(key, value));
+            }
+
+            public string this[InputKey key]
+            {
+                get
+                {
+                    return this.Where(i => i.Key == key).Select(i => i.Value).FirstOrDefault();
+                }
+                set
+                {
+                    var idx = this.FindIndex(i => i.Key == key);
+                    if (idx >= 0)
+                        this[idx] = new KeyValuePair<InputKey,string>(key, value);
+                    else 
+                        this.Add(key, value);
+                }
+            }
+        }
+
+        static InputKeyMapping gamecubeMapping = new InputKeyMapping()
         { 
             { InputKey.l3,              "Main Stick/Modifier"},
             { InputKey.r3,              "C-Stick/Modifier"},
@@ -44,9 +75,9 @@ namespace emulatorLauncher
             { InputKey.x,               "Buttons/Y" },  
             { InputKey.a,               "Buttons/B" },
             { InputKey.start,           "Buttons/Start" },
-            { InputKey.pagedown,           "Buttons/Z" },  
-            // { InputKey.pageup,          "Triggers/L" }, 
-            // { InputKey.pagedown,        "Triggers/R" },
+            { InputKey.pagedown,        "Buttons/Z" },  
+                { InputKey.l2,              "Triggers/L" }, 
+                { InputKey.r2,              "Triggers/R" },
             { InputKey.up,              "D-Pad/Up" }, 
             { InputKey.down,            "D-Pad/Down" }, 
             { InputKey.left,            "D-Pad/Left" }, 
@@ -58,7 +89,7 @@ namespace emulatorLauncher
             { InputKey.hotkey,          "Buttons/Hotkey" },
         };
 
-        static Dictionary<InputKey, string> gamecubeWiiMapping = new Dictionary<InputKey, string>()
+        static InputKeyMapping gamecubeWiiMapping = new InputKeyMapping()
         { 
             { InputKey.l3,              "Main Stick/Modifier"},
             { InputKey.r3,              "C-Stick/Modifier"},
@@ -98,8 +129,8 @@ namespace emulatorLauncher
             { "joystick1down", "down" },
             { "joystick1right", "right" }
         };
-        
-        static Dictionary<InputKey, string> _wiiMapping = new Dictionary<InputKey, string> 
+
+        static InputKeyMapping _wiiMapping = new InputKeyMapping 
         {
             { InputKey.x,               "Buttons/2" },  
             { InputKey.b,               "Buttons/A" },
@@ -139,7 +170,7 @@ namespace emulatorLauncher
             var extraOptions = new Dictionary<string, string>();
             extraOptions["Source"] = "1";
 
-            var wiiMapping = new Dictionary<InputKey, string>(_wiiMapping);
+            var wiiMapping = new InputKeyMapping(_wiiMapping);
 
             if (rom.Contains(".side.") && Program.SystemConfig["controller_mode"] != "disabled" && Program.SystemConfig["controller_mode"] != "cc")
             {
@@ -242,7 +273,7 @@ namespace emulatorLauncher
             generateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, extraOptions);
         }
 
-        private static void generateControllerConfig_gamecube(string path, string rom, Dictionary<InputKey, string> anyMapping)
+        private static void generateControllerConfig_gamecube(string path, string rom, InputKeyMapping anyMapping)
         {
             generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, gamecubeReverseAxes, gamecubeReplacements);        
         }
@@ -301,8 +332,8 @@ namespace emulatorLauncher
                 ini.Save();
             }
         }
-        
-        private static void generateControllerConfig_any(string path, string filename, string anyDefKey, Dictionary<InputKey, string> anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> anyReplacements, Dictionary<string, string> extraOptions = null)
+
+        private static void generateControllerConfig_any(string path, string filename, string anyDefKey, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> anyReplacements, Dictionary<string, string> extraOptions = null)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", filename);
