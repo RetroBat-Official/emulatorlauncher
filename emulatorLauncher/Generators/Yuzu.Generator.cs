@@ -30,7 +30,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "\"" + rom + "\"",
+                Arguments = "-f -g \"" + rom + "\"",
             };
         }
     }
