@@ -96,9 +96,15 @@ namespace emulatorLauncher
                 int idx = lines.FindIndex(l => l.StartsWith("rompath"));
                 if (idx >= 0)
                 {
+                    
                     var line = lines[idx];
                     var name = line.Substring(0, 26);
-                    var paths = line.Substring(26).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                    var paths = line.Substring(26)
+                        .Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Where(p => Directory.Exists(AbsolutePath(path, p)))
+                        .ToList();
+
                     if (!paths.Contains(biosPath))
                     {
                         paths.Add(biosPath);
@@ -144,23 +150,28 @@ namespace emulatorLauncher
             return new string[] { ".", "ini", "ini/presets" };
         }
 
-        private static void SetupRomPaths(string path, string rom)
+        private void SetupRomPaths(string path, string rom)
         {
             try
             {
+                string romPath = Path.GetDirectoryName(rom);
+
                 string iniFile = Path.Combine(path, "mame.ini");
                 if (!File.Exists(iniFile))
                     File.WriteAllText(iniFile, Properties.Resources.mame);
-
                 var lines = File.ReadAllLines(iniFile).ToList();
                 int idx = lines.FindIndex(l => l.StartsWith("rompath"));
                 if (idx >= 0)
                 {
-                    string romPath = Path.GetDirectoryName(rom);
 
                     var line = lines[idx];
                     var name = line.Substring(0, 26);
-                    var paths = line.Substring(26).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                    var paths = line.Substring(26)
+                        .Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Where(p => Directory.Exists(AbsolutePath(path, p)))
+                        .ToList();
+
                     if (!paths.Contains(romPath))
                     {
                         paths.Add(romPath);
