@@ -63,6 +63,7 @@ namespace emulatorLauncher
 			{ "raine", () => new RaineGenerator() },
 			{ "snes9x", () => new Snes9xGenerator() },
 			{ "citra", () => new CitraGenerator() },
+			{ "pico8", () => new Pico8Generator() },
             { "xenia", () => new XeniaGenerator() },
             { "mame64", () => new Mame64Generator() },
             { "oricutron", () => new OricutronGenerator() },

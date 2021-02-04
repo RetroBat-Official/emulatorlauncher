@@ -7,30 +7,36 @@ using System.Diagnostics;
 
 namespace emulatorLauncher
 {
-    class YuzuGenerator : Generator
+    class Pico8Generator : Generator
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string path = AppConfig.GetFullPath("yuzu");
+            string path = AppConfig.GetFullPath("pico8");
 
-            string exe = Path.Combine(path, "yuzu.exe");
+            string exe = Path.Combine(path, "pico8.exe");
             if (!File.Exists(exe))
                 return null;
-            
-            string conf = Path.Combine(path, "user", "config", "qt-config.ini");
-            if (File.Exists(conf))
-            {
-                var ini = new IniFile(conf);
-                ini.WriteValue("UI", "fullscreen\\default", "false");
-                ini.WriteValue("UI", "fullscreen", "true");
-                ini.Save();
-            }
-            
+				
+			if (Path.GetExtension(rom).ToLower() == ".exe")
+			{
+				path = Path.GetDirectoryName(rom);
+				
+				if (!File.Exists(rom))
+                return null;
+
+                return new ProcessStartInfo()
+                {
+					FileName = rom,
+					WorkingDirectory = path
+                };
+
+			}
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-f -g \"" + rom + "\"",
+                Arguments = "-run -windowed 0 \"" + rom + "\"",
             };
         }
     }
