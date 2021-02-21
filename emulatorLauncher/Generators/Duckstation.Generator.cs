@@ -39,7 +39,7 @@ namespace emulatorLauncher
 			_path = AppConfig.GetFullPath("duckstation");
             _resolution = resolution;
 
-			string exe = Path.Combine(_path, "duckstation-sdl-x64-ReleaseLTCG.exe");
+			string exe = Path.Combine(_path, "duckstation-nogui-x64-ReleaseLTCG.exe");
 			if (!File.Exists(exe))
 				return null;
 				
@@ -73,8 +73,6 @@ namespace emulatorLauncher
                         if (!string.IsNullOrEmpty(biosPath))
                         {
                             ini.WriteValue("BIOS", "SearchDirectory", biosPath.Replace("\\", "\\\\"));
-                            ini.WriteValue("BIOS", "PathNTSCJ", biosPath.Replace("\\", "\\\\"));
-							ini.WriteValue("BIOS", "PathPAL", biosPath.Replace("\\", "\\\\"));
                         }
 
                         if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
