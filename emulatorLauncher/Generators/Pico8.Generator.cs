@@ -17,6 +17,14 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 				
+			List<string> commandArray = new List<string>();
+            
+            commandArray.Add("-run");
+            commandArray.Add("-windowed 0");
+            commandArray.Add("-home " + '\u0022' + path + '\u0022');
+            commandArray.Add("-root_path " + '\u0022' + Path.GetDirectoryName(rom) + '\u0022');
+			commandArray.Add("-desktop " + '\u0022' + AppConfig.GetFullPath("screenshots") + "\\pico8" + '\u0022');
+				
 			if (Path.GetExtension(rom).ToLower() == ".exe")
 			{
 				path = Path.GetDirectoryName(rom);
@@ -31,12 +39,15 @@ namespace emulatorLauncher
                 };
 
 			}
+			
+			commandArray.Add('\u0022' + rom + '\u0022');
 
+			string args = string.Join(" ", commandArray);
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-run -windowed 0 \"" + rom + "\"",
+                Arguments = args,
             };
         }
     }
