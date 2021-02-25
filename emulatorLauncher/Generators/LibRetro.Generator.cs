@@ -319,6 +319,12 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["netplay_password"] = SystemConfig["netplay.password"];
                     retroarchConfig["netplay_spectate_password"] = SystemConfig["netplay.spectatepassword"];
                 }
+
+                // Netplay hide the gameplay
+                if (SystemConfig.isOptSet("netplay_public_announce") && !SystemConfig.getOptBoolean("netplay_public_announce"))
+                    retroarchConfig["netplay_public_announce"] = "false";
+                else
+                    retroarchConfig["netplay_public_announce"] = "true";
             }
 
             // AI service for game translations
