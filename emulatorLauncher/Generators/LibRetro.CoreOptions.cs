@@ -50,10 +50,11 @@ namespace emulatorLauncher.libRetro
 
             ConfigureAtari800(coreSettings, system, core);
             ConfigureVirtualJaguar(coreSettings, system, core);
-            ConfigureSNes9xNext(coreSettings, system, core);
+            ConfigureSNes9x(coreSettings, system, core);
             ConfigureMupen64(coreSettings, system, core);
             ConfigurePuae(coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
+            ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(coreSettings, system, core);
             ConfigureQuasi88(coreSettings, system, core);
@@ -193,19 +194,26 @@ namespace emulatorLauncher.libRetro
 
             coreSettings["virtualjaguar_usefastblitter"] = "enabled";
         }
-
-        private void ConfigureSNes9xNext(ConfigFile coreSettings, string system, string core)
+		
+		private void ConfigureSNes9x(ConfigFile coreSettings, string system, string core)
         {
-            if (core != "snes9x" && core != "snes9x_next")
+            if (core != "snes9x")
                 return;
 
-            coreSettings["snes9x_2010_reduce_sprite_flicker"] = SystemConfig["enabled"];
-
-            // Reduce slowdown
-            if (SystemConfig.isOptSet("reduce_slowdown"))
-                coreSettings["snes9x_2010_overclock_cycles"] = SystemConfig["reduce_slowdown"];
+            if (SystemConfig.isOptSet("ntsc_filter"))
+                coreSettings["snes9x_blargg"] = SystemConfig["ntsc_filter"];
             else
-                coreSettings["snes9x_2010_overclock_cycles"] = "compatible";
+                coreSettings["snes9x_blargg"] = "disabled";
+			
+			if (SystemConfig.isOptSet("overscan"))
+                coreSettings["snes9x_overscan"] = SystemConfig["overscan"];
+            else
+                coreSettings["snes9x_overscan"] = "enabled";
+				
+			if (SystemConfig.isOptSet("gfx_hires"))
+                coreSettings["snes9x_gfx_hires"] = SystemConfig["gfx_hires"];
+            else
+                coreSettings["snes9x_gfx_hires"] = "enabled";
         }
 
         private void ConfigureMupen64(ConfigFile coreSettings, string system, string core)
@@ -311,6 +319,58 @@ namespace emulatorLauncher.libRetro
                 coreSettings["reicast_render_to_texture_upscaling"] = SystemConfig["render_to_texture_upscaling"];
             else
                 coreSettings["reicast_render_to_texture_upscaling"] = "1x";
+
+            // force wince game compatibility
+            if (SystemConfig.isOptSet("force_wince"))
+                coreSettings["reicast_force_wince"] = SystemConfig["force_wince"];
+            else
+                coreSettings["reicast_force_wince"] = "disabled";
+
+            // cable type
+            if (SystemConfig.isOptSet("cable_type"))
+                coreSettings["reicast_cable_type"] = SystemConfig["cable_type"];
+            else
+                coreSettings["reicast_cable_type"] = "VGA (RGB)";
+
+            // internal resolution
+            if (SystemConfig.isOptSet("internal_resolution"))
+                coreSettings["reicast_internal_resolution"] = SystemConfig["internal_resolution"];
+            else
+                coreSettings["reicast_internal_resolution"] = "1280x960";
+        }
+		
+		private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mesen")
+                return;
+
+            coreSettings["mesen_aspect_ratio"] = "Auto";
+
+            if (SystemConfig.isOptSet("hd_packs"))
+                coreSettings["mesen_hdpacks"] = SystemConfig["hd_packs"];
+            else
+                coreSettings["mesen_hdpacks"] = "disabled";
+
+            if (SystemConfig.isOptSet("ntsc_filter"))
+                coreSettings["mesen_ntsc_filter"] = SystemConfig["ntsc_filter"];
+            else
+                coreSettings["mesen_ntsc_filter"] = "Disabled";
+
+            if (SystemConfig.isOptSet("palette"))
+                coreSettings["mesen_palette"] = SystemConfig["palette"];
+            else
+                coreSettings["mesen_palette"] = "Default";
+				
+			if (SystemConfig.isOptSet("shift_buttons"))
+                coreSettings["mesen_shift_buttons_clockwise"] = SystemConfig["shift_buttons"];
+            else
+                coreSettings["mesen_shift_buttons_clockwise"] = "disabled";
+				
+			if (SystemConfig.isOptSet("fake_stereo"))
+                coreSettings["mesen_fake_stereo"] = SystemConfig["fake_stereo"];
+            else
+                coreSettings["mesen_fake_stereo"] = "disabled";
+
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
