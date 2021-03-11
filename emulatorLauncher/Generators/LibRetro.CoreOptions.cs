@@ -72,9 +72,13 @@ namespace emulatorLauncher.libRetro
                 coreSettings["mame2003-plus_input_interface"] = SystemConfig["mame2003-plus_input_interface"];
             else
                 coreSettings["mame2003-plus_input_interface"] = "retropad";
-            
+
             if (SystemConfig.isOptSet("mame2003-plus_tate_mode"))
+            {
                 coreSettings["mame2003-plus_tate_mode"] = SystemConfig["mame2003-plus_tate_mode"];
+                if (SystemConfig["mame2003-plus_tate_mode"] == "enabled")
+                    SystemConfig["bezel"] = "none";
+            }
             else
                 coreSettings["mame2003-plus_tate_mode"] = "disabled";
 
