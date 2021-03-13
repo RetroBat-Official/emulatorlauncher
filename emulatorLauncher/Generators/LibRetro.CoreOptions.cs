@@ -32,22 +32,10 @@ namespace emulatorLauncher.libRetro
                     coreSettings["bluemsx_msxtypec"] = "Auto";
             }
 
-            if (core == "mame078" || core == "mame2003")
-            {
-                coreSettings["mame2003_skip_disclaimer"] = "enabled";
-                coreSettings["mame2003_skip_warnings"] = "enabled";
-            }
-
-            if (core == "mame078plus" || core == "mame2003_plus")
-            {
-                coreSettings["mame2003-plus_skip_disclaimer"] = "enabled";
-                coreSettings["mame2003-plus_skip_warnings"] = "enabled";
-                // coreSettings["mame2003-plus_analog"] = "digital";
-            }
-
             if (core == "theodore")
                 coreSettings["theodore_autorun"] = "enabled";
 
+            ConfigureMame2003(coreSettings, system, core);
             ConfigureAtari800(coreSettings, system, core);
             ConfigureVirtualJaguar(coreSettings, system, core);
             ConfigureSNes9x(coreSettings, system, core);
@@ -61,6 +49,45 @@ namespace emulatorLauncher.libRetro
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
+        }
+
+        private void ConfigureMame2003(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mame078plus" && core != "mame2003_plus")
+                return;
+
+            coreSettings["mame2003-plus_skip_disclaimer"] = "enabled";
+            coreSettings["mame2003-plus_skip_warnings"] = "enabled";
+
+            if (SystemConfig.isOptSet("mame2003-plus_analog"))
+                coreSettings["mame2003-plus_analog"] = SystemConfig["mame2003-plus_analog"];
+            else
+                coreSettings["mame2003-plus_analog"] = "digital";
+
+            if (SystemConfig.isOptSet("mame2003-plus_frameskip"))
+                coreSettings["mame2003-plus_frameskip"] = SystemConfig["mame2003-plus_frameskip"];
+            else
+                coreSettings["mame2003-plus_frameskip"] = "0";
+
+            if (SystemConfig.isOptSet("mame2003-plus_input_interface"))
+                coreSettings["mame2003-plus_input_interface"] = SystemConfig["mame2003-plus_input_interface"];
+            else
+                coreSettings["mame2003-plus_input_interface"] = "retropad";
+
+            if (SystemConfig.isOptSet("mame2003-plus_tate_mode"))
+            {
+                coreSettings["mame2003-plus_tate_mode"] = SystemConfig["mame2003-plus_tate_mode"];
+                if (SystemConfig["mame2003-plus_tate_mode"] == "enabled")
+                    SystemConfig["bezel"] = "none";
+            }
+            else
+                coreSettings["mame2003-plus_tate_mode"] = "disabled";
+
+            if (SystemConfig.isOptSet("mame2003-plus_neogeo_bios"))
+                coreSettings["mame2003-plus_neogeo_bios"] = SystemConfig["mame2003-plus_neogeo_bios"];
+            else
+                coreSettings["mame2003-plus_neogeo_bios"] = "unibios33";
+
         }
 
         private void ConfigureQuasi88(ConfigFile coreSettings, string system, string core)

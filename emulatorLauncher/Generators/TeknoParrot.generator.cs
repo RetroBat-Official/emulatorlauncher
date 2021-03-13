@@ -140,6 +140,8 @@ namespace emulatorLauncher
             { "Tekken7",                         @"Tekken 7 Fated Retribution\TekkenGame\Binaries\Win64\TekkenGame-Win64-Shipping.exe" },
             { "Tekken7FR",                       @"Tekken7FR\TekkenGame\Binaries\Win64\TekkenGame-Win64-Shipping.exe" },
 
+            { "AliensExtermination",             @"aliens\DATA\aliens dehasped.exe" },
+
             { "KingofFightersSkyStage",          @"KOF SkyStage\Game.exe" },
             { "KingofFightersXII",               @"King of Fighters XII\game.exe" },
             { "KingofFightersXIII",              @"King of Fighters XIII\game.exe" },

@@ -70,6 +70,7 @@
     <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\AmigaForever.Generator.cs" />
     <Compile Include="Generators\Cemu.Generator.cs" />
+    <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Generator.cs" />
@@ -102,7 +103,7 @@
     <Compile Include="Generators\DosBox.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Generator.cs" />
-	<Compile Include="Generators\Pico8.Generator.cs" />
+    <Compile Include="Generators\Pico8.Generator.cs" />
     <Compile Include="Generators\Rpcs3.Generator.cs" />
     <Compile Include="Generators\OpenBor.Generator.cs" />
     <Compile Include="Generators\Model2.Generator.cs" />
