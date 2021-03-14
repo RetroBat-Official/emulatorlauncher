@@ -236,12 +236,12 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["snes9x_blargg"] = "disabled";
 			
-			if (SystemConfig.isOptSet("overscan"))
+            if (SystemConfig.isOptSet("overscan"))
                 coreSettings["snes9x_overscan"] = SystemConfig["overscan"];
             else
                 coreSettings["snes9x_overscan"] = "enabled";
 				
-			if (SystemConfig.isOptSet("gfx_hires"))
+            if (SystemConfig.isOptSet("gfx_hires"))
                 coreSettings["snes9x_gfx_hires"] = SystemConfig["gfx_hires"];
             else
                 coreSettings["snes9x_gfx_hires"] = "enabled";
@@ -388,42 +388,42 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.isOptSet("alternate_renderer"))
                 coreSettings["mame_alternate_renderer"] = SystemConfig["alternate_renderer"];
             else 
-				coreSettings["mame_alternate_renderer"] = "disabled";
+                coreSettings["mame_alternate_renderer"] = "disabled";
 
             if (SystemConfig.isOptSet("internal_resolution"))
                 coreSettings["mame_altres"] = SystemConfig["internal_resolution"];
             else 
-				coreSettings["mame_altres"] = "640x480";
+                coreSettings["mame_altres"] = "640x480";
 
             if (SystemConfig.isOptSet("boot_from_cli"))
                 coreSettings["mame_boot_from_cli"] = SystemConfig["boot_from_cli"];
             else 
-				coreSettings["mame_boot_from_cli"] = "enabled";
+                coreSettings["mame_boot_from_cli"] = "enabled";
 
             if (SystemConfig.isOptSet("boot_to_bios"))
                 coreSettings["mame_boot_to_bios"] = SystemConfig["boot_to_bios"];
             else 
-				coreSettings["mame_boot_to_bios"] = "disabled";
+                coreSettings["mame_boot_to_bios"] = "disabled";
 				
             if (SystemConfig.isOptSet("boot_to_osd"))
                 coreSettings["mame_boot_to_osd"] = SystemConfig["boot_to_osd"];
             else 
-				coreSettings["mame_boot_to_osd"] = "disabled";
+                coreSettings["mame_boot_to_osd"] = "disabled";
 				
             if (SystemConfig.isOptSet("cheats_enable"))
                 coreSettings["mame_cheats_enable"] = SystemConfig["cheats_enable"];
             else 
-				coreSettings["mame_cheats_enable"] = "disabled";
+                coreSettings["mame_cheats_enable"] = "disabled";
 				
             if (SystemConfig.isOptSet("lightgun_mode"))
                 coreSettings["mame_lightgun_mode"] = SystemConfig["lightgun_mode"];
             else 
-				coreSettings["mame_lightgun_mode"] = "lightgun";
+                coreSettings["mame_lightgun_mode"] = "lightgun";
 				
             if (SystemConfig.isOptSet("4way_enable"))
                 coreSettings["mame_mame_4way_enable"] = SystemConfig["mame_4way_enable"];
             else 
-				coreSettings["mame_mame_4way_enable"] = "enabled";
+                coreSettings["mame_mame_4way_enable"] = "enabled";
 
         }
 		
