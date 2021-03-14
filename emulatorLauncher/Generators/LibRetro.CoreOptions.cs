@@ -42,14 +42,14 @@ namespace emulatorLauncher.libRetro
             ConfigureMupen64(coreSettings, system, core);
             ConfigurePuae(coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
-			ConfigureMame(coreSettings, system, core);
+            ConfigureMame(coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(coreSettings, system, core);
             ConfigureQuasi88(coreSettings, system, core);
-			ConfigureGenesisPlusGX(coreSettings, system, core);
-			ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
-			ConfigurePotator(coreSettings, system, core);
+            ConfigureGenesisPlusGX(coreSettings, system, core);
+            ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
+            ConfigurePotator(coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -247,60 +247,60 @@ namespace emulatorLauncher.libRetro
                 coreSettings["snes9x_gfx_hires"] = "enabled";
         }
 		
-		private void ConfigureGenesisPlusGX(ConfigFile coreSettings, string system, string core)
+        private void ConfigureGenesisPlusGX(ConfigFile coreSettings, string system, string core)
         {
             if (core != "genesis_plus_gx")
                 return;
 					
-			coreSettings["genesis_plus_gx_bram"] = "per game";
-			coreSettings["genesis_plus_gx_ym2413"] = "auto";
+            coreSettings["genesis_plus_gx_bram"] = "per game";
+            coreSettings["genesis_plus_gx_ym2413"] = "auto";
 
             if (SystemConfig.isOptSet("addr_error"))
                 coreSettings["genesis_plus_gx_addr_error"] = SystemConfig["addr_error"];
             else
                 coreSettings["genesis_plus_gx_addr_error"] = "enabled";
 			
-			if (SystemConfig.isOptSet("lock_on"))
+            if (SystemConfig.isOptSet("lock_on"))
                 coreSettings["genesis_plus_gx_lock_on"] = SystemConfig["lock_on"];
             else
                 coreSettings["genesis_plus_gx_lock_on"] = "disabled";
 				
-			if (SystemConfig.isOptSet("ym2612"))
+            if (SystemConfig.isOptSet("ym2612"))
                 coreSettings["genesis_plus_gx_ym2612"] = SystemConfig["ym2612"];
             else
                 coreSettings["genesis_plus_gx_ym2612"] = "mame (ym2612)";
 				
-			if (SystemConfig.isOptSet("audio_filter"))
+            if (SystemConfig.isOptSet("audio_filter"))
                 coreSettings["genesis_plus_gx_audio_filter"] = SystemConfig["audio_filter"];
             else
                 coreSettings["genesis_plus_gx_audio_filter"] = "disabled";
 				
-			if (SystemConfig.isOptSet("ntsc_filter"))
+            if (SystemConfig.isOptSet("ntsc_filter"))
                 coreSettings["genesis_plus_gx_blargg_ntsc_filter"] = SystemConfig["ntsc_filter"];
             else
                 coreSettings["genesis_plus_gx_blargg_ntsc_filter"] = "disabled";
 				
-			if (SystemConfig.isOptSet("lcd_filter"))
+            if (SystemConfig.isOptSet("lcd_filter"))
                 coreSettings["genesis_plus_gx_lcd_filter"] = SystemConfig["lcd_filter"];
             else
                 coreSettings["genesis_plus_gx_lcd_filter"] = "disabled";
 				
-			if (SystemConfig.isOptSet("overscan"))
+            if (SystemConfig.isOptSet("overscan"))
                 coreSettings["genesis_plus_gx_overscan"] = SystemConfig["overscan"];
             else
                 coreSettings["genesis_plus_gx_overscan"] = "disabled";
 				
-			if (SystemConfig.isOptSet("render"))
+            if (SystemConfig.isOptSet("render"))
                 coreSettings["genesis_plus_gx_render"] = SystemConfig["render"];
             else
                 coreSettings["genesis_plus_gx_render"] = "single field";
 				
-			if (SystemConfig.isOptSet("gun_cursor"))
+            if (SystemConfig.isOptSet("gun_cursor"))
                 coreSettings["genesis_plus_gx_gun_cursor"] = SystemConfig["gun_cursor"];
             else
                 coreSettings["genesis_plus_gx_gun_cursor"] = "disabled";
 				
-			if (SystemConfig.isOptSet("gun_input"))
+            if (SystemConfig.isOptSet("gun_input"))
                 coreSettings["genesis_plus_gx_gun_input"] = SystemConfig["gun_input"];
             else
                 coreSettings["genesis_plus_gx_gun_input"] = "lightgun";
@@ -312,7 +312,7 @@ namespace emulatorLauncher.libRetro
             if (core != "genesis_plus_gx_wide")
                 return;
 			
-			if (SystemConfig.isOptSet("ratio"))
+            if (SystemConfig.isOptSet("ratio"))
              {
                 int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
                 if (idx > 0)
@@ -337,37 +337,37 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["genesis_plus_gx_wide_addr_error"] = "enabled";
 			
-			if (SystemConfig.isOptSet("lock_on"))
+            if (SystemConfig.isOptSet("lock_on"))
                 coreSettings["genesis_plus_gx_wide_lock_on"] = SystemConfig["lock_on"];
             else
                 coreSettings["genesis_plus_gx_wide_lock_on"] = "disabled";
 				
-			if (SystemConfig.isOptSet("ym2612"))
+            if (SystemConfig.isOptSet("ym2612"))
                 coreSettings["genesis_plus_gx_wide_ym2612"] = SystemConfig["ym2612"];
             else
                 coreSettings["genesis_plus_gx_wide_ym2612"] = "mame (ym2612)";
 				
-			if (SystemConfig.isOptSet("audio_filter"))
+            if (SystemConfig.isOptSet("audio_filter"))
                 coreSettings["genesis_plus_gx_wide_audio_filter"] = SystemConfig["audio_filter"];
             else
                 coreSettings["genesis_plus_gx_wide_audio_filter"] = "disabled";
 				
-			if (SystemConfig.isOptSet("render"))
+            if (SystemConfig.isOptSet("render"))
                 coreSettings["genesis_plus_gx_wide_render"] = SystemConfig["render"];
             else
                 coreSettings["genesis_plus_gx_wide_render"] = "single field";
 				
-			if (SystemConfig.isOptSet("gun_cursor"))
+            if (SystemConfig.isOptSet("gun_cursor"))
                 coreSettings["genesis_plus_gx_wide_gun_cursor"] = SystemConfig["gun_cursor"];
             else
                 coreSettings["genesis_plus_gx_wide_gun_cursor"] = "disabled";
 				
-			if (SystemConfig.isOptSet("gun_input"))
+            if (SystemConfig.isOptSet("gun_input"))
                 coreSettings["genesis_plus_gx_wide_gun_input"] = SystemConfig["gun_input"];
             else
                 coreSettings["genesis_plus_gx_wide_gun_input"] = "lightgun";
 				
-			if (SystemConfig.isOptSet("h40_extra_columns"))
+            if (SystemConfig.isOptSet("h40_extra_columns"))
                 coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = SystemConfig["h40_extra_columns"];
             else
                 coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = "10";
@@ -405,22 +405,22 @@ namespace emulatorLauncher.libRetro
 			else 
 				coreSettings["mame_boot_to_bios"] = "disabled";
 				
-			if (SystemConfig.isOptSet("boot_to_osd"))
+            if (SystemConfig.isOptSet("boot_to_osd"))
                 coreSettings["mame_boot_to_osd"] = SystemConfig["boot_to_osd"];
 			else 
 				coreSettings["mame_boot_to_osd"] = "disabled";
 				
-			if (SystemConfig.isOptSet("cheats_enable"))
+            if (SystemConfig.isOptSet("cheats_enable"))
                 coreSettings["mame_cheats_enable"] = SystemConfig["cheats_enable"];
 			else 
 				coreSettings["mame_cheats_enable"] = "disabled";
 				
-			if (SystemConfig.isOptSet("lightgun_mode"))
+            if (SystemConfig.isOptSet("lightgun_mode"))
                 coreSettings["mame_lightgun_mode"] = SystemConfig["lightgun_mode"];
 			else 
 				coreSettings["mame_lightgun_mode"] = "lightgun";
 				
-			if (SystemConfig.isOptSet("4way_enable"))
+            if (SystemConfig.isOptSet("4way_enable"))
                 coreSettings["mame_mame_4way_enable"] = SystemConfig["mame_4way_enable"];
 			else 
 				coreSettings["mame_mame_4way_enable"] = "enabled";
@@ -437,7 +437,7 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["potator_lcd_ghosting"] = "0";
             
-			if (SystemConfig.isOptSet("palette"))
+            if (SystemConfig.isOptSet("palette"))
                 coreSettings["potator_palette"] = SystemConfig["palette"];
             else
                 coreSettings["potator_palette"] = "default";
@@ -692,13 +692,13 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_widescreen_hack_aspect_ratio"] = "16:9";
 				
 			// force NTSC timings
-			if (SystemConfig.isOptSet("pal_video_timing_override"))
+            if (SystemConfig.isOptSet("pal_video_timing_override"))
                 coreSettings["beetle_psx_hw_pal_video_timing_override"] = SystemConfig["pal_video_timing_override"];
             else
                 coreSettings["beetle_psx_hw_pal_video_timing_override"] = "disabled";
 				
 			// skip BIOS
-			if (SystemConfig.isOptSet("skip_bios"))
+            if (SystemConfig.isOptSet("skip_bios"))
                 coreSettings["beetle_psx_hw_skip_bios"] = SystemConfig["skip_bios"];
             else
                 coreSettings["beetle_psx_hw_skip_bios"] = "disabled";
