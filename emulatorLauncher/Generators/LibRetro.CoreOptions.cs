@@ -42,10 +42,14 @@ namespace emulatorLauncher.libRetro
             ConfigureMupen64(coreSettings, system, core);
             ConfigurePuae(coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
+			ConfigureMame(coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(coreSettings, system, core);
             ConfigureQuasi88(coreSettings, system, core);
+			ConfigureGenesisPlusGX(coreSettings, system, core);
+			ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
+			ConfigurePotator(coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -242,6 +246,203 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["snes9x_gfx_hires"] = "enabled";
         }
+		
+		private void ConfigureGenesisPlusGX(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "genesis_plus_gx")
+                return;
+					
+			coreSettings["genesis_plus_gx_bram"] = "per game";
+			coreSettings["genesis_plus_gx_ym2413"] = "auto";
+
+            if (SystemConfig.isOptSet("addr_error"))
+                coreSettings["genesis_plus_gx_addr_error"] = SystemConfig["addr_error"];
+            else
+                coreSettings["genesis_plus_gx_addr_error"] = "enabled";
+			
+			if (SystemConfig.isOptSet("lock_on"))
+                coreSettings["genesis_plus_gx_lock_on"] = SystemConfig["lock_on"];
+            else
+                coreSettings["genesis_plus_gx_lock_on"] = "disabled";
+				
+			if (SystemConfig.isOptSet("ym2612"))
+                coreSettings["genesis_plus_gx_ym2612"] = SystemConfig["ym2612"];
+            else
+                coreSettings["genesis_plus_gx_ym2612"] = "mame (ym2612)";
+				
+			if (SystemConfig.isOptSet("audio_filter"))
+                coreSettings["genesis_plus_gx_audio_filter"] = SystemConfig["audio_filter"];
+            else
+                coreSettings["genesis_plus_gx_audio_filter"] = "disabled";
+				
+			if (SystemConfig.isOptSet("ntsc_filter"))
+                coreSettings["genesis_plus_gx_blargg_ntsc_filter"] = SystemConfig["ntsc_filter"];
+            else
+                coreSettings["genesis_plus_gx_blargg_ntsc_filter"] = "disabled";
+				
+			if (SystemConfig.isOptSet("lcd_filter"))
+                coreSettings["genesis_plus_gx_lcd_filter"] = SystemConfig["lcd_filter"];
+            else
+                coreSettings["genesis_plus_gx_lcd_filter"] = "disabled";
+				
+			if (SystemConfig.isOptSet("overscan"))
+                coreSettings["genesis_plus_gx_overscan"] = SystemConfig["overscan"];
+            else
+                coreSettings["genesis_plus_gx_overscan"] = "disabled";
+				
+			if (SystemConfig.isOptSet("render"))
+                coreSettings["genesis_plus_gx_render"] = SystemConfig["render"];
+            else
+                coreSettings["genesis_plus_gx_render"] = "single field";
+				
+			if (SystemConfig.isOptSet("gun_cursor"))
+                coreSettings["genesis_plus_gx_gun_cursor"] = SystemConfig["gun_cursor"];
+            else
+                coreSettings["genesis_plus_gx_gun_cursor"] = "disabled";
+				
+			if (SystemConfig.isOptSet("gun_input"))
+                coreSettings["genesis_plus_gx_gun_input"] = SystemConfig["gun_input"];
+            else
+                coreSettings["genesis_plus_gx_gun_input"] = "lightgun";
+
+        }
+		
+		private void ConfigureGenesisPlusGXWide(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "genesis_plus_gx_wide")
+                return;
+			
+			if (SystemConfig.isOptSet("ratio"))
+             {
+                int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
+                if (idx > 0)
+                {
+                    retroarchConfig["aspect_ratio_index"] = idx.ToString();
+                    retroarchConfig["video_aspect_ratio_auto"] = "false";
+                }
+            }
+            else
+            {
+                retroarchConfig["aspect_ratio_index"] = "1";
+                retroarchConfig["video_aspect_ratio_auto"] = "false";
+                SystemConfig["bezel"] = "none";
+            }
+
+            coreSettings["genesis_plus_gx_wide_blargg_ntsc_filter"] = "disabled";
+			coreSettings["genesis_plus_gx_wide_lcd_filter"] = "disabled";
+			coreSettings["genesis_plus_gx_wide_overscan"] = "disabled";
+
+            if (SystemConfig.isOptSet("addr_error"))
+                coreSettings["genesis_plus_gx_wide_addr_error"] = SystemConfig["addr_error"];
+            else
+                coreSettings["genesis_plus_gx_wide_addr_error"] = "enabled";
+			
+			if (SystemConfig.isOptSet("lock_on"))
+                coreSettings["genesis_plus_gx_wide_lock_on"] = SystemConfig["lock_on"];
+            else
+                coreSettings["genesis_plus_gx_wide_lock_on"] = "disabled";
+				
+			if (SystemConfig.isOptSet("ym2612"))
+                coreSettings["genesis_plus_gx_wide_ym2612"] = SystemConfig["ym2612"];
+            else
+                coreSettings["genesis_plus_gx_wide_ym2612"] = "mame (ym2612)";
+				
+			if (SystemConfig.isOptSet("audio_filter"))
+                coreSettings["genesis_plus_gx_wide_audio_filter"] = SystemConfig["audio_filter"];
+            else
+                coreSettings["genesis_plus_gx_wide_audio_filter"] = "disabled";
+				
+			if (SystemConfig.isOptSet("render"))
+                coreSettings["genesis_plus_gx_wide_render"] = SystemConfig["render"];
+            else
+                coreSettings["genesis_plus_gx_wide_render"] = "single field";
+				
+			if (SystemConfig.isOptSet("gun_cursor"))
+                coreSettings["genesis_plus_gx_wide_gun_cursor"] = SystemConfig["gun_cursor"];
+            else
+                coreSettings["genesis_plus_gx_wide_gun_cursor"] = "disabled";
+				
+			if (SystemConfig.isOptSet("gun_input"))
+                coreSettings["genesis_plus_gx_wide_gun_input"] = SystemConfig["gun_input"];
+            else
+                coreSettings["genesis_plus_gx_wide_gun_input"] = "lightgun";
+				
+			if (SystemConfig.isOptSet("h40_extra_columns"))
+                coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = SystemConfig["h40_extra_columns"];
+            else
+                coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = "10";
+				
+        }
+		
+		private void ConfigureMame(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mame")
+                return;
+				
+			coreSettings["mame_mame_paths_enable"] = "enabled";
+            coreSettings["mame_mame_mouse_enable"] = "enabled";
+            coreSettings["mame_mame_read_config"] = "enabled";
+            coreSettings["mame_mame_softlists_auto_media"] = "enabled";
+            coreSettings["mame_mame_write_config"] = "enabled";
+
+            if (SystemConfig.isOptSet("alternate_renderer"))
+                coreSettings["mame_alternate_renderer"] = SystemConfig["alternate_renderer"];
+			else 
+				coreSettings["mame_alternate_renderer"] = "disabled";
+
+            if (SystemConfig.isOptSet("internal_resolution"))
+                coreSettings["mame_altres"] = SystemConfig["internal_resolution"];
+			else 
+				coreSettings["mame_altres"] = "640x480";
+
+            if (SystemConfig.isOptSet("boot_from_cli"))
+                coreSettings["mame_boot_from_cli"] = SystemConfig["boot_from_cli"];
+			else 
+				coreSettings["mame_boot_from_cli"] = "enabled";
+
+            if (SystemConfig.isOptSet("boot_to_bios"))
+                coreSettings["mame_boot_to_bios"] = SystemConfig["boot_to_bios"];
+			else 
+				coreSettings["mame_boot_to_bios"] = "disabled";
+				
+			if (SystemConfig.isOptSet("boot_to_osd"))
+                coreSettings["mame_boot_to_osd"] = SystemConfig["boot_to_osd"];
+			else 
+				coreSettings["mame_boot_to_osd"] = "disabled";
+				
+			if (SystemConfig.isOptSet("cheats_enable"))
+                coreSettings["mame_cheats_enable"] = SystemConfig["cheats_enable"];
+			else 
+				coreSettings["mame_cheats_enable"] = "disabled";
+				
+			if (SystemConfig.isOptSet("lightgun_mode"))
+                coreSettings["mame_lightgun_mode"] = SystemConfig["lightgun_mode"];
+			else 
+				coreSettings["mame_lightgun_mode"] = "lightgun";
+				
+			if (SystemConfig.isOptSet("4way_enable"))
+                coreSettings["mame_mame_4way_enable"] = SystemConfig["mame_4way_enable"];
+			else 
+				coreSettings["mame_mame_4way_enable"] = "enabled";
+
+        }
+		
+		private void ConfigurePotator(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "potator")
+                return;
+
+            if (SystemConfig.isOptSet("lcd_ghosting"))
+                coreSettings["potator_lcd_ghosting"] = SystemConfig["lcd_ghosting"];
+            else
+                coreSettings["potator_lcd_ghosting"] = "0";
+            
+			if (SystemConfig.isOptSet("palette"))
+                coreSettings["potator_palette"] = SystemConfig["palette"];
+            else
+                coreSettings["potator_palette"] = "default";
+
+        }
 
         private void ConfigureMupen64(ConfigFile coreSettings, string system, string core)
         {
@@ -426,7 +627,7 @@ namespace emulatorLauncher.libRetro
             if (core != "mednafen_psx_hw")
                 return;
 
-            coreSettings["beetle_psx_hw_skip_bios"] = "enabled";
+            // coreSettings["beetle_psx_hw_skip_bios"] = "enabled";
 
             // video resolution
             if (SystemConfig.isOptSet("internal_resolution"))
@@ -439,27 +640,70 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_filter"] = SystemConfig["texture_filtering"];
             else
                 coreSettings["beetle_psx_hw_filter"] = "nearest";
+				
+			// dithering pattern
+            if (SystemConfig.isOptSet("dither_mode"))
+                coreSettings["beetle_psx_hw_dither_mode"] = SystemConfig["dither_mode"];
+            else
+                coreSettings["beetle_psx_hw_dither_mode"] = "disabled";
+				
+			// anti aliasing
+            if (SystemConfig.isOptSet("msaa"))
+                coreSettings["beetle_psx_hw_msaa"] = SystemConfig["msaa"];
+            else
+                coreSettings["beetle_psx_hw_msaa"] = "1x";
+				
+			// force analog
+            if (SystemConfig.isOptSet("analog_toggle"))
+                coreSettings["beetle_psx_hw_analog_toggle"] = SystemConfig["analog_toggle"];
+            else
+                coreSettings["beetle_psx_hw_analog_toggle"] = "enabled";
 
             // widescreen
             if (SystemConfig.isOptSet("widescreen_hack"))
             {
                 coreSettings["beetle_psx_hw_widescreen_hack"] = SystemConfig["widescreen_hack"];
 
-                if (SystemConfig["widescreen_hack"] == "enabled" && !SystemConfig.isOptSet("ratio"))
+                if (SystemConfig["widescreen_hack"] == "enabled")
                 {
-                    int idx = ratioIndexes.IndexOf("16/9");
-                    if (idx >= 0)
+                    int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
+                    if (idx > 0)
                     {
                         retroarchConfig["aspect_ratio_index"] = idx.ToString();
                         retroarchConfig["video_aspect_ratio_auto"] = "false";
                         SystemConfig["bezel"] = "none";
                     }
+					else
+					{
+						retroarchConfig["aspect_ratio_index"] = "1";
+						retroarchConfig["video_aspect_ratio_auto"] = "false";
+                        SystemConfig["bezel"] = "none";
+						coreSettings["beetle_psx_hw_widescreen_hack_aspect_ratio"] = "16:9";
+					}
                 }
             }
             else
                 coreSettings["beetle_psx_hw_widescreen_hack"] = "disabled";
+				
+			// widescreen aspect ratio
+            if (SystemConfig.isOptSet("widescreen_hack_aspect_ratio"))
+                coreSettings["beetle_psx_hw_widescreen_hack_aspect_ratio"] = SystemConfig["widescreen_hack_aspect_ratio"];
+            else
+                coreSettings["beetle_psx_hw_widescreen_hack_aspect_ratio"] = "16:9";
+				
+			// force NTSC timings
+			if (SystemConfig.isOptSet("pal_video_timing_override"))
+                coreSettings["beetle_psx_hw_pal_video_timing_override"] = SystemConfig["pal_video_timing_override"];
+            else
+                coreSettings["beetle_psx_hw_pal_video_timing_override"] = "disabled";
+				
+			// skip BIOS
+			if (SystemConfig.isOptSet("skip_bios"))
+                coreSettings["beetle_psx_hw_skip_bios"] = SystemConfig["skip_bios"];
+            else
+                coreSettings["beetle_psx_hw_skip_bios"] = "disabled";
 
-
+			/*
             // 32BPP
             if (SystemConfig.isOptSet("32bits_color_depth") && SystemConfig.getOptBoolean("32bits_color_depth"))
             {
@@ -471,7 +715,8 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_depth"] = "16bpp(native)";
                 coreSettings["beetle_psx_hw_dither_mode"] = "1x(native)";
             }
-
+			*/
+			
             // PGXP
             if (SystemConfig.isOptSet("pgxp") && SystemConfig.getOptBoolean("pgxp"))
             {
@@ -485,6 +730,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_pgxp_texture"] = "disabled";
                 coreSettings["beetle_psx_hw_pgxp_vertex"] = "disabled";
             }
+						
         }
     }
 }
