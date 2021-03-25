@@ -335,6 +335,16 @@ namespace emulatorLauncher
                 else
                     SetOption(regKeyc, "ForceDisableB2S", 1);
 
+                SetupOptionIfNotExists(regKeyc, "DOFContactors", 2);
+                SetupOptionIfNotExists(regKeyc, "DOFKnocker", 2);
+                SetupOptionIfNotExists(regKeyc, "DOFChimes", 2);
+                SetupOptionIfNotExists(regKeyc, "DOFBell", 2);
+                SetupOptionIfNotExists(regKeyc, "DOFGear", 2);
+                SetupOptionIfNotExists(regKeyc, "DOFShaker", 2);
+                SetupOptionIfNotExists(regKeyc, "DOFFlippers", 2);
+                SetupOptionIfNotExists(regKeyc, "DOFTargets", 2);
+                SetupOptionIfNotExists(regKeyc, "DOFDropTargets", 2);
+
                 regKeyc.Close();
             }
 
@@ -449,6 +459,15 @@ namespace emulatorLauncher
 
             if (o != null)
                 _oldValues[name] = o;
+
+            regKeyc.SetValue(name, value);
+        }
+
+        private static void SetupOptionIfNotExists(RegistryKey regKeyc, string name, object value)
+        {
+            object o = regKeyc.GetValue(name);
+            if (o != null)
+                return;
 
             regKeyc.SetValue(name, value);
         }
