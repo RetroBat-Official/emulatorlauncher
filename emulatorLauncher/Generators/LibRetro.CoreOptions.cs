@@ -50,9 +50,175 @@ namespace emulatorLauncher.libRetro
             ConfigureGenesisPlusGX(coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(coreSettings, system, core);
+			ConfigureDosboxPure(coreSettings, system, core);
+			ConfigureKronos(coreSettings, system, core);
+			ConfigurePicodrive(coreSettings, system, core);
+			ConfigureMednafenSaturn(coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
+        }
+		
+		private void ConfigureMednafenSaturn(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_saturn")
+                return;
+			
+            coreSettings["beetle_saturn_autortc"] = "enabled";			
+			coreSettings["beetle_saturn_shared_ext"] = "enabled";
+			coreSettings["beetle_saturn_shared_int"] = "enabled";
+            
+            if (SystemConfig.isOptSet("beetle_saturn_autortc_lang"))
+                coreSettings["beetle_saturn_autortc_lang"] = SystemConfig["beetle_saturn_autortc_lang"];
+            else
+                coreSettings["beetle_saturn_autortc_lang"] = "english";
+
+            if (SystemConfig.isOptSet("beetle_saturn_cart"))
+                coreSettings["beetle_saturn_cart"] = SystemConfig["beetle_saturn_cart"];
+            else
+                coreSettings["beetle_saturn_cart"] = "Auto Detect";
+				
+			if (SystemConfig.isOptSet("beetle_saturn_cdimagecache"))
+                coreSettings["beetle_saturn_cdimagecache"] = SystemConfig["beetle_saturn_cdimagecache"];
+            else
+                coreSettings["beetle_saturn_cdimagecache"] = "disabled";
+				
+			if (SystemConfig.isOptSet("beetle_saturn_midsync"))
+                coreSettings["beetle_saturn_midsync"] = SystemConfig["beetle_saturn_midsync"];
+            else
+                coreSettings["beetle_saturn_midsync"] = "disabled";
+				
+			if (SystemConfig.isOptSet("beetle_saturn_multitap_port1"))
+                coreSettings["beetle_saturn_multitap_port1"] = SystemConfig["beetle_saturn_multitap_port1"];
+            else
+                coreSettings["beetle_saturn_multitap_port1"] = "disabled";
+
+            if (SystemConfig.isOptSet("beetle_saturn_multitap_port2"))
+                coreSettings["beetle_saturn_multitap_port2"] = SystemConfig["beetle_saturn_multitap_port2"];
+            else
+                coreSettings["beetle_saturn_multitap_port2"] = "disabled";
+				
+			if (SystemConfig.isOptSet("beetle_saturn_region"))
+                coreSettings["beetle_saturn_region"] = SystemConfig["beetle_saturn_region"];
+            else
+                coreSettings["beetle_saturn_region"] = "Auto Detect";
+				
+			if (SystemConfig.isOptSet("beetle_saturn_midsync"))
+                coreSettings["beetle_saturn_midsync"] = SystemConfig["beetle_saturn_midsync"];
+            else
+                coreSettings["beetle_saturn_midsync"] = "disabled";
+				
+
+        }
+
+        private void ConfigurePicodrive(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "picodrive")
+                return;
+				
+			coreSettings["picodrive_ramcart"] = "disabled";
+            
+            if (SystemConfig.isOptSet("overclk68k"))
+                coreSettings["picodrive_overclk68k"] = SystemConfig["overclk68k"];
+            else
+                coreSettings["picodrive_overclk68k"] = "disabled";
+
+            if (SystemConfig.isOptSet("overscan"))
+                coreSettings["picodrive_overscan"] = SystemConfig["overscan"];
+            else
+                coreSettings["picodrive_overscan"] = "disabled";
+				
+			if (SystemConfig.isOptSet("region"))
+                coreSettings["picodrive_region"] = SystemConfig["region"];
+            else
+                coreSettings["picodrive_region"] = "Auto";
+				
+			if (SystemConfig.isOptSet("renderer"))
+                coreSettings["picodrive_renderer"] = SystemConfig["renderer"];
+            else
+                coreSettings["picodrive_renderer"] = "accurate";
+				
+			if (SystemConfig.isOptSet("audio_filter"))
+                coreSettings["picodrive_audio_filter"] = SystemConfig["audio_filter"];
+            else
+                coreSettings["picodrive_audio_filter"] = "disabled";
+
+            if (SystemConfig.isOptSet("dynamic_recompiler"))
+                coreSettings["picodrive_drc"] = SystemConfig["dynamic_recompiler"];
+            else
+                coreSettings["picodrive_drc"] = "disabled";
+				
+			if (SystemConfig.isOptSet("input1"))
+                coreSettings["picodrive_input1"] = SystemConfig["input1"];
+            else
+                coreSettings["picodrive_input2"] = "3 button pad";
+				
+			if (SystemConfig.isOptSet("input2"))
+                coreSettings["picodrive_input2"] = SystemConfig["input2"];
+            else
+                coreSettings["picodrive_input2"] = "3 button pad";
+
+        }
+		
+		private void ConfigureKronos(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "kronos")
+                return;
+			
+			coreSettings["kronos_use_beetle_saves"] = "enabled";
+			coreSettings["kronos_multitap_port2"] = "disabled";
+			coreSettings["kronos_sh2coretype"] = "kronos";
+            
+            if (SystemConfig.isOptSet("addon_cartridge"))
+                coreSettings["kronos_addon_cartridge"] = SystemConfig["addon_cartridge"];
+            else
+                coreSettings["kronos_addon_cartridge"] = "512K_backup_ram";
+
+            if (SystemConfig.isOptSet("force_downsampling"))
+                coreSettings["kronos_force_downsampling"] = SystemConfig["force_downsampling"];
+            else
+                coreSettings["kronos_force_downsampling"] = "disabled";
+
+            if (SystemConfig.isOptSet("language_id"))
+                coreSettings["kronos_language_id"] = SystemConfig["language_id"];
+            else
+                coreSettings["kronos_language_id"] = "English";
+				
+			if (SystemConfig.isOptSet("meshmode"))
+                coreSettings["kronos_meshmode"] = SystemConfig["meshmode"];
+            else
+                coreSettings["kronos_meshmode"] = "disabled";
+				
+			if (SystemConfig.isOptSet("multitap_port1"))
+                coreSettings["kronos_multitap_port1"] = SystemConfig["multitap_port1"];
+            else
+                coreSettings["kronos_multitap_port1"] = "disabled";
+				
+			if (SystemConfig.isOptSet("polygon_mode"))
+                coreSettings["kronos_polygon_mode"] = SystemConfig["polygon_mode"];
+            else
+                coreSettings["kronos_polygon_mode"] = "cpu_tesselation";
+				
+			if (SystemConfig.isOptSet("resolution_mode"))
+                coreSettings["kronos_resolution_mode"] = SystemConfig["resolution_mode"];
+            else
+                coreSettings["kronos_resolution_mode"] = "original";
+				
+			if (SystemConfig.isOptSet("use_cs"))
+                coreSettings["kronos_use_cs"] = SystemConfig["use_cs"];
+            else
+                coreSettings["kronos_use_cs"] = "disabled";
+				
+			if (SystemConfig.isOptSet("videocoretype"))
+                coreSettings["kronos_videocoretype"] = SystemConfig["videocoretype"];
+            else
+                coreSettings["kronos_videocoretype"] = "opengl";
+				
+			if (SystemConfig.isOptSet("videoformattype"))
+                coreSettings["kronos_videoformattype"] = SystemConfig["videoformattype"];
+            else
+                coreSettings["kronos_videoformattype"] = "auto";
+
         }
 
         private void ConfigureMame2003(ConfigFile coreSettings, string system, string core)
@@ -465,6 +631,103 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.isOptSet("Texture_Enhancement"))
                 coreSettings["mupen64plus-txEnhancementMode"] = SystemConfig["Texture_Enhancement"];
         }
+		
+		private void ConfigureDosboxPure(ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "dosbox_pure")
+                return;
+				
+			coreSettings["dosbox_pure_advanced"] = "true";
+			coreSettings["dosbox_pure_auto_mapping"] = "true";
+			coreSettings["dosbox_pure_bind_unused"] = "true";
+			coreSettings["dosbox_pure_savestate"] = "on";
+
+            if (SystemConfig.isOptSet("ratio"))
+                coreSettings["dosbox_pure_aspect_correction"] = SystemConfig["ratio"];
+			else
+			    coreSettings["dosbox_pure_aspect_correction"] = "true";
+			
+			if (SystemConfig.isOptSet("cga"))
+                coreSettings["dosbox_pure_cga"] = SystemConfig["cga"];
+			else
+			    coreSettings["dosbox_pure_cga"] = "early_auto";
+				
+			if (SystemConfig.isOptSet("cpu_core"))
+                coreSettings["dosbox_pure_cpu_core"] = SystemConfig["cpu_core"];
+			else
+			    coreSettings["dosbox_pure_cpu_core"] = "auto";
+			
+			if (SystemConfig.isOptSet("cpu_type"))
+                coreSettings["dosbox_pure_cpu_type"] = SystemConfig["cpu_type"];
+			else
+			    coreSettings["dosbox_pure_cpu_type"] = "auto";
+				
+			if (SystemConfig.isOptSet("cycles"))
+                coreSettings["dosbox_pure_cycles"] = SystemConfig["cycles"];
+			else
+			    coreSettings["dosbox_pure_cycles"] = "auto";
+				
+			if (SystemConfig.isOptSet("gus"))
+                coreSettings["dosbox_pure_gus"] = SystemConfig["gus"];
+			else
+			    coreSettings["dosbox_pure_gus"] = "false";
+				
+			if (SystemConfig.isOptSet("hercules"))
+                coreSettings["dosbox_pure_hercules"] = SystemConfig["hercules"];
+			else
+			    coreSettings["dosbox_pure_hercules"] = "white";
+				
+			if (SystemConfig.isOptSet("machine"))
+                coreSettings["dosbox_pure_machine"] = SystemConfig["machine"];
+			else
+			    coreSettings["dosbox_pure_machine"] = "svga";
+				
+			if (SystemConfig.isOptSet("memory_size"))
+                coreSettings["dosbox_pure_memory_size"] = SystemConfig["memory_size"];
+			else
+			    coreSettings["dosbox_pure_memory_size"] = "16";
+				
+			if (SystemConfig.isOptSet("menu_time"))
+                coreSettings["dosbox_pure_menu_time"] = SystemConfig["menu_time"];
+			else
+			    coreSettings["dosbox_pure_menu_time"] = "5";
+				
+			if (SystemConfig.isOptSet("midi"))
+                coreSettings["dosbox_pure_midi"] = SystemConfig["midi"];
+			else
+			    coreSettings["dosbox_pure_midi"] = "scummvm/extra/Roland_SC-55.sf2";				
+				
+			if (SystemConfig.isOptSet("on_screen_keyboard"))
+                coreSettings["dosbox_pure_on_screen_keyboard"] = SystemConfig["on_screen_keyboard"];
+			else
+			    coreSettings["dosbox_pure_on_screen_keyboard"] = "true";
+				
+			if (SystemConfig.isOptSet("sblaster_adlib_emu"))
+                coreSettings["dosbox_pure_sblaster_adlib_emu"] = SystemConfig["sblaster_adlib_emu"];
+			else
+			    coreSettings["dosbox_pure_sblaster_adlib_emu"] = "default";
+				
+			if (SystemConfig.isOptSet("sblaster_adlib_mode"))
+                coreSettings["dosbox_pure_sblaster_adlib_mode"] = SystemConfig["sblaster_adlib_mode"];
+			else
+			    coreSettings["dosbox_pure_sblaster_adlib_mode"] = "auto";
+				
+			if (SystemConfig.isOptSet("sblaster_conf"))
+                coreSettings["dosbox_pure_sblaster_conf"] = SystemConfig["sblaster_conf"];
+			else
+			    coreSettings["dosbox_pure_sblaster_conf"] = "A220 I7 D1 H5";
+				
+			if (SystemConfig.isOptSet("sblaster_type"))
+                coreSettings["dosbox_pure_sblaster_type"] = SystemConfig["sblaster_type"];
+			else
+			    coreSettings["dosbox_pure_sblaster_type"] = "sb16";
+				
+			if (SystemConfig.isOptSet("svga"))
+                coreSettings["dosbox_pure_svga"] = SystemConfig["svga"];
+			else
+			    coreSettings["dosbox_pure_svga"] = "vesa_nolfb";
+            
+        }
 
         private void ConfigurePuae(ConfigFile coreSettings, string system, string core)
         {
@@ -524,11 +787,15 @@ namespace emulatorLauncher.libRetro
                         retroarchConfig["aspect_ratio_index"] = idx.ToString();
                         retroarchConfig["video_aspect_ratio_auto"] = "false";
                         SystemConfig["bezel"] = "none";
+						coreSettings["reicast_widescreen_cheats"] = "enabled";
                     }
                 }
             }
             else
-                coreSettings["reicast_widescreen_hack"] = "disabled";
+            {    
+			    coreSettings["reicast_widescreen_cheats"] = "disabled";
+				coreSettings["reicast_widescreen_hack"] = "disabled";
+			}
 
             // anisotropic filtering
             if (SystemConfig.isOptSet("anisotropic_filtering"))
