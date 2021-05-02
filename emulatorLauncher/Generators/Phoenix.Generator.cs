@@ -19,6 +19,8 @@ namespace emulatorLauncher
         }
         private const string emuExe = "PhoenixEmuProject.exe";
         private const string biosName = "[BIOS] Atari Jaguar (World).j64";
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -39,9 +41,9 @@ namespace emulatorLauncher
                 return null;
             }
 
-            if (File.Exists(settingsFile))
+            try
             {
-                try
+                if (File.Exists(settingsFile))
                 {
                     XDocument settings = XDocument.Load(settingsFile);
                     XElement platformJaguar = settings.Root.Element("Library")?.Element("Platform-Jaguar");
@@ -59,15 +61,18 @@ namespace emulatorLauncher
                         settings.Save(settingsFile);
                     }
                 }
-                catch (Exception e)
+                else
                 {
-                    SimpleLogger.Instance.Info(e.Message.ToString());
+                    GenerateConfig(rom, biosFile, settingsFile);
                 }
             }
-            else
+            catch (Exception e)
             {
-                GenerateConfig(rom, biosFile, settingsFile);
+                SimpleLogger.Instance.Info(e.Message.ToString());
             }
+
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _resolution = resolution;
 
             return new ProcessStartInfo()
             {
@@ -79,6 +84,7 @@ namespace emulatorLauncher
 
         public override void RunAndWait(ProcessStartInfo path)
         {
+            FakeBezelFrm bezel = null;
             var process = Process.Start(path);
 
             while (process != null)
@@ -101,9 +107,12 @@ namespace emulatorLauncher
                 SendKeys.SendWait("{F11}");
                 break;
             }
-
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
             if (process != null)
                 process.WaitForExit();
+            if (bezel != null)
+                bezel.Dispose();
         }
 
 
@@ -140,11 +149,12 @@ namespace emulatorLauncher
             settings.Save(settingsFile);
         }
 
-        private void AppendDumpConfig(XElement platformConfig, DumpType type, string resourcePath)
+        private void AppendDumpConfig(XElement platformConfig, DumpType type, string fileName)
         {
-            var md5Hash = getMD5Hash(resourcePath);
-            var sha1Hash = GetSha1Hash(resourcePath);
-            var fileSize = GetFileSize(resourcePath);
+            var filePath = Path.GetDirectoryName(fileName); 
+            var md5Hash = getMD5Hash(fileName);
+            var sha1Hash = GetSha1Hash(fileName);
+            var fileSize = GetFileSize(fileName);
             var element = platformConfig.Element(type.ToString());
             if (element == null)
             {
@@ -153,8 +163,8 @@ namespace emulatorLauncher
             }
 
             element.SetAttributeValue("expanded", "true");
-            element.SetAttributeValue("attach", resourcePath);
-            element.SetAttributeValue("last-path", resourcePath);
+            element.SetAttributeValue("attach", fileName);
+            element.SetAttributeValue("last-path", filePath);
 
             var dump = element.Descendants("Dump").Where(ele => (string)ele.Attribute("md5") == md5Hash).FirstOrDefault();
 
@@ -163,7 +173,7 @@ namespace emulatorLauncher
                 dump = new XElement("Dump");
                 element.Add(dump);
             }
-            dump.SetAttributeValue("path", resourcePath);
+            dump.SetAttributeValue("path", fileName);
             dump.SetAttributeValue("fast-md5", md5Hash);
             dump.SetAttributeValue("md5", md5Hash);
             dump.SetAttributeValue("sh1", sha1Hash);
