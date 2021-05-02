@@ -246,6 +246,8 @@ namespace emulatorLauncher
                     // don't confirm at stop
                     ini.WriteValue("Interface", "ConfirmStop", "False");
 
+                    ini.WriteValue("Display", "KeepWindowOnTop", "False");
+
                     // language (for gamecube at least)
                     ini.WriteValue("Core", "SelectedLanguage", getGameCubeLangFromEnvironment());
                     ini.WriteValue("Core", "GameCubeLanguage", getGameCubeLangFromEnvironment());
