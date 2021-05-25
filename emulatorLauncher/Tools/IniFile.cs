@@ -32,8 +32,12 @@ namespace emulatorLauncher
 
                         if (strLine != "")
                         {
-                            if (strLine.StartsWith("[") && strLine.EndsWith("]"))
-                                currentSection = strLine.Substring(1, strLine.Length - 2); 
+                            if (strLine.StartsWith("["))
+                            {
+                                int end = strLine.IndexOf("]");
+                                if (end > 0)
+                                    currentSection = strLine.Substring(1, end - 1);
+                            }
                             else
                             {
                                 string[] keyPair = strLine.Split(new char[] { '=' }, 2);
@@ -209,7 +213,12 @@ namespace emulatorLauncher
 
             public override string ToString()
             {
-                return "["+Section+"] "+Key;
+                return "["+(Section??"")+"] "+(Key??"");
+            }
+
+            public override int GetHashCode()
+            {
+                return ToString().GetHashCode();
             }
 
             public override bool Equals(object obj)
@@ -223,59 +232,5 @@ namespace emulatorLauncher
                 return base.Equals(obj);
             }
         }
-
-        /*
-         public string[] EnumerateSections()
-        {
-            int bufferSize = 128 * 1024;
-
-            string result = new string(' ', bufferSize);
-            int size = GetPrivateProfileString(null, null, null, result, bufferSize, _path);
-            if (size > 1)
-                return result.Substring(0, size - 1).Split('\0');
-
-            return new string[] { };
-        }
-
-        public string[] EnumerateKeys(string section)
-        {
-            int bufferSize = 128 * 1024;
-
-            string result = new string(' ', bufferSize);
-            int size = GetPrivateProfileString(section, null, null, result, bufferSize, _path);
-            if (size > 1)
-                return result.Substring(0, size - 1).Split('\0');           
-
-            return new string[] { };
-        }
-       
-        public void WriteValue(string section, string key,string value)
-		{
-			WritePrivateProfileString(section, key, value, _path);
-		}
-		
-        public string GetValue(string section, string key)
-		{
-			StringBuilder temp = new StringBuilder(2048);
-
-			int ret = GetPrivateProfileString(section, key, "", temp, 2048, _path);
-            if (ret > 0)
-                return temp.ToString();
-
-            return string.Empty;
-
-		}
-
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool WritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-        private static extern int GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, int nSize, string lpFileName);
-
-        [DllImport("KERNEL32.DLL", EntryPoint = "GetPrivateProfileStringW", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
-        private static extern int GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, string lpReturnString, int nSize, string lpFilename);
- */
     }
 }

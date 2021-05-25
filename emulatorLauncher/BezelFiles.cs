@@ -75,6 +75,9 @@ namespace emulatorLauncher
 
         public static BezelFiles GetBezelFiles(string systemName, string rom)
         {
+            if (systemName == null || rom == null)
+                return null;
+
             string overlayUser = Program.AppConfig.GetFullPath("decorations");
 
             string overlaySystem = Program.AppConfig.GetFullPath("system.decorations");

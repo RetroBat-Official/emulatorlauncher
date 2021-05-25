@@ -23,30 +23,72 @@ namespace emulatorLauncher
 
             List<string> args = new List<string>();
 
+            bool isWideScreen = false;
+
             if (resolution != null)
+            {
+                isWideScreen = ((float)resolution.Width / (float)resolution.Height) > 1.75f;
                 args.Add("-res=" + resolution.Width + "," + resolution.Height);
+            }
             else
+            {
+                isWideScreen = ((float)Screen.PrimaryScreen.Bounds.Width / (float)Screen.PrimaryScreen.Bounds.Height) >= 1.75f;
                 args.Add("-res=" + Screen.PrimaryScreen.Bounds.Width + "," + Screen.PrimaryScreen.Bounds.Height);
+            }
 
             _resolution = resolution;
 
-            if (ReshadeManager.Setup(ReshadeBezelType.opengl, system, rom, path, resolution))
+            bool wideScreen = SystemConfig["widescreen"] == "1" || SystemConfig["widescreen"] == "2" || (!SystemConfig.isOptSet("widescreen") && isWideScreen);
+            if (wideScreen)
+            {
+                ReshadeManager.Setup(ReshadeBezelType.opengl, null, null, path, resolution);
+
                 args.Add("-fullscreen");
+
+                if (SystemConfig["widescreen"] == "2")
+                    args.Add("-stretch");
+                else
+                    args.Add("-wide-screen");
+            }
             else
             {
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-
-                if (_bezelFileInfo == null)
-                {
+                if (ReshadeManager.Setup(ReshadeBezelType.opengl, system, rom, path, resolution))
                     args.Add("-fullscreen");
+                else
+                {
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    if (_bezelFileInfo == null)
+                        args.Add("-fullscreen");
+                }
+            }
 
-                    if (SystemConfig["ratio"] != "4:3")
+            // quad rendering
+            if (SystemConfig.isOptSet("quadRendering") && SystemConfig.getOptBoolean("quadRendering"))
+                args.Add("-quad-rendering");
+
+            // crosshairs
+            if (SystemConfig.isOptSet("crosshairs"))
+                args.Add("-crosshairs=" + SystemConfig["crosshairs"]);
+            
+            // force feedback
+            if (SystemConfig.isOptSet("forceFeedback") && SystemConfig.getOptBoolean("forceFeedback"))
+                args.Add("-force-feedback");
+
+            try
+            {
+                string iniPath = Path.Combine(path, "Config", "Supermodel.ini");
+                if (File.Exists(iniPath))
+                {
+                    using (IniFile ini = new IniFile(iniPath, false))
                     {
-                        args.Add("-wide-screen");
-                        args.Add("-stretch");
+                        ini.WriteValue(" Global ", "FullScreen", _bezelFileInfo == null ? "1" : "0");
+                        ini.WriteValue(" Global ", "WideScreen", wideScreen ? "1" : "0");
+                        ini.Save();
                     }
                 }
             }
+            catch { }
+
                             
             if (SystemConfig["VSync"] != "false")
                 args.Add("-vsync");
