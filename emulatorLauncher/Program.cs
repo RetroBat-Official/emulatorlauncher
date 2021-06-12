@@ -271,8 +271,31 @@ namespace emulatorLauncher
                     input.Name = k;
                     input.ControllerIndex = controllerIndex;
 
+                    bool custom = false;
+
                     foreach (var target in action.Targets)
                     {
+                        if (target == "(%{KILL})" || target == "%{KILL}")
+                        {
+                            custom = true;
+                            input.Key = "(%{KILL})";
+                            continue;
+                        }
+
+                        if (target == "(%{CLOSE})" || target == "%{CLOSE}")
+                        {
+                            custom = true;
+                            input.Key = "(%{CLOSE})";
+                            continue;
+                        }
+
+                        if (target == "(%{F4})" || target == "%{F4}")
+                        {
+                            custom = true;
+                            input.Key = "(%{F4})";
+                            continue;
+                        }
+
                         LinuxScanCode sc;
                         if (!Enum.TryParse<LinuxScanCode>(target.ToUpper(), out sc))
                             continue;
@@ -280,7 +303,7 @@ namespace emulatorLauncher
                         input.SetScanCode((uint)sc);
                     }
 
-                    if (input.ScanCodes.Length > 0)
+                    if (input.ScanCodes.Length > 0 || custom)
                         app.Input.Add(input);
                 }
 
