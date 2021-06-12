@@ -33,11 +33,11 @@ namespace TeknoParrotUi.Common
         public string FileName { get; set; }
         public List<FieldInformation> ConfigValues { get; set; }
         public List<JoystickButtons> JoystickButtons { get; set; }
-        public EmulationProfile EmulationProfile { get; set; }
+        public string EmulationProfile { get; set; } // EmulationProfile
         public int GameProfileRevision { get; set; }
         public bool HasSeparateTestMode { get; set; }
         public bool Is64Bit { get; set; }
-        public EmulatorType EmulatorType { get; set; }
+        public string EmulatorType { get; set; }
         public bool Patreon { get; set; }
         public bool RequiresAdmin { get; set; }
         public int msysType { get; set; }

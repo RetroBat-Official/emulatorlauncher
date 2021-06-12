@@ -57,9 +57,9 @@ namespace TeknoParrotUi.Common
                 // migrate stuff in case names get changed, only for UserProfiles
                 if (userProfile)
                 {
-                    if (profile.EmulationProfile == EmulationProfile.FNFDrift)
+                    if (profile.EmulationProfile == "FNFDrift")
                     {
-                        profile.EmulationProfile = EmulationProfile.RawThrillsFNF;
+                        profile.EmulationProfile = "RawThrillsFNF";
                         SerializeGameProfile(profile, fileName);
                     }
 

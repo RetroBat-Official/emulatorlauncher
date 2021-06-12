@@ -300,7 +300,7 @@ namespace emulatorLauncher
         //            foreach (var btn in userProfile.JoystickButtons)
         //                btn.XInputButton = null;
 
-                    if (userProfile.EmulationProfile == EmulationProfile.NamcoMachStorm)
+                    if (userProfile.EmulationProfile == "NamcoMachStorm")
                     {
                         ImportXInputButton(userProfile, c.Config, InputKey.select, InputMapping.Service1);
 
@@ -728,7 +728,7 @@ namespace emulatorLauncher
 
         private void killIDZ()
         {
-            if (_gameProfile == null || _gameProfile.EmulationProfile != EmulationProfile.SegaToolsIDZ)
+            if (_gameProfile == null || _gameProfile.EmulationProfile != "SegaToolsIDZ")
                 return;
 
             var currentId = Process.GetCurrentProcess().Id;
@@ -850,7 +850,9 @@ namespace emulatorLauncher
                     frm.WarningText = path.Arguments;
                     frm.Show();
 
-                    for (int i = 0; i < 4000; i++)
+                    int ticks = Environment.TickCount;
+                    
+                    while(Environment.TickCount - ticks < 4000)
                     {
                         Application.DoEvents();
                         Thread.Sleep(1);
