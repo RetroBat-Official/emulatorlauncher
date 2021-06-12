@@ -34,15 +34,13 @@ namespace emulatorLauncher
                 
                 if (Path.GetFileName(rom) == "autorun.cmd")
                 {                    
-                    var wine = File.ReadAllText(rom);
-                    int idx = wine.IndexOf("CMD=");
-                    if (idx >= 0)
-                    {
-                        rom = Path.ChangeExtension(rom, ".win.cmd");
-                        File.WriteAllText(rom, wine.Substring(idx + 4));
-                    }
+                    var wineCommand = File.ReadAllText(rom);
 
-                    var args = SplitCommandLine(wine);
+                    int idx = wineCommand.IndexOf("CMD=");
+                    if (idx >= 0)
+                        wineCommand = wineCommand.Substring(idx + 4).Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+
+                    var args = SplitCommandLine(wineCommand);
                     if (args.Length > 0)
                     {
                         string exe = Path.Combine(path, args[0]);
