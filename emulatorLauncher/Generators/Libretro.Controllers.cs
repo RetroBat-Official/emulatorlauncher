@@ -131,7 +131,7 @@ namespace emulatorLauncher.libRetro
         {
             retroconfig.DisableAll("input_player");
             foreach (var specialkey in retroarchspecials)
-                retroconfig.DisableAll("input_" + specialkey.Key);
+                retroconfig.DisableAll("input_" + specialkey.Value);
         }
 
         private static void WriteHotKeyConfig(ConfigFile config)
