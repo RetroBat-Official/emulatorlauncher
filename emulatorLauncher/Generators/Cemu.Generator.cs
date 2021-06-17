@@ -206,8 +206,11 @@ namespace emulatorLauncher
             ini.WriteValue("Controller", "rightDeadzone", "0.15");
             ini.WriteValue("Controller", "buttonThreshold", "0.5");
 
-            Action<string, InputKey, bool> writeIni = (v, k, r) =>
-                { var val = GetInputValue(joy, k, api, r); ini.WriteValue("Controller", v, val); };             // if (val != null) 
+            Action<string, InputKey, bool> writeIni = (v, k, r) =>                
+            { 
+                var val = GetInputValue(joy, k, api, r); 
+                ini.WriteValue("Controller", v, val); 
+            };
 
             writeIni("1", InputKey.a, false);
             writeIni("2", InputKey.b, false);
@@ -217,8 +220,8 @@ namespace emulatorLauncher
             writeIni("5", InputKey.pageup, false);
             writeIni("6", InputKey.pagedown, false);
 
-            writeIni("7", InputKey.lefttrigger, false);
-            writeIni("8", InputKey.righttrigger, false);
+            writeIni("7", InputKey.leftthumb, false); 
+            writeIni("8", InputKey.rightthumb, false);
 
             writeIni("9", InputKey.start, false);
             writeIni("10", InputKey.select, false);
@@ -228,16 +231,8 @@ namespace emulatorLauncher
             writeIni("13", InputKey.left, false);
             writeIni("14", InputKey.right, false);
 
-            if (api == "XInput")
-            {
-                ini.WriteValue("Controller", "15", "button_100");
-                ini.WriteValue("Controller", "16", "button_200");
-            }
-            else
-            {
-                ini.WriteValue("Controller", "15", null);
-                ini.WriteValue("Controller", "16", null);
-            }
+            writeIni("15", InputKey.lefttrigger, false);
+            writeIni("16", InputKey.righttrigger, false);
 
             writeIni("17", InputKey.joystick1up, false);
             writeIni("18", InputKey.joystick1up, true);
@@ -323,6 +318,10 @@ namespace emulatorLauncher
                     case 4: // right analog up/down
                         if (pid == axisVal)     pid = 0x0400000000; 
                         else                    pid = 0x10000000000;
+                        break;
+                    case 5: // Triggers Analogiques R
+                        if (pid == axisVal) pid = 0x0800000000;
+                        else                pid = 0x10000000000;
                         break;
                 }
 
