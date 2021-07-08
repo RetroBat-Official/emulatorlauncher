@@ -71,6 +71,7 @@
     <Compile Include="Generators\AmigaForever.Generator.cs" />
     <Compile Include="Generators\Cemu.Generator.cs" />
     <Compile Include="Generators\Xemu.Generator.cs" />
+    <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
