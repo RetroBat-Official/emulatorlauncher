@@ -75,6 +75,7 @@
     <Compile Include="Generators\Duckstation.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\Mesen.Generator.cs" />
+    <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Generator.cs" />
     <Compile Include="Generators\TeknoParrot.generator.cs" />
     <Compile Include="Generators\Tsugaru.Generator.cs" />

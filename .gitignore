@@ -1,1 +1,5 @@
 *.csproj.user
+*.suo
+bin/
+obj/
+Debug/
