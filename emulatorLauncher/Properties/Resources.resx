@@ -136,4 +136,10 @@
   <data name="ReShadeUI" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\reshader\reshadeui.fxh;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="eeprom" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\eeprom.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="xbox_hdd_qcow2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\xbox_hdd.qcow2.zip;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
