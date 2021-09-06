@@ -38,6 +38,13 @@ namespace emulatorLauncher.Tools
                     ctl.Name = SDL.SDL_GameControllerNameForIndex(i);
                     ctl.Mapping = sdlMapping;
                     ctl.SdlBinding = mappingString;
+
+                    IntPtr joy = SDL.SDL_JoystickOpen(i);
+                    if (joy != IntPtr.Zero)
+                    {
+                        ctl.InstanceID = SDL.SDL_JoystickInstanceID(joy);
+                        SDL.SDL_JoystickClose(joy);
+                    }
                     
                     if (!_controllers.Any(c => c.Guid == ctl.Guid))
                         _controllers.Add(ctl);
@@ -60,6 +67,14 @@ namespace emulatorLauncher.Tools
                 ctl.Name = mapArray[1];
                 ctl.Mapping = ExtractMapping(mapArray.Skip(2).ToArray());
                 ctl.SdlBinding = mappingString;
+
+                IntPtr joy = SDL.SDL_JoystickOpen(i);
+                if (joy != IntPtr.Zero)
+                {
+                    ctl.InstanceID = SDL.SDL_JoystickInstanceID(joy);
+                    SDL.SDL_JoystickClose(joy);
+                }
+
                 _controllers.Add(ctl);
             }
 
@@ -206,23 +221,20 @@ namespace emulatorLauncher.Tools
             return _controllers.Where(c => c.Name == name).FirstOrDefault();
         }
 
-        static List<SdlGameControllers> _controllers;
-
-        public Guid Guid { get; set; }
-        public string Name { get; set; }
-
-        public List<SdlControllerMapping> Mapping { get; set; }
-
         public override string ToString()
         {
             return Guid + " " + Name;
         }
 
+        static List<SdlGameControllers> _controllers;
+
+        public Guid Guid { get; set; }
+        public string Name { get; set; }
+        public List<SdlControllerMapping> Mapping { get; set; }
         public string SdlBinding { get; set; }
-
         public int VendorId { get; set; }
-
         public int ProductId { get; set; }
+        public int InstanceID { get; set; }
     }
 
     class SdlControllerMapping

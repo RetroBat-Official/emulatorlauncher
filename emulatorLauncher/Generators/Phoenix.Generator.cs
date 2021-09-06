@@ -46,7 +46,8 @@ namespace emulatorLauncher
                 if (File.Exists(settingsFile))
                 {
                     XDocument settings = XDocument.Load(settingsFile);
-                    XElement platformJaguar = settings.Root.Element("Library")?.Element("Platform-Jaguar");
+                    XElement library = settings.Root.Element("Library");
+                    XElement platformJaguar = library != null ? library.Element("Platform-Jaguar") : null;
 
                     if (platformJaguar == null)
                     {

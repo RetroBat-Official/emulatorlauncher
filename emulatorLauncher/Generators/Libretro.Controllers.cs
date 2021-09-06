@@ -17,7 +17,10 @@ namespace emulatorLauncher.libRetro
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
-           
+
+            if (Program.SystemConfig["input_driver"] == "xinput")
+                _inputDriver = "xinput";
+
             /*
             bool allXInput = !Program.Controllers.Where(c => c.Input != null && c.Input.Type != "keyboard").Any(j => !j.Input.IsXInputDevice());
             if (allXInput)
