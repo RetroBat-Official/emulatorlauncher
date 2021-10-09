@@ -50,7 +50,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-borderless -sw 1920 -sh 1080"+screenShots,
+                Arguments = "-fullscreen -borderless -sw 1920 -sh 1080"+screenShots,
             };
         }
 
