@@ -47,6 +47,11 @@ namespace emulatorLauncher
                 this.Add(new KeyValuePair<InputKey, string>(key, value));
             }
 
+            public bool ContainsKey(InputKey key)
+            {
+                return this.Any(i => i.Key == key);
+            }
+
             public string this[InputKey key]
             {
                 get
@@ -111,6 +116,14 @@ namespace emulatorLauncher
             { InputKey.joystick1left,   "Main Stick/Left" },
             { InputKey.joystick2up,     "C-Stick/Up" },    
             { InputKey.joystick2left,   "C-Stick/Left"}          
+        };
+
+        static InputKeyMapping reversedButtons = new InputKeyMapping()
+        { 
+            { InputKey.y,               "Buttons/X" },  
+            { InputKey.b,               "Buttons/A" },
+            { InputKey.x,               "Buttons/Y" },  
+            { InputKey.a,               "Buttons/B" }
         };
 
         static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string,string>()
@@ -386,14 +399,17 @@ namespace emulatorLauncher
                        foreach(var xtra in extraOptions)
                            ini.WriteValue(gcpad, xtra.Key, xtra.Value);
 
+                    bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons");
+
                     foreach (var x in anyMapping)
                     {
-                        string keyName = x.Value;
+                        string value = x.Value;
+
+                        if (revertButtons && reversedButtons.ContainsKey(x.Key))
+                            value = reversedButtons[x.Key];
 
                         if (pad.Config.Type == "keyboard")
                         {
-                            var value = x.Value;
-
                             if (x.Key == InputKey.a)
                                 value = "Buttons/A";
                             else if (x.Key == InputKey.b)
@@ -421,10 +437,10 @@ namespace emulatorLauncher
                         {
                             var mapping = pad.Config.GetXInputMapping(x.Key);
                             if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
-                                ini.WriteValue(gcpad, x.Value, xInputMapping[mapping]);
+                                ini.WriteValue(gcpad, value, xInputMapping[mapping]);
 
                             string reverseAxis;
-                            if (anyReverseAxes.TryGetValue(x.Value, out reverseAxis))
+                            if (anyReverseAxes.TryGetValue(value, out reverseAxis))
                             {
                                 mapping = pad.Config.GetXInputMapping(x.Key, true);
                                 if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
@@ -440,11 +456,11 @@ namespace emulatorLauncher
                             if (input.Type == "button")
                             {
                                 if (input.Id == 0) // Invert A & B
-                                    ini.WriteValue(gcpad, x.Value, "`Button 1`");
+                                    ini.WriteValue(gcpad, value, "`Button 1`");
                                 else if (input.Id == 1) // Invert A & B
-                                    ini.WriteValue(gcpad, x.Value, "`Button 0`");
+                                    ini.WriteValue(gcpad, value, "`Button 0`");
                                 else
-                                    ini.WriteValue(gcpad, x.Value, "`Button "+ input.Id.ToString() + "`");
+                                    ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
                             }
                             else if (input.Type == "hat")
                             {
@@ -457,7 +473,7 @@ namespace emulatorLauncher
                                 else if (input.Value == 8) // SDL_HAT_LEFT
                                     hat = "`Hat " + input.Id + " W`";
 
-                                ini.WriteValue(gcpad, x.Value, hat);
+                                ini.WriteValue(gcpad, value, hat);
                             }
                             else if (input.Type == "axis")
                             {
@@ -485,11 +501,11 @@ namespace emulatorLauncher
 
                                     return axis+"`";
                                 };
-                                
-                                ini.WriteValue(gcpad, x.Value, axisValue(input, false));
+
+                                ini.WriteValue(gcpad, value, axisValue(input, false));
 
                                 string reverseAxis;
-                                if (anyReverseAxes.TryGetValue(x.Value, out reverseAxis))
+                                if (anyReverseAxes.TryGetValue(value, out reverseAxis))
                                     ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
                             }
                         }
