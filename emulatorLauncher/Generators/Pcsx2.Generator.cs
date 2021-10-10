@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Management;
 
 namespace emulatorLauncher
 {
@@ -29,10 +30,11 @@ namespace emulatorLauncher
                 bezel.Dispose();
         }
 
-
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+
+        private bool _isPcsx17;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -43,12 +45,25 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupPaths();
+            // v1.7.0 ???
+            Version version = new Version();
+            if (Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion, out version))
+                _isPcsx17 = version >= new Version(1, 7, 0, 0);
+
+            // Select avx2 build
+            if (_isPcsx17 && (core == "pcsx2-avx2" || core == "avx2"))
+            {
+                string avx2 = Path.Combine(_path, "pcsx2-avx2.exe");
+                if (File.Exists(avx2))
+                    exe = avx2;
+            }
+
+            SetupPaths(core);
             SetupVM();
             SetupLilyPad();
             SetupGSDx(resolution);
 
-            if (SystemConfig["ratio"] == "4:3")
+            if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] == "4:3")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
@@ -70,9 +85,8 @@ namespace emulatorLauncher
                 Arguments = args + " \"" + rom + "\"", 
             };
         }
-
-        private void SetupPaths()
-        {
+        private void SetupPaths(string core)        
+        {          
             string iniFile = Path.Combine(_path, "inis", "PCSX2_ui.ini");
             if (File.Exists(iniFile))
             {
@@ -92,23 +106,48 @@ namespace emulatorLauncher
                         string savesPath = AppConfig.GetFullPath("saves");
                         if (!string.IsNullOrEmpty(savesPath))
                         {
-                            savesPath = Path.Combine(savesPath, "pcsx2");
+                            savesPath = Path.Combine(savesPath, "ps2", "pcsx2");
                             if (!Directory.Exists(savesPath))
                                 try { Directory.CreateDirectory(savesPath); }
                                 catch { }
-
+								
+                            ini.WriteValue("Folders", "UseDefaultSavestates", "disabled");
+							ini.WriteValue("Folders", "UseDefaultMemoryCards", "disabled");
                             ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\")); // Path.Combine(relPath, "pcsx2")
+							ini.WriteValue("Folders", "MemoryCards", savesPath.Replace("\\", "\\\\"));
                         }
 
                         if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                             ini.WriteValue("GSWindow", "AspectRatio", SystemConfig["ratio"]);
                         else
-                            ini.WriteValue("GSWindow", "AspectRatio", "Stretch");
+                            ini.WriteValue("GSWindow", "AspectRatio", "4:3");
+						
+						if (SystemConfig.isOptSet("fmv_ratio") && !string.IsNullOrEmpty(SystemConfig["fmv_ratio"]))
+                            ini.WriteValue("GSWindow", "FMVAspectRatioSwitch", SystemConfig["fmv_ratio"]);
+                        else
+                            ini.WriteValue("GSWindow", "FMVAspectRatioSwitch", "Off");
 
                         ini.WriteValue("ProgramLog", "Visible", "disabled");
                         ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
 
-                        ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
+                        if (!_isPcsx17)
+                            ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
+
+                        /* Disabled for <= 1.6.0
+                        if (core == "pcsx2-avx2" || core == "avx2")
+                        {
+                            ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
+                        }
+                        else if (core == "pcsx2-sse2" || core == "sse2")
+                        {
+                            ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
+                        }
+                        else if (core == "pcsx2-sse4" || core == "sse4")
+                        {
+                            ini.WriteValue("Filenames", "GS", "GSdx32-SSE4.dll");
+                        }
+                        else
+                            ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");*/
                     }
                 }
                 catch { }
@@ -117,7 +156,10 @@ namespace emulatorLauncher
 
         private void SetupLilyPad()
         {
-            string iniFile = Path.Combine(_path, "inis", "LilyPad.ini");
+            if (_isPcsx17)
+                return; // Keyboard Mode 1 is not supported anymore
+
+            string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "PAD.ini" : "LilyPad.ini");
             if (File.Exists(iniFile))
             {
                 try
@@ -141,6 +183,11 @@ namespace emulatorLauncher
                     using (var ini = new IniFile(iniFile))
                     {
                         string negdivhack = SystemConfig["negdivhack"] == "1" ? "enabled" : "disabled";
+						
+						if (!string.IsNullOrEmpty(SystemConfig["VSync"]))
+                            ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
+                        else
+                            ini.WriteValue("EmuCore/GS", "VsyncEnable", "0");
 
                         ini.WriteValue("EmuCore/Speedhacks", "vuThread", negdivhack);
 
@@ -159,7 +206,7 @@ namespace emulatorLauncher
                         
         private void SetupGSDx(ScreenResolution resolution)
         {
-            string iniFile = Path.Combine(_path, "inis", "GSdx.ini");
+            string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "GS.ini" : "GSdx.ini");
             if (File.Exists(iniFile))
             {
                 try
@@ -171,7 +218,7 @@ namespace emulatorLauncher
                         if (!string.IsNullOrEmpty(SystemConfig["internalresolution"]))
                             ini.WriteValue("Settings", "upscale_multiplier", SystemConfig["internalresolution"]);
                         else
-                            ini.WriteValue("Settings", "upscale_multiplier", "0");
+                            ini.WriteValue("Settings", "upscale_multiplier", "1");
 
                         if (string.IsNullOrEmpty(SystemConfig["internalresolution"]) || SystemConfig["internalresolution"] == "0")
                         {
@@ -186,6 +233,33 @@ namespace emulatorLauncher
                                 ini.WriteValue("Settings", "resy", (Screen.PrimaryScreen.Bounds.Height * 2).ToString());
                             }
                         }
+
+                        ini.WriteValue("Settings", "shaderfx", "1");
+
+                        if (SystemConfig.isOptSet("TVShader") && !string.IsNullOrEmpty(SystemConfig["TVShader"]))
+                            ini.WriteValue("Settings", "TVShader", SystemConfig["TVShader"]);
+                        else
+                            ini.WriteValue("Settings", "TVShader", "0");
+
+                        if (SystemConfig.isOptSet("Offset") && !string.IsNullOrEmpty(SystemConfig["Offset"]))
+                            ini.WriteValue("Settings", "UserHacks_WildHack", SystemConfig["Offset"]);
+                        else
+                            ini.WriteValue("Settings", "UserHacks_WildHack", "0");
+
+                        if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
+                            ini.WriteValue("Settings", "linear_present", SystemConfig["bilinear_filtering"]);
+                        else
+                            ini.WriteValue("Settings", "linear_present", "0");
+
+                        if (SystemConfig.isOptSet("fxaa") && !string.IsNullOrEmpty(SystemConfig["fxaa"]))
+                            ini.WriteValue("Settings", "fxaa", SystemConfig["fxaa"]);
+                        else
+                            ini.WriteValue("Settings", "fxaa", "0");
+
+                        if (SystemConfig.isOptSet("renderer") && !string.IsNullOrEmpty(SystemConfig["renderer"]))
+                            ini.WriteValue("Settings", "Renderer", SystemConfig["renderer"]);
+                        else
+                            ini.WriteValue("Settings", "Renderer", "12");
 
                         if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]))
                             ini.WriteValue("Settings", "interlace", SystemConfig["interlace"]);
@@ -217,13 +291,13 @@ namespace emulatorLauncher
                             ini.WriteValue("Settings", "osd_monitor_enabled", "0");
                             ini.WriteValue("Settings", "osd_indicator_enabled", "0");
                         }
+                        
                     }
 
                 }
                 catch { }
             }
         }
-
 
         /*
         private string romName;

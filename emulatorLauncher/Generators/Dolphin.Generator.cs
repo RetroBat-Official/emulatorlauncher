@@ -85,17 +85,35 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, true))
                 {
-                    if (SystemConfig.isOptSet("ratio"))
-                    {
-                        if (SystemConfig["ratio"] == "4/3")
-                            ini.WriteValue("Settings", "AspectRatio", "2");
-                        else if (SystemConfig["ratio"] == "16/9")
-                            ini.WriteValue("Settings", "AspectRatio", "1");
-                        else
-                            ini.WriteValue("Settings", "AspectRatio", "0");
-                    }
+					
+					if (SystemConfig.isOptSet("ratio"))
+					{
+						if (SystemConfig["ratio"] == "4/3")
+						{
+							ini.WriteValue("Settings", "AspectRatio", "2");
+						}
+						else if (SystemConfig["ratio"] == "16/9")
+							ini.WriteValue("Settings", "AspectRatio", "1");
+						else if (SystemConfig["ratio"] == "Stretched")
+							ini.WriteValue("Settings", "AspectRatio", "3");
+					}
+					else
+						ini.WriteValue("Settings", "AspectRatio", "0");
+					
+					// widescreen hack but only if enable cheats is not enabled - Default Off
+					if (SystemConfig.isOptSet("widescreen_hack") && SystemConfig.getOptBoolean("widescreen_hack"))
+					{
+						ini.WriteValue("Settings", "wideScreenHack", "True");
+
+                        // Set Stretched only if ratio is not forced to 16/9 
+                        if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] != "16/9")
+                        {
+                            _bezelFileInfo = null;
+                            ini.WriteValue("Settings", "AspectRatio", "3");
+                        }
+					}
                     else
-                        ini.WriteValue("Settings", "AspectRatio", "0");
+                        ini.Remove("Settings", "wideScreenHack");
 
                     // draw or not FPS
                     if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
@@ -142,22 +160,11 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Enhancements", "MaxAnisotropy", "0");
 
-                    // anisotropic filtering - Auto 0
+                    // antialiasing
                     if (SystemConfig.isOptSet("antialiasing"))
                         ini.WriteValue("Settings", "MSAA", "0x0000000" + SystemConfig["antialiasing"]);
                     else
                         ini.WriteValue("Settings", "MSAA", "0x00000001");
-
-                    // SSAA = True
-
-                    // widescreen hack but only if enable cheats is not enabled - Default Off
-                    if (SystemConfig.isOptSet("widescreen_hack"))
-                    {
-                        if (SystemConfig.getOptBoolean("widescreen_hack"))
-                            ini.WriteValue("Settings", "wideScreenHack", "True");
-                        else
-                            ini.Remove("Settings", "wideScreenHack");
-                    }
 
                     // various performance hacks - Default Off
                     if (SystemConfig.isOptSet("perf_hacks"))

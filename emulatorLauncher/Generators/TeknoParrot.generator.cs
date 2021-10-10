@@ -131,7 +131,7 @@ namespace emulatorLauncher
             { "TaisenHotGimmick5",               @"Taisen Hot Gimmick 5\Game.exe" },
             { "Theatrhythm",                     @"Theatrhythm Final Fantasy All Star Carnival\game.exe" },
             { "TokyoCop",                        @"Tokyo Cop\home\joc2001\joc2001\Sources\gameport\linux\gameport" },
-            { "UltraStreetFighterIV",            @"Ultra Street Fighter 4 for NesicaxLive\game.exe" },
+            { "UltraStreetFighterIV",            @"Ultra Street Fighter 4 for NesicaxLive\game.exe"},
             { "UnderNightInBirthExeLatest",      @"Under Night In-Birth ExeLate[st]\Game\RingGame.exe" },
             { "VirtuaRLimit",                    @"Valve Limit R\launcher.exe" },
             { "WackyRaces",                      @"Wacky Race\Launcher.exe" },

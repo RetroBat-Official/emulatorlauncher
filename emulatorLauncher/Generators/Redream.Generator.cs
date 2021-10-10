@@ -21,7 +21,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-fullscreen \"" + rom + "\"",
+                Arguments = "\"" + rom + "\"",
             };
         }
     }
