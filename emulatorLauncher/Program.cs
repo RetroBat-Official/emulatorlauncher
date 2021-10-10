@@ -83,6 +83,7 @@ namespace emulatorLauncher
         public static string LocalPath { get; private set; }
         public static ConfigFile SystemConfig { get; private set; }
         public static List<Controller> Controllers { get; set; }
+        public static EsFeatures Features { get; set; }
 
         public static bool EnableHotKeyStart
         {
@@ -156,6 +157,9 @@ namespace emulatorLauncher
 
             if (generator != null)
             {
+                Features = EsFeatures.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.cfg"));
+                Features.LoadFeaturesContext(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"]);
+
                 using (var screenResolution = ScreenResolution.Parse(SystemConfig["videomode"]))
                 {
                     ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, screenResolution);

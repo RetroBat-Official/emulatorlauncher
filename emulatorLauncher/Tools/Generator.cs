@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using emulatorLauncher.PadToKeyboard;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -15,6 +16,7 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = false;
         }
 
+        protected EsFeatures Features { get { return Program.Features; } }
         protected ConfigFile AppConfig { get { return Program.AppConfig; } }
         protected ConfigFile SystemConfig { get { return Program.SystemConfig; } }
         protected List<Controller> Controllers { get { return Program.Controllers; } }

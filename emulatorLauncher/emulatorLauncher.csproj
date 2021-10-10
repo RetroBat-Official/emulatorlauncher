@@ -67,12 +67,12 @@
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
-	<Compile Include="Generators\PinballFX3.Generator.cs" />
-	<Compile Include="Generators\Love.Generator.cs" />
-	<Compile Include="Generators\XEmu.Generator.cs" />
+    <Compile Include="Generators\PinballFX3.Generator.cs" />
+    <Compile Include="Generators\Love.Generator.cs" />
+    <Compile Include="Generators\XEmu.Generator.cs" />
     <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\AmigaForever.Generator.cs" />
-	<Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />
+    <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />
     <Compile Include="Generators\Cemu.Generator.cs" />
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
@@ -137,6 +137,7 @@
     <Compile Include="Teknoparrot\JoystickHelper.cs" />
     <Compile Include="Teknoparrot\JoystickMapping.cs" />
     <Compile Include="Tools\ConfigFile.cs" />
+    <Compile Include="Tools\EsFeatures.cs" />
     <Compile Include="Tools\GameList.cs" />
     <Compile Include="Tools\InputList.cs" />
     <Compile Include="Tools\JsonSerializer.cs" />
@@ -181,11 +182,11 @@
     </Compile>
     <None Include="Reshader\ReShade.ini" />
     <None Include="Resources\configgen-defaults.yml" />
-	<None Include="Resources\eeprom.bin" />
+    <None Include="Resources\eeprom.bin" />
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />
-	<None Include="Resources\xbox_hdd.qcow2.zip" />
+    <None Include="Resources\xbox_hdd.qcow2.zip" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />

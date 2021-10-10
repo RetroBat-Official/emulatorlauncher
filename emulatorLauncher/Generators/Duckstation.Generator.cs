@@ -35,7 +35,6 @@ namespace emulatorLauncher
 
 		public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
 		{
-
 			_path = AppConfig.GetFullPath("duckstation");
             _resolution = resolution;
 
@@ -71,68 +70,66 @@ namespace emulatorLauncher
 
                         string biosPath = AppConfig.GetFullPath("bios");
                         if (!string.IsNullOrEmpty(biosPath))
-                        {
                             ini.WriteValue("BIOS", "SearchDirectory", biosPath.Replace("\\", "\\\\"));
-                        }
 
                         if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                             ini.WriteValue("Display", "AspectRatio", SystemConfig["ratio"]);
-                        else
+                        else if (Features.IsSupported("ratio"))
                             ini.WriteValue("Display", "AspectRatio", "Auto (Game Native)");
 							
 						if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
                             ini.WriteValue("GPU", "ResolutionScale", SystemConfig["internal_resolution"]);
-                        else
+                        else if (Features.IsSupported("internal_resolution"))
                             ini.WriteValue("GPU", "ResolutionScale", "5");
 							
 						if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                             ini.WriteValue("GPU", "Renderer", SystemConfig["gfxbackend"]);
-                        else
+                        else if (Features.IsSupported("gfxbackend"))
                             ini.WriteValue("GPU", "Renderer", "Vulkan");
 							
 						if (SystemConfig.isOptSet("Texture_Enhancement") && !string.IsNullOrEmpty(SystemConfig["Texture_Enhancement"]))
                             ini.WriteValue("GPU", "TextureFilter", SystemConfig["Texture_Enhancement"]);
-                        else
+                        else if (Features.IsSupported("Texture_Enhancement"))
                             ini.WriteValue("GPU", "TextureFilter", "Nearest");
 							
 						if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]))
                             ini.WriteValue("GPU", "DisableInterlacing", SystemConfig["interlace"]);
-                        else
+                        else if (Features.IsSupported("DisableInterlacing"))
                             ini.WriteValue("GPU", "DisableInterlacing", "true");
 							
 						if (SystemConfig.isOptSet("NTSC_Timings") && !string.IsNullOrEmpty(SystemConfig["NTSC_Timings"]))
                             ini.WriteValue("GPU", "ForceNTSCTimings", SystemConfig["NTSC_Timings"]);
-                        else
+                        else if (Features.IsSupported("NTSC_Timings"))
                             ini.WriteValue("GPU", "ForceNTSCTimings", "false");
 						
 						if (SystemConfig.isOptSet("Widescreen_Hack") && !string.IsNullOrEmpty(SystemConfig["Widescreen_Hack"]))
                             ini.WriteValue("GPU", "WidescreenHack", SystemConfig["Widescreen_Hack"]);
-                        else
+                        else if (Features.IsSupported("Widescreen_Hack"))
                             ini.WriteValue("GPU", "WidescreenHack", "false");
 						
 						if (SystemConfig.isOptSet("Disable_Dithering") && !string.IsNullOrEmpty(SystemConfig["Disable_Dithering"]))
                             ini.WriteValue("GPU", "TrueColor", SystemConfig["Disable_Dithering"]);
-                        else
+                        else if (Features.IsSupported("Disable_Dithering"))
                             ini.WriteValue("GPU", "TrueColor", "false");
 							
 						if (SystemConfig.isOptSet("Scaled_Dithering") && !string.IsNullOrEmpty(SystemConfig["Scaled_Dithering"]))
                             ini.WriteValue("GPU", "ScaledDithering", SystemConfig["Scaled_Dithering"]);
-                        else
+                        else if (Features.IsSupported("Scaled_Dithering"))
                             ini.WriteValue("GPU", "ScaledDithering", "false");
 						
 						if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
                             ini.WriteValue("Display", "VSync", SystemConfig["VSync"]);
-                        else
+                        else if (Features.IsSupported("VSync"))
                             ini.WriteValue("Display", "VSync", "true");
 						
 						if (SystemConfig.isOptSet("Linear_Filtering") && !string.IsNullOrEmpty(SystemConfig["Linear_Filtering"]))
                             ini.WriteValue("Display", "LinearFiltering", SystemConfig["Linear_Filtering"]);
-                        else
+                        else if (Features.IsSupported("Linear_Filtering"))
                             ini.WriteValue("Display", "LinearFiltering", "true");
 							
 						if (SystemConfig.isOptSet("Integer_Scaling") && !string.IsNullOrEmpty(SystemConfig["Integer_Scaling"]))
                             ini.WriteValue("Display", "IntegerScaling", SystemConfig["Integer_Scaling"]);
-                        else
+                        else if (Features.IsSupported("Integer_Scaling"))
                             ini.WriteValue("Display", "IntegerScaling", "false");
 							
                         ini.WriteValue("Main", "ConfirmPowerOff", "false");
