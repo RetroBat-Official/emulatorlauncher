@@ -34,6 +34,8 @@ namespace emulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
+        private bool _isPcsx17;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             _path = AppConfig.GetFullPath("pcsx2");
@@ -42,6 +44,19 @@ namespace emulatorLauncher
             string exe = Path.Combine(_path, "pcsx2.exe");
             if (!File.Exists(exe))
                 return null;
+
+            // v1.7.0 ???
+            Version version = new Version();
+            if (Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion, out version))
+                _isPcsx17 = version >= new Version(1, 7, 0, 0);
+
+            // Select avx2 build
+            if (_isPcsx17 && (core == "pcsx2-avx2" || core == "avx2"))
+            {
+                string avx2 = Path.Combine(_path, "pcsx2-avx2.exe");
+                if (File.Exists(avx2))
+                    exe = avx2;
+            }
 
             SetupPaths(core);
             SetupVM();
@@ -115,8 +130,10 @@ namespace emulatorLauncher
                         ini.WriteValue("ProgramLog", "Visible", "disabled");
                         ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
 
-                        ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
-                        /*
+                        if (!_isPcsx17)
+                            ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
+
+                        /* Disabled for <= 1.6.0
                         if (core == "pcsx2-avx2" || core == "avx2")
                         {
                             ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
@@ -139,7 +156,10 @@ namespace emulatorLauncher
 
         private void SetupLilyPad()
         {
-            string iniFile = Path.Combine(_path, "inis", "LilyPad.ini");
+            if (_isPcsx17)
+                return; // Keyboard Mode 1 is not supported anymore
+
+            string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "PAD.ini" : "LilyPad.ini");
             if (File.Exists(iniFile))
             {
                 try
@@ -186,7 +206,7 @@ namespace emulatorLauncher
                         
         private void SetupGSDx(ScreenResolution resolution)
         {
-            string iniFile = Path.Combine(_path, "inis", "GSdx.ini");
+            string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "GS.ini" : "GSdx.ini");
             if (File.Exists(iniFile))
             {
                 try
