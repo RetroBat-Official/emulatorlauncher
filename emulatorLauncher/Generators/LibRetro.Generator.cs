@@ -49,10 +49,10 @@ namespace emulatorLauncher.libRetro
                 int monitorId;
                 if (int.TryParse(SystemConfig["monitor"], out monitorId))
                     retroarchConfig["video_monitor_index"] = (monitorId + 1).ToString();
-                else
+                else if (Features.IsSupported("monitor"))
                     retroarchConfig["video_monitor_index"] = "0";
             }
-            else
+            else if (Features.IsSupported("monitor"))
                 retroarchConfig["video_monitor_index"] = "0";
 
             if (resolution == null)

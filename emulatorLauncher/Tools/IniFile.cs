@@ -142,6 +142,8 @@ namespace emulatorLauncher
             return null;
         }
 
+        public bool IsDirty { get { return _dirty; } }
+
         public void Save()
         {
             if (!_dirty)

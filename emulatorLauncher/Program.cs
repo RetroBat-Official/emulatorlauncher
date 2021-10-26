@@ -157,8 +157,17 @@ namespace emulatorLauncher
 
             if (generator != null)
             {
-                Features = EsFeatures.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.cfg"));
-                Features.LoadFeaturesContext(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"]);
+                try
+                {
+                    Features = EsFeatures.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.cfg"));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error : es_features.cfg is invalid :\r\n" + ex.Message, null, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                Features.SetFeaturesContext(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"]);
 
                 using (var screenResolution = ScreenResolution.Parse(SystemConfig["videomode"]))
                 {
@@ -187,6 +196,8 @@ namespace emulatorLauncher
                         using (new HighPerformancePowerScheme())
                         using (new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
                             generator.RunAndWait(path);
+
+                        generator.RestoreFiles();
                     }
                     else
                         SimpleLogger.Instance.Error("generator failed");

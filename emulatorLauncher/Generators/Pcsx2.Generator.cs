@@ -90,6 +90,8 @@ namespace emulatorLauncher
             string iniFile = Path.Combine(_path, "inis", "PCSX2_ui.ini");
             if (File.Exists(iniFile))
             {
+                AddFileForRestoration(iniFile);
+
                 try
                 {
                     using (var ini = new IniFile(iniFile))
@@ -130,6 +132,9 @@ namespace emulatorLauncher
                         ini.WriteValue("ProgramLog", "Visible", "disabled");
                         ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
 
+                        if (Features.IsSupported("negdivhack") && SystemConfig.isOptSet("negdivhack") && SystemConfig.getOptBoolean("negdivhack"))
+                            ini.WriteValue(null, "EnablePresets", "disabled");
+
                         if (!_isPcsx17)
                             ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
 
@@ -162,6 +167,8 @@ namespace emulatorLauncher
             string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "PAD.ini" : "LilyPad.ini");
             if (File.Exists(iniFile))
             {
+                AddFileForRestoration(iniFile);
+
                 try
                 {
                     using (var ini = new IniFile(iniFile))
@@ -178,6 +185,8 @@ namespace emulatorLauncher
             string iniFile = Path.Combine(_path, "inis", "PCSX2_vm.ini");
             if (File.Exists(iniFile))
             {
+                AddFileForRestoration(iniFile);
+
                 try
                 {
                     using (var ini = new IniFile(iniFile))
@@ -185,11 +194,11 @@ namespace emulatorLauncher
 						if (!string.IsNullOrEmpty(SystemConfig["VSync"]))
                             ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
                         else
-                            ini.WriteValue("EmuCore/GS", "VsyncEnable", "0");
+                            ini.WriteValue("EmuCore/GS", "VsyncEnable", "1");
 
                         if (Features.IsSupported("negdivhack"))
                         {
-                            string negdivhack = SystemConfig["negdivhack"] == "1" ? "enabled" : "disabled";
+                            string negdivhack = SystemConfig.isOptSet("negdivhack") && SystemConfig.getOptBoolean("negdivhack") ? "enabled" : "disabled";
 
                             ini.WriteValue("EmuCore/Speedhacks", "vuThread", negdivhack);
 
@@ -212,6 +221,8 @@ namespace emulatorLauncher
             string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "GS.ini" : "GSdx.ini");
             if (File.Exists(iniFile))
             {
+                AddFileForRestoration(iniFile);
+
                 try
                 {
                     using (var ini = new IniFile(iniFile))
@@ -302,75 +313,5 @@ namespace emulatorLauncher
                 catch { }
             }
         }
-
-        /*
-        private string romName;
-        private const string savDirName = "tmp";
-        
-        public override void Cleanup()
-        {
-            RestoreIni(path, romName, "GSdx.ini");
-            RestoreIni(path, romName, "PCSX2_vm.ini");
-
-            try
-            {
-                string savDir = Path.Combine(path, "inis", savDirName);
-                if (Directory.Exists(savDir))
-                    Directory.Delete(savDir);
-            }
-            catch { }
-        }
-     
-        static void SaveIni(string path, string romName, string iniName)
-        {
-            string ini = Path.Combine(path, "inis", romName, iniName);
-            if (!File.Exists(ini))
-                return;
-
-            string originalIni = Path.Combine(path, "inis", iniName);
-            if (File.Exists(originalIni))
-            {
-                string savDir = Path.Combine(path, "inis", savDirName);
-                if (!Directory.Exists(savDir))
-                    Directory.CreateDirectory(savDir);
-
-                string savIni = Path.Combine(path, "inis", savDirName, iniName);
-
-                try { File.Copy(originalIni, savIni, true); }
-                catch { return; }
-            }
-
-            try { File.Copy(ini, originalIni, true); }
-            catch { }
-
-        }
-
-        static void RestoreIni(string path, string romName, string iniName, bool force = false)
-        {
-            if (string.IsNullOrEmpty(romName))
-                return;
-
-            if (!force)
-            {
-                string ini = Path.Combine(path, "inis", romName, iniName);
-                if (!File.Exists(ini))
-                    return;
-            }
-
-            string originalIni = Path.Combine(path, "inis", iniName);
-            if (File.Exists(originalIni))
-            {
-                string savIni = Path.Combine(path, "inis", savDirName, iniName);
-                if (File.Exists(savIni))
-                {
-                    try { File.Move(savIni, originalIni); }
-                    catch { }
-
-                    try { File.Delete(savIni); }
-                    catch { }
-
-                }
-            }
-        }   */
     }
 }

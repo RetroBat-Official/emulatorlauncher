@@ -26,7 +26,7 @@ namespace emulatorLauncher.Tools
 
         private HashSet<string> _contextFeatures;
 
-        public void LoadFeaturesContext(string system, string emulator, string core)
+        public void SetFeaturesContext(string system, string emulator, string core)
         {
             HashSet<string> ret = new HashSet<string>();
 
@@ -34,7 +34,7 @@ namespace emulatorLauncher.Tools
                 foreach (var s in this.GlobalFeatures.Feature.Select(f => f.value))
                     ret.Add(s);
             
-            if (this.Emulators != null)
+            if (this.Emulators != null && !string.IsNullOrEmpty(emulator))
             {
                 foreach (var emul in Emulators.Where(e => NameContains(e.Name, emulator)))
                 {
@@ -46,7 +46,7 @@ namespace emulatorLauncher.Tools
                         foreach (var s in emul.Features.Select(f => f.value))
                             ret.Add(s);
 
-                    if (emul.Systems != null)
+                    if (emul.Systems != null && !string.IsNullOrEmpty(system))
                     {
                         foreach (var sys in emul.Systems.Where(c => NameContains(c.Name, system)))
                         {
@@ -60,7 +60,7 @@ namespace emulatorLauncher.Tools
                         }
                     }
 
-                    if (emul.SystemCollection != null && emul.SystemCollection.Systemes != null)
+                    if (emul.SystemCollection != null && emul.SystemCollection.Systemes != null && !string.IsNullOrEmpty(system))
                     {
                         foreach (var sys in emul.SystemCollection.Systemes.Where(c => NameContains(c.Name, system)))
                         {
@@ -74,7 +74,7 @@ namespace emulatorLauncher.Tools
                         }
                     }
 
-                    if (emul.Cores != null)
+                    if (emul.Cores != null && !string.IsNullOrEmpty(core))
                     {
                         foreach (var corr in emul.Cores.Where(c => NameContains(c.Name, core)))
                         {
@@ -88,7 +88,7 @@ namespace emulatorLauncher.Tools
                         }
                     }
 
-                    if (emul.CoreCollection != null && emul.CoreCollection.Cores != null)
+                    if (emul.CoreCollection != null && emul.CoreCollection.Cores != null && !string.IsNullOrEmpty(core))
                     {
                         foreach (var corr in emul.CoreCollection.Cores.Where(c => NameContains(c.Name, core)))
                         {
@@ -117,13 +117,10 @@ namespace emulatorLauncher.Tools
 
         public static EsFeatures Load(string xmlFile)
         {
-            if (!File.Exists(xmlFile))
-            {
-                var def = new EsFeatures();
+            var defaultFeatures = new EsFeatures();
+            defaultFeatures._contextFeatures = new HashSet<string>();
 
-                def._contextFeatures = new HashSet<string>();
-
-                foreach (var s in new string[] { 
+            foreach (var s in new string[] { 
                     "ratio",
                     "rewind",
                     "smooth",
@@ -144,26 +141,27 @@ namespace emulatorLauncher.Tools
                     "joystick2pad",
                     "cheevos",
                     "autocontrollers"})
-                    def._contextFeatures.Add(s);
+                defaultFeatures._contextFeatures.Add(s);
 
-                return def;
-            }
+            if (!File.Exists(xmlFile))
+                return defaultFeatures;
+            
 
             try
             {
                 EsFeatures ret = Misc.FromXml<EsFeatures>(xmlFile);
                 if (ret != null)
                     return ret;
+
+                SimpleLogger.Instance.Warning("es_features.cfg file is null. Using default features");
             }
             catch (Exception ex)
             {
-#if DEBUG
-                MessageBox.Show(ex.Message);
-#endif
-                SimpleLogger.Instance.Error("EsFeatures error : " + ex.Message);
+                SimpleLogger.Instance.Error("es_features.cfg file is invalid : " + ex.Message);
+                throw ex;
             }
 
-            return new EsFeatures();
+            return defaultFeatures;
         }
 
         [XmlElement("globalFeatures")]

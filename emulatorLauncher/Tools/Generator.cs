@@ -5,6 +5,7 @@ using System.Text;
 using System.Diagnostics;
 using emulatorLauncher.PadToKeyboard;
 using emulatorLauncher.Tools;
+using System.IO;
 
 namespace emulatorLauncher
 {
@@ -36,6 +37,30 @@ namespace emulatorLauncher
         public virtual PadToKey SetupCustomPadToKeyMapping(PadToKeyboard.PadToKey mapping)
         {
             return mapping;
+        }
+
+
+        private Dictionary<string, byte[]> _filesToRestore;
+
+        protected void AddFileForRestoration(string file)
+        {
+            if (_filesToRestore == null)
+                _filesToRestore = new Dictionary<string, byte[]>();
+
+            if (File.Exists(file))
+            {
+                try { _filesToRestore[file] = File.ReadAllBytes(file); }
+                catch { }
+            }
+        }
+
+        public void RestoreFiles()
+        {
+            if (_filesToRestore == null)
+                return;
+
+            foreach (var file in _filesToRestore)
+                File.WriteAllBytes(file.Key, file.Value);
         }
     }
 }
