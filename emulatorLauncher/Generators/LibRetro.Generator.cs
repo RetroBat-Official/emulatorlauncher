@@ -110,6 +110,17 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["savefiles_in_content_dir"] = "false";
             }
 
+            if (SystemConfig.isOptSet("incrementalsavestates") && !SystemConfig.getOptBoolean("incrementalsavestates"))
+            {
+                retroarchConfig["savestate_auto_index"] = "false";
+                retroarchConfig["savestate_max_keep"] = "50";
+            }
+            else
+            {
+                retroarchConfig["savestate_auto_index"] = "true";
+                retroarchConfig["savestate_max_keep"] = "0";
+            }
+
             if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
                 retroarchConfig["video_smooth"] = "true";
             else
