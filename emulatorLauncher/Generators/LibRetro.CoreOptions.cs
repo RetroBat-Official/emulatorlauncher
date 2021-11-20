@@ -35,7 +35,6 @@ namespace emulatorLauncher.libRetro
             if (core == "theodore")
                 coreSettings["theodore_autorun"] = "enabled";
 
-            ConfigureMameMess(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
@@ -43,7 +42,6 @@ namespace emulatorLauncher.libRetro
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigurePuae(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
-            ConfigureMame(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
@@ -59,6 +57,8 @@ namespace emulatorLauncher.libRetro
             ConfigureFbneo(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
             ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
+
+            ConfigureMame(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -861,21 +861,24 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["mame_altres"] = "640x480";
 
-            if (SystemConfig.isOptSet("boot_from_cli"))
+            if (SystemConfig.isOptSet("boot_from_cli") && Features.IsSupported("boot_from_cli"))
                 coreSettings["mame_boot_from_cli"] = SystemConfig["boot_from_cli"];
             else
-                coreSettings["mame_boot_from_cli"] = "enabled";
+            {
+                var messSystem = MessSystem.GetMessSystem(system);
+                coreSettings["mame_boot_from_cli"] = messSystem == null ? "disabled" : "enabled";
+            }
 
-            if (SystemConfig.isOptSet("boot_to_bios"))
+            if (SystemConfig.isOptSet("boot_to_bios") && Features.IsSupported("boot_to_bios"))
                 coreSettings["mame_boot_to_bios"] = SystemConfig["boot_to_bios"];
             else
                 coreSettings["mame_boot_to_bios"] = "disabled";
 
-            if (SystemConfig.isOptSet("boot_to_osd"))
+            if (SystemConfig.isOptSet("boot_to_osd") && Features.IsSupported("boot_to_osd"))
                 coreSettings["mame_boot_to_osd"] = SystemConfig["boot_to_osd"];
             else
                 coreSettings["mame_boot_to_osd"] = "disabled";
-
+           
             if (SystemConfig.isOptSet("cheats_enable"))
                 coreSettings["mame_cheats_enable"] = SystemConfig["cheats_enable"];
             else
