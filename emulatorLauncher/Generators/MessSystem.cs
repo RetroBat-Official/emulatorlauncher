@@ -26,21 +26,26 @@ namespace emulatorLauncher
                             new MessRomType("flop1")
                         }),
 
+                new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ),
+                new MessSystem("advision"     ,"advision" ,"cart"  ),
+                new MessSystem("pv1000"       ,"pv1000"   ,"cart"  ),
+                new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),
+                new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),
+                new MessSystem("ti99"         ,"ti99_4a"  ,"cart"  ),
+                new MessSystem("vsmile"       ,"vsmile"   ,"cart"  ),
+
+                new MessSystem("gameandwatch" ,""         ,""      ),
+
                 new MessSystem("camplynx"     ,"lynx48k"  , new MessRomType[] 
                         { 
                             new MessRomType("cass", null, "mload\\\"\\\"\\n") 
                         }),
 
                 new MessSystem("lcdgames"     ,""         ,""      ),
-                new MessSystem("gameandwatch" ,""         ,""      ),
-                new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ),
-                new MessSystem("advision"     ,"advision" ,"cart"  ),
                 new MessSystem("tvgames"      ,""         ,""      ),
                 new MessSystem("megaduck"     ,"megaduck" ,"cart"  ),
                 new MessSystem("crvision"     ,"crvision" ,"cart"  ),
                 new MessSystem("gamate"       ,"gamate"   ,"cart"  ),
-                new MessSystem("pv1000"       ,"pv1000"   ,"cart"  ),
-                new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),
                 new MessSystem("xegs"         ,"xegs"     ,"cart"  ),
                 new MessSystem("gamepock"     ,"gamepock" ,"cart"  ),
                 new MessSystem("aarch"        ,"aa310"    ,"flop"  ),
@@ -50,8 +55,6 @@ namespace emulatorLauncher
                 new MessSystem("arcadia"      ,"arcadia"  ,"cart"  ),
                 new MessSystem("supracan"     ,"supracan" ,"cart"  ),
                 new MessSystem("gmaster"      ,"gmaster"  ,"cart"  ),
-                new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),
-                new MessSystem("ti99"         ,"ti99_4a"  ,"cart"  ),
                 new MessSystem("tutor"        ,"tutor"    ,"cart"  ),
                 new MessSystem("coco"         ,"coco"     ,"cart"  ),
                 new MessSystem("socrates"     ,"socrates" ,"cart"  ),
