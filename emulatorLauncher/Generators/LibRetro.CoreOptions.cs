@@ -35,6 +35,7 @@ namespace emulatorLauncher.libRetro
             if (core == "theodore")
                 coreSettings["theodore_autorun"] = "enabled";
 
+            ConfigureMameMess(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
@@ -508,6 +509,15 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["kronos_videoformattype"] = "auto";
 
+        }
+
+        private void ConfigureMameMess(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mame")
+                return;
+
+            var messSystem = MessSystem.GetMessSystem(system);
+            coreSettings["mame_boot_from_cli"] = messSystem == null ? "disabled" : "enabled";
         }
 
         private void ConfigureMame2003(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

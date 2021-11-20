@@ -234,5 +234,50 @@ namespace emulatorLauncher.Tools
             return new Rectangle(iScreenX - cxDIB / 2, iScreenY - cyDIB / 2, cxDIB, cyDIB);
         }
 
+        // Dotnet 4.0 compatible Zip entries reader ( ZipFile exists since 4.5 )
+        public static string[] GetZipEntries(string path)
+        {
+            var afs = System.Reflection.Assembly.Load("System.IO.Compression.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            if (afs == null)
+                return new string[] { };
+
+            var ass = System.Reflection.Assembly.Load("System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            if (ass == null)
+                return new string[] { };
+
+            var zipFile = afs.GetTypes().FirstOrDefault(t => t.Name == "ZipFile");
+            if (zipFile == null)
+                return new string[] { };
+
+            System.Reflection.MethodInfo openRead = zipFile.GetMember("OpenRead", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).FirstOrDefault() as System.Reflection.MethodInfo;
+            if (openRead == null)
+                return new string[] { };
+
+            IDisposable zipArchive = openRead.Invoke(null, new object[] { path }) as IDisposable;
+            if (zipArchive == null)
+                return new string[] { };
+
+            List<string> ret = new List<string>();
+
+            try
+            {
+                var prop = zipArchive.GetType().GetProperty("Entries");
+
+                var entries = prop.GetValue(zipArchive, null) as System.Collections.IEnumerable;
+                foreach (var entry in entries)
+                {
+                    string fullName = entry.GetType().GetProperty("FullName").GetValue(entry, null) as string;
+                    if (fullName != null)
+                        ret.Add(fullName);
+                }
+            }
+            finally
+            {
+                zipArchive.Dispose();
+            }
+
+            return ret.ToArray();
+        }
+
     }
 }

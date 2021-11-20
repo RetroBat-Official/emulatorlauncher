@@ -67,6 +67,8 @@
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Generators\MessSystem.cs" />
+    <Compile Include="Tools\InputKeyMapping.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />

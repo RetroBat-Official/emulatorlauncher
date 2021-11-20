@@ -739,6 +739,21 @@ namespace emulatorLauncher.libRetro
                 Environment.SetEnvironmentVariable("HOME", RetroarchPath);
             }
 
+            MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system) : null;
+            if (messSystem != null)
+            {
+                var messArgs = messSystem.GetMameCommandLineArguments(system, rom);
+                messArgs = messArgs.Replace("\\\"", "\"");
+                messArgs = "\"" + messArgs.Replace("\"", "\\\"") + "\"";
+
+                return new ProcessStartInfo()
+                {
+                    FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
+                    WorkingDirectory = RetroarchPath,
+                    Arguments = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + messArgs).Trim()
+                };
+            }
+
             return new ProcessStartInfo()
             {
                 FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
