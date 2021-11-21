@@ -620,11 +620,6 @@ namespace emulatorLauncher.libRetro
                 else
                     coreSettings["atari800_system"] = "800XL (64K)";
 
-                if (SystemConfig.isOptSet("atari800_system"))
-                    coreSettings["atari800_system"] = SystemConfig["atari800_system"];
-                else
-                    coreSettings["atari800_system"] = "800XL (64K)";
-
                 if (SystemConfig.isOptSet("atari800_ntscpal"))
                     coreSettings["atari800_ntscpal"] = SystemConfig["atari800_ntscpal"];
                 else
