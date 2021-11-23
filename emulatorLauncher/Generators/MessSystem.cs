@@ -23,7 +23,7 @@ namespace emulatorLauncher
                             new MessRomType("hard1", new string[] { "hd", "hdv", "2mg", "hdi" }),
                             new MessRomType("memc", new string[] { "icm" }),
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
-                        }),         
+                        }) { InGameMouse = true },         
                                
                 new MessSystem("fm7"          ,"fm7"      , new MessRomType[] 
                         { 
@@ -152,7 +152,7 @@ namespace emulatorLauncher
                         }),
 
                 new MessSystem("scv"          ,"scv"      ,"cart"  ),
-                new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ),
+                new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ) { InGameMouse = true },        
                 new MessSystem("advision"     ,"advision" ,"cart"  ),
                 new MessSystem("attache"      ,"attache"  , "flop1"  ),
                 new MessSystem("ampro"        ,"ampro"    ,"flop1"  ),
@@ -160,6 +160,7 @@ namespace emulatorLauncher
                 new MessSystem("pv1000"       ,"pv1000"   ,"cart"  ),
                 new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),
                 new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),
+                new MessSystem("astrocade"    ,"astrocde" ,"cart"  ),
                 new MessSystem("vsmile"       ,"vsmile"   ,"cart"  ),
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,""         ,""      ),
@@ -184,6 +185,10 @@ namespace emulatorLauncher
 
             };
 
+        public string Name { get; private set; }
+        public string SysName { get; private set; }
+        public MessRomType[] RomTypes { get; private set; }
+        public bool InGameMouse { get; set; }
 
         public static MessSystem GetMessSystem(string system, string core = null)
         {
@@ -307,9 +312,6 @@ namespace emulatorLauncher
             RomTypes = romType;
         }
 
-        public string Name { get; private set; }
-        public string SysName { get; private set; }
-        public MessRomType[] RomTypes { get; private set; }
 
         string GetRomType(string rom)
         {

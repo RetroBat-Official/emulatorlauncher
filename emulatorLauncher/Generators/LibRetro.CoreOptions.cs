@@ -517,6 +517,8 @@ namespace emulatorLauncher.libRetro
                 return;
 
             var messSystem = MessSystem.GetMessSystem(system);
+
+            coreSettings["mame_mouse_enable"] = messSystem != null && messSystem.InGameMouse ? "enabled" : "disabled";
             coreSettings["mame_boot_from_cli"] = messSystem == null ? "disabled" : "enabled";
         }
 
