@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Xml.Linq;
 
 namespace emulatorLauncher.libRetro
 {
@@ -57,7 +58,6 @@ namespace emulatorLauncher.libRetro
             ConfigureFbneo(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
             ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
-
             ConfigureMame(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
@@ -511,17 +511,6 @@ namespace emulatorLauncher.libRetro
 
         }
 
-        private void ConfigureMameMess(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
-        {
-            if (core != "mame")
-                return;
-
-            var messSystem = MessSystem.GetMessSystem(system);
-
-            coreSettings["mame_mouse_enable"] = messSystem != null && messSystem.InGameMouse ? "enabled" : "disabled";
-            coreSettings["mame_boot_from_cli"] = messSystem == null ? "disabled" : "enabled";
-        }
-
         private void ConfigureMame2003(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "mame078plus" && core != "mame2003_plus")
@@ -842,11 +831,24 @@ namespace emulatorLauncher.libRetro
             if (core != "mame")
                 return;
 
-            coreSettings["mame_mame_paths_enable"] = "enabled";
-            coreSettings["mame_mame_mouse_enable"] = "enabled";
-            coreSettings["mame_mame_read_config"] = "enabled";
-            coreSettings["mame_mame_softlists_auto_media"] = "enabled";
-            coreSettings["mame_mame_write_config"] = "enabled";
+            MessSystem messSystem = MessSystem.GetMessSystem(system);
+            if (messSystem != null)
+            {
+                CleanupMameMessConfigFiles(messSystem);
+
+                coreSettings["mame_read_config"] = "disabled";
+                coreSettings["mame_write_config"] = "disabled";
+            }
+            else
+            {
+                coreSettings["mame_read_config"] = "enabled";
+                coreSettings["mame_write_config"] = "enabled";
+            }
+
+            coreSettings["mame_mame_paths_enable"] = "disabled";
+            coreSettings["mame_mouse_enable"] = "enabled";
+            coreSettings["mame_softlists_enable"] = "enabled";
+            coreSettings["mame_softlists_auto_media"] = "enabled";
 
             if (SystemConfig.isOptSet("alternate_renderer"))
                 coreSettings["mame_alternate_renderer"] = SystemConfig["alternate_renderer"];
@@ -861,10 +863,7 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.isOptSet("boot_from_cli") && Features.IsSupported("boot_from_cli"))
                 coreSettings["mame_boot_from_cli"] = SystemConfig["boot_from_cli"];
             else
-            {
-                var messSystem = MessSystem.GetMessSystem(system);
-                coreSettings["mame_boot_from_cli"] = messSystem == null ? "disabled" : "enabled";
-            }
+                coreSettings["mame_boot_from_cli"] = "enabled";
 
             if (SystemConfig.isOptSet("boot_to_bios") && Features.IsSupported("boot_to_bios"))
                 coreSettings["mame_boot_to_bios"] = SystemConfig["boot_to_bios"];
@@ -891,6 +890,48 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["mame_mame_4way_enable"] = "enabled";
 
+        }
+
+        private void CleanupMameMessConfigFiles(MessSystem messSystem)
+        {
+            try
+            {
+                // Remove image_directories node in cfg file
+                string cfgPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg", messSystem.SysName + ".cfg");
+                if (File.Exists(cfgPath))
+                {
+                    XDocument xml = XDocument.Load(cfgPath);
+
+                    var image_directories = xml.Descendants().FirstOrDefault(d => d.Name == "image_directories");
+                    if (image_directories != null)
+                    {
+                        image_directories.Remove();
+                        xml.Save(cfgPath);
+                    }
+                }
+            }
+            catch { }
+
+            try 
+            {
+                // Remove medias declared in ini file
+                string iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini", messSystem.SysName + ".ini");
+                if (File.Exists(iniPath))
+                {
+                    var lines = File.ReadAllLines(iniPath);
+                    var newLines = lines.Where(l =>
+                        !l.StartsWith("cartridge") && !l.StartsWith("floppydisk") &&
+                        !l.StartsWith("cassette") && !l.StartsWith("cdrom") &&
+                        !l.StartsWith("romimage") && !l.StartsWith("memcard") &&
+                        !l.StartsWith("quickload") && !l.StartsWith("harddisk") &&
+                        !l.StartsWith("printout")
+                        ).ToArray();
+
+                    if (lines.Length != newLines.Length)
+                        File.WriteAllLines(iniPath, newLines);
+                }
+            }
+            catch { }
         }
 
         private void ConfigurePotator(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

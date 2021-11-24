@@ -150,7 +150,7 @@ namespace emulatorLauncher.libRetro
             }
             else
             {
-                if (SystemConfig["core"] == "tgbdual")
+                if (core == "tgbdual")
                     retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
 
                 if (system == "wii")
@@ -159,7 +159,7 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["aspect_ratio_index"] = "";
             }
 
-            if (SystemConfig["core"] == "cap32")
+            if (core == "cap32")
                 retroarchConfig["cap32_combokey"] = "y";
 
             if (!SystemConfig.isOptSet("rewind"))
@@ -200,6 +200,12 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["run_ahead_frames"] = "0";
                 retroarchConfig["run_ahead_secondary_instance"] = "false";
             }
+            
+            // Auto frame delay (input delay reduction via frame timing)
+            if (SystemConfig.isOptSet("video_frame_delay_auto") && SystemConfig.getOptBoolean("video_frame_delay_auto"))
+                retroarchConfig["video_frame_delay_auto"] = "true";
+            else
+                retroarchConfig["video_frame_delay_auto"] = "false";
 
             if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
             {
@@ -226,22 +232,22 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["input_libretro_device_p1"] = "1";
             retroarchConfig["input_libretro_device_p2"] = "1";
 
-            if (coreToP1Device.ContainsKey(SystemConfig["core"]))
-                retroarchConfig["input_libretro_device_p1"] = coreToP1Device[SystemConfig["core"]];
+            if (coreToP1Device.ContainsKey(core))
+                retroarchConfig["input_libretro_device_p1"] = coreToP1Device[core];
 
-            if (coreToP2Device.ContainsKey(SystemConfig["core"]))
-                retroarchConfig["input_libretro_device_p2"] = coreToP2Device[SystemConfig["core"]];
+            if (coreToP2Device.ContainsKey(core))
+                retroarchConfig["input_libretro_device_p2"] = coreToP2Device[core];
 
-            if (Controllers.Count > 2 && (SystemConfig["core"] == "snes9x_next" || SystemConfig["core"] == "snes9x"))
+            if (Controllers.Count > 2 && (core == "snes9x_next" || core == "snes9x"))
                 retroarchConfig["input_libretro_device_p2"] = "257";
 
-            if (SystemConfig["core"] == "atari800")
+            if (core == "atari800")
             {
                 retroarchConfig["input_libretro_device_p1"] = "513";
                 retroarchConfig["input_libretro_device_p2"] = "513";
             }
 
-            if (SystemConfig["core"] == "bluemsx")
+            if (core == "bluemsx")
             {
                 if (systemToP1Device.ContainsKey(system))
                     retroarchConfig["input_libretro_device_p1"] = systemToP1Device[system];
@@ -250,7 +256,7 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_libretro_device_p2"] = systemToP2Device[system];
             }
 
-            if (SystemConfig["core"] == "mednafen_psx" || SystemConfig["core"] == "pcsx_rearmed" || SystemConfig["core"] == "duckstation")
+            if (core == "mednafen_psx" || core == "pcsx_rearmed" || core == "duckstation")
             {
                 if (SystemConfig.isOptSet("psxcontroller1"))
                     retroarchConfig["input_libretro_device_p1"] = SystemConfig["psxcontroller1"];
@@ -732,7 +738,7 @@ namespace emulatorLauncher.libRetro
 
             string args = string.Join(" ", commandArray);
 
-            if (SystemConfig["core"] == "atari800")
+            if (core == "atari800")
             {
                 // Special case : .atari800.cfg is loaded from path in 'HOME' environment variable
                 CurrentHomeDirectory = Environment.GetEnvironmentVariable("HOME");

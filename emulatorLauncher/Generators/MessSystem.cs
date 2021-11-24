@@ -218,7 +218,12 @@ namespace emulatorLauncher
             // rompath
             commandArray.Add("-rompath");
             if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
+            {
                 commandArray.Add(AppConfig.GetFullPath("bios") + ";" + Path.GetDirectoryName(rom));
+
+                commandArray.Add("-cfg_directory");
+                commandArray.Add(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg"));
+            }
             else
                 commandArray.Add(Path.GetDirectoryName(rom));
 
