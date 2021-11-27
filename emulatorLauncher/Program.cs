@@ -82,8 +82,9 @@ namespace emulatorLauncher
         public static ConfigFile AppConfig { get; private set; }
         public static string LocalPath { get; private set; }
         public static ConfigFile SystemConfig { get; private set; }
-        public static List<Controller> Controllers { get; set; }
-        public static EsFeatures Features { get; set; }
+        public static List<Controller> Controllers { get; private set; }
+        public static EsFeatures Features { get; private set; }
+        public static Game CurrentGame { get; private set; }
 
         public static bool EnableHotKeyStart
         {
@@ -148,7 +149,23 @@ namespace emulatorLauncher
 
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemConfig["system"];
-            
+
+            if (SystemConfig.isOptSet("gameinfo") && File.Exists(SystemConfig.GetFullPath("gameinfo")))
+            {
+                var gamelist = GameList.Load(SystemConfig.GetFullPath("gameinfo"));
+                if (gamelist != null)
+                    CurrentGame = gamelist.Games.FirstOrDefault();
+            }
+
+            if (CurrentGame == null)
+            {
+                CurrentGame = new Game()
+                {
+                    path = SystemConfig.GetFullPath("rom"),
+                    Name = Path.GetFileNameWithoutExtension(SystemConfig["rom"])
+                };
+            }
+
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
                 generator = new LibRetroGenerator();
