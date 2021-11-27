@@ -64,7 +64,7 @@ namespace emulatorLauncher
                         { 
                             new MessRomType("cass1", new string[] { "wav" } ), 
                             new MessRomType("cart")
-                        }),
+                        }) { UseFileNameWithoutExtension = true },
 
                 new MessSystem("atom"         ,"atom"     , new MessRomType[] 
                         { 
@@ -188,8 +188,10 @@ namespace emulatorLauncher
         public string Name { get; private set; }
         public string SysName { get; private set; }
         public MessRomType[] RomTypes { get; private set; }
-        public bool InGameMouse { get; set; }
+        public bool InGameMouse { get; private set; }
+        public bool UseFileNameWithoutExtension { get; private set; }
 
+        #region Public Methods
         public static MessSystem GetMessSystem(string system, string core = null)
         {
             MessSystem messMode = null;
@@ -233,48 +235,12 @@ namespace emulatorLauncher
             else if (!string.IsNullOrEmpty(this.SysName))
                 commandArray.Insert(0, this.SysName);
 
-            if (system == "bbcmicro")
-            {
-                // bbc has different boots for floppy & cassette, no special boot for carts
-                if (SystemConfig.isOptSet("altromtype"))
-                {
-                    if (SystemConfig["altromtype"] == "cass")
-                        commandArray.AddRange(new string[] { "-autoboot_delay", "2", "-autoboot_command", "*tape\\nchain\\\"\\\"\\n" });
-                    else if (SystemConfig["altromtype"].StartsWith("flop"))
-                        commandArray.AddRange(new string[] { "-autoboot_delay", "3", "-autoboot_command", "*cat\\n*exec !boot\\n" });
-                }
-                else
-                {
-                    var autoRunCommand = this.GetAutoBoot(rom);
-                    if (autoRunCommand != null)
-                        commandArray.AddRange(autoRunCommand.Arguments);
-                }
-            }
-            else if (system == "fm7" && SystemConfig.isOptSet("altromtype") && SystemConfig["altromtype"] == "cass")
-            {
-                // fm7 boots floppies, needs cassette loading
-                commandArray.AddRange(new string[] { "-autoboot_delay", "5", "-autoboot_command", "LOADM”“,,R\\n" });
-            }
-            else
-            {
-                // Autostart computer games where applicable
-                // Generic boot if only one type is available
-                var autoRunCommand = this.GetAutoBoot(rom);
-                if (autoRunCommand != null)
-                    commandArray.AddRange(autoRunCommand.Arguments);
-            }
-            /*
-          if (system == "ti99")
-          {
-              commandArray.Add("-ioport");
-              commandArray.Add("peb");
-              
-              commandArray.Add("-ioport:peb:slot3");
-              commandArray.Add("speech");
-
-              commandArray.Add(Path.GetFileNameWithoutExtension(rom));
-          }*/
-
+            // Autostart computer games where applicable
+            // Generic boot if only one type is available
+            var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
+            if (autoRunCommand != null)
+                commandArray.AddRange(autoRunCommand.Arguments);
+            
             // Alternate ROM type for systems with mutiple media (ie cassette & floppy)
             if (SystemConfig.isOptSet("altromtype"))
                 commandArray.Add("-" + SystemConfig["altromtype"]);
@@ -292,17 +258,13 @@ namespace emulatorLauncher
                     commandArray.Add("-" + romType);
             }
 
-            if (system == "ti99")
-                commandArray.Add(Path.GetFileNameWithoutExtension(rom));
-            else
-            {
-                // Use the full filename for MESS ROMs
-                commandArray.Add(rom);
-            }
+            commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
 
             return string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
         }
+        #endregion
 
+        #region Private methods
         private MessSystem(string name, string sysName = "", string romType = "")
         {
             Name = name;
@@ -316,7 +278,6 @@ namespace emulatorLauncher
             SysName = sysName;
             RomTypes = romType;
         }
-
 
         string GetRomType(string rom)
         {
@@ -358,8 +319,17 @@ namespace emulatorLauncher
             return RomTypes.Where(t => t.Extensions == null).Select(t => t.AutoBoot).FirstOrDefault();
         }
 
+        MessAutoBoot GetAutoBootForRomType(string romType)
+        {
+            if (string.IsNullOrEmpty(romType))
+                return null;
+
+            return RomTypes.Where(t => romType.Equals(t.Type, StringComparison.InvariantCultureIgnoreCase)).Select(t => t.AutoBoot).FirstOrDefault();         
+        }
+
         ConfigFile AppConfig { get { return Program.AppConfig; } }
         ConfigFile SystemConfig { get { return Program.SystemConfig; } }
+        #endregion
     };
 
     class MessRomType
@@ -373,9 +343,9 @@ namespace emulatorLauncher
                 AutoBoot = new MessAutoBoot(autoRun, autoRunDelay);
         }
 
-        public string[] Extensions { get; set; }
-        public string Type { get; set; }
-        public MessAutoBoot AutoBoot { get; set; }
+        public string[] Extensions { get; private set; }
+        public string Type { get; private set; }
+        public MessAutoBoot AutoBoot { get; private set; }
     }
 
     class MessAutoBoot
@@ -386,14 +356,22 @@ namespace emulatorLauncher
             AutoBootDelay = delay;
         }
 
-        public string AutoRunCommand { get; set; }
-        public string AutoBootDelay { get; set; }
+        public string AutoRunCommand { get; private set; }
+        public string AutoBootDelay { get; private set; }
 
         public string[] Arguments
         {
             get
             {
-                return new string[] { "-autoboot_delay", AutoBootDelay, "-autoboot_command", AutoRunCommand };
+                List<string> ret = new List<string>();
+
+                if (!string.IsNullOrEmpty(AutoBootDelay))
+                    ret.AddRange(new string[] { "-autoboot_delay", AutoBootDelay });
+
+                if (!string.IsNullOrEmpty(AutoRunCommand))
+                    ret.AddRange(new string[] { "-autoboot_command", AutoRunCommand });
+
+                return ret.ToArray();
             }
         }
     }
