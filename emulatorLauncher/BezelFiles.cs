@@ -89,7 +89,12 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("forceNoBezel") && Program.SystemConfig.getOptBoolean("forceNoBezel"))
                 bezel = null;
             else if (!Program.SystemConfig.isOptSet("bezel"))
+            {                
+                if (!string.IsNullOrEmpty(Program.CurrentGame.Bezel) && File.Exists(Program.CurrentGame.Bezel))
+                    return new BezelFiles() { PngFile = Program.CurrentGame.Bezel };
+
                 bezel = "thebezelproject";
+            }
 
             if (string.IsNullOrEmpty(bezel) || bezel == "none")
                 return null;

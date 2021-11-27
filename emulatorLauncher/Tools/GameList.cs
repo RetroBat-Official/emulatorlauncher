@@ -412,6 +412,16 @@ namespace emulatorLauncher.Tools
             set { _mix = value; }
         }
 
+        private string _bezel;
+
+        [XmlElement("bezel")]
+        public string Bezel
+        {
+            get { return formatPath(_bezel); }
+            set { _bezel = value; }
+        }
+
+
         [XmlElement("rating")]
         public string Rating { get; set; }
 
