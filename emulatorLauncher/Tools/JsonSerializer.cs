@@ -23,5 +23,18 @@ namespace emulatorLauncher.Tools
             return deserializedObj;
         }
 
+        public static T DeserializeString<T>(string json) where T : new()
+        {
+            T deserializedObj = new T();
+
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(T));
+                deserializedObj = (T)ser.ReadObject(ms);
+                ms.Close();
+            }
+
+            return deserializedObj;
+        }
     }
 }

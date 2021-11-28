@@ -154,7 +154,11 @@ namespace emulatorLauncher
             {
                 var gamelist = GameList.Load(SystemConfig.GetFullPath("gameinfo"));
                 if (gamelist != null)
+                {
                     CurrentGame = gamelist.Games.FirstOrDefault();
+                    if (CurrentGame != null)                        
+                        SimpleLogger.Instance.Info("Game : " + CurrentGame.Name);
+                }
             }
 
             if (CurrentGame == null)
@@ -174,6 +178,8 @@ namespace emulatorLauncher
 
             if (generator != null)
             {
+                SimpleLogger.Instance.Info("Generator : " + generator.GetType().Name);
+
                 try
                 {
                     Features = EsFeatures.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.cfg"));

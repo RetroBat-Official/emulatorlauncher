@@ -26,7 +26,18 @@ namespace emulatorLauncher
 
                     if (!string.IsNullOrEmpty(InfoFile) && File.Exists(InfoFile))
                     {
-                        try { _infos = JsonSerializer.DeserializeFile<BezelInfo>(InfoFile); }
+                        try 
+                        {
+                            string data = File.ReadAllText(InfoFile);
+                            if (data != null && data.Trim().EndsWith(".info"))
+                            {
+                                string linkedFile = Path.Combine(Path.GetDirectoryName(InfoFile), data);
+                                if (File.Exists(linkedFile))
+                                    data = File.ReadAllText(linkedFile);
+                            }
+
+                            _infos = JsonSerializer.DeserializeString<BezelInfo>(data); 
+                        }
                         catch { }
                     }
 
@@ -89,11 +100,12 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("forceNoBezel") && Program.SystemConfig.getOptBoolean("forceNoBezel"))
                 bezel = null;
             else if (!Program.SystemConfig.isOptSet("bezel"))
-            {                
+            {     
+                /*
                 if (!string.IsNullOrEmpty(Program.CurrentGame.Bezel) && File.Exists(Program.CurrentGame.Bezel))
                     return new BezelFiles() { PngFile = Program.CurrentGame.Bezel };
 
-                bezel = "thebezelproject";
+                bezel = "thebezelproject";*/
             }
 
             if (string.IsNullOrEmpty(bezel) || bezel == "none")
