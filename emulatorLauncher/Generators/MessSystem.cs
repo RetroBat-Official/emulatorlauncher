@@ -37,21 +37,21 @@ namespace emulatorLauncher
                             new MessRomType("cass1", new string[] { "wav", "ddp" } ),
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
                         }),
-
+                        /*
                 new MessSystem("coco"         ,"coco"     , new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "cas" } ), 
                             new MessRomType("cart" )
                         }),
-                                        
-               new MessSystem("coco2"         ,"coco2"     , new MessRomType[] 
+                                     */   
+               new MessSystem("coco"         ,"coco2"     , new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "cas" } ), 
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),  
                             new MessRomType("hard1", new string[] { "vhd" } ),  
                             new MessRomType("flop1" ),  
                         }),
-
+                        /*
                new MessSystem("coco3"         ,"coco3"     , new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "cas" } ), 
@@ -59,7 +59,7 @@ namespace emulatorLauncher
                             new MessRomType("hard1", new string[] { "vhd" } ),  
                             new MessRomType("flop1" ),  
                         }),
-                                        
+                                    */    
                 new MessSystem("ti99"         ,"ti99_4a"  , new MessRomType[] 
                         { 
                             new MessRomType("cass1", new string[] { "wav" } ), 
