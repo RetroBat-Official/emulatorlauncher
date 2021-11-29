@@ -831,24 +831,25 @@ namespace emulatorLauncher.libRetro
             if (core != "mame")
                 return;
 
+            string softLists = "enabled";
+
             MessSystem messSystem = MessSystem.GetMessSystem(system);
             if (messSystem != null)
             {
                 CleanupMameMessConfigFiles(messSystem);
 
-                coreSettings["mame_read_config"] = "disabled";
-                coreSettings["mame_write_config"] = "disabled";
-            }
-            else
-            {
-                coreSettings["mame_read_config"] = "enabled";
-                coreSettings["mame_write_config"] = "enabled";
+                // If we have a know system name, disable softlists as we run with CLI
+                if (!string.IsNullOrEmpty(messSystem.SysName))
+                    softLists = "disabled";
             }
 
-            coreSettings["mame_mame_paths_enable"] = "disabled";
+            coreSettings["mame_softlists_enable"] = softLists;
+            coreSettings["mame_softlists_auto_media"] = softLists; 
+
+            coreSettings["mame_read_config"] = "enabled";
+            coreSettings["mame_write_config"] = "enabled";
             coreSettings["mame_mouse_enable"] = "enabled";
-            coreSettings["mame_softlists_enable"] = "enabled";
-            coreSettings["mame_softlists_auto_media"] = "enabled";
+            coreSettings["mame_mame_paths_enable"] = "disabled";            
 
             if (SystemConfig.isOptSet("alternate_renderer"))
                 coreSettings["mame_alternate_renderer"] = SystemConfig["alternate_renderer"];
