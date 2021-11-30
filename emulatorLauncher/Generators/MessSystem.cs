@@ -211,6 +211,18 @@ namespace emulatorLauncher
             return messMode;
         }
 
+        private string EnsureDirectoryExists(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+            }
+            catch { }
+
+            return path;
+        }
+
         public string GetMameCommandLineArguments(string system, string rom)
         {
             List<string> commandArray = new List<string>();
@@ -219,16 +231,30 @@ namespace emulatorLauncher
 
             // rompath
             commandArray.Add("-rompath");
-            if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
+            if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig.GetFullPath("bios")))
             {
-                commandArray.Add(AppConfig.GetFullPath("bios") + ";" + Path.GetDirectoryName(rom));
+                var bios = AppConfig.GetFullPath("bios");
+
+                commandArray.Add(bios + ";" + Path.GetDirectoryName(rom));
 
                 commandArray.Add("-cfg_directory");
-                commandArray.Add(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg"));
+                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "cfg")));
+
+                commandArray.Add("-inipath");
+                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "ini")));
+
+                commandArray.Add("-hashpath");
+                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
             }
             else
                 commandArray.Add(Path.GetDirectoryName(rom));
 
+            if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
+            {
+                commandArray.Add("-snapshot_directory");
+                commandArray.Add(AppConfig.GetFullPath("screenshots"));
+            }
+             
             // Alternate system for machines that have different configs (ie computers with different hardware)
             if (SystemConfig.isOptSet("altmodel"))
                 commandArray.Insert(0, SystemConfig["altmodel"]);

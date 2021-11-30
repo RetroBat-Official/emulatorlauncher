@@ -110,32 +110,64 @@
                                             { "md5": "b15ddb15721c657d82c5bab6db982ee9", "file": "bios/SGB1.sfc" },
                                             { "md5": "8ecd73eb4edf7ed7e81aef1be80031d5", "file": "bios/SGB2.sfc" } ] },
 
-	"advision": { "name": "Adventure Vision", "biosFiles": [ { "md5": "1c08606408029751fd30ac91d2bf30d5", "file": "advision.zip" } ] },
-	"astrocde": { "name": "Astrocade", "biosFiles": [ { "md5": "f58a3823ab308ef0a02b498d126e5d96", "file": "astrocde.zip" } ] },
-	"scv": { "name": "Super Cassette Vision", "biosFiles": [ { "md5": "33df021613fb12abe2ad14b9eb17c7fe", "file": "scv.zip" } ] },	
+
+
+
 	"lynx48k": { "name": "Camputers Lynx", "biosFiles": [ { "md5": "85ae78a20ffaff388dd09c75d9e1ec0e", "file": "lynx48k.zip" } ] },
-	"gmaster": { "name": "Game Master", "biosFiles": [ { "md5": "4239d6f44a0d78d27c69f9b95885f48e", "file": "gmaster.zip" } ] },
-	"gamecom": { "name": "Game.com", "biosFiles": [ { "md5": "f2087ed09f7fa8d8856cfafb20dd00dc", "file": "gamecom.zip" } ] },
-	"gamepock": { "name": "Game Pocket", "biosFiles": [ { "md5": "887479fe3c69a0b935c57a7a738e26c4", "file": "gamepock.zip" } ] },
-	"gamate": { "name": "Gamate", "biosFiles": [ { "md5": "320bf3d4142fa1043255db7ff87d17c7", "file": "gamate.zip" } ] },
-	"ar_bios": { "name": "Arcadia 2001", "biosFiles": [ { "md5": "37e9746f4491aa2df9a83729d1a93620", "file": "ar_bios.zip" } ] },
-	"apfm1000": { "name": "APF M-1000", "biosFiles": [ { "md5": "b197db12f7a13827717bbeb7cfd9542a", "file": "apfm1000.zip" } ] },
-	"tutor": { "name": "APF M-1000", "biosFiles": [ { "md5": "37c052c1388be33bac2fac88a439322c", "file": "tutor.zip" } ] },
-	"cdi": { "name": "Philips CD-I", "biosFiles": [ { "md5": "80efc8294a76783c92e9f7b5a6b6c11b", "file": "cdimono1.zip" } ] },
-	"bbcmicro": { "name": "BBC", "biosFiles": [ { "md5": "224779dcd4b9aa1bb27865568fb80f72", "file": "bbcb.zip" } ] },
-	"crvision": { "name": "Creativision", "biosFiles": [ { "md5": "4174d8a42f4a3e8334fa2c6076d616af", "file": "crvision.zip" } ] },
-	"vsmile": { "name": "Super Cassette Vision", "biosFiles": [ { "md5": "a9809431b9f09e8d0f31e7adfabeb025", "file": "vsmile.zip" } ] },
 
-	"coco2": { "name": "Color Computer", "biosFiles": [ { "md5": "1d33d70f35b33873fc75941d95ad1ffa", "file": "coco.zip" },
-														{ "md5": "b81dc552536796d234c08587bac7be43", "file": "coco2.zip" } ] },
+	"advision": { "name": "Adventure Vision", "biosFiles": [ { "md5": "1c08606408029751fd30ac91d2bf30d5", "file": "advision.zip" },
+															 { "md5": "", "file": "bios/mame/hash/advision.xml" } ] },
 
-	"fmtowns": { "name": "FMTowns", "biosFiles": [ { "md5": "b3acc6716b447a111b20ca4c26d676f6", "file": "fmtowns.zip" },
-											{ "md5": "b262b19228fe4f13724f0a648ad5f461", "file": "fmtownsux.zip" } ] },               
+	"astrocde": { "name": "Astrocade", "biosFiles": [ { "md5": "f58a3823ab308ef0a02b498d126e5d96", "file": "astrocde.zip" },
+													  { "md5": "", "file": "bios/mame/hash/astrocde.xml" } ] },
 
-	"fm7": { "name": "FM-7", "biosFiles": [ { "md5": "b8b459da3cf4ba24cfd77360fdf74ee0", "file": "fm7.zip" },
-											{ "md5": "8c54dbf60867435af07db07b29b1bca1", "file": "fm77av.zip" } ] },                    
+	"scv": { "name": "Super Cassette Vision", "biosFiles": [ { "md5": "33df021613fb12abe2ad14b9eb17c7fe", "file": "scv.zip" },
+															 { "md5": "", "file": "bios/mame/hash/scv.xml" } ] },	
 
-	"ti99": { "name": "TI/99", "biosFiles": [ { "md5": "6e30e823ddba73234480984ee50730c1", "file": "ti99_4a.zip" },
-											{ "md5": "42f768a66fa8b27dadb8361dd2e2e012", "file": "ti99_speech.zip" } ] }               
+	"gmaster": { "name": "Game Master", "biosFiles": [ { "md5": "4239d6f44a0d78d27c69f9b95885f48e", "file": "gmaster.zip" },
+													   { "md5": "", "file": "bios/mame/hash/gmaster.xml" } ] },
+
+	"gamecom": { "name": "Game.com", "biosFiles": [ { "md5": "f2087ed09f7fa8d8856cfafb20dd00dc", "file": "gamecom.zip" },
+												    { "md5": "", "file": "bios/mame/hash/gamecom.xml" } ] },
+
+	"gamepock": { "name": "Game Pocket", "biosFiles": [ { "md5": "887479fe3c69a0b935c57a7a738e26c4", "file": "gamepock.zip" },
+														{ "md5": "", "file": "bios/mame/hash/gamepock.xml" } ] },
+
+	"gamate": { "name": "Gamate", "biosFiles": [ { "md5": "320bf3d4142fa1043255db7ff87d17c7", "file": "gamate.zip" },
+											     { "md5": "", "file": "bios/mame/hash/gamate.xml" } ] },
+
+	"arcadia": { "name": "Arcadia 2001", "biosFiles": [ { "md5": "37e9746f4491aa2df9a83729d1a93620", "file": "ar_bios.zip" },
+														{ "md5": "", "file": "bios/mame/hash/arcadia.xml" } ] },
+
+	"apfm1000": { "name": "APF M-1000", "biosFiles": [ { "md5": "b197db12f7a13827717bbeb7cfd9542a", "file": "apfm1000.zip" },
+													   { "md5": "", "file": "bios/mame/hash/apfm1000.xml" } ] },
+
+	"tutor": { "name": "APF M-1000", "biosFiles": [ { "md5": "37c052c1388be33bac2fac88a439322c", "file": "tutor.zip" },
+												    { "md5": "", "file": "bios/mame/hash/tutor.xml" } ] },
+
+	"cdi": { "name": "Philips CD-I", "biosFiles": [ { "md5": "80efc8294a76783c92e9f7b5a6b6c11b", "file": "bios/cdimono1.zip" },
+													{ "md5": "", "file": "bios/mame/hash/cdi.xml" } ] },
+
+	"bbcmicro": { "name": "BBC", "biosFiles": [ { "md5": "224779dcd4b9aa1bb27865568fb80f72", "file": "bios/bbcb.zip" } ] },
+
+	"crvision": { "name": "Creativision", "biosFiles": [ { "md5": "4174d8a42f4a3e8334fa2c6076d616af", "file": "bios/crvision.zip" },
+														 { "md5": "", "file": "bios/mame/hash/crvision.xml" } ] },
+
+	"vsmile": { "name": "Super Cassette Vision", "biosFiles": [ { "md5": "a9809431b9f09e8d0f31e7adfabeb025", "file": "bios/vsmile.zip" } ] },
+
+	"coco": { "name": "Color Computer", "biosFiles": [ { "md5": "1d33d70f35b33873fc75941d95ad1ffa", "file": "bios/coco.zip" },
+														{ "md5": "b81dc552536796d234c08587bac7be43", "file": "bios/coco2.zip" },
+														{ "md5": "", "file": "bios/mame/hash/coco_cart.xml" },
+														{ "md5": "", "file": "bios/mame/hash/coco_flop.xml" } ] },
+
+	"fmtowns": { "name": "FMTowns", "biosFiles": [ { "md5": "b3acc6716b447a111b20ca4c26d676f6", "file": "bios/fmtowns.zip" },
+											       { "md5": "b262b19228fe4f13724f0a648ad5f461", "file": "bios/fmtownsux.zip" } ] },               
+
+	"fm7": { "name": "FM-7", "biosFiles": [ { "md5": "b8b459da3cf4ba24cfd77360fdf74ee0", "file": "bios/fm7.zip" },
+											{ "md5": "8c54dbf60867435af07db07b29b1bca1", "file": "bios/fm77av.zip" } ] },                    
+
+	"ti99": { "name": "TI/99", "biosFiles": [ { "md5": "6e30e823ddba73234480984ee50730c1", "file": "bios/ti99_4a.zip" },
+											  { "md5": "42f768a66fa8b27dadb8361dd2e2e012", "file": "bios/ti99_speech.zip" },
+											  { "md5": "", "file": "bios/mame/hash/ti99_cart.xml" } ] }               
 
 }
