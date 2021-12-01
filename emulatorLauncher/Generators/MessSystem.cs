@@ -162,6 +162,7 @@ namespace emulatorLauncher
                 new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),
                 new MessSystem("astrocade"    ,"astrocde" ,"cart"  ),
                 new MessSystem("vsmile"       ,"vsmile"   ,"cart"  ),
+                new MessSystem("gw"           ,""         ,""      ),
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,""         ,""      ),
                 new MessSystem("tvgames"      ,""         ,""      ),
