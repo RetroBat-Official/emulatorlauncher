@@ -164,7 +164,7 @@ namespace emulatorLauncher
                 new MessSystem("vsmile"       ,"vsmile"   ,"cart"  ),
                 new MessSystem("gw"           ,""         ,""      ),
                 new MessSystem("gameandwatch" ,""         ,""      ),
-                new MessSystem("lcdgames"     ,""         ,""      ),
+                new MessSystem("lcdgames"     ,"%romname%",""      ),
                 new MessSystem("tvgames"      ,""         ,""      ),
                 new MessSystem("megaduck"     ,"megaduck" ,"cart"  ),
                 new MessSystem("crvision"     ,"crvision" ,"cart"  ),
@@ -228,8 +228,17 @@ namespace emulatorLauncher
         {
             List<string> commandArray = new List<string>();
 
+            // Alternate system for machines that have different configs (ie computers with different hardware)
+            if (SystemConfig.isOptSet("altmodel"))
+                commandArray.Add(SystemConfig["altmodel"]);
+            else if (SysName == "%romname%")
+                commandArray.Add(Path.GetFileNameWithoutExtension(rom));
+            else if (!string.IsNullOrEmpty(this.SysName) && this.SysName != "%romname%")
+                commandArray.Add(SysName);
+
             commandArray.Add("-skip_gameinfo");
 
+            
             // rompath
             commandArray.Add("-rompath");
             if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig.GetFullPath("bios")))
@@ -246,22 +255,27 @@ namespace emulatorLauncher
 
                 commandArray.Add("-hashpath");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
+
+                commandArray.Add("-artpath");
+
+                string artwork = Path.Combine(Path.GetDirectoryName(rom), "artwork");
+                if (Directory.Exists(artwork))
+                    artwork = Path.Combine(Path.GetDirectoryName(rom), ".artwork");
+
+                if (Directory.Exists(artwork))
+                    commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(bios, "mame", "artwork")));
+                else
+                    commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "artwork")));
             }
             else
                 commandArray.Add(Path.GetDirectoryName(rom));
-
+            
             if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
             {
                 commandArray.Add("-snapshot_directory");
                 commandArray.Add(AppConfig.GetFullPath("screenshots"));
             }
              
-            // Alternate system for machines that have different configs (ie computers with different hardware)
-            if (SystemConfig.isOptSet("altmodel"))
-                commandArray.Insert(0, SystemConfig["altmodel"]);
-            else if (!string.IsNullOrEmpty(this.SysName))
-                commandArray.Insert(0, this.SysName);
-
             // Autostart computer games where applicable
             // Generic boot if only one type is available
             var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
@@ -285,7 +299,8 @@ namespace emulatorLauncher
                     commandArray.Add("-" + romType);
             }
 
-            commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
+            if (SysName != "%romname%")
+                commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
 
             return string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
         }
