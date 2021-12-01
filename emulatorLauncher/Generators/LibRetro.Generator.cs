@@ -746,7 +746,7 @@ namespace emulatorLauncher.libRetro
             }
 
             MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system) : null;
-            if (messSystem != null)
+            if (messSystem != null && !string.IsNullOrEmpty(messSystem.SysName))
             {
                 var messArgs = messSystem.GetMameCommandLineArguments(system, rom);
                 messArgs = messArgs.Replace("\\\"", "\"");
