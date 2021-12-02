@@ -839,7 +839,7 @@ namespace emulatorLauncher.libRetro
                 CleanupMameMessConfigFiles(messSystem);
 
                 // If we have a know system name, disable softlists as we run with CLI
-                if (!string.IsNullOrEmpty(messSystem.SysName))
+                if (!string.IsNullOrEmpty(messSystem.MachineName))
                     softLists = "disabled";
             }
 
@@ -898,7 +898,7 @@ namespace emulatorLauncher.libRetro
             try
             {
                 // Remove image_directories node in cfg file
-                string cfgPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg", messSystem.SysName + ".cfg");
+                string cfgPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg", messSystem.MachineName + ".cfg");
                 if (File.Exists(cfgPath))
                 {
                     XDocument xml = XDocument.Load(cfgPath);
@@ -916,7 +916,7 @@ namespace emulatorLauncher.libRetro
             try 
             {
                 // Remove medias declared in ini file
-                string iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini", messSystem.SysName + ".ini");
+                string iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini", messSystem.MachineName + ".ini");
                 if (File.Exists(iniPath))
                 {
                     var lines = File.ReadAllLines(iniPath);

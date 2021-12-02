@@ -37,21 +37,38 @@ namespace emulatorLauncher
                             new MessRomType("cass1", new string[] { "wav", "ddp" } ),
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
                         }),
-                        /*
-                new MessSystem("coco"         ,"coco"     , new MessRomType[] 
-                        { 
-                            new MessRomType("cass", new string[] { "wav", "cas" } ), 
-                            new MessRomType("cart" )
-                        }),
-                                     */   
-               new MessSystem("coco"         ,"coco2"     , new MessRomType[] 
+                        
+                // generic 'coco' is defaulted to coco3 machine
+                new MessSystem("coco"         ,"coco3"     , new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "cas" } ), 
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),  
                             new MessRomType("hard1", new string[] { "vhd" } ),  
                             new MessRomType("flop1" ),  
                         }),
-                        /*
+
+                new MessSystem("coco1"        ,"coco"     , new MessRomType[] 
+                        { 
+                            new MessRomType("cass", new string[] { "wav", "cas" } ), 
+                            new MessRomType("cart" )
+                        }),
+                                     
+               new MessSystem("coco2"         ,"coco2"     , new MessRomType[] 
+                        { 
+                            new MessRomType("cass", new string[] { "wav", "cas" } ), 
+                            new MessRomType("cart", new string[] { "ccc", "rom" } ),  
+                            new MessRomType("hard1", new string[] { "vhd" } ),  
+                            new MessRomType("flop1" ),  
+                        }),
+                        
+               new MessSystem("coco2b"        ,"coco2b"     , new MessRomType[] 
+                        { 
+                            new MessRomType("cass", new string[] { "wav", "cas" } ), 
+                            new MessRomType("cart", new string[] { "ccc", "rom" } ),  
+                            new MessRomType("hard1", new string[] { "vhd" } ),  
+                            new MessRomType("flop1" ),  
+                        }),
+                        
                new MessSystem("coco3"         ,"coco3"     , new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "cas" } ), 
@@ -59,7 +76,15 @@ namespace emulatorLauncher
                             new MessRomType("hard1", new string[] { "vhd" } ),  
                             new MessRomType("flop1" ),  
                         }),
-                                    */    
+
+                new MessSystem("coco3p"         ,"coco3p"     , new MessRomType[] 
+                        { 
+                            new MessRomType("cass", new string[] { "wav", "cas" } ), 
+                            new MessRomType("cart", new string[] { "ccc", "rom" } ),  
+                            new MessRomType("hard1", new string[] { "vhd" } ),  
+                            new MessRomType("flop1" ),  
+                        }),
+                                    
                 new MessSystem("ti99"         ,"ti99_4a"  , new MessRomType[] 
                         { 
                             new MessRomType("cass1", new string[] { "wav" } ), 
@@ -98,6 +123,12 @@ namespace emulatorLauncher
                             new MessRomType("cart", new string[] { "ccc", "rom" } ), 
                             new MessRomType("cass", new string[] { "wav", "cas" } ), 
                             new MessRomType("flop1")
+                        }),
+
+                new MessSystem("mx1600"      ,"mx1600" , new MessRomType[] 
+                        { 
+                            new MessRomType("cass", new string[] { "wav", "cas" } ), 
+                            new MessRomType("cart")
                         }),
 
                 new MessSystem("electron"     ,"electron" , new MessRomType[] 
@@ -187,7 +218,7 @@ namespace emulatorLauncher
             };
 
         public string Name { get; private set; }
-        public string SysName { get; private set; }
+        public string MachineName { get; private set; }
         public MessRomType[] RomTypes { get; private set; }
         public bool InGameMouse { get; private set; }
         public bool UseFileNameWithoutExtension { get; private set; }
@@ -197,17 +228,28 @@ namespace emulatorLauncher
         {
             MessSystem messMode = null;
 
+            if (SystemConfig.isOptSet("altmodel") && !string.IsNullOrEmpty(SystemConfig["altmodel"]))
+            {
+                string altModel = SystemConfig["altmodel"];
+
+                if (messMode == null && system != null)
+                    messMode = MessSystems.FirstOrDefault(m => system.Equals(altModel, StringComparison.InvariantCultureIgnoreCase));
+
+                if (messMode == null && system != null)
+                    messMode = MessSystems.FirstOrDefault(m => system.Equals(altModel, StringComparison.InvariantCultureIgnoreCase));                
+            }
+
             if (messMode == null && system != null)
                 messMode = MessSystems.FirstOrDefault(m => system.Equals(m.Name, StringComparison.InvariantCultureIgnoreCase));
 
             if (messMode == null && system != null)
-                messMode = MessSystems.FirstOrDefault(m => system.Equals(m.SysName, StringComparison.InvariantCultureIgnoreCase));
+                messMode = MessSystems.FirstOrDefault(m => system.Equals(m.MachineName, StringComparison.InvariantCultureIgnoreCase));
 
             if (messMode == null && core != null)
                 messMode = MessSystems.FirstOrDefault(m => core.Equals(m.Name, StringComparison.InvariantCultureIgnoreCase));
 
             if (messMode == null && core != null)
-                messMode = MessSystems.FirstOrDefault(m => core.Equals(m.SysName, StringComparison.InvariantCultureIgnoreCase));
+                messMode = MessSystems.FirstOrDefault(m => core.Equals(m.MachineName, StringComparison.InvariantCultureIgnoreCase));
 
             return messMode;
         }
@@ -231,10 +273,10 @@ namespace emulatorLauncher
             // Alternate system for machines that have different configs (ie computers with different hardware)
             if (SystemConfig.isOptSet("altmodel"))
                 commandArray.Add(SystemConfig["altmodel"]);
-            else if (SysName == "%romname%")
+            else if (MachineName == "%romname%")
                 commandArray.Add(Path.GetFileNameWithoutExtension(rom));
-            else if (!string.IsNullOrEmpty(this.SysName) && this.SysName != "%romname%")
-                commandArray.Add(SysName);
+            else if (!string.IsNullOrEmpty(this.MachineName) && this.MachineName != "%romname%")
+                commandArray.Add(MachineName);
 
             commandArray.Add("-skip_gameinfo");
 
@@ -299,7 +341,7 @@ namespace emulatorLauncher
                     commandArray.Add("-" + romType);
             }
 
-            if (SysName != "%romname%")
+            if (MachineName != "%romname%")
                 commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
 
             return string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
@@ -310,14 +352,14 @@ namespace emulatorLauncher
         private MessSystem(string name, string sysName = "", string romType = "")
         {
             Name = name;
-            SysName = sysName;
+            MachineName = sysName;
             RomTypes = new MessRomType[] { new MessRomType(romType) };
         }
 
         private MessSystem(string name, string sysName, MessRomType[] romType)
         {
             Name = name;
-            SysName = sysName;
+            MachineName = sysName;
             RomTypes = romType;
         }
 
@@ -369,8 +411,8 @@ namespace emulatorLauncher
             return RomTypes.Where(t => romType.Equals(t.Type, StringComparison.InvariantCultureIgnoreCase)).Select(t => t.AutoBoot).FirstOrDefault();         
         }
 
-        ConfigFile AppConfig { get { return Program.AppConfig; } }
-        ConfigFile SystemConfig { get { return Program.SystemConfig; } }
+        static ConfigFile AppConfig { get { return Program.AppConfig; } }
+        static ConfigFile SystemConfig { get { return Program.SystemConfig; } }
         #endregion
     };
 
