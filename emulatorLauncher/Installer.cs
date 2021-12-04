@@ -6,6 +6,8 @@ using System.IO;
 using System.Net;
 using System.ComponentModel;
 using System.Diagnostics;
+using emulatorLauncher.Tools;
+using System.Xml.Serialization;
 
 namespace emulatorLauncher
 {
@@ -22,8 +24,52 @@ namespace emulatorLauncher
                 .Replace("%FOLDERNAME%", FolderName);
         }
 
+        public string GetInstalledVersion()
+        {
+            try
+            {
+                string exe = Path.Combine(GetInstallFolder(), LocalExeName);
+
+                var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+
+                string version = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
+                if (version != "0.0.0.0")
+                    return version;
+            }
+            catch { }
+
+            return null;
+        }
+
+        public static void CollectVersions()
+        {
+            List<systeminfo> sys = new List<systeminfo>();
+
+            foreach (var inst in installers)
+            {
+                if (sys.Any(s => s.name == inst.Value.FolderName))
+                    continue;
+
+                sys.Add(new systeminfo()
+                {
+                    name = inst.Value.FolderName,
+                    version = inst.Value.GetInstalledVersion()
+                });
+            }
+
+            var xml = sys
+                .Where(s => !string.IsNullOrEmpty(s.version))
+                .OrderBy(s => s.name)
+                .ToArray().ToXml().Replace("ArrayOfSystem>", "systems>");
+
+            string fn = Path.Combine(Path.GetTempPath(), "systems.xml");
+            File.WriteAllText(fn, xml);
+            Process.Start(fn);
+        }
+
         static Dictionary<string, Installer> installers = new Dictionary<string, Installer>
         {            
+            { "arcadeflashweb", new Installer("arcadeflashweb") },           
             { "libretro", new Installer("retroarch" ) }, { "angle", new Installer("retroarch" ) }, // "libretro_cores.7z",
             { "duckstation", new Installer("duckstation", "duckstation-nogui-x64-ReleaseLTCG.exe") },  
             { "kega-fusion", new Installer("kega-fusion", "Fusion.exe") }, 
@@ -31,14 +77,13 @@ namespace emulatorLauncher
             { "model3", new Installer("supermodel") }, { "supermodel", new Installer("supermodel") }, 
             { "ps3", new Installer("rpcs3") }, { "rpcs3", new Installer("rpcs3") }, 
             { "ps2", new Installer("pcsx2") }, { "pcsx2", new Installer("pcsx2") }, 
-            { "fpinball", new Installer("fpinball") }, { "bam", new Installer("fpinball") }, 
+            { "fpinball", new Installer("fpinball", "Future Pinball.exe") }, { "bam", new Installer("fpinball", "BAM\\FPLoader.exe") }, 
             { "cemu", new Installer("cemu") }, { "wiiu", new Installer("cemu") },
             { "applewin", new Installer("applewin") }, { "apple2", new Installer("applewin") },
             { "gsplus", new Installer("gsplus") }, { "apple2gs", new Installer("gsplus") },             
             { "cxbx", new Installer("cxbx-reloaded", "cxbx.exe") }, { "chihiro", new Installer("cxbx-reloaded", "cxbx.exe") }, { "xbox", new Installer("cxbx-reloaded", "cxbx.exe") },
-            { "arcadeflashweb", new Installer("arcadeflashweb") },           
             { "citra", new Installer("citra") },            
-            { "daphne", new Installer("citra") },
+            { "daphne", new Installer("daphne") },
             { "demul-old", new Installer("demul-old", "demul.exe") }, 
             { "demul", new Installer("demul") }, 
             { "dolphin", new Installer("dolphin-emu", "dolphin.exe") }, 
@@ -50,15 +95,20 @@ namespace emulatorLauncher
             { "mgba", new Installer("mgba") }, 
             { "openbor", new Installer("openbor") }, 
             { "oricutron", new Installer("oricutron") },             
-            { "ppsspp", new Installer("ppsspp") }, 
+            { "ppsspp", new Installer("ppsspp", "PPSSPPWindows64.exe") }, 
             { "project64", new Installer("project64") }, 
             { "raine", new Installer("raine") }, 
+            
+            { "mame64", new Installer("mame", "mame.exe") },
+            { "ryujinx", new Installer("ryujinx", "ryujinx.exe") },
+            
+
             { "redream", new Installer("redream") },             
             { "simcoupe", new Installer("simcoupe") }, 
             { "snes9x", new Installer("snes9x", "snes9x-x64.exe") }, 
             { "solarus", new Installer("solarus", "solarus-run.exe") },             
             { "tsugaru", new Installer("tsugaru", "tsugaru_cui.exe") }, 
-            { "vpinball", new Installer("vpinball") }, 
+            { "vpinball", new Installer("vpinball", "vpinballx.exe") }, 
             { "winuae", new Installer("winuae", "winuae64.exe") }, 
             { "xemu", new Installer("xemu") }, 
             { "xenia-canary", new Installer("xenia-canary", "xenia_canary.exe" ) }
@@ -229,4 +279,13 @@ namespace emulatorLauncher
         }
     }
 
+    [XmlType("system")]
+    public class systeminfo
+    {
+        [XmlAttribute]
+        public string name { get; set; }
+
+        [XmlAttribute]
+        public string version { get; set; }
+    };
 }

@@ -125,6 +125,12 @@ namespace emulatorLauncher
             LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
+            if (args.Any(a => "-collectversions".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                Installer.CollectVersions();
+                return;
+            }
+
             // SystemConfig["updates.type"] vide ou stable/beta/unstable
 
 
