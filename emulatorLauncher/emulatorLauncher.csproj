@@ -67,6 +67,7 @@
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Tools\InputKeyMapping.cs" />
