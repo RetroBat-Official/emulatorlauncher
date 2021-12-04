@@ -18,7 +18,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["bluemsx_overscan"] = "enabled";
 
                 if (system == "spectravideo")
-                    coreSettings["bluemsx_msxtype"] = "SVI - Spectravideo SVI-328";
+                    coreSettings["bluemsx_msxtype"] = "SVI - Spectravideo SVI-328 MK2";
                 else if (system == "colecovision")
                     coreSettings["bluemsx_msxtype"] = "ColecoVision";
                 else if (system == "msx1")
@@ -925,6 +925,7 @@ namespace emulatorLauncher.libRetro
                         !l.StartsWith("cassette") && !l.StartsWith("cdrom") &&
                         !l.StartsWith("romimage") && !l.StartsWith("memcard") &&
                         !l.StartsWith("quickload") && !l.StartsWith("harddisk") &&
+                        !l.StartsWith("autoboot_command") && !l.StartsWith("autoboot_delay") && !l.StartsWith("autoboot_script") &&
                         !l.StartsWith("printout")
                         ).ToArray();
 

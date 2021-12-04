@@ -182,10 +182,16 @@ namespace emulatorLauncher
                             new MessRomType("cdrm")
                         }),
 
+                new MessSystem("spectravideo"       ,"svi328", new MessRomType[] 
+                        { 
+                            new MessRomType("cass", new string[] { "wav", "cas" }, "CLOAD\\nRUN\\n", "6"), 
+                            new MessRomType("cart")
+                        }),
+
                 new MessSystem("scv"          ,"scv"      ,"cart"  ),
                 new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ) { InGameMouse = true },        
                 new MessSystem("advision"     ,"advision" ,"cart"  ),
-                new MessSystem("attache"      ,"attache"  , "flop1"  ),
+                new MessSystem("attache"      ,"attache"  ,"flop1"  ),
                 new MessSystem("ampro"        ,"ampro"    ,"flop1"  ),
                 new MessSystem("apc"          ,"apc"      ,"flop1"  ),
                 new MessSystem("pv1000"       ,"pv1000"   ,"cart"  ),
@@ -213,8 +219,8 @@ namespace emulatorLauncher
                 new MessSystem("snes"         ,"snes"     ,"cart"  ),
                 new MessSystem("gbcolor"      ,"gbcolor"  ,"cart"  ),
                 new MessSystem("gameboy"      ,"gameboy"  ,"cart"  ),
-                new MessSystem("apple2gs"     ,"apple2gs" ,"flop1"  ),
-
+                new MessSystem("apple2gs"     ,"apple2gs" ,"flop1" ),
+                new MessSystem("bk0010"       ,"bk0010"   ,"cass"  )
             };
 
         public string Name { get; private set; }

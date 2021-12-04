@@ -11,6 +11,8 @@ using System.Management;
 using System.Globalization;
 using emulatorLauncher.PadToKeyboard;
 using System.Runtime.InteropServices;
+using System.Net;
+using System.ComponentModel;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -48,7 +50,7 @@ namespace emulatorLauncher
             { "dosbox", () => new DosBoxGenerator() },
             { "ppsspp", () => new PpssppGenerator() },
 			{ "project64", () => new Project64Generator() },
-            { "dolphin", () => new DolphinGenerator() },
+            { "dolphin", () => new DolphinGenerator() }, { "triforce", () => new DolphinGenerator() },
             { "cemu", () => new CemuGenerator() },  { "wiiu", () => new CemuGenerator() },  
             { "winuae", () => new UaeGenerator() },
             { "applewin", () => new AppleWinGenerator() }, { "apple2", () => new AppleWinGenerator() },
@@ -123,6 +125,9 @@ namespace emulatorLauncher
             LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
+            // SystemConfig["updates.type"] vide ou stable/beta/unstable
+
+
             if (!SystemConfig.isOptSet("rom"))
             {
                 SimpleLogger.Instance.Error("rom not set");
@@ -169,6 +174,11 @@ namespace emulatorLauncher
                     Name = Path.GetFileNameWithoutExtension(SystemConfig["rom"])
                 };
             }
+
+            // Check if installed. Download & Install it if necessary.
+            Installer installer = Installer.FindInstaller();
+            if (installer != null && !installer.IsInstalled() && installer.CanInstall())
+                installer.DownloadAndInstall();            
 
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
