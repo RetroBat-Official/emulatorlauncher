@@ -276,32 +276,6 @@ namespace emulatorLauncher.libRetro
             coreSettings["citra_use_libretro_save_path"] = "LibRetro Default";
             coreSettings["citra_is_new_3ds"] = "New 3DS";
 
-            /*            if (SystemConfig.isOptSet("citra_layout_option"))
-                            coreSettings["citra_layout_option"] = SystemConfig["citra_layout_option"];
-                        else
-                            coreSettings["citra_layout_option"] = "Default Top-Bottom Screen";
-            */
-            if (SystemConfig.isOptSet("citra_layout_option"))
-            {
-                coreSettings["citra_layout_option"] = SystemConfig["citra_layout_option"];
-                if ((SystemConfig["citra_layout_option"] == "Large Screen, Small Screen") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
-                {
-                    retroarchConfig["aspect_ratio_index"] = "1";
-                    SystemConfig["bezel"] = "none";
-                }
-                else if ((SystemConfig["citra_layout_option"] == "Single Screen Only") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
-                {
-                    retroarchConfig["aspect_ratio_index"] = "2";
-                    SystemConfig["bezel"] = "none";
-                }
-                else
-                    SystemConfig["bezel"] = SystemConfig["bezel"];
-            }
-            else
-            {
-                coreSettings["citra_layout_option"] = "Default Top-Bottom Screen";
-            }
-
             if (SystemConfig.isOptSet("citra_layout_option"))
             {
                 coreSettings["citra_layout_option"] = SystemConfig["citra_layout_option"];

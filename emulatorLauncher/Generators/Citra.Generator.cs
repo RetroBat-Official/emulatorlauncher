@@ -7,47 +7,47 @@ using System.Diagnostics;
 
 namespace emulatorLauncher
 {
-	class CitraGenerator : Generator
-	{
-		public CitraGenerator()
-		{
-			DependsOnDesktopResolution = true;
-		}
+    class CitraGenerator : Generator
+    {
+        public CitraGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
 
-		public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
-		{
-			string path = AppConfig.GetFullPath("citra");
+        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
+        {
+            string path = AppConfig.GetFullPath("citra");
 
-			string exe = Path.Combine(path, "citra-qt.exe");
-			if (!File.Exists(exe))
-				return null;
+            string exe = Path.Combine(path, "citra-qt.exe");
+            if (!File.Exists(exe))
+                return null;
 
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
                 File.WriteAllText(portableFile, "");
 
-			if (core == "citra-sdl")
-			{
-				exe = Path.Combine(path, "citra.exe");
-				if (!File.Exists(exe))
-				    return null;
-				
-				return new ProcessStartInfo()
-				{
-					FileName = exe,
-					WorkingDirectory = path,
-					Arguments = "\"" + rom + "\"",
-				};			
-			}
+            if (core == "citra-sdl")
+            {
+                exe = Path.Combine(path, "citra.exe");
+                if (!File.Exists(exe))
+                    return null;
+
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = path,
+                    Arguments = "\"" + rom + "\"",
+                };
+            }
 
             SetupConfiguration(path);
 
-			return new ProcessStartInfo()
-				{
-					FileName = exe,
-					WorkingDirectory = path,
-					Arguments = "\"" + rom + "\" -f",
-				};
+            return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = path,
+                    Arguments = "\"" + rom + "\" -f",
+                };
         }
 
         private void SetupConfiguration(string path)
@@ -85,8 +85,44 @@ namespace emulatorLauncher
                 ini.WriteValue("Layout", "filter_mode", "false");
             }
 
+            if (Features.IsSupported("citra_resolution_factor"))
+            {
+                if (SystemConfig.isOptSet("citra_resolution_factor"))
+                {
+                    ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["citra_resolution_factor"] == "1" ? "true" : "false");
+                    ini.WriteValue("Renderer", "resolution_factor", SystemConfig["citra_resolution_factor"]);
+                }
+                else
+                {
+                    ini.WriteValue("Renderer", "resolution_factor\\default", "true");
+                    ini.WriteValue("Renderer", "resolution_factor", "1");
+                }
+            }
+
+            if (Features.IsSupported("citra_layout_option"))
+            {
+                if (SystemConfig.isOptSet("citra_layout_option"))
+                    ini.WriteValue("Layout", "layout_option", SystemConfig["citra_layout_option"]);
+                else
+                    ini.WriteValue("Layout", "layout_option", "0");
+            }
+
+            if (Features.IsSupported("citra_swap_screen"))
+            {
+                if (SystemConfig.isOptSet("citra_swap_screen") && SystemConfig.getOptBoolean("citra_swap_screen"))
+                {
+                    ini.WriteValue("Layout", "swap_screen\\default", "false");
+                    ini.WriteValue("Layout", "swap_screen", "true");
+                }
+                else
+                {
+                    ini.WriteValue("Layout", "swap_screen\\default", "true");
+                    ini.WriteValue("Layout", "swap_screen", "false");
+                }
+            }
+
             if (ini.IsDirty)
-                ini.Save();           
+                ini.Save();
         }
     }
 }
