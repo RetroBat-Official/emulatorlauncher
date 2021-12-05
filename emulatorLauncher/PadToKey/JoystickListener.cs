@@ -56,6 +56,18 @@ namespace emulatorLauncher.PadToKeyboard
 
         public static InputKey RevertedAxis(InputKey key)
         {
+            if (key == InputKey.left)
+                return InputKey.right;
+
+            if (key == InputKey.right)
+                return InputKey.up;
+
+            if (key == InputKey.up)
+                return InputKey.down;
+
+            if (key == InputKey.down)
+                return InputKey.up;
+
             if (key == InputKey.leftanalogleft)
                 return InputKey.leftanalogright;
 

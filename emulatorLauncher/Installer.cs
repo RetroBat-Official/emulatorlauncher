@@ -258,8 +258,14 @@ namespace emulatorLauncher
                 {
                     // Find another emulator folder - retroarch should always be there
                     string curr = Program.AppConfig.GetFullPath(inst.Value.FolderName);
-                    if (!string.IsNullOrEmpty(curr) && Directory.Exists(curr))
-                        return Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(curr)), FolderName);
+                    if (!string.IsNullOrEmpty(curr))
+                    {
+                        if (curr.EndsWith("\\"))
+                            curr = curr.Substring(0, curr.Length-1);
+
+                        if (Directory.Exists(curr))
+                        return Path.Combine(Path.GetDirectoryName(curr), FolderName);
+                    }
                 }
             }
 
@@ -375,6 +381,9 @@ namespace emulatorLauncher
                     {
                         ReadResponseStream(resp, fileStream, progress);
                     }
+
+                    if (progress != null)
+                        progress(null, new ProgressChangedEventArgs(100, null));
 
                     var px = new ProcessStartInfo()
                     {

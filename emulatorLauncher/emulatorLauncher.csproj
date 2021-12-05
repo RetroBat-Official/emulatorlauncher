@@ -166,6 +166,12 @@
     <Compile Include="Tools\SystemShaders.cs" />
     <Compile Include="Tools\Tools.cs" />
     <Compile Include="Tools\User32.cs" />
+    <Compile Include="UpdateFrm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UpdateFrm.Designer.cs">
+      <DependentUpon>UpdateFrm.cs</DependentUpon>
+    </Compile>
     <Compile Include="VPinball\LoadingForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -174,6 +180,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UpdateFrm.resx">
+      <DependentUpon>UpdateFrm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

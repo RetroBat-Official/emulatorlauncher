@@ -126,6 +126,8 @@ namespace emulatorLauncher
             LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
+
+
             if (args.Any(a => "-collectversions".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
                 if (args.Any(a => "-online".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
@@ -189,7 +191,11 @@ namespace emulatorLauncher
             // Check if installed. Download & Install it if necessary.
             Installer installer = Installer.FindInstaller();
             if (installer != null && !installer.IsInstalled() && installer.CanInstall())
-                installer.DownloadAndInstall();            
+            {
+                using (UpdateFrm frm = new UpdateFrm(installer))
+                    if (frm.ShowDialog() != DialogResult.OK)
+                        return;
+            }
 
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))

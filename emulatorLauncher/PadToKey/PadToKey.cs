@@ -202,8 +202,8 @@ namespace emulatorLauncher.PadToKeyboard
                 foreach (var fld in typeof(ScanCode).GetFields(BindingFlags.Static | BindingFlags.Public))
                     if (fld.Name.ToLowerInvariant() == code || fld.Name.ToLowerInvariant() == "key_" + code)
                         values.Add((uint)fld.GetValue(null));
-                
-                return new uint[] { };
+
+                return values.ToArray();
             }
         }
 
