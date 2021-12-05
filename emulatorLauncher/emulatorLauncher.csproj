@@ -208,7 +208,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Release (
-$(SolutionDir)ILMerge.exe /out:"$(TargetDir)$(TargetFileName)" "$(TargetDir)$(TargetFileName)" /ndebug /wildcards "$(TargetDir)*.dll" /targetplatform:v4,%25systemroot%25\Microsoft.NET\Framework\v4.0.30319
+"$(SolutionDir)ILMerge.exe" /out:"$(TargetDir)$(TargetFileName)" "$(TargetDir)$(TargetFileName)" /ndebug /wildcards "$(TargetDir)*.dll" /targetplatform:v4,%25systemroot%25\Microsoft.NET\Framework\v4.0.30319
 )</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
