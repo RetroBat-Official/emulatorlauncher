@@ -405,10 +405,12 @@ namespace emulatorLauncher.libRetro
             */
 
             // OSD notifications
-            if (SystemConfig.isOptSet("OnScreenMsg") && SystemConfig.getOptBoolean("OnScreenMsg"))
-                retroarchConfig["video_font_enable"] = "true";
+            if (SystemConfig.isOptSet("OnScreenMsg"))
+                retroarchConfig["video_font_enable"] = SystemConfig["video_font_enable"];
             else
-                retroarchConfig["video_font_enable"] = "false";
+                retroarchConfig["video_font_enable"] = "true";
+
+            retroarchConfig["menu_show_load_content_animation"] = "false";
 
             // press hotkeys twice to exit
             if (SystemConfig.isOptSet("PressTwice") && SystemConfig.getOptBoolean("PressTwice"))
