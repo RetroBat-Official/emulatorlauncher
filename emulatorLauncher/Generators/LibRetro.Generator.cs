@@ -388,6 +388,282 @@ namespace emulatorLauncher.libRetro
                 _video_driver = retroarchConfig["video_driver"];
                 retroarchConfig["video_driver"] = "d3d11";
             }
+            
+            // Global features in es_features.cfg
+
+            // audio driver
+            if (SystemConfig.isOptSet("audio_driver"))
+                retroarchConfig["audio_driver"] = SystemConfig["audio_driver"];
+            else
+                retroarchConfig["audio_driver"] = "xaudio";
+
+            // monitor index
+            /*if (SystemConfig.isOptSet("MonitorIndex"))
+                retroarchConfig["video_monitor_index"] = SystemConfig["MonitorIndex"];
+            else
+                retroarchConfig["video_monitor_index"] = "0";
+            */
+
+            // OSD notifications
+            if (SystemConfig.isOptSet("OnScreenMsg") && SystemConfig.getOptBoolean("OnScreenMsg"))
+                retroarchConfig["video_font_enable"] = "true";
+            else
+                retroarchConfig["video_font_enable"] = "false";
+
+            // press hotkeys twice to exit
+            if (SystemConfig.isOptSet("PressTwice") && SystemConfig.getOptBoolean("PressTwice"))
+                retroarchConfig["quit_press_twice"] = "true";
+            else
+                retroarchConfig["quit_press_twice"] = "false";
+
+            // Retroarch menu : different level of options appearing or not in the retroarch menu
+
+            // minimal
+            if (SystemConfig.isOptSet("OptionsMenu") && SystemConfig["OptionsMenu"] == "minimal")
+            {
+                retroarchConfig["content_show_add"] = "false";
+                retroarchConfig["content_show_add_entry"] = "2";
+                retroarchConfig["content_show_explore"] = "false";
+                retroarchConfig["content_show_favorite"] = "false";
+                retroarchConfig["content_show_favorites"] = "false";
+                retroarchConfig["content_show_history"] = "false";
+                retroarchConfig["content_show_images"] = "false";
+                retroarchConfig["content_show_music"] = "false";
+                retroarchConfig["content_show_netplay"] = "false";
+                retroarchConfig["content_show_playlists"] = "false";
+                retroarchConfig["content_show_settings"] = "true";
+                retroarchConfig["content_show_video"] = "false";
+                retroarchConfig["menu_show_advanced_settings"] = "false";
+                retroarchConfig["menu_show_configurations"] = "false";
+                retroarchConfig["menu_show_core_updater"] = "false";
+                retroarchConfig["menu_show_dump_disc"] = "false";
+                retroarchConfig["menu_show_help"] = "false";
+                retroarchConfig["menu_show_information"] = "false";
+                retroarchConfig["menu_show_latency"] = "false";
+                retroarchConfig["menu_show_legacy_thumbnail_updater"] = "false";
+                retroarchConfig["menu_show_load_content"] = "false";
+                retroarchConfig["menu_show_load_content_animation"] = "false";
+                retroarchConfig["menu_show_load_core"] = "false";
+                retroarchConfig["menu_show_load_disc"] = "false";
+                retroarchConfig["menu_show_online_updater"] = "false";
+                retroarchConfig["menu_show_overlays"] = "false";
+                retroarchConfig["menu_show_quit_retroarch"] = "true";
+                retroarchConfig["menu_show_reboot"] = "false";
+                retroarchConfig["menu_show_restart_retroarch"] = "true";
+                retroarchConfig["menu_show_rewind"] = "false";
+                retroarchConfig["menu_show_shutdown"] = "false";
+                retroarchConfig["menu_show_sublabels"] = "true";
+                retroarchConfig["menu_show_video_layout"] = "false";
+                retroarchConfig["quick_menu_show_add_to_favorites"] = "false";
+                retroarchConfig["quick_menu_show_cheats"] = "false";
+                retroarchConfig["quick_menu_show_close_content"] = "false";
+                retroarchConfig["quick_menu_show_controls"] = "false";
+                retroarchConfig["quick_menu_show_core_options_flush"] = "false";
+                retroarchConfig["quick_menu_show_download_thumbnails"] = "false";
+                retroarchConfig["quick_menu_show_information"] = "true";
+                retroarchConfig["quick_menu_show_options"] = "false";
+                retroarchConfig["quick_menu_show_recording"] = "false";
+                retroarchConfig["quick_menu_show_reset_core_association"] = "false";
+                retroarchConfig["quick_menu_show_restart_content"] = "true";
+                retroarchConfig["quick_menu_show_resume_content"] = "true";
+                retroarchConfig["quick_menu_show_save_content_dir_overrides"] = "false";
+                retroarchConfig["quick_menu_show_save_core_overrides"] = "false";
+                retroarchConfig["quick_menu_show_save_game_overrides"] = "false";
+                retroarchConfig["quick_menu_show_save_load_state"] = "true";
+                retroarchConfig["quick_menu_show_set_core_association"] = "false";
+                retroarchConfig["quick_menu_show_shaders"] = "false";
+                retroarchConfig["quick_menu_show_start_recording"] = "false";
+                retroarchConfig["quick_menu_show_start_streaming"] = "false";
+                retroarchConfig["quick_menu_show_streaming"] = "false";
+                retroarchConfig["quick_menu_show_take_screenshot"] = "true";
+                retroarchConfig["quick_menu_show_undo_save_load_state"] = "false";
+                retroarchConfig["settings_show_accessibility"] = "true";
+                retroarchConfig["settings_show_achievements"] = "true";
+                retroarchConfig["settings_show_ai_service"] = "false";
+                retroarchConfig["settings_show_audio"] = "false";
+                retroarchConfig["settings_show_configuration"] = "false";
+                retroarchConfig["settings_show_core"] = "true";
+                retroarchConfig["settings_show_directory"] = "false";
+                retroarchConfig["settings_show_drivers"] = "false";
+                retroarchConfig["settings_show_file_browser"] = "false";
+                retroarchConfig["settings_show_frame_throttle"] = "false";
+                retroarchConfig["settings_show_input"] = "false";
+                retroarchConfig["settings_show_latency"] = "false";
+                retroarchConfig["settings_show_logging"] = "false";
+                retroarchConfig["settings_show_network"] = "false";
+                retroarchConfig["settings_show_onscreen_display"] = "false";
+                retroarchConfig["settings_show_playlists"] = "false";
+                retroarchConfig["settings_show_power_management"] = "false";
+                retroarchConfig["settings_show_recording"] = "false";
+                retroarchConfig["settings_show_saving"] = "false";
+                retroarchConfig["settings_show_user"] = "false";
+                retroarchConfig["settings_show_user_interface"] = "false";
+                retroarchConfig["settings_show_video"] = "false";
+            }
+            // recommended
+            else if (SystemConfig.isOptSet("OptionsMenu") && SystemConfig["OptionsMenu"] == "recommended")
+            {
+                retroarchConfig["content_show_add"] = "true";
+                retroarchConfig["content_show_add_entry"] = "2";
+                retroarchConfig["content_show_explore"] = "false";
+                retroarchConfig["content_show_favorite"] = "false";
+                retroarchConfig["content_show_favorites"] = "false";
+                retroarchConfig["content_show_history"] = "true";
+                retroarchConfig["content_show_images"] = "true";
+                retroarchConfig["content_show_music"] = "true";
+                retroarchConfig["content_show_netplay"] = "true";
+                retroarchConfig["content_show_playlists"] = "false";
+                retroarchConfig["content_show_settings"] = "true";
+                retroarchConfig["content_show_video"] = "true";
+                retroarchConfig["menu_show_advanced_settings"] = "false";
+                retroarchConfig["menu_show_configurations"] = "false";
+                retroarchConfig["menu_show_core_updater"] = "false";
+                retroarchConfig["menu_show_dump_disc"] = "true";
+                retroarchConfig["menu_show_help"] = "true";
+                retroarchConfig["menu_show_information"] = "true";
+                retroarchConfig["menu_show_latency"] = "true";
+                retroarchConfig["menu_show_legacy_thumbnail_updater"] = "false";
+                retroarchConfig["menu_show_load_content"] = "true";
+                retroarchConfig["menu_show_load_content_animation"] = "false";
+                retroarchConfig["menu_show_load_core"] = "true";
+                retroarchConfig["menu_show_load_disc"] = "true";
+                retroarchConfig["menu_show_online_updater"] = "true";
+                retroarchConfig["menu_show_overlays"] = "false";
+                retroarchConfig["menu_show_quit_retroarch"] = "true";
+                retroarchConfig["menu_show_reboot"] = "true";
+                retroarchConfig["menu_show_restart_retroarch"] = "true";
+                retroarchConfig["menu_show_rewind"] = "true";
+                retroarchConfig["menu_show_shutdown"] = "true";
+                retroarchConfig["menu_show_sublabels"] = "true";
+                retroarchConfig["menu_show_video_layout"] = "true";
+                retroarchConfig["quick_menu_show_add_to_favorites"] = "false";
+                retroarchConfig["quick_menu_show_cheats"] = "true";
+                retroarchConfig["quick_menu_show_close_content"] = "true";
+                retroarchConfig["quick_menu_show_controls"] = "true";
+                retroarchConfig["quick_menu_show_core_options_flush"] = "false";
+                retroarchConfig["quick_menu_show_download_thumbnails"] = "false";
+                retroarchConfig["quick_menu_show_information"] = "true";
+                retroarchConfig["quick_menu_show_options"] = "true";
+                retroarchConfig["quick_menu_show_recording"] = "true";
+                retroarchConfig["quick_menu_show_reset_core_association"] = "false";
+                retroarchConfig["quick_menu_show_restart_content"] = "true";
+                retroarchConfig["quick_menu_show_resume_content"] = "true";
+                retroarchConfig["quick_menu_show_save_content_dir_overrides"] = "false";
+                retroarchConfig["quick_menu_show_save_core_overrides"] = "false";
+                retroarchConfig["quick_menu_show_save_game_overrides"] = "false";
+                retroarchConfig["quick_menu_show_save_load_state"] = "true";
+                retroarchConfig["quick_menu_show_set_core_association"] = "false";
+                retroarchConfig["quick_menu_show_shaders"] = "true";
+                retroarchConfig["quick_menu_show_start_recording"] = "true";
+                retroarchConfig["quick_menu_show_start_streaming"] = "true";
+                retroarchConfig["quick_menu_show_streaming"] = "true";
+                retroarchConfig["quick_menu_show_take_screenshot"] = "true";
+                retroarchConfig["quick_menu_show_undo_save_load_state"] = "true";
+                retroarchConfig["settings_show_accessibility"] = "true";
+                retroarchConfig["settings_show_achievements"] = "true";
+                retroarchConfig["settings_show_ai_service"] = "true";
+                retroarchConfig["settings_show_audio"] = "true";
+                retroarchConfig["settings_show_configuration"] = "true";
+                retroarchConfig["settings_show_core"] = "true";
+                retroarchConfig["settings_show_directory"] = "false";
+                retroarchConfig["settings_show_drivers"] = "true";
+                retroarchConfig["settings_show_file_browser"] = "false";
+                retroarchConfig["settings_show_frame_throttle"] = "true";
+                retroarchConfig["settings_show_input"] = "true";
+                retroarchConfig["settings_show_latency"] = "true";
+                retroarchConfig["settings_show_logging"] = "true";
+                retroarchConfig["settings_show_network"] = "true";
+                retroarchConfig["settings_show_onscreen_display"] = "true";
+                retroarchConfig["settings_show_playlists"] = "false";
+                retroarchConfig["settings_show_power_management"] = "true";
+                retroarchConfig["settings_show_recording"] = "true";
+                retroarchConfig["settings_show_saving"] = "true";
+                retroarchConfig["settings_show_user"] = "true";
+                retroarchConfig["settings_show_user_interface"] = "true";
+                retroarchConfig["settings_show_video"] = "true";
+            }
+            // full
+            else if (SystemConfig.isOptSet("OptionsMenu") && SystemConfig["OptionsMenu"] == "full")
+            {
+                retroarchConfig["content_show_add"] = "true";
+                retroarchConfig["content_show_add_entry"] = "2";
+                retroarchConfig["content_show_explore"] = "true";
+                retroarchConfig["content_show_favorite"] = "true";
+                retroarchConfig["content_show_favorites"] = "true";
+                retroarchConfig["content_show_history"] = "true";
+                retroarchConfig["content_show_images"] = "true";
+                retroarchConfig["content_show_music"] = "true";
+                retroarchConfig["content_show_netplay"] = "true";
+                retroarchConfig["content_show_playlists"] = "true";
+                retroarchConfig["content_show_settings"] = "true";
+                retroarchConfig["content_show_video"] = "true";
+                retroarchConfig["menu_show_advanced_settings"] = "true";
+                retroarchConfig["menu_show_configurations"] = "true";
+                retroarchConfig["menu_show_core_updater"] = "true";
+                retroarchConfig["menu_show_dump_disc"] = "true";
+                retroarchConfig["menu_show_help"] = "true";
+                retroarchConfig["menu_show_information"] = "true";
+                retroarchConfig["menu_show_latency"] = "true";
+                retroarchConfig["menu_show_legacy_thumbnail_updater"] = "true";
+                retroarchConfig["menu_show_load_content"] = "true";
+                retroarchConfig["menu_show_load_content_animation"] = "true";
+                retroarchConfig["menu_show_load_core"] = "true";
+                retroarchConfig["menu_show_load_disc"] = "true";
+                retroarchConfig["menu_show_online_updater"] = "true";
+                retroarchConfig["menu_show_overlays"] = "true";
+                retroarchConfig["menu_show_quit_retroarch"] = "true";
+                retroarchConfig["menu_show_reboot"] = "true";
+                retroarchConfig["menu_show_restart_retroarch"] = "true";
+                retroarchConfig["menu_show_rewind"] = "true";
+                retroarchConfig["menu_show_shutdown"] = "true";
+                retroarchConfig["menu_show_sublabels"] = "true";
+                retroarchConfig["menu_show_video_layout"] = "true";
+                retroarchConfig["quick_menu_show_add_to_favorites"] = "true";
+                retroarchConfig["quick_menu_show_cheats"] = "true";
+                retroarchConfig["quick_menu_show_close_content"] = "true";
+                retroarchConfig["quick_menu_show_controls"] = "true";
+                retroarchConfig["quick_menu_show_core_options_flush"] = "true";
+                retroarchConfig["quick_menu_show_download_thumbnails"] = "true";
+                retroarchConfig["quick_menu_show_information"] = "true";
+                retroarchConfig["quick_menu_show_options"] = "true";
+                retroarchConfig["quick_menu_show_recording"] = "true";
+                retroarchConfig["quick_menu_show_reset_core_association"] = "true";
+                retroarchConfig["quick_menu_show_restart_content"] = "true";
+                retroarchConfig["quick_menu_show_resume_content"] = "true";
+                retroarchConfig["quick_menu_show_save_content_dir_overrides"] = "true";
+                retroarchConfig["quick_menu_show_save_core_overrides"] = "true";
+                retroarchConfig["quick_menu_show_save_game_overrides"] = "true";
+                retroarchConfig["quick_menu_show_save_load_state"] = "true";
+                retroarchConfig["quick_menu_show_set_core_association"] = "true";
+                retroarchConfig["quick_menu_show_shaders"] = "true";
+                retroarchConfig["quick_menu_show_start_recording"] = "true";
+                retroarchConfig["quick_menu_show_start_streaming"] = "true";
+                retroarchConfig["quick_menu_show_streaming"] = "true";
+                retroarchConfig["quick_menu_show_take_screenshot"] = "true";
+                retroarchConfig["quick_menu_show_undo_save_load_state"] = "true";
+                retroarchConfig["settings_show_accessibility"] = "true";
+                retroarchConfig["settings_show_achievements"] = "true";
+                retroarchConfig["settings_show_ai_service"] = "true";
+                retroarchConfig["settings_show_audio"] = "true";
+                retroarchConfig["settings_show_configuration"] = "true";
+                retroarchConfig["settings_show_core"] = "true";
+                retroarchConfig["settings_show_directory"] = "true";
+                retroarchConfig["settings_show_drivers"] = "true";
+                retroarchConfig["settings_show_file_browser"] = "true";
+                retroarchConfig["settings_show_frame_throttle"] = "true";
+                retroarchConfig["settings_show_input"] = "true";
+                retroarchConfig["settings_show_latency"] = "true";
+                retroarchConfig["settings_show_logging"] = "true";
+                retroarchConfig["settings_show_network"] = "true";
+                retroarchConfig["settings_show_onscreen_display"] = "true";
+                retroarchConfig["settings_show_playlists"] = "true";
+                retroarchConfig["settings_show_power_management"] = "true";
+                retroarchConfig["settings_show_recording"] = "true";
+                retroarchConfig["settings_show_saving"] = "true";
+                retroarchConfig["settings_show_user"] = "true";
+                retroarchConfig["settings_show_user_interface"] = "true";
+                retroarchConfig["settings_show_video"] = "true";
+            }
 
             SetLanguage(retroarchConfig);
 
