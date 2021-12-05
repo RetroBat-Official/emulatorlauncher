@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using emulatorLauncher.PadToKeyboard;
 using emulatorLauncher.Tools;
+using System.Windows.Forms;
 
 namespace emulatorLauncher
 {
@@ -25,6 +26,14 @@ namespace emulatorLauncher
 
             rom = lines[0];
             string folder = rom.ExtractString("\\", "\\");
+
+            Installer installer = Installer.FindInstaller(folder);
+            if (installer != null && !installer.IsInstalled() && installer.CanInstall())
+            {
+                using (UpdateFrm frm = new UpdateFrm(installer))
+                    if (frm.ShowDialog() != DialogResult.OK)
+                        return null;
+            }
 
             string path = Path.GetDirectoryName(AppConfig.GetFullPath(folder)) + rom;
             if (!File.Exists(path))

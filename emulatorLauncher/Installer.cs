@@ -198,13 +198,19 @@ namespace emulatorLauncher
             LocalExeName = (exe == null ? zipName + ".exe" : exe);
         }
 
-        public static Installer FindInstaller()
+        public static Installer FindInstaller(string emulator = null)
         {
-            Installer installer = installers.Where(g => g.Key == Program.SystemConfig["emulator"]).Select(g => g.Value).FirstOrDefault();
-            if (installer == null && !string.IsNullOrEmpty(Program.SystemConfig["emulator"]) && Program.SystemConfig["emulator"].StartsWith("lr-"))
+            if (emulator == null)
+                emulator = Program.SystemConfig["emulator"];
+
+            if (string.IsNullOrEmpty(emulator))
+                return null;
+
+            Installer installer = installers.Where(g => g.Key == emulator).Select(g => g.Value).FirstOrDefault();
+            if (installer == null && emulator.StartsWith("lr-"))
                 installer = installers.Where(g => g.Key == "libretro").Select(g => g.Value).FirstOrDefault();
             if (installer == null)
-                installer = installers.Where(g => g.Key == Program.SystemConfig["system"]).Select(g => g.Value).FirstOrDefault();
+                installer = installers.Where(g => g.Key == emulator).Select(g => g.Value).FirstOrDefault();
 
             return installer;
         }
