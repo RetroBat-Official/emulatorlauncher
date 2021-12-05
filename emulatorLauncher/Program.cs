@@ -128,7 +128,11 @@ namespace emulatorLauncher
 
             if (args.Any(a => "-collectversions".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Installer.CollectVersions();
+                if (args.Any(a => "-online".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+                    Installer.InstallAllAndCollect(Path.Combine(Path.GetTempPath(), "emulators"));
+                else
+                    Installer.CollectVersions();
+
                 return;
             }
 

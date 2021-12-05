@@ -8,65 +8,12 @@ using System.ComponentModel;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
 using System.Xml.Serialization;
+using System.Runtime.InteropServices;
 
 namespace emulatorLauncher
 {
     class Installer
     {
-        public string GetPackageUrl()
-        {
-            string installerUrl = Program.AppConfig["installers"];
-            if (string.IsNullOrEmpty(installerUrl))
-                return string.Empty;
-
-            return installerUrl
-                .Replace("%UPDATETYPE%", UpdateType())
-                .Replace("%FOLDERNAME%", FolderName);
-        }
-
-        public string GetInstalledVersion()
-        {
-            try
-            {
-                string exe = Path.Combine(GetInstallFolder(), LocalExeName);
-
-                var versionInfo = FileVersionInfo.GetVersionInfo(exe);
-
-                string version = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
-                if (version != "0.0.0.0")
-                    return version;
-            }
-            catch { }
-
-            return null;
-        }
-
-        public static void CollectVersions()
-        {
-            List<systeminfo> sys = new List<systeminfo>();
-
-            foreach (var inst in installers)
-            {
-                if (sys.Any(s => s.name == inst.Value.FolderName))
-                    continue;
-
-                sys.Add(new systeminfo()
-                {
-                    name = inst.Value.FolderName,
-                    version = inst.Value.GetInstalledVersion()
-                });
-            }
-
-            var xml = sys
-                .Where(s => !string.IsNullOrEmpty(s.version))
-                .OrderBy(s => s.name)
-                .ToArray().ToXml().Replace("ArrayOfSystem>", "systems>");
-
-            string fn = Path.Combine(Path.GetTempPath(), "systems.xml");
-            File.WriteAllText(fn, xml);
-            Process.Start(fn);
-        }
-
         static Dictionary<string, Installer> installers = new Dictionary<string, Installer>
         {            
             { "arcadeflashweb", new Installer("arcadeflashweb") },           
@@ -97,12 +44,9 @@ namespace emulatorLauncher
             { "oricutron", new Installer("oricutron") },             
             { "ppsspp", new Installer("ppsspp", "PPSSPPWindows64.exe") }, 
             { "project64", new Installer("project64") }, 
-            { "raine", new Installer("raine") }, 
-            
+            { "raine", new Installer("raine") },             
             { "mame64", new Installer("mame", "mame.exe") },
-            { "ryujinx", new Installer("ryujinx", "ryujinx.exe") },
-            
-
+            { "ryujinx", new Installer("ryujinx", "ryujinx.exe") },            
             { "redream", new Installer("redream") },             
             { "simcoupe", new Installer("simcoupe") }, 
             { "snes9x", new Installer("snes9x", "snes9x-x64.exe") }, 
@@ -113,6 +57,134 @@ namespace emulatorLauncher
             { "xemu", new Installer("xemu") }, 
             { "xenia-canary", new Installer("xenia-canary", "xenia_canary.exe" ) }
         };
+
+        public string GetPackageUrl()
+        {
+            string installerUrl = Program.AppConfig["installers"];
+            if (string.IsNullOrEmpty(installerUrl))
+                return string.Empty;
+
+            return installerUrl
+                .Replace("%UPDATETYPE%", UpdateType())
+                .Replace("%FOLDERNAME%", FolderName);
+        }
+
+        private string RunWithOutput(ProcessStartInfo ps)
+        {
+            List<string> lines = new List<string>();
+
+            ps.UseShellExecute = false;
+            ps.RedirectStandardOutput = true;
+            ps.RedirectStandardError = true;
+            ps.CreateNoWindow = true;
+
+            var proc = new Process();
+            proc.StartInfo = ps;
+            proc.Start();
+
+            string output = proc.StandardOutput.ReadToEnd();
+            string err = proc.StandardError.ReadToEnd();
+            proc.WaitForExit();
+
+            return (err ?? "") + (output ?? "");
+        }
+
+        private string FormatVersion(string version)
+        {
+            var numbers = version.Split(new char[] { '.', '-' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            while (numbers.Count < 4)
+                numbers.Add("0");
+
+            return string.Join(".", numbers.Take(4).ToArray());
+        }
+
+        public string GetInstalledVersion()
+        {
+            try
+            {
+                string exe = Path.Combine(GetInstallFolder(), LocalExeName);
+
+                var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+
+                string version = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
+                if (version != "0.0.0.0")
+                    return version;
+
+                // Retroarch specific
+                if (Path.GetFileNameWithoutExtension(LocalExeName).ToLower() == "retroarch")
+                {
+                    var output = RunWithOutput(new ProcessStartInfo() { Arguments = "--version", FileName = exe });
+                    output = FormatVersion(output.ExtractString(" -- v", " -- "));
+
+                    Version ver = new Version();
+                    if (Version.TryParse(output, out ver))
+                        return ver.ToString();
+                }
+                else if (Path.GetFileNameWithoutExtension(LocalExeName).ToLower() == "demul")
+                {
+                    var output = RunWithOutput(new ProcessStartInfo() { Arguments = "--help", FileName = exe });
+                    output = FormatVersion(output.ExtractString(") v", "\r"));
+
+                    Version ver = new Version();
+                    if (Version.TryParse(output, out ver))
+                        return ver.ToString();
+                }
+                else if (Path.GetFileNameWithoutExtension(LocalExeName).ToLower() == "dolphin")
+                {
+                    var output = RunWithOutput(new ProcessStartInfo() { Arguments = "--version", FileName = exe });
+                    output = FormatVersion(output.ExtractString("Dolphin ", "\r"));
+
+                    Version ver = new Version();
+                    if (Version.TryParse(output, out ver))
+                        return ver.ToString();
+                }
+                else if (Path.GetFileNameWithoutExtension(LocalExeName).ToLower() == "gsplus")
+                {
+                    var output = RunWithOutput(new ProcessStartInfo() { Arguments = "--help", FileName = exe });
+                    output = FormatVersion(output.ExtractString("GSplus v", " "));
+
+                    Version ver = new Version();
+                    if (Version.TryParse(output, out ver))
+                        return ver.ToString();
+                }
+                else
+                {
+                    // Fake version number based on last write time
+                    var date = File.GetLastWriteTime(exe).ToString("0.yy.MM.dd");
+                    return date;
+                }
+                
+               
+            }
+            catch { }
+
+            return null;
+        }
+
+        public static void CollectVersions()
+        {
+            List<systeminfo> sys = new List<systeminfo>();
+
+            foreach (var inst in installers)
+            {
+                if (sys.Any(s => s.name == inst.Value.FolderName))
+                    continue;
+
+                sys.Add(new systeminfo()
+                {
+                    name = inst.Value.FolderName,
+                    version = inst.Value.GetInstalledVersion()
+                });
+            }
+
+            var xml = sys
+                .OrderBy(s => s.name)
+                .ToArray().ToXml().Replace("ArrayOfSystem>", "systems>");
+
+            string fn = Path.Combine(Path.GetTempPath(), "systems.xml");
+            File.WriteAllText(fn, xml);
+            Process.Start(fn);
+        }
 
         public Installer(string zipName, string exe = null)
         {
@@ -134,8 +206,51 @@ namespace emulatorLauncher
             return installer;
         }
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
+
+        [DllImport("kernel32.dll")]
+        static extern bool FreeConsole();
+
+        public static void InstallAllAndCollect(string customFolder)
+        {
+            _customInstallFolder = customFolder;
+
+            try { Directory.CreateDirectory(_customInstallFolder); }
+            catch { }
+
+            HashSet<string> sys = new HashSet<string>();
+
+            AllocConsole();
+
+            foreach (var installer in installers.Values)
+            {
+                if (sys.Contains(installer.FolderName))
+                    continue;
+
+                Console.WriteLine(installer.FolderName);
+                installer.DownloadAndInstall();
+                sys.Add(installer.FolderName);
+            }
+           
+            FreeConsole();
+
+            CollectVersions();
+
+            try { Directory.Delete(_customInstallFolder, true); }
+            catch { }
+
+            _customInstallFolder = null;
+        }
+
+        private static string _customInstallFolder;
+
         public string GetInstallFolder()
         {
+            if (!string.IsNullOrEmpty(_customInstallFolder))
+                return Path.Combine(_customInstallFolder, FolderName);
+
             string folder = Program.AppConfig.GetFullPath(FolderName);
             if (string.IsNullOrEmpty(folder))
             {
@@ -206,6 +321,7 @@ namespace emulatorLauncher
 
             return false;
         }
+
         public static void ReadResponseStream(WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
         {
             if (destinationStream == null)
@@ -238,12 +354,14 @@ namespace emulatorLauncher
                 throw new Exception("Incomplete download : " + length);
         }
 
-
         public bool DownloadAndInstall(ProgressChangedEventHandler progress = null)
         {
+        retry:
             try
             {
+               
                 var req = WebRequest.Create(GetPackageUrl());
+                ((HttpWebRequest)req).UserAgent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)";
 
                 var resp = req.GetResponse() as HttpWebResponse;
                 if (resp.StatusCode == HttpStatusCode.OK)
@@ -267,8 +385,22 @@ namespace emulatorLauncher
                     };
 
                     Process.Start(px).WaitForExit();
+
+                    try { if (File.Exists(fn)) File.Delete(fn); }
+                    catch { }
+
                     return true;
                 }
+            }
+            catch (WebException ex)
+            {
+                if ((ex.Response as HttpWebResponse).StatusCode == (HttpStatusCode)429)
+                {
+                    Console.WriteLine("429 - " + GetPackageUrl() + " : Retrying");
+                    System.Threading.Thread.Sleep(30000);
+                    goto retry;
+                }
+                SimpleLogger.Instance.Error(ex.Message);
             }
             catch (Exception ex)
             {
@@ -287,5 +419,8 @@ namespace emulatorLauncher
 
         [XmlAttribute]
         public string version { get; set; }
+
+        [XmlAttribute]
+        public string date { get; set; }
     };
 }
