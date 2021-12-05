@@ -22,8 +22,10 @@ namespace emulatorLauncher
 
             _installer = installer;
 
-
-            label1.Text = installer.FolderName + " is not installed.\r\nInstall now ?";
+            if (string.IsNullOrEmpty(_installer.ServerVersion))
+                label1.Text = installer.FolderName + " is not installed.\r\nInstall now ?";
+            else
+                label1.Text = "An update is available for " + installer.FolderName + " :\r\nUpdate version : " + installer.ServerVersion + ".\r\nInstalled version : " + installer.GetInstalledVersion() + ".\r\nInstall now ?";
 
             this.Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
 
@@ -117,6 +119,9 @@ namespace emulatorLauncher
 
         private void button2_Click(object sender, EventArgs e)
         {
+            if (!string.IsNullOrEmpty(_installer.ServerVersion))
+                DialogResult = System.Windows.Forms.DialogResult.OK;
+
             Close();
         }
     }

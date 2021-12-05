@@ -9,6 +9,7 @@ using System.Diagnostics;
 using emulatorLauncher.Tools;
 using System.Xml.Serialization;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace emulatorLauncher
 {
@@ -57,6 +58,11 @@ namespace emulatorLauncher
             { "xemu", new Installer("xemu") }, 
             { "xenia-canary", new Installer("xenia-canary", "xenia_canary.exe" ) }
         };
+
+        public string FolderName { get; set; }
+        public string LocalExeName { get; set; }
+
+        public string ServerVersion { get; set; }
 
         public string GetPackageUrl()
         {
@@ -192,9 +198,6 @@ namespace emulatorLauncher
             LocalExeName = (exe == null ? zipName + ".exe" : exe);
         }
 
-        public string FolderName { get; set; }
-        public string LocalExeName { get; set; }
-
         public static Installer FindInstaller()
         {
             Installer installer = installers.Where(g => g.Key == Program.SystemConfig["emulator"]).Select(g => g.Value).FirstOrDefault();
@@ -283,6 +286,81 @@ namespace emulatorLauncher
                 return false;
 
             return true;
+        }
+
+        public bool HasUpdateAvailable()
+        {
+            if (!IsInstalled())
+                return false;
+
+            try
+            {               
+                string xml = null;
+
+                string cachedFile = Path.Combine(Path.GetTempPath(), "versions.xml");
+
+                if (File.Exists(cachedFile) && DateTime.Now - File.GetCreationTime(cachedFile) <= new TimeSpan(1, 0, 0, 0))
+                {
+                    xml = File.ReadAllText(cachedFile);
+                }
+                else
+                {
+                    string url = Program.AppConfig["installers"];
+                    if (string.IsNullOrEmpty(url))
+                        return false;
+
+                    url = url.Replace("%UPDATETYPE%", UpdateType())
+                             .Replace("%FOLDERNAME%", "versions")
+                             .Replace(".7z", ".xml");
+
+                    var req = WebRequest.Create(url);
+                    ((HttpWebRequest)req).UserAgent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)";
+                    var resp = req.GetResponse() as HttpWebResponse;
+                    if (resp.StatusCode == HttpStatusCode.OK)
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            ReadResponseStream(resp, ms);
+                            xml = Encoding.UTF8.GetString(ms.ToArray());
+                        }
+
+                        File.WriteAllText(cachedFile, xml);
+                    }
+                }
+
+                if (string.IsNullOrEmpty(xml))
+                    return false;
+                
+                var settings = XDocument.Parse(xml);
+                if (settings == null)
+                    return false;
+                
+                string serverVersion = settings
+                    .Descendants()
+                    .Where(d => d.Name == "system" && d.Attribute("name") != null && d.Attribute("version") != null && d.Attribute("name").Value == FolderName)
+                    .Select(d => d.Attribute("version").Value)
+                    .FirstOrDefault();
+
+                if (serverVersion == null)
+                    return false;
+
+                Version local = new Version();
+                Version server = new Version();
+                if (Version.TryParse(GetInstalledVersion(), out local) && Version.TryParse(serverVersion, out server))
+                {
+                    if (local < server)
+                    {
+                        ServerVersion = server.ToString();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return false;
         }
 
         public string GetLocalFilename()

@@ -190,13 +190,17 @@ namespace emulatorLauncher
 
             // Check if installed. Download & Install it if necessary.
             Installer installer = Installer.FindInstaller();
-            if (installer != null && !installer.IsInstalled() && installer.CanInstall())
+            if (installer != null)
             {
-                using (UpdateFrm frm = new UpdateFrm(installer))
-                    if (frm.ShowDialog() != DialogResult.OK)
-                        return;
+                bool updatesEnabled = !SystemConfig.isOptSet("updates.enabled") || SystemConfig.getOptBoolean("updates.enabled");
+                if ((!installer.IsInstalled() || (updatesEnabled && installer.HasUpdateAvailable())) && installer.CanInstall())
+                {
+                    using (UpdateFrm frm = new UpdateFrm(installer))
+                        if (frm.ShowDialog() != DialogResult.OK)
+                            return;
+                }
             }
-
+            
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
                 generator = new LibRetroGenerator();
