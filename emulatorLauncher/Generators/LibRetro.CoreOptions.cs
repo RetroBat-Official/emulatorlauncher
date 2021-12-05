@@ -59,6 +59,11 @@ namespace emulatorLauncher.libRetro
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
             ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
             ConfigureMame(retroarchConfig, coreSettings, system, core);
+            ConfigureFbalphaCPS1(retroarchConfig, coreSettings, system, core);
+            ConfigureFbalphaCPS2(retroarchConfig, coreSettings, system, core);
+            ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
+            ConfigureNeocd(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -76,6 +81,230 @@ namespace emulatorLauncher.libRetro
             }
             else
                 SystemConfig["bezel"] = SystemConfig["bezel"];
+
+        }
+        
+        private void ConfigureNeocd(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "neocd")
+                return;
+
+            coreSettings["neocd_per_content_saves"] = "On";
+
+            if (SystemConfig.isOptSet("neocd_bios"))
+                coreSettings["neocd_bios"] = SystemConfig["neocd_bios"];
+            else
+                coreSettings["neocd_bios"] = "uni-bioscd.rom (CDZ, Universe 3.3)";
+
+            if (SystemConfig.isOptSet("neocd_cdspeedhack"))
+                coreSettings["neocd_cdspeedhack"] = SystemConfig["neocd_cdspeedhack"];
+            else
+                coreSettings["neocd_cdspeedhack"] = "Off";
+
+            if (SystemConfig.isOptSet("neocd_loadskip"))
+                coreSettings["neocd_loadskip"] = SystemConfig["neocd_loadskip"];
+            else
+                coreSettings["neocd_loadskip"] = "Off";
+
+            if (SystemConfig.isOptSet("neocd_region"))
+                coreSettings["neocd_region"] = SystemConfig["neocd_region"];
+            else
+                coreSettings["neocd_region"] = "USA";
+
+        }
+        
+        private void ConfigureMednafenPce(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_pce")
+                return;
+
+            coreSettings["pce_show_advanced_input_settings"] = "enabled";
+
+            if (SystemConfig.isOptSet("pce_psgrevision"))
+                coreSettings["pce_psgrevision"] = SystemConfig["pce_psgrevision"];
+            else
+                coreSettings["pce_psgrevision"] = "auto";
+
+            if (SystemConfig.isOptSet("pce_resamp_quality"))
+                coreSettings["pce_resamp_quality"] = SystemConfig["pce_resamp_quality"];
+
+            if (SystemConfig.isOptSet("pce_ocmultiplier"))
+                coreSettings["pce_ocmultiplier"] = SystemConfig["pce_ocmultiplier"];
+            else
+                coreSettings["pce_ocmultiplier"] = "1";
+
+            if (SystemConfig.isOptSet("pce_nospritelimit"))
+                coreSettings["pce_nospritelimit"] = SystemConfig["pce_nospritelimit"];
+            else
+                coreSettings["pce_nospritelimit"] = "disabled";
+
+            if (SystemConfig.isOptSet("pce_cdimagecache"))
+                coreSettings["pce_cdimagecache"] = SystemConfig["pce_cdimagecache"];
+            else
+                coreSettings["pce_cdimagecache"] = "disabled";
+
+            if (SystemConfig.isOptSet("pce_cdbios"))
+                coreSettings["pce_cdbios"] = SystemConfig["pce_cdbios"];
+            else
+                coreSettings["pce_cdbios"] = "System Card 3";
+            
+            if (SystemConfig.isOptSet("pce_cdspeed"))
+                coreSettings["pce_cdspeed"] = SystemConfig["pce_cdspeed"];
+            else
+                coreSettings["pce_cdspeed"] = "1";
+
+            if (SystemConfig.isOptSet("pce_palette"))
+                coreSettings["pce_palette"] = SystemConfig["pce_palette"];
+            else
+                coreSettings["pce_palette"] = "Composite";
+
+            if (SystemConfig.isOptSet("pce_scaling"))
+                coreSettings["pce_scaling"] = SystemConfig["pce_scaling"];
+            else
+                coreSettings["pce_scaling"] = "auto";
+
+            if (SystemConfig.isOptSet("pce_hires_blend"))
+                coreSettings["pce_hires_blend"] = SystemConfig["pce_hires_blend"];
+            else
+                coreSettings["pce_hires_blend"] = "disabled";
+
+            if (SystemConfig.isOptSet("pce_h_overscan"))
+                coreSettings["pce_h_overscan"] = SystemConfig["pce_h_overscan"];
+            else
+                coreSettings["pce_h_overscan"] = "auto";
+            
+            if (SystemConfig.isOptSet("pce_adpcmextraprec"))
+                coreSettings["pce_adpcmextraprec"] = SystemConfig["pce_adpcmextraprec"];
+            else
+                coreSettings["pce_adpcmextraprec"] = "12-bit";
+            
+            if (SystemConfig.isOptSet("pcecdvolume"))
+            {
+                coreSettings["pce_adpcmvolume"] = SystemConfig["pcecdvolume"];
+                coreSettings["pce_cddavolume"] = SystemConfig["pcecdvolume"];
+                coreSettings["pce_cdpsgvolume"] = SystemConfig["pcecdvolume"];
+            }
+            else
+            {
+                coreSettings["pce_adpcmvolume"] = "100";
+                coreSettings["pce_cddavolume"] = "100";
+                coreSettings["pce_cdpsgvolume"] = "100";
+            }
+
+        }
+
+        private void ConfigureFbalphaCPS3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fbalpha2012_cps3")
+                return;
+
+            coreSettings["fbalpha2012_cps3_frameskip"] = "0";
+            coreSettings["fbalpha2012_cps3_aspect"] = "DAR";
+
+            if (SystemConfig.isOptSet("fbalpha2012_cps3_cpu_speed_adjust"))
+                coreSettings["fbalpha2012_cps3_cpu_speed_adjust"] = SystemConfig["fbalpha2012_cps3_cpu_speed_adjust"];
+            else
+                coreSettings["fbalpha2012_cps3_cpu_speed_adjust"] = "100";
+
+            if (SystemConfig.isOptSet("fbalpha2012_cps3_hiscores"))
+                coreSettings["fbalpha2012_cps3_hiscores"] = SystemConfig["fbalpha2012_cps3_hiscores"];
+            else
+                coreSettings["fbalpha2012_cps3_hiscores"] = "enabled";
+
+            if (SystemConfig.isOptSet("fbalpha2012_cps3_controls_p1"))
+                coreSettings["fbalpha2012_cps3_controls_p1"] = SystemConfig["fbalpha2012_cps3_controls_p1"];
+            else
+                coreSettings["fbalpha2012_cps3_controls_p1"] = "gamepad";
+
+            if (SystemConfig.isOptSet("fbalpha2012_cps3_controls_p1"))
+                coreSettings["fbalpha2012_cps3_controls_p2"] = SystemConfig["fbalpha2012_cps3_controls_p2"];
+            else
+                coreSettings["fbalpha2012_cps3_controls_p2"] = "gamepad";
+
+            if (SystemConfig.isOptSet("fbalpha2012_cps3_lr_controls_p1"))
+                coreSettings["fbalpha2012_cps3_lr_controls_p1"] = SystemConfig["fbalpha2012_cps3_lr_controls_p1"];
+            else
+                coreSettings["fbalpha2012_cps3_lr_controls_p1"] = "normal";
+
+            if (SystemConfig.isOptSet("fbalpha2012_cps3_lr_controls_p2"))
+                coreSettings["fbalpha2012_cps3_lr_controls_p2"] = SystemConfig["fbalpha2012_cps3_lr_controls_p2"];
+            else
+                coreSettings["fbalpha2012_cps3_lr_controls_p2"] = "normal";
+
+        }
+
+        private void ConfigureFbalphaCPS2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fbalpha2012_cps2")
+                return;
+
+            coreSettings["fba2012cps1_frameskip"] = "disabled";
+            coreSettings["fba2012cps1_aspect"] = "DAR";
+
+            if (SystemConfig.isOptSet("fba2012cps1_auto_rotate"))
+                coreSettings["fba2012cps1_auto_rotate"] = SystemConfig["fba2012cps1_auto_rotate"];
+            else
+                coreSettings["fba2012cps1_auto_rotate"] = "enabled";
+
+            if (SystemConfig.isOptSet("fba2012cps1_cpu_speed_adjust"))
+                coreSettings["fba2012cps1_cpu_speed_adjust"] = SystemConfig["fba2012cps1_cpu_speed_adjust"];
+            else
+                coreSettings["fba2012cps1_cpu_speed_adjust"] = "100";
+
+            if (SystemConfig.isOptSet("fba2012cps1_hiscores"))
+                coreSettings["fba2012cps1_hiscores"] = SystemConfig["fba2012cps1_hiscores"];
+            else
+                coreSettings["fba2012cps1_hiscores"] = "enabled";
+
+            if (SystemConfig.isOptSet("fba2012cps1_lowpass_filter"))
+                coreSettings["fba2012cps1_lowpass_filter"] = SystemConfig["fba2012cps1_lowpass_filter"];
+            else
+                coreSettings["fba2012cps1_lowpass_filter"] = "disabled";
+
+            if (SystemConfig.isOptSet("fba2012cps1_lowpass_range"))
+                coreSettings["fba2012cps1_lowpass_range"] = SystemConfig["fba2012cps1_lowpass_range"];
+            else
+                coreSettings["fba2012cps1_lowpass_range"] = "50";
+
+            if (SystemConfig.isOptSet("fba2012cps2_controls"))
+                coreSettings["fba2012cps2_controls"] = SystemConfig["fba2012cps2_controls"];
+            else
+                coreSettings["fba2012cps2_controls"] = "gamepad";
+
+        }
+
+        private void ConfigureFbalphaCPS1(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fbalpha2012_cps1")
+                return;
+
+            coreSettings["fba2012cps1_frameskip"] = "disabled";
+            coreSettings["fba2012cps1_aspect"] = "DAR";
+
+            if (SystemConfig.isOptSet("fba2012cps1_auto_rotate"))
+                coreSettings["fba2012cps1_auto_rotate"] = SystemConfig["fba2012cps1_auto_rotate"];
+            else
+                coreSettings["fba2012cps1_auto_rotate"] = "enabled";
+
+            if (SystemConfig.isOptSet("fba2012cps1_cpu_speed_adjust"))
+                coreSettings["fba2012cps1_cpu_speed_adjust"] = SystemConfig["fba2012cps1_cpu_speed_adjust"];
+            else
+                coreSettings["fba2012cps1_cpu_speed_adjust"] = "100";
+
+            if (SystemConfig.isOptSet("fba2012cps1_hiscores"))
+                coreSettings["fba2012cps1_hiscores"] = SystemConfig["fba2012cps1_hiscores"];
+            else
+                coreSettings["fba2012cps1_hiscores"] = "enabled";
+
+            if (SystemConfig.isOptSet("fba2012cps1_lowpass_filter"))
+                coreSettings["fba2012cps1_lowpass_filter"] = SystemConfig["fba2012cps1_lowpass_filter"];
+            else
+                coreSettings["fba2012cps1_lowpass_filter"] = "disabled";
+
+            if (SystemConfig.isOptSet("fba2012cps1_lowpass_range"))
+                coreSettings["fba2012cps1_lowpass_range"] = SystemConfig["fba2012cps1_lowpass_range"];
+            else
+                coreSettings["fba2012cps1_lowpass_range"] = "50";
 
         }
 
@@ -755,6 +984,31 @@ namespace emulatorLauncher.libRetro
                 coreSettings["genesis_plus_gx_gun_input"] = SystemConfig["gun_input"];
             else
                 coreSettings["genesis_plus_gx_gun_input"] = "lightgun";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_force_dtack"))
+                coreSettings["genesis_plus_gx_force_dtack"] = SystemConfig["genesis_plus_gx_force_dtack"];
+            else
+                coreSettings["genesis_plus_gx_force_dtack"] = "enabled";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_overclock"))
+                coreSettings["genesis_plus_gx_overclock"] = SystemConfig["genesis_plus_gx_overclock"];
+            else
+                coreSettings["genesis_plus_gx_overclock"] = "100%";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_no_sprite_limit"))
+                coreSettings["genesis_plus_gx_no_sprite_limit"] = SystemConfig["genesis_plus_gx_no_sprite_limit"];
+            else
+                coreSettings["genesis_plus_gx_no_sprite_limit"] = "disabled";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_bios"))
+                coreSettings["genesis_plus_gx_bios"] = SystemConfig["genesis_plus_gx_bios"];
+            else
+                coreSettings["genesis_plus_gx_bios"] = "disabled";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_add_on"))
+                coreSettings["genesis_plus_gx_add_on"] = SystemConfig["genesis_plus_gx_add_on"];
+            else
+                coreSettings["genesis_plus_gx_add_on"] = "auto";
 
         }
 
@@ -1288,6 +1542,12 @@ namespace emulatorLauncher.libRetro
                     coreSettings["puae_floppy_sound"] = SystemConfig["floppy_sound"];
                 else
                     coreSettings["puae_floppy_sound"] = "75";
+                
+                // Kickstart
+                if (SystemConfig.isOptSet("puae_kickstart"))
+                    coreSettings["puae_kickstart"] = SystemConfig["puae_kickstart"];
+                else
+                    coreSettings["puae_kickstart"] = "auto";
 
             }
         }
