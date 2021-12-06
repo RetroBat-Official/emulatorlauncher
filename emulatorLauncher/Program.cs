@@ -195,7 +195,7 @@ namespace emulatorLauncher
                 bool updatesEnabled = !SystemConfig.isOptSet("updates.enabled") || SystemConfig.getOptBoolean("updates.enabled");
                 if ((!installer.IsInstalled() || (updatesEnabled && installer.HasUpdateAvailable())) && installer.CanInstall())
                 {
-                    using (UpdateFrm frm = new UpdateFrm(installer))
+                    using (InstallerFrm frm = new InstallerFrm(installer))
                         if (frm.ShowDialog() != DialogResult.OK)
                             return;
                 }

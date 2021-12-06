@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.PadToKeyboard;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -23,6 +25,8 @@ namespace emulatorLauncher
 
             if (!File.Exists(exe))
                 return null;
+
+            _exeName = Path.GetFileNameWithoutExtension(exe);
 
             string args = null;
 
@@ -54,6 +58,13 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args,
             };
+        }
+
+        private string _exeName;
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
     }
 }

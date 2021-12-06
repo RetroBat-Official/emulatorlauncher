@@ -263,8 +263,8 @@ namespace emulatorLauncher.libRetro
                 if (SystemConfig.isOptSet("psxcontroller2"))
                     retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
             }
-            
-            if (SystemConfig["retroachievements"] == "true" && systemToRetroachievements.Contains(system))
+
+            if (SystemConfig["retroachievements"] == "true" && Features.IsSupported("cheevos")) // || systemToRetroachievements.Contains(system)))
             {
                 retroarchConfig["cheevos_enable"] = "true";
                 retroarchConfig["cheevos_username"] = SystemConfig["retroachievements.username"];
@@ -778,7 +778,7 @@ namespace emulatorLauncher.libRetro
         static List<string> systemToRetroachievements = new List<string> { 
             "atari2600", "atari7800", "atarijaguar", "colecovision", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
             "segacd", "sega32x", "saturn", "pcengine", "pcenginecd", "supergrafx", "psx", "mame", "hbmame", "fbneo", "neogeo", "lightgun", "apple2", 
-            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc"};
+            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc", "fds" };
 
         static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn", "mame", "hbmame", "fbneo" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn" };

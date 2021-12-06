@@ -679,23 +679,7 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(_exename))
                 return mapping;
 
-            if (Program.Controllers.Count(c => c.Config != null && c.Config.DeviceName != "Keyboard") == 0)
-                return mapping;
-
-            if (mapping == null)
-                mapping = new PadToKeyboard.PadToKey();
-
-            var app = new PadToKeyApp();
-            app.Name = _exename;
-
-            PadToKeyInput mouseInput = new PadToKeyInput();
-            mouseInput.Name = InputKey.hotkey | InputKey.start;
-            mouseInput.Type = PadToKeyType.Keyboard;
-            mouseInput.Key = "(%{KILL})";
-            app.Input.Add(mouseInput);
-            mapping.Applications.Add(app);
-
-            return mapping;
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
         private static void KillProcessTree(string processName)

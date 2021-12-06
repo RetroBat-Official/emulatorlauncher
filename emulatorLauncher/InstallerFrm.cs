@@ -11,12 +11,12 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    partial class UpdateFrm : Form
+    partial class InstallerFrm : Form
     {
         private JoystickListener _joy;
         private Installer _installer;
 
-        public UpdateFrm(Installer installer)
+        public InstallerFrm(Installer installer)
         {
             InitializeComponent();
 

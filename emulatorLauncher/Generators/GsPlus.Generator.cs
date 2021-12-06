@@ -42,15 +42,21 @@ namespace emulatorLauncher
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
 
-            string screenShots = "";
+            List<string> commandArray = new List<string>();
+            commandArray.Add("-borderless");         
+            commandArray.AddRange(new string[] { "-sw", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString() });
+            commandArray.AddRange(new string[] { "-sh", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString() });
+
             if (!string.IsNullOrEmpty(AppConfig["thumbnails"]) && Directory.Exists(AppConfig["thumbnails"]))
-                screenShots = " -ssdir \"" + AppConfig.GetFullPath("thumbnails") + "\"";
+                commandArray.AddRange(new string[] { "-ssdir", AppConfig.GetFullPath("thumbnails") });
+
+            var args = string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-fullscreen -borderless -sw 1920 -sh 1080"+screenShots,
+                Arguments = args
             };
         }
 

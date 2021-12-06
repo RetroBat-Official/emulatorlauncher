@@ -61,7 +61,6 @@ namespace emulatorLauncher
 
         public string FolderName { get; set; }
         public string LocalExeName { get; set; }
-
         public string ServerVersion { get; set; }
 
         public string GetPackageUrl()
@@ -73,35 +72,6 @@ namespace emulatorLauncher
             return installerUrl
                 .Replace("%UPDATETYPE%", UpdateType())
                 .Replace("%FOLDERNAME%", FolderName);
-        }
-
-        private string RunWithOutput(ProcessStartInfo ps)
-        {
-            List<string> lines = new List<string>();
-
-            ps.UseShellExecute = false;
-            ps.RedirectStandardOutput = true;
-            ps.RedirectStandardError = true;
-            ps.CreateNoWindow = true;
-
-            var proc = new Process();
-            proc.StartInfo = ps;
-            proc.Start();
-
-            string output = proc.StandardOutput.ReadToEnd();
-            string err = proc.StandardError.ReadToEnd();
-            proc.WaitForExit();
-
-            return (err ?? "") + (output ?? "");
-        }
-
-        private string FormatVersion(string version)
-        {
-            var numbers = version.Split(new char[] { '.', '-' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            while (numbers.Count < 4)
-                numbers.Add("0");
-
-            return string.Join(".", numbers.Take(4).ToArray());
         }
 
         public string GetInstalledVersion()
@@ -119,8 +89,8 @@ namespace emulatorLauncher
                 // Retroarch specific
                 if (Path.GetFileNameWithoutExtension(LocalExeName).ToLower() == "retroarch")
                 {
-                    var output = RunWithOutput(new ProcessStartInfo() { Arguments = "--version", FileName = exe });
-                    output = FormatVersion(output.ExtractString(" -- v", " -- "));
+                    var output = Misc.RunWithOutput(exe, "--version");
+                    output = Misc.FormatVersionString(output.ExtractString(" -- v", " -- "));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
@@ -128,8 +98,8 @@ namespace emulatorLauncher
                 }
                 else if (Path.GetFileNameWithoutExtension(LocalExeName).ToLower() == "demul")
                 {
-                    var output = RunWithOutput(new ProcessStartInfo() { Arguments = "--help", FileName = exe });
-                    output = FormatVersion(output.ExtractString(") v", "\r"));
+                    var output = Misc.RunWithOutput(exe, "--help");
+                    output = Misc.FormatVersionString(output.ExtractString(") v", "\r"));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
@@ -137,8 +107,8 @@ namespace emulatorLauncher
                 }
                 else if (Path.GetFileNameWithoutExtension(LocalExeName).ToLower() == "dolphin")
                 {
-                    var output = RunWithOutput(new ProcessStartInfo() { Arguments = "--version", FileName = exe });
-                    output = FormatVersion(output.ExtractString("Dolphin ", "\r"));
+                    var output = Misc.RunWithOutput(exe, "--version");
+                    output = Misc.FormatVersionString(output.ExtractString("Dolphin ", "\r"));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
@@ -146,8 +116,8 @@ namespace emulatorLauncher
                 }
                 else if (Path.GetFileNameWithoutExtension(LocalExeName).ToLower() == "gsplus")
                 {
-                    var output = RunWithOutput(new ProcessStartInfo() { Arguments = "--help", FileName = exe });
-                    output = FormatVersion(output.ExtractString("GSplus v", " "));
+                    var output = Misc.RunWithOutput(exe, "--help");
+                    output = Misc.FormatVersionString(output.ExtractString("GSplus v", " "));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
@@ -166,7 +136,40 @@ namespace emulatorLauncher
 
             return null;
         }
+        
+        public Installer(string zipName, string exe = null)
+        {
+            FolderName = zipName;
+            LocalExeName = (exe == null ? zipName + ".exe" : exe);
+        }
 
+        public static Installer FindInstaller(string emulator = null)
+        {
+            if (!Misc.IsAvailableNetworkActive())
+                return null;
+
+            if (!Zip.IsSevenZipAvailable)
+                return null;
+
+            if (emulator == null)
+                emulator = Program.SystemConfig["emulator"];
+
+            if (string.IsNullOrEmpty(emulator))
+                return null;
+
+            Installer installer = installers.Where(g => g.Key == emulator).Select(g => g.Value).FirstOrDefault();
+            if (installer == null && emulator.StartsWith("lr-"))
+                installer = installers.Where(g => g.Key == "libretro").Select(g => g.Value).FirstOrDefault();
+            if (installer == null)
+                installer = installers.Where(g => g.Key == emulator).Select(g => g.Value).FirstOrDefault();
+
+            if (installer != null && string.IsNullOrEmpty(installer.GetPackageUrl()))
+                return null;
+
+            return installer;
+        }
+
+        #region CollectVersions
         public static void CollectVersions()
         {
             List<systeminfo> sys = new List<systeminfo>();
@@ -192,36 +195,6 @@ namespace emulatorLauncher
             Process.Start(fn);
         }
 
-        public Installer(string zipName, string exe = null)
-        {
-            FolderName = zipName;
-            LocalExeName = (exe == null ? zipName + ".exe" : exe);
-        }
-
-        public static Installer FindInstaller(string emulator = null)
-        {
-            if (emulator == null)
-                emulator = Program.SystemConfig["emulator"];
-
-            if (string.IsNullOrEmpty(emulator))
-                return null;
-
-            Installer installer = installers.Where(g => g.Key == emulator).Select(g => g.Value).FirstOrDefault();
-            if (installer == null && emulator.StartsWith("lr-"))
-                installer = installers.Where(g => g.Key == "libretro").Select(g => g.Value).FirstOrDefault();
-            if (installer == null)
-                installer = installers.Where(g => g.Key == emulator).Select(g => g.Value).FirstOrDefault();
-
-            return installer;
-        }
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool AllocConsole();
-
-        [DllImport("kernel32.dll")]
-        static extern bool FreeConsole();
-
         public static void InstallAllAndCollect(string customFolder)
         {
             _customInstallFolder = customFolder;
@@ -231,7 +204,7 @@ namespace emulatorLauncher
 
             HashSet<string> sys = new HashSet<string>();
 
-            AllocConsole();
+            Kernel32.AllocConsole();
 
             foreach (var installer in installers.Values)
             {
@@ -242,8 +215,8 @@ namespace emulatorLauncher
                 installer.DownloadAndInstall();
                 sys.Add(installer.FolderName);
             }
-           
-            FreeConsole();
+
+            Kernel32.FreeConsole();
 
             CollectVersions();
 
@@ -252,9 +225,10 @@ namespace emulatorLauncher
 
             _customInstallFolder = null;
         }
+        #endregion
 
         private static string _customInstallFolder;
-
+        
         public string GetInstallFolder()
         {
             if (!string.IsNullOrEmpty(_customInstallFolder))
@@ -303,7 +277,7 @@ namespace emulatorLauncher
             {               
                 string xml = null;
 
-                string cachedFile = Path.Combine(Path.GetTempPath(), "versions.xml");
+                string cachedFile = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "versions.xml");
 
                 if (File.Exists(cachedFile) && DateTime.Now - File.GetCreationTime(cachedFile) <= new TimeSpan(1, 0, 0, 0))
                 {
@@ -369,11 +343,6 @@ namespace emulatorLauncher
             return false;
         }
 
-        public string GetLocalFilename()
-        {
-            return Path.Combine(Path.GetTempPath(), FolderName + ".7z");
-        }
-
         public static string UpdateType()
         {
             string ret = Program.SystemConfig["updates.type"];
@@ -383,19 +352,8 @@ namespace emulatorLauncher
             return ret;
         }
 
-        public string GetSevenZipPath()
-        {
-            return Path.Combine(Path.GetDirectoryName(typeof(Installer).Assembly.Location), "7za.exe");
-        }
-
         public bool CanInstall()
         {
-            if (!File.Exists(GetSevenZipPath()))
-                return false;
-
-            if (string.IsNullOrEmpty(GetPackageUrl()))
-                return false;
-
             try
             {
                 var req = WebRequest.Create(GetPackageUrl());
@@ -448,36 +406,25 @@ namespace emulatorLauncher
         {
         retry:
             try
-            {
-               
+            {               
                 var req = WebRequest.Create(GetPackageUrl());
                 ((HttpWebRequest)req).UserAgent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)";
 
                 var resp = req.GetResponse() as HttpWebResponse;
                 if (resp.StatusCode == HttpStatusCode.OK)
                 {
-                    string fn = GetLocalFilename();
+                    string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", FolderName + ".7z");
 
                     try { if (File.Exists(fn)) File.Delete(fn); }
                     catch { }
 
                     using (FileStream fileStream = new FileStream(fn, FileMode.Create))
-                    {
                         ReadResponseStream(resp, fileStream, progress);
-                    }
 
                     if (progress != null)
                         progress(null, new ProgressChangedEventArgs(100, null));
 
-                    var px = new ProcessStartInfo()
-                    {
-                        FileName = GetSevenZipPath(),
-                        WorkingDirectory = Path.GetDirectoryName(GetSevenZipPath()),
-                        Arguments = "x \"" + fn + "\" -y -o\"" + GetInstallFolder() + "\"",
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-
-                    Process.Start(px).WaitForExit();
+                    Zip.Extract(fn, GetInstallFolder());
 
                     try { if (File.Exists(fn)) File.Delete(fn); }
                     catch { }

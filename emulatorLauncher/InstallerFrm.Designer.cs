@@ -1,6 +1,6 @@
 ﻿namespace emulatorLauncher
 {
-    partial class UpdateFrm
+    partial class InstallerFrm
     {
         /// <summary>
         /// Required designer variable.
@@ -136,7 +136,7 @@
             this.ForeColor = System.Drawing.Color.White;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "UpdateFrm";
-            this.Opacity = 0.98D;
+            this.Opacity = 0.96D;
             this.ShowIcon = false;
             this.Text = "UpdateFrm";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;

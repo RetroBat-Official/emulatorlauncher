@@ -375,9 +375,9 @@ namespace emulatorLauncher
             if (ext.Length > 0)
                 ext = ext.Substring(1);
 
-            if (ext == "zip")
+            if (ext == "zip" || ext == "7z")
             {
-                var e = Tools.Misc.GetZipEntries(rom);
+                var e = Zip.ListEntries(rom);
                 if (e.Length == 1)
                     ext = Path.GetExtension(e[0]).ToLowerInvariant().Substring(1);
             }
@@ -395,9 +395,9 @@ namespace emulatorLauncher
             if (ext.Length > 0)
                 ext = ext.Substring(1);
 
-            if (ext == "zip")
+            if (ext == "zip" || ext == "7z")
             {
-                var e = Tools.Misc.GetZipEntries(rom);
+                var e = Zip.ListEntries(rom);
                 if (e.Length == 1)
                     ext = Path.GetExtension(e[0]).ToLowerInvariant().Substring(1);
             }

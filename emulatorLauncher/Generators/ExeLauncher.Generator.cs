@@ -110,32 +110,10 @@ namespace emulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_systemName != "mugen")
+            if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
                 return mapping;
 
-            if (string.IsNullOrEmpty(_exename))
-                return mapping;
-
-            if (Program.Controllers.Count(c => c.Config != null && c.Config.DeviceName != "Keyboard") == 0)
-                return mapping;
-
-            if (mapping != null && mapping[_exename] != null && mapping[_exename][InputKey.hotkey | InputKey.start] != null)
-                return mapping;
-
-            if (mapping == null)
-                mapping = new PadToKeyboard.PadToKey();
-
-            var app = new PadToKeyApp();
-            app.Name = _exename;
-
-            PadToKeyInput mouseInput = new PadToKeyInput();
-            mouseInput.Name = InputKey.hotkey | InputKey.start;
-            mouseInput.Type = PadToKeyType.Keyboard;
-            mouseInput.Key = "(%{KILL})";
-            app.Input.Add(mouseInput);
-            mapping.Applications.Add(app);
-
-            return mapping;
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
         private void UpdateMugenConfig(string path)

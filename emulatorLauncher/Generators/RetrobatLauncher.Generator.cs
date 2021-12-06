@@ -30,7 +30,7 @@ namespace emulatorLauncher
             Installer installer = Installer.FindInstaller(folder);
             if (installer != null && !installer.IsInstalled() && installer.CanInstall())
             {
-                using (UpdateFrm frm = new UpdateFrm(installer))
+                using (InstallerFrm frm = new InstallerFrm(installer))
                     if (frm.ShowDialog() != DialogResult.OK)
                         return null;
             }

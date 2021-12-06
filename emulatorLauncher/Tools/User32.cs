@@ -122,7 +122,17 @@ namespace emulatorLauncher
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int SetWindowPos(IntPtr hWnd, IntPtr hWndAfter, int X, int Y, int Width, int Height, [MarshalAs(UnmanagedType.U4)]SWP flags);
     }
-    
+
+    public static class Kernel32
+    {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool AllocConsole();
+
+        [DllImport("kernel32.dll")]
+        public static extern bool FreeConsole();
+
+    }
+
     public enum GWL : int
     {
         WNDPROC = -4,
