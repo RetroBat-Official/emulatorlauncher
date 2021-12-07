@@ -20,17 +20,21 @@ namespace emulatorLauncher
         {
             InitializeComponent();
 
-            _installer = installer;
+            if (installer != null)
+            {
+                _installer = installer;
 
-            if (string.IsNullOrEmpty(_installer.ServerVersion))
-                label1.Text = installer.FolderName + " is not installed.\r\nInstall now ?";
-            else
-                label1.Text = "An update is available for " + installer.FolderName + " :\r\nUpdate version : " + installer.ServerVersion + ".\r\nInstalled version : " + installer.GetInstalledVersion() + ".\r\nInstall now ?";
+                if (string.IsNullOrEmpty(_installer.ServerVersion))
+                    label1.Text = installer.DefaultFolderName + " is not installed.\r\nInstall now ?";
+                else
+                    label1.Text = "An update is available for " + installer.DefaultFolderName + " :\r\nUpdate version : " + installer.ServerVersion + ".\r\nInstalled version : " + installer.GetInstalledVersion() + ".\r\nInstall now ?";
+
+                tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Absolute;
+                tableLayoutPanel2.RowStyles[2].Height = 0;
+            }
 
             this.Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
 
-            tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Absolute;
-            tableLayoutPanel2.RowStyles[2].Height = 0;
 
             button1.GotFocus += button1_GotFocus;
             button2.GotFocus += button2_GotFocus;
@@ -40,6 +44,43 @@ namespace emulatorLauncher
         {
             base.OnLoad(e);
             SetupPad();
+        }
+
+        public void UpdateAll()
+        {
+            progressBar1.Visible = false;
+            progressBar1.Value = 0;
+            label1.Text = "Looking for updates...";
+
+            tableLayoutPanel2.RowStyles[1].SizeType = SizeType.Absolute;
+            tableLayoutPanel2.RowStyles[1].Height = 0;
+
+            tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Percent;
+            tableLayoutPanel2.RowStyles[2].Height = 50;
+
+            Show();
+            Refresh();
+
+            string currentEmulator = null;
+
+            Installer.UpdateAll((o, pe) =>
+            {
+                if (!progressBar1.Visible)
+                    progressBar1.Visible = true;
+
+                progressBar1.Value = pe.ProgressPercentage;
+
+                string emul = pe.UserState as string;
+                if (emul != null && emul != currentEmulator)
+                {
+                    currentEmulator = emul;
+                    label1.Text = "Updating " + currentEmulator;
+                    Refresh();
+                }
+            });
+
+            DialogResult = System.Windows.Forms.DialogResult.OK;
+            Close();
         }
 
         private void SetupPad()

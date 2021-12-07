@@ -39,6 +39,7 @@ namespace emulatorLauncher.libRetro
                 WriteControllerConfig(retroconfig, controller, system);
 
             WriteHotKeyConfig(retroconfig);
+
             return true;
         }
 
@@ -160,7 +161,8 @@ namespace emulatorLauncher.libRetro
             config["input_bind_hold"] = "2";
             config["input_bind_timeout"] = "5";
 
-            
+
+
 
             //config["input_ai_service"] = "nul";
 
@@ -193,7 +195,7 @@ namespace emulatorLauncher.libRetro
             return "0";
         }
 
-        private static Dictionary<string, string> generateControllerConfig(Controller controller, string system)
+        private static Dictionary<string, string> generateControllerConfig(ConfigFile retroconfig, Controller controller, string system)
         {
             Dictionary<InputKey, string> retroarchbtns = new Dictionary<InputKey, string>()
             {
@@ -252,7 +254,7 @@ namespace emulatorLauncher.libRetro
                     { InputKey.pagedown, "select"} // select
                 };
             }
-            
+
             if (system == "n64")
             {
                 // some input adaptations for some cores...
@@ -263,7 +265,22 @@ namespace emulatorLauncher.libRetro
                     retroarchbtns[InputKey.l2] = "l";
                 }
             }
-
+            /*
+            if (Program.Features.IsSupported("gamepadbuttons"))
+            {
+                bool useNintendoConvention = !Program.SystemConfig.isOptSet("gamepadbuttons") || !Program.SystemConfig.getOptBoolean("gamepadbuttons");
+                if (useNintendoConvention)
+                {                    
+                    retroarchbtns[InputKey.a] = "a";
+                    retroarchbtns[InputKey.b] = "b";
+                    retroconfig["menu_swap_ok_cancel_buttons"] = "false";
+                }
+                else
+                    retroconfig["menu_swap_ok_cancel_buttons"] = "true";
+            }
+            else
+                retroconfig["menu_swap_ok_cancel_buttons"] = "true";
+            */
             var config = new Dictionary<string, string>();
 
             foreach (var btnkey in retroarchbtns)
@@ -317,8 +334,8 @@ namespace emulatorLauncher.libRetro
                         continue;
 
                     if (input.Type != "key")
-            //            config[string.Format("input_{0}", specialkey.Value)] = getConfigValue(input);
-            //        else
+                        //            config[string.Format("input_{0}", specialkey.Value)] = getConfigValue(input);
+                        //        else
                         config[string.Format("input_{0}_{1}", specialkey.Value, typetoname[input.Type])] = getConfigValue(input);
                 }
             }
@@ -341,7 +358,7 @@ namespace emulatorLauncher.libRetro
             // keyboard_gamepad_enable = "true"
             // keyboard_gamepad_mapping_type = "1"
 
-            var generatedConfig = generateControllerConfig(controller, system);
+            var generatedConfig = generateControllerConfig(retroconfig, controller, system);
             foreach (var key in generatedConfig)
                 retroconfig[key.Key] = key.Value;
 

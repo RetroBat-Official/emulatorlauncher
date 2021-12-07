@@ -5,14 +5,16 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace emulatorLauncher.Tools
 {
-    [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute("features")]
     [System.Xml.Serialization.XmlRootAttribute("features")]
-    public partial class EsFeatures
+    public class EsFeatures
     {
+        private HashSet<string> _contextFeatures;
+
         public bool IsSupported(string name)
         {
             if (_contextFeatures == null)
@@ -24,82 +26,35 @@ namespace emulatorLauncher.Tools
             return true;
         }
 
-        private HashSet<string> _contextFeatures;
-
         public void SetFeaturesContext(string system, string emulator, string core)
         {
             HashSet<string> ret = new HashSet<string>();
 
-            if (this.GlobalFeatures != null && this.GlobalFeatures.Feature != null)
-                foreach (var s in this.GlobalFeatures.Feature.Select(f => f.value))
+            if (this.GlobalFeatures != null)
+            {
+                foreach (var s in this.GlobalFeatures.GetAllFeatureNames(this.SharedFeatures))
                     ret.Add(s);
+            }
             
             if (this.Emulators != null && !string.IsNullOrEmpty(emulator))
             {
                 foreach (var emul in Emulators.Where(e => NameContains(e.Name, emulator)))
                 {
-                    if (emul.CommonFeatures != null)
-                        foreach (var s in emul.CommonFeatures.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
-                            ret.Add(s);
-
-                    if (emul.Features != null)
-                        foreach (var s in emul.Features.Select(f => f.value))
-                            ret.Add(s);
+                    foreach (var name in emul.GetAllFeatureNames(this.SharedFeatures))
+                        ret.Add(name);
 
                     if (emul.Systems != null && !string.IsNullOrEmpty(system))
                     {
                         foreach (var sys in emul.Systems.Where(c => NameContains(c.Name, system)))
-                        {
-                            if (sys.CommonFeatures != null)
-                                foreach (var s in sys.CommonFeatures.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
-                                    ret.Add(s);
-
-                            if (sys.Features != null)
-                                foreach (var s in sys.Features.Select(f => f.value))
-                                    ret.Add(s);
-                        }
-                    }
-
-                    if (emul.SystemCollection != null && emul.SystemCollection.Systemes != null && !string.IsNullOrEmpty(system))
-                    {
-                        foreach (var sys in emul.SystemCollection.Systemes.Where(c => NameContains(c.Name, system)))
-                        {
-                            if (sys.CommonFeatures != null)
-                                foreach (var s in sys.CommonFeatures.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
-                                    ret.Add(s);
-
-                            if (sys.Features != null)
-                                foreach (var s in sys.Features.Select(f => f.value))
-                                    ret.Add(s);
-                        }
+                            foreach (var name in sys.GetAllFeatureNames(this.SharedFeatures))
+                                ret.Add(name);
                     }
 
                     if (emul.Cores != null && !string.IsNullOrEmpty(core))
                     {
                         foreach (var corr in emul.Cores.Where(c => NameContains(c.Name, core)))
-                        {
-                            if (corr.CommonFeatures != null)
-                                foreach (var s in corr.CommonFeatures.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
-                                    ret.Add(s);
-
-                            if (corr.Features != null)
-                                foreach (var s in corr.Features.Select(f => f.value))
-                                    ret.Add(s);
-                        }
-                    }
-
-                    if (emul.CoreCollection != null && emul.CoreCollection.Cores != null && !string.IsNullOrEmpty(core))
-                    {
-                        foreach (var corr in emul.CoreCollection.Cores.Where(c => NameContains(c.Name, core)))
-                        {
-                            if (corr.CommonFeatures != null)
-                                foreach (var s in corr.CommonFeatures.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
-                                    ret.Add(s);
-
-                            if (corr.Features != null)
-                                foreach (var s in corr.Features.Select(f => f.value))
-                                    ret.Add(s);
-                        }
+                            foreach (var name in corr.GetAllFeatureNames(this.SharedFeatures))
+                                ret.Add(name);
                     }
                 }
             }
@@ -138,18 +93,19 @@ namespace emulatorLauncher.Tools
                     "videomode",
                     "colorization",
                     "padtokeyboard",
-                    "joystick2pad",
                     "cheevos",
                     "autocontrollers"})
                 defaultFeatures._contextFeatures.Add(s);
 
             if (!File.Exists(xmlFile))
-                return defaultFeatures;
-            
+                return defaultFeatures;            
 
             try
             {
-                EsFeatures ret = Misc.FromXml<EsFeatures>(xmlFile);
+                string data = File.ReadAllText(xmlFile);
+                data = data.Replace("<cores>", "").Replace("</cores>", "").Replace("<systems>", "").Replace("</systems>", "");
+
+                EsFeatures ret = Misc.FromXmlString<EsFeatures>(data);
                 if (ret != null)
                     return ret;
 
@@ -164,6 +120,9 @@ namespace emulatorLauncher.Tools
             return defaultFeatures;
         }
 
+        [XmlElement("sharedFeatures")]
+        public FeatureCollection SharedFeatures { get; set; }
+
         [XmlElement("globalFeatures")]
         public FeatureCollection GlobalFeatures { get; set; }
 
@@ -171,72 +130,59 @@ namespace emulatorLauncher.Tools
         public Emulator[] Emulators { get; set; }
     }
 
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class Emulator
+    public class Emulator : FeatureCollection
     {
+        public override string ToString()
+        {
+            return "<emulator name=\"" + (Name ?? "null") + "\" />";
+        }
+
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+
         [XmlElement("system")]
         public Systeme[] Systems { get; set; }
-
-        [XmlElement("systems")]
-        public SystemCollection SystemCollection { get; set; }
 
         [XmlElement("core")]
-        public Core[] Cores { get; set; }
+        public Core[] Cores { get; set; }    
+    }
 
-        [XmlElement("cores")]
-        public CoreCollection CoreCollection { get; set; }
-
-        [XmlElement("feature")]
-        public Feature[] Features { get; set; }
+    public class Core : FeatureCollection
+    {
+        public override string ToString()
+        {
+            return "<core name=\"" + (Name ?? "null") + "\" />";
+        }
 
         [XmlAttribute("name")]
         public string Name { get; set; }
 
-        [XmlAttribute("features")]
-        public string CommonFeatures { get; set; }
-    }
-
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class Core
-    {
         [XmlElement("system")]
         public Systeme[] Systems { get; set; }
+    }
+
+    public class Feature
+    {
+        public override string ToString()
+        {
+            return "<feature value=\"" + (Value??"null") + "\" />";
+        }
 
         [XmlAttribute("name")]
         public string Name { get; set; }
 
-        [XmlElement("feature")]
-        public Feature[] Features { get; set; }
+        [XmlAttribute("value")]
+        public string Value { get; set; }
 
-        [XmlAttribute("features")]
-        public string CommonFeatures { get; set; }
-    }
+        [XmlAttribute("description")]
+        public string Description { get; set; }
 
-
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class Feature
-    {
-        /// <remarks/>
         [XmlElement("choice")]
-        public Choice[] choice { get; set; }
+        public Choice[] Choice { get; set; }
 
-        [XmlAttribute]
-        public string name { get; set; }
-
-        [XmlAttribute]
-        public string value { get; set; }
-
-        [XmlAttribute]
-        public string description { get; set; }
     }
 
-    /// <remarks/>
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class Choice
+    public class Choice
     {
         [XmlAttribute("name")]
         public string Name { get; set; }
@@ -245,44 +191,58 @@ namespace emulatorLauncher.Tools
         public string Value { get; set; }
     }
 
-
-    /// <remarks/>
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class Systeme
+    public class Systeme : FeatureCollection
     {
-        [XmlElement("feature")]
-        public Feature[] Features { get; set; }
-
-        [XmlAttribute("features")]
-        public string CommonFeatures { get; set; }
-
         [XmlAttribute("name")]
         public string Name { get; set; }
     }
 
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class FeatureCollection
+    public class FeatureCollection
     {
+        [XmlAttribute("features")]
+        public string CommonFeatures { get; set; }
+
         [XmlElement("feature")]
-        public Feature[] Feature { get; set; }
-    }
+        public Feature[] Features { get; set; }
 
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class SystemCollection
-    {
-        [XmlElement("system")]
-        public Systeme[] Systemes { get; set; }
-    }
+        [XmlElement("sharedFeature")]
+        public Feature[] SharedFeatures { get; set; }
 
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class CoreCollection
-    {
-        [XmlElement("core")]
-        public Core[] Cores { get; set; }
+        public string[] GetAllFeatureNames(FeatureCollection sharedFeatures)
+        {
+            List<string> ret = new List<string>();
+
+            if (CommonFeatures != null)
+            {
+                foreach (var name in CommonFeatures.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                    ret.Add(name);
+            }
+
+            if (Features != null)
+            {
+                foreach (var feat in Features)
+                    if (!string.IsNullOrEmpty(feat.Value) && !string.IsNullOrEmpty(feat.Name) && feat.Choice != null && feat.Choice.Any())
+                        ret.Add(feat.Value);
+            }
+
+            if (SharedFeatures != null && sharedFeatures != null && sharedFeatures.Features != null)
+            {
+                foreach (var sf in SharedFeatures)
+                {
+                    Feature feat = null;
+
+                    if (!string.IsNullOrEmpty(sf.Value))
+                        feat = sharedFeatures.Features.FirstOrDefault(f => f.Value == sf.Value);
+
+                    if (feat == null && !string.IsNullOrEmpty(sf.Name))
+                        feat = sharedFeatures.Features.FirstOrDefault(f => f.Name == sf.Name);
+
+                    if (feat != null)
+                        ret.Add(feat.Value);
+                }
+            }
+
+            return ret.ToArray();
+        }
     }
-    
 }

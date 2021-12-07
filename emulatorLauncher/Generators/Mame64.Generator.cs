@@ -14,11 +14,11 @@ namespace emulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("mame");
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path) && Environment.Is64BitOperatingSystem)
                 path = AppConfig.GetFullPath("mame64");
 
             string exe = Path.Combine(path, "mame.exe");
-            if (!File.Exists(exe))
+            if (!File.Exists(exe) && Environment.Is64BitOperatingSystem)
                 exe = Path.Combine(path, "mame64.exe");
             if (!File.Exists(exe))
                 exe = Path.Combine(path, "mame32.exe");

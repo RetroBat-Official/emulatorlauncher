@@ -27,7 +27,7 @@ namespace emulatorLauncher
             rom = lines[0];
             string folder = rom.ExtractString("\\", "\\");
 
-            Installer installer = Installer.FindInstaller(folder);
+            Installer installer = Installer.GetInstaller(folder);
             if (installer != null && !installer.IsInstalled() && installer.CanInstall())
             {
                 using (InstallerFrm frm = new InstallerFrm(installer))

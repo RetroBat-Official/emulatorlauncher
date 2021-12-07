@@ -10,6 +10,8 @@ using System.Xml;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Net;
+using System.ComponentModel;
 
 namespace emulatorLauncher.Tools
 {
@@ -70,6 +72,27 @@ namespace emulatorLauncher.Tools
 
             using (FileStream sr = new FileStream(xmlPathName, FileMode.Open, FileAccess.Read))
                 return serializer.Deserialize(sr) as T;
+        }
+
+        public static T FromXmlString<T>(string xml) where T : class
+        {
+            if (string.IsNullOrEmpty(xml))
+                return default(T);
+
+            var settings = new XmlReaderSettings
+            {
+                ConformanceLevel = ConformanceLevel.Auto,
+                ValidationType = ValidationType.None
+            };
+
+            XmlSerializer serializer = new XmlSerializer(typeof(T));
+
+            using (var reader = new StringReader(xml))
+            using (var xmlReader = XmlReader.Create(reader, settings))
+            {
+                var obj = serializer.Deserialize(xmlReader);
+                return (T)obj;
+            }
         }
 
         public static string ToXml<T>(this T obj, bool omitXmlDeclaration = false)
@@ -289,5 +312,47 @@ namespace emulatorLauncher.Tools
 
             return string.Join(".", numbers.Take(4).ToArray());
         }
+
+        public static string ReadResponseString(this WebResponse response)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ReadResponseStream(response, ms);
+                return Encoding.UTF8.GetString(ms.ToArray());
+            }
+        }
+
+        public static void ReadResponseStream(this WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
+        {
+            if (destinationStream == null)
+                throw new ArgumentException("Stream null");
+
+            long length = (int)response.ContentLength;
+            long pos = 0;
+
+            using (Stream sr = response.GetResponseStream())
+            {
+                byte[] buffer = new byte[1024];
+                int bytes = 0;
+
+                while ((bytes = sr.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    destinationStream.Write(buffer, 0, bytes);
+
+                    pos += bytes;
+
+                    if (progress != null && length > 0)
+                        progress(null, new ProgressChangedEventArgs((int)((pos * 100) / length), null));
+                }
+
+                sr.Close();
+            }
+
+            response.Close();
+
+            if (length > 0 && pos != length)
+                throw new Exception("Incomplete download : " + length);
+        }
+
     }
 }

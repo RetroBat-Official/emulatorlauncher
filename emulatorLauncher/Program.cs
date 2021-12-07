@@ -106,6 +106,7 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
+
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info(Environment.CommandLine);
 
@@ -126,7 +127,13 @@ namespace emulatorLauncher
             LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
+            if (args.Any(a => "-updateall".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                using (var frm = new InstallerFrm(null))
+                    frm.UpdateAll();
 
+                return;
+            }
 
             if (args.Any(a => "-collectversions".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -189,7 +196,7 @@ namespace emulatorLauncher
             }
 
             // Check if installed. Download & Install it if necessary.
-            Installer installer = Installer.FindInstaller();
+            Installer installer = Installer.GetInstaller();
             if (installer != null)
             {
                 bool updatesEnabled = !SystemConfig.isOptSet("updates.enabled") || SystemConfig.getOptBoolean("updates.enabled");
