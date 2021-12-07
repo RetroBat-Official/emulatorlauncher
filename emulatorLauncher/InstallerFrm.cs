@@ -20,6 +20,9 @@ namespace emulatorLauncher
         {
             InitializeComponent();
 
+            _sz = this.Size;
+            _szI = pictureBox1.Size;
+
             if (installer != null)
             {
                 _installer = installer;
@@ -31,6 +34,10 @@ namespace emulatorLauncher
 
                 tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Absolute;
                 tableLayoutPanel2.RowStyles[2].Height = 0;
+                tableLayoutPanel2.RowStyles[0].SizeType = SizeType.Percent;
+                tableLayoutPanel2.RowStyles[0].Height = 50;
+                tableLayoutPanel2.RowStyles[1].SizeType = SizeType.Percent;
+                tableLayoutPanel2.RowStyles[1].Height = 50;
             }
 
             this.Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
@@ -38,6 +45,20 @@ namespace emulatorLauncher
 
             button1.GotFocus += button1_GotFocus;
             button2.GotFocus += button2_GotFocus;
+        }
+
+        private Size _sz;
+        private Size _szI;
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+
+            if (!_sz.IsEmpty)
+            {
+                float fz = Math.Min(this.Width / (float)_sz.Width, this.Height / (float)_sz.Height);
+                pictureBox1.Size = new Size((int) (_szI.Width * fz), (int) (_szI.Height * fz));
+            }
         }
 
         protected override void OnLoad(EventArgs e)
@@ -51,22 +72,34 @@ namespace emulatorLauncher
             progressBar1.Visible = false;
             progressBar1.Value = 0;
             label1.Text = "Looking for updates...";
+            label1.TextAlign = ContentAlignment.MiddleCenter;
 
             tableLayoutPanel2.RowStyles[1].SizeType = SizeType.Absolute;
             tableLayoutPanel2.RowStyles[1].Height = 0;
 
-            tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Percent;
-            tableLayoutPanel2.RowStyles[2].Height = 50;
+            tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Absolute;
+            tableLayoutPanel2.RowStyles[2].Height = 0;
 
             Show();
             Refresh();
 
             string currentEmulator = null;
+            bool shown = false;
 
             Installer.UpdateAll((o, pe) =>
             {
-                if (!progressBar1.Visible)
+                if (!shown)
+                {
+                    label1.TextAlign = ContentAlignment.BottomCenter;
+
+                    tableLayoutPanel2.RowStyles[0].SizeType = SizeType.Percent;
+                    tableLayoutPanel2.RowStyles[0].Height = 50;
+                    tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Percent;
+                    tableLayoutPanel2.RowStyles[2].Height = 50;
+    
                     progressBar1.Visible = true;
+                    shown = true;
+                }
 
                 progressBar1.Value = pe.ProgressPercentage;
 
@@ -135,7 +168,8 @@ namespace emulatorLauncher
         {
             tableLayoutPanel2.RowStyles[1].SizeType = SizeType.Absolute;
             tableLayoutPanel2.RowStyles[1].Height = 0;
-
+            tableLayoutPanel2.RowStyles[0].SizeType = SizeType.Percent;
+            tableLayoutPanel2.RowStyles[0].Height = 50;
             tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Percent;
             tableLayoutPanel2.RowStyles[2].Height = 50;
 
