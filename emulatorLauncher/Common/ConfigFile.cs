@@ -104,27 +104,27 @@ namespace emulatorLauncher
             string data = this[key];
             if (string.IsNullOrEmpty(data))
             {
-                if (key == "home" && Directory.Exists(Path.Combine(Program.LocalPath, ".emulationstation")))                        
-                    return Path.Combine(Program.LocalPath, ".emulationstation");
+                if (key == "home" && Directory.Exists(Path.Combine(LocalPath, ".emulationstation")))                        
+                    return Path.Combine(LocalPath, ".emulationstation");
 
                 if (key == "bios" || key == "saves" || key == "thumbnails" || key == "shaders" || key == "decorations" || key == "screenshots")
                 {
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", key)));
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", key)));
                 }
                 else
                 {                  
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, key))); 
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, key))); 
                     
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", key)));
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "emulators", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "emulators", key)));
 
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", key)));
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", "emulators", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", "emulators", key)));
 
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", key)));
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", key)));
                 }
                 
                 return string.Empty;
@@ -133,17 +133,17 @@ namespace emulatorLauncher
             if (data.Contains(":")) // drive letter -> Full path
                 return data;
 
-            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, data))))
-                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, data)));
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, data)));
 
-            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", data))))
-                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", data)));
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "emulators", data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "emulators", data)));
 
-            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", data))))
-                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", data)));
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", "emulators", data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", "emulators", data)));
 
-            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", data))))
-                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", data)));
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", data)));
 
             return data;
         }
@@ -262,7 +262,18 @@ namespace emulatorLauncher
                     _data.RemoveAt(i);
         }
 
-  
+        public static string LocalPath
+        {
+            get
+            {
+                if (_localPath == null)
+                    _localPath = Path.GetDirectoryName(typeof(ConfigFile).Assembly.Location);
+
+                return _localPath;
+            }
+        }
+
+        private static string _localPath;
     }
     
     class ConfigItem

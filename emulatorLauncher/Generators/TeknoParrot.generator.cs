@@ -825,7 +825,7 @@ namespace emulatorLauncher
             return null;
         }
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             if (path.FileName == "WARNING")
             {
@@ -843,10 +843,10 @@ namespace emulatorLauncher
                     }
                 }
 
-                return;
+                return -1;
             }
 
-            base.RunAndWait(path);
+            int ret = base.RunAndWait(path);
 
             KillProcessTree("TeknoParrotUI");
 
@@ -861,6 +861,8 @@ namespace emulatorLauncher
             KillProcessTree("BudgieLoader");
             KillProcessTree("OpenParrotKonamiLoader");
             killIDZ();
+
+            return ret;
         }
         
     }

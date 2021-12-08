@@ -106,7 +106,6 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
-
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info(Environment.CommandLine);
 
@@ -145,24 +144,24 @@ namespace emulatorLauncher
                 return;
             }
 
-            // SystemConfig["updates.type"] vide ou stable/beta/unstable
-
-
             if (!SystemConfig.isOptSet("rom"))
             {
                 SimpleLogger.Instance.Error("rom not set");
+                Environment.ExitCode = (int) ExitCodes.BadCommandLine;
                 return;
             }
 
             if (!File.Exists(SystemConfig.GetFullPath("rom")) && !Directory.Exists(SystemConfig.GetFullPath("rom")))
             {
                 SimpleLogger.Instance.Error("rom does not exist");
+                Environment.ExitCode = (int)ExitCodes.BadCommandLine;
                 return;
             }
 
             if (!SystemConfig.isOptSet("system"))
             {
                 SimpleLogger.Instance.Error("system not set");
+                Environment.ExitCode = (int)ExitCodes.BadCommandLine;
                 return;
             }
             
@@ -223,8 +222,9 @@ namespace emulatorLauncher
                     Features = EsFeatures.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.cfg"));
                 }
                 catch (Exception ex)
-                {
-                    MessageBox.Show("Error : es_features.cfg is invalid :\r\n" + ex.Message, null, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                {                    
+                    WriteCustomErrorFile("Error : es_features.cfg is invalid :\r\n" + ex.Message); // Delete custom err
+                    Environment.ExitCode = (int)ExitCodes.CustomError;
                     return;
                 }
 
@@ -255,19 +255,29 @@ namespace emulatorLauncher
                         mapping = generator.SetupCustomPadToKeyMapping(mapping);
 
                         using (new HighPerformancePowerScheme())
-                        using (new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
-                            generator.RunAndWait(path);
+                        using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
+                        {
+                            int exitCode = generator.RunAndWait(path);
+                            if (exitCode != 0 && !joy.ProcessKilled)
+                                Environment.ExitCode = (int)ExitCodes.EmulatorExitedUnexpectedly;
+                        }
 
                         generator.RestoreFiles();
                     }
                     else
+                    {
                         SimpleLogger.Instance.Error("generator failed");
+                        Environment.ExitCode = (int) generator.ExitCode;
+                    }
                 }
 
                 generator.Cleanup();
             }
             else
+            {
                 SimpleLogger.Instance.Error("Can't find generator");
+                Environment.ExitCode = (int)ExitCodes.UnknownEmulator;
+            }
         }
 
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
@@ -451,7 +461,7 @@ namespace emulatorLauncher
 
             try
             {
-                var inputConfig = InputList.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_input.cfg"));
+                var inputConfig = EsInput.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_input.cfg"));
                 if (inputConfig != null)
                 {
                     if (!Controllers.Any())
@@ -502,6 +512,29 @@ namespace emulatorLauncher
                         SystemConfig["shader"] = renderconfig;
                 }
             }
+        }
+
+
+        /// <summary>
+        /// To use with Environment.ExitCode = (int)ExitCodes.CustomError;
+        /// Deletes the file if message == null
+        /// </summary>
+        /// <param name="message"></param>
+        public static void WriteCustomErrorFile(string message)
+        {
+            string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "launch_error.log");
+
+            try
+            {
+                if (string.IsNullOrEmpty(message))
+                {
+                    if (File.Exists(fn))
+                        File.Delete(fn);
+                }
+                else
+                    File.WriteAllText(fn, message);
+            }
+            catch { }
         }
     }
 

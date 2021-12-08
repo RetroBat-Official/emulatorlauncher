@@ -13,6 +13,8 @@ namespace emulatorLauncher.PadToKeyboard
 {
     class JoystickListener : IDisposable
     {
+        public bool ProcessKilled { get; private set; }
+
         private PadToKey _mapping;
         private Controller[] _inputList;
 
@@ -491,6 +493,7 @@ namespace emulatorLauncher.PadToKeyboard
             {
                 Process p = Process.GetProcessById((int)pid);
                 p.Kill();
+                ProcessKilled = true;
             }
             catch { }
         }

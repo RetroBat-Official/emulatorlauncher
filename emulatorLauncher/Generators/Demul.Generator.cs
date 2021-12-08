@@ -66,7 +66,7 @@ namespace emulatorLauncher
             };
         }
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             var process = Process.Start(path);
 
@@ -91,7 +91,12 @@ namespace emulatorLauncher
             }
 
             if (process != null)
+            {
                 process.WaitForExit();
+                return process.ExitCode;
+            }
+
+            return -1;
         }
 
         private void SetupGeneralConfig(string path, string rom, string system, string core)

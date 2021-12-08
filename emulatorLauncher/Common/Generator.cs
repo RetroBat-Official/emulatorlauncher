@@ -11,10 +11,26 @@ namespace emulatorLauncher
 {
     abstract class Generator
     {
+        protected void SetCustomError(string message)
+        {
+            try
+            {
+                ExitCode = ExitCodes.CustomError;
+                Program.WriteCustomErrorFile(message);
+            }
+            catch 
+            { 
+                
+            }
+        }
+
+        public ExitCodes ExitCode { get; protected set; }
+
         public Generator()
         {
             UsePadToKey = true;
             DependsOnDesktopResolution = false;
+            ExitCode = ExitCodes.EmulatorNotInstalled;
         }
 
         protected EsFeatures Features { get { return Program.Features; } }
@@ -25,10 +41,20 @@ namespace emulatorLauncher
         public abstract ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution);
         public virtual void Cleanup() { }
 
-        public virtual void RunAndWait(ProcessStartInfo path)
+        public virtual int RunAndWait(ProcessStartInfo path)
         {
-            try { Process.Start(path).WaitForExit(); }
-            catch { }
+            try 
+            {
+                var process = Process.Start(path);
+                process.WaitForExit();
+                return process.ExitCode;
+            }
+            catch 
+            { 
+
+            }
+
+            return -1;
         }
 
         public bool DependsOnDesktopResolution { get; protected set; }
@@ -63,4 +89,18 @@ namespace emulatorLauncher
                 File.WriteAllBytes(file.Key, file.Value);
         }
     }
+
+    enum ExitCodes : int
+    {
+        OK = 0,
+        EmulatorExitedUnexpectedly = 200,
+        BadCommandLine = 201,
+        InvalidConfiguration = 202,
+        UnknownEmulator = 203,
+        EmulatorNotInstalled = 204,
+        MissingCore = 205,
+
+        CustomError = 299
+    }
+
 }

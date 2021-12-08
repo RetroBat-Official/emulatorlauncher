@@ -70,7 +70,7 @@ namespace emulatorLauncher
             };
         }
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             try
             {
@@ -86,8 +86,12 @@ namespace emulatorLauncher
                         Application.DoEvents();
                     }
                 }
+
+                return px.ExitCode;
             }
             catch { }
+
+            return -1;
         }
 
         public override void Cleanup()

@@ -626,7 +626,7 @@ namespace emulatorLauncher.libRetro
         {
             if (string.IsNullOrEmpty(RetroarchPath))
                 return null;
-
+            
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
                 core = Path.GetFileNameWithoutExtension(rom);
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
@@ -639,6 +639,23 @@ namespace emulatorLauncher.libRetro
                     rom = Path.Combine(Path.GetDirectoryName(rom), "dinothawr", "dinothawr.game");
                 else
                     rom = null;
+            }
+            
+            if (string.IsNullOrEmpty(core))
+            {
+                ExitCode = ExitCodes.MissingCore;
+                SimpleLogger.Instance.Error("Libretro : core was not provided");
+                return null;
+            }
+            else
+            {
+                string corePath = Path.Combine(RetroarchCorePath, core + "_libretro.dll");
+                if (!File.Exists(corePath))
+                {
+                    SimpleLogger.Instance.Error("Libretro : core is not installed");
+                    ExitCode = ExitCodes.MissingCore;
+                    return null;
+                }
             }
 
             // Extension used by hypseus .daphne but lr-daphne starts with .zip
