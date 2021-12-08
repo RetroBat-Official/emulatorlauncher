@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: 1.0.0.{build}
 configuration: Release
 platform: x86
 assembly_info:
@@ -11,7 +11,6 @@ build:
   project: batocera-ports.sln
   verbosity: minimal
 after_build:
-- echo {version} > version.info
 - copy emulatorLauncher\bin\Release\emulatorLauncher.exe .
 - 7z a batocera-ports.zip emulatorLauncher.exe
 - copy batocera-retroachievements-info\bin\Release\batocera-retroachievements-info.exe .
@@ -29,7 +28,6 @@ after_build:
 - 7z a batocera-ports.zip pdfinfo.exe
 artifacts:
 - path: batocera-ports.zip
-- path: version.info
 deploy:
 - provider: GitHub
   tag: continuous
