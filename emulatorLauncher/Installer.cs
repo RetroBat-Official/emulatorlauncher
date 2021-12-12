@@ -385,6 +385,24 @@ namespace emulatorLauncher
             return false;
         }
 
+        public static bool UrlExists(string url)
+        {
+            try
+            {
+                var req = WebRequest.Create(url);
+                req.Method = "HEAD";
+
+                var resp = req.GetResponse() as HttpWebResponse;
+                return resp.StatusCode == HttpStatusCode.OK;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error(ex.Message);
+            }
+
+            return false;
+        }
+
         public static bool DownloadAndInstall(string url, string installFolder, ProgressChangedEventHandler progress = null)
         {
         retry:

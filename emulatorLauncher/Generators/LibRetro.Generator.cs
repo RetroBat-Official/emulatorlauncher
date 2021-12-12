@@ -661,7 +661,12 @@ namespace emulatorLauncher.libRetro
                         if (!string.IsNullOrEmpty(url))
                         {
                             url += core + "_libretro.dll.zip";
-                            Installer.DownloadAndInstall(url, RetroarchCorePath);
+
+                            if (Installer.UrlExists(url))
+                            {
+                                using (var frm = new InstallerFrm(null))
+                                    frm.DownloadAndInstall(url, RetroarchCorePath);                                
+                            }
                         }
                     }
                     catch { }

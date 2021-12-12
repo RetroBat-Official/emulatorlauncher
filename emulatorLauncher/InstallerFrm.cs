@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using emulatorLauncher.PadToKeyboard;
 using emulatorLauncher.Tools;
+using System.IO;
 
 namespace emulatorLauncher
 {
@@ -67,6 +68,31 @@ namespace emulatorLauncher
             SetupPad();
         }
 
+        public void DownloadAndInstall(string url, string installFolder)
+        {
+            progressBar1.Value = 0;
+            label1.Text = "Downloading " + Path.GetFileNameWithoutExtension(url);
+            label1.TextAlign = ContentAlignment.BottomCenter;
+
+            tableLayoutPanel2.RowStyles[1].SizeType = SizeType.Absolute;
+            tableLayoutPanel2.RowStyles[1].Height = 0;
+            tableLayoutPanel2.RowStyles[0].SizeType = SizeType.Percent;
+            tableLayoutPanel2.RowStyles[0].Height = 50;
+            tableLayoutPanel2.RowStyles[2].SizeType = SizeType.Percent;
+            tableLayoutPanel2.RowStyles[2].Height = 50;
+
+            Show();
+            Refresh();
+
+            Installer.DownloadAndInstall(url, installFolder, (o, pe) =>
+            {
+                progressBar1.Value = pe.ProgressPercentage;
+            });
+
+            DialogResult = System.Windows.Forms.DialogResult.OK;
+            Close();
+        }
+        
         public void UpdateAll()
         {
             progressBar1.Visible = false;
