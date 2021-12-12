@@ -47,6 +47,15 @@ namespace emulatorLauncher
             {
                 var process = Process.Start(path);
                 process.WaitForExit();
+                                 
+                int exitCode = process.ExitCode;
+
+                if (exitCode == unchecked((int)0xc0000005)) // Null pointer - happen sometimes with Yuzu
+                    return 0;
+
+                if (exitCode == unchecked((int)0xc0000374)) // Heap corruption - happen sometimes with scummvm
+                    return 0;
+                
                 return process.ExitCode;
             }
             catch 

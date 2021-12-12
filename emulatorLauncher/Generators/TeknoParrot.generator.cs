@@ -843,7 +843,7 @@ namespace emulatorLauncher
                     }
                 }
 
-                return -1;
+                return 0;
             }
 
             int ret = base.RunAndWait(path);
@@ -862,7 +862,7 @@ namespace emulatorLauncher
             KillProcessTree("OpenParrotKonamiLoader");
             killIDZ();
 
-            return ret;
+            return 0;
         }
         
     }
