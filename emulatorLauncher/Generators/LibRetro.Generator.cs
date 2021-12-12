@@ -652,9 +652,26 @@ namespace emulatorLauncher.libRetro
                 string corePath = Path.Combine(RetroarchCorePath, core + "_libretro.dll");
                 if (!File.Exists(corePath))
                 {
-                    SimpleLogger.Instance.Error("Libretro : core is not installed");
-                    ExitCode = ExitCodes.MissingCore;
-                    return null;
+                    try
+                    {
+                        // Automatic install of missing core
+                        var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
+
+                        string url = retroarchConfig["core_updater_buildbot_cores_url"];
+                        if (!string.IsNullOrEmpty(url))
+                        {
+                            url += core + "_libretro.dll.zip";
+                            Installer.DownloadAndInstall(url, RetroarchCorePath);
+                        }
+                    }
+                    catch { }
+
+                    if (!File.Exists(corePath))
+                    {
+                        SimpleLogger.Instance.Error("Libretro : core is not installed");
+                        ExitCode = ExitCodes.MissingCore;
+                        return null;
+                    }
                 }
             }
 

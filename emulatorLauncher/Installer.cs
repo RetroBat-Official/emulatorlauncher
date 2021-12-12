@@ -385,19 +385,19 @@ namespace emulatorLauncher
             return false;
         }
 
-
-        public bool DownloadAndInstall(ProgressChangedEventHandler progress = null)
+        public static bool DownloadAndInstall(string url, string installFolder, ProgressChangedEventHandler progress = null)
         {
         retry:
             try
             {
-                var req = WebRequest.Create(PackageUrl);
+                var req = WebRequest.Create(url);
                 ((HttpWebRequest)req).UserAgent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)";
 
                 var resp = req.GetResponse() as HttpWebResponse;
                 if (resp.StatusCode == HttpStatusCode.OK)
                 {
-                    string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", DefaultFolderName + ".7z");
+                    string localFile = Path.GetFileName(url);
+                    string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", localFile);
 
                     try { if (File.Exists(fn)) File.Delete(fn); }
                     catch { }
@@ -408,7 +408,7 @@ namespace emulatorLauncher
                     if (progress != null)
                         progress(null, new ProgressChangedEventArgs(100, null));
 
-                    Zip.Extract(fn, GetInstallFolder());
+                    Zip.Extract(fn, installFolder);
 
                     try { if (File.Exists(fn)) File.Delete(fn); }
                     catch { }
@@ -420,7 +420,7 @@ namespace emulatorLauncher
             {
                 if ((ex.Response as HttpWebResponse).StatusCode == (HttpStatusCode)429)
                 {
-                    Console.WriteLine("429 - " + PackageUrl + " : Retrying");
+                    Console.WriteLine("429 - " + url + " : Retrying");
                     System.Threading.Thread.Sleep(30000);
                     goto retry;
                 }
@@ -432,6 +432,11 @@ namespace emulatorLauncher
             }
 
             return false;
+        }
+
+        public bool DownloadAndInstall(ProgressChangedEventHandler progress = null)
+        {
+            return DownloadAndInstall(PackageUrl, GetInstallFolder(), progress);           
         }
 
         #region CollectVersions

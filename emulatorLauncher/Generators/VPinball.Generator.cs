@@ -87,9 +87,18 @@ namespace emulatorLauncher
                     }
                 }
 
-                return px.ExitCode;
+                int exitCode = px.ExitCode;
+
+                // vpinball always returns -1 when exiting
+                if (exitCode == -1)
+                    return 0;
+
+                return exitCode;
             }
-            catch { }
+            catch 
+            { 
+
+            }
 
             return -1;
         }

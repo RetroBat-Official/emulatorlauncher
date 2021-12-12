@@ -266,5 +266,16 @@ namespace emulatorLauncher
             { "lstick","engine:analog_from_button,up:engine$0keyboard$1code$087$1toggle$00,left:engine$0keyboard$1code$065$1toggle$00,modifier:engine$0keyboard$1code$016777248$1toggle$00,down:engine$0keyboard$1code$083$1toggle$00,right:engine$0keyboard$1code$068$1toggle$00,modifier_scale:0.500000" },
             { "rstick","engine:analog_from_button,up:engine$0keyboard$1code$073$1toggle$00,left:engine$0keyboard$1code$074$1toggle$00,modifier:engine$0keyboard$1code$00$1toggle$00,down:engine$0keyboard$1code$075$1toggle$00,right:engine$0keyboard$1code$076$1toggle$00,modifier_scale:0.500000" }
         };
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int exitCode = base.RunAndWait(path);
+
+            // Yuzu always returns 0xc0000005 ( null pointer !? )
+            if (exitCode == unchecked((int)0xc0000005))
+                return 0;
+            
+            return exitCode;
+        }
     }
 }

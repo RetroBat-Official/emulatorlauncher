@@ -129,5 +129,11 @@ namespace emulatorLauncher
             data = data.Replace("FullScreen = 0", "FullScreen = 1");
             File.WriteAllText(cfg, data);
         }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            base.RunAndWait(path);
+            return 0;
+        }
     }
 }

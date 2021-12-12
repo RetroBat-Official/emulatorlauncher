@@ -72,6 +72,10 @@ namespace emulatorLauncher
             if (bezel != null)
                 bezel.Dispose();
 
+            // GsPlus always returns 1
+            if (ret == 1)
+                return 0;
+
             return ret;
         }
 

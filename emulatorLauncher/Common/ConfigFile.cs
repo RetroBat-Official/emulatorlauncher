@@ -68,10 +68,24 @@ namespace emulatorLauncher
 
             foreach (var line in File.ReadAllLines(file))
             {
-                if (line.TrimStart().StartsWith("#") || line.TrimStart().StartsWith(";"))
+                bool skip = false;
+
+                foreach (var chr in line)
+                {
+                    if (chr == '#' || chr == ';')
+                    {
+                        skip = true;
+                        break;
+                    }
+
+                    if (chr != ' ' && chr != '\t')
+                        break;
+                }                    
+
+                if (skip)
                     continue;
 
-                int idx = line.IndexOf("=");
+                int idx = line.IndexOf("=", StringComparison.Ordinal);
                 if (idx >= 0)
                 {
                     string value = line.Substring(idx + 1).Trim();
