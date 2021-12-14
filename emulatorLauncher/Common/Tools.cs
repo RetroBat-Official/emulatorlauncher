@@ -291,25 +291,30 @@ namespace emulatorLauncher.Tools
             long length = (int)response.ContentLength;
             long pos = 0;
 
-            using (Stream sr = response.GetResponseStream())
+            try
             {
-                byte[] buffer = new byte[1024];
-                int bytes = 0;
-
-                while ((bytes = sr.Read(buffer, 0, buffer.Length)) > 0)
+                using (Stream sr = response.GetResponseStream())
                 {
-                    destinationStream.Write(buffer, 0, bytes);
+                    byte[] buffer = new byte[1024];
+                    int bytes = 0;
 
-                    pos += bytes;
+                    while ((bytes = sr.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        destinationStream.Write(buffer, 0, bytes);
 
-                    if (progress != null && length > 0)
-                        progress(null, new ProgressChangedEventArgs((int)((pos * 100) / length), null));
+                        pos += bytes;
+
+                        if (progress != null && length > 0)
+                            progress(null, new ProgressChangedEventArgs((int)((pos * 100) / length), null));
+                    }
+
+                    sr.Close();
                 }
-
-                sr.Close();
             }
-
-            response.Close();
+            finally
+            {
+                response.Close();
+            }
 
             if (length > 0 && pos != length)
                 throw new Exception("Incomplete download : " + length);

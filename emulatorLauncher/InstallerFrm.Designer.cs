@@ -33,10 +33,11 @@
             // button1
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button1.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Location = new System.Drawing.Point(378, 7);
+            this.button1.Location = new System.Drawing.Point(401, 7);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(126, 70);
+            this.button1.Size = new System.Drawing.Size(96, 36);
             this.button1.TabIndex = 0;
             this.button1.Text = "Yes";
             this.button1.UseVisualStyleBackColor = false;
@@ -47,7 +48,7 @@
             this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label1.Location = new System.Drawing.Point(3, 0);
             this.label1.Name = "label1";
-            this.label1.Padding = new System.Windows.Forms.Padding(0, 0, 0, 25);
+            this.label1.Padding = new System.Windows.Forms.Padding(0, 0, 0, 30);
             this.label1.Size = new System.Drawing.Size(1015, 199);
             this.label1.TabIndex = 1;
             this.label1.Text = "The emulator is not installed.\r\nInstall now ?";
@@ -55,13 +56,12 @@
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Controls.Add(this.button2, 1, 0);
+            this.tableLayoutPanel1.ColumnCount = 3;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 49.26109F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 1.477833F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 49.26109F));
             this.tableLayoutPanel1.Controls.Add(this.button1, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.button2, 2, 0);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 202);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -74,10 +74,11 @@
             // button2
             // 
             this.button2.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.button2.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button2.Location = new System.Drawing.Point(510, 7);
+            this.button2.Location = new System.Drawing.Point(517, 7);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(126, 70);
+            this.button2.Size = new System.Drawing.Size(96, 36);
             this.button2.TabIndex = 4;
             this.button2.Text = "No";
             this.button2.UseVisualStyleBackColor = false;
@@ -124,7 +125,7 @@
             this.progressBar1.Location = new System.Drawing.Point(206, 3);
             this.progressBar1.MaximumSize = new System.Drawing.Size(0, 50);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(603, 43);
+            this.progressBar1.Size = new System.Drawing.Size(603, 36);
             this.progressBar1.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar1.TabIndex = 7;
             this.progressBar1.Value = 50;
@@ -141,18 +142,15 @@
             // 
             // InstallerFrm
             // 
-            this.AcceptButton = this.button1;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.Black;
-            this.CancelButton = this.button2;
             this.ClientSize = new System.Drawing.Size(1045, 624);
             this.ControlBox = false;
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.tableLayoutPanel2);
-            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 22F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ForeColor = System.Drawing.Color.White;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "InstallerFrm";
             this.Opacity = 0.96D;

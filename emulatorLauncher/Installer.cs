@@ -64,6 +64,8 @@ namespace emulatorLauncher
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
         };
 
+        private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0";
+
         #region Properties
         public string Emulator { get; private set; }
         public string[] Folders { get; private set; }
@@ -76,14 +78,40 @@ namespace emulatorLauncher
         {
             get
             {
-                string installerUrl = Program.AppConfig["installers"];
-                if (string.IsNullOrEmpty(installerUrl))
-                    return string.Empty;
-
-                return installerUrl
-                    .Replace("%UPDATETYPE%", UpdatesType)
-                    .Replace("%FOLDERNAME%", DefaultFolderName);
+                return GetUpdateUrl(DefaultFolderName + ".7z");
             }
+        }
+
+        public static string GetUpdateUrl(string fileName)
+        {
+            string installerUrl = Program.AppConfig["installers"];
+            if (string.IsNullOrEmpty(installerUrl))
+                return string.Empty;
+
+            string ret = string.Empty;
+
+            if (installerUrl.Contains("%FOLDERNAME%"))
+            {
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+                string extension = Path.GetExtension(fileName);
+
+                ret = installerUrl
+                    .Replace("%UPDATETYPE%", UpdatesType)
+                    .Replace("%FOLDERNAME%", fileNameWithoutExtension);
+
+                if (!string.IsNullOrEmpty(extension) && extension != ".7z")
+                    ret = ret.Replace(".7z", extension);
+            }
+            else
+            {
+                ret = installerUrl.Replace("%UPDATETYPE%", UpdatesType);
+                if (ret.EndsWith("/"))
+                    ret = ret + fileName;
+                else
+                    ret = ret + "/" + fileName;
+            }
+
+            return ret;
         }
 
         public static string UpdatesType
@@ -306,16 +334,12 @@ namespace emulatorLauncher
                 }
                 else
                 {
-                    string url = Program.AppConfig["installers"];
-                    if (string.IsNullOrEmpty(url))
-                        return false;
+                    string url = Installer.GetUpdateUrl("versions.xml");
 
-                    url = url.Replace("%UPDATETYPE%", UpdatesType)
-                             .Replace("%FOLDERNAME%", "versions")
-                             .Replace(".7z", ".xml");
+                    var req = WebRequest.Create(url) as HttpWebRequest;
+                    req.UserAgent = Installer.UserAgent;
+                    req.KeepAlive = false;
 
-                    var req = WebRequest.Create(url);
-                    ((HttpWebRequest)req).UserAgent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)";
                     var resp = req.GetResponse() as HttpWebResponse;
                     if (resp.StatusCode == HttpStatusCode.OK)
                     {
@@ -326,9 +350,11 @@ namespace emulatorLauncher
                             catch { }
 
                             File.WriteAllText(cachedFile, xml);
-                            File.SetCreationTime(cachedFile, DateTime.Now);  
+                            File.SetCreationTime(cachedFile, DateTime.Now);
                         }
                     }
+                    else
+                        resp.Close();
                 }
 
                 if (string.IsNullOrEmpty(xml))
@@ -360,7 +386,7 @@ namespace emulatorLauncher
             }
             catch (Exception ex)
             {
-
+                SimpleLogger.Instance.Error(ex.Message);
             }
 
             return false;
@@ -369,37 +395,42 @@ namespace emulatorLauncher
 
         public bool CanInstall()
         {
-            try
-            {
-                var req = WebRequest.Create(PackageUrl);
-                req.Method = "HEAD";
-
-                var resp = req.GetResponse() as HttpWebResponse;
-                return resp.StatusCode == HttpStatusCode.OK;
-            }
-            catch (Exception ex)
-            {
-                SimpleLogger.Instance.Error(ex.Message);
-            }
-
-            return false;
+            return UrlExists(PackageUrl);
         }
+
+        private static Dictionary<string, bool> _urlExistsCache;
 
         public static bool UrlExists(string url)
         {
+            if (string.IsNullOrEmpty(url) || !url.StartsWith("http"))
+                return false;
+
+            if (_urlExistsCache == null)
+                _urlExistsCache = new Dictionary<string, bool>();
+
             try
             {
-                var req = WebRequest.Create(url);
+                var req = WebRequest.Create(url) as HttpWebRequest;
+                req.UserAgent = Installer.UserAgent;
+                req.KeepAlive = false;
                 req.Method = "HEAD";
 
                 var resp = req.GetResponse() as HttpWebResponse;
-                return resp.StatusCode == HttpStatusCode.OK;
+                if (resp.StatusCode == HttpStatusCode.OK)
+                {
+                    resp.Close();
+                    _urlExistsCache[url] = true;
+                    return true;
+                }
+
+                resp.Close();
             }
             catch (Exception ex)
             {
                 SimpleLogger.Instance.Error(ex.Message);
             }
 
+            _urlExistsCache[url] = false;
             return false;
         }
 
@@ -408,8 +439,9 @@ namespace emulatorLauncher
         retry:
             try
             {
-                var req = WebRequest.Create(url);
-                ((HttpWebRequest)req).UserAgent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)";
+                var req = WebRequest.Create(url) as HttpWebRequest;
+                req.UserAgent = Installer.UserAgent;
+                req.KeepAlive = false;
 
                 var resp = req.GetResponse() as HttpWebResponse;
                 if (resp.StatusCode == HttpStatusCode.OK)
@@ -433,6 +465,8 @@ namespace emulatorLauncher
 
                     return true;
                 }
+
+                resp.Close();
             }
             catch (WebException ex)
             {

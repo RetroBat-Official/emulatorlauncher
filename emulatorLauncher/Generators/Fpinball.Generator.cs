@@ -355,7 +355,7 @@ namespace emulatorLauncher
                 if (controller != null)
                 {
                     LoadingForm frm = new LoadingForm();
-                    frm.WarningText = "Warning : Future Pinball requires developper mode enabled in Windows settings";
+                    frm.WarningText = Properties.Resources.FPinballDeveloperMode;
                     frm.Show();
                 }
             }

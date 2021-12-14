@@ -81,12 +81,68 @@ namespace emulatorLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The core &apos;{0}&apos; is not installed.
+        ///Install now ?.
+        /// </summary>
+        internal static string CoreNotInstalled {
+            get {
+                return ResourceManager.GetString("CoreNotInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading {0}.
+        /// </summary>
+        internal static string Downloading {
+            get {
+                return ResourceManager.GetString("Downloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] eeprom {
             get {
                 object obj = ResourceManager.GetObject("eeprom", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The emulator &apos;{0}&apos; is not installed.
+        ///Install now ?.
+        /// </summary>
+        internal static string EmulatorNotInstalled {
+            get {
+                return ResourceManager.GetString("EmulatorNotInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning : Future Pinball requires developper mode enabled in Windows settings.
+        /// </summary>
+        internal static string FPinballDeveloperMode {
+            get {
+                return ResourceManager.GetString("FPinballDeveloperMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installing.....
+        /// </summary>
+        internal static string Installing {
+            get {
+                return ResourceManager.GetString("Installing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Looking for updates....
+        /// </summary>
+        internal static string LookingForUpdates {
+            get {
+                return ResourceManager.GetString("LookingForUpdates", resourceCulture);
             }
         }
         
@@ -116,6 +172,15 @@ namespace emulatorLauncher.Properties {
         internal static string mame {
             get {
                 return ResourceManager.GetString("mame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No.
+        /// </summary>
+        internal static string No {
+            get {
+                return ResourceManager.GetString("No", resourceCulture);
             }
         }
         
@@ -182,12 +247,42 @@ namespace emulatorLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An update is available for {0} :
+        ///Update version : {1}
+        ///Installed version : {2}
+        ///Install now ?.
+        /// </summary>
+        internal static string UpdateAvailable {
+            get {
+                return ResourceManager.GetString("UpdateAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating {0}.
+        /// </summary>
+        internal static string Updating {
+            get {
+                return ResourceManager.GetString("Updating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] xbox_hdd_qcow2 {
             get {
                 object obj = ResourceManager.GetObject("xbox_hdd_qcow2", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yes.
+        /// </summary>
+        internal static string Yes {
+            get {
+                return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
     }

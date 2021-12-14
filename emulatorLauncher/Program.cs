@@ -128,7 +128,7 @@ namespace emulatorLauncher
 
             if (args.Any(a => "-updateall".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
-                using (var frm = new InstallerFrm(null))
+                using (var frm = new InstallerFrm())
                     frm.UpdateAll();
 
                 return;

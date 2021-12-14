@@ -654,19 +654,22 @@ namespace emulatorLauncher.libRetro
                 {
                     try
                     {
-                        // Automatic install of missing core
-                        var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
 
-                        string url = retroarchConfig["core_updater_buildbot_cores_url"];
-                        if (!string.IsNullOrEmpty(url))
+                        string url = Installer.GetUpdateUrl("cores/" + core + "_libretro.dll.zip");
+                        if (!Installer.UrlExists(url))
                         {
-                            url += core + "_libretro.dll.zip";
+                            // Automatic install of missing core
+                            var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
 
-                            if (Installer.UrlExists(url))
-                            {
-                                using (var frm = new InstallerFrm(null))
-                                    frm.DownloadAndInstall(url, RetroarchCorePath);                                
-                            }
+                            url = retroarchConfig["core_updater_buildbot_cores_url"];
+                            if (!string.IsNullOrEmpty(url))
+                                url += core + "_libretro.dll.zip";
+                        }
+
+                        if (Installer.UrlExists(url))
+                        {
+                            using (var frm = new InstallerFrm(core, url, RetroarchCorePath))
+                                frm.ShowDialog();
                         }
                     }
                     catch { }
