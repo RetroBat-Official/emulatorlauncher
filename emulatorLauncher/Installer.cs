@@ -82,34 +82,20 @@ namespace emulatorLauncher
 
         public static string GetUpdateUrl(string fileName)
         {
-            string installerUrl = Program.AppConfig["installers"];
+            string installerUrl = RegistryKeyEx.GetRegistryValue(
+                RegistryKeyEx.CurrentUser,
+                @"SOFTWARE\RetroBat",
+                "InstallRootUrl") as string;
+
             if (string.IsNullOrEmpty(installerUrl))
                 return string.Empty;
 
-            string ret = string.Empty;
-
-            if (installerUrl.Contains("%FOLDERNAME%"))
-            {
-                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-                string extension = Path.GetExtension(fileName);
-
-                ret = installerUrl
-                    .Replace("%UPDATETYPE%", UpdatesType)
-                    .Replace("%FOLDERNAME%", fileNameWithoutExtension);
-
-                if (!string.IsNullOrEmpty(extension) && extension != ".7z")
-                    ret = ret.Replace(".7z", extension);
-            }
+            if (installerUrl.EndsWith("/"))
+                installerUrl = installerUrl + UpdatesType + "/emulators/" + fileName;
             else
-            {
-                ret = installerUrl.Replace("%UPDATETYPE%", UpdatesType);
-                if (ret.EndsWith("/"))
-                    ret = ret + fileName;
-                else
-                    ret = ret + "/" + fileName;
-            }
+                installerUrl = installerUrl + "/" + UpdatesType + "/emulators/" + fileName;
 
-            return ret;
+            return installerUrl;
         }
 
         public static string UpdatesType
