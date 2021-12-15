@@ -274,51 +274,6 @@ namespace emulatorLauncher.Tools
             return string.Join(".", numbers.Take(4).ToArray());
         }
 
-        public static string ReadResponseString(this WebResponse response)
-        {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ReadResponseStream(response, ms);
-                return Encoding.UTF8.GetString(ms.ToArray());
-            }
-        }
-
-        public static void ReadResponseStream(this WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
-        {
-            if (destinationStream == null)
-                throw new ArgumentException("Stream null");
-
-            long length = (int)response.ContentLength;
-            long pos = 0;
-
-            try
-            {
-                using (Stream sr = response.GetResponseStream())
-                {
-                    byte[] buffer = new byte[1024];
-                    int bytes = 0;
-
-                    while ((bytes = sr.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        destinationStream.Write(buffer, 0, bytes);
-
-                        pos += bytes;
-
-                        if (progress != null && length > 0)
-                            progress(null, new ProgressChangedEventArgs((int)((pos * 100) / length), null));
-                    }
-
-                    sr.Close();
-                }
-            }
-            finally
-            {
-                response.Close();
-            }
-
-            if (length > 0 && pos != length)
-                throw new Exception("Incomplete download : " + length);
-        }
 
     }
 }

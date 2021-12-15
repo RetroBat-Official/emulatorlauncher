@@ -656,7 +656,7 @@ namespace emulatorLauncher.libRetro
                     {
 
                         string url = Installer.GetUpdateUrl("cores/" + core + "_libretro.dll.zip");
-                        if (!Installer.UrlExists(url))
+                        if (!WebTools.UrlExists(url))
                         {
                             // Automatic install of missing core
                             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
@@ -666,7 +666,7 @@ namespace emulatorLauncher.libRetro
                                 url += core + "_libretro.dll.zip";
                         }
 
-                        if (Installer.UrlExists(url))
+                        if (WebTools.UrlExists(url))
                         {
                             using (var frm = new InstallerFrm(core, url, RetroarchCorePath))
                                 frm.ShowDialog();

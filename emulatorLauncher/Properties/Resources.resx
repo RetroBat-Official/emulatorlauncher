@@ -180,4 +180,11 @@ Install now ?</value>
     <value>The core '{0}' is not installed.
 Install now ?</value>
   </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="ErrorOccured" xml:space="preserve">
+    <value>An error occured :
+{0}</value>
+  </data>
 </root>

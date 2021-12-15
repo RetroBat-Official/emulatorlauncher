@@ -64,8 +64,6 @@ namespace emulatorLauncher
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
         };
 
-        private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0";
-
         #region Properties
         public string Emulator { get; private set; }
         public string[] Folders { get; private set; }
@@ -335,26 +333,27 @@ namespace emulatorLauncher
                 else
                 {
                     string url = Installer.GetUpdateUrl("versions.xml");
+                    if (string.IsNullOrEmpty(url))
+                        return false;
 
-                    var req = WebRequest.Create(url) as HttpWebRequest;
-                    req.UserAgent = Installer.UserAgent;
-                    req.KeepAlive = false;
+                    xml = WebTools.DownloadString(url);
 
-                    var resp = req.GetResponse() as HttpWebResponse;
-                    if (resp.StatusCode == HttpStatusCode.OK)
+                    if (!string.IsNullOrEmpty(xml))
                     {
-                        xml = resp.ReadResponseString();
-                        if (!string.IsNullOrEmpty(xml))
+                        try
                         {
-                            try { if (File.Exists(cachedFile)) File.Delete(cachedFile); }
-                            catch { }
+                            string dir = Path.GetDirectoryName(cachedFile);
+                            if (!Directory.Exists(dir))
+                                Directory.CreateDirectory(dir);
 
-                            File.WriteAllText(cachedFile, xml);
-                            File.SetCreationTime(cachedFile, DateTime.Now);
+                            if (File.Exists(cachedFile)) 
+                                File.Delete(cachedFile);
                         }
+                        catch { }
+
+                        File.WriteAllText(cachedFile, xml);
+                        File.SetCreationTime(cachedFile, DateTime.Now);
                     }
-                    else
-                        resp.Close();
                 }
 
                 if (string.IsNullOrEmpty(xml))
@@ -395,92 +394,32 @@ namespace emulatorLauncher
 
         public bool CanInstall()
         {
-            return UrlExists(PackageUrl);
-        }
-
-        private static Dictionary<string, bool> _urlExistsCache;
-
-        public static bool UrlExists(string url)
-        {
-            if (string.IsNullOrEmpty(url) || !url.StartsWith("http"))
-                return false;
-
-            if (_urlExistsCache == null)
-                _urlExistsCache = new Dictionary<string, bool>();
-
-            try
-            {
-                var req = WebRequest.Create(url) as HttpWebRequest;
-                req.UserAgent = Installer.UserAgent;
-                req.KeepAlive = false;
-                req.Method = "HEAD";
-
-                var resp = req.GetResponse() as HttpWebResponse;
-                if (resp.StatusCode == HttpStatusCode.OK)
-                {
-                    resp.Close();
-                    _urlExistsCache[url] = true;
-                    return true;
-                }
-
-                resp.Close();
-            }
-            catch (Exception ex)
-            {
-                SimpleLogger.Instance.Error(ex.Message);
-            }
-
-            _urlExistsCache[url] = false;
-            return false;
+            return WebTools.UrlExists(PackageUrl);
         }
 
         public static bool DownloadAndInstall(string url, string installFolder, ProgressChangedEventHandler progress = null)
         {
-        retry:
+            string localFile = Path.GetFileName(url);
+            string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", localFile);
+
+            try { if (File.Exists(fn)) File.Delete(fn); }
+            catch { }
+
             try
             {
-                var req = WebRequest.Create(url) as HttpWebRequest;
-                req.UserAgent = Installer.UserAgent;
-                req.KeepAlive = false;
+                using (FileStream fileStream = new FileStream(fn, FileMode.Create))
+                    WebTools.DownloadToStream(fileStream, url, progress);
 
-                var resp = req.GetResponse() as HttpWebResponse;
-                if (resp.StatusCode == HttpStatusCode.OK)
-                {
-                    string localFile = Path.GetFileName(url);
-                    string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", localFile);
+                if (progress != null)
+                    progress(null, new ProgressChangedEventArgs(100, null));
 
-                    try { if (File.Exists(fn)) File.Delete(fn); }
-                    catch { }
-
-                    using (FileStream fileStream = new FileStream(fn, FileMode.Create))
-                        resp.ReadResponseStream(fileStream, progress);
-
-                    if (progress != null)
-                        progress(null, new ProgressChangedEventArgs(100, null));
-
-                    Zip.Extract(fn, installFolder);
-
-                    try { if (File.Exists(fn)) File.Delete(fn); }
-                    catch { }
-
-                    return true;
-                }
-
-                resp.Close();
+                Zip.Extract(fn, installFolder);
+                return true;
             }
-            catch (WebException ex)
+            finally
             {
-                if ((ex.Response as HttpWebResponse).StatusCode == (HttpStatusCode)429)
-                {
-                    Console.WriteLine("429 - " + url + " : Retrying");
-                    System.Threading.Thread.Sleep(30000);
-                    goto retry;
-                }
-                SimpleLogger.Instance.Error(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                SimpleLogger.Instance.Error(ex.Message);
+                try { if (File.Exists(fn)) File.Delete(fn); }
+                catch { }
             }
 
             return false;

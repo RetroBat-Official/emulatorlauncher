@@ -15,21 +15,34 @@ namespace emulatorLauncher
 {
     partial class InstallerFrm : Form
     {
+        public static void ShowMessage(string message)
+        {
+            using (InstallerFrm frm = new InstallerFrm())
+            {
+                frm.SetLabel(message);
+                frm.SetupButtons(InstallerButtons.Ok);
+                frm.SetupLayout(InstallerLayout.ButtonsAndText);
+                frm.ShowDialog();
+            }
+        }
+
         private string _url;
         private string _installFolder;
         private bool _isUpdate;
 
-        private Size _sz;
-        private Size _szI;
-
         private JoystickListener _joy;
-
+        
         public InstallerFrm()
         {
             InitializeComponent();
 
-            _sz = this.Size;
-            _szI = pictureBox1.Size;
+            Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
+
+            button1.GotFocus += button1_GotFocus;
+            button2.GotFocus += button2_GotFocus;
+
+            SetupButtons(InstallerButtons.YesNo);
+            SetupLayout(InstallerLayout.ButtonsAndText);
 
             _flex = new Flex(this);
             _flex.AddControl(pictureBox1, FlexMode.Size | FlexMode.Position | FlexMode.KeepProportions);
@@ -37,16 +50,6 @@ namespace emulatorLauncher
             _flex.AddControl(button2, FlexMode.Size);
             _flex.AddControl(label1, FlexMode.Padding);
             _flex.AddControl(progressBar1, FlexMode.Size);
-
-            Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
-
-            button1.Text = Properties.Resources.Yes;
-            button2.Text = Properties.Resources.No;
-
-            button1.GotFocus += button1_GotFocus;
-            button2.GotFocus += button2_GotFocus;
-
-            SetupLayout(InstallerLayout.ButtonsAndText);
         }
 
         public InstallerFrm(Installer installer)
@@ -76,39 +79,55 @@ namespace emulatorLauncher
 
             SetupLayout(InstallerLayout.ButtonsAndText);
         }
-
+                        
+        enum InstallerButtons
+        {
+            YesNo,
+            Ok
+        }
         enum InstallerLayout
         {
             Text,
             ButtonsAndText,
             ProgressAndText
         }
-        /*
-        protected override void SetVisibleCore(bool value)
+
+        void SetLabel(string label)
         {
-            double opacity = this.Opacity;
-            if (value)
-                this.Opacity = 0;
+            this.label1.Text = label;
+        }
 
-            base.SetVisibleCore(value);
-
-            if (value)
+        void SetupButtons(InstallerButtons buttons)
+        {
+            switch (buttons)
             {
-                while (this.Opacity < opacity)
-                {
-                    double op = this.Opacity + 0.15;
-                    if (op > opacity)
-                        op = opacity;
-
-                    this.Opacity = op;
-                    this.Refresh();
-                    System.Threading.Thread.Sleep(5);
-                }
-
-                this.Opacity = opacity;
+                case InstallerButtons.YesNo:                                
+                    button1.Text = Properties.Resources.Yes;            
+                    button2.Text = Properties.Resources.No;
+                    button1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                    button2.Visible = true;
+                    tableLayoutPanel1.ColumnStyles[1].SizeType = SizeType.Percent;
+                    tableLayoutPanel1.ColumnStyles[1].Width = 1f;
+                    tableLayoutPanel1.ColumnStyles[2].SizeType = SizeType.Percent;
+                    tableLayoutPanel1.ColumnStyles[2].Width = 50;
+                    tableLayoutPanel1.ColumnStyles[0].SizeType = SizeType.Percent;
+                    tableLayoutPanel1.ColumnStyles[0].Width = 50;
+                    break;
+                case InstallerButtons.Ok:
+                    button1.Text = Properties.Resources.Ok;
+                    button1.Anchor = AnchorStyles.Top;
+                    button1.Focus();
+                    button2.Visible = false;
+                    tableLayoutPanel1.ColumnStyles[1].SizeType = SizeType.Absolute;
+                    tableLayoutPanel1.ColumnStyles[1].Width = 0;
+                    tableLayoutPanel1.ColumnStyles[2].SizeType = SizeType.Absolute;
+                    tableLayoutPanel1.ColumnStyles[2].Width = 0;
+                    tableLayoutPanel1.ColumnStyles[0].SizeType = SizeType.Percent;
+                    tableLayoutPanel1.ColumnStyles[0].Width = 100;
+                    break;
             }
         }
-        */
+
         void SetupLayout(InstallerLayout layout)
         {
             switch (layout)
@@ -247,25 +266,38 @@ namespace emulatorLauncher
             string currentEmulator = null;
             bool shown = false;
 
-            Installer.UpdateAll((o, pe) =>
+            try
             {
-                if (!shown)
+                Installer.UpdateAll((o, pe) =>
                 {
-                    SetupLayout(InstallerLayout.ProgressAndText);
-                    progressBar1.Visible = true;
-                    shown = true;
-                }
+                    if (!shown)
+                    {
+                        SetupLayout(InstallerLayout.ProgressAndText);
+                        progressBar1.Visible = true;
+                        shown = true;
+                    }
 
-                progressBar1.Value = pe.ProgressPercentage;
+                    progressBar1.Value = pe.ProgressPercentage;
 
-                string emul = pe.UserState as string;
-                if (emul != null && emul != currentEmulator)
-                {
-                    currentEmulator = emul;
-                    label1.Text = string.Format(Properties.Resources.Updating, currentEmulator);
-                    Refresh();
-                }
-            });
+                    string emul = pe.UserState as string;
+                    if (emul != null && emul != currentEmulator)
+                    {
+                        currentEmulator = emul;
+                        label1.Text = string.Format(Properties.Resources.Updating, currentEmulator);
+                        Refresh();
+                    }
+                });
+
+            }
+            catch (Exception ex)
+            {
+                _url = null;
+
+                SetupLayout(InstallerLayout.ButtonsAndText);
+                SetupButtons(InstallerButtons.Ok);
+                SetLabel(string.Format(Properties.Resources.ErrorOccured, ex.Message));
+                return;
+            }
 
             DialogResult = System.Windows.Forms.DialogResult.OK;
             Close();
@@ -323,9 +355,11 @@ namespace emulatorLauncher
         {
             if (!string.IsNullOrEmpty(_url) && !string.IsNullOrEmpty(_installFolder))
                 DownloadAndInstall(_url, _installFolder);
-
-            DialogResult = System.Windows.Forms.DialogResult.OK;
-            Close();
+            else
+            {
+                DialogResult = System.Windows.Forms.DialogResult.OK;
+                Close();
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -344,15 +378,27 @@ namespace emulatorLauncher
             Show();
             Refresh();
 
-            Installer.DownloadAndInstall(url, installFolder, (o, pe) =>
+            try
             {
-                progressBar1.Value = pe.ProgressPercentage;
-                if (pe.ProgressPercentage == 100)
+                Installer.DownloadAndInstall(url, installFolder, (o, pe) =>
                 {
-                    label1.Text = Properties.Resources.Installing;
-                    Refresh();
-                }
-            });
+                    progressBar1.Value = pe.ProgressPercentage;
+                    if (pe.ProgressPercentage == 100)
+                    {
+                        label1.Text = Properties.Resources.Installing;
+                        Refresh();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _url = null;
+
+                SetupLayout(InstallerLayout.ButtonsAndText);
+                SetupButtons(InstallerButtons.Ok);
+                SetLabel(string.Format(Properties.Resources.ErrorOccured, ex.Message));
+                return;
+            }
 
             DialogResult = System.Windows.Forms.DialogResult.OK;
             Close();
