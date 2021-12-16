@@ -64,6 +64,7 @@
     <Compile Include="BezelFiles.cs" />
     <Compile Include="Common\EsSystems.cs" />
     <Compile Include="Common\WebTools.cs" />
+    <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>

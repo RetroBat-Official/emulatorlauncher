@@ -126,6 +126,12 @@ namespace emulatorLauncher
             LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
+            if (args.Any(a => "-updatepo".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                EsFeaturesPoBuilder.Process();
+                return;
+            }
+
             if (args.Any(a => "-updateall".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
                 using (var frm = new InstallerFrm())

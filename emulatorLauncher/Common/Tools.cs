@@ -17,6 +17,13 @@ namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        public static void RemoveWhere<T>(this IList<T> items, Predicate<T> func)
+        {
+            for (int i = items.Count - 1; i >= 0; i--)
+                if (func(items[i]))
+                    items.RemoveAt(i);
+        }
+
         public static bool IsDeveloperModeEnabled
         {
             get
