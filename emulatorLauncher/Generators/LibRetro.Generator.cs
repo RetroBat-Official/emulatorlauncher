@@ -27,15 +27,13 @@ namespace emulatorLauncher.libRetro
                 RetroarchCorePath = Path.Combine(RetroarchPath, "cores");
         }
 
-
         private void Configure(string system, string core, string rom, ScreenResolution resolution)
         {
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
             retroarchConfig["global_core_options"] = "true";
             retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')
-
-            retroarchConfig["input_autodetect_enable"] = "false";
+          
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
 
@@ -43,6 +41,15 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["pause_nonactive"] = "false";
             retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["menu_driver"] = "ozone";
+
+            retroarchConfig["content_show_images"] = "false";
+            retroarchConfig["content_show_music"] = "false";
+            retroarchConfig["content_show_playlists"] = "false";
+            retroarchConfig["content_show_video"] = "false";
+
+            retroarchConfig["input_autodetect_enable"] = SystemConfig.getOptBoolean("disableautocontrollers") ? "true" : "false";
+
+            SetupUIMode(retroarchConfig);
             
             if (SystemConfig.isOptSet("monitor"))
             {
@@ -283,6 +290,8 @@ namespace emulatorLauncher.libRetro
             // Netplay management : netplaymode client -netplayport " + std::to_string(options.port) + " -netplayip
             if (SystemConfig["netplay"] == "true" && !string.IsNullOrEmpty(SystemConfig["netplaymode"]))
             {
+                retroarchConfig["content_show_netplay"] = "true";
+
                 // Security : hardcore mode disables save states, which would kill netplay
                 retroarchConfig["cheevos_hardcore_mode_enable"] = "false";
 
@@ -322,6 +331,12 @@ namespace emulatorLauncher.libRetro
                     else
                         retroarchConfig.DisableAll("netplay_spectate_password");
                 }
+                else if (base.SystemConfig["netplaymode"] == "host-spectator")
+                {
+                    retroarchConfig["netplay_spectator_mode_enable"] = "true";
+                    retroarchConfig["netplay_start_as_spectator"] = "true";
+                    retroarchConfig["netplay_mode"] = "false";
+                }
                 else
                 {
                     if (SystemConfig["netplaymode"] != "host")
@@ -331,9 +346,11 @@ namespace emulatorLauncher.libRetro
                 }
 
                 // Netplay host passwords
-                if (SystemConfig["netplaymode"] == "host")
+                if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
                 {
-                    retroarchConfig["netplay_spectator_mode_enable"] = SystemConfig.getOptBoolean("netplay.spectator") ? "true" : "false";
+                    if (SystemConfig["netplaymode"] == "host")
+                        retroarchConfig["netplay_spectator_mode_enable"] = SystemConfig.getOptBoolean("netplay.spectator") ? "true" : "false";
+
                     retroarchConfig["netplay_password"] = SystemConfig["netplay.password"];
                     retroarchConfig["netplay_spectate_password"] = SystemConfig["netplay.spectatepassword"];
                 }
@@ -344,6 +361,8 @@ namespace emulatorLauncher.libRetro
                 else
                     retroarchConfig["netplay_public_announce"] = "true";
             }
+            else
+                retroarchConfig["content_show_netplay"] = "false";
 
             // AI service for game translations
             if (SystemConfig.isOptSet("ai_service_enabled") && SystemConfig.getOptBoolean("ai_service_enabled"))
@@ -393,6 +412,99 @@ namespace emulatorLauncher.libRetro
 
             if (retroarchConfig.IsDirty)
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+        }
+
+        private void SetupUIMode(ConfigFile retroarchConfig)
+        {
+            if (SystemConfig["UIMode"] == "Kid" || SystemConfig["UIMode"] == "Kiosk")
+            {
+                retroarchConfig["content_show_add"] = "false";
+                retroarchConfig["content_show_explore"] = "false";
+                retroarchConfig["content_show_history"] = "false";
+                retroarchConfig["content_show_favorites"] = "false";
+
+                retroarchConfig["desktop_menu_enable"] = "false";
+
+                retroarchConfig["menu_show_advanced_settings"] = "false";
+                retroarchConfig["menu_show_configurations"] = "false";
+                retroarchConfig["menu_show_core_updater"] = "false";
+                retroarchConfig["menu_show_dump_disc"] = "false";
+                retroarchConfig["menu_show_load_content"] = "false";
+                retroarchConfig["menu_show_load_core"] = "false";
+                retroarchConfig["menu_show_load_disc"] = "false";
+                retroarchConfig["menu_show_online_updater"] = "false";
+                retroarchConfig["menu_show_restart_retroarch"] = "false";
+
+                retroarchConfig["menu_show_latency"] = "false";
+                retroarchConfig["menu_show_overlays"] = "false";
+                retroarchConfig["menu_show_video_layout"] = "false";
+
+                retroarchConfig["quick_menu_show_add_to_favorites"] = "false";
+                retroarchConfig["quick_menu_show_cheats"] = "false";
+                retroarchConfig["quick_menu_show_close_content"] = "false";
+                retroarchConfig["quick_menu_show_controls"] = "false";
+                retroarchConfig["quick_menu_show_download_thumbnails"] = "false";
+                retroarchConfig["quick_menu_show_options"] = "false";
+                retroarchConfig["quick_menu_show_reset_core_association"] = "false";
+                retroarchConfig["quick_menu_show_restart_content"] = "false";
+                retroarchConfig["quick_menu_show_save_core_overrides"] = "false";
+                retroarchConfig["quick_menu_show_save_game_overrides"] = "false";
+                retroarchConfig["quick_menu_show_set_core_association"] = "false";
+                retroarchConfig["quick_menu_show_shaders"] = "false";
+                retroarchConfig["quick_menu_show_start_recording"] = "false";
+                retroarchConfig["quick_menu_show_start_streaming"] = "false";
+                retroarchConfig["quick_menu_show_take_screenshot"] = "false";
+                retroarchConfig["quick_menu_show_undo_save_load_state"] = "false";
+
+                retroarchConfig["kiosk_mode_enable"] = "true";
+                return;
+            }
+            
+            if (retroarchConfig["kiosk_mode_enable"] == "true" || retroarchConfig["menu_show_restart_retroarch"] == "true")
+            {
+                retroarchConfig["menu_show_restart_retroarch"] = "false";
+
+                retroarchConfig["content_show_add"] = "false";
+                retroarchConfig["content_show_explore"] = "false";
+                retroarchConfig["content_show_history"] = "true";
+                retroarchConfig["content_show_favorites"] = "false";
+
+                retroarchConfig["desktop_menu_enable"] = "false";
+
+                retroarchConfig["menu_show_advanced_settings"] = "false";
+                retroarchConfig["menu_show_configurations"] = "true";
+                retroarchConfig["menu_show_core_updater"] = "true";
+                
+                retroarchConfig["menu_show_online_updater"] = "true";               
+                retroarchConfig["menu_show_latency"] = "true";
+                retroarchConfig["menu_show_overlays"] = "false";
+                retroarchConfig["menu_show_video_layout"] = "false";
+
+                retroarchConfig["menu_show_load_content"] = "false";
+                retroarchConfig["menu_show_load_core"] = "false";
+                retroarchConfig["menu_show_load_disc"] = "false";
+                retroarchConfig["menu_show_dump_disc"] = "false";
+
+                retroarchConfig["quick_menu_show_add_to_favorites"] = "false";
+                retroarchConfig["quick_menu_show_cheats"] = "true";
+                retroarchConfig["quick_menu_show_options"] = "true";
+                retroarchConfig["quick_menu_show_reset_core_association"] = "false";
+                retroarchConfig["quick_menu_show_restart_content"] = "false";
+                retroarchConfig["quick_menu_show_save_core_overrides"] = "true";
+                retroarchConfig["quick_menu_show_save_game_overrides"] = "true";
+                retroarchConfig["quick_menu_show_shaders"] = "true";
+                retroarchConfig["quick_menu_show_start_recording"] = "true";
+                retroarchConfig["quick_menu_show_start_streaming"] = "false";
+                retroarchConfig["quick_menu_show_take_screenshot"] = "true";
+
+                retroarchConfig["quick_menu_show_close_content"] = "false";
+                retroarchConfig["quick_menu_show_controls"] = "false";
+                retroarchConfig["quick_menu_show_download_thumbnails"] = "false";
+                retroarchConfig["quick_menu_show_undo_save_load_state"] = "false";
+                retroarchConfig["quick_menu_show_set_core_association"] = "false";
+
+                retroarchConfig["kiosk_mode_enable"] = "false";
+            }
         }
 
         private void SetLanguage(ConfigFile retroarchConfig)
@@ -742,7 +854,7 @@ namespace emulatorLauncher.libRetro
             if (!string.IsNullOrEmpty(SystemConfig["netplaymode"]))
             {
                 // Netplay mode
-                if (SystemConfig["netplaymode"] == "host")
+                if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
                     commandArray.Add("--host");
                 else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
                 {

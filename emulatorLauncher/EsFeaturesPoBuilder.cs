@@ -211,6 +211,8 @@ namespace emulatorLauncher
                 string msgctxt = null;
                 string msgid = null;
                 string msgstr = null;
+                string comment = null;
+
                 int cur = 0;
 
                 var lines = File.ReadAllLines(fn).ToList();
@@ -228,7 +230,8 @@ namespace emulatorLauncher
                                 {
                                     MsgCtx = msgctxt,
                                     MsgId = msgid,
-                                    MsgStr = msgstr
+                                    MsgStr = msgstr,
+                                    Comment = comment
                                 });
                             }
                         }
@@ -237,6 +240,13 @@ namespace emulatorLauncher
                         msgid = null;
                         msgstr = null;
                         msgctxt = null;
+                        comment = null;
+                        continue;
+                    }
+
+                    if (line.StartsWith("#") && cur == 0)
+                    {
+                        comment = line.Substring(1).Trim();
                         continue;
                     }
 
@@ -284,9 +294,14 @@ namespace emulatorLauncher
             public string MsgId { get; set; }
             public string MsgStr { get; set; }
 
+            public string Comment { get; set; }
+
             public override string ToString()
             {
                 StringBuilder sb = new StringBuilder();
+
+                if (!string.IsNullOrEmpty(Comment))
+                    sb.AppendLine("# " + Comment);
 
                 sb.AppendLine("msgctxt \"" + (MsgCtx == null ? "" : MsgCtx) + "\"");
                 sb.AppendLine("msgid \"" + (MsgId == null ? "" : MsgId.Replace("\"", "")) + "\"");
