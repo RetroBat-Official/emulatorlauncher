@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using emulatorLauncher.Tools;
 using System.IO;
+using System.Windows.Forms;
 
 namespace emulatorLauncher
 {
@@ -26,7 +27,7 @@ namespace emulatorLauncher
                 Directory.CreateDirectory(locale);
 
                 var file = PoFile.Read(Path.Combine(locale, "es-features.po"));               
-                file.Items.RemoveWhere(i => !strings.Contains(i.MsgStr));
+                file.Items.RemoveWhere(i => !strings.Contains(i.MsgId));
 
                 foreach (var str in strings)
                 {
@@ -42,8 +43,15 @@ namespace emulatorLauncher
 
                 file.Save();
             }
+            MessageBox.Show("Translations updated :\r\n" + root, null, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        static HashSet<string> excluded = new HashSet<string>()
+        {
+            "ON", "OFF", "YES", "NO", "NTSC", "PAL", "VGA", "SVGA", "EGA", "CGA", "OpenGL", "OPENGL", "Vulkan", "VULKAN", "DirectX 11", "DIRECTX 11", "NONE",
+            "RETROARCH", "XINPUT", "SDL2", "NINTENDO", "SEGA"
+        };
+        
         private static List<string> GetEsFeaturesStrings()
         {
             var features = EsFeatures.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.cfg"));
@@ -51,9 +59,9 @@ namespace emulatorLauncher
             List<Feature> toProcess = new List<Feature>();
 
             if (features.SharedFeatures != null && features.SharedFeatures.Features != null)
-                foreach (Feature feature in features.SharedFeatures.Features)
+                foreach (Feature feature in features.SharedFeatures.Features)                    
                     toProcess.Add(feature);
-
+            
             if (features.GlobalFeatures != null && features.GlobalFeatures.Features != null)
                 foreach (Feature feature in features.GlobalFeatures.Features)
                     toProcess.Add(feature);
@@ -106,11 +114,14 @@ namespace emulatorLauncher
 
             foreach (var feature in toProcess)
             {
-                if (!string.IsNullOrEmpty(feature.Description))
+                if (!string.IsNullOrEmpty(feature.Name))
                     strings.Add(feature.Name);
 
                 if (!string.IsNullOrEmpty(feature.Description))
                     strings.Add(feature.Description);
+
+                if (!string.IsNullOrEmpty(feature.SubMenu))
+                    strings.Add(feature.SubMenu);
 
                 if (feature.Choice != null)
                 {
@@ -138,11 +149,6 @@ namespace emulatorLauncher
 
             return s.All(c => char.IsDigit(c) || c == 'x' || c == 'X' || c == '%' || c == '/' || c == 'K' || c == 'k' || c == 'p' || c == 'P' || c == '(' || c == ')' || c == ' ' || c == '.' || c == ',');
         }
-
-        static HashSet<string> excluded = new HashSet<string>()
-        {
-            "ON", "OFF", "YES", "NO", "NTSC", "PAL", "VGA", "SVGA", "EGA", "CGA", "OpenGL", "OPENGL", "Vulkan", "VULKAN", "DirectX 11", "DIRECTX 11", "NONE"
-        };
 
 
         class PoFile

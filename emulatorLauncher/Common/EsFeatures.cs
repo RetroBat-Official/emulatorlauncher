@@ -180,6 +180,8 @@ namespace emulatorLauncher.Tools
         [XmlElement("choice")]
         public Choice[] Choice { get; set; }
 
+        [XmlAttribute("submenu")]
+        public string SubMenu { get; set; }
     }
 
     public class Choice
