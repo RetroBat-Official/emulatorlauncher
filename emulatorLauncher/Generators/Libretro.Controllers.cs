@@ -281,6 +281,9 @@ namespace emulatorLauncher.libRetro
             else
                 retroconfig["menu_swap_ok_cancel_buttons"] = "true";
             */
+
+            var conflicts = new List<string>();
+
             var config = new Dictionary<string, string>();
 
             foreach (var btnkey in retroarchbtns)
@@ -290,7 +293,11 @@ namespace emulatorLauncher.libRetro
                     continue;
 
                 if (input.Type == "key")
-                    config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey.Value)] = getConfigValue(input);
+                {
+                    string value = getConfigValue(input);
+                    config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey.Value)] = value;
+                    conflicts.AddRange(retroconfig.Where(i => i.Value == value).Select(i => i.Name));
+                }
                 else
                     config[string.Format("input_player{0}_{1}_{2}", controller.PlayerIndex, btnkey.Value, typetoname[input.Type])] = getConfigValue(input);
             }
@@ -339,6 +346,13 @@ namespace emulatorLauncher.libRetro
                         config[string.Format("input_{0}_{1}", specialkey.Value, typetoname[input.Type])] = getConfigValue(input);
                 }
             }
+
+            foreach (var conflict in conflicts)
+            {
+                if (conflict != null && (conflict.StartsWith("input_toggle") || conflict.StartsWith("input_hold")))
+                    config[conflict] = "nul";
+            }
+
             return config;
         }
 
