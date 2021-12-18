@@ -100,31 +100,19 @@ namespace emulatorLauncher
         }
 
         #region IsEmulationStationWindowed
-        static string GetParentProcessCommandline()
+        static Process GetParentProcess(Process process)
         {
-            return GetParentProcessCommandline(Process.GetCurrentProcess());
-        }
+            if (process == null)
+                return null;
 
-        static string GetParentProcessCommandline(Process process)
-        {
             try
             {
                 using (var query = new System.Management.ManagementObjectSearcher("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + process.Id))
                 {
-                    var parentProcessId = query.Get()
+                    return query.Get()
                       .OfType<System.Management.ManagementObject>()
-                      .Select(p => (int)(uint)p["ParentProcessId"])
+                      .Select(p => Process.GetProcessById((int)(uint)p["ParentProcessId"]))
                       .FirstOrDefault();
-
-                    using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + parentProcessId))
-                    {
-                        var commandLine = cquery.Get()
-                          .OfType<System.Management.ManagementObject>()
-                          .Select(p => (string)p["CommandLine"])
-                          .FirstOrDefault();
-
-                        return commandLine;
-                    }
                 }
             }
             catch
@@ -135,29 +123,82 @@ namespace emulatorLauncher
             return null;
         }
 
-        public static bool IsEmulationStationWindowed(out Size windowSize)
+        static string GetProcessCommandline(Process process)
+        {
+            if (process == null)
+                return null;
+
+            try
+            {
+                using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + process.Id))
+                {
+                    var commandLine = cquery.Get()
+                        .OfType<System.Management.ManagementObject>()
+                        .Select(p => (string)p["CommandLine"])
+                        .FirstOrDefault();
+
+                    return commandLine;
+                }
+            }
+            catch
+            {
+
+            }
+
+            return null;
+        }
+
+        public static bool IsEmulationStationWindowed(out Rectangle bounds)
         {
             bool isWindowed = false;
 
-            windowSize = new Size();
+            bounds = new Rectangle();
+
+            var process = GetParentProcess(Process.GetCurrentProcess());
+            if (process == null)
+                return false;
+
+            var px = GetProcessCommandline(process);
+            if (string.IsNullOrEmpty(px))
+                return false;
+
+            if (px.IndexOf("emulationstation", StringComparison.InvariantCultureIgnoreCase) < 0)
+                return false;
 
             // Check parent process is EmulationStation. Get its commandline, see if it's using "--windowed --resolution X Y", import settings
-            var px = GetParentProcessCommandline();
-            if (!string.IsNullOrEmpty(px) && px.IndexOf("emulationstation", StringComparison.InvariantCultureIgnoreCase) >= 0)
+            var args = Misc.SplitCommandLine(px).Skip(1).ToArray();
+            for (int i = 0; i < args.Length; i++)
             {
-                var args = Misc.SplitCommandLine(px).Skip(1).ToArray();
-                for (int i = 0; i < args.Length; i++)
-                {
-                    var arg = args[i];
+                var arg = args[i];
 
-                    if (arg == "--windowed")
-                        isWindowed = true;
-                    else if (arg == "--resolution" && i + 2 < args.Length)
-                        windowSize = new Size(args[i + 1].ToInteger(), args[i + 2].ToInteger());
-                }
+                if (arg == "--windowed")
+                    isWindowed = true;
+                else if (arg == "--resolution" && i + 2 < args.Length)
+                    bounds = new Rectangle(0, 0, args[i + 1].ToInteger(), args[i + 2].ToInteger());
             }
 
-            return isWindowed && windowSize.Width > 0 && windowSize.Height > 0;
+            if (isWindowed)
+            {
+                try
+                {
+                    var hWnd = process.MainWindowHandle;
+                    if (hWnd != IntPtr.Zero)
+                    {
+                        var rect = User32.GetWindowRect(hWnd);
+
+                        if (bounds.Width > 0 && bounds.Height > 0)
+                        {
+                            bounds.X = rect.left;
+                            bounds.Y = rect.top;
+                        }
+                        else
+                            bounds = new Rectangle(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+                    }
+                }
+                catch { }
+            }
+
+            return isWindowed && bounds.Width > 0 && bounds.Height > 0;
         }
         #endregion
     }

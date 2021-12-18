@@ -120,6 +120,18 @@ namespace emulatorLauncher
         }
 
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        public static extern bool GetWindowRect(IntPtr hWnd, [Out] out RECT rect);
+
+        public static RECT GetWindowRect(IntPtr hWnd)
+        {
+            RECT rect;
+            if (!GetWindowRect(hWnd, out rect))
+                rect = new RECT();
+
+            return rect;
+        }
+
+        [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int SetWindowPos(IntPtr hWnd, IntPtr hWndAfter, int X, int Y, int Width, int Height, [MarshalAs(UnmanagedType.U4)]SWP flags);
     }
 
@@ -135,6 +147,15 @@ namespace emulatorLauncher
         [DllImport("kernel32.dll")]
         public static extern bool FreeConsole();
 
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
+    {
+        public int left;
+        public int top;
+        public int right;
+        public int bottom;
     }
 
     public enum GWL : int

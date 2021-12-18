@@ -13,6 +13,8 @@ namespace emulatorLauncher.libRetro
 {
     partial class LibRetroGenerator : Generator
     {
+        const string RetroArchNetPlayPatchedName = "RETROBAT";
+
         public string RetroarchPath { get; set; }
         public string RetroarchCorePath { get; set; }
 
@@ -68,18 +70,21 @@ namespace emulatorLauncher.libRetro
             {
                 if (!SystemConfig.isOptSet("monitor"))
                 {
-                    Size emulationStationResolution;
-                    if (IsEmulationStationWindowed(out emulationStationResolution))
+                    Rectangle emulationStationBounds;
+                    if (IsEmulationStationWindowed(out emulationStationBounds))
                     {
-                        int width = emulationStationResolution.Width;
-                        int height = emulationStationResolution.Height;
+                        int width = emulationStationBounds.Width;
+                        int height = emulationStationBounds.Height;
                         var res = ScreenResolution.CurrentResolution;
 
-                        int posx = (res.Width - width) / 2 - SystemInformation.FrameBorderSize.Width;
-                        int posy = (res.Height - height - SystemInformation.CaptionHeight - SystemInformation.MenuHeight) / 2 - SystemInformation.FrameBorderSize.Height;
+                        if (emulationStationBounds.Left == 0 && emulationStationBounds.Top == 0)
+                        {
+                            emulationStationBounds.X = (res.Width - width) / 2 - SystemInformation.FrameBorderSize.Width;
+                            emulationStationBounds.Y = (res.Height - height - SystemInformation.CaptionHeight - SystemInformation.MenuHeight) / 2 - SystemInformation.FrameBorderSize.Height;
+                        }
 
-                        retroarchConfig["video_windowed_position_x"] = posx.ToString();
-                        retroarchConfig["video_windowed_position_y"] = posy.ToString();
+                        retroarchConfig["video_windowed_position_x"] = emulationStationBounds.X.ToString();
+                        retroarchConfig["video_windowed_position_y"] = emulationStationBounds.Y.ToString();
                         retroarchConfig["video_windowed_position_width"] = width.ToString();
                         retroarchConfig["video_windowed_position_height"] = height.ToString();
                         retroarchConfig["video_fullscreen"] = "false";
@@ -968,6 +973,7 @@ namespace emulatorLauncher.libRetro
             };
         }
 
+
         /// <summary>
         /// Patch Retroarch to display @RETROBAT in netplay architecture
         /// </summary>
@@ -978,7 +984,7 @@ namespace emulatorLauncher.libRetro
             if (!File.Exists(fn))
                 return fn;
 
-            string patched = Path.Combine(RetroarchPath, "retroarch.patched.retrobat.exe");
+            string patched = Path.Combine(RetroarchPath, "retroarch.patched." + RetroArchNetPlayPatchedName + ".exe");
             if (File.Exists(patched) && new FileInfo(fn).Length == new FileInfo(patched).Length)
                 return patched;
 
@@ -986,27 +992,36 @@ namespace emulatorLauncher.libRetro
             catch { }
 
             var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%d&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s&subsystem_name=%s"
-                .ToCharArray()
                 .Select(c => (byte)c)
                 .ToArray();
 
-            var toSet = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%d&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s@RETROBAT\0_name=%s"
-                .ToCharArray()
-                .Select(c => (byte)c)
-                .ToArray();
+            var toSet = toFind.ToArray();
+            var toSubst = "&subsystem_name=%s".Select(c => (byte)c).ToArray();
+            int idx = toFind.IndexOf(toSubst);
+            if (idx < 0)
+                return fn;
+
+            string patchString = "@" + RetroArchNetPlayPatchedName;
+
+            var toPatch = patchString.Select(c => (byte)c).ToArray();
+            for (int i = 0; i < patchString.Length + 1; i++)
+            {
+                if (i == patchString.Length)
+                    toSet[idx + i] = 0;
+                else
+                    toSet[idx + i] = toPatch[i];
+            }
 
             var bytes = File.ReadAllBytes(fn);
             int index = bytes.IndexOf(toFind);
-            if (index > 0)
-            {
-                for (int i = 0; i < toSet.Length; i++)
-                    bytes[index + i] = toSet[i];
+            if (index < 0)
+                return fn;
+            
+            for (int i = 0; i < toSet.Length; i++)
+                bytes[index + i] = toSet[i];
 
-                File.WriteAllBytes(patched, bytes);
-                return patched;
-            }
-
-            return fn;
+            File.WriteAllBytes(patched, bytes);
+            return patched;
         }
 
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
