@@ -66,7 +66,7 @@ namespace emulatorLauncher.libRetro
 
             if (resolution == null)
             {
-                if (retroarchConfig["video_monitor_index"] == "0")
+                if (!SystemConfig.isOptSet("monitor"))
                 {
                     Size emulationStationResolution = new Size();
                     bool emulationStationWindowed = false;
