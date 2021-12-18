@@ -6,6 +6,7 @@ using System.Diagnostics;
 using emulatorLauncher.PadToKeyboard;
 using emulatorLauncher.Tools;
 using System.IO;
+using System.Drawing;
 
 namespace emulatorLauncher
 {
@@ -97,6 +98,68 @@ namespace emulatorLauncher
             foreach (var file in _filesToRestore)
                 File.WriteAllBytes(file.Key, file.Value);
         }
+
+        #region IsEmulationStationWindowed
+        static string GetParentProcessCommandline()
+        {
+            return GetParentProcessCommandline(Process.GetCurrentProcess());
+        }
+
+        static string GetParentProcessCommandline(Process process)
+        {
+            try
+            {
+                using (var query = new System.Management.ManagementObjectSearcher("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + process.Id))
+                {
+                    var parentProcessId = query.Get()
+                      .OfType<System.Management.ManagementObject>()
+                      .Select(p => (int)(uint)p["ParentProcessId"])
+                      .FirstOrDefault();
+
+                    using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + parentProcessId))
+                    {
+                        var commandLine = cquery.Get()
+                          .OfType<System.Management.ManagementObject>()
+                          .Select(p => (string)p["CommandLine"])
+                          .FirstOrDefault();
+
+                        return commandLine;
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+
+            return null;
+        }
+
+        public static bool IsEmulationStationWindowed(out Size windowSize)
+        {
+            bool isWindowed = false;
+
+            windowSize = new Size();
+
+            // Check parent process is EmulationStation. Get its commandline, see if it's using "--windowed --resolution X Y", import settings
+            var px = GetParentProcessCommandline();
+            if (!string.IsNullOrEmpty(px) && px.IndexOf("emulationstation", StringComparison.InvariantCultureIgnoreCase) >= 0)
+            {
+                var args = Misc.SplitCommandLine(px).Skip(1).ToArray();
+                for (int i = 0; i < args.Length; i++)
+                {
+                    var arg = args[i];
+
+                    if (arg == "--windowed")
+                        isWindowed = true;
+                    else if (arg == "--resolution" && i + 2 < args.Length)
+                        windowSize = new Size(args[i + 1].ToInteger(), args[i + 2].ToInteger());
+                }
+            }
+
+            return isWindowed && windowSize.Width > 0 && windowSize.Height > 0;
+        }
+        #endregion
     }
 
     enum ExitCodes : int

@@ -284,6 +284,7 @@ namespace emulatorLauncher.Tools
         public static string[] SplitCommandLine(string commandLine)
         {
             char[] parmChars = commandLine.ToCharArray();
+
             bool inQuote = false;
             for (int index = 0; index < parmChars.Length; index++)
             {
@@ -292,44 +293,34 @@ namespace emulatorLauncher.Tools
                 if (!inQuote && parmChars[index] == ' ')
                     parmChars[index] = '\n';
             }
-            return (new string(parmChars)).Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Replace("\"", "")).ToArray();
+
+            return (new string(parmChars))
+                .Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Replace("\"", ""))
+                .ToArray();
         }
 
-        
-
-        public static string GetParentProcessCommandline()
+        public static int IndexOf(this byte[] arrayToSearchThrough, byte[] patternToFind)
         {
-            return GetParentProcessCommandline(Process.GetCurrentProcess());
-        }
-
-        public static string GetParentProcessCommandline(Process process)
-        {
-            try
+            if (patternToFind.Length > arrayToSearchThrough.Length)
+                return -1;
+            for (int i = 0; i < arrayToSearchThrough.Length - patternToFind.Length; i++)
             {
-                using (var query = new System.Management.ManagementObjectSearcher("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + process.Id))
+                bool found = true;
+                for (int j = 0; j < patternToFind.Length; j++)
                 {
-                    var parentProcessId = query.Get()
-                      .OfType<System.Management.ManagementObject>()
-                      .Select(p => (int)(uint)p["ParentProcessId"])
-                      .FirstOrDefault();
-
-                    using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + parentProcessId))
+                    if (arrayToSearchThrough[i + j] != patternToFind[j])
                     {
-                        var commandLine = cquery.Get()
-                          .OfType<System.Management.ManagementObject>()
-                          .Select(p => (string)p["CommandLine"])
-                          .FirstOrDefault();
-
-                        return commandLine;
+                        found = false;
+                        break;
                     }
                 }
+                if (found)
+                {
+                    return i;
+                }
             }
-            catch
-            {
-
-            }
-
-            return null;
+            return -1;
         }
     }
 }

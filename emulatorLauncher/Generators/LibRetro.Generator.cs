@@ -68,26 +68,8 @@ namespace emulatorLauncher.libRetro
             {
                 if (!SystemConfig.isOptSet("monitor"))
                 {
-                    Size emulationStationResolution = new Size();
-                    bool emulationStationWindowed = false;
-
-                    // Check parent process is EmulationStation. Get its commandline, see if it's using "--windowed --resolution X Y", import settings
-                    var px = Misc.GetParentProcessCommandline();
-                    if (!string.IsNullOrEmpty(px) && px.IndexOf("emulationstation", StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    {
-                        var args = Misc.SplitCommandLine(px).Skip(1).ToArray();
-                        for (int i = 0; i < args.Length; i++)
-                        {
-                            var arg = args[i];
-
-                            if (arg == "--windowed")
-                                emulationStationWindowed = true;
-                            else if (arg == "--resolution" && i + 2 < args.Length)
-                                emulationStationResolution = new Size(args[i + 1].ToInteger(), args[i + 2].ToInteger());
-                        }
-                    }
-
-                    if (emulationStationWindowed && emulationStationResolution.Width > 0 && emulationStationResolution.Height > 0)
+                    Size emulationStationResolution;
+                    if (IsEmulationStationWindowed(out emulationStationResolution))
                     {
                         int width = emulationStationResolution.Width;
                         int height = emulationStationResolution.Height;
@@ -341,9 +323,7 @@ namespace emulatorLauncher.libRetro
 
             // Netplay management : netplaymode client -netplayport " + std::to_string(options.port) + " -netplayip
             if (SystemConfig["netplay"] == "true" && !string.IsNullOrEmpty(SystemConfig["netplaymode"]))
-            {
-                retroarchConfig["content_show_netplay"] = "true";
-
+            {                
                 // Security : hardcore mode disables save states, which would kill netplay
                 retroarchConfig["cheevos_hardcore_mode_enable"] = "false";
 
@@ -413,6 +393,9 @@ namespace emulatorLauncher.libRetro
                 else
                     retroarchConfig["netplay_public_announce"] = "true";
             }
+
+            if (SystemConfig["netplay"] == "true")
+                retroarchConfig["content_show_netplay"] = "true";
             else
                 retroarchConfig["content_show_netplay"] = "false";
 
@@ -749,8 +732,11 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_message_pos_x"] = infos.messagex.Value.ToString(CultureInfo.InvariantCulture);
                 retroarchConfig["video_message_pos_y"] = infos.messagey.Value.ToString(CultureInfo.InvariantCulture);
             }
-            
-            retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
+
+            if (retroarchConfig["video_fullscreen"] != "true")
+                retroarchConfig["input_overlay_show_mouse_cursor"] = "true";
+            else
+                retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
 
             StringBuilder fd = new StringBuilder();
             fd.AppendLine("overlays = 1");
@@ -967,15 +953,60 @@ namespace emulatorLauncher.libRetro
                 };
             }
 
+            string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
+            if (emulator != "angle" && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
+                retroarch = GetNetPlayPatchedRetroarch();
+
             return new ProcessStartInfo()
             {
-                FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
+                FileName = retroarch,
                 WorkingDirectory = RetroarchPath,
                 Arguments =
                     string.IsNullOrEmpty(rom) ?
                         ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim() :
                         ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
             };
+        }
+
+        /// <summary>
+        /// Patch Retroarch to display @RETROBAT in netplay architecture
+        /// </summary>
+        /// <returns></returns>
+        private string GetNetPlayPatchedRetroarch()
+        {
+            string fn = Path.Combine(RetroarchPath, "retroarch.exe");
+            if (!File.Exists(fn))
+                return fn;
+
+            string patched = Path.Combine(RetroarchPath, "retroarch.patched.retrobat.exe");
+            if (File.Exists(patched) && new FileInfo(fn).Length == new FileInfo(patched).Length)
+                return patched;
+
+            try { File.Delete(patched); }
+            catch { }
+
+            var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%d&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s&subsystem_name=%s"
+                .ToCharArray()
+                .Select(c => (byte)c)
+                .ToArray();
+
+            var toSet = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%d&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s@RETROBAT\0_name=%s"
+                .ToCharArray()
+                .Select(c => (byte)c)
+                .ToArray();
+
+            var bytes = File.ReadAllBytes(fn);
+            int index = bytes.IndexOf(toFind);
+            if (index > 0)
+            {
+                for (int i = 0; i < toSet.Length; i++)
+                    bytes[index + i] = toSet[i];
+
+                File.WriteAllBytes(patched, bytes);
+                return patched;
+            }
+
+            return fn;
         }
 
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
