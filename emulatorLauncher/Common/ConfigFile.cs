@@ -109,9 +109,33 @@ namespace emulatorLauncher
 
         public void ImportOverrides(ConfigFile cfg)
         {
+            if (cfg == null)
+                return;
+
             foreach (var item in cfg._data)
                 this[item.Name] = item.Value;
         }
+        /*
+        public void ImportOverrides(IniFile ini)
+        {
+            if (ini == null)
+                return;
+
+            foreach (var section in ini.EnumerateSections())
+            {
+                foreach (var key in ini.EnumerateKeys(section))
+                {
+                    if (string.IsNullOrEmpty(key) || key.Trim().StartsWith(";"))
+                        continue;
+
+                    string value = ini.GetValue(section, key);
+                    if (string.IsNullOrEmpty(value))
+                        continue;
+
+                    this[section + "." + key] = value;
+                }
+            }
+        }*/
 
         public string GetFullPath(string key)
         {
@@ -257,6 +281,19 @@ namespace emulatorLauncher
                 return data.Value != null && data.Value.ToLower() == "true" || data.Value == "1";
 
             return false;
+        }
+
+        public int getInteger(string p)
+        {
+            var data = _data.FirstOrDefault(d => d.Name == p);
+            if (data != null && data.Value != null)
+            {
+                int ret;
+                if (int.TryParse(data.Value, out ret))
+                    return ret;
+            }
+
+            return 0;
         }
 
         public IEnumerator<ConfigItem> GetEnumerator()

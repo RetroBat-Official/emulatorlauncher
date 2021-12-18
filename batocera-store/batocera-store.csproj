@@ -37,6 +37,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -44,6 +45,9 @@
   <ItemGroup>
     <Compile Include="..\emulatorLauncher\Common\ConfigFile.cs">
       <Link>Common\ConfigFile.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\IniFile.cs">
+      <Link>Common\IniFile.cs</Link>
     </Compile>
     <Compile Include="..\emulatorLauncher\Common\RegistryApi.cs">
       <Link>Common\RegistryApi.cs</Link>

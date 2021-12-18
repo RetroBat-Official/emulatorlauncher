@@ -40,7 +40,7 @@ namespace emulatorLauncher
                     if (idx >= 0)
                         wineCommand = wineCommand.Substring(idx + 4).Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
-                    var args = SplitCommandLine(wineCommand);
+                    var args = Misc.SplitCommandLine(wineCommand);
                     if (args.Length > 0)
                     {
                         string exe = Path.Combine(path, args[0]);
@@ -89,20 +89,6 @@ namespace emulatorLauncher
                 _exename = Path.GetFileNameWithoutExtension(rom);
 
             return ret;
-        }
-
-        static string[] SplitCommandLine(string commandLine)
-        {
-            char[] parmChars = commandLine.ToCharArray();
-            bool inQuote = false;
-            for (int index = 0; index < parmChars.Length; index++)
-            {
-                if (parmChars[index] == '"')
-                    inQuote = !inQuote;
-                if (!inQuote && parmChars[index] == ' ')
-                    parmChars[index] = '\n';
-            }
-            return (new string(parmChars)).Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Replace("\"", "")).ToArray();
         }
 
         private string _systemName;

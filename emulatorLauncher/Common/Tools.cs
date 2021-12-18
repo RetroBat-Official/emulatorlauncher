@@ -281,6 +281,55 @@ namespace emulatorLauncher.Tools
             return string.Join(".", numbers.Take(4).ToArray());
         }
 
+        public static string[] SplitCommandLine(string commandLine)
+        {
+            char[] parmChars = commandLine.ToCharArray();
+            bool inQuote = false;
+            for (int index = 0; index < parmChars.Length; index++)
+            {
+                if (parmChars[index] == '"')
+                    inQuote = !inQuote;
+                if (!inQuote && parmChars[index] == ' ')
+                    parmChars[index] = '\n';
+            }
+            return (new string(parmChars)).Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Replace("\"", "")).ToArray();
+        }
 
+        
+
+        public static string GetParentProcessCommandline()
+        {
+            return GetParentProcessCommandline(Process.GetCurrentProcess());
+        }
+
+        public static string GetParentProcessCommandline(Process process)
+        {
+            try
+            {
+                using (var query = new System.Management.ManagementObjectSearcher("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + process.Id))
+                {
+                    var parentProcessId = query.Get()
+                      .OfType<System.Management.ManagementObject>()
+                      .Select(p => (int)(uint)p["ParentProcessId"])
+                      .FirstOrDefault();
+
+                    using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + parentProcessId))
+                    {
+                        var commandLine = cquery.Get()
+                          .OfType<System.Management.ManagementObject>()
+                          .Select(p => (string)p["CommandLine"])
+                          .FirstOrDefault();
+
+                        return commandLine;
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+
+            return null;
+        }
     }
 }

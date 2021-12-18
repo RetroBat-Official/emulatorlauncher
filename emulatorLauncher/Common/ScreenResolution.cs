@@ -30,6 +30,21 @@ namespace emulatorLauncher
             catch { }
         }
 
+        public static ScreenResolution CurrentResolution
+        {
+            get
+            {
+                DEVMODE mode = new DEVMODE();
+                EnumDisplaySettings(null, ENUM_CURRENT_SETTINGS, ref mode);
+                return new ScreenResolution(mode.dmPelsWidth, mode.dmPelsHeight, mode.dmBitsPerPel, mode.dmDisplayFrequency);
+            }
+        }
+
+        public static ScreenResolution FromSize(int width, int height)
+        {
+            return new ScreenResolution(width, height, 32, 60);
+        }
+
         public static ScreenResolution Parse(string gameResolution)
         {
             if (string.IsNullOrEmpty(gameResolution))
@@ -81,6 +96,10 @@ namespace emulatorLauncher
         /// </summary>
         public void Apply()
         {
+            var cur = CurrentResolution;
+            if (cur.Width == Width && cur.Height == Height && cur.BitsPerPel == BitsPerPel && cur.DisplayFrequency == DisplayFrequency)
+                return;
+
             originalMode.dmSize = (short)Marshal.SizeOf(originalMode);
 
             // Retrieving current settings
