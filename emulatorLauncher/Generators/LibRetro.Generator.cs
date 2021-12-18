@@ -56,7 +56,7 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.isOptSet("monitor"))
             {
                 int monitorId;
-                if (int.TryParse(SystemConfig["monitor"], out monitorId))
+                if (int.TryParse(SystemConfig["monitor"], out monitorId) && monitorId < Screen.AllScreens.Length)
                     retroarchConfig["video_monitor_index"] = (monitorId + 1).ToString();
                 else if (Features.IsSupported("monitor"))
                     retroarchConfig["video_monitor_index"] = "0";
@@ -66,42 +66,47 @@ namespace emulatorLauncher.libRetro
 
             if (resolution == null)
             {
-                Size emulationStationResolution = new Size();
-                bool emulationStationWindowed = false;
-
-                // Check parent process is EmulationStation. Get its commandline, see if it's using "--windowed --resolution X Y", import settings
-                var px = Misc.GetParentProcessCommandline();
-                if (!string.IsNullOrEmpty(px) && px.IndexOf("emulationstation", StringComparison.InvariantCultureIgnoreCase)>=0)
+                if (retroarchConfig["video_monitor_index"] == "0")
                 {
-                    var args = Misc.SplitCommandLine(px).Skip(1).ToArray();
-                    for (int i = 0 ; i < args.Length ; i++)
+                    Size emulationStationResolution = new Size();
+                    bool emulationStationWindowed = false;
+
+                    // Check parent process is EmulationStation. Get its commandline, see if it's using "--windowed --resolution X Y", import settings
+                    var px = Misc.GetParentProcessCommandline();
+                    if (!string.IsNullOrEmpty(px) && px.IndexOf("emulationstation", StringComparison.InvariantCultureIgnoreCase) >= 0)
                     {
-                        var arg = args[i];
+                        var args = Misc.SplitCommandLine(px).Skip(1).ToArray();
+                        for (int i = 0; i < args.Length; i++)
+                        {
+                            var arg = args[i];
 
-                        if (arg == "--windowed")
-                            emulationStationWindowed = true;
-                        else if (arg == "--resolution" && i + 2 < args.Length)
-                            emulationStationResolution = new Size(args[i + 1].ToInteger(), args[i + 2].ToInteger());
+                            if (arg == "--windowed")
+                                emulationStationWindowed = true;
+                            else if (arg == "--resolution" && i + 2 < args.Length)
+                                emulationStationResolution = new Size(args[i + 1].ToInteger(), args[i + 2].ToInteger());
+                        }
                     }
-                }
 
-                if (emulationStationWindowed && emulationStationResolution.Width > 0 && emulationStationResolution.Height > 0)
-                {
-                    int width = emulationStationResolution.Width;
-                    int height = emulationStationResolution.Height;
-                    var res = ScreenResolution.CurrentResolution;
+                    if (emulationStationWindowed && emulationStationResolution.Width > 0 && emulationStationResolution.Height > 0)
+                    {
+                        int width = emulationStationResolution.Width;
+                        int height = emulationStationResolution.Height;
+                        var res = ScreenResolution.CurrentResolution;
 
-                    int posx = (res.Width - width) / 2 - SystemInformation.FrameBorderSize.Width;
-                    int posy = (res.Height - height - SystemInformation.CaptionHeight - SystemInformation.MenuHeight) / 2 - SystemInformation.FrameBorderSize.Height;
+                        int posx = (res.Width - width) / 2 - SystemInformation.FrameBorderSize.Width;
+                        int posy = (res.Height - height - SystemInformation.CaptionHeight - SystemInformation.MenuHeight) / 2 - SystemInformation.FrameBorderSize.Height;
 
-                    retroarchConfig["video_windowed_position_x"] = posx.ToString();
-                    retroarchConfig["video_windowed_position_y"] = posy.ToString();
-                    retroarchConfig["video_windowed_position_width"] = width.ToString();
-                    retroarchConfig["video_windowed_position_height"] = height.ToString();
-                    retroarchConfig["video_fullscreen"] = "false";
-                    retroarchConfig["video_window_save_positions"] = "true";
+                        retroarchConfig["video_windowed_position_x"] = posx.ToString();
+                        retroarchConfig["video_windowed_position_y"] = posy.ToString();
+                        retroarchConfig["video_windowed_position_width"] = width.ToString();
+                        retroarchConfig["video_windowed_position_height"] = height.ToString();
+                        retroarchConfig["video_fullscreen"] = "false";
+                        retroarchConfig["video_window_save_positions"] = "true";
 
-                    resolution = ScreenResolution.FromSize(width, height); // For bezels
+                        resolution = ScreenResolution.FromSize(width, height); // For bezels
+                    }
+                    else
+                        retroarchConfig["video_windowed_fullscreen"] = "true";
                 }
                 else
                     retroarchConfig["video_windowed_fullscreen"] = "true";
@@ -111,6 +116,11 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
                 retroarchConfig["video_windowed_fullscreen"] = "false";
+            }
+
+            if (resolution == null && retroarchConfig["video_monitor_index"] != "0")
+            {
+                resolution = ScreenResolution.FromScreenIndex(retroarchConfig["video_monitor_index"].ToInteger() - 1);
             }
 
             if (!string.IsNullOrEmpty(AppConfig["bios"]))

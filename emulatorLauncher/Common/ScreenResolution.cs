@@ -40,6 +40,15 @@ namespace emulatorLauncher
             }
         }
 
+        public static ScreenResolution FromScreenIndex(int index)
+        {
+            Screen screen = Screen.AllScreens.Skip(index).FirstOrDefault();
+            if (screen == null)
+                return CurrentResolution;
+
+            return FromSize(screen.Bounds.Width, screen.Bounds.Height);
+        }
+
         public static ScreenResolution FromSize(int width, int height)
         {
             return new ScreenResolution(width, height, 32, 60);
