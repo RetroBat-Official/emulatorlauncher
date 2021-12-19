@@ -46,12 +46,6 @@ namespace emulatorLauncher
             MessageBox.Show("Translations updated :\r\n" + root, null, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        static HashSet<string> excluded = new HashSet<string>()
-        {
-            "ON", "OFF", "YES", "NO", "NTSC", "PAL", "VGA", "SVGA", "EGA", "CGA", "OpenGL", "OPENGL", "Vulkan", "VULKAN", "DirectX 11", "DIRECTX 11", "NONE",
-            "RETROARCH", "XINPUT", "SDL2", "NINTENDO", "SEGA"
-        };
-        
         private static List<string> GetEsFeaturesStrings()
         {
             var features = EsFeatures.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.cfg"));
@@ -142,9 +136,27 @@ namespace emulatorLauncher
             return strings;
         }
 
+        static HashSet<string> _blackList;
+        
         private static bool IsExcluded(string s)
         {
-            if (excluded.Contains(s))
+            if (_blackList == null)
+            {
+                _blackList = new HashSet<string>()
+                {
+                    "ON", "OFF", "YES", "NO", "NTSC", "PAL", "VGA", "SVGA", "EGA", "CGA", "OpenGL", "OPENGL", "Vulkan", "VULKAN", "DirectX 11", "DIRECTX 11", "NONE",
+                    "RETROARCH", "XINPUT", "SDL2", "NINTENDO", "SEGA"
+                };
+
+                foreach (var item in Properties.Resources.blacklisted_words.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    _blackList.Add(item);
+                    if (item.ToUpperInvariant() != item)
+                        _blackList.Add(item.ToUpperInvariant());
+                }
+            }
+
+            if (_blackList.Contains(s))
                 return true;
 
             return s.All(c => char.IsDigit(c) || c == 'x' || c == 'X' || c == '%' || c == '/' || c == 'K' || c == 'k' || c == 'p' || c == 'P' || c == '(' || c == ')' || c == ' ' || c == '.' || c == ',');

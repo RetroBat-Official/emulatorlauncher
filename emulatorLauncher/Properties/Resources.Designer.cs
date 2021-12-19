@@ -71,6 +71,61 @@ namespace emulatorLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 400/600XL/800 (48K) (OS B)
+        ///800XL/1200XL/XEGS (64K)
+        ///130XE (128K)
+        ///Modern XL/XE (320K CS)
+        ///Modern XL/XE (576K)
+        ///Modern XL/XE (1088K)
+        ///normal2x
+        ///normal3x
+        ///advmame2x
+        ///advmame3x
+        ///advinterp2x
+        ///advinterp3x
+        ///hq2x
+        ///hq3x
+        ///2xai
+        ///super2xai
+        ///supereagle
+        ///tv2x
+        ///tv3x
+        ///rgb2x
+        ///rgb3x
+        ///scan2x
+        ///scan3x
+        ///JINC2
+        ///xBR
+        ///default
+        ///asqrealc
+        ///nintendo-vc
+        ///rgb
+        ///yuv-v3
+        ///unsaturated-final
+        ///sony-cxa2025as-us
+        ///pal
+        ///bmf-final2
+        ///bmf-final3
+        ///smooth-fbx
+        ///composite-direct-fbx
+        ///pvm-style-d93-fbx
+        ///ntsc-hardware-fbx
+        ///nes-classic-fbx-fs
+        ///nescap
+        ///wavebeam
+        ///custom
+        ///disabled
+        ///SGB - 1A
+        ///SGB - 1B
+        ///S [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string blacklisted_words {
+            get {
+                return ResourceManager.GetString("blacklisted_words", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] configgen_defaults {

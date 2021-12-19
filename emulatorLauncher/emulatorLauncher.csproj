@@ -215,6 +215,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <None Include="Resources\blacklisted-words.txt" />
     <None Include="Resources\retrobat.png" />
     <None Include="Reshader\Bezel.fx" />
   </ItemGroup>
