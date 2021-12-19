@@ -177,22 +177,20 @@ namespace emulatorLauncher
                     bounds = new Rectangle(0, 0, args[i + 1].ToInteger(), args[i + 2].ToInteger());
             }
 
-            if (isWindowed)
+            if (isWindowed && bounds.Width > 0 && bounds.Height > 0)
             {
                 try
                 {
                     var hWnd = process.MainWindowHandle;
-                    if (hWnd != IntPtr.Zero)
+                    if (hWnd != IntPtr.Zero && User32.IsWindowVisible(hWnd))
                     {
                         var rect = User32.GetWindowRect(hWnd);
-
-                        if (bounds.Width > 0 && bounds.Height > 0)
+                        if (rect.left != rect.right && rect.top != rect.bottom)
                         {
                             bounds.X = rect.left;
                             bounds.Y = rect.top;
                         }
-                        else
-                            bounds = new Rectangle(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+                        
                     }
                 }
                 catch { }
