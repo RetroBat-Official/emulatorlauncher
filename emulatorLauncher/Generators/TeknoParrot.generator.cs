@@ -671,6 +671,9 @@ namespace emulatorLauncher
             if (name.Contains("."))
                 name = name.Replace(".", "");
 
+            if (name.Contains("'"))
+                name = name.Replace("'", "");
+
             return name.Trim();
         }
 

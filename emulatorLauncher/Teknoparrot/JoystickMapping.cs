@@ -181,6 +181,24 @@ namespace TeknoParrotUi.Common
         PokkenButtonR,
         P1LightGun,
         P2LightGun,
+        P3LightGun,
+        P4LightGun,
+        P1RelativeUp,
+        P1RelativeDown,
+        P1RelativeLeft,
+        P1RelativeRight,
+        P2RelativeUp,
+        P2RelativeDown,
+        P2RelativeLeft,
+        P2RelativeRight,
+        P3RelativeUp,
+        P3RelativeDown,
+        P3RelativeLeft,
+        P3RelativeRight,
+        P4RelativeUp,
+        P4RelativeDown,
+        P4RelativeLeft,
+        P4RelativeRight,
     }
 
     public enum AnalogType
@@ -222,7 +240,23 @@ namespace TeknoParrotUi.Common
         public JoystickButton DirectInputButton { get; set; }
         public XInputButton XInputButton { get; set; }
         public RawInputButton RawInputButton { get; set; }
-        public InputMapping InputMapping { get; set; }
+        
+        [XmlElement("InputMapping")]
+        public string InputMappingString { get; set; }
+
+        [XmlIgnore]
+        public InputMapping InputMapping
+        {
+            get
+            {
+                InputMapping value;
+                if (Enum.TryParse(InputMappingString, out value))
+                    return value;
+
+                return InputMapping.JvsTwoTest;
+            }
+        }
+
         public AnalogType AnalogType { get; set; }
         public string BindNameDi { get; set; }
         public string BindNameXi { get; set; }
@@ -235,6 +269,15 @@ namespace TeknoParrotUi.Common
         public bool HideWithoutKeyboardForAxis { get; set; }
         public bool HideWithRelativeAxis { get; set; }
         public bool HideWithoutRelativeAxis { get; set; }
+        public string Hint { get; set; }
+        public bool HideWithUseDPadForGUN1Stick { get; set; }
+        public bool HideWithoutUseDPadForGUN1Stick { get; set; }
+        public bool HideWithUseDPadForGUN2Stick { get; set; }
+        public bool HideWithoutUseDPadForGUN2Stick { get; set; }
+        public bool HideWithUseAnalogAxisToAimGUN1 { get; set; }
+        public bool HideWithoutUseAnalogAxisToAimGUN1 { get; set; }
+        public bool HideWithUseAnalogAxisToAimGUN2 { get; set; }
+        public bool HideWithoutUseAnalogAxisToAimGUN2 { get; set; }
     }
 
     [Serializable]
