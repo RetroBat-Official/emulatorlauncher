@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace emulatorLauncher
 {
@@ -17,6 +18,7 @@ namespace emulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _triforce = false;
+        private Rectangle _windowRect = Rectangle.Empty;
 
         public override int RunAndWait(ProcessStartInfo path)
         {
@@ -25,7 +27,42 @@ namespace emulatorLauncher
             if (_bezelFileInfo != null)
                 bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
-            int ret = base.RunAndWait(path);
+            int ret = 0;
+
+            if (_windowRect.IsEmpty)
+                ret = base.RunAndWait(path);
+            else
+            {
+                var process = Process.Start(path);
+
+                while (process != null)
+                {
+                    try
+                    {
+                        var hWnd = process.MainWindowHandle;
+                        if (hWnd != IntPtr.Zero)
+                        {
+                            User32.SetWindowPos(hWnd, IntPtr.Zero, _windowRect.Left, _windowRect.Top, _windowRect.Width, _windowRect.Height, SWP.NOZORDER);
+                            break;
+                        }
+                    }
+                    catch { }
+                    
+                    if (process.WaitForExit(1))
+                    {
+                        ret = process.ExitCode;
+                        process = null;
+                        break;
+                    }
+
+                }
+
+                if (process != null)
+                {
+                    process.WaitForExit();
+                    ret = process.ExitCode;
+                }
+            }
 
             if (bezel != null)
                 bezel.Dispose();
@@ -235,7 +272,15 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, true))
                 {
-                    ini.WriteValue("Display", "Fullscreen", "True");
+                    Rectangle emulationStationBounds;
+                    if (IsEmulationStationWindowed(out emulationStationBounds, true))
+                    {
+                        _windowRect = emulationStationBounds;
+                        _bezelFileInfo = null;
+                        ini.WriteValue("Display", "Fullscreen", "False");
+                    }
+                    else
+                        ini.WriteValue("Display", "Fullscreen", "True");
 
                     // draw or not FPS
                     if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))

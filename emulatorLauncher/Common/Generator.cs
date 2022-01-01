@@ -56,8 +56,8 @@ namespace emulatorLauncher
 
                 if (exitCode == unchecked((int)0xc0000374)) // Heap corruption - happen sometimes with scummvm
                     return 0;
-                
-                return process.ExitCode;
+
+                return exitCode;
             }
             catch 
             { 
@@ -148,7 +148,7 @@ namespace emulatorLauncher
             return null;
         }
 
-        public static bool IsEmulationStationWindowed(out Rectangle bounds)
+        public static bool IsEmulationStationWindowed(out Rectangle bounds, bool updateSize = false)
         {
             bool isWindowed = false;
 
@@ -189,6 +189,12 @@ namespace emulatorLauncher
                         {
                             bounds.X = rect.left;
                             bounds.Y = rect.top;
+
+                            if (updateSize)
+                            {
+                                bounds.Width = rect.right - rect.left;
+                                bounds.Height = rect.bottom - rect.top;
+                            }
                         }
                         
                     }
