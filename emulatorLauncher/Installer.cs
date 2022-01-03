@@ -48,6 +48,7 @@ namespace emulatorLauncher
             { new Installer("mednafen", "mednafen") },        
             { new Installer("mgba", "mgba") }, 
             { new Installer("openbor") }, 
+            { new Installer("scummvm") },             
             { new Installer("oricutron") },             
             { new Installer("ppsspp", "ppsspp", "PPSSPPWindows64.exe") }, 
             { new Installer("project64", "project64") }, 
