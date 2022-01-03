@@ -77,6 +77,7 @@ namespace emulatorLauncher
             { "tsugaru", () => new TsugaruGenerator() },
 			{ "love", () => new LoveGenerator() },
 			{ "xemu", () => new XEmuGenerator() },
+            { "scummvm", () => new ScummVmGenerator() },            
             { "arcadeflashweb", () => new ArcadeFlashWebGenerator() },			
             { "solarus", () => new SolarusGenerator() },
 			{ "pinballfx3", () => new PinballFX3Generator() }			

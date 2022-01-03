@@ -205,6 +205,20 @@ namespace emulatorLauncher
             return isWindowed && bounds.Width > 0 && bounds.Height > 0;
         }
         #endregion
+
+        protected string GetCurrentLanguage()
+        {
+            if (!SystemConfig.isOptSet("Language") || string.IsNullOrEmpty(SystemConfig["Language"]))
+                return string.Empty;
+
+            string s = SystemConfig["Language"].ToLowerInvariant();
+
+            int cut = s.IndexOf("_");
+            if (cut >= 0)
+                return s.Substring(0, cut);
+
+            return s;
+        }
     }
 
     enum ExitCodes : int

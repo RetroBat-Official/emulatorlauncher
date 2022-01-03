@@ -13,7 +13,7 @@ namespace emulatorLauncher
             return FindHwnds(processId).FirstOrDefault();
         }
 
-        public static IEnumerable<IntPtr> FindHwnds(int processId)
+        public static IEnumerable<IntPtr> FindHwnds(int processId, Predicate<IntPtr> func = null)
         {
             IntPtr hWnd = GetWindow(GetDesktopWindow(), GW.CHILD);
             while (hWnd != IntPtr.Zero)
@@ -23,7 +23,10 @@ namespace emulatorLauncher
                     uint wndProcessId;
                     GetWindowThreadProcessId(hWnd, out wndProcessId);
                     if (wndProcessId == processId)
-                        yield return hWnd;
+                    {
+                        if (func == null || func(hWnd))
+                            yield return hWnd;
+                    }
                 }
 
                 hWnd = GetWindow(hWnd, GW.HWNDNEXT);
