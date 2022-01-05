@@ -910,21 +910,125 @@ namespace emulatorLauncher.libRetro
         {
             if (core != "snes9x")
                 return;
-
-            if (SystemConfig.isOptSet("ntsc_filter"))
-                coreSettings["snes9x_blargg"] = SystemConfig["ntsc_filter"];
+            
+            coreSettings["snes9x_show_advanced_av_settings"] = "enabled";
+            coreSettings["snes9x_show_lightgun_settings"] = "enabled";
+            
+            // Emulated video signal
+            if (SystemConfig.isOptSet("snes9x_blargg"))
+                coreSettings["snes9x_blargg"] = SystemConfig["snes9x_blargg"];
             else
                 coreSettings["snes9x_blargg"] = "disabled";
 
-            if (SystemConfig.isOptSet("overscan"))
-                coreSettings["snes9x_overscan"] = SystemConfig["overscan"];
+            // Overscan
+            if (SystemConfig.isOptSet("snes9x_overscan"))
+                coreSettings["snes9x_overscan"] = SystemConfig["snes9x_overscan"];
             else
-                coreSettings["snes9x_overscan"] = "enabled";
-
-            if (SystemConfig.isOptSet("gfx_hires"))
-                coreSettings["snes9x_gfx_hires"] = SystemConfig["gfx_hires"];
+                coreSettings["snes9x_overscan"] = "auto";
+            
+            // Region
+            if (SystemConfig.isOptSet("snes9x_region"))
+                coreSettings["snes9x_region"] = SystemConfig["snes9x_region"];
             else
-                coreSettings["snes9x_gfx_hires"] = "enabled";
+                coreSettings["snes9x_region"] = "auto";
+            
+            // Internal resolution
+            if (SystemConfig.isOptSet("snes9x_gfx_hires"))
+                coreSettings["snes9x_gfx_hires"] = SystemConfig["snes9x_gfx_hires"];
+            else
+                coreSettings["snes9x_gfx_hires"] = "disabled";
+            
+            // Pixel blending
+            if (SystemConfig.isOptSet("snes9x_hires_blend"))
+                coreSettings["snes9x_hires_blend"] = SystemConfig["snes9x_hires_blend"];
+            else
+                coreSettings["snes9x_hires_blend"] = "disabled";
+            
+            // Audio interpolation
+            if (SystemConfig.isOptSet("snes9x_audio_interpolation"))
+                coreSettings["snes9x_audio_interpolation"] = SystemConfig["snes9x_audio_interpolation"];
+            else
+                coreSettings["snes9x_audio_interpolation"] = "none";
+            
+            // SuperFX overclock
+            if (SystemConfig.isOptSet("snes9x_overclock_superfx"))
+                coreSettings["snes9x_overclock_superfx"] = SystemConfig["snes9x_overclock_superfx"];
+            else
+                coreSettings["snes9x_overclock_superfx"] = "100%";
+            
+            // Block invalid VRAM access
+            if (SystemConfig.isOptSet("snes9x_block_invalid_vram_access"))
+                coreSettings["snes9x_block_invalid_vram_access"] = SystemConfig["snes9x_block_invalid_vram_access"];
+            else
+                coreSettings["snes9x_block_invalid_vram_access"] = "enabled";
+            
+            // Unsafe hacks (config must be done in Core options)
+            if (SystemConfig.isOptSet("SnesUnsafeHacks") && SystemConfig["SnesUnsafeHacks"] == "config")
+            {
+                coreSettings["snes9x_echo_buffer_hack"] = coreSettings["snes9x_echo_buffer_hack"];
+                coreSettings["snes9x_overclock_cycles"] = coreSettings["snes9x_overclock_cycles"];
+                coreSettings["snes9x_randomize_memory"] = coreSettings["snes9x_randomize_memory"];
+                coreSettings["snes9x_reduce_sprite_flicker"] = coreSettings["snes9x_reduce_sprite_flicker"];
+            }
+            else
+            {
+                coreSettings["snes9x_echo_buffer_hack"] = "disabled";
+                coreSettings["snes9x_overclock_cycles"] = "disabled";
+                coreSettings["snes9x_randomize_memory"] = "disabled";
+                coreSettings["snes9x_reduce_sprite_flicker"] = "disabled";
+            }
+            
+            // Advanced video options (config must be done in Core options menu)
+            if (SystemConfig.isOptSet("SnesAdvancedVideoOptions") && SystemConfig["SnesAdvancedVideoOptions"] == "config")
+            {
+                coreSettings["snes9x_layer_1"] = coreSettings["snes9x_layer_1"];
+                coreSettings["snes9x_layer_2"] = coreSettings["snes9x_layer_2"];
+                coreSettings["snes9x_layer_3"] = coreSettings["snes9x_layer_3"];
+                coreSettings["snes9x_layer_4"] = coreSettings["snes9x_layer_4"];
+                coreSettings["snes9x_layer_5"] = coreSettings["snes9x_layer_5"];
+                coreSettings["snes9x_gfx_clip"] = coreSettings["snes9x_gfx_clip"];
+                coreSettings["snes9x_gfx_transp"] = coreSettings["snes9x_gfx_transp"];
+            }
+            else
+            {
+                coreSettings["snes9x_layer_1"] = "enabled";
+                coreSettings["snes9x_layer_2"] = "enabled";
+                coreSettings["snes9x_layer_3"] = "enabled";
+                coreSettings["snes9x_layer_4"] = "enabled";
+                coreSettings["snes9x_layer_5"] = "enabled";
+                coreSettings["snes9x_gfx_clip"] =  "enabled";
+                coreSettings["snes9x_gfx_transp"] =  "enabled";
+            }
+            
+            // Advanced audio options (config must be done in Core options menu)
+            if (SystemConfig.isOptSet("SnesAdvancedAudioOptions") && SystemConfig["SnesAdvancedAudioOptions"] == "config")
+            {
+                coreSettings["snes9x_sndchan_1"] = coreSettings["snes9x_sndchan_1"];
+                coreSettings["snes9x_sndchan_2"] = coreSettings["snes9x_sndchan_2"];
+                coreSettings["snes9x_sndchan_3"] = coreSettings["snes9x_sndchan_3"];
+                coreSettings["snes9x_sndchan_4"] = coreSettings["snes9x_sndchan_4"];
+                coreSettings["snes9x_sndchan_5"] = coreSettings["snes9x_sndchan_5"];
+                coreSettings["snes9x_sndchan_6"] = coreSettings["snes9x_sndchan_6"];
+                coreSettings["snes9x_sndchan_7"] = coreSettings["snes9x_sndchan_7"];
+                coreSettings["snes9x_sndchan_8"] = coreSettings["snes9x_sndchan_8"];
+            }
+            else
+            {
+                coreSettings["snes9x_sndchan_1"] = "enabled";
+                coreSettings["snes9x_sndchan_2"] = "enabled";
+                coreSettings["snes9x_sndchan_3"] = "enabled";
+                coreSettings["snes9x_sndchan_4"] = "enabled";
+                coreSettings["snes9x_sndchan_5"] = "enabled";
+                coreSettings["snes9x_sndchan_6"] = "enabled";
+                coreSettings["snes9x_sndchan_7"] = "enabled";
+                coreSettings["snes9x_sndchan_8"] = "enabled";
+            }
+            
+            // Lightgun mode
+            if (SystemConfig.isOptSet("snes9x_lightgun_mode"))
+                coreSettings["snes9x_lightgun_mode"] = SystemConfig["snes9x_lightgun_mode"];
+            else
+                coreSettings["snes9x_lightgun_mode"] = "Lightgun";
         }
 
         private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1212,16 +1316,35 @@ namespace emulatorLauncher.libRetro
             if (core != "mupen64plus_next" && core != "mupen64plus_next_gles3")
                 return;
 
-            coreSettings["mupen64plus-cpucore"] = "pure_interpreter";
-            coreSettings["mupen64plus-rdp-plugin"] = "gliden64";
+            //coreSettings["mupen64plus-cpucore"] = "pure_interpreter";
             coreSettings["mupen64plus-rsp-plugin"] = "hle";
             coreSettings["mupen64plus-EnableLODEmulation"] = "True";
             coreSettings["mupen64plus-EnableCopyAuxToRDRAM"] = "True";
             coreSettings["mupen64plus-EnableHWLighting"] = "True";
             coreSettings["mupen64plus-txHiresFullAlphaChannel"] = "True";
             coreSettings["mupen64plus-GLideN64IniBehaviour"] = "early";
-
-            // Overscan
+            coreSettings["mupen64plus-parallel-rdp-native-tex-rect"] = "True";
+            coreSettings["mupen64plus-parallel-rdp-synchronous"] = "True";
+            
+            // CPU core
+            if (SystemConfig.isOptSet("mupen64plus-cpucore"))
+                coreSettings["mupen64plus-cpucore"] = SystemConfig["mupen64plus-cpucore"];
+            else
+                coreSettings["mupen64plus-cpucore"] = "pure_interpreter";
+            
+            // Plugin selection
+            if (SystemConfig.isOptSet("RDP_Plugin"))
+                coreSettings["mupen64plus-rdp-plugin"] = SystemConfig["RDP_Plugin"];
+            else
+                coreSettings["mupen64plus-rdp-plugin"] = "gliden64";
+            
+            // Set RSP plugin: HLE for Glide, LLE for Parallel
+            if (SystemConfig.isOptSet("RDP_Plugin") && coreSettings["mupen64plus-rdp-plugin"] == "parallel")
+                coreSettings["mupen64plus-rsp-plugin"] = "parallel";
+            else
+                coreSettings["mupen64plus-rsp-plugin"] = "hle";
+            
+            // Overscan (Glide)
             if (SystemConfig.isOptSet("CropOverscan") && SystemConfig.getOptBoolean("CropOverscan"))
             {
                 coreSettings["mupen64plus-OverscanBottom"] = "0";
@@ -1294,13 +1417,13 @@ namespace emulatorLauncher.libRetro
                 coreSettings["mupen64plus-EnableEnhancedHighResStorage"] = "False";
             }
 
-            // Texture Enhancement
+            // Texture Enhancement (Glide)
             if (SystemConfig.isOptSet("Texture_Enhancement"))
                 coreSettings["mupen64plus-txEnhancementMode"] = SystemConfig["Texture_Enhancement"];
             else
                 coreSettings["mupen64plus-txEnhancementMode"] = "As Is";
 
-            // Widescreen
+            // Widescreen (Glide)
             if (SystemConfig.isOptSet("Widescreen") && SystemConfig.getOptBoolean("Widescreen"))
             {
                 coreSettings["mupen64plus-aspect"] = "16:9 adjusted";
@@ -1310,37 +1433,31 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["mupen64plus-aspect"] = "4/3";
 
-            // 4:3 resolution
+            // 4:3 resolution (Glide)
             if (SystemConfig.isOptSet("43screensize"))
                 coreSettings["mupen64plus-43screensize"] = SystemConfig["43screensize"];
             else
-                coreSettings["mupen64plus-43screensize"] = "960x720";
+                coreSettings["mupen64plus-43screensize"] = "640x480";
 
-            // 16:9 resolution
+            // 16:9 resolution (Glide)
             if (SystemConfig.isOptSet("169screensize"))
                 coreSettings["mupen64plus-169screensize"] = SystemConfig["169screensize"];
             else
-                coreSettings["mupen64plus-169screensize"] = "1280x720";
+                coreSettings["mupen64plus-169screensize"] = "960x540";
 
-            // BilinearMode
+            // BilinearMode (Glide)
             if (SystemConfig.isOptSet("BilinearMode"))
                 coreSettings["mupen64plus-BilinearMode"] = SystemConfig["BilinearMode"];
             else
                 coreSettings["mupen64plus-BilinearMode"] = "3point";
 
-            // BilinearMode
-            if (SystemConfig.isOptSet("BilinearMode"))
-                coreSettings["mupen64plus-BilinearMode"] = SystemConfig["BilinearMode"];
-            else
-                coreSettings["mupen64plus-BilinearMode"] = "3point";
-
-            // Multisampling aa
+            // Multisampling aa (Glide)
             if (SystemConfig.isOptSet("MultiSampling"))
                 coreSettings["mupen64plus-MultiSampling"] = SystemConfig["MultiSampling"];
             else
                 coreSettings["mupen64plus-MultiSampling"] = "0";
 
-            // Texture filter
+            // Texture filter (Glide)
             if (SystemConfig.isOptSet("Texture_filter"))
                 coreSettings["mupen64plus-txFilterMode"] = SystemConfig["Texture_filter"];
             else
@@ -1369,6 +1486,80 @@ namespace emulatorLauncher.libRetro
                 coreSettings["mupen64plus-pak4"] = SystemConfig["mupen64plus-pak4"];
             else
                 coreSettings["mupen64plus-pak4"] = "none";
+            
+            // Deinterlacing method (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-deinterlace-method"))
+                coreSettings["mupen64plus-parallel-rdp-deinterlace-method"] = SystemConfig["mupen64plus-parallel-rdp-deinterlace-method"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-deinterlace-method"] = "none";
+            
+            // Dithering filter (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-dither-filter"))
+                coreSettings["mupen64plus-parallel-rdp-dither-filter"] = SystemConfig["mupen64plus-parallel-rdp-dither-filter"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-dither-filter"] = "True";
+            
+            // Divot filter (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-divot-filter"))
+                coreSettings["mupen64plus-parallel-rdp-divot-filter"] = SystemConfig["mupen64plus-parallel-rdp-divot-filter"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-divot-filter"] = "True";
+            
+            // Downscaling (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-downscaling"))
+                coreSettings["mupen64plus-parallel-rdp-downscaling"] = SystemConfig["mupen64plus-parallel-rdp-downscaling"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-downscaling"] = "disable";
+            
+            // Gamma dither (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-gamma-dither"))
+                coreSettings["mupen64plus-parallel-rdp-gamma-dither"] = SystemConfig["mupen64plus-parallel-rdp-gamma-dither"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-gamma-dither"] = "disable";
+            
+            // Native texture LOD (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-native-texture-lod"))
+                coreSettings["mupen64plus-parallel-rdp-native-texture-lod"] = SystemConfig["mupen64plus-parallel-rdp-native-texture-lod"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-native-texture-lod"] = "False";
+            
+            // Overscan (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-overscan"))
+                coreSettings["mupen64plus-parallel-rdp-overscan"] = SystemConfig["mupen64plus-parallel-rdp-overscan"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-overscan"] = "16";
+            
+            // SSA framebuffer effects (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-super-sampled-read-back"))
+                coreSettings["mupen64plus-parallel-rdp-super-sampled-read-back"] = SystemConfig["mupen64plus-parallel-rdp-super-sampled-read-back"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-super-sampled-read-back"] = "False";
+            
+            // Dither SSA framebuffer effects (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-super-sampled-read-back-dither"))
+                coreSettings["mupen64plus-parallel-rdp-super-sampled-read-back-dither"] = SystemConfig["mupen64plus-parallel-rdp-super-sampled-read-back-dither"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-super-sampled-read-back-dither"] = "False";
+            
+            // Textures upscaling (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-upscaling"))
+                coreSettings["mupen64plus-parallel-rdp-upscaling"] = SystemConfig["mupen64plus-parallel-rdp-upscaling"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-upscaling"] = "1x";
+            
+            // Anti aliasing (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-vi-aa"))
+                coreSettings["mupen64plus-parallel-rdp-vi-aa"] = SystemConfig["mupen64plus-parallel-rdp-vi-aa"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-vi-aa"] = "False";
+            
+            // Bilinear scaling (Parallel)
+            if (SystemConfig.isOptSet("mupen64plus-parallel-rdp-vi-bilinear"))
+                coreSettings["mupen64plus-parallel-rdp-vi-bilinear"] = SystemConfig["mupen64plus-parallel-rdp-vi-bilinear"];
+            else
+                coreSettings["mupen64plus-parallel-rdp-vi-bilinear"] = "False";
+            
+            
         }
 
         private void ConfigureDosboxPure(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
