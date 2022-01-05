@@ -43,8 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\emulatorLauncher\Tools\SDL2.cs">
-      <Link>SDL2.cs</Link>
+    <Compile Include="..\emulatorLauncher\Common\SDL2.cs">
+      <Link>Common\SDL2.cs</Link>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

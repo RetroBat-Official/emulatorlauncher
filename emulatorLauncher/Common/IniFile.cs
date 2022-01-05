@@ -10,6 +10,11 @@ namespace emulatorLauncher
 {
 	public class IniFile : IDisposable
 	{
+        public static IniFile FromFile(string path, bool useSpaces = false)
+        {
+            return new IniFile(path, useSpaces);
+        }
+
         public IniFile(string path, bool useSpaces = false)
 		{
             _useSpaces = useSpaces;

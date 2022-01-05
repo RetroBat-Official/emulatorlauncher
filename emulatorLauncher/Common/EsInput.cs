@@ -14,7 +14,7 @@ namespace emulatorLauncher.Tools
 {
     [XmlRoot("inputList")]
     [XmlType("inputList")]
-    public class InputList
+    public class EsInput
     {
         public static InputConfig[] Load(string xmlFile)
         {
@@ -23,7 +23,7 @@ namespace emulatorLauncher.Tools
 
             try
             {
-                InputList ret = Misc.FromXml<InputList>(xmlFile);
+                EsInput ret = Misc.FromXml<EsInput>(xmlFile);
                 if (ret != null)
                     return ret.InputConfigs.ToArray();
             }

@@ -5,6 +5,8 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Reflection;
+using emulatorLauncher.PadToKeyboard;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -16,9 +18,9 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            string exe = Path.Combine(path, "xemuw.exe");
+            string exe = Path.Combine(path, "xemu.exe");
             if (!File.Exists(exe))
-                exe = Path.Combine(path, "xemu.exe");
+                exe = Path.Combine(path, "xemuw.exe");
             
             if (!File.Exists(exe))
                 return null;
@@ -107,5 +109,9 @@ namespace emulatorLauncher
             };
         }
 
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "xemu", InputKey.hotkey | InputKey.start, "(%{KILL})");
+        }
     }
 }

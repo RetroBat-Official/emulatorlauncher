@@ -13,6 +13,8 @@ namespace emulatorLauncher.PadToKeyboard
 {
     class JoystickListener : IDisposable
     {
+        public bool ProcessKilled { get; private set; }
+
         private PadToKey _mapping;
         private Controller[] _inputList;
 
@@ -405,6 +407,7 @@ namespace emulatorLauncher.PadToKeyboard
                     {
                         const int WM_CLOSE = 0x0010;
                         User32.SendMessage(hWndProcess, WM_CLOSE, 0, 0);
+                        ProcessKilled = true;
                     }
                     else if (input.Key == "(%{KILL})" && hWndProcess != IntPtr.Zero)
                     {
@@ -416,6 +419,7 @@ namespace emulatorLauncher.PadToKeyboard
                         SendKey.Send(Keys.F4, true);
                         SendKey.Send(Keys.Alt, false);
                         SendKey.Send(Keys.F4, false);
+                        ProcessKilled = true;
                     }
                     else
                         SendKeys.SendWait(input.Key);
@@ -491,6 +495,7 @@ namespace emulatorLauncher.PadToKeyboard
             {
                 Process p = Process.GetProcessById((int)pid);
                 p.Kill();
+                ProcessKilled = true;
             }
             catch { }
         }

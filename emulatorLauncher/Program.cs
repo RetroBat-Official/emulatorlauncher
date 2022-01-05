@@ -77,6 +77,7 @@ namespace emulatorLauncher
             { "tsugaru", () => new TsugaruGenerator() },
 			{ "love", () => new LoveGenerator() },
 			{ "xemu", () => new XEmuGenerator() },
+            { "scummvm", () => new ScummVmGenerator() },            
             { "arcadeflashweb", () => new ArcadeFlashWebGenerator() },			
             { "solarus", () => new SolarusGenerator() },
 			{ "pinballfx3", () => new PinballFX3Generator() }			
@@ -126,7 +127,19 @@ namespace emulatorLauncher
             LoadControllerConfiguration(args);
             ImportShaderOverrides();
 
+            if (args.Any(a => "-updatepo".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                EsFeaturesPoBuilder.Process();
+                return;
+            }
 
+            if (args.Any(a => "-updateall".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                using (var frm = new InstallerFrm())
+                    frm.UpdateAll();
+
+                return;
+            }
 
             if (args.Any(a => "-collectversions".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -138,24 +151,24 @@ namespace emulatorLauncher
                 return;
             }
 
-            // SystemConfig["updates.type"] vide ou stable/beta/unstable
-
-
             if (!SystemConfig.isOptSet("rom"))
             {
                 SimpleLogger.Instance.Error("rom not set");
+                Environment.ExitCode = (int) ExitCodes.BadCommandLine;
                 return;
             }
 
             if (!File.Exists(SystemConfig.GetFullPath("rom")) && !Directory.Exists(SystemConfig.GetFullPath("rom")))
             {
                 SimpleLogger.Instance.Error("rom does not exist");
+                Environment.ExitCode = (int)ExitCodes.BadCommandLine;
                 return;
             }
 
             if (!SystemConfig.isOptSet("system"))
             {
                 SimpleLogger.Instance.Error("system not set");
+                Environment.ExitCode = (int)ExitCodes.BadCommandLine;
                 return;
             }
             
@@ -189,14 +202,18 @@ namespace emulatorLauncher
             }
 
             // Check if installed. Download & Install it if necessary.
-            Installer installer = Installer.FindInstaller();
-            if (installer != null && !installer.IsInstalled() && installer.CanInstall())
+            Installer installer = Installer.GetInstaller();
+            if (installer != null)
             {
-                using (UpdateFrm frm = new UpdateFrm(installer))
-                    if (frm.ShowDialog() != DialogResult.OK)
-                        return;
+                bool updatesEnabled = !SystemConfig.isOptSet("updates.enabled") || SystemConfig.getOptBoolean("updates.enabled");
+                if ((!installer.IsInstalled() || (updatesEnabled && installer.HasUpdateAvailable())) && installer.CanInstall())
+                {
+                    using (InstallerFrm frm = new InstallerFrm(installer))
+                        if (frm.ShowDialog() != DialogResult.OK)
+                            return;
+                }
             }
-
+            
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
                 generator = new LibRetroGenerator();
@@ -212,8 +229,9 @@ namespace emulatorLauncher
                     Features = EsFeatures.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.cfg"));
                 }
                 catch (Exception ex)
-                {
-                    MessageBox.Show("Error : es_features.cfg is invalid :\r\n" + ex.Message, null, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                {                    
+                    WriteCustomErrorFile("Error : es_features.cfg is invalid :\r\n" + ex.Message); // Delete custom err
+                    Environment.ExitCode = (int)ExitCodes.CustomError;
                     return;
                 }
 
@@ -244,19 +262,29 @@ namespace emulatorLauncher
                         mapping = generator.SetupCustomPadToKeyMapping(mapping);
 
                         using (new HighPerformancePowerScheme())
-                        using (new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
-                            generator.RunAndWait(path);
+                        using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
+                        {
+                            int exitCode = generator.RunAndWait(path);
+                            if (exitCode != 0 && !joy.ProcessKilled)
+                                Environment.ExitCode = (int)ExitCodes.EmulatorExitedUnexpectedly;
+                        }
 
                         generator.RestoreFiles();
                     }
                     else
+                    {
                         SimpleLogger.Instance.Error("generator failed");
+                        Environment.ExitCode = (int) generator.ExitCode;
+                    }
                 }
 
                 generator.Cleanup();
             }
             else
+            {
                 SimpleLogger.Instance.Error("Can't find generator");
+                Environment.ExitCode = (int)ExitCodes.UnknownEmulator;
+            }
         }
 
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
@@ -440,7 +468,7 @@ namespace emulatorLauncher
 
             try
             {
-                var inputConfig = InputList.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_input.cfg"));
+                var inputConfig = EsInput.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_input.cfg"));
                 if (inputConfig != null)
                 {
                     if (!Controllers.Any())
@@ -492,6 +520,29 @@ namespace emulatorLauncher
                 }
             }
         }
+
+
+        /// <summary>
+        /// To use with Environment.ExitCode = (int)ExitCodes.CustomError;
+        /// Deletes the file if message == null
+        /// </summary>
+        /// <param name="message"></param>
+        public static void WriteCustomErrorFile(string message)
+        {
+            string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "launch_error.log");
+
+            try
+            {
+                if (string.IsNullOrEmpty(message))
+                {
+                    if (File.Exists(fn))
+                        File.Delete(fn);
+                }
+                else
+                    File.WriteAllText(fn, message);
+            }
+            catch { }
+        }
     }
 
     class Controller
@@ -507,4 +558,5 @@ namespace emulatorLauncher
 
         public override string ToString() { return Name + " (" + PlayerIndex.ToString()+")"; }
     }
+
 }

@@ -13,6 +13,8 @@ namespace emulatorLauncher.libRetro
 {
     partial class LibRetroGenerator : Generator
     {
+        const string RetroArchNetPlayPatchedName = "RETROBAT";
+
         public string RetroarchPath { get; set; }
         public string RetroarchCorePath { get; set; }
 
@@ -27,27 +29,36 @@ namespace emulatorLauncher.libRetro
                 RetroarchCorePath = Path.Combine(RetroarchPath, "cores");
         }
 
-
         private void Configure(string system, string core, string rom, ScreenResolution resolution)
         {
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
             retroarchConfig["global_core_options"] = "true";
             retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')
-
-            retroarchConfig["input_autodetect_enable"] = "false";
+          
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
 
             retroarchConfig["quit_press_twice"] = "false";
             retroarchConfig["pause_nonactive"] = "false";
-            retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["menu_driver"] = "ozone";
-            
+
+            retroarchConfig["content_show_images"] = "false";
+            retroarchConfig["content_show_music"] = "false";
+            retroarchConfig["content_show_playlists"] = "false";
+            retroarchConfig["content_show_video"] = "false";
+            retroarchConfig["ui_menubar_enable"] = "false";
+            retroarchConfig["video_fullscreen"] = "true";
+            retroarchConfig["video_window_save_positions"] = "false";
+
+            retroarchConfig["input_autodetect_enable"] = SystemConfig.getOptBoolean("disableautocontrollers") ? "true" : "false";
+
+            SetupUIMode(retroarchConfig);
+
             if (SystemConfig.isOptSet("monitor"))
             {
                 int monitorId;
-                if (int.TryParse(SystemConfig["monitor"], out monitorId))
+                if (int.TryParse(SystemConfig["monitor"], out monitorId) && monitorId < Screen.AllScreens.Length)
                     retroarchConfig["video_monitor_index"] = (monitorId + 1).ToString();
                 else if (Features.IsSupported("monitor"))
                     retroarchConfig["video_monitor_index"] = "0";
@@ -56,12 +67,47 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_monitor_index"] = "0";
 
             if (resolution == null)
-                retroarchConfig["video_windowed_fullscreen"] = "true";
+            {
+                if (!SystemConfig.isOptSet("monitor"))
+                {
+                    Rectangle emulationStationBounds;
+                    if (IsEmulationStationWindowed(out emulationStationBounds))
+                    {
+                        int width = emulationStationBounds.Width;
+                        int height = emulationStationBounds.Height;
+                        var res = ScreenResolution.CurrentResolution;
+
+                        if (emulationStationBounds.Left == 0 && emulationStationBounds.Top == 0)
+                        {
+                            emulationStationBounds.X = (res.Width - width) / 2 - SystemInformation.FrameBorderSize.Width;
+                            emulationStationBounds.Y = (res.Height - height - SystemInformation.CaptionHeight - SystemInformation.MenuHeight) / 2 - SystemInformation.FrameBorderSize.Height;
+                        }
+
+                        retroarchConfig["video_windowed_position_x"] = emulationStationBounds.X.ToString();
+                        retroarchConfig["video_windowed_position_y"] = emulationStationBounds.Y.ToString();
+                        retroarchConfig["video_windowed_position_width"] = width.ToString();
+                        retroarchConfig["video_windowed_position_height"] = height.ToString();
+                        retroarchConfig["video_fullscreen"] = "false";
+                        retroarchConfig["video_window_save_positions"] = "true";
+
+                        resolution = ScreenResolution.FromSize(width, height); // For bezels
+                    }
+                    else
+                        retroarchConfig["video_windowed_fullscreen"] = "true";
+                }
+                else
+                    retroarchConfig["video_windowed_fullscreen"] = "true";
+            }
             else
             {
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
                 retroarchConfig["video_windowed_fullscreen"] = "false";
+            }
+
+            if (resolution == null && retroarchConfig["video_monitor_index"] != "0")
+            {
+                resolution = ScreenResolution.FromScreenIndex(retroarchConfig["video_monitor_index"].ToInteger() - 1);
             }
 
             if (!string.IsNullOrEmpty(AppConfig["bios"]))
@@ -263,8 +309,8 @@ namespace emulatorLauncher.libRetro
                 if (SystemConfig.isOptSet("psxcontroller2"))
                     retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
             }
-            
-            if (SystemConfig["retroachievements"] == "true" && systemToRetroachievements.Contains(system))
+
+            if (SystemConfig["retroachievements"] == "true" && Features.IsSupported("cheevos")) // || systemToRetroachievements.Contains(system)))
             {
                 retroarchConfig["cheevos_enable"] = "true";
                 retroarchConfig["cheevos_username"] = SystemConfig["retroachievements.username"];
@@ -282,7 +328,7 @@ namespace emulatorLauncher.libRetro
 
             // Netplay management : netplaymode client -netplayport " + std::to_string(options.port) + " -netplayip
             if (SystemConfig["netplay"] == "true" && !string.IsNullOrEmpty(SystemConfig["netplaymode"]))
-            {
+            {                
                 // Security : hardcore mode disables save states, which would kill netplay
                 retroarchConfig["cheevos_hardcore_mode_enable"] = "false";
 
@@ -322,6 +368,12 @@ namespace emulatorLauncher.libRetro
                     else
                         retroarchConfig.DisableAll("netplay_spectate_password");
                 }
+                else if (base.SystemConfig["netplaymode"] == "host-spectator")
+                {
+                    retroarchConfig["netplay_spectator_mode_enable"] = "true";
+                    retroarchConfig["netplay_start_as_spectator"] = "true";
+                    retroarchConfig["netplay_mode"] = "false";
+                }
                 else
                 {
                     if (SystemConfig["netplaymode"] != "host")
@@ -331,9 +383,11 @@ namespace emulatorLauncher.libRetro
                 }
 
                 // Netplay host passwords
-                if (SystemConfig["netplaymode"] == "host")
+                if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
                 {
-                    retroarchConfig["netplay_spectator_mode_enable"] = SystemConfig.getOptBoolean("netplay.spectator") ? "true" : "false";
+                    if (SystemConfig["netplaymode"] == "host")
+                        retroarchConfig["netplay_spectator_mode_enable"] = SystemConfig.getOptBoolean("netplay.spectator") ? "true" : "false";
+
                     retroarchConfig["netplay_password"] = SystemConfig["netplay.password"];
                     retroarchConfig["netplay_spectate_password"] = SystemConfig["netplay.spectatepassword"];
                 }
@@ -344,6 +398,11 @@ namespace emulatorLauncher.libRetro
                 else
                     retroarchConfig["netplay_public_announce"] = "true";
             }
+
+            if (SystemConfig["netplay"] == "true")
+                retroarchConfig["content_show_netplay"] = "true";
+            else
+                retroarchConfig["content_show_netplay"] = "false";
 
             // AI service for game translations
             if (SystemConfig.isOptSet("ai_service_enabled") && SystemConfig.getOptBoolean("ai_service_enabled"))
@@ -673,6 +732,99 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
         }
 
+        private void SetupUIMode(ConfigFile retroarchConfig)
+        {
+            if (SystemConfig["UIMode"] == "Kid" || SystemConfig["UIMode"] == "Kiosk")
+            {
+                retroarchConfig["content_show_add"] = "false";
+                retroarchConfig["content_show_explore"] = "false";
+                retroarchConfig["content_show_history"] = "false";
+                retroarchConfig["content_show_favorites"] = "false";
+
+                retroarchConfig["desktop_menu_enable"] = "false";
+
+                retroarchConfig["menu_show_advanced_settings"] = "false";
+                retroarchConfig["menu_show_configurations"] = "false";
+                retroarchConfig["menu_show_core_updater"] = "false";
+                retroarchConfig["menu_show_dump_disc"] = "false";
+                retroarchConfig["menu_show_load_content"] = "false";
+                retroarchConfig["menu_show_load_core"] = "false";
+                retroarchConfig["menu_show_load_disc"] = "false";
+                retroarchConfig["menu_show_online_updater"] = "false";
+                retroarchConfig["menu_show_restart_retroarch"] = "false";
+
+                retroarchConfig["menu_show_latency"] = "false";
+                retroarchConfig["menu_show_overlays"] = "false";
+                retroarchConfig["menu_show_video_layout"] = "false";
+
+                retroarchConfig["quick_menu_show_add_to_favorites"] = "false";
+                retroarchConfig["quick_menu_show_cheats"] = "false";
+                retroarchConfig["quick_menu_show_close_content"] = "false";
+                retroarchConfig["quick_menu_show_controls"] = "false";
+                retroarchConfig["quick_menu_show_download_thumbnails"] = "false";
+                retroarchConfig["quick_menu_show_options"] = "false";
+                retroarchConfig["quick_menu_show_reset_core_association"] = "false";
+                retroarchConfig["quick_menu_show_restart_content"] = "false";
+                retroarchConfig["quick_menu_show_save_core_overrides"] = "false";
+                retroarchConfig["quick_menu_show_save_game_overrides"] = "false";
+                retroarchConfig["quick_menu_show_set_core_association"] = "false";
+                retroarchConfig["quick_menu_show_shaders"] = "false";
+                retroarchConfig["quick_menu_show_start_recording"] = "false";
+                retroarchConfig["quick_menu_show_start_streaming"] = "false";
+                retroarchConfig["quick_menu_show_take_screenshot"] = "false";
+                retroarchConfig["quick_menu_show_undo_save_load_state"] = "false";
+
+                retroarchConfig["kiosk_mode_enable"] = "true";
+                return;
+            }
+            
+            if (retroarchConfig["kiosk_mode_enable"] == "true" || retroarchConfig["menu_show_restart_retroarch"] == "true")
+            {
+                retroarchConfig["menu_show_restart_retroarch"] = "false";
+
+                retroarchConfig["content_show_add"] = "false";
+                retroarchConfig["content_show_explore"] = "false";
+                retroarchConfig["content_show_history"] = "true";
+                retroarchConfig["content_show_favorites"] = "false";
+
+                retroarchConfig["desktop_menu_enable"] = "false";
+
+                retroarchConfig["menu_show_advanced_settings"] = "false";
+                retroarchConfig["menu_show_configurations"] = "true";
+                retroarchConfig["menu_show_core_updater"] = "true";
+                
+                retroarchConfig["menu_show_online_updater"] = "true";               
+                retroarchConfig["menu_show_latency"] = "true";
+                retroarchConfig["menu_show_overlays"] = "false";
+                retroarchConfig["menu_show_video_layout"] = "false";
+
+                retroarchConfig["menu_show_load_content"] = "false";
+                retroarchConfig["menu_show_load_core"] = "false";
+                retroarchConfig["menu_show_load_disc"] = "false";
+                retroarchConfig["menu_show_dump_disc"] = "false";
+
+                retroarchConfig["quick_menu_show_add_to_favorites"] = "false";
+                retroarchConfig["quick_menu_show_cheats"] = "true";
+                retroarchConfig["quick_menu_show_options"] = "true";
+                retroarchConfig["quick_menu_show_reset_core_association"] = "false";
+                retroarchConfig["quick_menu_show_restart_content"] = "false";
+                retroarchConfig["quick_menu_show_save_core_overrides"] = "true";
+                retroarchConfig["quick_menu_show_save_game_overrides"] = "true";
+                retroarchConfig["quick_menu_show_shaders"] = "true";
+                retroarchConfig["quick_menu_show_start_recording"] = "true";
+                retroarchConfig["quick_menu_show_start_streaming"] = "false";
+                retroarchConfig["quick_menu_show_take_screenshot"] = "true";
+
+                retroarchConfig["quick_menu_show_close_content"] = "false";
+                retroarchConfig["quick_menu_show_controls"] = "false";
+                retroarchConfig["quick_menu_show_download_thumbnails"] = "false";
+                retroarchConfig["quick_menu_show_undo_save_load_state"] = "false";
+                retroarchConfig["quick_menu_show_set_core_association"] = "false";
+
+                retroarchConfig["kiosk_mode_enable"] = "false";
+            }
+        }
+
         private void SetLanguage(ConfigFile retroarchConfig)
         {
             Func<string, string> shortLang = new Func<string, string>(s =>
@@ -863,8 +1015,11 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_message_pos_x"] = infos.messagex.Value.ToString(CultureInfo.InvariantCulture);
                 retroarchConfig["video_message_pos_y"] = infos.messagey.Value.ToString(CultureInfo.InvariantCulture);
             }
-            
-            retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
+
+            if (retroarchConfig["video_fullscreen"] != "true")
+                retroarchConfig["input_overlay_show_mouse_cursor"] = "true";
+            else
+                retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
 
             StringBuilder fd = new StringBuilder();
             fd.AppendLine("overlays = 1");
@@ -904,7 +1059,7 @@ namespace emulatorLauncher.libRetro
         {
             if (string.IsNullOrEmpty(RetroarchPath))
                 return null;
-
+            
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
                 core = Path.GetFileNameWithoutExtension(rom);
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
@@ -917,6 +1072,48 @@ namespace emulatorLauncher.libRetro
                     rom = Path.Combine(Path.GetDirectoryName(rom), "dinothawr", "dinothawr.game");
                 else
                     rom = null;
+            }
+            
+            if (string.IsNullOrEmpty(core))
+            {
+                ExitCode = ExitCodes.MissingCore;
+                SimpleLogger.Instance.Error("Libretro : core was not provided");
+                return null;
+            }
+            else
+            {
+                string corePath = Path.Combine(RetroarchCorePath, core + "_libretro.dll");
+                if (!File.Exists(corePath))
+                {
+                    try
+                    {
+
+                        string url = Installer.GetUpdateUrl("cores/" + core + "_libretro.dll.zip");
+                        if (!WebTools.UrlExists(url))
+                        {
+                            // Automatic install of missing core
+                            var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
+
+                            url = retroarchConfig["core_updater_buildbot_cores_url"];
+                            if (!string.IsNullOrEmpty(url))
+                                url += core + "_libretro.dll.zip";
+                        }
+
+                        if (WebTools.UrlExists(url))
+                        {
+                            using (var frm = new InstallerFrm(core, url, RetroarchCorePath))
+                                frm.ShowDialog();
+                        }
+                    }
+                    catch { }
+
+                    if (!File.Exists(corePath))
+                    {
+                        SimpleLogger.Instance.Error("Libretro : core is not installed");
+                        ExitCode = ExitCodes.MissingCore;
+                        return null;
+                    }
+                }
             }
 
             // Extension used by hypseus .daphne but lr-daphne starts with .zip
@@ -978,7 +1175,7 @@ namespace emulatorLauncher.libRetro
             if (!string.IsNullOrEmpty(SystemConfig["netplaymode"]))
             {
                 // Netplay mode
-                if (SystemConfig["netplaymode"] == "host")
+                if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
                     commandArray.Add("--host");
                 else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
                 {
@@ -1039,9 +1236,13 @@ namespace emulatorLauncher.libRetro
                 };
             }
 
+            string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
+            if (emulator != "angle" && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
+                retroarch = GetNetPlayPatchedRetroarch();
+
             return new ProcessStartInfo()
             {
-                FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
+                FileName = retroarch,
                 WorkingDirectory = RetroarchPath,
                 Arguments =
                     string.IsNullOrEmpty(rom) ?
@@ -1050,13 +1251,64 @@ namespace emulatorLauncher.libRetro
             };
         }
 
+
+        /// <summary>
+        /// Patch Retroarch to display @RETROBAT in netplay architecture
+        /// </summary>
+        /// <returns></returns>
+        private string GetNetPlayPatchedRetroarch()
+        {
+            string fn = Path.Combine(RetroarchPath, "retroarch.exe");
+            if (!File.Exists(fn))
+                return fn;
+
+            string patched = Path.Combine(RetroarchPath, "retroarch.patched." + RetroArchNetPlayPatchedName + ".exe");
+            if (File.Exists(patched) && new FileInfo(fn).Length == new FileInfo(patched).Length)
+                return patched;
+
+            try { File.Delete(patched); }
+            catch { }
+
+            var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%d&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s&subsystem_name=%s"
+                .Select(c => (byte)c)
+                .ToArray();
+
+            var toSet = toFind.ToArray();
+            var toSubst = "&subsystem_name=%s".Select(c => (byte)c).ToArray();
+            int idx = toFind.IndexOf(toSubst);
+            if (idx < 0)
+                return fn;
+
+            string patchString = "@" + RetroArchNetPlayPatchedName;
+
+            var toPatch = patchString.Select(c => (byte)c).ToArray();
+            for (int i = 0; i < patchString.Length + 1; i++)
+            {
+                if (i == patchString.Length)
+                    toSet[idx + i] = 0;
+                else
+                    toSet[idx + i] = toPatch[i];
+            }
+
+            var bytes = File.ReadAllBytes(fn);
+            int index = bytes.IndexOf(toFind);
+            if (index < 0)
+                return fn;
+            
+            for (int i = 0; i < toSet.Length; i++)
+                bytes[index + i] = toSet[i];
+
+            File.WriteAllBytes(patched, bytes);
+            return patched;
+        }
+
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
                 "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom" };
 
         static List<string> systemToRetroachievements = new List<string> { 
             "atari2600", "atari7800", "atarijaguar", "colecovision", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
             "segacd", "sega32x", "saturn", "pcengine", "pcenginecd", "supergrafx", "psx", "mame", "hbmame", "fbneo", "neogeo", "lightgun", "apple2", 
-            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc"};
+            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc", "fds" };
 
         static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn", "mame", "hbmame", "fbneo" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn" };

@@ -68,10 +68,24 @@ namespace emulatorLauncher
 
             foreach (var line in File.ReadAllLines(file))
             {
-                if (line.TrimStart().StartsWith("#") || line.TrimStart().StartsWith(";"))
+                bool skip = false;
+
+                foreach (var chr in line)
+                {
+                    if (chr == '#' || chr == ';')
+                    {
+                        skip = true;
+                        break;
+                    }
+
+                    if (chr != ' ' && chr != '\t')
+                        break;
+                }                    
+
+                if (skip)
                     continue;
 
-                int idx = line.IndexOf("=");
+                int idx = line.IndexOf("=", StringComparison.Ordinal);
                 if (idx >= 0)
                 {
                     string value = line.Substring(idx + 1).Trim();
@@ -95,36 +109,60 @@ namespace emulatorLauncher
 
         public void ImportOverrides(ConfigFile cfg)
         {
+            if (cfg == null)
+                return;
+
             foreach (var item in cfg._data)
                 this[item.Name] = item.Value;
         }
+        /*
+        public void ImportOverrides(IniFile ini)
+        {
+            if (ini == null)
+                return;
+
+            foreach (var section in ini.EnumerateSections())
+            {
+                foreach (var key in ini.EnumerateKeys(section))
+                {
+                    if (string.IsNullOrEmpty(key) || key.Trim().StartsWith(";"))
+                        continue;
+
+                    string value = ini.GetValue(section, key);
+                    if (string.IsNullOrEmpty(value))
+                        continue;
+
+                    this[section + "." + key] = value;
+                }
+            }
+        }*/
 
         public string GetFullPath(string key)
         {
             string data = this[key];
             if (string.IsNullOrEmpty(data))
             {
-                if (key == "home" && Directory.Exists(Path.Combine(Program.LocalPath, ".emulationstation")))                        
-                    return Path.Combine(Program.LocalPath, ".emulationstation");
+                if (key == "home" && Directory.Exists(Path.Combine(LocalPath, ".emulationstation")))                        
+                    return Path.Combine(LocalPath, ".emulationstation");
 
                 if (key == "bios" || key == "saves" || key == "thumbnails" || key == "shaders" || key == "decorations" || key == "screenshots")
                 {
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", key)));
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", key)));
                 }
                 else
                 {                  
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, key))); 
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, key))); 
                     
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", key)));
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "emulators", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "emulators", key)));
 
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", key)));
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", "emulators", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", "emulators", key)));
 
-                    if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", key))))
-                        return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", key)));
+                    if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", key))))
+                        return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", key)));
                 }
                 
                 return string.Empty;
@@ -133,17 +171,17 @@ namespace emulatorLauncher
             if (data.Contains(":")) // drive letter -> Full path
                 return data;
 
-            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, data))))
-                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, data)));
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, data)));
 
-            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", data))))
-                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "emulators", data)));
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "emulators", data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "emulators", data)));
 
-            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", data))))
-                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", "emulators", data)));
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", "emulators", data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", "emulators", data)));
 
-            if (Directory.Exists(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", data))))
-                return Path.Combine(Path.GetFullPath(Path.Combine(Program.LocalPath, "..", "system", data)));
+            if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", data))))
+                return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", "system", data)));
 
             return data;
         }
@@ -245,6 +283,19 @@ namespace emulatorLauncher
             return false;
         }
 
+        public int getInteger(string p)
+        {
+            var data = _data.FirstOrDefault(d => d.Name == p);
+            if (data != null && data.Value != null)
+            {
+                int ret;
+                if (int.TryParse(data.Value, out ret))
+                    return ret;
+            }
+
+            return 0;
+        }
+
         public IEnumerator<ConfigItem> GetEnumerator()
         {
             return _data.GetEnumerator();
@@ -262,7 +313,18 @@ namespace emulatorLauncher
                     _data.RemoveAt(i);
         }
 
-  
+        public static string LocalPath
+        {
+            get
+            {
+                if (_localPath == null)
+                    _localPath = Path.GetDirectoryName(typeof(ConfigFile).Assembly.Location);
+
+                return _localPath;
+            }
+        }
+
+        private static string _localPath;
     }
     
     class ConfigItem

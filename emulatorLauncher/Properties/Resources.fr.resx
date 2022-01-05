@@ -117,77 +117,46 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="Bezel" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\reshader\bezel.fx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="configgen_defaults" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\configgen-defaults.yml;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="mame" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\mame.ini;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="ReShade" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\reshader\reshade.fxh;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="ReShadeIni" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\reshader\reshade.ini;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="ReShadeUI" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\reshader\reshadeui.fxh;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="eeprom" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\eeprom.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="xbox_hdd_qcow2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\xbox_hdd.qcow2.zip;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="retrobat" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\retrobat.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="CoreNotInstalled" xml:space="preserve">
+    <value>Le core '{0}' n'est pas installé.
+Voulez-vous l'installer maintenant ?</value>
   </data>
   <data name="Downloading" xml:space="preserve">
-    <value>Downloading {0}</value>
-  </data>
-  <data name="FPinballDeveloperMode" xml:space="preserve">
-    <value>Warning : Future Pinball requires developper mode enabled in Windows settings</value>
-  </data>
-  <data name="Installing" xml:space="preserve">
-    <value>Installing....</value>
-  </data>
-  <data name="LookingForUpdates" xml:space="preserve">
-    <value>Looking for updates...</value>
-  </data>
-  <data name="No" xml:space="preserve">
-    <value>No</value>
+    <value>Téléchargement en cours... {0}</value>
   </data>
   <data name="EmulatorNotInstalled" xml:space="preserve">
-    <value>The emulator '{0}' is not installed.
-Install now ?</value>
+    <value>L'emulateur '{0}' n'est pas installé.
+Voulez-vous l'installer maintenant ?</value>
   </data>
-  <data name="UpdateAvailable" xml:space="preserve">
-    <value>An update is available for {0} :
-Update version : {1}
-Installed version : {2}
-Install now ?</value>
+  <data name="ErrorOccured" xml:space="preserve">
+    <value>Une erreur s'est produite :
+{0}</value>
   </data>
-  <data name="Updating" xml:space="preserve">
-    <value>Updating {0}</value>
+  <data name="FPinballDeveloperMode" xml:space="preserve">
+    <value>Attention : Future Pinball nécessite que le mode developpeur soit activé dans les paramètres Windows</value>
   </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Yes</value>
+  <data name="Installing" xml:space="preserve">
+    <value>Installation en cours...</value>
   </data>
-  <data name="CoreNotInstalled" xml:space="preserve">
-    <value>The core '{0}' is not installed.
-Install now ?</value>
+  <data name="LookingForUpdates" xml:space="preserve">
+    <value>Recherche des mises à jour...</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Non</value>
   </data>
   <data name="Ok" xml:space="preserve">
     <value>Ok</value>
   </data>
-  <data name="ErrorOccured" xml:space="preserve">
-    <value>An error occured :
-{0}</value>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Une mise à jour de '{0}' est disponible :
+Version mise à jour : {1}
+Version actuelle : {2}
+Voulez-vous l'installer maintenant ?</value>
   </data>
-  <data name="blacklisted_words" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\blacklisted-words.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  <data name="Updating" xml:space="preserve">
+    <value>Mise à jour en cours... {0}</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Oui</value>
   </data>
 </root>

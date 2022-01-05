@@ -104,7 +104,7 @@ namespace emulatorLauncher
         }
 
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
 
@@ -139,6 +139,8 @@ namespace emulatorLauncher
 
                     Application.DoEvents();
                 }
+
+                return px.ExitCode;
             }
             catch { }
             finally
@@ -146,6 +148,8 @@ namespace emulatorLauncher
                 if (bezel != null)
                     bezel.Dispose();
             }
+
+            return -1;
         }
 
     }

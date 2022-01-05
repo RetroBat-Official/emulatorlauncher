@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.PadToKeyboard;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -12,17 +14,19 @@ namespace emulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("mame");
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path) && Environment.Is64BitOperatingSystem)
                 path = AppConfig.GetFullPath("mame64");
 
             string exe = Path.Combine(path, "mame.exe");
-            if (!File.Exists(exe))
+            if (!File.Exists(exe) && Environment.Is64BitOperatingSystem)
                 exe = Path.Combine(path, "mame64.exe");
             if (!File.Exists(exe))
                 exe = Path.Combine(path, "mame32.exe");
 
             if (!File.Exists(exe))
                 return null;
+
+            _exeName = Path.GetFileNameWithoutExtension(exe);
 
             string args = null;
 
@@ -54,6 +58,13 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args,
             };
+        }
+
+        private string _exeName;
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
     }
 }

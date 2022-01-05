@@ -158,8 +158,8 @@ namespace emulatorLauncher
 
             return ret;
         }
-                
-        public override void RunAndWait(ProcessStartInfo path)
+
+        public override int RunAndWait(ProcessStartInfo path)
         {
             Process process = null;
 
@@ -182,7 +182,12 @@ namespace emulatorLauncher
                 process = Process.Start(path);
 
             if (process != null)
+            {
                 process.WaitForExit();
+                return process.ExitCode;
+            }
+
+            return -1;
         }
 
         public override void Cleanup()
@@ -350,7 +355,7 @@ namespace emulatorLauncher
                 if (controller != null)
                 {
                     LoadingForm frm = new LoadingForm();
-                    frm.WarningText = "Warning : Future Pinball requires developper mode enabled in Windows settings";
+                    frm.WarningText = Properties.Resources.FPinballDeveloperMode;
                     frm.Show();
                 }
             }
