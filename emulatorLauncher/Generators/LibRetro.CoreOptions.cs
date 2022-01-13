@@ -1089,7 +1089,116 @@ namespace emulatorLauncher.libRetro
                 coreSettings["genesis_plus_gx_add_on"] = "auto";
 
         }
+        
+        private void ConfigureGenesisPlusGXWide(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "genesis_plus_gx_wide")
+                return;
+            
+            if (SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
+            {
+                int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
+                if (idx == 1 || idx == 2 || idx == 4 || idx == 6 || idx == 7 || idx == 9 || idx == 14 || idx == 16 || idx == 18 || idx == 19)
+                {
+                    retroarchConfig["aspect_ratio_index"] = idx.ToString();
+                    retroarchConfig["video_aspect_ratio_auto"] = "false";
+                    SystemConfig["bezel"] = "none";
+                }
+            }
+            else
+            {
+                retroarchConfig["aspect_ratio_index"] = "1";
+                retroarchConfig["video_aspect_ratio_auto"] = "false";
+                SystemConfig["bezel"] = "none";
+            }
 
+            coreSettings["genesis_plus_gx_wide_bram"] = "per game";
+            coreSettings["genesis_plus_gx_wide_ym2413"] = "auto";
+            coreSettings["genesis_plus_gx_wide_overscan"] = "disabled";
+
+            if (SystemConfig.isOptSet("addr_error"))
+                coreSettings["genesis_plus_gx_wide_addr_error"] = SystemConfig["addr_error"];
+            else
+                coreSettings["genesis_plus_gx_wide_addr_error"] = "enabled";
+
+            if (SystemConfig.isOptSet("lock_on"))
+                coreSettings["genesis_plus_gx_wide_lock_on"] = SystemConfig["lock_on"];
+            else
+                coreSettings["genesis_plus_gx_wide_lock_on"] = "disabled";
+
+            if (SystemConfig.isOptSet("ym2612"))
+                coreSettings["genesis_plus_gx_wide_ym2612"] = SystemConfig["ym2612"];
+            else
+                coreSettings["genesis_plus_gx_wide_ym2612"] = "mame (ym2612)";
+
+            if (SystemConfig.isOptSet("audio_filter"))
+                coreSettings["genesis_plus_gx_wide_audio_filter"] = SystemConfig["audio_filter"];
+            else
+                coreSettings["genesis_plus_gx_wide_audio_filter"] = "disabled";
+
+            if (SystemConfig.isOptSet("ntsc_filter"))
+                coreSettings["genesis_plus_gx_wide_blargg_ntsc_filter"] = SystemConfig["ntsc_filter"];
+            else
+                coreSettings["genesis_plus_gx_wide_blargg_ntsc_filter"] = "disabled";
+
+            if (SystemConfig.isOptSet("lcd_filter"))
+                coreSettings["genesis_plus_gx_wide_lcd_filter"] = SystemConfig["lcd_filter"];
+            else
+                coreSettings["genesis_plus_gx_wide_lcd_filter"] = "disabled";
+
+            if (SystemConfig.isOptSet("overscan"))
+                coreSettings["genesis_plus_gx_wide_overscan"] = SystemConfig["overscan"];
+            else
+                coreSettings["genesis_plus_gx_wide_overscan"] = "disabled";
+
+            if (SystemConfig.isOptSet("render"))
+                coreSettings["genesis_plus_gx_wide_render"] = SystemConfig["render"];
+            else
+                coreSettings["genesis_plus_gx_wide_render"] = "single field";
+
+            if (SystemConfig.isOptSet("gun_cursor"))
+                coreSettings["genesis_plus_gx_wide_gun_cursor"] = SystemConfig["gun_cursor"];
+            else
+                coreSettings["genesis_plus_gx_wide_gun_cursor"] = "disabled";
+
+            if (SystemConfig.isOptSet("gun_input"))
+                coreSettings["genesis_plus_gx_wide_gun_input"] = SystemConfig["gun_input"];
+            else
+                coreSettings["genesis_plus_gx_wide_gun_input"] = "lightgun";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_force_dtack"))
+                coreSettings["genesis_plus_gx_wide_force_dtack"] = SystemConfig["genesis_plus_gx_force_dtack"];
+            else
+                coreSettings["genesis_plus_gx_wide_force_dtack"] = "enabled";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_overclock"))
+                coreSettings["genesis_plus_gx_wide_overclock"] = SystemConfig["genesis_plus_gx_overclock"];
+            else
+                coreSettings["genesis_plus_gx_wide_overclock"] = "100%";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_no_sprite_limit"))
+                coreSettings["genesis_plus_gx_wide_no_sprite_limit"] = SystemConfig["genesis_plus_gx_no_sprite_limit"];
+            else
+                coreSettings["genesis_plus_gx_wide_no_sprite_limit"] = "disabled";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_bios"))
+                coreSettings["genesis_plus_gx_wide_bios"] = SystemConfig["genesis_plus_gx_bios"];
+            else
+                coreSettings["genesis_plus_gx_wide_bios"] = "disabled";
+            
+            if (SystemConfig.isOptSet("genesis_plus_gx_add_on"))
+                coreSettings["genesis_plus_gx_wide_add_on"] = SystemConfig["genesis_plus_gx_add_on"];
+            else
+                coreSettings["genesis_plus_gx_wide_add_on"] = "auto";
+            
+            if (SystemConfig.isOptSet("h40_extra_columns"))
+                coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = SystemConfig["h40_extra_columns"];
+            else
+                coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = "10";
+
+        }
+
+/*
         private void ConfigureGenesisPlusGXWide(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "genesis_plus_gx_wide")
@@ -1157,6 +1266,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = "10";
 
         }
+*/
 
         private void ConfigureMame(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
