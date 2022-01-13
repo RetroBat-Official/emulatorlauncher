@@ -8,11 +8,22 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
 using Microsoft.Win32;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
+using System.Net;
+using System.ComponentModel;
 
 namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        public static void RemoveWhere<T>(this IList<T> items, Predicate<T> func)
+        {
+            for (int i = items.Count - 1; i >= 0; i--)
+                if (func(items[i]))
+                    items.RemoveAt(i);
+        }
+
         public static bool IsDeveloperModeEnabled
         {
             get
@@ -70,6 +81,27 @@ namespace emulatorLauncher.Tools
                 return serializer.Deserialize(sr) as T;
         }
 
+        public static T FromXmlString<T>(string xml) where T : class
+        {
+            if (string.IsNullOrEmpty(xml))
+                return default(T);
+
+            var settings = new XmlReaderSettings
+            {
+                ConformanceLevel = ConformanceLevel.Auto,
+                ValidationType = ValidationType.None
+            };
+
+            XmlSerializer serializer = new XmlSerializer(typeof(T));
+
+            using (var reader = new StringReader(xml))
+            using (var xmlReader = XmlReader.Create(reader, settings))
+            {
+                var obj = serializer.Deserialize(xmlReader);
+                return (T)obj;
+            }
+        }
+
         public static string ToXml<T>(this T obj, bool omitXmlDeclaration = false)
         {
             return obj.ToXml(new XmlWriterSettings
@@ -101,45 +133,6 @@ namespace emulatorLauncher.Tools
                 var xml = xmlWriterSettings.Encoding.GetString(memoryStream.ToArray());
                 return xml;
             }
-        }
-
-        public static string FormatPath(string path, IRelativePath relativeTo)
-        {
-            if (!string.IsNullOrEmpty(path))
-            {
-                string home = GetHomePath(relativeTo);
-                path = path.Replace("%HOME%", home);
-                path = path.Replace("~", home);
-
-                path = path.Replace("/", "\\");
-                if (path.StartsWith("\\") && !path.StartsWith("\\\\"))
-                    path = "\\" + path;
-
-                if (relativeTo != null && path.StartsWith(".\\"))
-                    path = Path.Combine(Path.GetDirectoryName(relativeTo.FilePath), path.Substring(2));
-            }
-
-            return path;
-        }
-
-        private static string GetHomePath(IRelativePath relativeTo)
-        {
-            if (relativeTo == null)
-                return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-            string path = Path.GetDirectoryName(relativeTo.FilePath);
-            if (!path.StartsWith("\\\\"))
-            {
-                try
-                {
-                    string parent = Directory.GetParent(path).FullName;
-                    if (File.Exists(Path.Combine(parent, "EmulationStation.exe")))
-                        return parent;
-                }
-                catch { }
-            }
-
-            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         }
 
         public static Image Base64ToImage(string data)
@@ -234,50 +227,101 @@ namespace emulatorLauncher.Tools
             return new Rectangle(iScreenX - cxDIB / 2, iScreenY - cyDIB / 2, cxDIB, cyDIB);
         }
 
-        // Dotnet 4.0 compatible Zip entries reader ( ZipFile exists since 4.5 )
-        public static string[] GetZipEntries(string path)
+        public static bool IsAvailableNetworkActive()
         {
-            var afs = System.Reflection.Assembly.Load("System.IO.Compression.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            if (afs == null)
-                return new string[] { };
-
-            var ass = System.Reflection.Assembly.Load("System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            if (ass == null)
-                return new string[] { };
-
-            var zipFile = afs.GetTypes().FirstOrDefault(t => t.Name == "ZipFile");
-            if (zipFile == null)
-                return new string[] { };
-
-            System.Reflection.MethodInfo openRead = zipFile.GetMember("OpenRead", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).FirstOrDefault() as System.Reflection.MethodInfo;
-            if (openRead == null)
-                return new string[] { };
-
-            IDisposable zipArchive = openRead.Invoke(null, new object[] { path }) as IDisposable;
-            if (zipArchive == null)
-                return new string[] { };
-
-            List<string> ret = new List<string>();
-
-            try
+            // only recognizes changes related to Internet adapters
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-                var prop = zipArchive.GetType().GetProperty("Entries");
-
-                var entries = prop.GetValue(zipArchive, null) as System.Collections.IEnumerable;
-                foreach (var entry in entries)
-                {
-                    string fullName = entry.GetType().GetProperty("FullName").GetValue(entry, null) as string;
-                    if (fullName != null)
-                        ret.Add(fullName);
-                }
-            }
-            finally
-            {
-                zipArchive.Dispose();
+                // however, this will include all adapters -- filter by opstatus and activity
+                var interfaces = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+                return (from face in interfaces
+                        where face.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
+                        where (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Tunnel) && (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
+                        select face.GetIPv4Statistics()).Any(statistics => (statistics.BytesReceived > 0) && (statistics.BytesSent > 0));
             }
 
-            return ret.ToArray();
+            return false;
         }
 
+        public static string RunWithOutput(string fileName, string arguments = null)
+        {
+            var ps = new ProcessStartInfo() { FileName = fileName };
+            if (arguments != null)
+                ps.Arguments = arguments;
+
+            return RunWithOutput(ps);
+        }
+
+        public static string RunWithOutput(ProcessStartInfo ps)
+        {
+            List<string> lines = new List<string>();
+
+            ps.UseShellExecute = false;
+            ps.RedirectStandardOutput = true;
+            ps.RedirectStandardError = true;
+            ps.CreateNoWindow = true;
+
+            var proc = new Process();
+            proc.StartInfo = ps;
+            proc.Start();
+
+            string output = proc.StandardOutput.ReadToEnd();
+            string err = proc.StandardError.ReadToEnd();
+            proc.WaitForExit();
+
+            return (err ?? "") + (output ?? "");
+        }
+
+        public static string FormatVersionString(string version)
+        {
+            var numbers = version.Split(new char[] { '.', '-' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            while (numbers.Count < 4)
+                numbers.Add("0");
+
+            return string.Join(".", numbers.Take(4).ToArray());
+        }
+
+        public static string[] SplitCommandLine(string commandLine)
+        {
+            char[] parmChars = commandLine.ToCharArray();
+
+            bool inQuote = false;
+            for (int index = 0; index < parmChars.Length; index++)
+            {
+                if (parmChars[index] == '"')
+                    inQuote = !inQuote;
+                if (!inQuote && parmChars[index] == ' ')
+                    parmChars[index] = '\n';
+            }
+
+            return (new string(parmChars))
+                .Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Replace("\"", ""))
+                .ToArray();
+        }
+
+        public static int IndexOf(this byte[] arrayToSearchThrough, byte[] patternToFind)
+        {
+            if (patternToFind.Length > arrayToSearchThrough.Length)
+                return -1;
+
+            for (int i = 0; i < arrayToSearchThrough.Length - patternToFind.Length + 1; ++i)
+            {
+                bool found = true;
+                for (int j = 0; j < patternToFind.Length; j++)
+                {
+                    if (arrayToSearchThrough[i + j] != patternToFind[j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if (found)
+                    return i;
+            }
+
+            return -1;
+        }
     }
 }

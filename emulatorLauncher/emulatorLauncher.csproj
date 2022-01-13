@@ -54,8 +54,6 @@
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
@@ -64,13 +62,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\EsSystems.cs" />
+    <Compile Include="Common\WebTools.cs" />
+    <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
     <Compile Include="Installer.cs" />
-    <Compile Include="Tools\InputKeyMapping.cs" />
+    <Compile Include="Common\InputKeyMapping.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
@@ -127,6 +129,11 @@
     <Compile Include="PadToKey\Joysticks.cs" />
     <Compile Include="PadToKey\PadToKey.cs" />
     <Compile Include="PadToKey\SendKeys.cs" />
+    <Compile Include="Properties\Resources.fr.Designer.cs">
+      <DependentUpon>Resources.fr.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -140,49 +147,55 @@
     <Compile Include="Teknoparrot\GameProfile.cs" />
     <Compile Include="Teknoparrot\JoystickHelper.cs" />
     <Compile Include="Teknoparrot\JoystickMapping.cs" />
-    <Compile Include="Tools\ConfigFile.cs" />
-    <Compile Include="Tools\EsFeatures.cs" />
-    <Compile Include="Tools\GameList.cs" />
-    <Compile Include="Tools\InputList.cs" />
-    <Compile Include="Tools\JsonSerializer.cs" />
-    <Compile Include="Tools\KeyboardManager.cs" />
-    <Compile Include="Tools\HighPerformancePowerScheme.cs" />
-    <Compile Include="Tools\RegistryApi.cs" />
-    <Compile Include="Tools\ScreenCapture.cs" />
-    <Compile Include="Tools\ScreenResolution.cs" />
-    <Compile Include="Tools\IniFile.cs" />
-    <Compile Include="Tools\SDL2.cs" />
-    <Compile Include="Tools\SdlGameControllers.cs" />
-    <Compile Include="Tools\SimpleLogger.cs" />
-    <Compile Include="Tools\SimpleYml.cs" />
-    <Compile Include="Tools\SystemDefaults.cs" />
-    <Compile Include="Tools\Generator.cs" />
+    <Compile Include="Common\ConfigFile.cs" />
+    <Compile Include="Common\EsFeatures.cs" />
+    <Compile Include="Common\EsGameList.cs" />
+    <Compile Include="Common\EsInput.cs" />
+    <Compile Include="Common\JsonSerializer.cs" />
+    <Compile Include="Common\KeyboardManager.cs" />
+    <Compile Include="Common\HighPerformancePowerScheme.cs" />
+    <Compile Include="Common\RegistryApi.cs" />
+    <Compile Include="Common\ScreenCapture.cs" />
+    <Compile Include="Common\ScreenResolution.cs" />
+    <Compile Include="Common\IniFile.cs" />
+    <Compile Include="Common\SDL2.cs" />
+    <Compile Include="Common\SdlGameControllers.cs" />
+    <Compile Include="Common\SimpleLogger.cs" />
+    <Compile Include="Common\SimpleYml.cs" />
+    <Compile Include="Common\SystemDefaults.cs" />
+    <Compile Include="Common\Generator.cs" />
     <Compile Include="Generators\LibRetro.Generator.cs" />
     <Compile Include="Generators\Libretro.Controllers.cs">
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tools\SystemShaders.cs" />
-    <Compile Include="Tools\Tools.cs" />
-    <Compile Include="Tools\User32.cs" />
-    <Compile Include="UpdateFrm.cs">
+    <Compile Include="Common\SystemShaders.cs" />
+    <Compile Include="Common\Tools.cs" />
+    <Compile Include="Common\User32.cs" />
+    <Compile Include="Common\ZipFile.cs" />
+    <Compile Include="InstallerFrm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UpdateFrm.Designer.cs">
-      <DependentUpon>UpdateFrm.cs</DependentUpon>
+    <Compile Include="InstallerFrm.Designer.cs">
+      <DependentUpon>InstallerFrm.cs</DependentUpon>
     </Compile>
     <Compile Include="VPinball\LoadingForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="VPinball\ScreenRes.cs" />
+    <EmbeddedResource Include="Properties\Resources.fr.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.fr.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="UpdateFrm.resx">
-      <DependentUpon>UpdateFrm.cs</DependentUpon>
+    <EmbeddedResource Include="InstallerFrm.resx">
+      <DependentUpon>InstallerFrm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -203,12 +216,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <None Include="Resources\blacklisted-words.txt" />
+    <None Include="Resources\retrobat.png" />
     <None Include="Reshader\Bezel.fx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Release (
-$(SolutionDir)ILMerge.exe /out:"$(TargetDir)$(TargetFileName)" "$(TargetDir)$(TargetFileName)" /ndebug /wildcards "$(TargetDir)*.dll" /targetplatform:v4,%25systemroot%25\Microsoft.NET\Framework\v4.0.30319
+"$(SolutionDir)ILMerge.exe" /out:"$(TargetDir)$(TargetFileName)" "$(TargetDir)$(TargetFileName)" /ndebug /wildcards "$(TargetDir)*.dll" /targetplatform:v4,%25systemroot%25\Microsoft.NET\Framework\v4.0.30319
 )</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

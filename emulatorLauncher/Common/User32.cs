@@ -13,7 +13,7 @@ namespace emulatorLauncher
             return FindHwnds(processId).FirstOrDefault();
         }
 
-        public static IEnumerable<IntPtr> FindHwnds(int processId)
+        public static IEnumerable<IntPtr> FindHwnds(int processId, Predicate<IntPtr> func = null)
         {
             IntPtr hWnd = GetWindow(GetDesktopWindow(), GW.CHILD);
             while (hWnd != IntPtr.Zero)
@@ -23,7 +23,10 @@ namespace emulatorLauncher
                     uint wndProcessId;
                     GetWindowThreadProcessId(hWnd, out wndProcessId);
                     if (wndProcessId == processId)
-                        yield return hWnd;
+                    {
+                        if (func == null || func(hWnd))
+                            yield return hWnd;
+                    }
                 }
 
                 hWnd = GetWindow(hWnd, GW.HWNDNEXT);
@@ -120,9 +123,44 @@ namespace emulatorLauncher
         }
 
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        public static extern bool GetWindowRect(IntPtr hWnd, [Out] out RECT rect);
+
+        public static RECT GetWindowRect(IntPtr hWnd)
+        {
+            RECT rect;
+            if (!GetWindowRect(hWnd, out rect))
+                rect = new RECT();
+
+            return rect;
+        }
+
+        [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int SetWindowPos(IntPtr hWnd, IntPtr hWndAfter, int X, int Y, int Width, int Height, [MarshalAs(UnmanagedType.U4)]SWP flags);
     }
-    
+
+    public static class Kernel32
+    {
+        [DllImport("kernel32.dll")]
+        public static extern bool AttachConsole(int dwProcessId = ATTACH_PARENT_PROCESS);
+        private const int ATTACH_PARENT_PROCESS = -1;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool AllocConsole();
+
+        [DllImport("kernel32.dll")]
+        public static extern bool FreeConsole();
+
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
+    {
+        public int left;
+        public int top;
+        public int right;
+        public int bottom;
+    }
+
     public enum GWL : int
     {
         WNDPROC = -4,

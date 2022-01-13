@@ -33,11 +33,12 @@ namespace TeknoParrotUi.Common
         public string FileName { get; set; }
         public List<FieldInformation> ConfigValues { get; set; }
         public List<JoystickButtons> JoystickButtons { get; set; }
-        public string EmulationProfile { get; set; } // EmulationProfile
+        public string EmulationProfile { get; set; }
         public int GameProfileRevision { get; set; }
         public bool HasSeparateTestMode { get; set; }
         public bool Is64Bit { get; set; }
-        public string EmulatorType { get; set; }
+        public bool TestExecIs64Bit { get; set; }
+        public EmulatorType EmulatorType { get; set; }
         public bool Patreon { get; set; }
         public bool RequiresAdmin { get; set; }
         public int msysType { get; set; }
@@ -45,11 +46,20 @@ namespace TeknoParrotUi.Common
         public bool GunGame { get; set; }
         public bool DevOnly { get; set; }
         public string ExecutableName { get; set; }
+        public string ExecutableName2 { get; set; }
+        public bool HasTwoExecutables { get; set; }
+        public bool LaunchSecondExecutableFirst { get; set; }
+        public string GamePath2 { get; set; }
         // advanced users only!
         public string CustomArguments { get; set; }
         public short xAxisMin { get; set; }
         public short xAxisMax { get; set; }
         public short yAxisMin { get; set; }
         public short yAxisMax { get; set; }
+
+        public override string ToString()
+        {
+            return GameName;
+        }
     }
 }

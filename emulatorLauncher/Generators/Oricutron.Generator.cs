@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.PadToKeyboard;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -34,5 +36,10 @@ namespace emulatorLauncher
                     Arguments = "--fullscreen --turbotape on --tape \"" + rom + "\"",
 				};
         }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "simcoupe", InputKey.hotkey | InputKey.start, "(%{KILL})");
+        }       
     }
 }

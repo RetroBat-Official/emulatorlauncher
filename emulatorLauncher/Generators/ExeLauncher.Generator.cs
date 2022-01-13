@@ -40,7 +40,7 @@ namespace emulatorLauncher
                     if (idx >= 0)
                         wineCommand = wineCommand.Substring(idx + 4).Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
-                    var args = SplitCommandLine(wineCommand);
+                    var args = Misc.SplitCommandLine(wineCommand);
                     if (args.Length > 0)
                     {
                         string exe = Path.Combine(path, args[0]);
@@ -91,51 +91,15 @@ namespace emulatorLauncher
             return ret;
         }
 
-        static string[] SplitCommandLine(string commandLine)
-        {
-            char[] parmChars = commandLine.ToCharArray();
-            bool inQuote = false;
-            for (int index = 0; index < parmChars.Length; index++)
-            {
-                if (parmChars[index] == '"')
-                    inQuote = !inQuote;
-                if (!inQuote && parmChars[index] == ' ')
-                    parmChars[index] = '\n';
-            }
-            return (new string(parmChars)).Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Replace("\"", "")).ToArray();
-        }
-
         private string _systemName;
         private string _exename;
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_systemName != "mugen")
+            if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
                 return mapping;
 
-            if (string.IsNullOrEmpty(_exename))
-                return mapping;
-
-            if (Program.Controllers.Count(c => c.Config != null && c.Config.DeviceName != "Keyboard") == 0)
-                return mapping;
-
-            if (mapping != null && mapping[_exename] != null && mapping[_exename][InputKey.hotkey | InputKey.start] != null)
-                return mapping;
-
-            if (mapping == null)
-                mapping = new PadToKeyboard.PadToKey();
-
-            var app = new PadToKeyApp();
-            app.Name = _exename;
-
-            PadToKeyInput mouseInput = new PadToKeyInput();
-            mouseInput.Name = InputKey.hotkey | InputKey.start;
-            mouseInput.Type = PadToKeyType.Keyboard;
-            mouseInput.Key = "(%{KILL})";
-            app.Input.Add(mouseInput);
-            mapping.Applications.Add(app);
-
-            return mapping;
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
         private void UpdateMugenConfig(string path)
@@ -150,6 +114,12 @@ namespace emulatorLauncher
             var data = File.ReadAllText(cfg);
             data = data.Replace("FullScreen = 0", "FullScreen = 1");
             File.WriteAllText(cfg, data);
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            base.RunAndWait(path);
+            return 0;
         }
     }
 }

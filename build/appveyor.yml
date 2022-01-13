@@ -1,6 +1,12 @@
-version: 1.0.{build}
+version: 1.0.0.{build}
 configuration: Release
 platform: x86
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
 build:
   project: batocera-ports.sln
   verbosity: minimal
@@ -21,7 +27,7 @@ after_build:
 - 7z a batocera-ports.zip pdftoppm.exe
 - 7z a batocera-ports.zip pdfinfo.exe
 artifacts:
-- path: batocera-ports.zip 
+- path: batocera-ports.zip
 deploy:
 - provider: GitHub
   tag: continuous

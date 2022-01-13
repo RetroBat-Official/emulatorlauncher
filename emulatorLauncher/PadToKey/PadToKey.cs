@@ -66,6 +66,45 @@ namespace emulatorLauncher.PadToKeyboard
             set { _applications = value; }
         }
 
+        public static PadToKey AddOrUpdateKeyMapping(PadToKey mapping, string processName, InputKey inputKey, string key)
+        {
+            if (string.IsNullOrEmpty(processName))
+                return mapping;
+
+            if (Program.Controllers.Count(c => c.Config != null && c.Config.DeviceName != "Keyboard") == 0)
+                return mapping;
+
+            if (mapping == null)
+                mapping = new PadToKeyboard.PadToKey();
+
+            PadToKeyInput input = null;
+            PadToKeyApp app = null;
+
+            if (mapping != null && mapping[processName] != null)
+            {
+                app = mapping[processName];
+                input = app[inputKey];
+            }
+
+            if (app == null)
+            {
+                app = new PadToKeyApp() { Name = processName };
+                mapping.Applications.Add(app);
+            }
+
+            if (input == null)
+            {
+                input = new PadToKeyInput();
+                input.Name = inputKey;
+                app.Input.Add(input);
+            }
+
+            input.Type = PadToKeyType.Keyboard;
+            input.Key = key;
+
+            return mapping;
+        }
+
         private List<PadToKeyApp> _applications;
     }
 

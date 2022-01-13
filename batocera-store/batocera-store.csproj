@@ -36,13 +36,25 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\emulatorLauncher\Common\ConfigFile.cs">
+      <Link>Common\ConfigFile.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\IniFile.cs">
+      <Link>Common\IniFile.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\RegistryApi.cs">
+      <Link>Common\RegistryApi.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\Tools.cs">
+      <Link>Common\Tools.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

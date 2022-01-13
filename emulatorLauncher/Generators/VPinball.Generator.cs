@@ -70,7 +70,7 @@ namespace emulatorLauncher
             };
         }
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             try
             {
@@ -86,8 +86,21 @@ namespace emulatorLauncher
                         Application.DoEvents();
                     }
                 }
+
+                int exitCode = px.ExitCode;
+
+                // vpinball always returns -1 when exiting
+                if (exitCode == -1)
+                    return 0;
+
+                return exitCode;
             }
-            catch { }
+            catch 
+            { 
+
+            }
+
+            return -1;
         }
 
         public override void Cleanup()

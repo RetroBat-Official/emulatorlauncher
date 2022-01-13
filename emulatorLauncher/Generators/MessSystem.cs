@@ -202,6 +202,9 @@ namespace emulatorLauncher
                 new MessSystem("gw"           ,""         ,""      ),
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,"%romname%",""      ),
+                new MessSystem("mame"         ,"%romname%",""      ),
+                new MessSystem("hbmame"       ,"%romname%",""      ),
+                new MessSystem("cave"         ,"%romname%",""      ),
                 new MessSystem("tvgames"      ,""         ,""      ),
                 new MessSystem("megaduck"     ,"megaduck" ,"cart"  ),
                 new MessSystem("crvision"     ,"crvision" ,"cart"  ),
@@ -375,9 +378,9 @@ namespace emulatorLauncher
             if (ext.Length > 0)
                 ext = ext.Substring(1);
 
-            if (ext == "zip")
+            if (ext == "zip" || ext == "7z")
             {
-                var e = Tools.Misc.GetZipEntries(rom);
+                var e = Zip.ListEntries(rom);
                 if (e.Length == 1)
                     ext = Path.GetExtension(e[0]).ToLowerInvariant().Substring(1);
             }
@@ -395,9 +398,9 @@ namespace emulatorLauncher
             if (ext.Length > 0)
                 ext = ext.Substring(1);
 
-            if (ext == "zip")
+            if (ext == "zip" || ext == "7z")
             {
-                var e = Tools.Misc.GetZipEntries(rom);
+                var e = Zip.ListEntries(rom);
                 if (e.Length == 1)
                     ext = Path.GetExtension(e[0]).ToLowerInvariant().Substring(1);
             }

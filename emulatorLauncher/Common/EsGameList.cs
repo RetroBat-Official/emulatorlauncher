@@ -17,6 +17,45 @@ namespace emulatorLauncher.Tools
     [XmlType("gameList")]
     public class GameList : IRelativePath
     {
+        public static string FormatPath(string path, IRelativePath relativeTo)
+        {
+            if (!string.IsNullOrEmpty(path))
+            {
+                string home = GetHomePath(relativeTo);
+                path = path.Replace("%HOME%", home);
+                path = path.Replace("~", home);
+
+                path = path.Replace("/", "\\");
+                if (path.StartsWith("\\") && !path.StartsWith("\\\\"))
+                    path = "\\" + path;
+
+                if (relativeTo != null && path.StartsWith(".\\"))
+                    path = Path.Combine(Path.GetDirectoryName(relativeTo.FilePath), path.Substring(2));
+            }
+
+            return path;
+        }
+
+        private static string GetHomePath(IRelativePath relativeTo)
+        {
+            if (relativeTo == null)
+                return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+            string path = Path.GetDirectoryName(relativeTo.FilePath);
+            if (!path.StartsWith("\\\\"))
+            {
+                try
+                {
+                    string parent = Directory.GetParent(path).FullName;
+                    if (File.Exists(Path.Combine(parent, "EmulationStation.exe")))
+                        return parent;
+                }
+                catch { }
+            }
+
+            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+
         public GameList()
         {
             DeletionRepository = new HashSet<string>();
@@ -198,7 +237,7 @@ namespace emulatorLauncher.Tools
             if (string.IsNullOrEmpty(value))
                 return null;
 
-            return Misc.FormatPath(value, GameList);
+            return GameList.FormatPath(value, GameList);
         }
 
         public void SetImageFile(MetadataType type, string path)
@@ -241,7 +280,7 @@ namespace emulatorLauncher.Tools
             if (string.IsNullOrEmpty(this.path))
                 return null;
 
-            return Misc.FormatPath(this.path, GameList);
+            return GameList.FormatPath(this.path, GameList);
         }
 
         public override string ToString()
