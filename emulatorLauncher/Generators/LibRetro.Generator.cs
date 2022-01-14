@@ -253,6 +253,12 @@ namespace emulatorLauncher.libRetro
             else
                 retroarchConfig["video_frame_delay_auto"] = "false";
 
+            // variable refresh rate (freesync, gsync, etc.)
+            if (SystemConfig.isOptSet("vrr_runloop_enable") && SystemConfig.getOptBoolean("vrr_runloop_enable"))
+                retroarchConfig["vrr_runloop_enable"] = "true";
+            else
+                retroarchConfig["vrr_runloop_enable"] = "false";
+
             if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
             {
               //  retroarchConfig["menu_show_load_content_animation"] = "false";
