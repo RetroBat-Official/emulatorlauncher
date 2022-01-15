@@ -574,33 +574,17 @@ namespace emulatorLauncher.libRetro
             if (core != "atari800")
                 return;
 
-            if (system.IndexOf("xegs", StringComparison.InvariantCultureIgnoreCase) >= 0)
+            bool atari800 = (system == "atari800");
+            bool atariXE = !atari800 && system.IndexOf("xe", StringComparison.InvariantCultureIgnoreCase) >= 0;
+         
+            if (atari800)
             {
-                coreSettings["RAM_SIZE"] = "128";
-                coreSettings["STEREO_POKEY"] = "0";
-                coreSettings["BUILTIN_BASIC"] = "1";
-                coreSettings["atari800_system"] = "130XE (128K)";
+                var romExt =  Path.GetExtension(Program.SystemConfig["rom"]).ToLower();
 
-                if (SystemConfig.isOptSet("atari800_ntscpal"))
-                    coreSettings["atari800_ntscpal"] = SystemConfig["atari800_ntscpal"];
-                else
-                    coreSettings["atari800_ntscpal"] = "NTSC";
+                coreSettings["atari800_internalbasic"] = (romExt == ".bas" ? "enabled" : "disabled");
+                coreSettings["atari800_cassboot"] = (romExt == ".cas" ? "enabled" : "disabled");
 
-                if (SystemConfig.isOptSet("atari800_sioaccel"))
-                    coreSettings["atari800_sioaccel"] = SystemConfig["atari800_sioaccel"];
-                else
-                    coreSettings["atari800_sioaccel"] = "enabled";
-
-                if (SystemConfig.isOptSet("atari800_artifacting"))
-                    coreSettings["atari800_artifacting"] = SystemConfig["atari800_artifacting"];
-                else
-                    coreSettings["atari800_artifacting"] = "disabled";
-            }
-            else if (system == "atari800")
-            {
-                coreSettings["RAM_SIZE"] = "64";
-                coreSettings["STEREO_POKEY"] = "1";
-                coreSettings["BUILTIN_BASIC"] = "1";
+                coreSettings["atari800_opt1"] = "disabled"; // detect card type
 
                 if (SystemConfig.isOptSet("atari800_system"))
                     coreSettings["atari800_system"] = SystemConfig["atari800_system"];
@@ -622,61 +606,100 @@ namespace emulatorLauncher.libRetro
                 else
                     coreSettings["atari800_artifacting"] = "disabled";
             }
-            else
+            else if (atariXE)
+            {             
+                coreSettings["atari800_system"] = "130XE (128K)";
+                coreSettings["atari800_internalbasic"] = "disabled";
+                coreSettings["atari800_opt1"] = "enabled";
+                coreSettings["atari800_cassboot"] = "disabled";
+                
+                if (SystemConfig.isOptSet("atari800_ntscpal"))
+                    coreSettings["atari800_ntscpal"] = SystemConfig["atari800_ntscpal"];
+                else
+                    coreSettings["atari800_ntscpal"] = "NTSC";
+
+                if (SystemConfig.isOptSet("atari800_sioaccel"))
+                    coreSettings["atari800_sioaccel"] = SystemConfig["atari800_sioaccel"];
+                else
+                    coreSettings["atari800_sioaccel"] = "enabled";
+
+                if (SystemConfig.isOptSet("atari800_artifacting"))
+                    coreSettings["atari800_artifacting"] = SystemConfig["atari800_artifacting"];
+                else
+                    coreSettings["atari800_artifacting"] = "disabled";
+            }                       
+            else // Atari 5200
             {
                 coreSettings["atari800_system"] = "5200";
-                coreSettings["RAM_SIZE"] = "16";
-                coreSettings["STEREO_POKEY"] = "0";
-                coreSettings["BUILTIN_BASIC"] = "0";
+                coreSettings["atari800_opt1"] = "enabled"; // detect card type
+                coreSettings["atari800_cassboot"] = "disabled";
             }
 
             if (string.IsNullOrEmpty(AppConfig["bios"]))
                 return;
 
             var atariCfg = ConfigFile.FromFile(Path.Combine(RetroarchPath, ".atari800.cfg"), new ConfigFileOptions() { CaseSensitive = true, KeepEmptyLines = true });
+            if (!atariCfg.Any())
+                atariCfg.AppendLine("Atari 800 Emulator, Version 3.1.0");
 
-            string biosPath = AppConfig.GetFullPath("bios");
+            string biosPath = AppConfig.GetFullPath("bios");            
+            atariCfg["ROM_OS_A_PAL"] = Path.Combine(biosPath, "ATARIOSA.ROM");
+            atariCfg["ROM_OS_BB01R2"] = Path.Combine(biosPath, "ATARIXL.ROM");
+            atariCfg["ROM_BASIC_C"] = Path.Combine(biosPath, "ATARIBAS.ROM");
+            atariCfg["ROM_400/800_CUSTOM"] = Path.Combine(biosPath, "ATARIOSB.ROM");
+            atariCfg["ROM_XL/XE_CUSTOM"] = Path.Combine(biosPath, "ATARIXL.ROM");
+            atariCfg["ROM_5200"] = Path.Combine(biosPath, "5200.ROM");
+            atariCfg["ROM_5200_CUSTOM"] = Path.Combine(biosPath, "atari5200.ROM");
 
-            if (system.IndexOf("xegs", StringComparison.InvariantCultureIgnoreCase) >= 0)
+            atariCfg["OS_XL/XE_VERSION"] = "AUTO";
+            atariCfg["OS_5200_VERSION"] = "AUTO";
+            atariCfg["BASIC_VERSION"] = "AUTO";
+            atariCfg["XEGS_GAME_VERSION"] = "AUTO";
+            atariCfg["OS_400/800_VERSION"] = "AUTO";
+
+            atariCfg["CASSETTE_FILENAME"] = null;
+            atariCfg["CASSETTE_LOADED"] = "0";
+            atariCfg["CARTRIDGE_FILENAME"] = null;
+            atariCfg["CARTRIDGE_TYPE"] = "0";
+
+            if (atari800)
             {
-                atariCfg["ROM_OS_A_PAL"] = Path.Combine(biosPath, "ATARIOSA.ROM");
-                atariCfg["ROM_OS_BB01R2"] = Path.Combine(biosPath, "ATARIXL.ROM");
-                atariCfg["ROM_BASIC_C"] = Path.Combine(biosPath, "ATARIBAS.ROM");
-                atariCfg["ROM_400/800_CUSTOM"] = Path.Combine(biosPath, "ATARIOSB.ROM");
-                atariCfg["ROM_XL/XE_CUSTOM"] = Path.Combine(biosPath, "ATARIXL.ROM");
-
-                atariCfg["OS_XL/XE_VERSION"] = "AUTO";
-                atariCfg["OS_5200_VERSION"] = "AUTO";
-                atariCfg["BASIC_VERSION"] = "AUTO";
-                atariCfg["XEGS_GAME_VERSION"] = "AUTO";
-                atariCfg["OS_400/800_VERSION"] = "AUTO";
-
-                atariCfg["MACHINE_TYPE"] = "Atari XL/XE";
-                atariCfg["RAM_SIZE"] = "128";
-            }
-            else if (system == "atari800")
-            {
-                atariCfg["ROM_OS_A_PAL"] = Path.Combine(biosPath, "ATARIOSA.ROM");
-                atariCfg["ROM_OS_BB01R2"] = Path.Combine(biosPath, "ATARIXL.ROM");
-                atariCfg["ROM_BASIC_C"] = Path.Combine(biosPath, "ATARIBAS.ROM");
-                atariCfg["ROM_400/800_CUSTOM"] = Path.Combine(biosPath, "ATARIOSB.ROM");
-                atariCfg["ROM_XL/XE_CUSTOM"] = Path.Combine(biosPath, "ATARIXL.ROM");
-
                 atariCfg["MACHINE_TYPE"] = "Atari XL/XE";
                 atariCfg["RAM_SIZE"] = "64";
+                atariCfg["DISABLE_BASIC"] = "0";
             }
-            else
+            else if (atariXE)
+            {
+                atariCfg["MACHINE_TYPE"] = "Atari XL/XE";
+                atariCfg["RAM_SIZE"] = "128";
+                atariCfg["DISABLE_BASIC"] = "1";
+
+                var rom = Program.SystemConfig["rom"];
+                if (File.Exists(rom))
+                {
+                    atariCfg["CARTRIDGE_FILENAME"] = rom;
+
+                    try
+                    {
+                        var ln = new FileInfo(rom).Length;
+                        if (ln == 131072)
+                            atariCfg["CARTRIDGE_TYPE"] = "14";
+                        else if (ln == 65536)
+                            atariCfg["CARTRIDGE_TYPE"] = "13";
+                    }
+                    catch { }
+                }
+            }            
+            else // Atari 5200
             {
                 atariCfg["ROM_OS_A_PAL"] = "";
                 atariCfg["ROM_OS_BB01R2"] = "";
                 atariCfg["ROM_BASIC_C"] = "";
                 atariCfg["ROM_400/800_CUSTOM"] = "";
 
-                atariCfg["ROM_5200"] = Path.Combine(biosPath, "5200.ROM");
-                atariCfg["ROM_5200_CUSTOM"] = Path.Combine(biosPath, "atari5200.ROM");
                 atariCfg["MACHINE_TYPE"] = "Atari 5200";
                 atariCfg["RAM_SIZE"] = "16";
-
+                atariCfg["DISABLE_BASIC"] = "1";
             }
 
             atariCfg.Save(Path.Combine(RetroarchPath, ".atari800.cfg"), false);
