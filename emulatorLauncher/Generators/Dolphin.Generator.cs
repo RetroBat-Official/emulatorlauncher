@@ -117,8 +117,6 @@ namespace emulatorLauncher
         private void SetupGfxConfig(string path)
         {
             string iniFile = Path.Combine(path, "User", "Config", "GFX.ini");
-            if (!File.Exists(iniFile))
-                return;
 
             try
             {
