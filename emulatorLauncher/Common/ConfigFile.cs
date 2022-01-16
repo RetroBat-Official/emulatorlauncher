@@ -324,6 +324,14 @@ namespace emulatorLauncher
             }
         }
 
+        public void AppendLine(string line)
+        {
+            _data.Add(new ConfigItem()
+            {
+                Name = line,
+                Value = EmptyLine
+            });
+        }
         private static string _localPath;
     }
     

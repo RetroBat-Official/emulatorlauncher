@@ -63,6 +63,42 @@ namespace emulatorLauncher.Tools
             return "";
         }
 
+        public static string[] ExtractStrings(this string cSearchExpression, string cBeginDelim, string cEndDelim, bool keepDelims = false, bool firstOnly = false, StringComparison comparison = StringComparison.Ordinal)
+        {
+            List<string> ret = new List<string>();
+
+            if (string.IsNullOrEmpty(cSearchExpression))
+                return ret.ToArray();
+
+            if (string.IsNullOrEmpty(cBeginDelim))
+                return ret.ToArray();
+
+            if (string.IsNullOrEmpty(cEndDelim))
+                return ret.ToArray();
+
+            int startpos = cSearchExpression.IndexOf(cBeginDelim, comparison);
+            while (startpos >= 0 && startpos < cSearchExpression.Length && startpos + cBeginDelim.Length <= cSearchExpression.Length)
+            {
+                int endpos = cSearchExpression.IndexOf(cEndDelim, startpos + cBeginDelim.Length, comparison);
+                if (endpos > startpos)
+                {
+                    if (keepDelims)
+                        ret.Add((cSearchExpression.Substring(startpos, cBeginDelim.Length) + cSearchExpression.Substring(startpos + cBeginDelim.Length, endpos - startpos - cBeginDelim.Length) + cEndDelim).Trim());
+                    else
+                        ret.Add(cSearchExpression.Substring(startpos + cBeginDelim.Length, endpos - startpos - cBeginDelim.Length).Trim());
+
+                    if (firstOnly)
+                        break;
+
+                    startpos = cSearchExpression.IndexOf(cBeginDelim, endpos + cEndDelim.Length, comparison);
+                }
+                else
+                    startpos = cSearchExpression.IndexOf(cBeginDelim, startpos + cBeginDelim.Length, comparison);
+            }
+
+            return ret.ToArray();
+        }
+
         public static int ToInteger(this string value)
         {
             int ret = 0;
@@ -88,11 +124,17 @@ namespace emulatorLauncher.Tools
 
             var settings = new XmlReaderSettings
             {
+                CheckCharacters = false,
+                IgnoreWhitespace = true,                
                 ConformanceLevel = ConformanceLevel.Auto,
                 ValidationType = ValidationType.None
             };
 
             XmlSerializer serializer = new XmlSerializer(typeof(T));
+
+            // Fix attributes strings containing & caracters
+            foreach (var toFix in xml.ExtractStrings("\"", "\"", true).Distinct().Where(s => s.Contains("& ")))
+                xml = xml.Replace(toFix, toFix.Replace("& ", "&amp; "));
 
             using (var reader = new StringReader(xml))
             using (var xmlReader = XmlReader.Create(reader, settings))

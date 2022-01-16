@@ -55,16 +55,19 @@ namespace emulatorLauncher.libRetro
 
             SetupUIMode(retroarchConfig);
 
-            if (SystemConfig.isOptSet("monitor"))
+            if (Features.IsSupported("monitor"))
             {
-                int monitorId;
-                if (int.TryParse(SystemConfig["monitor"], out monitorId) && monitorId < Screen.AllScreens.Length)
-                    retroarchConfig["video_monitor_index"] = (monitorId + 1).ToString();
+                if (SystemConfig.isOptSet("monitor"))
+                {
+                    int monitorId;
+                    if (int.TryParse(SystemConfig["monitor"], out monitorId) && monitorId < Screen.AllScreens.Length)
+                        retroarchConfig["video_monitor_index"] = (monitorId + 1).ToString();
+                    else if (Features.IsSupported("monitor"))
+                        retroarchConfig["video_monitor_index"] = "0";
+                }
                 else if (Features.IsSupported("monitor"))
                     retroarchConfig["video_monitor_index"] = "0";
             }
-            else if (Features.IsSupported("monitor"))
-                retroarchConfig["video_monitor_index"] = "0";
 
             if (resolution == null)
             {
@@ -252,6 +255,12 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_frame_delay_auto"] = "true";
             else
                 retroarchConfig["video_frame_delay_auto"] = "false";
+
+            // variable refresh rate (freesync, gsync, etc.)
+            if (SystemConfig.isOptSet("vrr_runloop_enable") && SystemConfig.getOptBoolean("vrr_runloop_enable"))
+                retroarchConfig["vrr_runloop_enable"] = "true";
+            else
+                retroarchConfig["vrr_runloop_enable"] = "false";
 
             if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
             {

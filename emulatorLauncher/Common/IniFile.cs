@@ -189,6 +189,10 @@ namespace emulatorLauncher
             
             try
             {
+                string dir = Path.GetDirectoryName(_path);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
                 using (TextWriter tw = new StreamWriter(_path))
                 {
                     tw.Write(sb.ToString());

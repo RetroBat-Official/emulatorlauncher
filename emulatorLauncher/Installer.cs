@@ -168,6 +168,8 @@ namespace emulatorLauncher
                 installer = installers.Where(g => g.Emulator == "libretro").FirstOrDefault();
             if (installer == null)
                 installer = installers.Where(g => g.Emulator == emulator).FirstOrDefault();
+            if (installer == null)
+                installer = installers.Where(g => g.Folders != null && g.Folders.Any(f => f == emulator)).FirstOrDefault();
 
             if (installer != null && string.IsNullOrEmpty(installer.PackageUrl))
                 return null;
@@ -262,7 +264,7 @@ namespace emulatorLauncher
             return null;
         }
 
-        public string GetInstallFolder()
+        public string GetInstallFolder(bool checkRootPath = true)
         {
             if (!string.IsNullOrEmpty(_customInstallFolder))
                 return Path.Combine(_customInstallFolder, DefaultFolderName);
@@ -274,7 +276,7 @@ namespace emulatorLauncher
             if (!string.IsNullOrEmpty(exe))
                 folder = Path.GetDirectoryName(exe);
 
-            if (string.IsNullOrEmpty(folder))
+            if (checkRootPath && string.IsNullOrEmpty(folder))
             {
                 foreach (var inst in installers)
                 {
@@ -282,7 +284,7 @@ namespace emulatorLauncher
                         continue;
 
                     // Find another emulator folder - retroarch should always be there
-                    string curr = inst.GetInstallFolder();
+                    string curr = inst.GetInstallFolder(false);
                     if (!string.IsNullOrEmpty(curr))
                     {
                         if (curr.EndsWith("\\"))
