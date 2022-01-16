@@ -80,8 +80,6 @@ namespace emulatorLauncher
 
                     ini.WriteValue("scummvm", "savepath", savePath);
                 }
-
-                ini.Save();
             }
 
             List<string> commandArray = new List<string>();

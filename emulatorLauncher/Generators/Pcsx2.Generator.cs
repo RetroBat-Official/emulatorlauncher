@@ -23,7 +23,7 @@ namespace emulatorLauncher
 
             if (_bezelFileInfo != null)
                 bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-        
+
             int ret = base.RunAndWait(path);
 
             if (bezel != null)
@@ -84,81 +84,79 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = _path,
-                Arguments = args + " \"" + rom + "\"", 
+                Arguments = args + " \"" + rom + "\"",
             };
         }
-        private void SetupPaths(string core)        
-        {          
+        private void SetupPaths(string core)
+        {
             string iniFile = Path.Combine(_path, "inis", "PCSX2_ui.ini");
             if (File.Exists(iniFile))
-            {
                 AddFileForRestoration(iniFile);
 
-                try
+            try
+            {
+                using (var ini = new IniFile(iniFile))
                 {
-                    using (var ini = new IniFile(iniFile))
+                    Uri relRoot = new Uri(_path, UriKind.Absolute);
+
+                    string biosPath = AppConfig.GetFullPath("bios");
+                    if (!string.IsNullOrEmpty(biosPath))
                     {
-                        Uri relRoot = new Uri(_path, UriKind.Absolute);
-
-                        string biosPath = AppConfig.GetFullPath("bios");
-                        if (!string.IsNullOrEmpty(biosPath))
-                        {
-                            ini.WriteValue("Folders", "UseDefaultBios", "disabled");
-                            ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
-                        }
-
-                        string savesPath = AppConfig.GetFullPath("saves");
-                        if (!string.IsNullOrEmpty(savesPath))
-                        {
-                            savesPath = Path.Combine(savesPath, "ps2", "pcsx2");
-                            if (!Directory.Exists(savesPath))
-                                try { Directory.CreateDirectory(savesPath); }
-                                catch { }
-								
-                            ini.WriteValue("Folders", "UseDefaultSavestates", "disabled");
-							ini.WriteValue("Folders", "UseDefaultMemoryCards", "disabled");
-                            ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\")); // Path.Combine(relPath, "pcsx2")
-							ini.WriteValue("Folders", "MemoryCards", savesPath.Replace("\\", "\\\\"));
-                        }
-
-                        if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
-                            ini.WriteValue("GSWindow", "AspectRatio", SystemConfig["ratio"]);
-                        else
-                            ini.WriteValue("GSWindow", "AspectRatio", "4:3");
-
-                        if (SystemConfig.isOptSet("fmv_ratio") && !string.IsNullOrEmpty(SystemConfig["fmv_ratio"]))
-                            ini.WriteValue("GSWindow", "FMVAspectRatioSwitch", SystemConfig["fmv_ratio"]);
-                        else if (Features.IsSupported("fmv_ratio"))
-                            ini.WriteValue("GSWindow", "FMVAspectRatioSwitch", "Off");
-                        
-                        ini.WriteValue("ProgramLog", "Visible", "disabled");
-                        ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
-
-                        if (Features.IsSupported("negdivhack") && SystemConfig.isOptSet("negdivhack") && SystemConfig.getOptBoolean("negdivhack"))
-                            ini.WriteValue(null, "EnablePresets", "disabled");
-
-                        if (!_isPcsx17)
-                            ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
-
-                        /* Disabled for <= 1.6.0
-                        if (core == "pcsx2-avx2" || core == "avx2")
-                        {
-                            ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
-                        }
-                        else if (core == "pcsx2-sse2" || core == "sse2")
-                        {
-                            ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
-                        }
-                        else if (core == "pcsx2-sse4" || core == "sse4")
-                        {
-                            ini.WriteValue("Filenames", "GS", "GSdx32-SSE4.dll");
-                        }
-                        else
-                            ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");*/
+                        ini.WriteValue("Folders", "UseDefaultBios", "disabled");
+                        ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
                     }
+
+                    string savesPath = AppConfig.GetFullPath("saves");
+                    if (!string.IsNullOrEmpty(savesPath))
+                    {
+                        savesPath = Path.Combine(savesPath, "ps2", "pcsx2");
+                        if (!Directory.Exists(savesPath))
+                            try { Directory.CreateDirectory(savesPath); }
+                            catch { }
+
+                        ini.WriteValue("Folders", "UseDefaultSavestates", "disabled");
+                        ini.WriteValue("Folders", "UseDefaultMemoryCards", "disabled");
+                        ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\")); // Path.Combine(relPath, "pcsx2")
+                        ini.WriteValue("Folders", "MemoryCards", savesPath.Replace("\\", "\\\\"));
+                    }
+
+                    if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
+                        ini.WriteValue("GSWindow", "AspectRatio", SystemConfig["ratio"]);
+                    else
+                        ini.WriteValue("GSWindow", "AspectRatio", "4:3");
+
+                    if (SystemConfig.isOptSet("fmv_ratio") && !string.IsNullOrEmpty(SystemConfig["fmv_ratio"]))
+                        ini.WriteValue("GSWindow", "FMVAspectRatioSwitch", SystemConfig["fmv_ratio"]);
+                    else if (Features.IsSupported("fmv_ratio"))
+                        ini.WriteValue("GSWindow", "FMVAspectRatioSwitch", "Off");
+
+                    ini.WriteValue("ProgramLog", "Visible", "disabled");
+                    ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
+
+                    if (Features.IsSupported("negdivhack") && SystemConfig.isOptSet("negdivhack") && SystemConfig.getOptBoolean("negdivhack"))
+                        ini.WriteValue(null, "EnablePresets", "disabled");
+
+                    if (!_isPcsx17)
+                        ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
+
+                    /* Disabled for <= 1.6.0
+                    if (core == "pcsx2-avx2" || core == "avx2")
+                    {
+                        ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
+                    }
+                    else if (core == "pcsx2-sse2" || core == "sse2")
+                    {
+                        ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
+                    }
+                    else if (core == "pcsx2-sse4" || core == "sse4")
+                    {
+                        ini.WriteValue("Filenames", "GS", "GSdx32-SSE4.dll");
+                    }
+                    else
+                        ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");*/
                 }
-                catch { }
             }
+            catch { }
         }
 
         private void SetupLilyPad()
@@ -168,152 +166,146 @@ namespace emulatorLauncher
 
             string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "PAD.ini" : "LilyPad.ini");
             if (File.Exists(iniFile))
-            {
                 AddFileForRestoration(iniFile);
 
-                try
-                {
-                    using (var ini = new IniFile(iniFile))
-                    {
-                        ini.WriteValue("General Settings", "Keyboard Mode", "1");
-                    }
-                }
-                catch { }
+            try
+            {
+                using (var ini = new IniFile(iniFile))
+                    ini.WriteValue("General Settings", "Keyboard Mode", "1");
             }
+            catch { }
         }
 
         private void SetupVM()
         {
             string iniFile = Path.Combine(_path, "inis", "PCSX2_vm.ini");
+
             if (File.Exists(iniFile))
-            {
                 AddFileForRestoration(iniFile);
 
-                try
+            try
+            {
+                using (var ini = new IniFile(iniFile))
                 {
-                    using (var ini = new IniFile(iniFile))
-                    {                      						
-						if (!string.IsNullOrEmpty(SystemConfig["VSync"]))
-                            ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
-                        else
-                            ini.WriteValue("EmuCore/GS", "VsyncEnable", "1");
+                    if (!string.IsNullOrEmpty(SystemConfig["VSync"]))
+                        ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
+                    else
+                        ini.WriteValue("EmuCore/GS", "VsyncEnable", "1");
 
-                        if (Features.IsSupported("negdivhack"))
-                        {
-                            string negdivhack = SystemConfig.isOptSet("negdivhack") && SystemConfig.getOptBoolean("negdivhack") ? "enabled" : "disabled";
+                    if (Features.IsSupported("negdivhack"))
+                    {
+                        string negdivhack = SystemConfig.isOptSet("negdivhack") && SystemConfig.getOptBoolean("negdivhack") ? "enabled" : "disabled";
 
-                            ini.WriteValue("EmuCore/Speedhacks", "vuThread", negdivhack);
+                        ini.WriteValue("EmuCore/Speedhacks", "vuThread", negdivhack);
 
-                            ini.WriteValue("EmuCore/CPU/Recompiler", "vuExtraOverflow", negdivhack);
-                            ini.WriteValue("EmuCore/CPU/Recompiler", "vuSignOverflow", negdivhack);
-                            ini.WriteValue("EmuCore/CPU/Recompiler", "fpuExtraOverflow", negdivhack);
-                            ini.WriteValue("EmuCore/CPU/Recompiler", "fpuFullMode", negdivhack);
+                        ini.WriteValue("EmuCore/CPU/Recompiler", "vuExtraOverflow", negdivhack);
+                        ini.WriteValue("EmuCore/CPU/Recompiler", "vuSignOverflow", negdivhack);
+                        ini.WriteValue("EmuCore/CPU/Recompiler", "fpuExtraOverflow", negdivhack);
+                        ini.WriteValue("EmuCore/CPU/Recompiler", "fpuFullMode", negdivhack);
 
-                            ini.WriteValue("EmuCore/Gamefixes", "VuClipFlagHack", negdivhack);
-                            ini.WriteValue("EmuCore/Gamefixes", "FpuNegDivHack", negdivhack);
-                        }
+                        ini.WriteValue("EmuCore/Gamefixes", "VuClipFlagHack", negdivhack);
+                        ini.WriteValue("EmuCore/Gamefixes", "FpuNegDivHack", negdivhack);
                     }
                 }
-                catch { }
             }
+            catch { }
         }
-                        
+
         private void SetupGSDx(ScreenResolution resolution)
         {
             string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "GS.ini" : "GSdx.ini");
+
             if (File.Exists(iniFile))
-            {
                 AddFileForRestoration(iniFile);
 
-                try
+            try
+            {
+                using (var ini = new IniFile(iniFile))
                 {
-                    using (var ini = new IniFile(iniFile))
+                    ini.WriteValue("Settings", "UserHacks", "1");
+
+                    if (!string.IsNullOrEmpty(SystemConfig["internalresolution"]))
+                        ini.WriteValue("Settings", "upscale_multiplier", SystemConfig["internalresolution"]);
+                    else
+                        ini.WriteValue("Settings", "upscale_multiplier", "1");
+
+                    if (string.IsNullOrEmpty(SystemConfig["internalresolution"]) || SystemConfig["internalresolution"] == "0")
                     {
-                        ini.WriteValue("Settings", "UserHacks", "1");
-
-                        if (!string.IsNullOrEmpty(SystemConfig["internalresolution"]))
-                            ini.WriteValue("Settings", "upscale_multiplier", SystemConfig["internalresolution"]);
-                        else
-                            ini.WriteValue("Settings", "upscale_multiplier", "1");
-
-                        if (string.IsNullOrEmpty(SystemConfig["internalresolution"]) || SystemConfig["internalresolution"] == "0")
+                        if (resolution != null)
                         {
-                            if (resolution != null)
-                            {
-                                ini.WriteValue("Settings", "resx", resolution.Width.ToString());
-                                ini.WriteValue("Settings", "resy", (resolution.Height * 2).ToString());
-                            }
-                            else
-                            {
-                                ini.WriteValue("Settings", "resx", Screen.PrimaryScreen.Bounds.Width.ToString());
-                                ini.WriteValue("Settings", "resy", (Screen.PrimaryScreen.Bounds.Height * 2).ToString());
-                            }
-                        }
-
-                        ini.WriteValue("Settings", "shaderfx", "1");
-
-                        
-                        if (SystemConfig.isOptSet("TVShader") && !string.IsNullOrEmpty(SystemConfig["TVShader"]))
-                            ini.WriteValue("Settings", "TVShader", SystemConfig["TVShader"]);
-                        else if (Features.IsSupported("TVShader"))
-                            ini.WriteValue("Settings", "TVShader", "0");
-                                                
-                        if (SystemConfig.isOptSet("Offset") && !string.IsNullOrEmpty(SystemConfig["Offset"]))
-                            ini.WriteValue("Settings", "UserHacks_WildHack", SystemConfig["Offset"]);
-                        else if (Features.IsSupported("Offset"))
-                            ini.WriteValue("Settings", "UserHacks_WildHack", "0");
-
-                        if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
-                            ini.WriteValue("Settings", "linear_present", SystemConfig["bilinear_filtering"]);
-                        else if (Features.IsSupported("bilinear_filtering"))
-                            ini.WriteValue("Settings", "linear_present", "0");
-                        
-                        if (SystemConfig.isOptSet("fxaa") && !string.IsNullOrEmpty(SystemConfig["fxaa"]))
-                            ini.WriteValue("Settings", "fxaa", SystemConfig["fxaa"]);
-                        else if (Features.IsSupported("fxaa"))
-                            ini.WriteValue("Settings", "fxaa", "0");
-                        
-                        if (SystemConfig.isOptSet("renderer") && !string.IsNullOrEmpty(SystemConfig["renderer"]))
-                            ini.WriteValue("Settings", "Renderer", SystemConfig["renderer"]);
-                        else if (Features.IsSupported("renderer"))
-                            ini.WriteValue("Settings", "Renderer", "12");
-
-                        if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]))
-                            ini.WriteValue("Settings", "interlace", SystemConfig["interlace"]);
-                        else if (Features.IsSupported("interlace"))
-                            ini.WriteValue("Settings", "interlace", "7");
-                        
-                        if (SystemConfig.isOptSet("anisotropic_filtering") && !string.IsNullOrEmpty(SystemConfig["anisotropic_filtering"]))
-                            ini.WriteValue("Settings", "MaxAnisotropy", SystemConfig["anisotropic_filtering"]);
-                        else if (Features.IsSupported("anisotropic_filtering"))
-                            ini.WriteValue("Settings", "MaxAnisotropy", "0");
-                       
-                        if (SystemConfig.isOptSet("align_sprite") && !string.IsNullOrEmpty(SystemConfig["align_sprite"]))
-                            ini.WriteValue("Settings", "UserHacks_align_sprite_X", SystemConfig["align_sprite"]);
-                        else if (Features.IsSupported("align_sprite"))
-                            ini.WriteValue("Settings", "UserHacks_align_sprite_X", "0");
-
-                        if (SystemConfig.isOptSet("skipdraw") && !string.IsNullOrEmpty(SystemConfig["skipdraw"]))
-                            ini.WriteValue("Settings", "UserHacks_SkipDraw", SystemConfig["skipdraw"]);
-                        else if (Features.IsSupported("skipdraw"))
-                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
-
-                        if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
-                        {
-                            ini.WriteValue("Settings", "osd_monitor_enabled", "1");
-                            ini.WriteValue("Settings", "osd_indicator_enabled", "1");
+                            ini.WriteValue("Settings", "resx", resolution.Width.ToString());
+                            ini.WriteValue("Settings", "resy", (resolution.Height * 2).ToString());
                         }
                         else
                         {
-                            ini.WriteValue("Settings", "osd_monitor_enabled", "0");
-                            ini.WriteValue("Settings", "osd_indicator_enabled", "0");
+                            ini.WriteValue("Settings", "resx", Screen.PrimaryScreen.Bounds.Width.ToString());
+                            ini.WriteValue("Settings", "resy", (Screen.PrimaryScreen.Bounds.Height * 2).ToString());
                         }
-                        
+                    }
+
+                    ini.WriteValue("Settings", "shaderfx", "1");
+
+
+                    if (SystemConfig.isOptSet("TVShader") && !string.IsNullOrEmpty(SystemConfig["TVShader"]))
+                        ini.WriteValue("Settings", "TVShader", SystemConfig["TVShader"]);
+                    else if (Features.IsSupported("TVShader"))
+                        ini.WriteValue("Settings", "TVShader", "0");
+
+                    if (SystemConfig.isOptSet("Offset") && !string.IsNullOrEmpty(SystemConfig["Offset"]))
+                        ini.WriteValue("Settings", "UserHacks_WildHack", SystemConfig["Offset"]);
+                    else if (Features.IsSupported("Offset"))
+                        ini.WriteValue("Settings", "UserHacks_WildHack", "0");
+
+                    if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
+                        ini.WriteValue("Settings", "linear_present", SystemConfig["bilinear_filtering"]);
+                    else if (Features.IsSupported("bilinear_filtering"))
+                        ini.WriteValue("Settings", "linear_present", "0");
+
+                    if (SystemConfig.isOptSet("fxaa") && !string.IsNullOrEmpty(SystemConfig["fxaa"]))
+                        ini.WriteValue("Settings", "fxaa", SystemConfig["fxaa"]);
+                    else if (Features.IsSupported("fxaa"))
+                        ini.WriteValue("Settings", "fxaa", "0");
+
+                    if (SystemConfig.isOptSet("renderer") && !string.IsNullOrEmpty(SystemConfig["renderer"]))
+                        ini.WriteValue("Settings", "Renderer", SystemConfig["renderer"]);
+                    else if (Features.IsSupported("renderer"))
+                        ini.WriteValue("Settings", "Renderer", "12");
+
+                    if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]))
+                        ini.WriteValue("Settings", "interlace", SystemConfig["interlace"]);
+                    else if (Features.IsSupported("interlace"))
+                        ini.WriteValue("Settings", "interlace", "7");
+
+                    if (SystemConfig.isOptSet("anisotropic_filtering") && !string.IsNullOrEmpty(SystemConfig["anisotropic_filtering"]))
+                        ini.WriteValue("Settings", "MaxAnisotropy", SystemConfig["anisotropic_filtering"]);
+                    else if (Features.IsSupported("anisotropic_filtering"))
+                        ini.WriteValue("Settings", "MaxAnisotropy", "0");
+
+                    if (SystemConfig.isOptSet("align_sprite") && !string.IsNullOrEmpty(SystemConfig["align_sprite"]))
+                        ini.WriteValue("Settings", "UserHacks_align_sprite_X", SystemConfig["align_sprite"]);
+                    else if (Features.IsSupported("align_sprite"))
+                        ini.WriteValue("Settings", "UserHacks_align_sprite_X", "0");
+
+                    if (SystemConfig.isOptSet("skipdraw") && !string.IsNullOrEmpty(SystemConfig["skipdraw"]))
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw", SystemConfig["skipdraw"]);
+                    else if (Features.IsSupported("skipdraw"))
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
+
+                    if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
+                    {
+                        ini.WriteValue("Settings", "osd_monitor_enabled", "1");
+                        ini.WriteValue("Settings", "osd_indicator_enabled", "1");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Settings", "osd_monitor_enabled", "0");
+                        ini.WriteValue("Settings", "osd_indicator_enabled", "0");
                     }
 
                 }
-                catch { }
+
             }
+            catch { }
         }
     }
 }

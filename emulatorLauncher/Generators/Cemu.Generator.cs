@@ -82,10 +82,7 @@ namespace emulatorLauncher
 
                 string controllerTxt = Path.Combine(controllerProfiles, "controller" + (controller.PlayerIndex - 1) + ".txt");
                 using (IniFile ini = new IniFile(controllerTxt, true))
-                {
                     ConfigureInput(ini, controller);
-                    ini.Save();
-                }
             }
         }
 

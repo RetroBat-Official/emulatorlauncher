@@ -102,8 +102,6 @@ namespace emulatorLauncher
         private void SetupGeneralConfig(string path, string rom, string system, string core)
         {
             string iniFile = Path.Combine(path, "Demul.ini");
-            if (!File.Exists(iniFile))
-                return;
 
             try
             {
@@ -141,8 +139,6 @@ namespace emulatorLauncher
         private void SetupDx11Config(string path, string rom, string system)
         {
             string iniFile = Path.Combine(path, "gpuDX11.ini");
-            if (!File.Exists(iniFile))
-                return;
 
             try
             {

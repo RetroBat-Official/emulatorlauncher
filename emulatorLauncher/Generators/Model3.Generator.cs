@@ -83,7 +83,6 @@ namespace emulatorLauncher
                     {
                         ini.WriteValue(" Global ", "FullScreen", _bezelFileInfo == null ? "1" : "0");
                         ini.WriteValue(" Global ", "WideScreen", wideScreen ? "1" : "0");
-                        ini.Save();
                     }
                 }
             }
