@@ -265,8 +265,6 @@ namespace emulatorLauncher
         private void SetupGeneralConfig(string path, string system)
         {
             string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
-            if (!File.Exists(iniFile))
-                return;
 
             try
             {

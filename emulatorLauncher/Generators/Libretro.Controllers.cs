@@ -145,7 +145,12 @@ namespace emulatorLauncher.libRetro
             config["input_enable_hotkey_axis"] = "nul";
             config["input_enable_hotkey_btn"] = "nul";
             config["input_enable_hotkey_mbtn"] = "nul";
+
+#if DEBUG
+            config["input_exit_emulator"] = "tilde";
+#else
             config["input_exit_emulator"] = "escape";
+#endif            
             config["input_menu_toggle"] = "f1";
             config["input_save_state"] = "f2";
             config["input_load_state"] = "f4";
