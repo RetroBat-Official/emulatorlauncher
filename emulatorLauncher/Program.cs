@@ -63,6 +63,7 @@ namespace emulatorLauncher
             { "demul", () => new DemulGenerator() }, { "demul-old", () => new DemulGenerator() }, 
             { "mednafen", () => new MednafenGenerator() },
             { "daphne", () => new DaphneGenerator() },
+            { "hypseus", () => new HypseusGenerator() },            
 			{ "raine", () => new RaineGenerator() },
 			{ "snes9x", () => new Snes9xGenerator() },
 			{ "citra", () => new CitraGenerator() },
