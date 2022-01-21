@@ -126,17 +126,21 @@ namespace emulatorLauncher
             return ret.ToArray();
         }
 
-        public static void Extract(string archive, string destination)
+        public static void Extract(string archive, string destination, string fileNameToExtract = null)
         {
             var sevenZip = GetSevenZipPath();
             if (!File.Exists(sevenZip))
                 return;
 
+            string args = "x \"" + archive + "\" -y -o\"" + destination + "\"";
+            if (!string.IsNullOrEmpty(fileNameToExtract))
+                args = "e \"" + archive + "\" \""+fileNameToExtract+"\" -y -o\"" + destination + "\"";
+
             var px = new ProcessStartInfo()
             {
                 FileName = GetSevenZipPath(),
                 WorkingDirectory = Path.GetDirectoryName(GetSevenZipPath()),
-                Arguments = "x \"" + archive + "\" -y -o\"" + destination + "\"",
+                Arguments = args,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
 

@@ -81,6 +81,8 @@ namespace emulatorLauncher
             { "scummvm", () => new ScummVmGenerator() },            
             { "arcadeflashweb", () => new ArcadeFlashWebGenerator() },			
             { "solarus", () => new SolarusGenerator() },
+            { "eka2l1", () => new Eka2l1Generator() }, 
+            { "n-gage", () => new Eka2l1Generator() },             
 			{ "pinballfx3", () => new PinballFX3Generator() }			
         };
 
