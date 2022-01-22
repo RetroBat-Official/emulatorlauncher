@@ -8,15 +8,43 @@ using System.Windows.Forms;
 
 namespace emulatorLauncher
 {
-    class DaphneGenerator : Generator
+    class HypseusGenerator : DaphneGeneratorBase
     {
+        protected override string ExecutableName { get { return "hypseus"; } }
+
+        protected override void UpdateCommandline(List<string> commandArray)
+        {
+            if (!SystemConfig.isOptSet("smooth"))
+                commandArray.Add("-nolinear_scale");
+            
+            if (SystemConfig["ratio"] != "16/9")
+                commandArray.Add("-force_aspect_ratio");
+        }
+    }
+
+    class DaphneGenerator : DaphneGeneratorBase
+    {
+        protected override string ExecutableName { get { return "daphne"; } }
+
+        protected override void UpdateCommandline(List<string> commandArray)
+        {
+            if (SystemConfig["ratio"] == "16/9")
+                commandArray.Add("-ignore_aspect_ratio");                
+        }
+    }
+
+    abstract class DaphneGeneratorBase : Generator
+    {
+        protected abstract string ExecutableName { get; }
+        protected abstract void UpdateCommandline(List<string> commandArray);
+
         private string _daphneHomedir;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string emulatorPath = AppConfig.GetFullPath("daphne");
+            string emulatorPath = AppConfig.GetFullPath(ExecutableName);
 
-            string exe = Path.Combine(emulatorPath, "daphne.exe");
+            string exe = Path.Combine(emulatorPath, ExecutableName + ".exe");
             if (!File.Exists(exe))
                 return null;
 
@@ -41,9 +69,6 @@ namespace emulatorLauncher
                 commandArray.Add("2");
             }
 
-            if (SystemConfig["ratio"] == "16/9")
-                commandArray.Add("-ignore_aspect_ratio");                
-
             commandArray.Add("-x");
             commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
 
@@ -57,6 +82,8 @@ namespace emulatorLauncher
 //            commandArray.Add(daphneDatadir);
             commandArray.Add("-homedir");
             commandArray.Add(_daphneHomedir);
+
+            UpdateCommandline(commandArray);       
             
             // The folder may have a file with the game name and .commands with extra arguments to run the game.
             if (File.Exists(commandsFile))

@@ -67,8 +67,7 @@ namespace emulatorLauncher
                     presetPath = "ReShadePreset.ini";
 
                 using (IniFile reShadePreset = new IniFile(Path.Combine(path, presetPath)))
-                {
-                 
+                {                 
                     string bezelEffectName = knownTechniques[0];
                     string shaderName = Program.SystemConfig["shader"]??"";
                     string shaderFileName = null;

@@ -76,11 +76,9 @@ namespace emulatorLauncher
                             ini.WriteValue("system", "bootrom_path", Path.Combine(AppConfig.GetFullPath("bios"), "mcpx_1.0.bin"));
                     }
 
-                    //ini.WriteValue("system", "memory", "128");
                     ini.WriteValue("system", "shortanim", "true");
                     ini.WriteValue("system", "dvd_path", rom);
-                    ini.WriteValue("display", "scale", "scale");                    
-                    ini.Save();
+                    ini.WriteValue("display", "scale", "scale");                                     
 
                     if (SystemConfig.isOptSet("render_scale") && !string.IsNullOrEmpty(SystemConfig["render_scale"]))
                         ini.WriteValue("display", "render_scale", SystemConfig["render_scale"]);
@@ -96,7 +94,6 @@ namespace emulatorLauncher
                         ini.WriteValue("system", "memory", SystemConfig["system_memory"]);
                     else 
                         ini.WriteValue("system", "memory", "128");
-
                 }
             }
             catch { }

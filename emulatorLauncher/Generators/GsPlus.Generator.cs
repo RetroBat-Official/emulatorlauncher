@@ -23,21 +23,20 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            IniFile conf = new IniFile(Path.Combine(path, "config.txt"), true);
+            using (var conf = new IniFile(Path.Combine(path, "config.txt"), true))
+            {
+                conf.WriteValue(null, "s5d1", "");
+                conf.WriteValue(null, "s5d2", "");
+                conf.WriteValue(null, "s6d1", "");
+                conf.WriteValue(null, "s6d2", "");
+                conf.WriteValue(null, "s7d1", "");
 
-            conf.WriteValue(null, "s5d1", "");
-            conf.WriteValue(null, "s5d2", "");
-            conf.WriteValue(null, "s6d1", "");
-            conf.WriteValue(null, "s6d2", "");
-            conf.WriteValue(null, "s7d1", "");
+                if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
+                    conf.WriteValue(null, "g_cfg_rom_path", Path.Combine(AppConfig.GetFullPath("bios"), "APPLE2GS.ROM"));
 
-            if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
-                conf.WriteValue(null, "g_cfg_rom_path", Path.Combine(AppConfig.GetFullPath("bios"), "APPLE2GS.ROM"));
-
-            if (Path.GetExtension(rom).ToLowerInvariant() == ".2mg")
-                conf.WriteValue(null, "s7d1", rom);
-
-            conf.Save();
+                if (Path.GetExtension(rom).ToLowerInvariant() == ".2mg")
+                    conf.WriteValue(null, "s7d1", rom);
+            }
 
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;

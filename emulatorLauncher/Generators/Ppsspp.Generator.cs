@@ -38,8 +38,6 @@ namespace emulatorLauncher
         private void SetupConfig(string path)
         {
             string iniFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "ppsspp.ini");
-            if (!File.Exists(iniFile))
-                return;
 
             try
             {
