@@ -71,7 +71,7 @@ namespace emulatorLauncher
             { "xenia", () => new XeniaGenerator() },
             { "mame64", () => new Mame64Generator() },
             { "oricutron", () => new OricutronGenerator() },
-            { "switch", () => new YuzuGenerator() }, { "yuzu", () => new YuzuGenerator() },
+            { "switch", () => new YuzuGenerator() }, { "yuzu", () => new YuzuGenerator() }, { "yuzu-early-access", () => new YuzuGenerator() },
             { "ryujinx", () => new RyujinxGenerator() },
             { "teknoparrot", () => new TeknoParrotGenerator() },    
             { "easyrpg", () => new EasyRpgGenerator() },                

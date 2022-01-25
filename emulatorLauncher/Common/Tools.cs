@@ -17,6 +17,20 @@ namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        public static void CreateSymlink(string destinationLink, string pathToLink, bool directory = true)
+        {
+            string workingDirectory = Path.GetDirectoryName(destinationLink);
+            string directoryName = Path.GetFileName(destinationLink);
+
+            var psi = new ProcessStartInfo("cmd.exe", directory ? 
+                "/C mklink /D \"" + directoryName + "\" \"" + pathToLink + "\"" :
+                "/C mklink \"" + directoryName + "\" \"" + pathToLink + "\"");
+            psi.WorkingDirectory = workingDirectory;
+            psi.CreateNoWindow = true;
+            psi.UseShellExecute = false;
+            Process.Start(psi).WaitForExit();
+        }
+
         public static void RemoveWhere<T>(this IList<T> items, Predicate<T> func)
         {
             for (int i = items.Count - 1; i >= 0; i--)
