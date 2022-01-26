@@ -245,11 +245,6 @@ namespace emulatorLauncher
                     ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, screenResolution);
                     if (path != null)
                     {
-                        if (path.Arguments != null)
-                            SimpleLogger.Instance.Info("->  " + path.FileName + " " + path.Arguments);
-                        else
-                            SimpleLogger.Instance.Info("->  " + path.FileName);
-
                         path.UseShellExecute = true;
 
                         if (screenResolution != null && generator.DependsOnDesktopResolution)
@@ -258,11 +253,16 @@ namespace emulatorLauncher
                         Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
 
                         PadToKey mapping = null;
-                        if (generator.UsePadToKey)
+                        if (generator.UseEsPadToKey)
                             mapping = PadToKey.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_padtokey.cfg"));
 
                         mapping = LoadGamePadToKeyMapping(path, mapping);
                         mapping = generator.SetupCustomPadToKeyMapping(mapping);
+
+                        if (path.Arguments != null)
+                            SimpleLogger.Instance.Info("Running : " + path.FileName + " " + path.Arguments);
+                        else
+                            SimpleLogger.Instance.Info("Running :  " + path.FileName);
 
                         using (new HighPerformancePowerScheme())
                         using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
@@ -288,6 +288,9 @@ namespace emulatorLauncher
                 SimpleLogger.Instance.Error("Can't find generator");
                 Environment.ExitCode = (int)ExitCodes.UnknownEmulator;
             }
+
+            if (Environment.ExitCode != 0)
+                SimpleLogger.Instance.Error("Exit code : " + Environment.ExitCode);
         }
 
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
@@ -532,6 +535,8 @@ namespace emulatorLauncher
         /// <param name="message"></param>
         public static void WriteCustomErrorFile(string message)
         {
+            SimpleLogger.Instance.Error(message);
+
             string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "launch_error.log");
 
             try

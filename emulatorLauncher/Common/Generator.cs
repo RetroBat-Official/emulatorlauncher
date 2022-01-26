@@ -29,7 +29,7 @@ namespace emulatorLauncher
 
         public Generator()
         {
-            UsePadToKey = true;
+            UseEsPadToKey = true;
             DependsOnDesktopResolution = false;
             ExitCode = ExitCodes.EmulatorNotInstalled;
         }
@@ -68,7 +68,7 @@ namespace emulatorLauncher
         }
 
         public bool DependsOnDesktopResolution { get; protected set; }
-        public bool UsePadToKey { get; protected set; }
+        public bool UseEsPadToKey { get; protected set; }
 
         public virtual PadToKey SetupCustomPadToKeyMapping(PadToKeyboard.PadToKey mapping)
         {

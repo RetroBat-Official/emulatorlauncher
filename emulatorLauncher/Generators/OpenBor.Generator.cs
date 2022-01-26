@@ -107,7 +107,7 @@ namespace emulatorLauncher
 
             if (setupConfigIni(path))
             {
-                UsePadToKey = false;
+                UseEsPadToKey = false;
 
                 return new ProcessStartInfo()
                 {

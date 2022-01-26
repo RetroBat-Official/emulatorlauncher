@@ -439,7 +439,7 @@ namespace emulatorLauncher.libRetro
             writeBezelConfig(retroarchConfig, system, rom, resolution);
 
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
-                UsePadToKey = false;
+                UseEsPadToKey = false;
 
             // custom : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
             foreach (var user_config in SystemConfig)
