@@ -123,9 +123,9 @@
             this.progressBar1.Dock = System.Windows.Forms.DockStyle.Top;
             this.progressBar1.ForeColor = System.Drawing.Color.DarkSlateGray;
             this.progressBar1.Location = new System.Drawing.Point(206, 3);
-            this.progressBar1.MaximumSize = new System.Drawing.Size(0, 50);
+            this.progressBar1.MinimumSize = new System.Drawing.Size(120, 20);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(603, 36);
+            this.progressBar1.Size = new System.Drawing.Size(603, 27);
             this.progressBar1.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar1.TabIndex = 7;
             this.progressBar1.Value = 50;

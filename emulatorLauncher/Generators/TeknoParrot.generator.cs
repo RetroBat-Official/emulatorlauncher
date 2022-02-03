@@ -165,7 +165,7 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            // ExtractUserProfiles("h:\\");
+            rom = this.TryUnZipGameIfNeeded(system, rom);
 
             string gameName = Path.GetFileNameWithoutExtension(rom);
 

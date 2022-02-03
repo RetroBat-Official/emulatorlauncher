@@ -12,6 +12,195 @@ namespace emulatorLauncher
 {
     abstract class Generator
     {
+        #region Custom game unzip
+
+        private static string GetUnCompressedFolderPath()
+        {
+            string romPath = Program.AppConfig.GetFullPath("roms");
+            if (!string.IsNullOrEmpty(romPath))
+                return Path.Combine(romPath, ".uncompressed");
+
+            return null;
+        }
+
+        protected string TryUnZipGameIfNeeded(string system, string fileName, bool silent = false)
+        {
+            if (string.IsNullOrEmpty(GetUnCompressedFolderPath()))
+                return fileName;
+
+            _unzip = GameUnzip.UnZipGame(system, fileName, silent);
+            if (_unzip != null)
+                return _unzip.UncompressedPath;
+
+            return fileName;
+        }
+
+        public void ValidateUncompressedGame()
+        {
+            if (_unzip != null)
+                _unzip.SilentDelete = false;
+        }
+
+        private GameUnzip _unzip;
+
+        public virtual void Cleanup()
+        {
+            if (_unzip != null)
+            {
+                if (Program.SystemConfig["decompressedfolders"] == "keep")
+                    return;
+
+                if (_unzip.SilentDelete || Program.SystemConfig["decompressedfolders"] == "delete")
+                {
+                    try { Directory.Delete(_unzip.UncompressedPath, true); }
+                    catch { }
+
+                    try { Directory.Delete(_unzip.ExtractionPath); }
+                    catch { }
+                }
+                else
+                {
+                    using (var frm = new InstallerFrm())
+                    {
+                        frm.SetLabel(Properties.Resources.KeepUncompressedFile);
+                        if (frm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                        {
+                            try { Directory.Delete(_unzip.UncompressedPath, true); }
+                            catch { }
+
+                            try { Directory.Delete(_unzip.ExtractionPath); }
+                            catch { }
+                        }
+                    }
+                }
+
+                try { Directory.Delete(GetUnCompressedFolderPath()); }
+                catch { }                
+
+                _unzip = null;
+            }
+        }
+        
+        private class GameUnzip
+        {
+            public static GameUnzip UnZipGame(string system, string filename, bool silent = false)
+            {
+                string path = Path.GetDirectoryName(filename);
+
+                string extractionPath = GetUnCompressedFolderPath();
+
+                if (!Directory.Exists(extractionPath))
+                {
+                    Directory.CreateDirectory(extractionPath);
+                    Misc.CompressDirectory(extractionPath);
+                }
+
+                extractionPath = Path.Combine(extractionPath, system);
+                string dest = Path.Combine(extractionPath, Path.GetFileNameWithoutExtension(filename));
+
+                if (Directory.Exists(dest) && Directory.GetFiles(dest, "*.*", SearchOption.AllDirectories).Any())
+                {
+                    try { Directory.SetLastWriteTime(dest, DateTime.Now); }
+                    catch { }
+
+                    var ret = new GameUnzip();
+                    ret.ZipFile = filename;
+                    ret.ExtractionPath = extractionPath;
+                    ret.UncompressedPath = dest;
+                    return ret;
+                }
+
+                if (Zip.IsCompressedFile(filename))
+                {
+                    if (silent)
+                        Zip.Extract(filename, dest);
+                    else
+                    {
+                        using (var frm = new InstallerFrm())
+                        {
+                            if (!frm.UnCompressFile(filename, dest))
+                                throw new Exception("Unable to decompress file");
+                        }
+                    }
+
+                    if (Directory.Exists(dest))
+                    {
+                        try { Directory.SetLastWriteTime(dest, DateTime.Now); }
+                        catch { }
+
+                        var ret = new GameUnzip();
+                        ret.ZipFile = filename;
+                        ret.ExtractionPath = extractionPath;
+                        ret.UncompressedPath = dest;
+                        ret.CleanupUncompressedWSquashFS();
+                        return ret;
+                    }
+                }
+
+                return null;
+            }
+
+            private GameUnzip() { SilentDelete = true; }
+
+            public string ZipFile { get; set; }
+            public string UncompressedPath { get; set; }
+            public string ExtractionPath { get; set; }
+            public bool SilentDelete { get; set; }
+
+            private void CleanupUncompressedWSquashFS()
+            {
+                if (Path.GetExtension(ZipFile).ToLowerInvariant() != ".wsquashfs")
+                    return;
+
+                string[] pathsToDelete = new string[]
+                {
+                    "dosdevices",
+                    "system.reg",
+                    "userdef.reg",
+                    "drive_c\\windows",
+                    "drive_c\\Program Files\\Common Files\\System",
+                    "drive_c\\Program Files\\Common Files\\Microsoft Shared",
+                    "drive_c\\Program Files\\Internet Explorer",
+                    "drive_c\\Program Files\\Windows Media Player",
+                    "drive_c\\Program Files\\Windows NT",
+                    "drive_c\\Program Files (x86)\\Common Files\\System",
+                    "drive_c\\Program Files (x86)\\Common Files\\Microsoft Shared",
+                    "drive_c\\Program Files (x86)\\Internet Explorer",
+                    "drive_c\\Program Files (x86)\\Windows Media Player",
+                    "drive_c\\Program Files (x86)\\Windows NT",
+                    "drive_c\\users\\Public",
+                    "drive_c\\ProgramData\\Microsoft"
+                };
+
+                foreach (var path in pathsToDelete)
+                {
+                    string folder = Path.Combine(UncompressedPath, path);
+                    if (Directory.Exists(folder))
+                    {
+                        try { Directory.Delete(folder, true); }
+                        catch { }
+                    }
+                    else if (File.Exists(folder))
+                    {
+                        try { File.Delete(folder); }
+                        catch { }
+                    }
+
+                    try
+                    {
+                        var parent = Path.GetDirectoryName(folder);
+                        if (Directory.Exists(parent))
+                            Directory.Delete(parent);
+                    }
+                    catch { }
+                }
+            }
+
+        }
+
+        #endregion
+
+        #region Error
         protected void SetCustomError(string message)
         {
             try
@@ -26,6 +215,7 @@ namespace emulatorLauncher
         }
 
         public ExitCodes ExitCode { get; protected set; }
+        #endregion
 
         public Generator()
         {
@@ -40,7 +230,6 @@ namespace emulatorLauncher
         protected List<Controller> Controllers { get { return Program.Controllers; } }
 
         public abstract ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution);
-        public virtual void Cleanup() { }
 
         public virtual int RunAndWait(ProcessStartInfo path)
         {
@@ -233,5 +422,6 @@ namespace emulatorLauncher
 
         CustomError = 299
     }
+
 
 }

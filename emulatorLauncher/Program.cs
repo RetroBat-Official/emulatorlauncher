@@ -110,6 +110,16 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
+            /*
+           Zip.ExtractSquashFS(@"H:\xmoto.wsquashfs", @"H:\temp\xmoto");
+          return;
+
+           
+            using (var frm = new InstallerFrm())
+                frm.UnCompressFile(@"H:\tmp\Teslagrad.squashfs", @"H:\tmp\Teslagrad");
+
+            return;        
+           */
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info(Environment.CommandLine);
 
@@ -242,7 +252,23 @@ namespace emulatorLauncher
 
                 using (var screenResolution = ScreenResolution.Parse(SystemConfig["videomode"]))
                 {
-                    ProcessStartInfo path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, screenResolution);
+                    ProcessStartInfo path = null;
+
+                    try
+                    {
+                        path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, screenResolution);
+                    }
+                    catch (Exception ex)
+                    {
+                        generator.Cleanup();
+
+                        SimpleLogger.Instance.Error(ex.Message);
+                        Environment.ExitCode = (int)generator.ExitCode;
+
+                        SimpleLogger.Instance.Error("Generate exception : " + ex.Message);
+                        return;
+                    }
+
                     if (path != null)
                     {
                         path.UseShellExecute = true;

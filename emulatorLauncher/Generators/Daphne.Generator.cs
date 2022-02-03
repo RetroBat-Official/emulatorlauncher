@@ -68,6 +68,8 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            rom = this.TryUnZipGameIfNeeded(system, rom);
+
             string romName = Path.GetFileNameWithoutExtension(rom);
 
             string commandsFile = rom + "/" + romName + ".commands";

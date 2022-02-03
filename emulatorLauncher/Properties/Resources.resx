@@ -190,4 +190,10 @@ Install now ?</value>
   <data name="blacklisted_words" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\blacklisted-words.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="KeepUncompressedFile" xml:space="preserve">
+    <value>Do you want to keep the uncompressed game for further use ?</value>
+  </data>
+  <data name="UnCompressing" xml:space="preserve">
+    <value>Decompressing {0}</value>
+  </data>
 </root>

@@ -13,6 +13,8 @@ namespace emulatorLauncher
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            rom = this.TryUnZipGameIfNeeded(system, rom);
+
             _systemName = system;
 
             string path = Path.GetDirectoryName(rom);
@@ -33,25 +35,33 @@ namespace emulatorLauncher
                     rom = Directory.GetFiles(path, "*.exe").FirstOrDefault();
                 
                 if (Path.GetFileName(rom) == "autorun.cmd")
-                {                    
-                    var wineCommand = File.ReadAllText(rom);
+                {
+                    var wineCmd = File.ReadAllLines(rom);
+                    if (wineCmd == null || wineCmd.Length == 0)
+                        throw new Exception("autorun.cmd is empty");
 
-                    int idx = wineCommand.IndexOf("CMD=");
-                    if (idx >= 0)
-                        wineCommand = wineCommand.Substring(idx + 4).Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                    var dir = wineCmd.Where(l => l.StartsWith("DIR=")).Select(l => l.Substring(4)).FirstOrDefault();
+
+                    var wineCommand = wineCmd.Where(l => l.StartsWith("CMD=")).Select(l => l.Substring(4)).FirstOrDefault();
+                    if (string.IsNullOrEmpty(wineCommand) && wineCmd.Length > 0)
+                        wineCommand = wineCmd.FirstOrDefault();
 
                     var args = Misc.SplitCommandLine(wineCommand);
                     if (args.Length > 0)
                     {
-                        string exe = Path.Combine(path, args[0]);
+                        string exe = string.IsNullOrEmpty(dir) ? Path.Combine(path, args[0]) : Path.Combine(path, dir.Replace("/", "\\"), args[0]);
                         if (File.Exists(exe))
                         {
                             rom = exe;
-                            
+
                             if (args.Length > 1)
                                 arguments = string.Join(" ", args.Skip(1).ToArray());
                         }
+                        else
+                            throw new Exception("Invalid autorun.cmd executable");
                     }
+                    else
+                        throw new Exception("Invalid autorun.cmd command");
                 }
             }
 
@@ -87,6 +97,9 @@ namespace emulatorLauncher
             }
             else
                 _exename = Path.GetFileNameWithoutExtension(rom);
+
+            // If game was uncompressed, say we are going to launch, so the deletion will not be silent
+            ValidateUncompressedGame();
 
             return ret;
         }

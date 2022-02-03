@@ -105,6 +105,8 @@ namespace emulatorLauncher
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine(text);
+
                 using (System.IO.StreamWriter writer = new System.IO.StreamWriter(logFilename, append, System.Text.Encoding.UTF8))
                 {
                     if (!string.IsNullOrEmpty(text))

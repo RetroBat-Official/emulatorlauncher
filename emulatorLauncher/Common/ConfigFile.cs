@@ -145,7 +145,7 @@ namespace emulatorLauncher
                 if (key == "home" && Directory.Exists(Path.Combine(LocalPath, ".emulationstation")))                        
                     return Path.Combine(LocalPath, ".emulationstation");
 
-                if (key == "bios" || key == "saves" || key == "thumbnails" || key == "shaders" || key == "decorations" || key == "screenshots")
+                if (key == "bios" || key == "saves" || key == "thumbnails" || key == "shaders" || key == "decorations" || key == "screenshots" || key == "roms")
                 {
                     if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", key))))
                         return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", key)));

@@ -86,6 +86,18 @@ namespace emulatorLauncher
                         Application.DoEvents();
                     }
                 }
+                
+                try
+                {
+                    Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
+                    foreach (Process backGlass in backGlasses)
+                        backGlass.Kill();
+
+                    Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
+                    foreach (Process ultraDMD in ultraDMDs)
+                        ultraDMD.Kill();
+                }
+                catch { }
 
                 int exitCode = px.ExitCode;
 
@@ -117,16 +129,7 @@ namespace emulatorLauncher
             try
             {
                 ScreenCapture.AddScreenCaptureToGameList(rom);
-
                 px.Kill();
-
-                Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
-                foreach (Process backGlass in backGlasses)
-                    backGlass.Kill();
-
-                Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
-                foreach (Process ultraDMD in ultraDMDs)
-                    ultraDMD.Kill();
             }
             catch { }
         }
