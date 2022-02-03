@@ -172,7 +172,9 @@ namespace emulatorLauncher
                 if (process != null)
                 {
                     process.WaitForExit();
-                    ret = process.ExitCode;
+
+                    try { ret = process.ExitCode; }
+                    catch { }
                 }
             }
             else

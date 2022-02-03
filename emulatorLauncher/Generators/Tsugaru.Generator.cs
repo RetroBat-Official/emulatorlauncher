@@ -188,7 +188,10 @@ namespace emulatorLauncher
                 bezel.Dispose();
 
             if (process != null)
-                return process.ExitCode;
+            {
+                try { return process.ExitCode; }
+                catch { }
+            }
 
             return -1;
         }

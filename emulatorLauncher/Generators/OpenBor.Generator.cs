@@ -149,6 +149,8 @@ namespace emulatorLauncher
         {
             if (destFile != null && File.Exists(destFile))
                 File.Delete(destFile);
+
+            base.Cleanup();
         }
 
         string GetBuildToUse(string rom)

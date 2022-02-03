@@ -47,7 +47,7 @@ namespace emulatorLauncher
         {
             if (_unzip != null)
             {
-                if (Program.SystemConfig["decompressedfolders"] == "keep")
+                if (!_unzip.SilentDelete && Program.SystemConfig["decompressedfolders"] == "keep")
                     return;
 
                 if (_unzip.SilentDelete || Program.SystemConfig["decompressedfolders"] == "delete")

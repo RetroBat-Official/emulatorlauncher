@@ -28,6 +28,14 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+            if (Directory.Exists(rom))
+            {
+                rom = Directory.GetFiles(rom, "*.vpx").FirstOrDefault();
+                if (string.IsNullOrEmpty(rom))
+                    return null;
+            }
+
             _rom = rom;
             _splash = ShowSplash(rom);
 
@@ -122,6 +130,8 @@ namespace emulatorLauncher
                 _splash.Dispose();
                 _splash = null;
             }
+
+            base.Cleanup();
         }
 
         private static void KillProcess(Process px, string rom)

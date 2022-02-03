@@ -50,7 +50,8 @@ namespace emulatorLauncher
                     
                     if (process.WaitForExit(1))
                     {
-                        ret = process.ExitCode;
+                        try { ret = process.ExitCode; }
+                        catch { }
                         process = null;
                         break;
                     }
@@ -60,7 +61,8 @@ namespace emulatorLauncher
                 if (process != null)
                 {
                     process.WaitForExit();
-                    ret = process.ExitCode;
+                    try { ret = process.ExitCode; }
+                    catch { }
                 }
             }
 
