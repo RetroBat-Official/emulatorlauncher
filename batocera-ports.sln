@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-bluetooth", "batoc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{56B39FFD-1B80-497D-BA0E-1B9D59CB9313}"
 	ProjectSection(SolutionItems) = preProject
+		7z.dll = 7z.dll
+		7z.exe = 7z.exe
 		7za.dll = 7za.dll
 		7za.exe = 7za.exe
 		7zxa.dll = 7zxa.dll

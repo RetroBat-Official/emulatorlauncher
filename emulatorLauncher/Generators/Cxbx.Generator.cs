@@ -10,7 +10,7 @@ namespace emulatorLauncher
     class CxbxGenerator : Generator
     {
         #region XboxIsoVfs management
-        private Process _xboxIsoVfs;
+        private Process _xboxIsoVfs;      
         private string _dokanDriveLetter;
 
         private string MountIso(string rom)
@@ -40,7 +40,7 @@ namespace emulatorLauncher
                 FileName = xboxIsoVfsPath,
                 WorkingDirectory = Path.GetDirectoryName(rom),
                 Arguments = "\"" + rom + "\" " + drive,
-                UseShellExecute = false,                
+                UseShellExecute = false,    
                 CreateNoWindow = true
             });
 
@@ -54,6 +54,8 @@ namespace emulatorLauncher
 
                 if (Directory.Exists(drive))
                 {
+                    Job.Current.AddProcess(_xboxIsoVfs);
+
                     _dokanDriveLetter = drive;
                     return drive;
                 }
@@ -82,34 +84,6 @@ namespace emulatorLauncher
             return null;
         }
 
-        public override void Cleanup()
-        {
-            if (_xboxIsoVfs != null)
-            {
-                if (!string.IsNullOrEmpty(_dokanDriveLetter))
-                {
-                    string dokanCtl = Path.Combine(Environment.GetEnvironmentVariable("DokanLibrary1"), "dokanctl.exe");
-                    if (File.Exists(dokanCtl))
-                    {
-                        Process.Start(new ProcessStartInfo()
-                        {
-                            FileName = dokanCtl,
-                            WorkingDirectory = Path.GetDirectoryName(dokanCtl),
-                            Arguments = "/u " + _dokanDriveLetter,
-                            UseShellExecute = false,
-                            CreateNoWindow = true
-                        }).WaitForExit();
-                    }
-                }
-
-                try { _xboxIsoVfs.Kill(); }
-                catch { }
-
-                _xboxIsoVfs = null;
-            }
-
-            base.Cleanup();
-        }
         #endregion
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)

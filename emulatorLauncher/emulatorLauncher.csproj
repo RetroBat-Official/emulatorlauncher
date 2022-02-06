@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
     <Compile Include="Common\EsSystems.cs" />
+    <Compile Include="Common\Job.cs" />
     <Compile Include="Common\WebTools.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
