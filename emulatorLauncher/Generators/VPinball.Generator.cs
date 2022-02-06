@@ -28,6 +28,14 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+            if (Directory.Exists(rom))
+            {
+                rom = Directory.GetFiles(rom, "*.vpx").FirstOrDefault();
+                if (string.IsNullOrEmpty(rom))
+                    return null;
+            }
+
             _rom = rom;
             _splash = ShowSplash(rom);
 
@@ -86,6 +94,18 @@ namespace emulatorLauncher
                         Application.DoEvents();
                     }
                 }
+                
+                try
+                {
+                    Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
+                    foreach (Process backGlass in backGlasses)
+                        backGlass.Kill();
+
+                    Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
+                    foreach (Process ultraDMD in ultraDMDs)
+                        ultraDMD.Kill();
+                }
+                catch { }
 
                 int exitCode = px.ExitCode;
 
@@ -110,6 +130,8 @@ namespace emulatorLauncher
                 _splash.Dispose();
                 _splash = null;
             }
+
+            base.Cleanup();
         }
 
         private static void KillProcess(Process px, string rom)
@@ -117,16 +139,7 @@ namespace emulatorLauncher
             try
             {
                 ScreenCapture.AddScreenCaptureToGameList(rom);
-
                 px.Kill();
-
-                Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
-                foreach (Process backGlass in backGlasses)
-                    backGlass.Kill();
-
-                Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
-                foreach (Process ultraDMD in ultraDMDs)
-                    ultraDMD.Kill();
             }
             catch { }
         }

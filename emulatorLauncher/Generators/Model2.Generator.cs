@@ -176,7 +176,9 @@ namespace emulatorLauncher
                 File.Delete(_destFile);
 
             if (_destParent != null && File.Exists(_destParent))
-                File.Delete(_destParent);            
+                File.Delete(_destParent);
+
+            base.Cleanup();
         }
 
         public override int RunAndWait(ProcessStartInfo path)

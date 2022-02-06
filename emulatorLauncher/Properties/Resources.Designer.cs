@@ -203,6 +203,15 @@ namespace emulatorLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do you want to keep the uncompressed game for further use ?.
+        /// </summary>
+        internal static string KeepUncompressedFile {
+            get {
+                return ResourceManager.GetString("KeepUncompressedFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Looking for updates....
         /// </summary>
         internal static string LookingForUpdates {
@@ -317,6 +326,15 @@ namespace emulatorLauncher.Properties {
             get {
                 object obj = ResourceManager.GetObject("retrobat", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decompressing {0}.
+        /// </summary>
+        internal static string UnCompressing {
+            get {
+                return ResourceManager.GetString("UnCompressing", resourceCulture);
             }
         }
         

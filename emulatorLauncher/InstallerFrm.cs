@@ -41,15 +41,16 @@ namespace emulatorLauncher
             button1.GotFocus += button1_GotFocus;
             button2.GotFocus += button2_GotFocus;
 
-            SetupButtons(InstallerButtons.YesNo);
-            SetupLayout(InstallerLayout.ButtonsAndText);
-
             _flex = new Flex(this);
             _flex.AddControl(pictureBox1, FlexMode.Size | FlexMode.Position | FlexMode.KeepProportions);
             _flex.AddControl(button1, FlexMode.Size);
             _flex.AddControl(button2, FlexMode.Size);
             _flex.AddControl(label1, FlexMode.Padding);
             _flex.AddControl(progressBar1, FlexMode.Size);
+
+            SetupButtons(InstallerButtons.YesNo);
+            SetupLayout(InstallerLayout.ButtonsAndText);
+
         }
 
         public InstallerFrm(Installer installer)
@@ -92,7 +93,7 @@ namespace emulatorLauncher
             ProgressAndText
         }
 
-        void SetLabel(string label)
+        public void SetLabel(string label)
         {
             this.label1.Text = label;
         }
@@ -152,7 +153,7 @@ namespace emulatorLauncher
                     break;
                 case InstallerLayout.ProgressAndText:
                     label1.TextAlign = ContentAlignment.BottomCenter;
-                    progressBar1.Value = 0;
+                    progressBar1.Value = 0;                  
                     tableLayoutPanel2.RowStyles[1].SizeType = SizeType.Absolute;
                     tableLayoutPanel2.RowStyles[1].Height = 0;
                     tableLayoutPanel2.RowStyles[0].SizeType = SizeType.Percent;
@@ -303,8 +304,56 @@ namespace emulatorLauncher
             Close();
         }
 
+
+        public bool UnCompressFile(string fileName, string destinationPath)
+        {
+            progressBar1.Visible = false;
+            progressBar1.Value = 0;
+            label1.Text = string.Format(Properties.Resources.UnCompressing, Path.GetFileNameWithoutExtension(fileName));
+            SetupLayout(InstallerLayout.Text);
+
+            Show();
+            Refresh();
+          
+            bool shown = false;
+
+            try
+            {
+                Zip.Extract(fileName, destinationPath, null, (o, pe) =>
+                {
+                    if (!shown)
+                    {
+                        SetupLayout(InstallerLayout.ProgressAndText);
+                        progressBar1.Visible = true;
+                        shown = true;
+                        Refresh();
+                    }
+
+                    progressBar1.Value = pe.ProgressPercentage;
+                });
+
+            }
+            catch (Exception ex)
+            {
+                SetupLayout(InstallerLayout.ButtonsAndText);
+                SetupButtons(InstallerButtons.Ok);
+                SetLabel(string.Format(Properties.Resources.ErrorOccured, ex.Message));
+
+                Visible = false;
+                ShowDialog();
+                return false;
+            }
+
+            DialogResult = System.Windows.Forms.DialogResult.OK;
+            Close();
+            return true;
+        }
+
         private void SetupPad()
         {
+            if (Program.Controllers == null || Program.Controllers.Count == 0)
+                return;
+
             PadToKey mapping = new PadToKey();
 
             string name = "emulatorlauncher";

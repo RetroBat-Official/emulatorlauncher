@@ -21,6 +21,8 @@ namespace emulatorLauncher.PadToKeyboard
         private AutoResetEvent _waitHandle;
         private Thread thread;
 
+        private HashSet<PadToKeyInput> _pressedKeys = new HashSet<PadToKeyInput>();
+
         public JoystickListener(Controller[] inputList, PadToKey mapping)
         {
             bool joy2Key = Process.GetProcessesByName("JoyToKey").Length > 0;
@@ -49,6 +51,23 @@ namespace emulatorLauncher.PadToKeyboard
 
         public void Dispose()
         {
+            // Fix vpinball/Esc key : if any key kills the process. We need to simulate the key is released ( or dragndrop does not work anymore when ESC )
+            if (_pressedKeys.Any())
+            {
+                foreach (var input in _pressedKeys)
+                {
+                    if (input.ScanCodes.Length != 0)
+                    {
+                        foreach (uint sc in input.ScanCodes)
+                            SendKey.SendScanCode(sc, false);
+                    }
+                    else if (input.Keys != Keys.None)
+                        SendKey.Send(input.Keys, false);
+                }
+
+                _pressedKeys.Clear();
+            }
+
             if (_waitHandle != null)
             {
                 _waitHandle.Set();
@@ -405,16 +424,21 @@ namespace emulatorLauncher.PadToKeyboard
 
                     if (input.Key == "(%{CLOSE})" && hWndProcess != IntPtr.Zero)
                     {
+                        SimpleLogger.Instance.Info("SendKey : Send WM_CLOSE to " + process);
+
                         const int WM_CLOSE = 0x0010;
                         User32.SendMessage(hWndProcess, WM_CLOSE, 0, 0);
                         ProcessKilled = true;
                     }
                     else if (input.Key == "(%{KILL})" && hWndProcess != IntPtr.Zero)
                     {
+                        SimpleLogger.Instance.Info("SendKey : Kill " + process);
                         KillProcess(hWndProcess, process);
                     }
                     else if (input.Key == "(%{F4})" && process == "emulationstation")
                     {
+                        SimpleLogger.Instance.Info("SendKey : Send Alt+F4 to " + process);
+
                         SendKey.Send(Keys.Alt, true);
                         SendKey.Send(Keys.F4, true);
                         SendKey.Send(Keys.Alt, false);
@@ -422,7 +446,12 @@ namespace emulatorLauncher.PadToKeyboard
                         ProcessKilled = true;
                     }
                     else
+                    {
+                        SimpleLogger.Instance.Info("SendKey : Send " + input.Key + " to " + process);
                         SendKeys.SendWait(input.Key);
+                        if (input.Key == "(%{F4})")
+                            ProcessKilled = true;
+                    }
                 }
             }
             else if (input.Keys != 0 || input.ScanCodes.Length != 0)
@@ -455,33 +484,56 @@ namespace emulatorLauncher.PadToKeyboard
         {
             if (oldState.HasNewInput(input.Name, newState))
             {
-                if (processName == null)
-                    SimpleLogger.Instance.Info("SendKey : Release '" + input.Keys + "' to <unknown process>");
-                else
-                    SimpleLogger.Instance.Info("SendKey : Release '" + input.Keys + "' to " + processName);
-
-                if (input.ScanCodes.Length != 0)
-                {
-                    foreach(uint sc in input.ScanCodes)
-                        SendKey.SendScanCode(sc, false);
-                }
-                else if (input.Keys != Keys.None)
-                    SendKey.Send(input.Keys, false);
-            }
-            else if (newState.HasNewInput(input.Name, oldState))
-            {
-                if (processName == null)
-                    SimpleLogger.Instance.Info("SendKey : Press '" + input.Keys + "' to <unknown process>");
-                else
-                    SimpleLogger.Instance.Info("SendKey : Press '" + input.Keys + "' to " + processName);
-
                 if (input.ScanCodes.Length != 0)
                 {
                     foreach (uint sc in input.ScanCodes)
-                        SendKey.SendScanCode(sc, true);
+                    {
+                        if (processName == null)
+                            SimpleLogger.Instance.Info("SendKey : Release '" + ((LinuxScanCode)sc).ToString() + "' to <unknown process>");
+                        else
+                            SimpleLogger.Instance.Info("SendKey : Release '" + ((LinuxScanCode)sc).ToString() + "' to " + processName);
+
+                        SendKey.SendScanCode(sc, false);
+                        _pressedKeys.Remove(input);
+                    }
                 }
                 else if (input.Keys != Keys.None)
+                {
+                    if (processName == null)
+                        SimpleLogger.Instance.Info("SendKey : Release '" + input.Keys + "' to <unknown process>");
+                    else
+                        SimpleLogger.Instance.Info("SendKey : Release '" + input.Keys + "' to " + processName);
+
+                    SendKey.Send(input.Keys, false);
+                    _pressedKeys.Remove(input);
+                }
+            }
+            else if (newState.HasNewInput(input.Name, oldState))
+            {
+                if (input.ScanCodes.Length != 0)
+                {
+                    foreach (uint sc in input.ScanCodes)
+                    {
+                        if (processName == null)
+                            SimpleLogger.Instance.Info("SendKey : Press '" + ((LinuxScanCode)sc).ToString() + "' to <unknown process>");
+                        else
+                            SimpleLogger.Instance.Info("SendKey : Press '" + ((LinuxScanCode)sc).ToString() + "' to " + processName);
+
+                        SendKey.SendScanCode(sc, true);
+
+                        _pressedKeys.Add(input);
+                    }
+                }
+                else if (input.Keys != Keys.None)
+                {
+                    if (processName == null)
+                        SimpleLogger.Instance.Info("SendKey : Press '" + input.Keys + "' to <unknown process>");
+                    else
+                        SimpleLogger.Instance.Info("SendKey : Press '" + input.Keys + "' to " + processName);
+
                     SendKey.Send(input.Keys, true);
+                    _pressedKeys.Add(input);
+                }
             }
         }
 

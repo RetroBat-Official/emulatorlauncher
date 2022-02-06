@@ -12,11 +12,61 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.ComponentModel;
+using System.Management;
 
 namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        public static void CreateSymlink(string destinationLink, string pathToLink, bool directory = true)
+        {
+            string workingDirectory = Path.GetDirectoryName(destinationLink);
+            string directoryName = Path.GetFileName(destinationLink);
+
+            var psi = new ProcessStartInfo("cmd.exe", directory ? 
+                "/C mklink /D \"" + directoryName + "\" \"" + pathToLink + "\"" :
+                "/C mklink \"" + directoryName + "\" \"" + pathToLink + "\"");
+            psi.WorkingDirectory = workingDirectory;
+            psi.CreateNoWindow = true;
+            psi.UseShellExecute = false;
+            Process.Start(psi).WaitForExit();
+        }
+
+        public static void CompressDirectory(string _outputFolder)
+        {
+            var dir = new DirectoryInfo(_outputFolder);
+
+            if (!dir.Exists)
+            {
+                dir.Create();
+            }
+
+            if ((dir.Attributes & FileAttributes.Compressed) == 0)
+            {
+                try
+                {
+                    // Enable compression for the output folder
+                    // (this will save a ton of disk space)
+
+                    string objPath = "Win32_Directory.Name=" + "'" + dir.FullName.Replace("\\", @"\\").TrimEnd('\\') + "'";
+
+                    using (ManagementObject obj = new ManagementObject(objPath))
+                    {
+                        using (obj.InvokeMethod("Compress", null, null))
+                        {
+                            // I don't really care about the return value, 
+                            // if we enabled it great but it can also be done manually
+                            // if really needed
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine("Cannot enable compression for folder '" + dir.FullName + "': " + ex.Message, "WMI");
+                }
+            }
+        }
+
         public static void RemoveWhere<T>(this IList<T> items, Predicate<T> func)
         {
             for (int i = items.Count - 1; i >= 0; i--)
@@ -323,7 +373,7 @@ namespace emulatorLauncher.Tools
             return string.Join(".", numbers.Take(4).ToArray());
         }
 
-        public static string[] SplitCommandLine(string commandLine)
+        public static string[] SplitCommandLine(this string commandLine)
         {
             char[] parmChars = commandLine.ToCharArray();
 

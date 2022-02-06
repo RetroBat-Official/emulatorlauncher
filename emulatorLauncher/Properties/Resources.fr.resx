@@ -138,6 +138,9 @@ Voulez-vous l'installer maintenant ?</value>
   <data name="Installing" xml:space="preserve">
     <value>Installation en cours...</value>
   </data>
+  <data name="KeepUncompressedFile" xml:space="preserve">
+    <value>Voulez-vous conserver les fichiers décompressés pour les réutiliser plus tard ?</value>
+  </data>
   <data name="LookingForUpdates" xml:space="preserve">
     <value>Recherche des mises à jour...</value>
   </data>
@@ -146,6 +149,9 @@ Voulez-vous l'installer maintenant ?</value>
   </data>
   <data name="Ok" xml:space="preserve">
     <value>Ok</value>
+  </data>
+  <data name="UnCompressing" xml:space="preserve">
+    <value>Décompression de {0}...</value>
   </data>
   <data name="UpdateAvailable" xml:space="preserve">
     <value>Une mise à jour de '{0}' est disponible :

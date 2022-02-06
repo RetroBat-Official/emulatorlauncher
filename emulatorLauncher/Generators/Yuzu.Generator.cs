@@ -17,7 +17,7 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string path = AppConfig.GetFullPath("yuzu");
+            string path = AppConfig.GetFullPath(emulator.Replace("-", " "));
 
             string exe = Path.Combine(path, "yuzu.exe");
             if (!File.Exists(exe))

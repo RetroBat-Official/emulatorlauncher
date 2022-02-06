@@ -17,7 +17,9 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            if (Path.GetExtension(rom).ToLower() == ".ps3")
+            rom = this.TryUnZipGameIfNeeded(system, rom);
+
+            if (Directory.Exists(rom))
             {
                 string eboot = Path.Combine(rom, "PS3_GAME\\USRDIR\\EBOOT.BIN");
                 if (!File.Exists(eboot))
@@ -43,6 +45,9 @@ namespace emulatorLauncher
                 commandArray.Add("--no-gui");
 
             string args = string.Join(" ", commandArray);
+            
+            // If game was uncompressed, say we are going to launch, so the deletion will not be silent
+            ValidateUncompressedGame();
 
             return new ProcessStartInfo()
             {

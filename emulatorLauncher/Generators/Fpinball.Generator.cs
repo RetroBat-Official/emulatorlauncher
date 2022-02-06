@@ -106,6 +106,15 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+
+            if (Directory.Exists(rom))
+            {
+                rom = Directory.GetFiles(rom, "*.fpt").FirstOrDefault();
+                if (string.IsNullOrEmpty(rom))
+                    return null;
+            }
+
             string path = AppConfig.GetFullPath("fpinball");
 
             _rom = rom;
@@ -184,7 +193,11 @@ namespace emulatorLauncher
             if (process != null)
             {
                 process.WaitForExit();
-                return process.ExitCode;
+
+                try { return process.ExitCode; }
+                catch { }
+
+                return 0;
             }
 
             return -1;

@@ -24,6 +24,8 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
 
@@ -170,7 +172,9 @@ namespace emulatorLauncher
                 if (process != null)
                 {
                     process.WaitForExit();
-                    ret = process.ExitCode;
+
+                    try { ret = process.ExitCode; }
+                    catch { }
                 }
             }
             else
