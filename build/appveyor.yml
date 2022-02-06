@@ -31,6 +31,7 @@ after_build:
 - 7z a batocera-ports.zip liblzo2-2.dll
 - 7z a batocera-ports.zip libsquashfs.dll
 - 7z a batocera-ports.zip libzstd.dll
+- 7z a batocera-ports.zip xbox-iso-vfs.exe
 artifacts:
 - path: batocera-ports.zip
 deploy:

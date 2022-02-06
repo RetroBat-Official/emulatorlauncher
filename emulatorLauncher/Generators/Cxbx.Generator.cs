@@ -9,8 +9,113 @@ namespace emulatorLauncher
 {
     class CxbxGenerator : Generator
     {
+        #region XboxIsoVfs management
+        private Process _xboxIsoVfs;
+        private string _dokanDriveLetter;
+
+        private string MountIso(string rom)
+        {
+            if (Path.GetExtension(rom).ToLowerInvariant() != ".iso")
+                return rom;
+                                
+            string xboxIsoVfsPath = Path.Combine(Path.GetDirectoryName(typeof(Installer).Assembly.Location), "xbox-iso-vfs.exe");
+            if (!File.Exists(xboxIsoVfsPath))
+                return rom;
+
+            // Check dokan is installed
+            string dokan = Environment.GetEnvironmentVariable("DokanLibrary1");
+            if (!Directory.Exists(dokan))
+                return rom;
+
+            dokan = Path.Combine(dokan, "dokan1.dll");
+            if (!File.Exists(dokan))
+                return rom;
+
+            var drive = FindFreeDriveLetter();
+            if (drive == null)
+                return rom;
+
+            _xboxIsoVfs = Process.Start(new ProcessStartInfo()
+            {
+                FileName = xboxIsoVfsPath,
+                WorkingDirectory = Path.GetDirectoryName(rom),
+                Arguments = "\"" + rom + "\" " + drive,
+                UseShellExecute = false,                
+                CreateNoWindow = true
+            });
+
+            int time = Environment.TickCount;
+            int elapsed = 0;
+
+            while (elapsed < 5000)
+            {
+                if (_xboxIsoVfs.WaitForExit(10))
+                    return rom;
+
+                if (Directory.Exists(drive))
+                {
+                    _dokanDriveLetter = drive;
+                    return drive;
+                }
+
+                int newTime = Environment.TickCount;
+                elapsed = time - newTime;
+                time = newTime;
+            }
+
+            try { _xboxIsoVfs.Kill(); }
+            catch { }
+
+            return rom;
+        }
+
+
+        private static string FindFreeDriveLetter()
+        {
+            var drives = DriveInfo.GetDrives();
+            for (char letter = 'Z'; letter >= 'D'; letter++)
+            {
+                if (!drives.Any(d => d.Name == letter + ":\\"))
+                    return letter + ":\\";
+            }
+
+            return null;
+        }
+
+        public override void Cleanup()
+        {
+            if (_xboxIsoVfs != null)
+            {
+                if (!string.IsNullOrEmpty(_dokanDriveLetter))
+                {
+                    string dokanCtl = Path.Combine(Environment.GetEnvironmentVariable("DokanLibrary1"), "dokanctl.exe");
+                    if (File.Exists(dokanCtl))
+                    {
+                        Process.Start(new ProcessStartInfo()
+                        {
+                            FileName = dokanCtl,
+                            WorkingDirectory = Path.GetDirectoryName(dokanCtl),
+                            Arguments = "/u " + _dokanDriveLetter,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }).WaitForExit();
+                    }
+                }
+
+                try { _xboxIsoVfs.Kill(); }
+                catch { }
+
+                _xboxIsoVfs = null;
+            }
+
+            base.Cleanup();
+        }
+        #endregion
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            rom = MountIso(rom);
+
             string path = null;
             
             if ((core != null && core == "chihiro") || (emulator != null && emulator == "chihiro"))

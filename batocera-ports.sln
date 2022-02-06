@@ -34,6 +34,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SharpDX.XInput.dll = SharpDX.XInput.dll
 		unzip.exe = unzip.exe
 		unzip32.dll = unzip32.dll
+		xbox-iso-vfs.exe = xbox-iso-vfs.exe
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-store", "batocera-store\batocera-store.csproj", "{2F5E074A-27DC-4551-BE24-95BB2C45BA4E}"
