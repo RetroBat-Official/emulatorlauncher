@@ -31,7 +31,7 @@ namespace emulatorLauncher
 
             string iniPath = Path.ChangeExtension(exe, ".ini");
 
-            using (IniFile ini = new IniFile(iniPath, false))
+            using (IniFile ini = new IniFile(iniPath))
             {
                 ini.WriteValue("scummvm", "gfx_mode", "opengl");
                 ini.WriteValue("scummvm", "confirm_exit", "false");

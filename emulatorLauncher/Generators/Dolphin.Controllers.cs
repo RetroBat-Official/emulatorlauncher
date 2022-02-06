@@ -300,7 +300,7 @@ namespace emulatorLauncher
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
-            using (IniFile ini = new IniFile(iniFile, true))
+            using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
                 for (int i = 0; i < 5; i++)
                 {
@@ -321,7 +321,7 @@ namespace emulatorLauncher
 
             Dictionary<string, int> double_pads = new Dictionary<string,int>();
 
-            using (IniFile ini = new IniFile(iniFile, true))
+            using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
                 foreach (var pad in Program.Controllers)
                 {

@@ -146,7 +146,7 @@ namespace emulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(iniFile, true))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     if (_bezelFileInfo == null)
                     {

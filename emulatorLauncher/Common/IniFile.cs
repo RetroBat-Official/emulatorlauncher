@@ -8,16 +8,24 @@ using System.Linq;
 
 namespace emulatorLauncher
 {
-	public class IniFile : IDisposable
-	{
-        public static IniFile FromFile(string path, bool useSpaces = false)
+    [Flags]
+    public enum IniOptions
+    {
+        UseSpaces = 1,
+        KeekEmptyValues = 2,
+        AllowDuplicateValues = 3
+    }
+
+    public class IniFile : IDisposable
+    {
+        public static IniFile FromFile(string path, IniOptions options = (IniOptions) 0)
         {
-            return new IniFile(path, useSpaces);
+            return new IniFile(path, options);
         }
 
-        public IniFile(string path, bool useSpaces = false)
-		{
-            _useSpaces = useSpaces;
+        public IniFile(string path, IniOptions options = (IniOptions) 0)
+        {
+            _options = options;
             _path = path;
             _dirty = false;
 
@@ -28,7 +36,7 @@ namespace emulatorLauncher
             {
                 using (TextReader iniFile = new StreamReader(_path))
                 {
-                    string currentSection = null;
+                    Section currentSection = null;
 
                     string strLine = iniFile.ReadLine();
                     while (strLine != null)
@@ -41,26 +49,30 @@ namespace emulatorLauncher
                             {
                                 int end = strLine.IndexOf("]");
                                 if (end > 0)
-                                    currentSection = strLine.Substring(1, end - 1);
+                                    currentSection = _sections.GetOrAddSection(strLine.Substring(1, end - 1));
                             }
                             else
                             {
                                 string[] keyPair = strLine.Split(new char[] { '=' }, 2);
 
-                                SectionPair sectionPair;
-                                string value = null;
-
                                 if (currentSection == null)
-                                    currentSection = "ROOT";
+                                    currentSection = _sections.GetOrAddSection(null);
 
-                                sectionPair.Section = currentSection;
-                                sectionPair.Key = keyPair[0].Trim();
+                                var key = new Key();
+                                key.Name = keyPair[0].Trim();
 
-                                if (keyPair.Length > 1)
-                                    value = keyPair[1].Trim();
+                                if (!_options.HasFlag(IniOptions.AllowDuplicateValues) && currentSection.Exists(key.Name))
+                                    continue;
 
-                                if (!_keyPairs.ContainsKey(sectionPair))
-                                    _keyPairs.Add(sectionPair, value);
+                                if (key.IsComment)
+                                {
+                                    key.Name = strLine;
+                                    key.Value = null;
+                                }
+                                else if (keyPair.Length > 1)
+                                    key.Value = keyPair[1].Trim();
+
+                                currentSection.Add(key);
                             }
                         }
 
@@ -73,78 +85,83 @@ namespace emulatorLauncher
             catch (Exception ex)
             {
                 throw ex;
-            }         
+            }
         }
 
         public string[] EnumerateSections()
         {
-            return _keyPairs.Keys.Select(k => k.Section).Distinct().ToArray();
+            return _sections.Select(s => s.Name).Distinct().ToArray();
         }
 
-        public string[] EnumerateKeys(string section)
+        public string[] EnumerateKeys(string sectionName)
         {
-            List<string> ret = new List<string>();
+            var section = _sections.Get(sectionName);
+            if (section != null)
+                section.Select(k => k.Name).ToArray();
 
-            foreach (SectionPair pair in _keyPairs.Keys)
-                if (pair.Section == section)
-                    ret.Add(pair.Key);
-
-            return ret.Distinct().ToArray();
+            return new string[] { };
         }
 
-        public void ClearSection(string section)
+        public void ClearSection(string sectionName)
         {
-            foreach (var sectionPair in _keyPairs.Keys.ToArray())
+            var section = _sections.Get(sectionName);
+            if (section != null && section.Any())
             {
-                if (sectionPair.Section == section)
-                {
-                    _keyPairs.Remove(sectionPair);
-                    _dirty = true;
-                }
+                _dirty = true;
+                section.Clear();
             }
         }
 
-        public void WriteValue(string section, string key, string value)
+        public string GetValue(string sectionName, string key)
         {
-            if (string.IsNullOrEmpty(section))
-                section = "ROOT";
-
-            if (GetValue(section, key) == value)
-                return;
-
-            _dirty = true;
-
-            SectionPair sectionPair;
-            sectionPair.Section = section;
-            sectionPair.Key = key;
-
-            if (_keyPairs.ContainsKey(sectionPair))
-                _keyPairs.Remove(sectionPair);
-
-            if (!string.IsNullOrEmpty(value))
-                _keyPairs.Add(sectionPair, value);
-        }
-
-        public void Remove(string section, string key)
-        {
-            SectionPair sectionPair;
-            sectionPair.Section = section;
-            sectionPair.Key = key;
-
-            if (_keyPairs.ContainsKey(sectionPair))
-                _keyPairs.Remove(sectionPair);
-        }
-
-        public string GetValue(string section, string key)
-        {
-            SectionPair sectionPair;
-            sectionPair.Section = string.IsNullOrEmpty(section) ? "ROOT" : section;
-            sectionPair.Key = key;
-
-            if (_keyPairs.ContainsKey(sectionPair))
-                return _keyPairs[sectionPair];
+            var section = _sections.Get(sectionName);
+            if (section != null)
+                return section.GetValue(key);
 
             return null;
+        }
+
+        public void WriteValue(string sectionName, string keyName, string value)
+        {
+            var section = _sections.GetOrAddSection(sectionName);
+
+            var key = section.Get(keyName);
+            if (key != null && key.Value == value)
+                return;
+
+            if (key == null)
+                key = section.Add(keyName);
+
+            key.Value = value;
+
+            _dirty = true;
+        }
+
+        public void AppendValue(string sectionName, string keyName, string value)
+        {
+            if (!_options.HasFlag(IniOptions.AllowDuplicateValues))
+            {
+                WriteValue(sectionName, keyName, value);
+                return;
+            }
+
+            var section = _sections.GetOrAddSection(sectionName);
+            section.Add(keyName, value);
+
+            _dirty = true;
+        }
+
+        public void Remove(string sectionName, string keyName)
+        {
+            var section = _sections.Get(sectionName);
+            if (section != null)
+            {
+                foreach (var key in section.Where(k => k.Name.Equals(keyName, StringComparison.InvariantCultureIgnoreCase)).ToArray())
+                {
+                    _dirty = true;
+                    section.Remove(key);
+                }
+            }
         }
 
         public bool IsDirty { get { return _dirty; } }
@@ -154,39 +171,45 @@ namespace emulatorLauncher
             if (!_dirty)
                 return;
 
-            ArrayList sections = new ArrayList();     
+            ArrayList sections = new ArrayList();
 
             StringBuilder sb = new StringBuilder();
 
-            foreach (string section in EnumerateSections())
+            foreach (var section in _sections)
             {
-                if (section != "ROOT")
-                    sb.AppendLine("[" + section + "]");
+                if (!string.IsNullOrEmpty(section.Name) && section.Name != "ROOT" && section.Any())
+                    sb.AppendLine("[" + section.Name + "]");
 
-                foreach (var entry in _keyPairs)
-                {                    
-                    if (entry.Key.Section != section)
+                foreach (Key entry in section)
+                {
+                    if (entry.IsComment)
+                    {
+                        sb.AppendLine(entry.Name);
+                        continue;
+                    }
+
+                    if (string.IsNullOrEmpty(entry.Value) && !_options.HasFlag(IniOptions.KeekEmptyValues))
                         continue;
 
-                    if (string.IsNullOrEmpty(entry.Value))
+                    if (string.IsNullOrEmpty(entry.Name))
                         continue;
 
-                    sb.Append(entry.Key.Key);
-
-                    if (_useSpaces)
+                    sb.Append(entry.Name);
+                   
+                    if (_options.HasFlag(IniOptions.UseSpaces))
                         sb.Append(" ");
 
                     sb.Append("=");
 
-                    if (_useSpaces)
+                    if (_options.HasFlag(IniOptions.UseSpaces))
                         sb.Append(" ");
 
-                    sb.AppendLine(entry.Value);                    
+                    sb.AppendLine(entry.Value);
                 }
 
                 sb.AppendLine();
             }
-            
+
             try
             {
                 string dir = Path.GetDirectoryName(_path);
@@ -203,7 +226,7 @@ namespace emulatorLauncher
             }
             catch (Exception ex)
             {
-              
+
             }
         }
 
@@ -212,36 +235,166 @@ namespace emulatorLauncher
             Save();
         }
 
-        private bool _useSpaces;
+        private IniOptions _options;
         private bool _dirty;
         private string _path;
-        private Dictionary<SectionPair, string> _keyPairs = new Dictionary<SectionPair, string>();
 
-        private struct SectionPair
+        #region Private classes
+        class Key
         {
-            public string Section;
-            public string Key;
+            public string Name { get; set; }
+            public string Value { get; set; }
+
+            public bool IsComment
+            {
+                get
+                {
+                    return Name == null || Name.StartsWith(";") || Name.StartsWith("#");
+                }
+            }
 
             public override string ToString()
             {
-                return "["+(Section??"")+"] "+(Key??"");
-            }
+                if (string.IsNullOrEmpty(Name))
+                    return "";
 
-            public override int GetHashCode()
-            {
-                return ToString().GetHashCode();
-            }
+                if (string.IsNullOrEmpty(Value))
+                    return Name + "=";
 
-            public override bool Equals(object obj)
-            {
-                if (obj is SectionPair)
-                {
-                    SectionPair sp = (SectionPair)obj;
-                    return (Section == sp.Section && Key == sp.Key);
-                }
-
-                return base.Equals(obj);
+                return Name + "=" + Value;
             }
         }
+
+        class KeyList : List<Key>
+        {
+
+        }
+
+        class Section : IEnumerable<Key>
+        {
+            public Section()
+            {
+                _keys = new KeyList();
+            }
+
+            public string Name { get; set; }
+
+
+            public override string ToString()
+            {
+                if (string.IsNullOrEmpty(Name))
+                    return "";
+
+                return "[" + Name + "]";
+            }
+
+            public bool Exists(string keyName)
+            {
+                foreach (var key in _keys)
+                    if (key.Name.Equals(keyName, StringComparison.InvariantCultureIgnoreCase))
+                        return true;
+
+                return false;
+            }
+
+            public Key Get(string keyName)
+            {
+                foreach (var key in _keys)
+                    if (key.Name.Equals(keyName, StringComparison.InvariantCultureIgnoreCase))
+                        return key;
+
+                return null;
+            }
+
+            public string GetValue(string keyName)
+            {
+                foreach (var key in _keys)
+                    if (key.Name.Equals(keyName, StringComparison.InvariantCultureIgnoreCase))
+                        return key.Value;
+
+                return null;
+            }
+
+            private KeyList _keys;
+
+            public IEnumerator<Key> GetEnumerator()
+            {
+                return _keys.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _keys.GetEnumerator();
+            }
+
+            public Key Add(string keyName, string value = null)
+            {
+                var key = new Key() { Name = keyName, Value = value };
+                _keys.Add(key);
+                return key;
+            }
+
+            public Key Add(Key key)
+            {
+                _keys.Add(key);
+                return key;
+            }
+
+            internal void Clear()
+            {
+                _keys.Clear();
+            }
+
+            internal void Remove(Key key)
+            {
+                _keys.Remove(key);
+            }
+        }
+
+        class Sections : IEnumerable<Section>
+        {
+            public Sections()
+            {
+                _sections = new List<Section>();
+            }
+
+            public Section Get(string sectionName)
+            {
+                if (sectionName == null)
+                    sectionName = string.Empty;
+
+                return _sections.FirstOrDefault(s => s.Name.Equals(sectionName, StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            public Section GetOrAddSection(string sectionName)
+            {
+                if (sectionName == null)
+                    sectionName = string.Empty;
+
+                var section = Get(sectionName);
+                if (section == null)
+                {
+                    section = new Section() { Name = sectionName };
+                    _sections.Add(section);
+                }
+
+                return section;
+            }
+
+            private List<Section> _sections;
+
+            public IEnumerator<Section> GetEnumerator()
+            {
+                return _sections.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _sections.GetEnumerator();
+            }
+        }
+
+        private Sections _sections = new Sections();
+        #endregion
     }
 }

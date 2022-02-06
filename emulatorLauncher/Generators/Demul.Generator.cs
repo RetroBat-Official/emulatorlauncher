@@ -106,7 +106,7 @@ namespace emulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(iniFile, true))
+                using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("files", "roms0", AppConfig.GetFullPath("bios"));
                     ini.WriteValue("files", "roms1", Path.GetDirectoryName(rom));
@@ -143,7 +143,7 @@ namespace emulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(iniFile, true))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("main", "UseFullscreen", "0");
                     ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");                    

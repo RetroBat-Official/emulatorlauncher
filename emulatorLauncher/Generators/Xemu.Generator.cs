@@ -27,7 +27,7 @@ namespace emulatorLauncher
 
             try
             {
-                using (IniFile ini = new IniFile(Path.Combine(path, "xemu.ini"), true))
+                using (IniFile ini = new IniFile(Path.Combine(path, "xemu.ini"), IniOptions.UseSpaces))
                 {
                     if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig.GetFullPath("saves")))
                     {

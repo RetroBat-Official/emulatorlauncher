@@ -23,7 +23,7 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            using (var conf = new IniFile(Path.Combine(path, "config.txt"), true))
+            using (var conf = new IniFile(Path.Combine(path, "config.txt"), IniOptions.UseSpaces))
             {
                 conf.WriteValue(null, "s5d1", "");
                 conf.WriteValue(null, "s5d2", "");

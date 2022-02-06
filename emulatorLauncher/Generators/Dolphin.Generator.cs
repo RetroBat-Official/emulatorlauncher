@@ -122,7 +122,7 @@ namespace emulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(iniFile, true))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
 					
 					if (SystemConfig.isOptSet("ratio"))
@@ -268,7 +268,7 @@ namespace emulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(iniFile, true))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     Rectangle emulationStationBounds;
                     if (IsEmulationStationWindowed(out emulationStationBounds, true))
