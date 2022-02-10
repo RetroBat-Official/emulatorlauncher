@@ -105,24 +105,9 @@ namespace emulatorLauncher
         string _rom;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
-        {
-            rom = this.TryUnZipGameIfNeeded(system, rom, true);
-
-            if (Directory.Exists(rom))
-            {
-                rom = Directory.GetFiles(rom, "*.fpt").FirstOrDefault();
-                if (string.IsNullOrEmpty(rom))
-                    return null;
-            }
-
+        {            
             string path = AppConfig.GetFullPath("fpinball");
-
-            _rom = rom;
-            _splash = ShowSplash(rom);
-
-            if ("bam".Equals(emulator, StringComparison.InvariantCultureIgnoreCase) || "bam".Equals(core, StringComparison.InvariantCultureIgnoreCase))
-                _bam = Path.Combine(path, "BAM", "FPLoader.exe");
-
+            
             string exe = Path.Combine(path, "Future Pinball.exe");
             if (!File.Exists(exe))
             {
@@ -130,6 +115,21 @@ namespace emulatorLauncher
                 if (!File.Exists(exe))
                     return null;
             }
+
+            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+
+            if (Directory.Exists(rom))
+            {
+                rom = Directory.GetFiles(rom, "*.fpt").FirstOrDefault();
+                if (string.IsNullOrEmpty(rom))
+                    throw new ApplicationException("Unable to find any table in the provided folder");
+            }
+            
+            _rom = rom;
+            _splash = ShowSplash(rom);
+
+            if ("bam".Equals(emulator, StringComparison.InvariantCultureIgnoreCase) || "bam".Equals(core, StringComparison.InvariantCultureIgnoreCase))
+                _bam = Path.Combine(path, "BAM", "FPLoader.exe");
 
             if (_bam != null && File.Exists(_bam))
                 ScreenResolution.SetHighDpiAware(_bam);

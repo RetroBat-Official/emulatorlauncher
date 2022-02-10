@@ -110,16 +110,6 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
-            /*
-           Zip.ExtractSquashFS(@"H:\xmoto.wsquashfs", @"H:\temp\xmoto");
-          return;
-
-           
-            using (var frm = new InstallerFrm())
-                frm.UnCompressFile(@"H:\tmp\Teslagrad.squashfs", @"H:\tmp\Teslagrad");
-
-            return;        
-           */
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info(Environment.CommandLine);
 
@@ -263,9 +253,9 @@ namespace emulatorLauncher
                         generator.Cleanup();
 
                         SimpleLogger.Instance.Error(ex.Message);
-                        Environment.ExitCode = (int)generator.ExitCode;
-
-                        SimpleLogger.Instance.Error("Generate exception : " + ex.Message);
+                        Program.WriteCustomErrorFile(ex.Message);
+                        Environment.ExitCode = (int) ExitCodes.CustomError;
+                        SimpleLogger.Instance.Error("Generator exception : " + ex.Message);
                         return;
                     }
 

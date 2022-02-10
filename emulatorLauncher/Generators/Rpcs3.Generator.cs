@@ -25,6 +25,9 @@ namespace emulatorLauncher
                 if (!File.Exists(eboot))
                     eboot = Path.Combine(rom, "USRDIR\\EBOOT.BIN");
 
+                if (!File.Exists(eboot))
+                    throw new ApplicationException("Unable to find any game in the provided folder");
+
                 rom = eboot;
             }
             else if (Path.GetExtension(rom).ToLower() == ".m3u")

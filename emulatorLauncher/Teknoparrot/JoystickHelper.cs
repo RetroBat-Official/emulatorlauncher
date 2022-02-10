@@ -44,7 +44,7 @@ namespace TeknoParrotUi.Common
 #if !DEBUG
                 if (profile.DevOnly)
                 {
-                    Debug.WriteLine($"Skipping loading dev profile {fileName}");
+                    Debug.WriteLine("Skipping loading dev profile " + fileName);
                     return null;
                 }
 #endif

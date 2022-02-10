@@ -43,10 +43,10 @@ namespace emulatorLauncher
         private static System.Reflection.MethodInfo _zipOpenRead;
 
         // Dotnet 4.0 compatible Zip entries reader ( ZipFile exists since 4.5 )
-        public static string[] ListEntries(string path)
+        public static ZipEntry[] ListEntries(string path)
         {
             if (!IsCompressedFile(path))
-                return new string[] { };
+                return new ZipEntry[] { };
 
             var ext = Path.GetExtension(path).ToLowerInvariant();
 
@@ -81,18 +81,31 @@ namespace emulatorLauncher
                              
                 zipArchive = _zipOpenRead.Invoke(null, new object[] { path }) as IDisposable;
                 if (zipArchive == null)
-                    return new string[] { };
+                    return new ZipEntry[] { };
 
-                List<string> ret = new List<string>();
+                List<ZipEntry> ret = new List<ZipEntry>();
 
-                var prop = zipArchive.GetType().GetProperty("Entries");
+                var entries = zipArchive.GetType().GetValue<System.Collections.IEnumerable>(zipArchive, "Entries");
 
-                var entries = prop.GetValue(zipArchive, null) as System.Collections.IEnumerable;
                 foreach (var entry in entries)
                 {
-                    string fullName = entry.GetType().GetProperty("FullName").GetValue(entry, null) as string;
+                    string fullName = entry.GetType().GetValue<string>(entry, "FullName");
                     if (!string.IsNullOrEmpty(fullName))
-                        ret.Add(fullName);
+                    {
+                        long len = entry.GetType().GetValue<long>(entry, "Length");
+
+                        ZipEntry e = new ZipEntry();
+                        e.Filename = fullName;
+                        e.Length = len;
+
+                        if (fullName.EndsWith("/"))
+                        {
+                            e.Filename = e.Filename.Substring(0, e.Filename.Length - 1);
+                            e.IsDirectory = true;
+                        }
+
+                        ret.Add(e);
+                    }
                 }
 
                 return ret.ToArray();
@@ -107,18 +120,18 @@ namespace emulatorLauncher
                     zipArchive.Dispose();               
             }
         }
-        
-        private static string[] GetSquashFsEntries(string archive)
+
+        private static ZipEntry[] GetSquashFsEntries(string archive)
         {
             var sevenZip = GetRdSquashFSPath();
             if (!File.Exists(sevenZip))
-                return new string[] { };
+                return new ZipEntry[] { };
 
             string output = Tools.Misc.RunWithOutput(GetRdSquashFSPath(), "-d \"" + archive + "\"");
             if (output == null)
-                return new string[] { };
+                return new ZipEntry[] { };
 
-            List<string> ret = new List<string>();
+            List<ZipEntry> ret = new List<ZipEntry>();
 
             foreach (string str in output.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -126,10 +139,14 @@ namespace emulatorLauncher
                 if (args.Length != 5)
                     continue;
 
-                if (args[0] != "file")
-                    continue;
+                ZipEntry e = new ZipEntry();
+                e.Filename = args[1];
+                e.IsDirectory = args[0] == "dir";
+                long len;
+                if (long.TryParse(args[4], out len))
+                    e.Length = len;
 
-                ret.Add(args[1]);
+                ret.Add(e);
             }
 
             return ret.ToArray();
@@ -137,19 +154,19 @@ namespace emulatorLauncher
 
         private static Regex _listArchiveRegex = new Regex(@"^(\d{2,4}-\d{2,4}-\d{2,4})\s+(\d{2}:\d{2}:\d{2})\s+(.{5})\s+(\d+)\s+(\d+)?\s+(.+)");
 
-        private static string[] GetSevenZipEntries(string archive)
+        private static ZipEntry[] GetSevenZipEntries(string archive)
         {
             var sevenZip = GetSevenZipPath();
             if (!File.Exists(sevenZip))
-                return new string[] { };
+                return new ZipEntry[] { };
 
             string output = Tools.Misc.RunWithOutput(GetSevenZipPath(), "l \"" + archive + "\"");
             if (output == null)
-                return new string[] { };
+                return new ZipEntry[] { };
 
             int num = 0;
 
-            List<string> ret = new List<string>();
+            List<ZipEntry> ret = new List<ZipEntry>();
 
             foreach (string str in output.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -165,7 +182,17 @@ namespace emulatorLauncher
                         .ToList();
 
                     if (groups.Count == 7)
-                        ret.Add(groups[6]);
+                    {
+                        ZipEntry e = new ZipEntry();
+                        e.Filename = groups[6];
+                        e.IsDirectory = groups[3].StartsWith("D");
+
+                        long len;
+                        if (long.TryParse(groups[4], out len))
+                            e.Length = len;
+
+                        ret.Add(e);
+                    }
                 }
             }
 
@@ -178,7 +205,7 @@ namespace emulatorLauncher
             if (!File.Exists(rdsquashfs))
                 return;
 
-            var entries = new HashSet<string>(GetSquashFsEntries(archive));
+            var entries = new HashSet<string>(GetSquashFsEntries(archive).Where(e => !e.IsDirectory).Select(e => e.Filename));
             if (entries == null || entries.Count == 0)
                 return;
 
@@ -246,7 +273,7 @@ namespace emulatorLauncher
                 throw new ApplicationException("Cannot open archive");
         }
 
-        public static void Extract(string archive, string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null)
+        public static void Extract(string archive, string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, bool keepFolder = false)
         {
             var ext = Path.GetExtension(archive).ToLowerInvariant();
             if (ext.Contains("squashfs") && File.Exists(GetRdSquashFSPath()))
@@ -261,7 +288,12 @@ namespace emulatorLauncher
 
             string args = "x -bsp1 \"" + archive + "\" -y -o\"" + destination + "\"";
             if (!string.IsNullOrEmpty(fileNameToExtract))
-                args = "e -bsp1 \"" + archive + "\" \"" + fileNameToExtract + "\" -y -o\"" + destination + "\"";
+            {
+                if (keepFolder)
+                    args = "x -bsp1 \"" + archive + "\" \"" + fileNameToExtract + "\" -y -o\"" + destination + "\"";
+                else
+                    args = "e -bsp1 \"" + archive + "\" \"" + fileNameToExtract + "\" -y -o\"" + destination + "\"";
+            }
 
             var px = new ProcessStartInfo()
             {
@@ -302,6 +334,18 @@ namespace emulatorLauncher
             int code = proc.ExitCode;
             if (code == 2)
                 throw new ApplicationException("Cannot open archive");
+        }
+    }
+
+    class ZipEntry
+    {
+        public string Filename { get; set; }
+        public bool IsDirectory { get; set; }
+        public long Length { get; set; }
+
+        public override string ToString()
+        {
+            return Filename;
         }
     }
 }

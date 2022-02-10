@@ -11,7 +11,6 @@ namespace emulatorLauncher
     class CxbxGenerator : Generator
     {
         #region XboxIsoVfs management
-        private Process _xboxIsoVfs;      
         private string _dokanDriveLetter;
 
         private string MountIso(string rom)
@@ -21,22 +20,22 @@ namespace emulatorLauncher
                                 
             string xboxIsoVfsPath = Path.Combine(Path.GetDirectoryName(typeof(Installer).Assembly.Location), "xbox-iso-vfs.exe");
             if (!File.Exists(xboxIsoVfsPath))
-                return rom;
+                throw new ApplicationException("xbox-iso-vfs is required and is not installed");
 
             // Check dokan is installed
             string dokan = Environment.GetEnvironmentVariable("DokanLibrary1");
             if (!Directory.Exists(dokan))
-                return rom;
+                throw new ApplicationException("Dokan 1.4.0 is required and is not installed");
 
             dokan = Path.Combine(dokan, "dokan1.dll");
             if (!File.Exists(dokan))
-                return rom;
-
+                throw new ApplicationException("Dokan 1.4.0 is required and is not installed");
+            
             var drive = FindFreeDriveLetter();
             if (drive == null)
-                return rom;
+                throw new ApplicationException("Unable to find a free drive letter to mount");
 
-            _xboxIsoVfs = Process.Start(new ProcessStartInfo()
+            var xboxIsoVfs = Process.Start(new ProcessStartInfo()
             {
                 FileName = xboxIsoVfsPath,
                 WorkingDirectory = Path.GetDirectoryName(rom),
@@ -50,12 +49,12 @@ namespace emulatorLauncher
 
             while (elapsed < 5000)
             {
-                if (_xboxIsoVfs.WaitForExit(10))
+                if (xboxIsoVfs.WaitForExit(10))
                     return rom;
 
                 if (Directory.Exists(drive))
                 {
-                    Job.Current.AddProcess(_xboxIsoVfs);
+                    Job.Current.AddProcess(xboxIsoVfs);
 
                     _dokanDriveLetter = drive;
                     return drive;
@@ -66,7 +65,7 @@ namespace emulatorLauncher
                 time = newTime;
             }
 
-            try { _xboxIsoVfs.Kill(); }
+            try { xboxIsoVfs.Kill(); }
             catch { }
 
             return rom;
@@ -75,11 +74,10 @@ namespace emulatorLauncher
         private static string FindFreeDriveLetter()
         {
             var drives = DriveInfo.GetDrives();
-            for (char letter = 'Z'; letter >= 'D'; letter++)
-            {
+
+            for (char letter = 'Z'; letter >= 'D'; letter--)
                 if (!drives.Any(d => d.Name == letter + ":\\"))
                     return letter + ":\\";
-            }
 
             return null;
         }
@@ -88,6 +86,7 @@ namespace emulatorLauncher
 
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
+        private bool _isUsingCxBxLoader = true;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -97,17 +96,17 @@ namespace emulatorLauncher
                 path = AppConfig.GetFullPath("chihiro");
 
             if (string.IsNullOrEmpty(path))
-                path = AppConfig.GetFullPath("cxbx-r");
-
-            if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("cxbx-reloaded");
 
-            bool isLoader = true;
+            if (string.IsNullOrEmpty(path))
+                path = AppConfig.GetFullPath("cxbx-r");
+
+            _isUsingCxBxLoader = true;
 
             string exe = Path.Combine(path, "cxbxr-ldr.exe");
             if (!File.Exists(exe))
             {
-                isLoader = false;
+                _isUsingCxBxLoader = false;
                 exe = Path.Combine(path, "cxbx.exe");
             }
             
@@ -117,7 +116,9 @@ namespace emulatorLauncher
             rom = MountIso(rom);
 
             _resolution = resolution;
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            if (_isUsingCxBxLoader)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             
             // If rom is a directory
             if (Directory.Exists(rom))
@@ -128,8 +129,10 @@ namespace emulatorLauncher
                 if (string.IsNullOrEmpty(xbe))
                     xbe = xbeFiles.FirstOrDefault();
 
-                if (!string.IsNullOrEmpty(xbe))
-                    rom = xbe;
+                if (string.IsNullOrEmpty(xbe))
+                    throw new ApplicationException("Unable to find XBE file");
+
+                rom = xbe;
             }
 
             using (var ini = IniFile.FromFile(Path.Combine(path, "settings.ini"), IniOptions.KeekEmptyValues | IniOptions.AllowDuplicateValues | IniOptions.UseSpaces))
@@ -138,10 +141,17 @@ namespace emulatorLauncher
                 if (res == null)
                     res = ScreenResolution.CurrentResolution;
 
-                string videoResolution = res.Width + " x " + res.Height + " 32bit x8r8g8b8 (" + (res.DisplayFrequency <= 0 ? 60 : res.DisplayFrequency).ToString() + " hz)";
+                if (_isUsingCxBxLoader)
+                {
+                    ini.WriteValue("video", "FullScreen", "false");
+                }
+                else
+                {
+                    string videoResolution = res.Width + " x " + res.Height + " 32bit x8r8g8b8 (" + (res.DisplayFrequency <= 0 ? 60 : res.DisplayFrequency).ToString() + " hz)";
+                    ini.WriteValue("video", "VideoResolution", videoResolution);
+                    ini.WriteValue("video", "FullScreen", "true");
+                }
 
-                ini.WriteValue("video", "VideoResolution", videoResolution);
-                ini.WriteValue("video", "FullScreen", "false");
                 ini.WriteValue("video", "VSync", SystemConfig["VSync"] != "false" ? "true" : "false");
 
                 if (Features.IsSupported("ratio") && SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "stretch")
@@ -155,10 +165,10 @@ namespace emulatorLauncher
                 if (Features.IsSupported("internalresolution") && SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
                     ini.WriteValue("video", "RenderResolution", SystemConfig["internalresolution"]);
                 else
-                    ini.WriteValue("Settings", "RenderResolution", "3");
+                    ini.WriteValue("video", "RenderResolution", "3");
             }
 
-            if (isLoader)
+            if (_isUsingCxBxLoader)
             {
                 return new ProcessStartInfo()
                 {
@@ -179,6 +189,9 @@ namespace emulatorLauncher
         
         public override int RunAndWait(ProcessStartInfo path)
         {
+            if (!_isUsingCxBxLoader)
+                return base.RunAndWait(path);
+
             FakeBezelFrm bezel = null;
 
             var process = Process.Start(path);

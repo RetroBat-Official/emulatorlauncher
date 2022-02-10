@@ -1,6 +1,6 @@
 version: 1.0.0.{build}
 configuration: Release
-platform: x86
+platform: Any CPU
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'

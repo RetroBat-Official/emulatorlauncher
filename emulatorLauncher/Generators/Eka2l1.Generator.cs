@@ -84,8 +84,7 @@ namespace emulatorLauncher
             }
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
             {
-
-                var entries = Zip.ListEntries(rom);
+                var entries = Zip.ListEntries(rom).Where(e => !e.IsDirectory).Select(e => e.Filename).ToArray(); 
                 string aif = entries.Where(e => Path.GetExtension(e).ToLowerInvariant() == ".aif").FirstOrDefault();
 
                 string dest = Path.Combine(Path.GetTempPath(), Path.GetFileName(aif));
