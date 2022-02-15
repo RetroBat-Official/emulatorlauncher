@@ -24,6 +24,8 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            rom = TryUnZipGameIfNeeded(system, rom);
+
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);

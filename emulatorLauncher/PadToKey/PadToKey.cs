@@ -21,7 +21,7 @@ namespace emulatorLauncher.PadToKeyboard
 
             try
             {
-                PadToKey ret = Misc.FromXml<PadToKey>(xmlFile);
+                PadToKey ret = xmlFile.FromXml<PadToKey>();
                 if (ret != null)
                 {
                     SimpleLogger.Instance.Info("PadToKey : loaded " + xmlFile);               

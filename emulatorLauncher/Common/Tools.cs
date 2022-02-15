@@ -13,67 +13,12 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.ComponentModel;
 using System.Management;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace emulatorLauncher.Tools
 {
     static class Misc
     {
-        public static void CreateSymlink(string destinationLink, string pathToLink, bool directory = true)
-        {
-            string workingDirectory = Path.GetDirectoryName(destinationLink);
-            string directoryName = Path.GetFileName(destinationLink);
-
-            var psi = new ProcessStartInfo("cmd.exe", directory ? 
-                "/C mklink /D \"" + directoryName + "\" \"" + pathToLink + "\"" :
-                "/C mklink \"" + directoryName + "\" \"" + pathToLink + "\"");
-            psi.WorkingDirectory = workingDirectory;
-            psi.CreateNoWindow = true;
-            psi.UseShellExecute = false;
-            Process.Start(psi).WaitForExit();
-        }
-
-        public static void CompressDirectory(string _outputFolder)
-        {
-            var dir = new DirectoryInfo(_outputFolder);
-
-            if (!dir.Exists)
-            {
-                dir.Create();
-            }
-
-            if ((dir.Attributes & FileAttributes.Compressed) == 0)
-            {
-                try
-                {
-                    // Enable compression for the output folder
-                    // (this will save a ton of disk space)
-
-                    string objPath = "Win32_Directory.Name=" + "'" + dir.FullName.Replace("\\", @"\\").TrimEnd('\\') + "'";
-
-                    using (ManagementObject obj = new ManagementObject(objPath))
-                    {
-                        using (obj.InvokeMethod("Compress", null, null))
-                        {
-                            // I don't really care about the return value, 
-                            // if we enabled it great but it can also be done manually
-                            // if really needed
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Trace.WriteLine("Cannot enable compression for folder '" + dir.FullName + "': " + ex.Message, "WMI");
-                }
-            }
-        }
-
-        public static void RemoveWhere<T>(this IList<T> items, Predicate<T> func)
-        {
-            for (int i = items.Count - 1; i >= 0; i--)
-                if (func(items[i]))
-                    items.RemoveAt(i);
-        }
-
         public static bool IsDeveloperModeEnabled
         {
             get
@@ -100,131 +45,20 @@ namespace emulatorLauncher.Tools
             }
         }
 
-        public static string ExtractString(this string html, string start, string end)
+        public static bool IsAvailableNetworkActive()
         {
-            int idx1 = html.IndexOf(start);
-            if (idx1 < 0)
-                return "";
-
-            int idx2 = html.IndexOf(end, idx1 + start.Length);
-            if (idx2 > idx1)
-                return html.Substring(idx1 + start.Length, idx2 - idx1 - start.Length);
-
-            return "";
-        }
-
-        public static string[] ExtractStrings(this string cSearchExpression, string cBeginDelim, string cEndDelim, bool keepDelims = false, bool firstOnly = false, StringComparison comparison = StringComparison.Ordinal)
-        {
-            List<string> ret = new List<string>();
-
-            if (string.IsNullOrEmpty(cSearchExpression))
-                return ret.ToArray();
-
-            if (string.IsNullOrEmpty(cBeginDelim))
-                return ret.ToArray();
-
-            if (string.IsNullOrEmpty(cEndDelim))
-                return ret.ToArray();
-
-            int startpos = cSearchExpression.IndexOf(cBeginDelim, comparison);
-            while (startpos >= 0 && startpos < cSearchExpression.Length && startpos + cBeginDelim.Length <= cSearchExpression.Length)
+            // only recognizes changes related to Internet adapters
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-                int endpos = cSearchExpression.IndexOf(cEndDelim, startpos + cBeginDelim.Length, comparison);
-                if (endpos > startpos)
-                {
-                    if (keepDelims)
-                        ret.Add((cSearchExpression.Substring(startpos, cBeginDelim.Length) + cSearchExpression.Substring(startpos + cBeginDelim.Length, endpos - startpos - cBeginDelim.Length) + cEndDelim).Trim());
-                    else
-                        ret.Add(cSearchExpression.Substring(startpos + cBeginDelim.Length, endpos - startpos - cBeginDelim.Length).Trim());
-
-                    if (firstOnly)
-                        break;
-
-                    startpos = cSearchExpression.IndexOf(cBeginDelim, endpos + cEndDelim.Length, comparison);
-                }
-                else
-                    startpos = cSearchExpression.IndexOf(cBeginDelim, startpos + cBeginDelim.Length, comparison);
+                // however, this will include all adapters -- filter by opstatus and activity
+                var interfaces = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+                return (from face in interfaces
+                        where face.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
+                        where (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Tunnel) && (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
+                        select face.GetIPv4Statistics()).Any(statistics => (statistics.BytesReceived > 0) && (statistics.BytesSent > 0));
             }
 
-            return ret.ToArray();
-        }
-
-        public static int ToInteger(this string value)
-        {
-            int ret = 0;
-            int.TryParse(value, out ret);
-            return ret;
-        }
-
-        public static T FromXml<T>(string xmlPathName) where T : class
-        {
-            if (string.IsNullOrEmpty(xmlPathName))
-                return default(T);
-
-            XmlSerializer serializer = new XmlSerializer(typeof(T));
-
-            using (FileStream sr = new FileStream(xmlPathName, FileMode.Open, FileAccess.Read))
-                return serializer.Deserialize(sr) as T;
-        }
-
-        public static T FromXmlString<T>(string xml) where T : class
-        {
-            if (string.IsNullOrEmpty(xml))
-                return default(T);
-
-            var settings = new XmlReaderSettings
-            {
-                CheckCharacters = false,
-                IgnoreWhitespace = true,                
-                ConformanceLevel = ConformanceLevel.Auto,
-                ValidationType = ValidationType.None
-            };
-
-            XmlSerializer serializer = new XmlSerializer(typeof(T));
-
-            // Fix attributes strings containing & caracters
-            foreach (var toFix in xml.ExtractStrings("\"", "\"", true).Distinct().Where(s => s.Contains("& ")))
-                xml = xml.Replace(toFix, toFix.Replace("& ", "&amp; "));
-
-            using (var reader = new StringReader(xml))
-            using (var xmlReader = XmlReader.Create(reader, settings))
-            {
-                var obj = serializer.Deserialize(xmlReader);
-                return (T)obj;
-            }
-        }
-
-        public static string ToXml<T>(this T obj, bool omitXmlDeclaration = false)
-        {
-            return obj.ToXml(new XmlWriterSettings
-            {
-                Encoding = new UTF8Encoding(false),
-                Indent = true,
-                OmitXmlDeclaration = omitXmlDeclaration
-            });
-        }
-
-        public static string ToXml<T>(this T obj, XmlWriterSettings xmlWriterSettings)
-        {
-            if (Equals(obj, default(T)))
-                return String.Empty;
-
-            using (var memoryStream = new MemoryStream())
-            {
-                var xmlSerializer = new XmlSerializer(obj.GetType());
-
-                var xmlnsEmpty = new XmlSerializerNamespaces();
-                xmlnsEmpty.Add(String.Empty, String.Empty);
-
-                using (var xmlTextWriter = XmlWriter.Create(memoryStream, xmlWriterSettings))
-                {
-                    xmlSerializer.Serialize(xmlTextWriter, obj, xmlnsEmpty);
-                    memoryStream.Seek(0, SeekOrigin.Begin); //Rewind the Stream.
-                }
-
-                var xml = xmlWriterSettings.Encoding.GetString(memoryStream.ToArray());
-                return xml;
-            }
+            return false;
         }
 
         public static Image Base64ToImage(string data)
@@ -240,22 +74,6 @@ namespace emulatorLauncher.Tools
             }
             return image;
         }
-
-        [DllImport("shell32.dll")]
-        public static extern bool SHGetSpecialFolderPath(IntPtr hwndOwner, [Out]StringBuilder lpszPath, int nFolder, bool fCreate);
-
-        public static string GetSystemDirectory()
-        {
-            if (Environment.Is64BitOperatingSystem)
-            {
-                StringBuilder path = new StringBuilder(260);
-                SHGetSpecialFolderPath(IntPtr.Zero, path, 0x0029, false); // CSIDL_SYSTEMX86
-                return path.ToString();
-            }
-
-            return Environment.SystemDirectory;
-        }
-
 
         public static Rectangle GetPictureRect(Size imageSize, Rectangle rcPhoto, bool outerZooming = false, bool sourceRect = false)
         {
@@ -319,78 +137,6 @@ namespace emulatorLauncher.Tools
             return new Rectangle(iScreenX - cxDIB / 2, iScreenY - cyDIB / 2, cxDIB, cyDIB);
         }
 
-        public static bool IsAvailableNetworkActive()
-        {
-            // only recognizes changes related to Internet adapters
-            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-            {
-                // however, this will include all adapters -- filter by opstatus and activity
-                var interfaces = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
-                return (from face in interfaces
-                        where face.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
-                        where (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Tunnel) && (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
-                        select face.GetIPv4Statistics()).Any(statistics => (statistics.BytesReceived > 0) && (statistics.BytesSent > 0));
-            }
-
-            return false;
-        }
-
-        public static string RunWithOutput(string fileName, string arguments = null)
-        {
-            var ps = new ProcessStartInfo() { FileName = fileName };
-            if (arguments != null)
-                ps.Arguments = arguments;
-
-            return RunWithOutput(ps);
-        }
-
-        public static string RunWithOutput(ProcessStartInfo ps)
-        {
-            List<string> lines = new List<string>();
-
-            ps.UseShellExecute = false;
-            ps.RedirectStandardOutput = true;
-            ps.RedirectStandardError = true;
-            ps.CreateNoWindow = true;
-
-            var proc = new Process();
-            proc.StartInfo = ps;
-            proc.Start();
-
-            string output = proc.StandardOutput.ReadToEnd();
-            string err = proc.StandardError.ReadToEnd();
-            proc.WaitForExit();
-
-            return (err ?? "") + (output ?? "");
-        }
-
-        public static string FormatVersionString(string version)
-        {
-            var numbers = version.Split(new char[] { '.', '-' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            while (numbers.Count < 4)
-                numbers.Add("0");
-
-            return string.Join(".", numbers.Take(4).ToArray());
-        }
-
-        public static string[] SplitCommandLine(this string commandLine)
-        {
-            char[] parmChars = commandLine.ToCharArray();
-
-            bool inQuote = false;
-            for (int index = 0; index < parmChars.Length; index++)
-            {
-                if (parmChars[index] == '"')
-                    inQuote = !inQuote;
-                if (!inQuote && parmChars[index] == ' ')
-                    parmChars[index] = '\n';
-            }
-
-            return (new string(parmChars))
-                .Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Replace("\"", ""))
-                .ToArray();
-        }
 
         public static int IndexOf(this byte[] arrayToSearchThrough, byte[] patternToFind)
         {

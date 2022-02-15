@@ -23,7 +23,7 @@ namespace emulatorLauncher.Tools
 
             try
             {
-                EsInput ret = Misc.FromXml<EsInput>(xmlFile);
+                EsInput ret = xmlFile.FromXml<EsInput>();
                 if (ret != null)
                     return ret.InputConfigs.ToArray();
             }

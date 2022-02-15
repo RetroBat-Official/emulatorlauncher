@@ -71,10 +71,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\MountFile.cs" />
+    <Compile Include="Common\EnumerableExtensions.cs" />
     <Compile Include="Common\EsSystems.cs" />
+    <Compile Include="Common\FileTools.cs" />
+    <Compile Include="Common\IsoFile.cs" />
     <Compile Include="Common\Job.cs" />
+    <Compile Include="Common\ProcessExtensions.cs" />
+    <Compile Include="Common\ProgressInformation.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
+    <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
+    <Compile Include="Common\XmlExtensions.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
@@ -83,6 +91,8 @@
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
+    <Compile Include="Imapi\BurnData.cs" />
+    <Compile Include="Imapi\Imapi2Interop.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Common\InputKeyMapping.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />

@@ -105,7 +105,7 @@ namespace emulatorLauncher.Tools
                 string data = File.ReadAllText(xmlFile);
                 data = data.Replace("<cores>", "").Replace("</cores>", "").Replace("<systems>", "").Replace("</systems>", "");
 
-                EsFeatures ret = Misc.FromXmlString<EsFeatures>(data);
+                EsFeatures ret = data.FromXmlString<EsFeatures>();
                 if (ret != null)
                     return ret;
 

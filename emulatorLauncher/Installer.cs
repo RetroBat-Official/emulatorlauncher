@@ -195,8 +195,8 @@ namespace emulatorLauncher
                 // Retroarch specific
                 if (Path.GetFileNameWithoutExtension(exe).ToLower() == "retroarch")
                 {
-                    var output = Misc.RunWithOutput(exe, "--version");
-                    output = Misc.FormatVersionString(output.ExtractString(" -- v", " -- "));
+                    var output = ProcessExtensions.RunWithOutput(exe, "--version");
+                    output = StringExtensions.FormatVersionString(output.ExtractString(" -- v", " -- "));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
@@ -204,8 +204,8 @@ namespace emulatorLauncher
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "demul")
                 {
-                    var output = Misc.RunWithOutput(exe, "--help");
-                    output = Misc.FormatVersionString(output.ExtractString(") v", "\r"));
+                    var output = ProcessExtensions.RunWithOutput(exe, "--help");
+                    output = StringExtensions.FormatVersionString(output.ExtractString(") v", "\r"));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
@@ -213,8 +213,8 @@ namespace emulatorLauncher
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "dolphin")
                 {
-                    var output = Misc.RunWithOutput(exe, "--version");
-                    output = Misc.FormatVersionString(output.ExtractString("Dolphin ", "\r"));
+                    var output = ProcessExtensions.RunWithOutput(exe, "--version");
+                    output = StringExtensions.FormatVersionString(output.ExtractString("Dolphin ", "\r"));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
@@ -222,8 +222,8 @@ namespace emulatorLauncher
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "gsplus")
                 {
-                    var output = Misc.RunWithOutput(exe, "--help");
-                    output = Misc.FormatVersionString(output.ExtractString("GSplus v", " "));
+                    var output = ProcessExtensions.RunWithOutput(exe, "--help");
+                    output = StringExtensions.FormatVersionString(output.ExtractString("GSplus v", " "));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))

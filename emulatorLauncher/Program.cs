@@ -13,6 +13,7 @@ using emulatorLauncher.PadToKeyboard;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.ComponentModel;
+using Microsoft.Win32;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -110,6 +111,11 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
+            RegisterShellExtensions();
+
+            if (args.Length == 0)
+                return;
+
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info(Environment.CommandLine);
 
@@ -129,6 +135,31 @@ namespace emulatorLauncher
 
             LoadControllerConfiguration(args);
             ImportShaderOverrides();
+
+            if (args.Any(a => "-extract".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                string source = SystemConfig["extract"];
+                if (!Zip.IsCompressedFile(source))
+                    return;
+
+                using (var progress = new ProgressInformation("Extraction..."))
+                {
+                    string extractionPath = Path.ChangeExtension(source, ".game");
+
+                    try { Directory.Delete(extractionPath, true); }
+                    catch { }
+
+                    Zip.Extract(source, extractionPath, null, (o, e) => progress.SetText("Extraction... " + e.ProgressPercentage + "%"));
+                    Zip.CleanupUncompressedWSquashFS(source, extractionPath);
+                    return;
+                }
+            }
+
+            if (args.Any(a => "-makeiso".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                IsoFile.ConvertToIso(SystemConfig["makeiso"]);
+                return;
+            }
 
             if (args.Any(a => "-updatepo".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -566,6 +597,63 @@ namespace emulatorLauncher
                     File.WriteAllText(fn, message);
             }
             catch { }
+        }
+
+
+        public static void RegisterShellExtensions()
+        {
+            try
+            {
+                if (!File.Exists(Zip.GetRdSquashFSPath()))
+                    return;
+
+                RegisterConvertToIso(".squashfs");
+                RegisterConvertToIso(".wsquashfs");
+                RegisterExtractAsFolder(".squashfs");
+                RegisterExtractAsFolder(".wsquashfs");
+            }
+            catch { }
+        }
+
+        private static void RegisterConvertToIso(string extension)
+        {
+            if (string.IsNullOrEmpty(extension))
+                return;
+
+            RegistryKey key = Registry.ClassesRoot.CreateSubKey(extension);
+            if (key == null)
+                return;
+
+            RegistryKey shellKey = key.CreateSubKey("Shell");
+            if (shellKey == null)
+                return;
+
+            var openWith = typeof(Program).Assembly.Location;
+            shellKey.CreateSubKey("Convert to ISO").CreateSubKey("command").SetValue("", "\"" + openWith + "\"" + " -makeiso \"%1\"");
+            shellKey.Close();
+
+            key.Close();
+        }
+
+
+        private static void RegisterExtractAsFolder(string extension)
+        {
+            if (string.IsNullOrEmpty(extension))
+                return;
+
+            RegistryKey key = Registry.ClassesRoot.CreateSubKey(extension);
+            if (key == null)
+                return;
+
+            RegistryKey shellKey = key.CreateSubKey("Shell");
+            if (shellKey == null)
+                return;
+
+            var openWith = typeof(Program).Assembly.Location;
+            shellKey.CreateSubKey("Extract as folder").CreateSubKey("command").SetValue("", "\"" + openWith + "\"" + " -extract \"%1\"");
+            shellKey.Close();
+
+            key.Close();
         }
     }
 

@@ -6,7 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
-using emulatorLauncher.Tools;
+//using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -26,18 +26,35 @@ namespace emulatorLauncher
             get { return File.Exists(GetSevenZipPath()); }
         }
 
-        static string GetSevenZipPath()
+        public static string GetSevenZipPath()
         {
-            string fn = Path.Combine(Path.GetDirectoryName(typeof(Installer).Assembly.Location), "7z.exe");
+            string fn = Path.Combine(Path.GetDirectoryName(typeof(Zip).Assembly.Location), "7z.exe");
             if (File.Exists(fn))
                 return fn;
-            
-            return Path.Combine(Path.GetDirectoryName(typeof(Installer).Assembly.Location), "7za.exe");
+
+            return Path.Combine(Path.GetDirectoryName(typeof(Zip).Assembly.Location), "7za.exe");
         }
 
-        static string GetRdSquashFSPath()
+        public static string GetRdSquashFSPath()
         {
-            return Path.Combine(Path.GetDirectoryName(typeof(Installer).Assembly.Location), "rdsquashfs.exe");
+            return Path.Combine(Path.GetDirectoryName(typeof(Zip).Assembly.Location), "rdsquashfs.exe");
+        }
+        
+        public static bool IsFreeDiskSpaceAvailableForExtraction(string filename, string pathForExtraction)
+        {
+            try
+            {
+                var totalRequiredSize = Zip.ListEntries(filename).Sum(f => f.Length);
+                if (totalRequiredSize == 0)
+                    totalRequiredSize = new FileInfo(filename).Length;
+
+                long freeSpaceOnDrive = new DriveInfo(Path.GetPathRoot(pathForExtraction)).AvailableFreeSpace;
+                if (freeSpaceOnDrive < totalRequiredSize)
+                    return false;
+            }
+            catch { }
+
+            return true;
         }
 
         private static System.Reflection.MethodInfo _zipOpenRead;
@@ -89,14 +106,15 @@ namespace emulatorLauncher
 
                 foreach (var entry in entries)
                 {
-                    string fullName = entry.GetType().GetValue<string>(entry, "FullName");
+                    var zipArchiveEntry = entry.GetType();
+
+                    string fullName = zipArchiveEntry.GetValue<string>(entry, "FullName");
                     if (!string.IsNullOrEmpty(fullName))
                     {
-                        long len = entry.GetType().GetValue<long>(entry, "Length");
-
                         ZipEntry e = new ZipEntry();
                         e.Filename = fullName;
-                        e.Length = len;
+                        e.Length = zipArchiveEntry.GetValue<long>(entry, "Length");
+                        e.LastModified = zipArchiveEntry.GetValue<DateTimeOffset>(entry, "LastWriteTime").DateTime;
 
                         if (fullName.EndsWith("/"))
                         {
@@ -121,13 +139,54 @@ namespace emulatorLauncher
             }
         }
 
+        public class SquashFsEntry : ZipEntry
+        {
+            private string _arch;
+
+            public SquashFsEntry(string arch)
+            {
+                _arch = arch;
+                base.Length = -1;
+            }
+
+            public override long Length
+            {
+                get
+                {
+                    if (base.Length == -1)
+                    {
+                        if (IsDirectory)
+                            base.Length = 0;
+                        else
+                        {
+                            string lineOutput = ProcessExtensions.RunWithOutput(GetRdSquashFSPath(), "-s \"" + Filename + "\" \"" + _arch + "\"");
+
+                            var fs = lineOutput.ExtractString("File size: ", "\r");
+
+                            long len;
+                            if (long.TryParse(fs, out len))
+                                base.Length = len;
+                            else
+                                base.Length = 0;
+                        }
+                    }
+
+                    return base.Length;
+                }
+                set
+                {
+                    base.Length = value;
+                }
+            }
+        }
+
         private static ZipEntry[] GetSquashFsEntries(string archive)
         {
             var sevenZip = GetRdSquashFSPath();
             if (!File.Exists(sevenZip))
                 return new ZipEntry[] { };
 
-            string output = Tools.Misc.RunWithOutput(GetRdSquashFSPath(), "-d \"" + archive + "\"");
+            string output = ProcessExtensions.RunWithOutput(GetRdSquashFSPath(), "-d \"" + archive + "\"");
             if (output == null)
                 return new ZipEntry[] { };
 
@@ -136,15 +195,37 @@ namespace emulatorLauncher
             foreach (string str in output.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 var args = str.SplitCommandLine();
-                if (args.Length != 5)
+                if (args.Length < 5)
                     continue;
 
-                ZipEntry e = new ZipEntry();
+                if (args[0] != "file" && args[0] != "dir")
+                    continue;
+
+                ZipEntry e = new SquashFsEntry(archive);
                 e.Filename = args[1];
                 e.IsDirectory = args[0] == "dir";
-                long len;
-                if (long.TryParse(args[4], out len))
-                    e.Length = len;
+                if (e.IsDirectory)
+                    e.Length = 0;
+
+                if (args.Length >= 6)
+                {
+                    long lastModifiedSpan;
+                    if (long.TryParse(args[5], out lastModifiedSpan))
+                    {
+                        var dt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                        dt = dt.AddSeconds(lastModifiedSpan);
+                        e.LastModified = dt;
+                    }
+
+                    e.Length = 0;
+                }
+
+                if (args.Length >= 7)
+                {
+                    long len;
+                    if (long.TryParse(args[6], out len))
+                        e.Length = len;
+                }
 
                 ret.Add(e);
             }
@@ -160,7 +241,7 @@ namespace emulatorLauncher
             if (!File.Exists(sevenZip))
                 return new ZipEntry[] { };
 
-            string output = Tools.Misc.RunWithOutput(GetSevenZipPath(), "l \"" + archive + "\"");
+            string output = ProcessExtensions.RunWithOutput(GetSevenZipPath(), "l \"" + archive + "\"");
             if (output == null)
                 return new ZipEntry[] { };
 
@@ -185,7 +266,11 @@ namespace emulatorLauncher
                     {
                         ZipEntry e = new ZipEntry();
                         e.Filename = groups[6];
-                        e.IsDirectory = groups[3].StartsWith("D");
+                        e.IsDirectory = groups[3].Contains("D");
+
+                        DateTime date;
+                        if (DateTime.TryParse(groups[1] + " " + groups[2], out date))
+                            e.LastModified = date;
 
                         long len;
                         if (long.TryParse(groups[4], out len))
@@ -209,24 +294,36 @@ namespace emulatorLauncher
             if (entries == null || entries.Count == 0)
                 return;
 
-            try { Directory.Delete(destination, true); }
-            catch { }
+            if (fileNameToExtract == null)
+            {
+                try { Directory.Delete(destination, true); }
+                catch { }
 
-            Directory.CreateDirectory(destination);
+                Directory.CreateDirectory(destination);
+            }
+            else
+            {
+                destination = Path.GetDirectoryName(Path.Combine(destination, fileNameToExtract));
+                if (!Directory.Exists(destination))
+                    Directory.CreateDirectory(destination);
+            }
 
-            string args = "-u /. \"" + archive + "\"";
+            string args = "--no-dev --no-sock --no-fifo --no-slink -u /. \"" + archive + "\"";
             if (!string.IsNullOrEmpty(fileNameToExtract))
-                args = "-u \"" + fileNameToExtract + "\" \"" + archive + "\"";
+                args = "--no-dev --no-sock --no-fifo --no-slink -u \"" + fileNameToExtract.Replace("\\", "/") + "\" \"" + archive + "\"";
+
+            if (progress == null)
+                args = "-q " + args;
 
             var px = new ProcessStartInfo()
             {
                 FileName = rdsquashfs,
                 WorkingDirectory = destination,
-                Arguments = args,
+                Arguments = args,                
                 UseShellExecute = false,
-                RedirectStandardOutput = (progress != null),
+                RedirectStandardOutput = (progress != null),                
                 CreateNoWindow = true
-            };
+            };            
 
             var proc = Process.Start(px);
             if (proc != null && progress != null)
@@ -335,17 +432,73 @@ namespace emulatorLauncher
             if (code == 2)
                 throw new ApplicationException("Cannot open archive");
         }
+
+
+        public static void CleanupUncompressedWSquashFS(string zipFile, string uncompressedPath)
+        {
+            if (Path.GetExtension(zipFile).ToLowerInvariant() != ".wsquashfs")
+                return;
+
+            string[] pathsToDelete = new string[]
+                {
+                    "dosdevices",
+                    "system.reg",
+                    "userdef.reg",
+                    "user.reg",
+                    ".update-timestamp",
+                    "drive_c\\windows",
+                    "drive_c\\Program Files\\Common Files\\System",
+                    "drive_c\\Program Files\\Common Files\\Microsoft Shared",
+                    "drive_c\\Program Files\\Internet Explorer",
+                    "drive_c\\Program Files\\Windows Media Player",
+                    "drive_c\\Program Files\\Windows NT",
+                    "drive_c\\Program Files (x86)\\Common Files\\System",
+                    "drive_c\\Program Files (x86)\\Common Files\\Microsoft Shared",
+                    "drive_c\\Program Files (x86)\\Internet Explorer",
+                    "drive_c\\Program Files (x86)\\Windows Media Player",
+                    "drive_c\\Program Files (x86)\\Windows NT",
+                    "drive_c\\users\\Public",
+                    "drive_c\\ProgramData\\Microsoft"
+                };
+
+            foreach (var path in pathsToDelete)
+            {
+                string folder = Path.Combine(uncompressedPath, path);
+                if (Directory.Exists(folder))
+                {
+                    try { Directory.Delete(folder, true); }
+                    catch { }
+                }
+                else if (File.Exists(folder))
+                {
+                    try { File.Delete(folder); }
+                    catch { }
+                }
+
+                try
+                {
+                    var parent = Path.GetDirectoryName(folder);
+                    if (Directory.Exists(parent))
+                        Directory.Delete(parent);
+                }
+                catch { }
+            }
+        }
+
     }
 
     class ZipEntry
     {
         public string Filename { get; set; }
         public bool IsDirectory { get; set; }
-        public long Length { get; set; }
-
+        
+        virtual public long Length { get; set; }
+        virtual public DateTime LastModified { get; set; }
+ 
         public override string ToString()
         {
             return Filename;
         }
     }
+
 }

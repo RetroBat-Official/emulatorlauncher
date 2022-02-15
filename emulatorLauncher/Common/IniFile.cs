@@ -70,7 +70,16 @@ namespace emulatorLauncher
                                     key.Value = null;
                                 }
                                 else if (keyPair.Length > 1)
+                                {
+                                    var commentIdx = keyPair[1].IndexOf(";");
+                                    if (commentIdx > 0)
+                                    {
+                                        key.Comment = keyPair[1].Substring(commentIdx);
+                                        keyPair[1] = keyPair[1].Substring(0, commentIdx);
+                                    }
+
                                     key.Value = keyPair[1].Trim();
+                                }
 
                                 currentSection.Add(key);
                             }
@@ -182,6 +191,12 @@ namespace emulatorLauncher
 
                 foreach (Key entry in section)
                 {
+                    if (string.IsNullOrEmpty(entry.Name) && !string.IsNullOrEmpty(entry.Comment))
+                    {
+                        sb.AppendLine(entry.Comment);
+                        continue;
+                    }
+
                     if (entry.IsComment)
                     {
                         sb.AppendLine(entry.Name);
@@ -204,7 +219,15 @@ namespace emulatorLauncher
                     if (_options.HasFlag(IniOptions.UseSpaces))
                         sb.Append(" ");
 
-                    sb.AppendLine(entry.Value);
+                    sb.Append(entry.Value);
+
+                    if (!string.IsNullOrEmpty(entry.Comment))
+                    {
+                        sb.Append("\t\t\t");
+                        sb.Append(entry.Comment);
+                    }
+
+                    sb.AppendLine();
                 }
 
                 sb.AppendLine();
@@ -244,6 +267,7 @@ namespace emulatorLauncher
         {
             public string Name { get; set; }
             public string Value { get; set; }
+            public string Comment { get; set; }
 
             public bool IsComment
             {

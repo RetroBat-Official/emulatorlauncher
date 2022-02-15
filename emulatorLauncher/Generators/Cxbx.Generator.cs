@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -25,13 +26,19 @@ namespace emulatorLauncher
             // Check dokan is installed
             string dokan = Environment.GetEnvironmentVariable("DokanLibrary1");
             if (!Directory.Exists(dokan))
-                throw new ApplicationException("Dokan 1.4.0 is required and is not installed");
+            {
+                MountFile.ShowDownloadDokanPage();
+                throw new ApplicationException("Dokan 1.4.0.1000 is required and is not installed");
+            }
 
             dokan = Path.Combine(dokan, "dokan1.dll");
             if (!File.Exists(dokan))
-                throw new ApplicationException("Dokan 1.4.0 is required and is not installed");
-            
-            var drive = FindFreeDriveLetter();
+            {
+                MountFile.ShowDownloadDokanPage();
+                throw new ApplicationException("Dokan 1.4.0.1000 is required and is not installed");
+            }
+
+            var drive = FileTools.FindFreeDriveLetter();
             if (drive == null)
                 throw new ApplicationException("Unable to find a free drive letter to mount");
 
@@ -69,17 +76,6 @@ namespace emulatorLauncher
             catch { }
 
             return rom;
-        }
-
-        private static string FindFreeDriveLetter()
-        {
-            var drives = DriveInfo.GetDrives();
-
-            for (char letter = 'Z'; letter >= 'D'; letter--)
-                if (!drives.Any(d => d.Name == letter + ":\\"))
-                    return letter + ":\\";
-
-            return null;
         }
 
         #endregion

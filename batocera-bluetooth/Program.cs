@@ -22,9 +22,9 @@ namespace batocera_bluetooth
             if (args.Length > 0 && args[0] == "restore")
                 return;
 
-            if (args.Length == 0 || args[0] == "live_devices")
+            if (args[0] == "live_devices")
             {
-                GetPairedDevices();
+                GetLiveDevices();
                 return;
             }
 
@@ -33,22 +33,93 @@ namespace batocera_bluetooth
                 GetPairedDevices();
         }
 
-        /*
-        [root@BATOCERA /userdata/system]# batocera-bluetooth live_devices
-        +E4:17:D8:5D:8F:78 8Bitdo SF30 Pro
-        +E4:17:D8:0C:0B:70 8BitDo N30 Pro 2
-        +14:F6:D8:66:7B:5E setsouko
-                */
+        class BluetoothDevice
+        {
+            public BluetoothDevice(BLUETOOTH_DEVICE_INFO dev)
+            {
+                Address = dev.Address;
+                Name = dev.szName;
+                ClassOfDevice = dev.ulClassofDevice;
+            }
 
-        static void GetPairedDevices()
+            public ulong Address { get; set; }
+            public string Name { get; set; }
+            public ulong ClassOfDevice { get; set; }
+
+            public override string ToString()
+            {
+                return ToMacAdress(Address) + " " + Name;
+            }
+        }
+
+        static void GetLiveDevices()
         {
             BLUETOOTH_DEVICE_SEARCH_PARAMS search = BLUETOOTH_DEVICE_SEARCH_PARAMS.Create();
-            search.cTimeoutMultiplier = 10;
-            search.fReturnAuthenticated = true;
+            search.cTimeoutMultiplier = 4;
+            search.fReturnAuthenticated = false;
             search.fReturnRemembered = false;
             search.fReturnUnknown = true;
             search.fReturnConnected = true;
             search.fIssueInquiry = true;
+
+            List<BluetoothDevice> connectedDevices = null;
+            
+            while (true)
+            {
+                var devices = new List<BluetoothDevice>();
+
+                BLUETOOTH_DEVICE_INFO device = BLUETOOTH_DEVICE_INFO.Create();
+                IntPtr searchHandle = NativeMethods.BluetoothFindFirstDevice(ref search, ref device);
+                if (searchHandle != IntPtr.Zero)
+                {
+                    while (true)
+                    {
+                        bool isAudioVideo = (device.ulClassofDevice & 0x400) == 0x400;
+                        bool isPeripheral = (device.ulClassofDevice & 0x500) == 0x500;
+                        bool isKeyboard = (device.ulClassofDevice & 0x540) == 0x540;
+                        bool isMouse = (device.ulClassofDevice & 0x580) == 0x580;
+                        bool isJoystick = (device.ulClassofDevice & 0x504) == 0x504;
+                        bool isGamepad = (device.ulClassofDevice & 0x508) == 0x508;
+
+                        if (isPeripheral)
+                            devices.Add(new BluetoothDevice(device));
+                        
+                        if (!NativeMethods.BluetoothFindNextDevice(searchHandle, ref device))
+                            break;
+                    }
+
+                    NativeMethods.BluetoothFindDeviceClose(searchHandle);
+                }
+
+                if (connectedDevices != null)
+                {
+                    foreach (var dev in connectedDevices)
+                    {
+                        if (!devices.Any(e => e.Address == dev.Address))
+                            Console.WriteLine("-" + dev.ToString());
+                    }
+                }
+
+                foreach (var dev in devices)
+                {
+                    if (connectedDevices == null || !connectedDevices.Any(e => e.Address == dev.Address))
+                        Console.WriteLine("+" + dev.ToString());
+                }
+
+                search.cTimeoutMultiplier = 10;
+                connectedDevices = devices;
+            }
+        }
+
+        static void GetPairedDevices()
+        {
+            BLUETOOTH_DEVICE_SEARCH_PARAMS search = BLUETOOTH_DEVICE_SEARCH_PARAMS.Create();
+            search.cTimeoutMultiplier = 8;
+            search.fReturnAuthenticated = false;
+            search.fReturnRemembered = true;
+            search.fReturnUnknown = false;
+            search.fReturnConnected = false;
+            search.fIssueInquiry = false;
 
             BLUETOOTH_DEVICE_INFO device = BLUETOOTH_DEVICE_INFO.Create();
 

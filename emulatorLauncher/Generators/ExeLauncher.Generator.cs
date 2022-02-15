@@ -46,7 +46,7 @@ namespace emulatorLauncher
                     if (string.IsNullOrEmpty(wineCommand) && wineCmd.Length > 0)
                         wineCommand = wineCmd.FirstOrDefault();
 
-                    var args = Misc.SplitCommandLine(wineCommand);
+                    var args = wineCommand.SplitCommandLine();
                     if (args.Length > 0)
                     {
                         string exe = string.IsNullOrEmpty(dir) ? Path.Combine(path, args[0]) : Path.Combine(path, dir.Replace("/", "\\"), args[0]);

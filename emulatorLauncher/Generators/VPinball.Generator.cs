@@ -333,7 +333,7 @@ namespace emulatorLauncher
                 Process px = new Process();
                 px.EnableRaisingEvents = true;
                 px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = Path.Combine(Misc.GetSystemDirectory(), "regsvr32.exe");
+                px.StartInfo.FileName = Path.Combine(FileTools.GetSystemDirectory(), "regsvr32.exe");
                 px.StartInfo.Arguments = "/s \"" + Path.Combine(path, "VPinMame", "VPinMAME.dll") + "\"";
                 px.StartInfo.UseShellExecute = true;
                 px.StartInfo.CreateNoWindow = true;

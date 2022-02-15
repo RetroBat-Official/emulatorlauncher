@@ -129,7 +129,7 @@ namespace emulatorLauncher
                 }
                 catch { }
 
-                Misc.CreateSymlink(_symLink, rom, true);              
+                FileTools.CreateSymlink(_symLink, rom, true);              
             }
             else
             {

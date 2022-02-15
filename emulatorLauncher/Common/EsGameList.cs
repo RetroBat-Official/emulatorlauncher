@@ -67,7 +67,7 @@ namespace emulatorLauncher.Tools
             {
                 try
                 {
-                    GameList gl = Misc.FromXml<GameList>(xmlFile);
+                    GameList gl = xmlFile.FromXml<GameList>();
                     gl.FilePath = xmlFile;
                     foreach (var game in gl.Games)
                         game.GameList = gl;

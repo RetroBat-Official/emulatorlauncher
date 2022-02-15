@@ -8,6 +8,8 @@ namespace emulatorLauncher
 {
     class MessSystem
     {
+        // mame -listfull nom*
+
         static MessSystem[] MessSystems = new MessSystem[]
             {                
                 new MessSystem("bbcmicro"     ,"bbcb"     , new MessRomType[] 
@@ -182,6 +184,7 @@ namespace emulatorLauncher
                             new MessRomType("cdrm")
                         }),
 
+                                 
                 new MessSystem("spectravideo"       ,"svi328", new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "cas" }, "CLOAD\\nRUN\\n", "6"), 

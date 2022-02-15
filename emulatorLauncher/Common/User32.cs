@@ -140,6 +140,11 @@ namespace emulatorLauncher
 
     public static class Kernel32
     {
+        public static bool IsRunningInConsole()
+        {
+            return AttachConsole(-1);
+        }
+
         [DllImport("kernel32.dll")]
         public static extern bool AttachConsole(int dwProcessId = ATTACH_PARENT_PROCESS);
         private const int ATTACH_PARENT_PROCESS = -1;

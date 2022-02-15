@@ -23,14 +23,61 @@ namespace emulatorLauncher
             return null;
         }
 
+        private IsoFile _mountedIso;
+        private MountFile _mountFile;
+        private GameUnzip _unzip;
+
         protected string TryUnZipGameIfNeeded(string system, string fileName, bool silent = false)
         {
-            if (string.IsNullOrEmpty(GetUnCompressedFolderPath()))
-                return fileName;
+            if (Path.GetExtension(fileName).ToLowerInvariant() == ".iso")
+            {
+                _mountedIso = IsoFile.MountIso(fileName);
+                if (_mountedIso != null)
+                    return _mountedIso.Drive.Name;
+            }
 
-            _unzip = GameUnzip.UnZipGame(system, fileName, silent);
-            if (_unzip != null)
-                return _unzip.UncompressedPath;
+            // Try mount file as a drive letter
+            if (Zip.IsCompressedFile(fileName))
+            {
+                string extractionPath = GetUnCompressedFolderPath();
+
+                if (Program.SystemConfig["decompressedfolders"] != "keep")
+                {
+                    // Decompression for mounting is generally faster in temp path as it's generally a SSD Drive...
+                    extractionPath = Path.Combine(Path.GetTempPath(), ".uncompressed", Path.GetFileName(fileName));
+                }
+
+                if (string.IsNullOrEmpty(extractionPath))
+                    return fileName;
+
+                string overlayPath = ".";
+                string savesPath = Program.AppConfig.GetFullPath("saves");
+                if (!string.IsNullOrEmpty(savesPath))
+                    overlayPath = Path.Combine(savesPath, system, Path.GetFileName(fileName));
+
+                _mountFile = MountFile.Mount(fileName, Path.Combine(extractionPath, system, Path.GetFileName(fileName)), overlayPath);
+                if (_mountFile != null)
+                    return _mountFile.DriveLetter;
+            }
+
+            // Try simple decompression
+            if (Zip.IsCompressedFile(fileName))
+            {
+                string extractionPath = GetUnCompressedFolderPath();
+                if (string.IsNullOrEmpty(extractionPath))
+                    return fileName;
+
+                if (!Directory.Exists(extractionPath))
+                {
+                    Directory.CreateDirectory(extractionPath);
+                    FileTools.CompressDirectory(extractionPath);
+                }
+
+                // Simple decompression
+                _unzip = GameUnzip.UnZipGame(system, fileName, silent);
+                if (_unzip != null)
+                    return _unzip.UncompressedPath;
+            }
 
             return fileName;
         }
@@ -41,10 +88,52 @@ namespace emulatorLauncher
                 _unzip.SilentDelete = false;
         }
 
-        private GameUnzip _unzip;
-
         public virtual void Cleanup()
         {
+            if (_mountFile != null)
+            {
+                // Delete overlay path if it's emptt
+                try { Directory.Delete(_mountFile.OverlayPath); }
+                catch { }
+
+                string extractionPath = _mountFile.ExtractionPath;
+
+                _mountFile.Dispose();
+                _mountFile = null;
+
+                bool deleteExtractedFiles = Program.SystemConfig["decompressedfolders"] != "keep"; // Program.SystemConfig["decompressedfolders"] == "delete";
+                /*
+                if (Program.SystemConfig["decompressedfolders"] != "keep" && Program.SystemConfig["decompressedfolders"] != "delete")
+                {
+                    using (var frm = new InstallerFrm())
+                    {
+                        frm.SetLabel(Properties.Resources.KeepUncompressedFile);
+                        if (frm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                            deleteExtractedFiles = true;
+                    }
+                }
+                */
+                // Delete Extraction path if required
+                if (deleteExtractedFiles)
+                {
+                    try { Directory.Delete(extractionPath, true); }
+                    catch { }
+
+                    try { Directory.Delete(Path.GetDirectoryName(extractionPath)); }
+                    catch { }                
+
+                    try { Directory.Delete(GetUnCompressedFolderPath()); }
+                    catch { }                
+                }
+            }
+
+            if (_mountedIso != null)
+            {
+
+                _mountedIso.Dispose();
+                _mountedIso = null;
+            }
+
             if (_unzip != null)
             {
                 if (!_unzip.SilentDelete && Program.SystemConfig["decompressedfolders"] == "keep")
@@ -85,18 +174,24 @@ namespace emulatorLauncher
         {
             public static GameUnzip UnZipGame(string system, string filename, bool silent = false)
             {
-                string path = Path.GetDirectoryName(filename);
+                if (!Zip.IsCompressedFile(filename))
+                    return null;
 
+                string path = Path.GetDirectoryName(filename);
                 string extractionPath = GetUnCompressedFolderPath();
+
+                if (!Zip.IsFreeDiskSpaceAvailableForExtraction(filename, extractionPath))
+                    throw new Exception("Not enough free space on drive to decompress");
+
 
                 if (!Directory.Exists(extractionPath))
                 {
                     Directory.CreateDirectory(extractionPath);
-                    Misc.CompressDirectory(extractionPath);
+                    FileTools.CompressDirectory(extractionPath);
                 }
 
                 extractionPath = Path.Combine(extractionPath, system);
-                string dest = Path.Combine(extractionPath, Path.GetFileNameWithoutExtension(filename));
+                string dest = Path.Combine(extractionPath, Path.GetFileName(filename));
 
                 if (Directory.Exists(dest) && Directory.GetFiles(dest, "*.*", SearchOption.AllDirectories).Any())
                 {
@@ -125,6 +220,8 @@ namespace emulatorLauncher
 
                     if (Directory.Exists(dest))
                     {
+                        Zip.CleanupUncompressedWSquashFS(filename, extractionPath);
+
                         try { Directory.SetLastWriteTime(dest, DateTime.Now); }
                         catch { }
 
@@ -132,7 +229,6 @@ namespace emulatorLauncher
                         ret.ZipFile = filename;
                         ret.ExtractionPath = extractionPath;
                         ret.UncompressedPath = dest;
-                        ret.CleanupUncompressedWSquashFS();
                         return ret;
                     }
                 }
@@ -146,55 +242,6 @@ namespace emulatorLauncher
             public string UncompressedPath { get; set; }
             public string ExtractionPath { get; set; }
             public bool SilentDelete { get; set; }
-
-            private void CleanupUncompressedWSquashFS()
-            {
-                if (Path.GetExtension(ZipFile).ToLowerInvariant() != ".wsquashfs")
-                    return;
-
-                string[] pathsToDelete = new string[]
-                {
-                    "dosdevices",
-                    "system.reg",
-                    "userdef.reg",
-                    "drive_c\\windows",
-                    "drive_c\\Program Files\\Common Files\\System",
-                    "drive_c\\Program Files\\Common Files\\Microsoft Shared",
-                    "drive_c\\Program Files\\Internet Explorer",
-                    "drive_c\\Program Files\\Windows Media Player",
-                    "drive_c\\Program Files\\Windows NT",
-                    "drive_c\\Program Files (x86)\\Common Files\\System",
-                    "drive_c\\Program Files (x86)\\Common Files\\Microsoft Shared",
-                    "drive_c\\Program Files (x86)\\Internet Explorer",
-                    "drive_c\\Program Files (x86)\\Windows Media Player",
-                    "drive_c\\Program Files (x86)\\Windows NT",
-                    "drive_c\\users\\Public",
-                    "drive_c\\ProgramData\\Microsoft"
-                };
-
-                foreach (var path in pathsToDelete)
-                {
-                    string folder = Path.Combine(UncompressedPath, path);
-                    if (Directory.Exists(folder))
-                    {
-                        try { Directory.Delete(folder, true); }
-                        catch { }
-                    }
-                    else if (File.Exists(folder))
-                    {
-                        try { File.Delete(folder); }
-                        catch { }
-                    }
-
-                    try
-                    {
-                        var parent = Path.GetDirectoryName(folder);
-                        if (Directory.Exists(parent))
-                            Directory.Delete(parent);
-                    }
-                    catch { }
-                }
-            }
 
         }
 
@@ -355,7 +402,7 @@ namespace emulatorLauncher
                 return false;
 
             // Check parent process is EmulationStation. Get its commandline, see if it's using "--windowed --resolution X Y", import settings
-            var args = Misc.SplitCommandLine(px).Skip(1).ToArray();
+            var args = px.SplitCommandLine().Skip(1).ToArray();
             for (int i = 0; i < args.Length; i++)
             {
                 var arg = args[i];

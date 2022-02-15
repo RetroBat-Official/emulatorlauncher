@@ -52,6 +52,9 @@
     <Compile Include="..\emulatorLauncher\Common\RegistryApi.cs">
       <Link>Common\RegistryApi.cs</Link>
     </Compile>
+    <Compile Include="..\emulatorLauncher\Common\StringExtensions.cs">
+      <Link>Common\StringExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\emulatorLauncher\Common\Tools.cs">
       <Link>Common\Tools.cs</Link>
     </Compile>

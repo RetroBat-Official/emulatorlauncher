@@ -26,7 +26,7 @@ namespace emulatorLauncher.Tools
             if (!File.Exists(filename))
                 return null;
 
-            EsSystems gl = Misc.FromXml<EsSystems>(filename);
+            EsSystems gl = filename.FromXml<EsSystems>();
 
             ((IRelativePath)gl).FilePath = Path.GetDirectoryName(filename);
             gl.Systems.ForEach(s => s.RelativePath = gl);
