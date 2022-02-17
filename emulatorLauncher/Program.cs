@@ -465,7 +465,7 @@ namespace emulatorLauncher
                 if (mapping == null)
                     mapping = new PadToKey();
 
-                var existingApp = mapping.Applications.FirstOrDefault(a => a.Name == app.Name);
+                var existingApp = mapping.Applications.FirstOrDefault(a => a.Name.Equals(app.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (existingApp != null)
                 {
                     // Merge with existing by replacing inputs
