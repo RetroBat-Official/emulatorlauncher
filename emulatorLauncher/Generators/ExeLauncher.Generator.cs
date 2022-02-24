@@ -131,7 +131,23 @@ namespace emulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            base.RunAndWait(path);
+            if (_systemName == "windows")
+            {
+                using (var frm = new System.Windows.Forms.Form())
+                {
+                    // Some games fail to allocate DirectX surface if EmulationStation is showing fullscren : pop an invisible window between ES & the game solves the problem
+                    frm.ShowInTaskbar = false;
+                    frm.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+                    frm.Opacity = 0;
+                    frm.Show();
+
+                    System.Windows.Forms.Application.DoEvents();
+                    base.RunAndWait(path);
+                }
+            }
+            else
+                base.RunAndWait(path);
+
             return 0;
         }
     }
