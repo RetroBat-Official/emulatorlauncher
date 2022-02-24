@@ -131,7 +131,7 @@ namespace emulatorLauncher
                 rom = xbe;
             }
 
-            using (var ini = IniFile.FromFile(Path.Combine(path, "settings.ini"), IniOptions.KeekEmptyValues | IniOptions.AllowDuplicateValues | IniOptions.UseSpaces))
+            using (var ini = IniFile.FromFile(Path.Combine(path, "settings.ini"), IniOptions.KeepEmptyValues | IniOptions.AllowDuplicateValues | IniOptions.UseSpaces))
             {
                 var res = resolution;
                 if (res == null)

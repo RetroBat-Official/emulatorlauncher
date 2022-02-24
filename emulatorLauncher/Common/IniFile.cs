@@ -12,8 +12,9 @@ namespace emulatorLauncher
     public enum IniOptions
     {
         UseSpaces = 1,
-        KeekEmptyValues = 2,
-        AllowDuplicateValues = 3
+        KeepEmptyValues = 2,
+        AllowDuplicateValues = 4,
+        KeepEmptyLines = 8
     }
 
     public class IniFile : IDisposable
@@ -38,30 +39,38 @@ namespace emulatorLauncher
                 {
                     Section currentSection = null;
 
+                    var namesInSection = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                     string strLine = iniFile.ReadLine();
                     while (strLine != null)
                     {
                         strLine = strLine.Trim();
 
-                        if (strLine != "")
+                        if (strLine != "" || _options.HasFlag(IniOptions.KeepEmptyLines))
                         {
                             if (strLine.StartsWith("["))
                             {
                                 int end = strLine.IndexOf("]");
                                 if (end > 0)
+                                {
+                                    namesInSection.Clear();
                                     currentSection = _sections.GetOrAddSection(strLine.Substring(1, end - 1));
+                                }
                             }
                             else
                             {
                                 string[] keyPair = strLine.Split(new char[] { '=' }, 2);
 
                                 if (currentSection == null)
+                                {
+                                    namesInSection.Clear();
                                     currentSection = _sections.GetOrAddSection(null);
+                                }
 
                                 var key = new Key();
                                 key.Name = keyPair[0].Trim();
 
-                                if (!_options.HasFlag(IniOptions.AllowDuplicateValues) && currentSection.Exists(key.Name))
+                                if (!key.IsComment && !_options.HasFlag(IniOptions.AllowDuplicateValues) && namesInSection.Contains(key.Name))                                        
                                     continue;
 
                                 if (key.IsComment)
@@ -71,6 +80,8 @@ namespace emulatorLauncher
                                 }
                                 else if (keyPair.Length > 1)
                                 {
+                                    namesInSection.Add(key.Name);
+
                                     var commentIdx = keyPair[1].IndexOf(";");
                                     if (commentIdx > 0)
                                     {
@@ -80,7 +91,7 @@ namespace emulatorLauncher
 
                                     key.Value = keyPair[1].Trim();
                                 }
-
+                           
                                 currentSection.Add(key);
                             }
                         }
@@ -175,11 +186,8 @@ namespace emulatorLauncher
 
         public bool IsDirty { get { return _dirty; } }
 
-        public void Save()
+        public override string ToString()
         {
-            if (!_dirty)
-                return;
-
             ArrayList sections = new ArrayList();
 
             StringBuilder sb = new StringBuilder();
@@ -191,9 +199,13 @@ namespace emulatorLauncher
 
                 foreach (Key entry in section)
                 {
-                    if (string.IsNullOrEmpty(entry.Name) && !string.IsNullOrEmpty(entry.Comment))
+                    if (string.IsNullOrEmpty(entry.Name))
                     {
-                        sb.AppendLine(entry.Comment);
+                        if (!string.IsNullOrEmpty(entry.Comment))
+                            sb.AppendLine(entry.Comment);
+                        else if (_options.HasFlag(IniOptions.KeepEmptyLines))
+                            sb.AppendLine();
+
                         continue;
                     }
 
@@ -203,14 +215,14 @@ namespace emulatorLauncher
                         continue;
                     }
 
-                    if (string.IsNullOrEmpty(entry.Value) && !_options.HasFlag(IniOptions.KeekEmptyValues))
+                    if (string.IsNullOrEmpty(entry.Value) && !_options.HasFlag(IniOptions.KeepEmptyValues))
                         continue;
 
                     if (string.IsNullOrEmpty(entry.Name))
                         continue;
 
                     sb.Append(entry.Name);
-                   
+
                     if (_options.HasFlag(IniOptions.UseSpaces))
                         sb.Append(" ");
 
@@ -230,9 +242,18 @@ namespace emulatorLauncher
                     sb.AppendLine();
                 }
 
-                sb.AppendLine();
+                if (!_options.HasFlag(IniOptions.KeepEmptyLines))
+                    sb.AppendLine();
             }
 
+            return sb.ToString();
+        }
+
+        public void Save()
+        {
+            if (!_dirty)
+                return;
+                        
             try
             {
                 string dir = Path.GetDirectoryName(_path);
@@ -241,7 +262,7 @@ namespace emulatorLauncher
 
                 using (TextWriter tw = new StreamWriter(_path))
                 {
-                    tw.Write(sb.ToString());
+                    tw.Write(ToString());
                     tw.Close();
                 }
 

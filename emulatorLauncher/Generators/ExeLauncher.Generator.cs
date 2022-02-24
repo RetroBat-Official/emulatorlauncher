@@ -78,7 +78,7 @@ namespace emulatorLauncher
                     rom = Path.Combine(path, rom.Substring(1));
             }
 
-            UpdateMugenConfig(path);
+            UpdateMugenConfig(path, resolution);
 
             var ret = new ProcessStartInfo()
             {
@@ -115,7 +115,7 @@ namespace emulatorLauncher
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
-        private void UpdateMugenConfig(string path)
+        private void UpdateMugenConfig(string path, ScreenResolution resolution)
         {
             if (_systemName != "mugen")
                 return;
@@ -124,9 +124,17 @@ namespace emulatorLauncher
             if (!File.Exists(cfg))
                 return;
 
-            var data = File.ReadAllText(cfg);
-            data = data.Replace("FullScreen = 0", "FullScreen = 1");
-            File.WriteAllText(cfg, data);
+            using (var ini = IniFile.FromFile(cfg, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+            {
+                if (resolution == null)
+                    resolution = ScreenResolution.CurrentResolution;
+
+                ini.WriteValue("Video", "Width", resolution.Width.ToString());
+                ini.WriteValue("Video", "Height", resolution.Height.ToString());
+                ini.WriteValue("Video", "Depth", resolution.BitsPerPel.ToString());
+                ini.WriteValue("Video", "VRetrace", SystemConfig["VSync"] != "false" ? "1" : "0");                
+                ini.WriteValue("Video", "FullScreen", "1");
+            }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
