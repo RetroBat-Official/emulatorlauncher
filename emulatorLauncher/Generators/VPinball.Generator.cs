@@ -69,10 +69,21 @@ namespace emulatorLauncher
 
             SetupOptions(path, romPath, resolution);
 
+            List<string> commandArray = new List<string>();
+                        
+            Version version = new Version();
+            if (Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion.Replace(",", ".").Replace(" ", ""), out version) && version >= new Version(10, 7, 0, 0))
+                commandArray.Add("-ExtMinimized");            
+
+            commandArray.Add("-play");
+            commandArray.Add(rom);
+
+            string args = string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-play  \"" + rom + "\"",
+                Arguments = args,
                 WindowStyle = _splash != null ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal,
                 UseShellExecute = true
             };

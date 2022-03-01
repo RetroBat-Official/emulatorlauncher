@@ -93,12 +93,19 @@ namespace emulatorLauncher
                             new MessRomType("cart")
                         }) { UseFileNameWithoutExtension = true },
 
+                        //atom;atom;flop1;'*DOS\n*DIR\n*CAT\n*RUN"'
+
+                new MessSystem("archimedes"         ,"aa4401"     , new MessRomType[] 
+                        {                             
+                            new MessRomType("flop" ),  
+                        }),                
+
                 new MessSystem("atom"         ,"atom"     , new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "tap", "cdw", "uef" } ), 
                             new MessRomType("cart", new string[] { "bin", "rom" } ),  
                             new MessRomType("quik", new string[] { "atm" } ),  
-                            new MessRomType("flop1" ),  
+                            new MessRomType("flop1", null, "*DOS\\n*DIR\\n*CAT\\n*RUN\\\"" ),  
                         }),
 
                 new MessSystem("camplynx"     ,"lynx48k"  , new MessRomType[] 
