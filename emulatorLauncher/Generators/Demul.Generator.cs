@@ -30,7 +30,7 @@ namespace emulatorLauncher
                 return null;
 
             SetupGeneralConfig(path, rom, system, core);
-            SetupDx11Config(path, rom, system);
+            SetupDx11Config(path, rom, system, resolution);
 
             string demulCore = "dreamcast";
 
@@ -116,7 +116,10 @@ namespace emulatorLauncher
 
                     string gpu = "gpuDX11.dll";
                     if (_oldVersion || core == "gaelco" || system == "galeco")
+                    {
+                        _videoDriverName = "gpuDX11old";
                         gpu = "gpuDX11old.dll";
+                    }
 
                     ini.WriteValue("plugins", "gpu", gpu);
 
@@ -137,16 +140,23 @@ namespace emulatorLauncher
             catch { }
         }
 
-        private void SetupDx11Config(string path, string rom, string system)
+        private string _videoDriverName = "gpuDX11";
+
+        private void SetupDx11Config(string path, string rom, string system, ScreenResolution resolution)
         {
-            string iniFile = Path.Combine(path, "gpuDX11.ini");
+            string iniFile = Path.Combine(path, _videoDriverName + ".ini");
 
             try
             {
+                if (resolution == null)
+                    resolution = ScreenResolution.CurrentResolution;
+
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("main", "UseFullscreen", "0");
-                    ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");                    
+                    ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");
+                    ini.WriteValue("resolution", "Width", resolution.Width.ToString());
+                    ini.WriteValue("resolution", "Height", resolution.Height.ToString());            
                 }
             }
 
