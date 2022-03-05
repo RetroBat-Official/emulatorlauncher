@@ -55,7 +55,7 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(savesPath))
                     overlayPath = Path.Combine(savesPath, system, Path.GetFileName(fileName));
 
-                _mountFile = MountFile.Mount(fileName, Path.Combine(extractionPath, system, Path.GetFileName(fileName)), overlayPath);
+                _mountFile = MountFile.Mount(fileName, extractionPath, overlayPath);
                 if (_mountFile != null)
                     return _mountFile.DriveLetter;
             }
@@ -101,6 +101,11 @@ namespace emulatorLauncher
                 _mountFile.Dispose();
                 _mountFile = null;
 
+                string uncompressedFolderPath = GetUnCompressedFolderPath();
+
+                if (Program.SystemConfig["decompressedfolders"] != "keep")
+                    uncompressedFolderPath = Path.Combine(Path.GetTempPath(), ".uncompressed");
+
                 bool deleteExtractedFiles = Program.SystemConfig["decompressedfolders"] != "keep"; // Program.SystemConfig["decompressedfolders"] == "delete";
                 /*
                 if (Program.SystemConfig["decompressedfolders"] != "keep" && Program.SystemConfig["decompressedfolders"] != "delete")
@@ -116,13 +121,19 @@ namespace emulatorLauncher
                 // Delete Extraction path if required
                 if (deleteExtractedFiles)
                 {
+                    SimpleLogger.Instance.Info("Directory.Delete(" + extractionPath + ", true)");
+
                     try { Directory.Delete(extractionPath, true); }
-                    catch { }
+                    catch(Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
+
+                    SimpleLogger.Instance.Info("Directory.Delete(" + Path.GetDirectoryName(extractionPath) + ", false)");
 
                     try { Directory.Delete(Path.GetDirectoryName(extractionPath)); }
-                    catch { }                
+                    catch (Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
 
-                    try { Directory.Delete(GetUnCompressedFolderPath()); }
+                    SimpleLogger.Instance.Info("Directory.Delete(" + uncompressedFolderPath + ", false)");
+
+                    try { Directory.Delete(uncompressedFolderPath); }
                     catch { }                
                 }
             }

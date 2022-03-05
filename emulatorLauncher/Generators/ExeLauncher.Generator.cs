@@ -145,6 +145,7 @@ namespace emulatorLauncher
                 {
                     // Some games fail to allocate DirectX surface if EmulationStation is showing fullscren : pop an invisible window between ES & the game solves the problem
                     frm.ShowInTaskbar = false;
+                    frm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
                     frm.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
                     frm.Opacity = 0;
                     frm.Show();

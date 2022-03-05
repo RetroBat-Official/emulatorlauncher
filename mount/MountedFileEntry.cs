@@ -85,9 +85,22 @@ namespace Mount
                         Directory.CreateDirectory(parent);
 
                 //    Console.WriteLine("Extracting: " + source);
+               //     int time = Environment.TickCount;
+                    
+                    string tmpDirectory = Path.Combine(FileSystem.ExtractionDirectory, Guid.NewGuid().ToString());
+                    if (!Directory.Exists(tmpDirectory))
+                        Directory.CreateDirectory(tmpDirectory);
 
-                    int time = Environment.TickCount;
-                    Zip.Extract(FileSystem.FileName, FileSystem.ExtractionDirectory, source, null, true);
+                    string tmpFile = Path.GetFullPath(Path.Combine(tmpDirectory, source));
+                    
+                    Zip.Extract(FileSystem.FileName, tmpDirectory, source, null, true);
+
+                    if (File.Exists(tmpFile))
+                        File.Move(tmpFile, physicalPath);
+
+                    try { Directory.Delete(tmpDirectory, true); }
+                    catch { }
+                    /*
                     int elapsed = Environment.TickCount - time;
 
                     if (access != (System.IO.FileAccess)0 && File.Exists(physicalPath))
@@ -106,7 +119,7 @@ namespace Mount
                             Console.WriteLine("------------------------------------------------------------------------------ " + ex.Message);
                         }
                     }
-
+                    */
                  //   Console.WriteLine("Extracted: " + source + " => " + elapsed + "ms");
                 }
 
