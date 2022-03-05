@@ -109,7 +109,7 @@ namespace Mount
 
             var item = GetFile(fileName);
 
-            if (mode == FileMode.CreateNew)
+            if (mode == FileMode.CreateNew || (mode == FileMode.Create && item == null))
                 item = CreateToOverlay(fileName, null, info.IsDirectory);
 
             if (item == null)
