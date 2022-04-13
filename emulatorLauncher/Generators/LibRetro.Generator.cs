@@ -1018,6 +1018,7 @@ namespace emulatorLauncher.libRetro
                 var messArgs = messSystem.GetMameCommandLineArguments(system, rom);
                 messArgs = messArgs.Replace("\\\"", "\"");
                 messArgs = "\"" + messArgs.Replace("\"", "\\\"") + "\"";
+                messArgs += (messArgs + " " + args).Trim();
 
                 return new ProcessStartInfo()
                 {
