@@ -1315,9 +1315,9 @@ namespace emulatorLauncher.libRetro
                 "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom" };
 
         static List<string> systemToRetroachievements = new List<string> { 
-            "atari2600", "atari7800", "atarijaguar", "colecovision", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
-            "segacd", "sega32x", "saturn", "pcengine", "pcenginecd", "supergrafx", "psx", "mame", "hbmame", "fbneo", "neogeo", "lightgun", "apple2", 
-            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc", "fds" };
+            "atari2600", "atari7800", "atarijaguar", "colecovision", "dreamcast", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
+            "segacd", "sega32x", "saturn", "pcengine", "pcenginecd", "supergrafx", "pcfx", "psx", "psp", "mame", "hbmame", "fbneo", "neogeo", "lightgun", "apple2", 
+            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc", "fds", "3do", "msx", "amstradcpc", "intellivision", "vectrex", "supervision", "odyssey2", "cps1", "cps2", "cps3" };
 
         static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn", "mame", "hbmame", "fbneo" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn" };
