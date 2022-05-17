@@ -1095,7 +1095,7 @@ namespace emulatorLauncher.libRetro
         }
 
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
-                "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom" };
+                "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
 
         static List<string> systemToRetroachievements = new List<string> { 
             "atari2600", "atari7800", "atarijaguar", "colecovision", "dreamcast", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
