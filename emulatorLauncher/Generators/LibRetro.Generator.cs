@@ -488,91 +488,121 @@ namespace emulatorLauncher.libRetro
             }
 			
 			// video rotation
-            if (SystemConfig.isOptSet("RotateVideo"))
-                retroarchConfig["video_rotation"] = SystemConfig["RotateVideo"];
-            else
-                retroarchConfig["video_rotation"] = "0";
+            if (Features.IsSupported("RotateVideo"))
+            {
+                if (SystemConfig.isOptSet("RotateVideo"))
+                    retroarchConfig["video_rotation"] = SystemConfig["RotateVideo"];
+                else
+                    retroarchConfig["video_rotation"] = "0";
+            }
 
             // screen orientation
-            if (SystemConfig.isOptSet("RotateScreen"))
-                retroarchConfig["screen_orientation"] = SystemConfig["RotateScreen"];
-            else
-                retroarchConfig["screen_orientation"] = "0";
+            if (Features.IsSupported("RotateScreen"))
+            {
+                if (SystemConfig.isOptSet("RotateScreen"))
+                    retroarchConfig["screen_orientation"] = SystemConfig["RotateScreen"];
+                else
+                    retroarchConfig["screen_orientation"] = "0";
+            }
 
             // CRT Switch
-            if (SystemConfig.isOptSet("CRTSwitch"))                          
-                retroarchConfig["crt_switch_resolution"] = SystemConfig["CRTSwitch"];           
-            else
-                retroarchConfig["crt_switch_resolution"] = "0";
+            if (Features.IsSupported("CRTSwitch"))
+            {
+                if (SystemConfig.isOptSet("CRTSwitch"))
+                    retroarchConfig["crt_switch_resolution"] = SystemConfig["CRTSwitch"];
+                else
+                    retroarchConfig["crt_switch_resolution"] = "0";
+            }
 
             // CRT Resolution
-            if (SystemConfig.isOptSet("CRTSuperRes"))             
-                retroarchConfig["crt_switch_resolution_super"] = SystemConfig["CRTSuperRes"];               
-            else             
-                retroarchConfig["crt_switch_resolution_super"] = "0";            
+            if (Features.IsSupported("CRTSuperRes"))
+            {
+                if (SystemConfig.isOptSet("CRTSuperRes"))
+                    retroarchConfig["crt_switch_resolution_super"] = SystemConfig["CRTSuperRes"];
+                else
+                    retroarchConfig["crt_switch_resolution_super"] = "0";
+            }
 
             // GPU Index
-            if (SystemConfig.isOptSet("GPUIndex"))
+            if (Features.IsSupported("GPUIndex"))
             {
-                if (retroarchConfig["video_driver"] == "d3d10")
-                    retroarchConfig["d3d10_gpu_index"] = SystemConfig["GPUIndex"];
-                
-                if (retroarchConfig["video_driver"] == "d3d11")
-                    retroarchConfig["d3d11_gpu_index"] = SystemConfig["GPUIndex"];
-                
-                if (retroarchConfig["video_driver"] == "d3d12")
-                    retroarchConfig["d3d12_gpu_index"] = SystemConfig["GPUIndex"];
-                
-                if (retroarchConfig["video_driver"] == "vulkan")
-                    retroarchConfig["vulkan_gpu_index"] = SystemConfig["GPUIndex"];
-            }
-            else
-            {
-                retroarchConfig["d3d10_gpu_index"] = "0";
-                retroarchConfig["d3d11_gpu_index"] = "0";
-                retroarchConfig["d3d12_gpu_index"] = "0";
-                retroarchConfig["vulkan_gpu_index"] = "0";
+                if (SystemConfig.isOptSet("GPUIndex"))
+                {
+                    if (retroarchConfig["video_driver"] == "d3d10")
+                        retroarchConfig["d3d10_gpu_index"] = SystemConfig["GPUIndex"];
+
+                    if (retroarchConfig["video_driver"] == "d3d11")
+                        retroarchConfig["d3d11_gpu_index"] = SystemConfig["GPUIndex"];
+
+                    if (retroarchConfig["video_driver"] == "d3d12")
+                        retroarchConfig["d3d12_gpu_index"] = SystemConfig["GPUIndex"];
+
+                    if (retroarchConfig["video_driver"] == "vulkan")
+                        retroarchConfig["vulkan_gpu_index"] = SystemConfig["GPUIndex"];
+                }
+                else
+                {
+                    retroarchConfig["d3d10_gpu_index"] = "0";
+                    retroarchConfig["d3d11_gpu_index"] = "0";
+                    retroarchConfig["d3d12_gpu_index"] = "0";
+                    retroarchConfig["vulkan_gpu_index"] = "0";
+                }
             }
 
             // Synchronization options
-            if (SystemConfig.isOptSet("video_vsync"))
+            if (Features.IsSupported("video_vsync"))
             {
-                if (SystemConfig["video_vsync"] != "adaptative")
+                if (SystemConfig.isOptSet("video_vsync"))
                 {
-                    retroarchConfig["video_vsync"] = SystemConfig["video_vsync"];
-                    retroarchConfig["video_adaptive_vsync"] = "false";
+                    if (SystemConfig["video_vsync"] != "adaptative")
+                    {
+                        retroarchConfig["video_vsync"] = SystemConfig["video_vsync"];
+                        retroarchConfig["video_adaptive_vsync"] = "false";
+                    }
+                    else
+                    {
+                        retroarchConfig["video_vsync"] = "true";
+                        retroarchConfig["video_adaptive_vsync"] = "true";
+                    }
                 }
                 else
                 {
                     retroarchConfig["video_vsync"] = "true";
-                    retroarchConfig["video_adaptive_vsync"] = "true";
+                    retroarchConfig["video_adaptive_vsync"] = "false";
                 }
             }
-            else
+
+            if (Features.IsSupported("video_hard_sync"))
             {
-                retroarchConfig["video_vsync"] = "true";
-                retroarchConfig["video_adaptive_vsync"] = "false";
+                if (SystemConfig.isOptSet("video_hard_sync"))
+                    retroarchConfig["video_hard_sync"] = SystemConfig["video_hard_sync"];
+                else
+                    retroarchConfig["video_hard_sync"] = "false";
             }
 
-            if (SystemConfig.isOptSet("video_hard_sync"))
-                retroarchConfig["video_hard_sync"] = SystemConfig["video_hard_sync"];
-            else
-                retroarchConfig["video_hard_sync"] = "false";
+            if (Features.IsSupported("video_swap_interval"))
+            {
+                if (SystemConfig.isOptSet("video_swap_interval"))
+                    retroarchConfig["video_swap_interval"] = SystemConfig["video_swap_interval"];
+                else
+                    retroarchConfig["video_swap_interval"] = "1";
+            }
 
-            if (SystemConfig.isOptSet("video_swap_interval"))
-                retroarchConfig["video_swap_interval"] = SystemConfig["video_swap_interval"];
-            else
-                retroarchConfig["video_swap_interval"] = "1";
+            if (Features.IsSupported("video_black_frame_insertion"))
+            {
+                if (SystemConfig.isOptSet("video_black_frame_insertion"))
+                    retroarchConfig["video_black_frame_insertion"] = SystemConfig["video_black_frame_insertion"];
+                else
+                    retroarchConfig["video_black_frame_insertion"] = "0";
+            }
 
-            if (SystemConfig.isOptSet("video_black_frame_insertion"))
-                retroarchConfig["video_black_frame_insertion"] = SystemConfig["video_black_frame_insertion"];
-            else
-                retroarchConfig["video_black_frame_insertion"] = "0";
-
-            if (SystemConfig.isOptSet("vrr_runloop_enable"))
-                retroarchConfig["vrr_runloop_enable"] = SystemConfig["vrr_runloop_enable"];
-            else
-                retroarchConfig["vrr_runloop_enable"] = "false";
+            if (Features.IsSupported("vrr_runloop_enable"))
+            {
+                if (SystemConfig.isOptSet("vrr_runloop_enable"))
+                    retroarchConfig["vrr_runloop_enable"] = SystemConfig["vrr_runloop_enable"];
+                else
+                    retroarchConfig["vrr_runloop_enable"] = "false";
+            }
 
             SetLanguage(retroarchConfig);
 

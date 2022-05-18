@@ -12,6 +12,7 @@ namespace emulatorLauncher
 {
     class Pcsx2Generator : Generator
     {
+
         public Pcsx2Generator()
         {
             DependsOnDesktopResolution = true;
@@ -40,7 +41,7 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string folderName = (emulator == "pcsx2-16") ? "pcsx2-16" : "pcsx2";
+            string folderName = emulator;
 
             _path = AppConfig.GetFullPath(folderName);
             if (string.IsNullOrEmpty(_path))
@@ -48,10 +49,10 @@ namespace emulatorLauncher
 
             if (string.IsNullOrEmpty(_path))
                 _path = AppConfig.GetFullPath("pcsx2-16");
-
-            string exe = Path.Combine(_path, "pcsx2x64.exe");
+            
+            string exe = Path.Combine(_path, "pcsx2x64.exe"); // v1.7 filename
             if (!File.Exists(exe))
-                exe = Path.Combine(_path, "pcsx2.exe");
+                exe = Path.Combine(_path, "pcsx2.exe"); // v1.6 filename            
 
             // v1.7.0 ???
             Version version = new Version();
@@ -67,7 +68,12 @@ namespace emulatorLauncher
                     avx2 = Path.Combine(_path, "pcsx2-avx2.exe");
 
                 if (File.Exists(avx2))
+                {
                     exe = avx2;
+
+                    if (Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion, out version))
+                        _isPcsx17 = version >= new Version(1, 7, 0, 0);
+                }
             }
 
             if (!File.Exists(exe))
@@ -122,11 +128,7 @@ namespace emulatorLauncher
                     string savesPath = AppConfig.GetFullPath("saves");
                     if (!string.IsNullOrEmpty(savesPath))
                     {
-                        string folderName = (emulator == "pcsx2-16") ? "pcsx2-16" : "pcsx2";
-                        if (folderName == "pcsx2-16")
-                            savesPath = Path.Combine(savesPath, "ps2", "pcsx2-16");
-                        else
-                            savesPath = Path.Combine(savesPath, "ps2", "pcsx2");
+                        savesPath = Path.Combine(savesPath, "ps2", Path.GetFileName(_path));
 
                         if (!Directory.Exists(savesPath))
                             try { Directory.CreateDirectory(savesPath); }
@@ -134,7 +136,7 @@ namespace emulatorLauncher
 
                         ini.WriteValue("Folders", "UseDefaultSavestates", "disabled");
                         ini.WriteValue("Folders", "UseDefaultMemoryCards", "disabled");
-                        ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\")); // Path.Combine(relPath, "pcsx2")
+                        ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\"));
                         ini.WriteValue("Folders", "MemoryCards", savesPath.Replace("\\", "\\\\"));
                     }
 
@@ -155,15 +157,17 @@ namespace emulatorLauncher
                         ini.WriteValue(null, "EnablePresets", "disabled");
 
                     if (!_isPcsx17)
+                    {
                         ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
 
-                    // Enabled for <= 1.6.0
-                    if (!_isPcsx17 && (emulator == "pcsx2-16"))
-                    {
-                        if (SystemConfig.isOptSet("gs_plugin") && !string.IsNullOrEmpty(SystemConfig["gs_plugin"]))
-                            ini.WriteValue("Filenames", "GS", SystemConfig["gs_plugin"]);
-                        else
-                            ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
+                        // Enabled for <= 1.6.0
+                        if (Features.IsSupported("gs_plugin"))
+                        {
+                            if (SystemConfig.isOptSet("gs_plugin") && !string.IsNullOrEmpty(SystemConfig["gs_plugin"]))
+                                ini.WriteValue("Filenames", "GS", SystemConfig["gs_plugin"]);
+                            else
+                                ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
+                        }
                     }
                 }
             }
