@@ -40,14 +40,14 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string folderName = (emulator == "pcsx2-old") ? "pcsx2-old" : "pcsx2";
+            string folderName = (emulator == "pcsx2-16") ? "pcsx2-16" : "pcsx2";
 
             _path = AppConfig.GetFullPath(folderName);
             if (string.IsNullOrEmpty(_path))
                 _path = AppConfig.GetFullPath("pcsx2");
 
             if (string.IsNullOrEmpty(_path))
-                _path = AppConfig.GetFullPath("pcsx2-old");
+                _path = AppConfig.GetFullPath("pcsx2-16");
 
             string exe = Path.Combine(_path, "pcsx2x64.exe");
             if (!File.Exists(exe))
@@ -69,6 +69,9 @@ namespace emulatorLauncher
                 if (File.Exists(avx2))
                     exe = avx2;
             }
+
+            if (!File.Exists(exe))
+                return null;
 
             SetupPaths(emulator, core);
             SetupVM();
@@ -119,9 +122,9 @@ namespace emulatorLauncher
                     string savesPath = AppConfig.GetFullPath("saves");
                     if (!string.IsNullOrEmpty(savesPath))
                     {
-                        string folderName = (emulator == "pcsx2-old") ? "pcsx2-old" : "pcsx2";
-                        if (folderName == "pcsx2-old")
-                            savesPath = Path.Combine(savesPath, "ps2", "pcsx2-old");
+                        string folderName = (emulator == "pcsx2-16") ? "pcsx2-16" : "pcsx2";
+                        if (folderName == "pcsx2-16")
+                            savesPath = Path.Combine(savesPath, "ps2", "pcsx2-16");
                         else
                             savesPath = Path.Combine(savesPath, "ps2", "pcsx2");
 
@@ -155,22 +158,12 @@ namespace emulatorLauncher
                         ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
 
                     // Enabled for <= 1.6.0
-                    if (!_isPcsx17 && (emulator == "pcsx2-old"))
+                    if (!_isPcsx17 && (emulator == "pcsx2-16"))
                     {
-                        if (core == "pcsx2-avx2" || core == "avx2")
-                        {
-                            ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
-                        }
-                        else if (core == "pcsx2-sse2" || core == "sse2")
-                        {
-                            ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
-                        }
-                        else if (core == "pcsx2-sse4" || core == "sse4")
-                        {
-                            ini.WriteValue("Filenames", "GS", "GSdx32-SSE4.dll");
-                        }
+                        if (SystemConfig.isOptSet("gs_plugin") && !string.IsNullOrEmpty(SystemConfig["gs_plugin"]))
+                            ini.WriteValue("Filenames", "GS", SystemConfig["gs_plugin"]);
                         else
-                            ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
+                            ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
                     }
                 }
             }
