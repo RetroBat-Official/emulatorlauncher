@@ -486,6 +486,93 @@ namespace emulatorLauncher.libRetro
                 else
                     retroarchConfig["quit_press_twice"] = "false";
             }
+			
+			// video rotation
+            if (SystemConfig.isOptSet("RotateVideo"))
+                retroarchConfig["video_rotation"] = SystemConfig["RotateVideo"];
+            else
+                retroarchConfig["video_rotation"] = "0";
+
+            // screen orientation
+            if (SystemConfig.isOptSet("RotateScreen"))
+                retroarchConfig["screen_orientation"] = SystemConfig["RotateScreen"];
+            else
+                retroarchConfig["screen_orientation"] = "0";
+
+            // CRT Switch
+            if (SystemConfig.isOptSet("CRTSwitch"))                          
+                retroarchConfig["crt_switch_resolution"] = SystemConfig["CRTSwitch"];           
+            else
+                retroarchConfig["crt_switch_resolution"] = "0";
+
+            // CRT Resolution
+            if (SystemConfig.isOptSet("CRTSuperRes"))             
+                retroarchConfig["crt_switch_resolution_super"] = SystemConfig["CRTSuperRes"];               
+            else             
+                retroarchConfig["crt_switch_resolution_super"] = "0";            
+
+            // GPU Index
+            if (SystemConfig.isOptSet("GPUIndex"))
+            {
+                if (retroarchConfig["video_driver"] == "d3d10")
+                    retroarchConfig["d3d10_gpu_index"] = SystemConfig["GPUIndex"];
+                
+                if (retroarchConfig["video_driver"] == "d3d11")
+                    retroarchConfig["d3d11_gpu_index"] = SystemConfig["GPUIndex"];
+                
+                if (retroarchConfig["video_driver"] == "d3d12")
+                    retroarchConfig["d3d12_gpu_index"] = SystemConfig["GPUIndex"];
+                
+                if (retroarchConfig["video_driver"] == "vulkan")
+                    retroarchConfig["vulkan_gpu_index"] = SystemConfig["GPUIndex"];
+            }
+            else
+            {
+                retroarchConfig["d3d10_gpu_index"] = "0";
+                retroarchConfig["d3d11_gpu_index"] = "0";
+                retroarchConfig["d3d12_gpu_index"] = "0";
+                retroarchConfig["vulkan_gpu_index"] = "0";
+            }
+
+            // Synchronization options
+            if (SystemConfig.isOptSet("video_vsync"))
+            {
+                if (SystemConfig["video_vsync"] != "adaptative")
+                {
+                    retroarchConfig["video_vsync"] = SystemConfig["video_vsync"];
+                    retroarchConfig["video_adaptive_vsync"] = "false";
+                }
+                else
+                {
+                    retroarchConfig["video_vsync"] = "true";
+                    retroarchConfig["video_adaptive_vsync"] = "true";
+                }
+            }
+            else
+            {
+                retroarchConfig["video_vsync"] = "true";
+                retroarchConfig["video_adaptive_vsync"] = "false";
+            }
+
+            if (SystemConfig.isOptSet("video_hard_sync"))
+                retroarchConfig["video_hard_sync"] = SystemConfig["video_hard_sync"];
+            else
+                retroarchConfig["video_hard_sync"] = "false";
+
+            if (SystemConfig.isOptSet("video_swap_interval"))
+                retroarchConfig["video_swap_interval"] = SystemConfig["video_swap_interval"];
+            else
+                retroarchConfig["video_swap_interval"] = "1";
+
+            if (SystemConfig.isOptSet("video_black_frame_insertion"))
+                retroarchConfig["video_black_frame_insertion"] = SystemConfig["video_black_frame_insertion"];
+            else
+                retroarchConfig["video_black_frame_insertion"] = "0";
+
+            if (SystemConfig.isOptSet("vrr_runloop_enable"))
+                retroarchConfig["vrr_runloop_enable"] = SystemConfig["vrr_runloop_enable"];
+            else
+                retroarchConfig["vrr_runloop_enable"] = "false";
 
             SetLanguage(retroarchConfig);
 
@@ -1095,12 +1182,12 @@ namespace emulatorLauncher.libRetro
         }
 
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
-                "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom" };
+                "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
 
         static List<string> systemToRetroachievements = new List<string> { 
-            "atari2600", "atari7800", "atarijaguar", "colecovision", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
-            "segacd", "sega32x", "saturn", "pcengine", "pcenginecd", "supergrafx", "psx", "mame", "hbmame", "fbneo", "neogeo", "lightgun", "apple2", 
-            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc", "fds" };
+            "atari2600", "atari7800", "atarijaguar", "colecovision", "dreamcast", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
+            "segacd", "sega32x", "saturn", "pcengine", "pcenginecd", "supergrafx", "pcfx", "psx", "psp", "mame", "hbmame", "fbneo", "neogeo", "lightgun", "apple2", 
+            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc", "fds", "3do", "msx", "amstradcpc", "intellivision", "vectrex", "supervision", "odyssey2", "cps1", "cps2", "cps3" };
 
         static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn", "mame", "hbmame", "fbneo" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn" };

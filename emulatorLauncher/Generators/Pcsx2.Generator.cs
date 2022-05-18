@@ -31,7 +31,7 @@ namespace emulatorLauncher
 
             return ret;
         }
-
+      
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -40,12 +40,18 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            _path = AppConfig.GetFullPath("pcsx2");
-            _resolution = resolution;
+            string folderName = (emulator == "pcsx2-16") ? "pcsx2-16" : "pcsx2";
 
-            string exe = Path.Combine(_path, "pcsx2.exe");
+            _path = AppConfig.GetFullPath(folderName);
+            if (string.IsNullOrEmpty(_path))
+                _path = AppConfig.GetFullPath("pcsx2");
+
+            if (string.IsNullOrEmpty(_path))
+                _path = AppConfig.GetFullPath("pcsx2-16");
+
+            string exe = Path.Combine(_path, "pcsx2x64.exe");
             if (!File.Exists(exe))
-                return null;
+                exe = Path.Combine(_path, "pcsx2.exe");
 
             // v1.7.0 ???
             Version version = new Version();
@@ -55,12 +61,19 @@ namespace emulatorLauncher
             // Select avx2 build
             if (_isPcsx17 && (core == "pcsx2-avx2" || core == "avx2"))
             {
-                string avx2 = Path.Combine(_path, "pcsx2-avx2.exe");
+                string avx2 = Path.Combine(_path, "pcsx2x64-avx2.exe");
+
+                if (!File.Exists(avx2))
+                    avx2 = Path.Combine(_path, "pcsx2-avx2.exe");
+
                 if (File.Exists(avx2))
                     exe = avx2;
             }
 
-            SetupPaths(core);
+            if (!File.Exists(exe))
+                return null;
+
+            SetupPaths(emulator, core);
             SetupVM();
             SetupLilyPad();
             SetupGSDx(resolution);
@@ -87,7 +100,7 @@ namespace emulatorLauncher
                 Arguments = args + " \"" + rom + "\"",
             };
         }
-        private void SetupPaths(string core)
+        private void SetupPaths(string emulator, string core)
         {
             string iniFile = Path.Combine(_path, "inis", "PCSX2_ui.ini");
             if (File.Exists(iniFile))
@@ -109,7 +122,12 @@ namespace emulatorLauncher
                     string savesPath = AppConfig.GetFullPath("saves");
                     if (!string.IsNullOrEmpty(savesPath))
                     {
-                        savesPath = Path.Combine(savesPath, "ps2", "pcsx2");
+                        string folderName = (emulator == "pcsx2-16") ? "pcsx2-16" : "pcsx2";
+                        if (folderName == "pcsx2-16")
+                            savesPath = Path.Combine(savesPath, "ps2", "pcsx2-16");
+                        else
+                            savesPath = Path.Combine(savesPath, "ps2", "pcsx2");
+
                         if (!Directory.Exists(savesPath))
                             try { Directory.CreateDirectory(savesPath); }
                             catch { }
@@ -139,21 +157,14 @@ namespace emulatorLauncher
                     if (!_isPcsx17)
                         ini.WriteValue("Filenames", "PAD", "LilyPad.dll");
 
-                    /* Disabled for <= 1.6.0
-                    if (core == "pcsx2-avx2" || core == "avx2")
+                    // Enabled for <= 1.6.0
+                    if (!_isPcsx17 && (emulator == "pcsx2-16"))
                     {
-                        ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
+                        if (SystemConfig.isOptSet("gs_plugin") && !string.IsNullOrEmpty(SystemConfig["gs_plugin"]))
+                            ini.WriteValue("Filenames", "GS", SystemConfig["gs_plugin"]);
+                        else
+                            ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");
                     }
-                    else if (core == "pcsx2-sse2" || core == "sse2")
-                    {
-                        ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
-                    }
-                    else if (core == "pcsx2-sse4" || core == "sse4")
-                    {
-                        ini.WriteValue("Filenames", "GS", "GSdx32-SSE4.dll");
-                    }
-                    else
-                        ini.WriteValue("Filenames", "GS", "GSdx32-AVX2.dll");*/
                 }
             }
             catch { }
@@ -245,7 +256,6 @@ namespace emulatorLauncher
 
                     ini.WriteValue("Settings", "shaderfx", "1");
 
-
                     if (SystemConfig.isOptSet("TVShader") && !string.IsNullOrEmpty(SystemConfig["TVShader"]))
                         ini.WriteValue("Settings", "TVShader", SystemConfig["TVShader"]);
                     else if (Features.IsSupported("TVShader"))
@@ -291,15 +301,48 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("skipdraw"))
                         ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
 
-                    if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
+                    if (!_isPcsx17)
                     {
-                        ini.WriteValue("Settings", "osd_monitor_enabled", "1");
-                        ini.WriteValue("Settings", "osd_indicator_enabled", "1");
+                        if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
+                        {
+                            ini.WriteValue("Settings", "osd_monitor_enabled", "1");
+                            ini.WriteValue("Settings", "osd_indicator_enabled", "1");
+                        }
+                        else
+                        {
+                            ini.WriteValue("Settings", "osd_monitor_enabled", "0");
+                            ini.WriteValue("Settings", "osd_indicator_enabled", "0");
+                        }
+
+                        if (SystemConfig.isOptSet("Notifications") && SystemConfig.getOptBoolean("Notifications"))
+                            ini.WriteValue("Settings", "osd_log_enabled", "1");
+                        else
+                            ini.WriteValue("Settings", "osd_log_enabled", "0");
+
                     }
                     else
                     {
-                        ini.WriteValue("Settings", "osd_monitor_enabled", "0");
-                        ini.WriteValue("Settings", "osd_indicator_enabled", "0");
+                        if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
+                        {
+                            ini.WriteValue("Settings", "OsdShowCPU", "1");
+                            ini.WriteValue("Settings", "OsdShowFPS", "1");
+                            ini.WriteValue("Settings", "OsdShowGPU", "1");                            
+                            ini.WriteValue("Settings", "OsdShowResolution", "1");
+                            ini.WriteValue("Settings", "OsdShowSpeed", "1");
+                        }
+                        else
+                        {
+                            ini.WriteValue("Settings", "OsdShowCPU", "0");
+                            ini.WriteValue("Settings", "OsdShowFPS", "0");
+                            ini.WriteValue("Settings", "OsdShowGPU", "0");
+                            ini.WriteValue("Settings", "OsdShowResolution", "0");
+                            ini.WriteValue("Settings", "OsdShowSpeed", "0");
+                        }
+
+                        if (SystemConfig.isOptSet("Notifications") && SystemConfig.getOptBoolean("Notifications"))
+                            ini.WriteValue("Settings", "OsdShowMessages", "1");
+                        else
+                            ini.WriteValue("Settings", "OsdShowMessages", "0");
                     }
 
                 }
