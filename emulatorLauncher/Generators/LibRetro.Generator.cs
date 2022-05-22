@@ -1178,7 +1178,7 @@ namespace emulatorLauncher.libRetro
             try { File.Delete(patched); }
             catch { }
 
-            var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%d&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s&subsystem_name=%s"
+            var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%hu&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s&subsystem_name=%s"
                 .Select(c => (byte)c)
                 .ToArray();
 
@@ -1187,6 +1187,25 @@ namespace emulatorLauncher.libRetro
             int idx = toFind.IndexOf(toSubst);
             if (idx < 0)
                 return fn;
+
+            var bytes = File.ReadAllBytes(fn);
+            int index = bytes.IndexOf(toFind);
+            if (index < 0)
+            {
+                toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%d&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s&subsystem_name=%s"
+               .Select(c => (byte)c)
+               .ToArray();
+
+                toSet = toFind.ToArray();
+                toSubst = "&subsystem_name=%s".Select(c => (byte)c).ToArray();
+                idx = toFind.IndexOf(toSubst);
+                if (idx < 0)
+                    return fn;
+
+                index = bytes.IndexOf(toFind);
+                if (index < 0)
+                    return fn;
+            }
 
             string patchString = "@" + RetroArchNetPlayPatchedName;
 
@@ -1199,11 +1218,6 @@ namespace emulatorLauncher.libRetro
                     toSet[idx + i] = toPatch[i];
             }
 
-            var bytes = File.ReadAllBytes(fn);
-            int index = bytes.IndexOf(toFind);
-            if (index < 0)
-                return fn;
-            
             for (int i = 0; i < toSet.Length; i++)
                 bytes[index + i] = toSet[i];
 
