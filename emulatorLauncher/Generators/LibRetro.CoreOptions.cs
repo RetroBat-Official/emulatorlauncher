@@ -36,6 +36,7 @@ namespace emulatorLauncher.libRetro
             if (core == "theodore")
                 coreSettings["theodore_autorun"] = "enabled";
 
+            ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
@@ -712,6 +713,76 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["kronos_videoformattype"] = "auto";
 
+        }
+
+        private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "o2em")
+                return;
+
+            coreSettings["o2em_vkbd_transparency"] = "25";
+
+            // Emulated Hardware
+            if (Features.IsSupported("o2em_bios"))
+            {
+                if (SystemConfig.isOptSet("o2em_bios"))
+                    coreSettings["o2em_bios"] = SystemConfig["o2em_bios"];
+                else if (system == "videopacplus")
+                    coreSettings["o2em_bios"] = "g7400.bin";
+                else
+                    coreSettings["o2em_bios"] = "o2rom.bin";
+            }
+
+            // Emulated Hardware
+            if (Features.IsSupported("o2em_region"))
+            {
+                if (SystemConfig.isOptSet("o2em_region") && SystemConfig["o2em_region"] != "autodetect")
+                    coreSettings["o2em_region"] = SystemConfig["o2em_region"];
+                else
+                    coreSettings["o2em_region"] = "auto";
+            }
+
+            // Swap Gamepad
+            if (Features.IsSupported("o2em_swap_gamepads"))
+            {
+                if (SystemConfig.isOptSet("o2em_swap_gamepads"))
+                    coreSettings["o2em_swap_gamepads"] = SystemConfig["o2em_swap_gamepads"];
+                else
+                    coreSettings["o2em_swap_gamepads"] = "disabled";
+            }
+
+            // Crop Overscan
+            if (Features.IsSupported("o2em_crop_overscan"))
+            {
+                if (SystemConfig.isOptSet("o2em_crop_overscan"))
+                    coreSettings["o2em_crop_overscan"] = SystemConfig["o2em_crop_overscan"];
+                else
+                    coreSettings["o2em_crop_overscan"] = "enabled";
+            }
+
+            // Ghosting effect
+            if (Features.IsSupported("o2em_mix_frames"))
+            {
+                if (SystemConfig.isOptSet("o2em_mix_frames"))
+                    coreSettings["o2em_mix_frames"] = SystemConfig["o2em_mix_frames"];
+                else
+                    coreSettings["o2em_mix_frames"] = "disabled";
+            }
+
+            // Audio Filter
+            if (Features.IsSupported("o2em_low_pass_range"))
+            {
+                if (SystemConfig.isOptSet("o2em_low_pass_range") && SystemConfig["o2em_low_pass_range"] != "0")
+                {
+                    coreSettings["o2em_low_pass_filter"] = "enabled";
+                    coreSettings["o2em_low_pass_range"] = SystemConfig["o2em_low_pass_range"];
+                }
+                else
+                {
+                    coreSettings["o2em_low_pass_filter"] = "disabled";
+                    coreSettings["o2em_low_pass_range"] = "0";
+                }
+            }
         }
 
         private void ConfigureMame2003(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
