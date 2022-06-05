@@ -2142,6 +2142,12 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["mesen_fake_stereo"] = "disabled";
 
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p2"] = "262";
+                retroarchConfig["input_player2_mouse_index"] = "0";
+                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+            }
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

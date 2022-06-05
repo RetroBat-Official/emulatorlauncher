@@ -439,13 +439,12 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["ai_service_enable"] = "false";
 
             // bezel
-
-            ConfigureCoreOptions(retroarchConfig, system, core);
-            writeBezelConfig(retroarchConfig, system, rom, resolution);
-
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
                 UseEsPadToKey = false;
 
+            ConfigureCoreOptions(retroarchConfig, system, core);
+            writeBezelConfig(retroarchConfig, system, rom, resolution);
+            
             // custom : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
             foreach (var user_config in SystemConfig)
                 if (user_config.Name.StartsWith("retroarch."))
