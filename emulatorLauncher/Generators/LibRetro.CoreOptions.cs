@@ -36,6 +36,8 @@ namespace emulatorLauncher.libRetro
             if (core == "theodore")
                 coreSettings["theodore_autorun"] = "enabled";
 
+            ConfigureFCEumm(retroarchConfig, coreSettings, system, core);
+            ConfigureNestopia(retroarchConfig, coreSettings, system, core);
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
@@ -496,6 +498,14 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["fbneo-lightgun-hide-crosshair"] = "disabled";
 
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "4";
+                retroarchConfig["input_player1_mouse_index"] = "0";
+                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player1_gun_aux_a_mbtn"]   = "2"; // # for all games ?
+                retroarchConfig["input_player1_gun_start_mbtn"]   = "3";
+            }
         }
 
         private void ConfigureCitra(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -715,6 +725,37 @@ namespace emulatorLauncher.libRetro
 
         }
 
+        private void ConfigureFCEumm(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fceumm")
+                return;
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p2"] = "258";
+                retroarchConfig["input_player2_mouse_index"] = "0";
+                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+
+                coreSettings["fceumm_zapper_mode"] = "lightgun";
+            }
+        }
+
+        private void ConfigureNestopia(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "nestopia")
+                return;
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p2"] = "262";
+                retroarchConfig["input_player2_mouse_index"] = "0";
+                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+
+                coreSettings["nestopia_zapper_device"] = "lightgun";
+            }
+        }
+        
+
         private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "o2em")
@@ -822,6 +863,7 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["mame2003-plus_neogeo_bios"] = "unibios33";
 
+            coreSettings["mame2003-plus_xy_device"] = "lightgun";           
         }
 
         private void ConfigureQuasi88(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1136,6 +1178,13 @@ namespace emulatorLauncher.libRetro
                 coreSettings["snes9x_lightgun_mode"] = SystemConfig["snes9x_lightgun_mode"];
             else
                 coreSettings["snes9x_lightgun_mode"] = "Lightgun";
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player2_mouse_index"] = "0";
+                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+            }
         }
 
         private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1221,6 +1270,12 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["genesis_plus_gx_add_on"] = "auto";
 
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player2_mouse_index"] = "0";
+                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+            }
         }
         
         private void ConfigureGenesisPlusGXWide(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1466,6 +1521,7 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["mame_mame_4way_enable"] = "enabled";
 
+            coreSettings["mame_lightgun_mode"] = "lightgun";
         }
 
         private void CleanupMameMessConfigFiles(MessSystem messSystem)
@@ -2044,6 +2100,14 @@ namespace emulatorLauncher.libRetro
                     coreSettings["reicast_internal_resolution"] = "1280x960";
             }
 
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "4";
+                retroarchConfig["input_player1_mouse_index"] = "0";
+                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player1_gun_aux_a_mbtn"] = "2";
+                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+            }
         }
 
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2210,6 +2274,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_pgxp_vertex"] = "disabled";
             }
 
+            coreSettings["beetle_psx_hw_gun_input_mode"] = "lightgun";
         }
     }
 }

@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Net;
 using System.ComponentModel;
 using Microsoft.Win32;
+using System.Text;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -105,12 +106,41 @@ namespace emulatorLauncher
         [DllImport("user32.dll")]
         public static extern bool SetProcessDPIAware();
 
+        public static string EscapeXml(this string s)
+        {
+            string toxml = s;
+            if (!string.IsNullOrEmpty(toxml))
+            {
+                // replace literal values with entities
+                toxml = toxml.Replace("&", "&amp;");
+                toxml = toxml.Replace("'", "&apos;");
+                toxml = toxml.Replace("\"", "&quot;");
+                toxml = toxml.Replace(">", "&gt;");
+                toxml = toxml.Replace("<", "&lt;");
+            }
+            return toxml;
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
         {
+            /*
+            StringBuilder sb = new StringBuilder();
+            var mi = IniFile.FromFile(@"H:\[Emulz]\system\emulators\mupen64\mupen64plus.ini");
+            foreach (var ss in mi.EnumerateSections())
+            {
+                string goodName = mi.GetValue(ss, "GoodName");
+                goodName = EscapeXml(goodName);
+                sb.AppendLine("<rom hash=\""+ss+"\" name=\"" + goodName + "\"/>");
+            }
+
+            File.WriteAllText("c:\\temp\\mupen.xml", sb.ToString());
+
+            */
+
             RegisterShellExtensions();
 
             if (args.Length == 0)
@@ -132,6 +162,9 @@ namespace emulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"]));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
+
+            if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun"))
+                SystemConfig["use_guns"] = "true";
 
             LoadControllerConfiguration(args);
             ImportShaderOverrides();
