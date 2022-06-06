@@ -220,6 +220,16 @@ namespace emulatorLauncher
             }
         }
 
+        public string GetValueOrDefault(string key, string defaultValue)
+        {
+            var item = _data.FirstOrDefault(d => key.Equals(d.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (item != null)
+                return item.Value;
+
+            return defaultValue;
+        }
+
+
         public bool IsDirty { get; private set; }
 
         public void Save(string fileName, bool retroarchformat)

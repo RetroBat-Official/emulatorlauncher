@@ -93,27 +93,10 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["neocd_per_content_saves"] = "On";
-
-            if (SystemConfig.isOptSet("neocd_bios"))
-                coreSettings["neocd_bios"] = SystemConfig["neocd_bios"];
-            else
-                coreSettings["neocd_bios"] = "uni-bioscd.rom (CDZ, Universe 3.3)";
-
-            if (SystemConfig.isOptSet("neocd_cdspeedhack"))
-                coreSettings["neocd_cdspeedhack"] = SystemConfig["neocd_cdspeedhack"];
-            else
-                coreSettings["neocd_cdspeedhack"] = "Off";
-
-            if (SystemConfig.isOptSet("neocd_loadskip"))
-                coreSettings["neocd_loadskip"] = SystemConfig["neocd_loadskip"];
-            else
-                coreSettings["neocd_loadskip"] = "Off";
-
-            if (SystemConfig.isOptSet("neocd_region"))
-                coreSettings["neocd_region"] = SystemConfig["neocd_region"];
-            else
-                coreSettings["neocd_region"] = "USA";
-
+            coreSettings["neocd_bios"] = SystemConfig.GetValueOrDefault("neocd_bios", "uni-bioscd.rom (CDZ, Universe 3.3)");
+            coreSettings["neocd_cdspeedhack"] = SystemConfig.GetValueOrDefault("neocd_cdspeedhack", "Off");
+            coreSettings["neocd_loadskip"] = SystemConfig.GetValueOrDefault("neocd_loadskip", "Off");
+            coreSettings["neocd_region"] = SystemConfig.GetValueOrDefault("neocd_region", "USA");
         }
         
         private void ConfigureMednafenPce(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -122,78 +105,21 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["pce_show_advanced_input_settings"] = "enabled";
-
-            if (SystemConfig.isOptSet("pce_psgrevision"))
-                coreSettings["pce_psgrevision"] = SystemConfig["pce_psgrevision"];
-            else
-                coreSettings["pce_psgrevision"] = "auto";
-
-            if (SystemConfig.isOptSet("pce_resamp_quality"))
-                coreSettings["pce_resamp_quality"] = SystemConfig["pce_resamp_quality"];
-
-            if (SystemConfig.isOptSet("pce_ocmultiplier"))
-                coreSettings["pce_ocmultiplier"] = SystemConfig["pce_ocmultiplier"];
-            else
-                coreSettings["pce_ocmultiplier"] = "1";
-
-            if (SystemConfig.isOptSet("pce_nospritelimit"))
-                coreSettings["pce_nospritelimit"] = SystemConfig["pce_nospritelimit"];
-            else
-                coreSettings["pce_nospritelimit"] = "disabled";
-
-            if (SystemConfig.isOptSet("pce_cdimagecache"))
-                coreSettings["pce_cdimagecache"] = SystemConfig["pce_cdimagecache"];
-            else
-                coreSettings["pce_cdimagecache"] = "disabled";
-
-            if (SystemConfig.isOptSet("pce_cdbios"))
-                coreSettings["pce_cdbios"] = SystemConfig["pce_cdbios"];
-            else
-                coreSettings["pce_cdbios"] = "System Card 3";
-            
-            if (SystemConfig.isOptSet("pce_cdspeed"))
-                coreSettings["pce_cdspeed"] = SystemConfig["pce_cdspeed"];
-            else
-                coreSettings["pce_cdspeed"] = "1";
-
-            if (SystemConfig.isOptSet("pce_palette"))
-                coreSettings["pce_palette"] = SystemConfig["pce_palette"];
-            else
-                coreSettings["pce_palette"] = "Composite";
-
-            if (SystemConfig.isOptSet("pce_scaling"))
-                coreSettings["pce_scaling"] = SystemConfig["pce_scaling"];
-            else
-                coreSettings["pce_scaling"] = "auto";
-
-            if (SystemConfig.isOptSet("pce_hires_blend"))
-                coreSettings["pce_hires_blend"] = SystemConfig["pce_hires_blend"];
-            else
-                coreSettings["pce_hires_blend"] = "disabled";
-
-            if (SystemConfig.isOptSet("pce_h_overscan"))
-                coreSettings["pce_h_overscan"] = SystemConfig["pce_h_overscan"];
-            else
-                coreSettings["pce_h_overscan"] = "auto";
-            
-            if (SystemConfig.isOptSet("pce_adpcmextraprec"))
-                coreSettings["pce_adpcmextraprec"] = SystemConfig["pce_adpcmextraprec"];
-            else
-                coreSettings["pce_adpcmextraprec"] = "12-bit";
-            
-            if (SystemConfig.isOptSet("pcecdvolume"))
-            {
-                coreSettings["pce_adpcmvolume"] = SystemConfig["pcecdvolume"];
-                coreSettings["pce_cddavolume"] = SystemConfig["pcecdvolume"];
-                coreSettings["pce_cdpsgvolume"] = SystemConfig["pcecdvolume"];
-            }
-            else
-            {
-                coreSettings["pce_adpcmvolume"] = "100";
-                coreSettings["pce_cddavolume"] = "100";
-                coreSettings["pce_cdpsgvolume"] = "100";
-            }
-
+            coreSettings["pce_psgrevision"] = SystemConfig.GetValueOrDefault("pce_psgrevision", "auto");
+            coreSettings["pce_resamp_quality"] = SystemConfig.GetValueOrDefault("pce_resamp_quality", "3");
+            coreSettings["pce_ocmultiplier"] = SystemConfig.GetValueOrDefault("pce_ocmultiplier", "1");
+            coreSettings["pce_nospritelimit"] = SystemConfig.GetValueOrDefault("pce_nospritelimit", "disabled");
+            coreSettings["pce_cdimagecache"] = SystemConfig.GetValueOrDefault("pce_cdimagecache", "disabled");
+            coreSettings["pce_cdbios"] = SystemConfig.GetValueOrDefault("pce_cdbios", "System Card 3");
+            coreSettings["pce_cdspeed"] = SystemConfig.GetValueOrDefault("pce_cdspeed", "1");
+            coreSettings["pce_palette"] = SystemConfig.GetValueOrDefault("pce_palette", "Composite");
+            coreSettings["pce_scaling"] = SystemConfig.GetValueOrDefault("pce_scaling", "auto");
+            coreSettings["pce_hires_blend"] = SystemConfig.GetValueOrDefault("pce_hires_blend", "disabled");
+            coreSettings["pce_h_overscan"] = SystemConfig.GetValueOrDefault("pce_h_overscan", "auto");
+            coreSettings["pce_adpcmextraprec"] = SystemConfig.GetValueOrDefault("pce_adpcmextraprec", "12-bit");
+            coreSettings["pce_adpcmvolume"] = SystemConfig.GetValueOrDefault("pcecdvolume", "100");
+            coreSettings["pce_cddavolume"] = SystemConfig.GetValueOrDefault("pcecdvolume", "100");
+            coreSettings["pce_cdpsgvolume"] = SystemConfig.GetValueOrDefault("pcecdvolume", "100");
         }
 
         private void ConfigureFbalphaCPS3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -203,37 +129,12 @@ namespace emulatorLauncher.libRetro
 
             coreSettings["fbalpha2012_cps3_frameskip"] = "0";
             coreSettings["fbalpha2012_cps3_aspect"] = "DAR";
-
-            if (SystemConfig.isOptSet("fbalpha2012_cps3_cpu_speed_adjust"))
-                coreSettings["fbalpha2012_cps3_cpu_speed_adjust"] = SystemConfig["fbalpha2012_cps3_cpu_speed_adjust"];
-            else
-                coreSettings["fbalpha2012_cps3_cpu_speed_adjust"] = "100";
-
-            if (SystemConfig.isOptSet("fbalpha2012_cps3_hiscores"))
-                coreSettings["fbalpha2012_cps3_hiscores"] = SystemConfig["fbalpha2012_cps3_hiscores"];
-            else
-                coreSettings["fbalpha2012_cps3_hiscores"] = "enabled";
-
-            if (SystemConfig.isOptSet("fbalpha2012_cps3_controls_p1"))
-                coreSettings["fbalpha2012_cps3_controls_p1"] = SystemConfig["fbalpha2012_cps3_controls_p1"];
-            else
-                coreSettings["fbalpha2012_cps3_controls_p1"] = "gamepad";
-
-            if (SystemConfig.isOptSet("fbalpha2012_cps3_controls_p1"))
-                coreSettings["fbalpha2012_cps3_controls_p2"] = SystemConfig["fbalpha2012_cps3_controls_p2"];
-            else
-                coreSettings["fbalpha2012_cps3_controls_p2"] = "gamepad";
-
-            if (SystemConfig.isOptSet("fbalpha2012_cps3_lr_controls_p1"))
-                coreSettings["fbalpha2012_cps3_lr_controls_p1"] = SystemConfig["fbalpha2012_cps3_lr_controls_p1"];
-            else
-                coreSettings["fbalpha2012_cps3_lr_controls_p1"] = "normal";
-
-            if (SystemConfig.isOptSet("fbalpha2012_cps3_lr_controls_p2"))
-                coreSettings["fbalpha2012_cps3_lr_controls_p2"] = SystemConfig["fbalpha2012_cps3_lr_controls_p2"];
-            else
-                coreSettings["fbalpha2012_cps3_lr_controls_p2"] = "normal";
-
+            coreSettings["fbalpha2012_cps3_cpu_speed_adjust"] = SystemConfig.GetValueOrDefault("fbalpha2012_cps3_cpu_speed_adjust", "100");
+            coreSettings["fbalpha2012_cps3_hiscores"] = SystemConfig.GetValueOrDefault("fbalpha2012_cps3_hiscores", "enabled");
+            coreSettings["fbalpha2012_cps3_controls_p1"] = SystemConfig.GetValueOrDefault("fbalpha2012_cps3_controls_p1", "gamepad");
+            coreSettings["fbalpha2012_cps3_controls_p2"] = SystemConfig.GetValueOrDefault("fbalpha2012_cps3_controls_p2", "gamepad");
+            coreSettings["fbalpha2012_cps3_lr_controls_p1"] = SystemConfig.GetValueOrDefault("fbalpha2012_cps3_lr_controls_p1", "normal");
+            coreSettings["fbalpha2012_cps3_lr_controls_p2"] = SystemConfig.GetValueOrDefault("fbalpha2012_cps3_lr_controls_p2", "normal");
         }
 
         private void ConfigureFbalphaCPS2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -241,39 +142,14 @@ namespace emulatorLauncher.libRetro
             if (core != "fbalpha2012_cps2")
                 return;
 
-            coreSettings["fba2012cps1_frameskip"] = "disabled";
-            coreSettings["fba2012cps1_aspect"] = "DAR";
-
-            if (SystemConfig.isOptSet("fba2012cps1_auto_rotate"))
-                coreSettings["fba2012cps1_auto_rotate"] = SystemConfig["fba2012cps1_auto_rotate"];
-            else
-                coreSettings["fba2012cps1_auto_rotate"] = "enabled";
-
-            if (SystemConfig.isOptSet("fba2012cps1_cpu_speed_adjust"))
-                coreSettings["fba2012cps1_cpu_speed_adjust"] = SystemConfig["fba2012cps1_cpu_speed_adjust"];
-            else
-                coreSettings["fba2012cps1_cpu_speed_adjust"] = "100";
-
-            if (SystemConfig.isOptSet("fba2012cps1_hiscores"))
-                coreSettings["fba2012cps1_hiscores"] = SystemConfig["fba2012cps1_hiscores"];
-            else
-                coreSettings["fba2012cps1_hiscores"] = "enabled";
-
-            if (SystemConfig.isOptSet("fba2012cps1_lowpass_filter"))
-                coreSettings["fba2012cps1_lowpass_filter"] = SystemConfig["fba2012cps1_lowpass_filter"];
-            else
-                coreSettings["fba2012cps1_lowpass_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("fba2012cps1_lowpass_range"))
-                coreSettings["fba2012cps1_lowpass_range"] = SystemConfig["fba2012cps1_lowpass_range"];
-            else
-                coreSettings["fba2012cps1_lowpass_range"] = "50";
-
-            if (SystemConfig.isOptSet("fba2012cps2_controls"))
-                coreSettings["fba2012cps2_controls"] = SystemConfig["fba2012cps2_controls"];
-            else
-                coreSettings["fba2012cps2_controls"] = "gamepad";
-
+            coreSettings["fba2012cps2_frameskip"] = "disabled";
+            coreSettings["fba2012cps2_aspect"] = "DAR";
+            coreSettings["fba2012cps2_auto_rotate"] = SystemConfig.GetValueOrDefault("fba2012cps1_auto_rotate", "enabled");
+            coreSettings["fba2012cps2_cpu_speed_adjust"] = SystemConfig.GetValueOrDefault("fba2012cps1_cpu_speed_adjust", "100");
+            coreSettings["fba2012cps2_hiscores"] = SystemConfig.GetValueOrDefault("fba2012cps1_hiscores", "enabled");
+            coreSettings["fba2012cps2_lowpass_filter"] = SystemConfig.GetValueOrDefault("fba2012cps1_lowpass_filter", "disabled");
+            coreSettings["fba2012cps2_lowpass_range"] = SystemConfig.GetValueOrDefault("fba2012cps1_lowpass_range", "50");
+            coreSettings["fba2012cps2_controls"] = SystemConfig.GetValueOrDefault("fba2012cps2_controls", "gamepad");
         }
 
         private void ConfigureFbalphaCPS1(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -283,32 +159,11 @@ namespace emulatorLauncher.libRetro
 
             coreSettings["fba2012cps1_frameskip"] = "disabled";
             coreSettings["fba2012cps1_aspect"] = "DAR";
-
-            if (SystemConfig.isOptSet("fba2012cps1_auto_rotate"))
-                coreSettings["fba2012cps1_auto_rotate"] = SystemConfig["fba2012cps1_auto_rotate"];
-            else
-                coreSettings["fba2012cps1_auto_rotate"] = "enabled";
-
-            if (SystemConfig.isOptSet("fba2012cps1_cpu_speed_adjust"))
-                coreSettings["fba2012cps1_cpu_speed_adjust"] = SystemConfig["fba2012cps1_cpu_speed_adjust"];
-            else
-                coreSettings["fba2012cps1_cpu_speed_adjust"] = "100";
-
-            if (SystemConfig.isOptSet("fba2012cps1_hiscores"))
-                coreSettings["fba2012cps1_hiscores"] = SystemConfig["fba2012cps1_hiscores"];
-            else
-                coreSettings["fba2012cps1_hiscores"] = "enabled";
-
-            if (SystemConfig.isOptSet("fba2012cps1_lowpass_filter"))
-                coreSettings["fba2012cps1_lowpass_filter"] = SystemConfig["fba2012cps1_lowpass_filter"];
-            else
-                coreSettings["fba2012cps1_lowpass_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("fba2012cps1_lowpass_range"))
-                coreSettings["fba2012cps1_lowpass_range"] = SystemConfig["fba2012cps1_lowpass_range"];
-            else
-                coreSettings["fba2012cps1_lowpass_range"] = "50";
-
+            coreSettings["fba2012cps1_auto_rotate"] = SystemConfig.GetValueOrDefault("fba2012cps1_auto_rotate", "enabled");
+            coreSettings["fba2012cps1_cpu_speed_adjust"] = SystemConfig.GetValueOrDefault("fba2012cps1_cpu_speed_adjust", "100");
+            coreSettings["fba2012cps1_hiscores"] = SystemConfig.GetValueOrDefault("fba2012cps1_hiscores", "enabled");
+            coreSettings["fba2012cps1_lowpass_filter"] = SystemConfig.GetValueOrDefault("fba2012cps1_lowpass_filter", "disabled");
+            coreSettings["fba2012cps1_lowpass_range"] = SystemConfig.GetValueOrDefault("fba2012cps1_lowpass_range", "50");
         }
 
         private void ConfigurePpsspp(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -381,56 +236,16 @@ namespace emulatorLauncher.libRetro
                 coreSettings["ppsspp_disable_slow_framebuffer_effects"] = "disabled";
             }
 
-            if (SystemConfig.isOptSet("ppsspp_internal_resolution"))
-                coreSettings["ppsspp_internal_resolution"] = SystemConfig["ppsspp_internal_resolution"];
-            else
-                coreSettings["ppsspp_internal_resolution"] = "1440x816";
-
-            if (SystemConfig.isOptSet("ppsspp_texture_anisotropic_filtering"))
-                coreSettings["ppsspp_texture_anisotropic_filtering"] = SystemConfig["ppsspp_texture_anisotropic_filtering"];
-            else
-                coreSettings["ppsspp_texture_anisotropic_filtering"] = "off";
-
-            if (SystemConfig.isOptSet("ppsspp_texture_filtering"))
-                coreSettings["ppsspp_texture_filtering"] = SystemConfig["ppsspp_texture_filtering"];
-            else
-                coreSettings["ppsspp_texture_filtering"] = "auto";
-
-            if (SystemConfig.isOptSet("ppsspp_texture_scaling_type"))
-                coreSettings["ppsspp_texture_scaling_type"] = SystemConfig["ppsspp_texture_scaling_type"];
-            else
-                coreSettings["ppsspp_texture_scaling_type"] = "xbrz";
-
-            if (SystemConfig.isOptSet("ppsspp_texture_scaling_level"))
-                coreSettings["ppsspp_texture_scaling_level"] = SystemConfig["ppsspp_texture_scaling_level"];
-            else
-                coreSettings["ppsspp_texture_scaling_level"] = "auto";
-
-            if (SystemConfig.isOptSet("ppsspp_texture_deposterize"))
-                coreSettings["ppsspp_texture_deposterize"] = SystemConfig["ppsspp_texture_deposterize"];
-            else
-                coreSettings["ppsspp_texture_deposterize"] = "disabled";
-
-            if (SystemConfig.isOptSet("ppsspp_language"))
-                coreSettings["ppsspp_language"] = SystemConfig["ppsspp_language"];
-            else
-                coreSettings["ppsspp_language"] = "automatic";
-
-            if (SystemConfig.isOptSet("ppsspp_io_timing_method"))
-                coreSettings["ppsspp_io_timing_method"] = SystemConfig["ppsspp_io_timing_method"];
-            else
-                coreSettings["ppsspp_io_timing_method"] = "Fast";
-
-            if (SystemConfig.isOptSet("ppsspp_ignore_bad_memory_access"))
-                coreSettings["ppsspp_ignore_bad_memory_access"] = SystemConfig["ppsspp_ignore_bad_memory_access"];
-            else
-                coreSettings["ppsspp_ignore_bad_memory_access"] = "enabled";
-
-            if (SystemConfig.isOptSet("ppsspp_texture_replacement"))
-                coreSettings["ppsspp_texture_replacement"] = SystemConfig["ppsspp_texture_replacement"];
-            else
-                coreSettings["ppsspp_texture_replacement"] = "disabled";
-
+            coreSettings["ppsspp_internal_resolution"] = SystemConfig.GetValueOrDefault("ppsspp_internal_resolution", "1440x816");
+            coreSettings["ppsspp_texture_anisotropic_filtering"] = SystemConfig.GetValueOrDefault("ppsspp_texture_anisotropic_filtering", "off");
+            coreSettings["ppsspp_texture_filtering"] = SystemConfig.GetValueOrDefault("ppsspp_texture_filtering", "auto");
+            coreSettings["ppsspp_texture_scaling_type"] = SystemConfig.GetValueOrDefault("ppsspp_texture_scaling_type", "xbrz");
+            coreSettings["ppsspp_texture_scaling_level"] = SystemConfig.GetValueOrDefault("ppsspp_texture_scaling_level", "auto");
+            coreSettings["ppsspp_texture_deposterize"] = SystemConfig.GetValueOrDefault("ppsspp_texture_deposterize", "disabled");
+            coreSettings["ppsspp_language"] = SystemConfig.GetValueOrDefault("ppsspp_language", "automatic");
+            coreSettings["ppsspp_io_timing_method"] = SystemConfig.GetValueOrDefault("ppsspp_io_timing_method", "Fast");
+            coreSettings["ppsspp_ignore_bad_memory_access"] = SystemConfig.GetValueOrDefault("ppsspp_ignore_bad_memory_access", "enabled");
+            coreSettings["ppsspp_texture_replacement"] = SystemConfig.GetValueOrDefault("ppsspp_texture_replacement", "disabled");
         }
 
         private void ConfigureGambatte(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -442,27 +257,10 @@ namespace emulatorLauncher.libRetro
             coreSettings["gambatte_gbc_color_correction_mode"] = "accurate";
             coreSettings["gambatte_gbc_color_correction"] = "GBC only";
             coreSettings["gambatte_up_down_allowed"] = "disabled";
-
-            if (SystemConfig.isOptSet("gambatte_gb_hwmode"))
-                coreSettings["gambatte_gb_hwmode"] = SystemConfig["gambatte_gb_hwmode"];
-            else
-                coreSettings["gambatte_gb_hwmode"] = "Auto";
-
-            if (SystemConfig.isOptSet("gambatte_mix_frames"))
-                coreSettings["gambatte_mix_frames"] = SystemConfig["gambatte_mix_frames"];
-            else
-                coreSettings["gambatte_mix_frames"] = "lcd_ghosting";
-
-            if (SystemConfig.isOptSet("gambatte_gb_internal_palette"))
-                coreSettings["gambatte_gb_internal_palette"] = SystemConfig["gambatte_gb_internal_palette"];
-            else
-                coreSettings["gambatte_gb_internal_palette"] = "GB - DMG";
-
-            if (SystemConfig.isOptSet("gambatte_gb_colorization"))
-                coreSettings["gambatte_gb_colorization"] = SystemConfig["gambatte_gb_colorization"];
-            else
-                coreSettings["gambatte_gb_colorization"] = "auto";
-
+            coreSettings["gambatte_gb_hwmode"] = SystemConfig.GetValueOrDefault("gambatte_gb_hwmode", "Auto");
+            coreSettings["gambatte_mix_frames"] = SystemConfig.GetValueOrDefault("gambatte_mix_frames", "lcd_ghosting");
+            coreSettings["gambatte_gb_internal_palette"] = SystemConfig.GetValueOrDefault("gambatte_gb_internal_palette", "GB - DMG");
+            coreSettings["gambatte_gb_colorization"] = SystemConfig.GetValueOrDefault("gambatte_gb_colorization", "auto");
         }
 
         private void ConfigureFbneo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -477,26 +275,13 @@ namespace emulatorLauncher.libRetro
             coreSettings["fbneo-load-subsystem-from-parent"] = "enabled";
             coreSettings["fbneo-fm-interpolation"] = "4-point 3rd order";
             coreSettings["fbneo-sample-interpolation"] = "4-point 3rd order";
+            coreSettings["fbneo-neogeo-mode"] = SystemConfig.GetValueOrDefault("fbneo-neogeo-mode", "UNIBIOS");
+            coreSettings["fbneo-vertical-mode"] = SystemConfig.GetValueOrDefault("fbneo-vertical-mode", "disabled");
 
+            if (SystemConfig["fbneo-vertical-mode"] == "enabled")
+                SystemConfig["bezel"] = "none";
 
-            if (SystemConfig.isOptSet("fbneo-neogeo-mode"))
-                coreSettings["fbneo-neogeo-mode"] = SystemConfig["fbneo-neogeo-mode"];
-            else
-                coreSettings["fbneo-neogeo-mode"] = "UNIBIOS";
-
-            if (SystemConfig.isOptSet("fbneo-vertical-mode"))
-            {
-                coreSettings["fbneo-vertical-mode"] = SystemConfig["fbneo-vertical-mode"];
-                if (SystemConfig["fbneo-vertical-mode"] == "enabled")
-                    SystemConfig["bezel"] = "none";
-            }
-            else
-                coreSettings["fbneo-vertical-mode"] = "disabled";
-
-            if (SystemConfig.isOptSet("fbneo-lightgun-hide-crosshair"))
-                coreSettings["fbneo-lightgun-hide-crosshair"] = SystemConfig["fbneo-lightgun-hide-crosshair"];
-            else
-                coreSettings["fbneo-lightgun-hide-crosshair"] = "disabled";
+            coreSettings["fbneo-lightgun-hide-crosshair"] = SystemConfig.GetValueOrDefault("fbneo-lightgun-hide-crosshair", "disabled");
 
             if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
             {
@@ -505,6 +290,8 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_aux_a_mbtn"]   = "2"; // # for all games ?
                 retroarchConfig["input_player1_gun_start_mbtn"]   = "3";
+                retroarchConfig["input_player1_gun_start"] = "enter";
+                retroarchConfig["input_player1_gun_select"] = "escape";
             }
         }
 
@@ -613,6 +400,21 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["beetle_saturn_midsync"] = "disabled";
 
+
+            coreSettings["beetle_saturn_virtuagun_crosshair"] = "cross";
+            coreSettings["beetle_saturn_mouse_sensitivity"] = "100%";
+            coreSettings["beetle_saturn_virtuagun_input"] = "lightgun";
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "260";                
+                retroarchConfig["input_player1_mouse_index"] = "0";                
+                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+                retroarchConfig["input_player1_gun_start"] = "enter";
+                retroarchConfig["input_player1_gun_select"] = "escape";
+            }
         }
 
         private void ConfigurePicodrive(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -723,12 +525,53 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["kronos_videoformattype"] = "auto";
 
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player1_mouse_index"] = "0";
+                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+                retroarchConfig["input_player1_gun_start"] = "enter";
+                retroarchConfig["input_player1_gun_select"] = "escape";
+            }
         }
 
         private void ConfigureFCEumm(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "fceumm")
                 return;
+
+            if (Features.IsSupported("fceumm_cropoverscan"))
+            {
+                if (SystemConfig.isOptSet("fceumm_cropoverscan") && SystemConfig["fceumm_cropoverscan"] == "none")
+                {
+                    coreSettings["fceumm_overscan_h"] = "disabled";
+                    coreSettings["fceumm_overscan_v"] = "disabled";
+                }
+                else if (SystemConfig.isOptSet("fceumm_cropoverscan") && SystemConfig["fceumm_cropoverscan"] == "h")
+                {
+                    coreSettings["fceumm_overscan_h"] = "enabled";
+                    coreSettings["fceumm_overscan_v"] = "disabled";
+                }
+                else if (SystemConfig.isOptSet("fceumm_cropoverscan") && SystemConfig["fceumm_cropoverscan"] == "v")
+                {
+                    coreSettings["fceumm_overscan_h"] = "disabled";
+                    coreSettings["fceumm_overscan_v"] = "enabled";
+                }
+                else
+                {
+                    coreSettings["fceumm_overscan_h"] = "enabled";
+                    coreSettings["fceumm_overscan_v"] = "enabled";
+                }
+            }
+
+            coreSettings["fceumm_palette"] = SystemConfig.GetValueOrDefault("fceumm_palette", "default");
+            coreSettings["fceumm_ntsc_filter"] = SystemConfig.GetValueOrDefault("fceumm_ntsc_filter", "disabled");
+            coreSettings["fceumm_sndquality"] = SystemConfig.GetValueOrDefault("fceumm_sndquality", "Low");
+            coreSettings["fceumm_overclocking"] = SystemConfig.GetValueOrDefault("fceumm_overclocking", "disabled");
+            coreSettings["fceumm_nospritelimit"] = SystemConfig.GetValueOrDefault("fceumm_nospritelimit", "enabled");
+            coreSettings["fceumm_show_crosshair"] = SystemConfig.GetValueOrDefault("fceumm_show_crosshair", "enabled");
 
             if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
             {
@@ -1195,80 +1038,22 @@ namespace emulatorLauncher.libRetro
             coreSettings["genesis_plus_gx_bram"] = "per game";
             coreSettings["genesis_plus_gx_ym2413"] = "auto";
 
-            if (SystemConfig.isOptSet("addr_error"))
-                coreSettings["genesis_plus_gx_addr_error"] = SystemConfig["addr_error"];
-            else
-                coreSettings["genesis_plus_gx_addr_error"] = "enabled";
+            coreSettings["genesis_plus_gx_addr_error"] = SystemConfig.GetValueOrDefault("addr_error", "enabled");
+            coreSettings["genesis_plus_gx_lock_on"] = SystemConfig.GetValueOrDefault("lock_on", "disabled");
+            coreSettings["genesis_plus_gx_ym2612"] = SystemConfig.GetValueOrDefault("ym2612", "mame (ym2612)");
+            coreSettings["genesis_plus_gx_audio_filter"] = SystemConfig.GetValueOrDefault("audio_filter", "disabled");
+            coreSettings["genesis_plus_gx_blargg_ntsc_filter"] = SystemConfig.GetValueOrDefault("ntsc_filter", "disabled");
+            coreSettings["genesis_plus_gx_lcd_filter"] = SystemConfig.GetValueOrDefault("lcd_filter", "lcd_filter");
+            coreSettings["genesis_plus_gx_overscan"] = SystemConfig.GetValueOrDefault("overscan", "disabled");
+            coreSettings["genesis_plus_gx_render"] = SystemConfig.GetValueOrDefault("render", "single field");
+            coreSettings["genesis_plus_gx_force_dtack"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_force_dtack", "enabled");
+            coreSettings["genesis_plus_gx_overclock"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_overclock", "100%");
+            coreSettings["genesis_plus_gx_no_sprite_limit"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_no_sprite_limit", "disabled");
+            coreSettings["genesis_plus_gx_bios"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_bios", "disabled");
+            coreSettings["genesis_plus_gx_add_on"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_add_on", "auto");
 
-            if (SystemConfig.isOptSet("lock_on"))
-                coreSettings["genesis_plus_gx_lock_on"] = SystemConfig["lock_on"];
-            else
-                coreSettings["genesis_plus_gx_lock_on"] = "disabled";
-
-            if (SystemConfig.isOptSet("ym2612"))
-                coreSettings["genesis_plus_gx_ym2612"] = SystemConfig["ym2612"];
-            else
-                coreSettings["genesis_plus_gx_ym2612"] = "mame (ym2612)";
-
-            if (SystemConfig.isOptSet("audio_filter"))
-                coreSettings["genesis_plus_gx_audio_filter"] = SystemConfig["audio_filter"];
-            else
-                coreSettings["genesis_plus_gx_audio_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("ntsc_filter"))
-                coreSettings["genesis_plus_gx_blargg_ntsc_filter"] = SystemConfig["ntsc_filter"];
-            else
-                coreSettings["genesis_plus_gx_blargg_ntsc_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("lcd_filter"))
-                coreSettings["genesis_plus_gx_lcd_filter"] = SystemConfig["lcd_filter"];
-            else
-                coreSettings["genesis_plus_gx_lcd_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("overscan"))
-                coreSettings["genesis_plus_gx_overscan"] = SystemConfig["overscan"];
-            else
-                coreSettings["genesis_plus_gx_overscan"] = "disabled";
-
-            if (SystemConfig.isOptSet("render"))
-                coreSettings["genesis_plus_gx_render"] = SystemConfig["render"];
-            else
-                coreSettings["genesis_plus_gx_render"] = "single field";
-
-            if (SystemConfig.isOptSet("gun_cursor"))
-                coreSettings["genesis_plus_gx_gun_cursor"] = SystemConfig["gun_cursor"];
-            else
-                coreSettings["genesis_plus_gx_gun_cursor"] = "disabled";
-
-            if (SystemConfig.isOptSet("gun_input"))
-                coreSettings["genesis_plus_gx_gun_input"] = SystemConfig["gun_input"];
-            else
-                coreSettings["genesis_plus_gx_gun_input"] = "lightgun";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_force_dtack"))
-                coreSettings["genesis_plus_gx_force_dtack"] = SystemConfig["genesis_plus_gx_force_dtack"];
-            else
-                coreSettings["genesis_plus_gx_force_dtack"] = "enabled";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_overclock"))
-                coreSettings["genesis_plus_gx_overclock"] = SystemConfig["genesis_plus_gx_overclock"];
-            else
-                coreSettings["genesis_plus_gx_overclock"] = "100%";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_no_sprite_limit"))
-                coreSettings["genesis_plus_gx_no_sprite_limit"] = SystemConfig["genesis_plus_gx_no_sprite_limit"];
-            else
-                coreSettings["genesis_plus_gx_no_sprite_limit"] = "disabled";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_bios"))
-                coreSettings["genesis_plus_gx_bios"] = SystemConfig["genesis_plus_gx_bios"];
-            else
-                coreSettings["genesis_plus_gx_bios"] = "disabled";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_add_on"))
-                coreSettings["genesis_plus_gx_add_on"] = SystemConfig["genesis_plus_gx_add_on"];
-            else
-                coreSettings["genesis_plus_gx_add_on"] = "auto";
+            coreSettings["genesis_plus_gx_gun_cursor"] = SystemConfig.GetValueOrDefault("gun_cursor", "enabled");
+            coreSettings["genesis_plus_gx_gun_input"] = SystemConfig.GetValueOrDefault("gun_input", "lightgun");
 
             if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
             {
@@ -1304,158 +1089,32 @@ namespace emulatorLauncher.libRetro
             coreSettings["genesis_plus_gx_wide_ym2413"] = "auto";
             coreSettings["genesis_plus_gx_wide_overscan"] = "disabled";
 
-            if (SystemConfig.isOptSet("addr_error"))
-                coreSettings["genesis_plus_gx_wide_addr_error"] = SystemConfig["addr_error"];
-            else
-                coreSettings["genesis_plus_gx_wide_addr_error"] = "enabled";
+            coreSettings["genesis_plus_gx_wide_addr_error"] = SystemConfig.GetValueOrDefault("addr_error", "enabled");
+            coreSettings["genesis_plus_gx_wide_lock_on"] = SystemConfig.GetValueOrDefault("lock_on", "disabled");
+            coreSettings["genesis_plus_gx_wide_ym2612"] = SystemConfig.GetValueOrDefault("ym2612", "mame (ym2612)");
+            coreSettings["genesis_plus_gx_wide_audio_filter"] = SystemConfig.GetValueOrDefault("audio_filter", "disabled");
+            coreSettings["genesis_plus_gx_wide_blargg_ntsc_filter"] = SystemConfig.GetValueOrDefault("ntsc_filter", "disabled");
+            coreSettings["genesis_plus_gx_wide_lcd_filter"] = SystemConfig.GetValueOrDefault("lcd_filter", "disabled");
+            coreSettings["genesis_plus_gx_wide_overscan"] = SystemConfig.GetValueOrDefault("overscan", "disabled");
+            coreSettings["genesis_plus_gx_wide_render"] = SystemConfig.GetValueOrDefault("render", "single field");
+            coreSettings["genesis_plus_gx_wide_force_dtack"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_force_dtack", "enabled");
+            coreSettings["genesis_plus_gx_wide_overclock"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_overclock", "100%");
+            coreSettings["genesis_plus_gx_wide_no_sprite_limit"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_no_sprite_limit", "disabled");            
+            coreSettings["genesis_plus_gx_wide_bios"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_bios", "disabled");
+            coreSettings["genesis_plus_gx_wide_add_on"] = SystemConfig.GetValueOrDefault("genesis_plus_gx_add_on", "auto");
+            coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = SystemConfig.GetValueOrDefault("h40_extra_columns", "10");
 
-            if (SystemConfig.isOptSet("lock_on"))
-                coreSettings["genesis_plus_gx_wide_lock_on"] = SystemConfig["lock_on"];
-            else
-                coreSettings["genesis_plus_gx_wide_lock_on"] = "disabled";
-
-            if (SystemConfig.isOptSet("ym2612"))
-                coreSettings["genesis_plus_gx_wide_ym2612"] = SystemConfig["ym2612"];
-            else
-                coreSettings["genesis_plus_gx_wide_ym2612"] = "mame (ym2612)";
-
-            if (SystemConfig.isOptSet("audio_filter"))
-                coreSettings["genesis_plus_gx_wide_audio_filter"] = SystemConfig["audio_filter"];
-            else
-                coreSettings["genesis_plus_gx_wide_audio_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("ntsc_filter"))
-                coreSettings["genesis_plus_gx_wide_blargg_ntsc_filter"] = SystemConfig["ntsc_filter"];
-            else
-                coreSettings["genesis_plus_gx_wide_blargg_ntsc_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("lcd_filter"))
-                coreSettings["genesis_plus_gx_wide_lcd_filter"] = SystemConfig["lcd_filter"];
-            else
-                coreSettings["genesis_plus_gx_wide_lcd_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("overscan"))
-                coreSettings["genesis_plus_gx_wide_overscan"] = SystemConfig["overscan"];
-            else
-                coreSettings["genesis_plus_gx_wide_overscan"] = "disabled";
-
-            if (SystemConfig.isOptSet("render"))
-                coreSettings["genesis_plus_gx_wide_render"] = SystemConfig["render"];
-            else
-                coreSettings["genesis_plus_gx_wide_render"] = "single field";
-
-            if (SystemConfig.isOptSet("gun_cursor"))
-                coreSettings["genesis_plus_gx_wide_gun_cursor"] = SystemConfig["gun_cursor"];
-            else
-                coreSettings["genesis_plus_gx_wide_gun_cursor"] = "disabled";
-
-            if (SystemConfig.isOptSet("gun_input"))
-                coreSettings["genesis_plus_gx_wide_gun_input"] = SystemConfig["gun_input"];
-            else
-                coreSettings["genesis_plus_gx_wide_gun_input"] = "lightgun";
+            coreSettings["genesis_plus_gx_wide_gun_cursor"] = SystemConfig.GetValueOrDefault("gun_cursor", "enabled");
+            coreSettings["genesis_plus_gx_wide_gun_input"] = SystemConfig.GetValueOrDefault("gun_input", "lightgun");
             
-            if (SystemConfig.isOptSet("genesis_plus_gx_force_dtack"))
-                coreSettings["genesis_plus_gx_wide_force_dtack"] = SystemConfig["genesis_plus_gx_force_dtack"];
-            else
-                coreSettings["genesis_plus_gx_wide_force_dtack"] = "enabled";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_overclock"))
-                coreSettings["genesis_plus_gx_wide_overclock"] = SystemConfig["genesis_plus_gx_overclock"];
-            else
-                coreSettings["genesis_plus_gx_wide_overclock"] = "100%";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_no_sprite_limit"))
-                coreSettings["genesis_plus_gx_wide_no_sprite_limit"] = SystemConfig["genesis_plus_gx_no_sprite_limit"];
-            else
-                coreSettings["genesis_plus_gx_wide_no_sprite_limit"] = "disabled";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_bios"))
-                coreSettings["genesis_plus_gx_wide_bios"] = SystemConfig["genesis_plus_gx_bios"];
-            else
-                coreSettings["genesis_plus_gx_wide_bios"] = "disabled";
-            
-            if (SystemConfig.isOptSet("genesis_plus_gx_add_on"))
-                coreSettings["genesis_plus_gx_wide_add_on"] = SystemConfig["genesis_plus_gx_add_on"];
-            else
-                coreSettings["genesis_plus_gx_wide_add_on"] = "auto";
-            
-            if (SystemConfig.isOptSet("h40_extra_columns"))
-                coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = SystemConfig["h40_extra_columns"];
-            else
-                coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = "10";
-
-        }
-
-/*
-        private void ConfigureGenesisPlusGXWide(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
-        {
-            if (core != "genesis_plus_gx_wide")
-                return;
-
-            if (SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
             {
-                int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
-                if (idx == 1 || idx == 2 || idx == 4 || idx == 6 || idx == 7 || idx == 9 || idx == 14 || idx == 16 || idx == 18 || idx == 19)
-                {
-                    retroarchConfig["aspect_ratio_index"] = idx.ToString();
-                    retroarchConfig["video_aspect_ratio_auto"] = "false";
-                    SystemConfig["bezel"] = "none";
-                }
+                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player2_mouse_index"] = "0";
+                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
             }
-            else
-            {
-                retroarchConfig["aspect_ratio_index"] = "1";
-                retroarchConfig["video_aspect_ratio_auto"] = "false";
-                SystemConfig["bezel"] = "none";
-            }
-
-            coreSettings["genesis_plus_gx_wide_blargg_ntsc_filter"] = "disabled";
-            coreSettings["genesis_plus_gx_wide_lcd_filter"] = "disabled";
-            coreSettings["genesis_plus_gx_wide_overscan"] = "disabled";
-
-            if (SystemConfig.isOptSet("addr_error"))
-                coreSettings["genesis_plus_gx_wide_addr_error"] = SystemConfig["addr_error"];
-            else
-                coreSettings["genesis_plus_gx_wide_addr_error"] = "enabled";
-
-            if (SystemConfig.isOptSet("lock_on"))
-                coreSettings["genesis_plus_gx_wide_lock_on"] = SystemConfig["lock_on"];
-            else
-                coreSettings["genesis_plus_gx_wide_lock_on"] = "disabled";
-
-            if (SystemConfig.isOptSet("ym2612"))
-                coreSettings["genesis_plus_gx_wide_ym2612"] = SystemConfig["ym2612"];
-            else
-                coreSettings["genesis_plus_gx_wide_ym2612"] = "mame (ym2612)";
-
-            if (SystemConfig.isOptSet("audio_filter"))
-                coreSettings["genesis_plus_gx_wide_audio_filter"] = SystemConfig["audio_filter"];
-            else
-                coreSettings["genesis_plus_gx_wide_audio_filter"] = "disabled";
-
-            if (SystemConfig.isOptSet("render"))
-                coreSettings["genesis_plus_gx_wide_render"] = SystemConfig["render"];
-            else
-                coreSettings["genesis_plus_gx_wide_render"] = "single field";
-
-            if (SystemConfig.isOptSet("gun_cursor"))
-                coreSettings["genesis_plus_gx_wide_gun_cursor"] = SystemConfig["gun_cursor"];
-            else
-                coreSettings["genesis_plus_gx_wide_gun_cursor"] = "disabled";
-
-            if (SystemConfig.isOptSet("gun_input"))
-                coreSettings["genesis_plus_gx_wide_gun_input"] = SystemConfig["gun_input"];
-            else
-                coreSettings["genesis_plus_gx_wide_gun_input"] = "lightgun";
-
-            if (SystemConfig.isOptSet("h40_extra_columns"))
-                coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = SystemConfig["h40_extra_columns"];
-            else
-                coreSettings["genesis_plus_gx_wide_h40_extra_columns"] = "10";
-
         }
-*/
-
+        
         private void ConfigureMame(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "mame")
@@ -2105,8 +1764,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_libretro_device_p1"] = "4";
                 retroarchConfig["input_player1_mouse_index"] = "0";
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_aux_a_mbtn"] = "2";
+                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+                retroarchConfig["input_player1_gun_start"] = "enter";
+                retroarchConfig["input_player1_gun_select"] = "escape";
             }
         }
 
@@ -2281,6 +1942,18 @@ namespace emulatorLauncher.libRetro
             }
 
             coreSettings["beetle_psx_hw_gun_input_mode"] = "lightgun";
+            coreSettings["beetle_psx_hw_gun_cursor"] = "cross";
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player1_mouse_index"] = "0";
+                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player1_gun_aux_a_mbtn"] = "2";
+                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+                retroarchConfig["input_player1_gun_start"] = "enter";
+                retroarchConfig["input_player1_gun_select"] = "escape";
+            }
         }
     }
 }
