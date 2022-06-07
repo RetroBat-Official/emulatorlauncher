@@ -77,6 +77,7 @@
     <Compile Include="Common\FileTools.cs" />
     <Compile Include="Common\IsoFile.cs" />
     <Compile Include="Common\Job.cs" />
+    <Compile Include="Common\OrderedDictionary.cs" />
     <Compile Include="Common\ProcessExtensions.cs" />
     <Compile Include="Common\ProgressInformation.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />

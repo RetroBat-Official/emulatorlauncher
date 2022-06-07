@@ -95,10 +95,7 @@ namespace emulatorLauncher
                     if (value.EndsWith("\""))
                         value = value.Substring(0, value.Length-1);
 
-                    if (options != null && options.CaseSensitive)
-                        ret[line.Substring(0, idx).Trim()] = value;
-                    else
-                        ret[line.Substring(0, idx).ToLower().Trim()] = value;
+                    ret[line.Substring(0, idx).Trim()] = value;
                 }
                 else
                     ret[line] = EmptyLine;
@@ -112,30 +109,9 @@ namespace emulatorLauncher
             if (cfg == null)
                 return;
 
-            foreach (var item in cfg._data)
+            foreach (var item in cfg._data.Values)
                 this[item.Name] = item.Value;
         }
-        /*
-        public void ImportOverrides(IniFile ini)
-        {
-            if (ini == null)
-                return;
-
-            foreach (var section in ini.EnumerateSections())
-            {
-                foreach (var key in ini.EnumerateKeys(section))
-                {
-                    if (string.IsNullOrEmpty(key) || key.Trim().StartsWith(";"))
-                        continue;
-
-                    string value = ini.GetValue(section, key);
-                    if (string.IsNullOrEmpty(value))
-                        continue;
-
-                    this[section + "." + key] = value;
-                }
-            }
-        }*/
 
         public string GetFullPath(string key)
         {
@@ -186,33 +162,63 @@ namespace emulatorLauncher
             return data;
         }
 
-        private List<ConfigItem> _data = new List<ConfigItem>();
+        private OrderedDictionary<string, ConfigItem> _data = new OrderedDictionary<string, ConfigItem>();
 
         public ConfigFile() { }
+
+        private string FormatKey(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return key;
+
+            if (Options != null && Options.CaseSensitive)
+                return key.Trim();
+
+            return key.ToLowerInvariant().Trim();
+        }
 
         public string this[string key]
         {
             get
             {
-                var item = _data.FirstOrDefault(d => key.Equals(d.Name, StringComparison.InvariantCultureIgnoreCase));
-                if (item != null)
-                    return item.Value;
+                if (!string.IsNullOrEmpty(key))
+                {
+                    ConfigItem item;
+                    if (_data.TryGetValue(FormatKey(key), out item) && item != null)
+                        if (item.Value != EmptyLine)
+                            return item.Value;
+                }
 
                 return string.Empty;
             }
             set
             {
-                var item = _data.FirstOrDefault(d => key.Equals(d.Name, StringComparison.InvariantCultureIgnoreCase));
-                if (item == null)
+                var indexKey = key;
+
+                if (string.IsNullOrEmpty(indexKey) && value == EmptyLine)
                 {
-                    if ((this.Options == null || !Options.KeepEmptyLines) && string.IsNullOrEmpty(value))
+                    if (this.Options == null || !Options.KeepEmptyLines)
                         return;
 
-                    item = new ConfigItem() { Name = key };
-                    _data.Add(item);
+                    indexKey = EmptyLine + Guid.NewGuid();
+                }
+                else
+                    indexKey = FormatKey(key);
+
+                ConfigItem item;
+                if (!_data.TryGetValue(indexKey, out item) || item == null)
+                {
+                    if ((this.Options == null || !Options.KeepEmptyValues) && string.IsNullOrEmpty(value))
+                        return;
+
+                    item = new ConfigItem() { Name = key, Value = value };
+                    _data.Add(indexKey, item);
+                    return;
                 }
 
-                if (item.Value != value)
+                if ((this.Options == null || !Options.KeepEmptyValues) && string.IsNullOrEmpty(value))
+                    _data.Remove(indexKey);
+                else if (item.Value != value)
                 {
                     item.Value = value;
                     IsDirty = true;
@@ -222,13 +228,12 @@ namespace emulatorLauncher
 
         public string GetValueOrDefault(string key, string defaultValue)
         {
-            var item = _data.FirstOrDefault(d => key.Equals(d.Name, StringComparison.InvariantCultureIgnoreCase));
-            if (item != null)
+            ConfigItem item;
+            if (_data.TryGetValue(FormatKey(key), out item) && item != null)
                 return item.Value;
 
             return defaultValue;
         }
-
 
         public bool IsDirty { get; private set; }
 
@@ -236,7 +241,7 @@ namespace emulatorLauncher
         {
             StringBuilder sb = new StringBuilder();
 
-            foreach (var item in _data)
+            foreach (var item in _data.Values)
             {
                 sb.Append(item.Name);
 
@@ -265,62 +270,83 @@ namespace emulatorLauncher
             File.WriteAllText(fileName, sb.ToString());
         }
 
-        public ConfigFile LoadAll(string p)
+        public ConfigFile LoadAll(string key)
         {
             ConfigFile ret = new ConfigFile();
 
-            if (string.IsNullOrEmpty(p))
+            if (string.IsNullOrEmpty(key))
                 return ret;
 
-            foreach (var item in _data)
-                if (item.Name.StartsWith(p + "."))
-                    ret[item.Name.Substring((p + ".").Length)] = item.Value;
+            key = FormatKey(key) + ".";
+
+            foreach (var item in _data.Values)
+                if (item.Name.StartsWith(key))
+                    ret[item.Name.Substring(key.Length)] = item.Value;
 
             return ret;
         }
 
-        public bool isOptSet(string p)
+        public bool isOptSet(string key)
         {
-            return _data.Any(d => d.Name == p);
+            if (string.IsNullOrEmpty(key))
+                return false;
+
+            return _data.ContainsKey(FormatKey(key));
         }
 
-        public bool getOptBoolean(string p)
+        public bool getOptBoolean(string key)
         {
-            var data = _data.FirstOrDefault(d => d.Name == p);
-            if (data != null)
-                return data.Value != null && data.Value.ToLower() == "true" || data.Value == "1";
+            if (string.IsNullOrEmpty(key))
+                return false;
+
+            ConfigItem item;
+            if (_data.TryGetValue(FormatKey(key), out item) && item != null)
+                return item.Value != null && item.Value.ToLower() == "true" || item.Value == "1";
 
             return false;
         }
 
-        public int getInteger(string p)
+        public int getInteger(string key)
         {
-            var data = _data.FirstOrDefault(d => d.Name == p);
-            if (data != null && data.Value != null)
+            if (string.IsNullOrEmpty(key))
+                return 0;
+
+            ConfigItem item;
+            if (_data.TryGetValue(FormatKey(key), out item) && item != null)
             {
                 int ret;
-                if (int.TryParse(data.Value, out ret))
+                if (int.TryParse(item.Value, out ret))
                     return ret;
             }
-
+            
             return 0;
         }
 
         public IEnumerator<ConfigItem> GetEnumerator()
         {
-            return _data.GetEnumerator();
+            return _data.Values.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return _data.GetEnumerator();
+            return _data.Values.GetEnumerator();
         }
 
-        public void DisableAll(string name)
+        public void DisableAll(string key)
         {
-            for (int i = _data.Count - 1; i >= 0; i--)
-                if (_data[i].Name.Contains(name))
-                    _data.RemoveAt(i);
+            if (string.IsNullOrEmpty(key))
+                return;
+
+            List<string> toRemove = new List<string>();
+
+            key = FormatKey(key);
+
+            foreach (var item in _data)
+                if (item.Value.Name != EmptyLine && item.Key.Contains(key))
+                    toRemove.Add(item.Key);
+
+            foreach (var item in toRemove)
+                _data.Remove(item);            
         }
 
         public static string LocalPath
@@ -336,15 +362,16 @@ namespace emulatorLauncher
 
         public void AppendLine(string line)
         {
-            _data.Add(new ConfigItem()
+            _data.Add(EmptyLine + Guid.NewGuid().ToString(), new ConfigItem()
             {
                 Name = line,
                 Value = EmptyLine
             });
         }
+
         private static string _localPath;
     }
-    
+
     class ConfigItem
     {
         public override string ToString()
@@ -358,8 +385,13 @@ namespace emulatorLauncher
 
     public class ConfigFileOptions
     {
+        public ConfigFileOptions()
+        {
+            KeepEmptyValues = true;
+        }
+
         public bool KeepEmptyLines { get; set; }
+        public bool KeepEmptyValues { get; set; }
         public bool CaseSensitive { get; set; }
     }
-
 }

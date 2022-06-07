@@ -49,6 +49,9 @@
     <Compile Include="..\emulatorLauncher\Common\IniFile.cs">
       <Link>Common\IniFile.cs</Link>
     </Compile>
+    <Compile Include="..\emulatorLauncher\Common\OrderedDictionary.cs">
+      <Link>Common\OrderedDictionary.cs</Link>
+    </Compile>
     <Compile Include="..\emulatorLauncher\Common\RegistryApi.cs">
       <Link>Common\RegistryApi.cs</Link>
     </Compile>

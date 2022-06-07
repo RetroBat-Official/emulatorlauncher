@@ -34,27 +34,20 @@ namespace emulatorLauncher.libRetro
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
             retroarchConfig["global_core_options"] = "true";
-            retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')
-          
+            retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')          
             retroarchConfig["rgui_extended_ascii"] = "true";
-            retroarchConfig["rgui_show_start_screen"] = "false";
-
-            retroarchConfig["quit_press_twice"] = "false";
-            retroarchConfig["pause_nonactive"] = "false";
+            retroarchConfig["rgui_show_start_screen"] = "false";           
             retroarchConfig["menu_driver"] = "ozone";
-
-            retroarchConfig["content_show_images"] = "false";
-            retroarchConfig["content_show_music"] = "false";
-            retroarchConfig["content_show_playlists"] = "false";
-            retroarchConfig["content_show_video"] = "false";
             retroarchConfig["ui_menubar_enable"] = "false";
             retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["video_window_save_positions"] = "false";
 
-            retroarchConfig["input_autodetect_enable"] = SystemConfig.getOptBoolean("disableautocontrollers") ? "true" : "false";
+            BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
+            BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
 
             SetupUIMode(retroarchConfig);
 
+            // Resolution & monitor
             if (Features.IsSupported("monitor"))
             {
                 if (SystemConfig.isOptSet("monitor"))
@@ -109,10 +102,9 @@ namespace emulatorLauncher.libRetro
             }
 
             if (resolution == null && retroarchConfig["video_monitor_index"] != "0")
-            {
                 resolution = ScreenResolution.FromScreenIndex(retroarchConfig["video_monitor_index"].ToInteger() - 1);
-            }
 
+            // Folders
             if (!string.IsNullOrEmpty(AppConfig["bios"]))
             {
                 if (Directory.Exists(AppConfig["bios"]))
@@ -145,6 +137,7 @@ namespace emulatorLauncher.libRetro
             }
             catch { }
             
+            // Savestates
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
             {
                 string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
@@ -170,14 +163,17 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["savestate_max_keep"] = "0";
             }
 
-            if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
-                retroarchConfig["video_smooth"] = "true";
-            else
-                retroarchConfig["video_smooth"] = "false";
+            BindBoolFeature(retroarchConfig, "savestate_auto_save", "autosave", "true", "false");
+            BindBoolFeature(retroarchConfig, "savestate_auto_load", "autosave", "true", "false");
+            BindFeature(retroarchConfig, "state_slot", "state_slot", "0");
 
+            // Shaders
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
                 retroarchConfig["video_shader_enable"] = "true";
+            else if (Features.IsSupported("shaderset"))
+                retroarchConfig["video_shader_enable"] = "false";
 
+            // Aspect ratio
             if (SystemConfig.isOptSet("ratio"))
             {
                 if (SystemConfig["ratio"] == "custom")
@@ -197,20 +193,14 @@ namespace emulatorLauncher.libRetro
                     }
                 }
             }
+            else if (core == "tgbdual")
+                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
+            else if (system == "wii")
+                retroarchConfig["aspect_ratio_index"] = "22";
             else
-            {
-                if (core == "tgbdual")
-                    retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
-
-                if (system == "wii")
-                    retroarchConfig["aspect_ratio_index"] = "22";
-                else
-                    retroarchConfig["aspect_ratio_index"] = "";
-            }
-
-            if (core == "cap32")
-                retroarchConfig["cap32_combokey"] = "y";
-
+                retroarchConfig["aspect_ratio_index"] = "";
+            
+            // Rewind
             if (!SystemConfig.isOptSet("rewind"))
                 retroarchConfig["rewind_enable"] = systemNoRewind.Contains(system) ? "false" : "true"; // AUTO
             else if (SystemConfig.getOptBoolean("rewind"))
@@ -218,20 +208,68 @@ namespace emulatorLauncher.libRetro
             else
                 retroarchConfig["rewind_enable"] = "false";
 
-            if (SystemConfig.isOptSet("integerscale") && SystemConfig.getOptBoolean("integerscale"))
-                retroarchConfig["video_scale_integer"] = "true";
-            else
-                retroarchConfig["video_scale_integer"] = "false";
+            // Misc
+            BindBoolFeature(retroarchConfig, "video_smooth", "smooth", "true", "false");
+            BindBoolFeature(retroarchConfig, "video_scale_integer", "integerscale", "true", "false");
+            BindBoolFeature(retroarchConfig, "video_threaded", "video_threaded", "true", "false");
+            BindBoolFeature(retroarchConfig, "fps_show", "showFPS", "true", "false");
+            BindBoolFeature(retroarchConfig, "video_frame_delay_auto", "video_frame_delay_auto", "true", "false"); // Auto frame delay (input delay reduction via frame timing)
+            BindBoolFeature(retroarchConfig, "quit_press_twice", "PressTwice", "true", "false"); // Press hotkeys twice to exit
 
-            if (SystemConfig.isOptSet("video_threaded") && SystemConfig.getOptBoolean("video_threaded"))
-                retroarchConfig["video_threaded"] = "true";
-            else
-                retroarchConfig["video_threaded"] = "false";
+            BindFeature(retroarchConfig, "audio_driver", "audio_driver", "xaudio"); // Audio driver
+            BindFeature(retroarchConfig, "video_font_enable", "OnScreenMsg", "true"); // OSD notifications
+            BindFeature(retroarchConfig, "video_rotation", "RotateVideo", "0"); // video rotation
+            BindFeature(retroarchConfig, "screen_orientation", "RotateScreen", "0"); // screen orientation
+            BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
+            BindFeature(retroarchConfig, "crt_switch_resolution_super", "CRTSuperRes", "0"); // CRT Resolution
+            
+            // Default controllers
+            retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
+            retroarchConfig["input_libretro_device_p2"] = coreToP2Device.ContainsKey(core) ? coreToP2Device[core] : "1";
 
-            if (SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS"))
-                retroarchConfig["fps_show"] = "true";
-            else
-                retroarchConfig["fps_show"] = "false";
+            if (Controllers.Count > 2 && (core == "snes9x_next" || core == "snes9x"))
+                retroarchConfig["input_libretro_device_p2"] = "257";
+
+            if (core == "mednafen_psx" || core == "pcsx_rearmed" || core == "duckstation")
+            {
+                if (SystemConfig.isOptSet("psxcontroller1"))
+                    retroarchConfig["input_libretro_device_p1"] = SystemConfig["psxcontroller1"];
+                if (SystemConfig.isOptSet("psxcontroller2"))
+                    retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
+            }
+
+            if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
+                UseEsPadToKey = false;
+
+            // Core, services & bezel configs
+            ConfigureRetroachievements(retroarchConfig);
+            ConfigureNetPlay(retroarchConfig);
+            ConfigureAIService(retroarchConfig);
+            ConfigureRunahead(system, retroarchConfig);
+            ConfigureCoreOptions(retroarchConfig, system, core);
+            ConfigureBezels(retroarchConfig, system, rom, resolution);
+            
+            // Video driver
+            ConfigureVideoDriver(core, retroarchConfig);
+            ConfigureGPUIndex(retroarchConfig);
+            ConfigureVSync(retroarchConfig);
+
+            // Language
+            SetLanguage(retroarchConfig);
+
+            // Custom overrides : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
+            foreach (var user_config in SystemConfig)
+                if (user_config.Name.StartsWith("retroarch."))
+                    retroarchConfig[user_config.Name.Substring("retroarch.".Length)] = user_config.Value;
+                        
+            if (retroarchConfig.IsDirty)
+                retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+        }
+
+        private void ConfigureRunahead(string system, ConfigFile retroarchConfig)
+        {
+            // if (!Features.IsSupported("runahead"))
+            //    return;
 
             if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToInteger() > 0 && !systemNoRunahead.Contains(system))
             {
@@ -249,100 +287,133 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["run_ahead_frames"] = "0";
                 retroarchConfig["run_ahead_secondary_instance"] = "false";
             }
-            
-            // Auto frame delay (input delay reduction via frame timing)
-            if (SystemConfig.isOptSet("video_frame_delay_auto") && SystemConfig.getOptBoolean("video_frame_delay_auto"))
-                retroarchConfig["video_frame_delay_auto"] = "true";
-            else
-                retroarchConfig["video_frame_delay_auto"] = "false";
+        }
 
-            // variable refresh rate (freesync, gsync, etc.)
-            if (SystemConfig.isOptSet("vrr_runloop_enable") && SystemConfig.getOptBoolean("vrr_runloop_enable"))
-                retroarchConfig["vrr_runloop_enable"] = "true";
-            else
-                retroarchConfig["vrr_runloop_enable"] = "false";
+        private void ConfigureVideoDriver(string core, ConfigFile retroarchConfig)
+        {
+            if (!Features.IsSupported("video_driver"))
+                return;
 
-            if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
+            if (SystemConfig.isOptSet("video_driver"))
             {
-              //  retroarchConfig["menu_show_load_content_animation"] = "false";
-                retroarchConfig["savestate_auto_save"] = "true";
-                retroarchConfig["savestate_auto_load"] = "true";
+                _video_driver = retroarchConfig["video_driver"];
+                retroarchConfig["video_driver"] = SystemConfig["video_driver"];
+            }
+            else if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan")
+            {
+                _video_driver = retroarchConfig["video_driver"];
+                retroarchConfig["video_driver"] = "d3d11";
+            }
+        }
+
+        private void ConfigureGPUIndex(ConfigFile retroarchConfig)
+        {
+            if (!Features.IsSupported("GPUIndex"))
+                return;
+
+            if (SystemConfig.isOptSet("GPUIndex"))
+            {
+                if (retroarchConfig["video_driver"] == "d3d10")
+                    retroarchConfig["d3d10_gpu_index"] = SystemConfig["GPUIndex"];
+
+                if (retroarchConfig["video_driver"] == "d3d11")
+                    retroarchConfig["d3d11_gpu_index"] = SystemConfig["GPUIndex"];
+
+                if (retroarchConfig["video_driver"] == "d3d12")
+                    retroarchConfig["d3d12_gpu_index"] = SystemConfig["GPUIndex"];
+
+                if (retroarchConfig["video_driver"] == "vulkan")
+                    retroarchConfig["vulkan_gpu_index"] = SystemConfig["GPUIndex"];
             }
             else
             {
-              //  retroarchConfig["menu_show_load_content_animation"] = "true";
-                retroarchConfig["savestate_auto_save"] = "false";
-                retroarchConfig["savestate_auto_load"] = "false";
+                retroarchConfig["d3d10_gpu_index"] = "0";
+                retroarchConfig["d3d11_gpu_index"] = "0";
+                retroarchConfig["d3d12_gpu_index"] = "0";
+                retroarchConfig["vulkan_gpu_index"] = "0";
+            }            
+        }
+
+        /// <summary>
+        /// Synchronization options
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        private void ConfigureVSync(ConfigFile retroarchConfig)
+        {
+            BindFeature(retroarchConfig, "video_hard_sync", "video_hard_sync", "false");
+            BindFeature(retroarchConfig, "video_swap_interval", "video_swap_interval", "1");
+            BindFeature(retroarchConfig, "video_black_frame_insertion", "video_black_frame_insertion", "0");
+            BindFeature(retroarchConfig, "vrr_runloop_enable", "vrr_runloop_enable", "false");
+
+            if (Features.IsSupported("video_vsync"))
+            {
+                if (SystemConfig.isOptSet("video_vsync"))
+                {
+                    if (SystemConfig["video_vsync"] != "adaptative")
+                    {
+                        retroarchConfig["video_vsync"] = SystemConfig["video_vsync"];
+                        retroarchConfig["video_adaptive_vsync"] = "false";
+                    }
+                    else
+                    {
+                        retroarchConfig["video_vsync"] = "true";
+                        retroarchConfig["video_adaptive_vsync"] = "true";
+                    }
+                }
+                else if (SystemConfig.isOptSet("VSync") && !SystemConfig.getOptBoolean("VSync"))
+                {
+                    retroarchConfig["video_vsync"] = "false";
+                    retroarchConfig["video_adaptive_vsync"] = "false";
+                }
+                else
+                {
+                    retroarchConfig["video_vsync"] = "true";
+                    retroarchConfig["video_adaptive_vsync"] = "false";
+                }
             }
+            else if (SystemConfig.isOptSet("VSync") && !SystemConfig.getOptBoolean("VSync"))
+            {
+                retroarchConfig["video_vsync"] = "false";
+                retroarchConfig["video_adaptive_vsync"] = "false";
+            }           
+        }
 
-//            retroarchConfig["menu_show_load_content_animation"] = "true";
-//            retroarchConfig["video_gpu_screenshot"] = "false";
+        /// <summary>
+        /// AI service for game translations
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        private void ConfigureAIService(ConfigFile retroarchConfig)
+        {
+            // if (!Features.IsSupported("ai_service_enabled"))
+            //    return;
 
-            // SaveState To add
-            if (SystemConfig.isOptSet("state_slot"))
-                retroarchConfig["state_slot"] = SystemConfig["state_slot"];
+            if (SystemConfig.isOptSet("ai_service_enabled") && SystemConfig.getOptBoolean("ai_service_enabled"))
+            {
+                retroarchConfig["ai_service_enable"] = "true";
+                retroarchConfig["ai_service_mode"] = "0";
+                retroarchConfig["ai_service_source_lang"] = "0";
+
+                if (!string.IsNullOrEmpty(SystemConfig["ai_service_url"]))
+                    retroarchConfig["ai_service_url"] = SystemConfig["ai_service_url"] + "&mode=Fast&output=png&target_lang=" + SystemConfig["ai_target_lang"];
+                else
+                    retroarchConfig["ai_service_url"] = "http://" + "ztranslate.net/service?api_key=BATOCERA&mode=Fast&output=png&target_lang=" + SystemConfig["ai_target_lang"];
+
+                BindBoolFeature(retroarchConfig, "ai_service_pause", "ai_service_pause", "true", "false");
+            }
             else
-                retroarchConfig["state_slot"] = "0";
+                retroarchConfig["ai_service_enable"] = "false";
+        }
 
-            retroarchConfig["input_libretro_device_p1"] = "1";
-            retroarchConfig["input_libretro_device_p2"] = "1";
-
-            if (coreToP1Device.ContainsKey(core))
-                retroarchConfig["input_libretro_device_p1"] = coreToP1Device[core];
-
-            if (coreToP2Device.ContainsKey(core))
-                retroarchConfig["input_libretro_device_p2"] = coreToP2Device[core];
-
-            if (Controllers.Count > 2 && (core == "snes9x_next" || core == "snes9x"))
-                retroarchConfig["input_libretro_device_p2"] = "257";
-
-            if (core == "atari800")
-            {
-                retroarchConfig["input_libretro_device_p1"] = "513";
-                retroarchConfig["input_libretro_device_p2"] = "513";
-            }
-
-            if (core == "bluemsx")
-            {
-                if (systemToP1Device.ContainsKey(system))
-                    retroarchConfig["input_libretro_device_p1"] = systemToP1Device[system];
-
-                if (systemToP2Device.ContainsKey(system))
-                    retroarchConfig["input_libretro_device_p2"] = systemToP2Device[system];
-            }
-
-            if (core == "mednafen_psx" || core == "pcsx_rearmed" || core == "duckstation")
-            {
-                if (SystemConfig.isOptSet("psxcontroller1"))
-                    retroarchConfig["input_libretro_device_p1"] = SystemConfig["psxcontroller1"];
-                if (SystemConfig.isOptSet("psxcontroller2"))
-                    retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
-            }
-
-            if (SystemConfig["retroachievements"] == "true" && Features.IsSupported("cheevos")) // || systemToRetroachievements.Contains(system)))
-            {
-                // Since 1.10, token is stored & password is reset
-                retroarchConfig.DisableAll("cheevos_token");
-
-                retroarchConfig["cheevos_enable"] = "true";
-                retroarchConfig["cheevos_username"] = SystemConfig["retroachievements.username"];
-                retroarchConfig["cheevos_password"] = SystemConfig["retroachievements.password"];               
-                retroarchConfig["cheevos_hardcore_mode_enable"] = SystemConfig["retroachievements.hardcore"] == "true" ? "true" : "false";
-                retroarchConfig["cheevos_leaderboards_enable"] = SystemConfig["retroachievements.leaderboards"] == "true" ? "true" : "false";
-                retroarchConfig["cheevos_verbose_enable"] = SystemConfig["retroachievements.verbose"] == "true" ? "true" : "false";
-                retroarchConfig["cheevos_auto_screenshot"] = SystemConfig["retroachievements.screenshot"] == "true" ? "true" : "false";
-                retroarchConfig["cheevos_challenge_indicators"] = SystemConfig["retroachievements.challenge_indicators"] == "true" ? "true" : "false";
-                retroarchConfig["cheevos_start_active"] = SystemConfig["retroachievements.encore"] == "true" ? "true" : "false";
-                retroarchConfig["cheevos_richpresence_enable"] = SystemConfig["retroachievements.richpresence"] == "true" ? "true" : "false";
-            }
-            else
-                retroarchConfig["cheevos_enable"] = "false";
-
+        /// <summary>
+        ///  Netplay management : netplaymode client -netplayport " + std::to_string(options.port) + " -netplayip
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        private void ConfigureNetPlay(ConfigFile retroarchConfig)
+        {
             retroarchConfig["netplay_mode"] = "false";
 
-            // Netplay management : netplaymode client -netplayport " + std::to_string(options.port) + " -netplayip
             if (SystemConfig["netplay"] == "true" && !string.IsNullOrEmpty(SystemConfig["netplaymode"]))
-            {                
+            {
                 // Security : hardcore mode disables save states, which would kill netplay
                 retroarchConfig["cheevos_hardcore_mode_enable"] = "false";
 
@@ -362,7 +433,7 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["netplay_client_swap_input"] = "true";
                 }
 
-                  // connect as client
+                // connect as client
                 if (SystemConfig["netplaymode"] == "client")
                 {
                     if (SystemConfig.isOptSet("netplaypass"))
@@ -407,208 +478,36 @@ namespace emulatorLauncher.libRetro
                 }
 
                 // Netplay hide the gameplay
-                if (SystemConfig.isOptSet("netplay_public_announce") && !SystemConfig.getOptBoolean("netplay_public_announce"))
-                    retroarchConfig["netplay_public_announce"] = "false";
-                else
-                    retroarchConfig["netplay_public_announce"] = "true";
+                BindBoolFeature(retroarchConfig, "netplay_public_announce", "netplay_public_announce", "true", "false");
             }
 
-            if (SystemConfig["netplay"] == "true")
-                retroarchConfig["content_show_netplay"] = "true";
+            BindBoolFeature(retroarchConfig, "content_show_netplay", "netplay", "true", "false");
+        }
+
+        /// <summary>
+        /// Retroachievements / Cheevos
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        private void ConfigureRetroachievements(ConfigFile retroarchConfig)
+        {
+            if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
+            {
+                // Since 1.10, token is stored & password is reset
+                retroarchConfig.DisableAll("cheevos_token");
+
+                retroarchConfig["cheevos_enable"] = "true";
+                retroarchConfig["cheevos_username"] = SystemConfig["retroachievements.username"];
+                retroarchConfig["cheevos_password"] = SystemConfig["retroachievements.password"];
+                retroarchConfig["cheevos_hardcore_mode_enable"] = SystemConfig["retroachievements.hardcore"] == "true" ? "true" : "false";
+                retroarchConfig["cheevos_leaderboards_enable"] = SystemConfig["retroachievements.leaderboards"] == "true" ? "true" : "false";
+                retroarchConfig["cheevos_verbose_enable"] = SystemConfig["retroachievements.verbose"] == "true" ? "true" : "false";
+                retroarchConfig["cheevos_auto_screenshot"] = SystemConfig["retroachievements.screenshot"] == "true" ? "true" : "false";
+                retroarchConfig["cheevos_challenge_indicators"] = SystemConfig["retroachievements.challenge_indicators"] == "true" ? "true" : "false";
+                retroarchConfig["cheevos_start_active"] = SystemConfig["retroachievements.encore"] == "true" ? "true" : "false";
+                retroarchConfig["cheevos_richpresence_enable"] = SystemConfig["retroachievements.richpresence"] == "true" ? "true" : "false";
+            }
             else
-                retroarchConfig["content_show_netplay"] = "false";
-
-            // AI service for game translations
-            if (SystemConfig.isOptSet("ai_service_enabled") && SystemConfig.getOptBoolean("ai_service_enabled"))
-            {
-                retroarchConfig["ai_service_enable"] = "true";
-                retroarchConfig["ai_service_mode"] = "0";
-                retroarchConfig["ai_service_source_lang"] = "0";
-
-                if (!string.IsNullOrEmpty(SystemConfig["ai_service_url"]))
-                    retroarchConfig["ai_service_url"] = SystemConfig["ai_service_url"] + "&mode=Fast&output=png&target_lang=" + SystemConfig["ai_target_lang"];
-                else
-                    retroarchConfig["ai_service_url"] = "http://" + "ztranslate.net/service?api_key=BATOCERA&mode=Fast&output=png&target_lang=" + SystemConfig["ai_target_lang"];
-
-                if (SystemConfig.isOptSet("ai_service_pause") && SystemConfig.getOptBoolean("ai_service_pause"))
-                    retroarchConfig["ai_service_pause"] = "true";
-                else
-                    retroarchConfig["ai_service_pause"] = "false";
-            }
-            else
-                retroarchConfig["ai_service_enable"] = "false";
-
-            // bezel
-            if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
-                UseEsPadToKey = false;
-
-            ConfigureCoreOptions(retroarchConfig, system, core);
-            writeBezelConfig(retroarchConfig, system, rom, resolution);
-            
-            // custom : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
-            foreach (var user_config in SystemConfig)
-                if (user_config.Name.StartsWith("retroarch."))
-                    retroarchConfig[user_config.Name.Substring("retroarch.".Length)] = user_config.Value;
-
-            if (SystemConfig.isOptSet("video_driver"))
-            {
-                _video_driver = retroarchConfig["video_driver"];
-                retroarchConfig["video_driver"] = SystemConfig["video_driver"];
-            }
-            else if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan")
-            {
-                _video_driver = retroarchConfig["video_driver"];
-                retroarchConfig["video_driver"] = "d3d11";
-            }
-            
-            // Audio driver
-            if (Features.IsSupported("audio_driver"))
-            {
-                if (SystemConfig.isOptSet("audio_driver"))
-                    retroarchConfig["audio_driver"] = SystemConfig["audio_driver"];
-                else
-                    retroarchConfig["audio_driver"] = "xaudio";
-            }
-
-            // OSD notifications
-            if (Features.IsSupported("OnScreenMsg"))
-            {
-                if (SystemConfig.isOptSet("OnScreenMsg"))
-                    retroarchConfig["video_font_enable"] = SystemConfig["video_font_enable"];
-                else
-                    retroarchConfig["video_font_enable"] = "true";
-            }
-
-            // Press hotkeys twice to exit
-            if (Features.IsSupported("PressTwice"))
-            {
-                if (SystemConfig.isOptSet("PressTwice") && SystemConfig.getOptBoolean("PressTwice"))
-                    retroarchConfig["quit_press_twice"] = "true";
-                else
-                    retroarchConfig["quit_press_twice"] = "false";
-            }
-			
-			// video rotation
-            if (Features.IsSupported("RotateVideo"))
-            {
-                if (SystemConfig.isOptSet("RotateVideo"))
-                    retroarchConfig["video_rotation"] = SystemConfig["RotateVideo"];
-                else
-                    retroarchConfig["video_rotation"] = "0";
-            }
-
-            // screen orientation
-            if (Features.IsSupported("RotateScreen"))
-            {
-                if (SystemConfig.isOptSet("RotateScreen"))
-                    retroarchConfig["screen_orientation"] = SystemConfig["RotateScreen"];
-                else
-                    retroarchConfig["screen_orientation"] = "0";
-            }
-
-            // CRT Switch
-            if (Features.IsSupported("CRTSwitch"))
-            {
-                if (SystemConfig.isOptSet("CRTSwitch"))
-                    retroarchConfig["crt_switch_resolution"] = SystemConfig["CRTSwitch"];
-                else
-                    retroarchConfig["crt_switch_resolution"] = "0";
-            }
-
-            // CRT Resolution
-            if (Features.IsSupported("CRTSuperRes"))
-            {
-                if (SystemConfig.isOptSet("CRTSuperRes"))
-                    retroarchConfig["crt_switch_resolution_super"] = SystemConfig["CRTSuperRes"];
-                else
-                    retroarchConfig["crt_switch_resolution_super"] = "0";
-            }
-
-            // GPU Index
-            if (Features.IsSupported("GPUIndex"))
-            {
-                if (SystemConfig.isOptSet("GPUIndex"))
-                {
-                    if (retroarchConfig["video_driver"] == "d3d10")
-                        retroarchConfig["d3d10_gpu_index"] = SystemConfig["GPUIndex"];
-
-                    if (retroarchConfig["video_driver"] == "d3d11")
-                        retroarchConfig["d3d11_gpu_index"] = SystemConfig["GPUIndex"];
-
-                    if (retroarchConfig["video_driver"] == "d3d12")
-                        retroarchConfig["d3d12_gpu_index"] = SystemConfig["GPUIndex"];
-
-                    if (retroarchConfig["video_driver"] == "vulkan")
-                        retroarchConfig["vulkan_gpu_index"] = SystemConfig["GPUIndex"];
-                }
-                else
-                {
-                    retroarchConfig["d3d10_gpu_index"] = "0";
-                    retroarchConfig["d3d11_gpu_index"] = "0";
-                    retroarchConfig["d3d12_gpu_index"] = "0";
-                    retroarchConfig["vulkan_gpu_index"] = "0";
-                }
-            }
-
-            // Synchronization options
-            if (Features.IsSupported("video_vsync"))
-            {
-                if (SystemConfig.isOptSet("video_vsync"))
-                {
-                    if (SystemConfig["video_vsync"] != "adaptative")
-                    {
-                        retroarchConfig["video_vsync"] = SystemConfig["video_vsync"];
-                        retroarchConfig["video_adaptive_vsync"] = "false";
-                    }
-                    else
-                    {
-                        retroarchConfig["video_vsync"] = "true";
-                        retroarchConfig["video_adaptive_vsync"] = "true";
-                    }
-                }
-                else
-                {
-                    retroarchConfig["video_vsync"] = "true";
-                    retroarchConfig["video_adaptive_vsync"] = "false";
-                }
-            }
-
-            if (Features.IsSupported("video_hard_sync"))
-            {
-                if (SystemConfig.isOptSet("video_hard_sync"))
-                    retroarchConfig["video_hard_sync"] = SystemConfig["video_hard_sync"];
-                else
-                    retroarchConfig["video_hard_sync"] = "false";
-            }
-
-            if (Features.IsSupported("video_swap_interval"))
-            {
-                if (SystemConfig.isOptSet("video_swap_interval"))
-                    retroarchConfig["video_swap_interval"] = SystemConfig["video_swap_interval"];
-                else
-                    retroarchConfig["video_swap_interval"] = "1";
-            }
-
-            if (Features.IsSupported("video_black_frame_insertion"))
-            {
-                if (SystemConfig.isOptSet("video_black_frame_insertion"))
-                    retroarchConfig["video_black_frame_insertion"] = SystemConfig["video_black_frame_insertion"];
-                else
-                    retroarchConfig["video_black_frame_insertion"] = "0";
-            }
-
-            if (Features.IsSupported("vrr_runloop_enable"))
-            {
-                if (SystemConfig.isOptSet("vrr_runloop_enable"))
-                    retroarchConfig["vrr_runloop_enable"] = SystemConfig["vrr_runloop_enable"];
-                else
-                    retroarchConfig["vrr_runloop_enable"] = "false";
-            }
-
-            SetLanguage(retroarchConfig);
-
-            if (retroarchConfig.IsDirty)
-                retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+                retroarchConfig["cheevos_enable"] = "false";
         }
 
         class UIModeSetting
@@ -775,7 +674,7 @@ namespace emulatorLauncher.libRetro
 
         private string _video_driver;
 
-        private void writeBezelConfig(ConfigFile retroarchConfig, string systemName, string rom, ScreenResolution resolution)
+        private void ConfigureBezels(ConfigFile retroarchConfig, string systemName, string rom, ScreenResolution resolution)
         {
             retroarchConfig["input_overlay_hide_in_menu"] = "false";
             retroarchConfig["input_overlay_enable"] = "false";
@@ -1229,19 +1128,11 @@ namespace emulatorLauncher.libRetro
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
                 "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
 
-        static List<string> systemToRetroachievements = new List<string> { 
-            "atari2600", "atari7800", "atarijaguar", "colecovision", "dreamcast", "nes", "snes", "virtualboy", "n64", "sg1000", "mastersystem", "megadrive", 
-            "segacd", "sega32x", "saturn", "pcengine", "pcenginecd", "supergrafx", "pcfx", "psx", "psp", "mame", "hbmame", "fbneo", "neogeo", "lightgun", "apple2", 
-            "lynx", "wswan", "wswanc", "gb", "gbc", "gba", "nds", "pokemini", "gamegear", "ngp", "ngpc", "fds", "3do", "msx", "amstradcpc", "intellivision", "vectrex", "supervision", "odyssey2", "cps1", "cps2", "cps3" };
-
         static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn", "mame", "hbmame", "fbneo" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "neogeocd", "saturn" };
-
-        static Dictionary<string, string> systemToP1Device = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
-        static Dictionary<string, string> systemToP2Device = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
-
-        static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
-        static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "fuse", "513" } };
+        
+        static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
+        static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
 
         static Dictionary<string, retro_language> Languages = new Dictionary<string, retro_language>()
         {
