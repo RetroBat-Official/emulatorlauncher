@@ -13,6 +13,7 @@ namespace emulatorLauncher.libRetro
         {
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
+            ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             ConfigureTheodore(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
@@ -426,6 +427,31 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["theodore_autorun"] = "enabled";
+        }
+
+        private void ConfigureOpera(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "opera")
+                return;
+
+            coreSettings["opera_dsp_threaded"] = "enabled";
+
+            BindFeature(coreSettings, "opera_high_resolution", "high_resolution", "enabled");
+            BindFeature(coreSettings, "opera_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
+            BindFeature(coreSettings, "opera_active_devices", "active_devices", "1");
+           // BindFeature(coreSettings, "opera_nvram_storage", "opera_nvram_storage", "shared");
+
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player1_mouse_index"] = "0";
+                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+                retroarchConfig["input_player1_gun_start"] = "enter";
+                retroarchConfig["input_player1_gun_select"] = "escape";
+                retroarchConfig["input_player1_gun_trigger"] = "select";
+            }
         }
 
         private void ConfigureBlueMsx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
