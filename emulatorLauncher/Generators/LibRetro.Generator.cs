@@ -208,6 +208,14 @@ namespace emulatorLauncher.libRetro
             else
                 retroarchConfig["rewind_enable"] = "false";
 
+            // Audio
+            BindFeature(retroarchConfig, "audio_driver", "audio_driver", "xaudio"); // Audio driver
+            BindFeature(retroarchConfig, "audio_resampler", "audio_resampler", "sinc");
+            BindFeature(retroarchConfig, "audio_resampler_quality", "audio_resampler_quality", "3");
+            BindFeature(retroarchConfig, "audio_volume", "audio_volume", "0.000000");
+            BindFeature(retroarchConfig, "audio_mixer_volume", "audio_mixer_volume", "0.000000");
+            BindFeature(retroarchConfig, "audio_dsp_plugin", "audio_dsp_plugin", "");
+
             // Misc
             BindBoolFeature(retroarchConfig, "video_smooth", "smooth", "true", "false");
             BindBoolFeature(retroarchConfig, "video_scale_integer", "integerscale", "true", "false");
@@ -215,14 +223,13 @@ namespace emulatorLauncher.libRetro
             BindBoolFeature(retroarchConfig, "fps_show", "showFPS", "true", "false");
             BindBoolFeature(retroarchConfig, "video_frame_delay_auto", "video_frame_delay_auto", "true", "false"); // Auto frame delay (input delay reduction via frame timing)
             BindBoolFeature(retroarchConfig, "quit_press_twice", "PressTwice", "true", "false"); // Press hotkeys twice to exit
-
-            BindFeature(retroarchConfig, "audio_driver", "audio_driver", "xaudio"); // Audio driver
+            
             BindFeature(retroarchConfig, "video_font_enable", "OnScreenMsg", "true"); // OSD notifications
             BindFeature(retroarchConfig, "video_rotation", "RotateVideo", "0"); // video rotation
             BindFeature(retroarchConfig, "screen_orientation", "RotateScreen", "0"); // screen orientation
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
             BindFeature(retroarchConfig, "crt_switch_resolution_super", "CRTSuperRes", "0"); // CRT Resolution
-            
+
             // Default controllers
             retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
             retroarchConfig["input_libretro_device_p2"] = coreToP2Device.ContainsKey(core) ? coreToP2Device[core] : "1";

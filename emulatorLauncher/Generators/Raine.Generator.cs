@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Management;
 
 namespace emulatorLauncher
 {
@@ -83,13 +84,15 @@ namespace emulatorLauncher
                     {
                         ini.WriteValue("Directories", "rom_dir_0", biosPath.Replace("\\", "\\\\") + "\\\\");
                         ini.WriteValue("neocd", "neocd_bios", biosPath.Replace("\\", "\\\\") + "\\\\" + "neocdz.zip");
+                        ini.WriteValue("Directories", "emudx", biosPath.Replace("\\", "\\\\") + "\\\\" + "raine" + "\\\\" + "emudx" + "\\\\");
+                        ini.WriteValue("Directories", "artwork", biosPath.Replace("\\", "\\\\") + "\\\\" + "raine" + "\\\\" + "artwork" + "\\\\");
                     }
 
                     string romPath = AppConfig.GetFullPath("roms");
                     if (!string.IsNullOrEmpty(romPath))
                     {
-                        ini.WriteValue("Directories", "rom_dir_1", romPath.Replace("\\", "\\\\") + "neogeo" + "\\\\");
-                        ini.WriteValue("neocd", "neocd_dir", romPath.Replace("\\", "\\\\") + "neogeocd" + "\\\\");
+                        ini.WriteValue("Directories", "rom_dir_1", romPath.Replace("\\", "\\\\") + "\\\\" + "neogeo" + "\\\\");
+                        ini.WriteValue("neocd", "neocd_dir", romPath.Replace("\\", "\\\\") + "\\\\" + "neogeocd" + "\\\\");
                     }
 
                     string sshotPath = AppConfig.GetFullPath("screenshots");
@@ -98,8 +101,11 @@ namespace emulatorLauncher
                         ini.WriteValue("Directories", "ScreenShots", sshotPath.Replace("\\", "\\\\") + "\\\\");
                     }
 
+                    ini.WriteValue("Display", "video_mode", "0");
+                    ini.WriteValue("Display", "ogl_render", "1");
+
                     if (SystemConfig.isOptSet("Set_Shader") && !string.IsNullOrEmpty(SystemConfig["Set_Shader"]))
-                        ini.WriteValue("Display", "ogl_shader", _path + SystemConfig["Set_Shader"]);
+                        ini.WriteValue("Display", "ogl_shader", _path + "\\" + SystemConfig["Set_Shader"]);
                     else
                         ini.WriteValue("Display", "ogl_shader", "None");
 
