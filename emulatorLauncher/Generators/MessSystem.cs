@@ -9,6 +9,7 @@ namespace emulatorLauncher
     class MessSystem
     {
         // mame -listfull nom*
+        // mame -listmedias nom*
 
         static MessSystem[] MessSystems = new MessSystem[]
             {                
@@ -105,7 +106,7 @@ namespace emulatorLauncher
                             new MessRomType("cass", new string[] { "wav", "tap", "cdw", "uef" } ), 
                             new MessRomType("cart", new string[] { "bin", "rom" } ),  
                             new MessRomType("quik", new string[] { "atm" } ),  
-                            new MessRomType("flop1", null, "*DOS\\n*DIR\\n*CAT\\n*RUN\\\"" ),  
+                            new MessRomType("flop1", null, "*DOS\\n*DIR\\n*RUN\\\"runme\\\"\\n" ),  // *CAT\\n
                         }),
 
                 new MessSystem("camplynx"     ,"lynx48k"  , new MessRomType[] 
@@ -143,7 +144,7 @@ namespace emulatorLauncher
                 new MessSystem("electron"     ,"electron" , new MessRomType[] 
                         { 
                             new MessRomType("cart", new string[] { "bin", "rom" } ), 
-                            new MessRomType("cass", new string[] { "wav", "csw", "uef" } ), 
+                            new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*T.\\nCH.\\\"\\\"\\n" ), 
                             new MessRomType("flop")
                         }),
 
@@ -196,6 +197,13 @@ namespace emulatorLauncher
                         { 
                             new MessRomType("cass", new string[] { "wav", "cas" }, "CLOAD\\nRUN\\n", "6"), 
                             new MessRomType("cart")
+                        }),
+
+                new MessSystem("macintosh"       ,"maclc3", new MessRomType[] 
+                        { 
+                            new MessRomType("cdrm", new string[] { "chd", "cue", "toc", "nrg", "gdi", "iso", "cdr" }), 
+                            new MessRomType("hard", new string[] { "hd", "hdv", "2mg", "hdi" }), 
+                            new MessRomType("flop")
                         }),
 
                 new MessSystem("scv"          ,"scv"      ,"cart"  ),

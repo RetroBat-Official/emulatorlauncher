@@ -14,6 +14,7 @@ namespace emulatorLauncher.libRetro
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
+            Configure4Do(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             ConfigureTheodore(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
@@ -63,25 +64,31 @@ namespace emulatorLauncher.libRetro
                     SystemConfig["bezel"] = "none";
                 }
             }
-            else
-                SystemConfig["bezel"] = SystemConfig["bezel"];
-
         }
 
-        private void BindFeature(ConfigFile cfg, string libretroSetting, string featureName, string defaultValue, bool force = false)
+        /// <summary>
+        /// Injects keyboard actions for lightgun games
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        /// <param name="playerId"></param>
+        private void ConfigurePlayer1LightgunKeyboardActions(ConfigFile retroarchConfig)
         {
-            if (force || Features.IsSupported(featureName))
-                cfg[libretroSetting] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-        }
+            if (!SystemConfig.getOptBoolean("use_guns"))
+                return;
 
-        private void BindBoolFeature(ConfigFile cfg, string libretroSetting, string featureName, string trueValue, string falseValue, bool force = false)
-        {
-            if (force || Features.IsSupported(featureName))
+            var keyb = Controllers.Where(c => c.Name == "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
+            if (keyb != null)
             {
-                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
-                    cfg[libretroSetting] = trueValue;
-                else
-                    cfg[libretroSetting] = falseValue;
+                var start = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.start);
+                retroarchConfig["input_player1_gun_start"] = start == null ? "nul" : LibretroControllers.GetConfigValue(start);
+
+                var select = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.select);
+                retroarchConfig["input_player1_gun_select"] = select == null ? "nul" : LibretroControllers.GetConfigValue(select);
+            }
+            else
+            {
+                retroarchConfig["input_player1_gun_start"] = "enter";
+                retroarchConfig["input_player1_gun_select"] = "space";
             }
         }
 
@@ -290,8 +297,8 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_aux_a_mbtn"]   = "2"; // # for all games ?
                 retroarchConfig["input_player1_gun_start_mbtn"]   = "3";
-                retroarchConfig["input_player1_gun_start"] = "enter";
-                retroarchConfig["input_player1_gun_select"] = "escape";
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
         }
 
@@ -359,8 +366,8 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-                retroarchConfig["input_player1_gun_start"] = "enter";
-                retroarchConfig["input_player1_gun_select"] = "escape";
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
         }
 
@@ -408,8 +415,8 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-                retroarchConfig["input_player1_gun_start"] = "enter";
-                retroarchConfig["input_player1_gun_select"] = "escape";
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
         }
 
@@ -429,6 +436,16 @@ namespace emulatorLauncher.libRetro
             coreSettings["theodore_autorun"] = "enabled";
         }
 
+
+        static List<KeyValuePair<string, string>> operaHacks = new List<KeyValuePair<string, string>>() 
+            {
+                new KeyValuePair<string, string>("crashnburn", "timing_hack1"),
+                new KeyValuePair<string, string>("dinopark tycoon", "timing_hack3"),
+                new KeyValuePair<string, string>("microcosm", "timing_hack5"),
+                new KeyValuePair<string, string>("aloneinthedark", "timing_hack6"),
+                new KeyValuePair<string, string>("samuraishowdown", "hack_graphics_step_y")
+            };
+
         private void ConfigureOpera(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "opera")
@@ -439,8 +456,24 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "opera_high_resolution", "high_resolution", "enabled");
             BindFeature(coreSettings, "opera_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
             BindFeature(coreSettings, "opera_active_devices", "active_devices", "1");
-           // BindFeature(coreSettings, "opera_nvram_storage", "opera_nvram_storage", "shared");
 
+            // Game hacks
+            string rom = SystemConfig["rom"].AsIndexedRomName();
+            foreach (var hackName in operaHacks.Select(h => h.Value).Distinct())
+                coreSettings["opera_" + hackName] = operaHacks.Any(h => h.Value == hackName && rom.Contains(h.Key)) ? "enabled" : "disabled";
+            
+            // If ROM includes the word 'Disc', assume it's a multi disc game, and enable shared nvram if the option isn't set.
+            if (Features.IsSupported("opera_nvram_storage"))
+            {
+                if (SystemConfig.isOptSet("nvram_storage"))
+                    coreSettings["opera_nvram_storage"] = SystemConfig["nvram_storage"];
+                else if (!string.IsNullOrEmpty(SystemConfig["rom"]) && SystemConfig["rom"].ToLower().Contains("disc"))
+                    coreSettings["opera_nvram_storage"] = "shared";
+                else
+                    coreSettings["opera_nvram_storage"] = "per game";                    
+            }
+
+            // Lightgun
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 retroarchConfig["input_libretro_device_p1"] = "260";
@@ -448,12 +481,49 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-                retroarchConfig["input_player1_gun_start"] = "enter";
-                retroarchConfig["input_player1_gun_select"] = "escape";
-                retroarchConfig["input_player1_gun_trigger"] = "select";
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
         }
 
+        private void Configure4Do(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "4do")
+                return;
+
+            BindFeature(coreSettings, "4do_high_resolution", "high_resolution", "enabled");
+            BindFeature(coreSettings, "4do_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
+            BindFeature(coreSettings, "4do_active_devices", "active_devices", "1");
+
+            // Game hacks
+            string rom = SystemConfig["rom"].AsIndexedRomName();
+            foreach (var hackName in operaHacks.Select(h => h.Value).Distinct())
+                coreSettings["4do_"+hackName] = operaHacks.Any(h => h.Value == hackName && rom.Contains(h.Key)) ? "enabled" : "disabled";
+
+            // If ROM includes the word 'Disc', assume it's a multi disc game, and enable shared nvram if the option isn't set.
+            if (Features.IsSupported("4do_nvram_storage"))
+            {
+                if (SystemConfig.isOptSet("nvram_storage"))
+                    coreSettings["4do_nvram_storage"] = SystemConfig["nvram_storage"];
+                else if (!string.IsNullOrEmpty(SystemConfig["rom"]) && SystemConfig["rom"].ToLower().Contains("disc"))
+                    coreSettings["4do_nvram_storage"] = "shared";
+                else
+                    coreSettings["4do_nvram_storage"] = "per game";
+            }
+
+            // Lightgun
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player1_mouse_index"] = "0";
+                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+            }
+        }
+        
         private void ConfigureBlueMsx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "bluemsx")
@@ -1266,8 +1336,8 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-                retroarchConfig["input_player1_gun_start"] = "enter";
-                retroarchConfig["input_player1_gun_select"] = "escape";
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
         }
 
@@ -1377,8 +1447,8 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_aux_a_mbtn"] = "2";
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-                retroarchConfig["input_player1_gun_start"] = "enter";
-                retroarchConfig["input_player1_gun_select"] = "escape";
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
         }
     }

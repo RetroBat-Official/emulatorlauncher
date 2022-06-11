@@ -238,7 +238,7 @@ namespace emulatorLauncher
                 Environment.ExitCode = (int)ExitCodes.BadCommandLine;
                 return;
             }
-            
+
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemDefaults.GetDefaultEmulator(SystemConfig["system"]);
 
@@ -543,6 +543,7 @@ namespace emulatorLauncher
 
                     switch (var)
                     {
+                        case "index": player.DeviceIndex = val.ToInteger(); break;
                         case "guid": player.Guid = val.ToUpper(); break;
                         case "name": player.Name = val; break;
                         case "nbbuttons": player.NbButtons = val.ToInteger(); break;
@@ -557,32 +558,30 @@ namespace emulatorLauncher
                 var inputConfig = EsInput.Load(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_input.cfg"));
                 if (inputConfig != null)
                 {
-                    if (!Controllers.Any())
+                    foreach (var pi in Controllers)
                     {
-                        var pi = new Controller() { PlayerIndex = 1 };
-                        pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
-                        if (pi.Config != null)
-                        {
-                            pi.Name = "Keyboard";
-                            pi.Guid = pi.Config.ProductGuid.ToString();
-                            Controllers.Add(pi);
-                        }
-                    }
-                    else
-                    {
-                        foreach (var pi in Controllers)
-                        {
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid && c.DeviceName == pi.Name);
-                            if (pi.Config == null)
-                                pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
-                            if (pi.Config == null)
-                                pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
-                            if (pi.Config == null)
-                                pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
-                        }
+                        pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid && c.DeviceName == pi.Name);
+                        if (pi.Config == null)
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
+                        if (pi.Config == null)
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
+                        if (pi.Config == null)
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
                     }
 
                     Controllers.RemoveAll(c => c.Config == null);
+
+                    if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || HasWiimoteGun())
+                    {
+                        var keyb = new Controller() { PlayerIndex = Controllers.Count + 1 };
+                        keyb.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
+                        if (keyb.Config != null)
+                        {
+                            keyb.Name = "Keyboard";
+                            keyb.Guid = keyb.Config.ProductGuid.ToString();
+                            Controllers.Add(keyb);
+                        }
+                    }
                 }
 
                 return inputConfig;
@@ -592,6 +591,24 @@ namespace emulatorLauncher
             return null;
         }
 
+        /// <summary>
+        /// Detects if WiimoteGun is running in gamepad mode
+        /// </summary>
+        /// <returns></returns>
+        public static bool HasWiimoteGun(WiiModeGunMode mode = WiiModeGunMode.Any)
+        {
+            IntPtr hWndWiimoteGun = User32.FindWindow("WiimoteGun", null);
+            if (hWndWiimoteGun != IntPtr.Zero)
+            {
+                if (mode == WiiModeGunMode.Any)
+                    return true;
+
+                int wndMode = (int)User32.GetProp(hWndWiimoteGun, "mode");
+                return wndMode == (int)mode;
+            }
+
+            return false;
+        }
 
         private static void ImportShaderOverrides()
         {
@@ -692,7 +709,13 @@ namespace emulatorLauncher
 
     class Controller
     {
+        public Controller()
+        {
+            DeviceIndex = -1;
+        }
+
         public int PlayerIndex { get; set; }
+        public int DeviceIndex { get; set; }
         public string Guid { get; set; }
         public string Name { get; set; }
         public int NbButtons { get; set; }
@@ -702,6 +725,13 @@ namespace emulatorLauncher
         public InputConfig Config { get; set; }
 
         public override string ToString() { return Name + " (" + PlayerIndex.ToString()+")"; }
+    }
+
+    enum WiiModeGunMode : int
+    {
+        Any = 0,
+        Mouse = 1,
+        Gamepad = 2
     }
 
 }

@@ -12,6 +12,18 @@ namespace emulatorLauncher
 {
     abstract class Generator
     {
+        public Generator()
+        {
+            UseEsPadToKey = true;
+            DependsOnDesktopResolution = false;
+            ExitCode = ExitCodes.EmulatorNotInstalled;
+        }
+
+        protected EsFeatures Features { get { return Program.Features; } }
+        protected ConfigFile AppConfig { get { return Program.AppConfig; } }
+        protected ConfigFile SystemConfig { get { return Program.SystemConfig; } }
+        protected List<Controller> Controllers { get { return Program.Controllers; } }
+        
         #region Custom game unzip
 
         private static string GetUnCompressedFolderPath()
@@ -274,19 +286,7 @@ namespace emulatorLauncher
 
         public ExitCodes ExitCode { get; protected set; }
         #endregion
-
-        public Generator()
-        {
-            UseEsPadToKey = true;
-            DependsOnDesktopResolution = false;
-            ExitCode = ExitCodes.EmulatorNotInstalled;
-        }
-
-        protected EsFeatures Features { get { return Program.Features; } }
-        protected ConfigFile AppConfig { get { return Program.AppConfig; } }
-        protected ConfigFile SystemConfig { get { return Program.SystemConfig; } }
-        protected List<Controller> Controllers { get { return Program.Controllers; } }
-
+        
         public abstract ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution);
 
         public virtual int RunAndWait(ProcessStartInfo path)
@@ -466,6 +466,24 @@ namespace emulatorLauncher
 
             return s;
         }
+        
+        protected void BindFeature(ConfigFile cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+        }
+
+        protected void BindBoolFeature(ConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = trueValue;
+                else
+                    cfg[settingName] = falseValue;
+            }
+        }
+
     }
 
     enum ExitCodes : int

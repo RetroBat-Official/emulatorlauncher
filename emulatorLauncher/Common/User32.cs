@@ -55,6 +55,9 @@ namespace emulatorLauncher
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr GetWindow(IntPtr hWnd, GW cmd);
 
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetProp(IntPtr hWnd, string lpString);
+
         public enum GW : int
         {
             HWNDFIRST = 0,

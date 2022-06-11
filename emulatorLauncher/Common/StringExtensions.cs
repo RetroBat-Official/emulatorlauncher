@@ -91,5 +91,36 @@ namespace emulatorLauncher
                 .ToArray();
         }
 
+        public static string AsIndexedRomName(this string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return "";
+
+            if (name.Contains("\\") || name.Contains("/"))
+                name = System.IO.Path.GetFileNameWithoutExtension(name);
+
+            StringBuilder ret = new StringBuilder(name.Length);
+
+            bool inpar = false;
+            bool inblock = false;
+
+            foreach (var c in name.ToLowerInvariant())
+            {
+                if (c == '(')
+                    inpar = true;
+                else if (c == ')')
+                    inpar = false;
+                else if (c == '[')
+                    inblock = true;
+                else if (c == ']')
+                    inblock = false;
+                else if (!inpar && !inblock && (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
+                    ret.Append(c);
+            }
+
+            return ret.ToString().Trim();
+        }
+
+
     }
 }
