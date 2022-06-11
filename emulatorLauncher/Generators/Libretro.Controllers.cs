@@ -171,20 +171,25 @@ namespace emulatorLauncher.libRetro
             if (c0 == null || c0.Config == null)
                 return;
 
-            if (c0.Name == "Keyboard" && Program.HasWiimoteGun())
-            {                 
-                foreach (var specialkey in retroarchspecials)
+            if (Program.HasWiimoteGun())
+            {
+                var keyB = Program.Controllers.FirstOrDefault(c => c.Name == "Keyboard");
+                if (keyB != null && keyB.Config != null)
                 {
-                    var input = GetInputCode(c0, specialkey.Key);
-                    if (input != null && input.Type == "key")
-                        config[string.Format("input_{0}", specialkey.Value)] = GetConfigValue(input);
+                    foreach (var specialkey in retroarchspecials)
+                    {
+                        var input = GetInputCode(keyB, specialkey.Key);
+                        if (input != null && input.Type == "key")
+                            config[string.Format("input_{0}", specialkey.Value)] = GetConfigValue(input);
+                    }
+
+                    var wiiMoteHotKey = GetInputCode(keyB, Tools.InputKey.hotkey);
+                    if (wiiMoteHotKey == null)
+                        wiiMoteHotKey = GetInputCode(keyB, Tools.InputKey.select);
+
+                    if (wiiMoteHotKey != null && wiiMoteHotKey.Type == "key")
+                        config["input_enable_hotkey"] = GetConfigValue(wiiMoteHotKey);
                 }
-
-                var wiiMoteHotKey = GetInputCode(c0, Tools.InputKey.select);
-                if (wiiMoteHotKey != null && wiiMoteHotKey.Type == "key")
-                    config["input_enable_hotkey"] = GetConfigValue(wiiMoteHotKey);
-
-                return;
             }
 
             var hotKey = GetInputCode(c0, Tools.InputKey.hotkey);
