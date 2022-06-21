@@ -280,7 +280,7 @@ namespace emulatorLauncher
             key = FormatKey(key) + ".";
 
             foreach (var item in _data.Values)
-                if (item.Name.StartsWith(key))
+                if (item.Name.StartsWith(key, StringComparison.InvariantCultureIgnoreCase))
                     ret[item.Name.Substring(key.Length)] = item.Value;
 
             return ret;
