@@ -135,6 +135,10 @@ namespace emulatorLauncher.libRetro
         private static void CleanControllerConfig(ConfigFile retroconfig)
         {
             retroconfig.DisableAll("input_player");
+
+            for(int i = 1 ; i <= 5 ; i++)
+                retroconfig[string.Format("input_player{0}_joypad_index", i)] = "99";
+
             foreach (var specialkey in retroarchspecials)
                 retroconfig.DisableAll("input_" + specialkey.Value);
         }
@@ -391,6 +395,9 @@ namespace emulatorLauncher.libRetro
 
         private static void WriteControllerConfig(ConfigFile retroconfig, Controller controller, string system)
         {
+            if (controller.Name == "Keyboard")
+                return;
+
             // Seul sdl2 reconnait le bouton Guide
             retroconfig["input_joypad_driver"] = _inputDriver;
 
