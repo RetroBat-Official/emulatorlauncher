@@ -202,6 +202,8 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
+                    ini.WriteValue("EmuCore", "EnableRecordingTools", "disabled");
+
                     if (!string.IsNullOrEmpty(SystemConfig["VSync"]))
                         ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
                     else
