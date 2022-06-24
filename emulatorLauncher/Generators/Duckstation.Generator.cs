@@ -37,10 +37,21 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            _path = AppConfig.GetFullPath("duckstation");
+            string folderName = emulator;
+
+            _path = AppConfig.GetFullPath(folderName);
+            if (string.IsNullOrEmpty(_path))
+                _path = AppConfig.GetFullPath("duckstation");
+
             _resolution = resolution;
 
             string exe = Path.Combine(_path, "duckstation-nogui-x64-ReleaseLTCG.exe");
+            if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-nogui-x64-Release.exe");
+
+            if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-nogui.exe");
+
             if (!File.Exists(exe))
                 return null;
 
@@ -72,6 +83,18 @@ namespace emulatorLauncher
                     string biosPath = AppConfig.GetFullPath("bios");
                     if (!string.IsNullOrEmpty(biosPath))
                         ini.WriteValue("BIOS", "SearchDirectory", biosPath.Replace("\\", "\\\\"));
+
+                    string savesPath = AppConfig.GetFullPath("saves");
+                    if (!string.IsNullOrEmpty(savesPath))
+                    {
+                        savesPath = Path.Combine(savesPath, "psx", Path.GetFileName(_path)) + "\\\\" + "memcards";
+
+                        if (!Directory.Exists(savesPath))
+                            try { Directory.CreateDirectory(savesPath); }
+                            catch { }
+
+                        ini.WriteValue("MemoryCards", "Directory", savesPath.Replace("\\", "\\\\"));
+                    }
 
                     if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                         ini.WriteValue("Display", "AspectRatio", SystemConfig["ratio"]);
@@ -133,11 +156,17 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Integer_Scaling"))
                         ini.WriteValue("Display", "IntegerScaling", "false");
 
+                    if (SystemConfig.isOptSet("ControllerBackend") && !string.IsNullOrEmpty(SystemConfig["ControllerBackend"]))
+                        ini.WriteValue("Main", "ControllerBackend", SystemConfig["ControllerBackend"]);
+                    else if (Features.IsSupported("ControllerBackend"))
+                        ini.WriteValue("Main", "ControllerBackend", "SDL");
+
                     ini.WriteValue("Main", "ConfirmPowerOff", "false");
                     ini.WriteValue("Main", "StartFullscreen", "true");
                     ini.WriteValue("Main", "ApplyGameSettings", "true");
                     ini.WriteValue("Main", "RenderToMainWindow", "true");
                     ini.WriteValue("Main", "EnableDiscordPresence", "false");
+                    ini.WriteValue("Main", "PauseOnFocusLoss", "true");
                     ini.WriteValue("Display", "Fullscreen", "true");
                 }
             }

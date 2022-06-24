@@ -630,12 +630,15 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
-            BindFeature(coreSettings, "nestopia_nospritelimit", "nestopia_nospritelimit", "enabled");
+            BindFeature(coreSettings, "nestopia_nospritelimit", "nestopia_nospritelimit", "disabled");
             BindFeature(coreSettings, "nestopia_palette", "nestopia_palette", "consumer");
             BindFeature(coreSettings, "nestopia_blargg_ntsc_filter", "nestopia_blargg_ntsc_filter", "disabled");
             BindFeature(coreSettings, "nestopia_overclock", "nestopia_overclock", "1x");
             BindFeature(coreSettings, "nestopia_select_adapter", "nestopia_select_adapter", "auto");
-            BindFeature(coreSettings, "nestopia_show_crosshair", "nestopia_show_crosshair", "enabled");
+            BindFeature(coreSettings, "nestopia_show_crosshair", "nestopia_show_crosshair", "disabled");
+            BindFeature(coreSettings, "nestopia_favored_system", "nestopia_favored_system", "auto");
+            BindFeature(coreSettings, "nestopia_button_shift", "nestopia_button_shift", "disabled");
+
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
@@ -1277,6 +1280,13 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "dosbox_pure_sblaster_type", "sblaster_type", "sb16");
             BindFeature(coreSettings, "dosbox_pure_svga", "svga", "vesa_nolfb");
             BindFeature(coreSettings, "dosbox_pure_keyboard_layout", "keyboard_layout", "us");
+            BindFeature(coreSettings, "dosbox_pure_force60fps", "dosbox_pure_force60fps", "false");
+            BindFeature(coreSettings, "dosbox_pure_perfstats", "dosbox_pure_perfstats", "none");
+            BindFeature(coreSettings, "dosbox_pure_conf", "dosbox_pure_conf", "false");
+            BindFeature(coreSettings, "dosbox_pure_voodoo", "dosbox_pure_voodoo", "off");
+            BindFeature(coreSettings, "dosbox_pure_voodoo_perf", "dosbox_pure_voodoo_perf", "1");
+            BindFeature(coreSettings, "dosbox_pure_bootos_ramdisk", "dosbox_pure_bootos_ramdisk", "false");
+            BindFeature(coreSettings, "dosbox_pure_bootos_forcenormal", "dosbox_pure_bootos_forcenormal", "false");
         }
 
         private void ConfigurePuae(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1322,11 +1332,22 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_render_to_texture_upscaling", "render_to_texture_upscaling", "1x");
             BindFeature(coreSettings, "reicast_force_wince", "force_wince", "disabled");
             BindFeature(coreSettings, "reicast_cable_type", "cable_type", "VGA (RGB)");
-            BindFeature(coreSettings, "reicast_internal_resolution", "internal_resolution", "1280x960");
+            BindFeature(coreSettings, "reicast_internal_resolution", "internal_resolution", "640x480");
+            BindFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "disabled");
+            BindFeature(coreSettings, "reicast_allow_service_buttons", "reicast_allow_service_buttons", "disabled");
+            BindFeature(coreSettings, "reicast_boot_to_bios", "reicast_boot_to_bios", "disabled");
+            BindFeature(coreSettings, "reicast_hle_bios", "reicast_hle_bios", "disabled");
+            BindFeature(coreSettings, "reicast_per_content_vmus", "reicast_per_content_vmus", "disabled");
+            BindFeature(coreSettings, "reicast_language", "reicast_language", "English");
+            BindFeature(coreSettings, "reicast_region", "reicast_region", "Japan");
+            BindFeature(coreSettings, "reicast_dump_textures", "reicast_dump_textures", "disabled");
+            BindFeature(coreSettings, "reicast_custom_textures", "reicast_custom_textures", "disabled");
+            BindFeature(coreSettings, "reicast_alpha_sorting", "reicast_alpha_sorting", "per-triangle (normal)");
+            BindFeature(coreSettings, "reicast_enable_rttb", "reicast_enable_rttb", "disabled");
+            BindFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "disabled");
 
             // toadd
             BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");
-            BindFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "disabled");
             BindFeature(coreSettings, "reicast_frame_skipping", "reicast_frame_skipping", "disabled");
             
             if (SystemConfig.getOptBoolean("use_guns"))

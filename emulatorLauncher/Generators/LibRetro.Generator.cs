@@ -49,23 +49,23 @@ namespace emulatorLauncher.libRetro
             SetupUIMode(retroarchConfig);
 
             // Resolution & monitor
-            if (Features.IsSupported("monitor"))
+            if (Features.IsSupported("MonitorIndex"))
             {
-                if (SystemConfig.isOptSet("monitor"))
+                if (SystemConfig.isOptSet("MonitorIndex"))
                 {
                     int monitorId;
-                    if (int.TryParse(SystemConfig["monitor"], out monitorId) && monitorId < Screen.AllScreens.Length)
+                    if (int.TryParse(SystemConfig["MonitorIndex"], out monitorId) && monitorId < Screen.AllScreens.Length)
                         retroarchConfig["video_monitor_index"] = (monitorId + 1).ToString();
-                    else if (Features.IsSupported("monitor"))
-                        retroarchConfig["video_monitor_index"] = "0";
                 }
-                else if (Features.IsSupported("monitor"))
+                else
+                {
                     retroarchConfig["video_monitor_index"] = "0";
+                }                   
             }
 
             if (resolution == null)
             {
-                if (!SystemConfig.isOptSet("monitor"))
+                if (!SystemConfig.isOptSet("MonitorIndex"))
                 {
                     Rectangle emulationStationBounds;
                     if (IsEmulationStationWindowed(out emulationStationBounds))
