@@ -84,6 +84,8 @@ namespace emulatorLauncher
             SetupLilyPad();
             SetupGSDx(resolution);
 
+            File.WriteAllText(Path.Combine(_path, "portable.ini"), "RunWizard=0");
+
             if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] == "4:3")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
