@@ -123,14 +123,21 @@ namespace emulatorLauncher
                     string biosPath = AppConfig.GetFullPath("bios");
                     if (!string.IsNullOrEmpty(biosPath))
                     {
-                        biosPath = Path.Combine(biosPath, "pcsx2");
-
                         ini.WriteValue("Folders", "UseDefaultBios", "disabled");
-                        ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\") + "\\\\" + "bios" );
+
+                        var biosList = new string[] { 
+                            "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
+                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
+
+                        if (biosList.Any(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b))))
+                            ini.WriteValue("Folders", "Bios", Path.Combine(biosPath, "pcsx2", "bios").Replace("\\", "\\\\"));
+                        else
+                            ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
+                        
                         ini.WriteValue("Folders", "UseDefaultCheats", "disabled");
-                        ini.WriteValue("Folders", "Cheats", biosPath.Replace("\\", "\\\\") + "\\\\" + "cheats");
+                        ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "pcsx2", "cheats"));
                         ini.WriteValue("Folders", "UseDefaultCheatsWS", "disabled");
-                        ini.WriteValue("Folders", "CheatsWS", biosPath.Replace("\\", "\\\\") + "\\\\" + "cheats_ws");
+                        ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPath, "pcsx2", "cheats_ws"));
                     }
 
                     string savesPath = AppConfig.GetFullPath("saves");
