@@ -123,8 +123,14 @@ namespace emulatorLauncher
                     string biosPath = AppConfig.GetFullPath("bios");
                     if (!string.IsNullOrEmpty(biosPath))
                     {
+                        biosPath = Path.Combine(biosPath, "pcsx2");
+
                         ini.WriteValue("Folders", "UseDefaultBios", "disabled");
-                        ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
+                        ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\") + "\\\\" + "bios" );
+                        ini.WriteValue("Folders", "UseDefaultCheats", "disabled");
+                        ini.WriteValue("Folders", "Cheats", biosPath.Replace("\\", "\\\\") + "\\\\" + "cheats");
+                        ini.WriteValue("Folders", "UseDefaultCheatsWS", "disabled");
+                        ini.WriteValue("Folders", "CheatsWS", biosPath.Replace("\\", "\\\\") + "\\\\" + "cheats_ws");
                     }
 
                     string savesPath = AppConfig.GetFullPath("saves");
@@ -138,8 +144,16 @@ namespace emulatorLauncher
 
                         ini.WriteValue("Folders", "UseDefaultSavestates", "disabled");
                         ini.WriteValue("Folders", "UseDefaultMemoryCards", "disabled");
-                        ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\"));
-                        ini.WriteValue("Folders", "MemoryCards", savesPath.Replace("\\", "\\\\"));
+                        ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\") + "\\\\" + "sstates");
+                        ini.WriteValue("Folders", "MemoryCards", savesPath.Replace("\\", "\\\\") + "\\\\" + "memcards");
+                    }
+
+                    string screenShotsPath = AppConfig.GetFullPath("screenshots");
+                    if (!string.IsNullOrEmpty(screenShotsPath))
+                    {
+
+                        ini.WriteValue("Folders", "UseDefaultSnapshots", "disabled");
+                        ini.WriteValue("Folders", "Snapshots", screenShotsPath.Replace("\\", "\\\\") + "\\\\" + "pcsx2");
                     }
 
                     if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
@@ -204,7 +218,8 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    ini.WriteValue("EmuCore", "EnableRecordingTools", "disabled");
+                    if (_isPcsx17)
+                        ini.WriteValue("EmuCore", "EnableRecordingTools", "disabled");
 
                     if (!string.IsNullOrEmpty(SystemConfig["VSync"]))
                         ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);

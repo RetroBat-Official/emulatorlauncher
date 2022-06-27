@@ -47,7 +47,7 @@ namespace emulatorLauncher
             { "model3", () => new Model3Generator() }, { "supermodel", () => new Model3Generator() },
             { "openbor", () => new OpenBorGenerator() },
             { "ps3", () => new Rpcs3Generator() },  { "rpcs3", () => new Rpcs3Generator() },  
-            { "ps2", () => new Pcsx2Generator() },  { "pcsx2", () => new Pcsx2Generator() }, { "pcsx2-old", () => new Pcsx2Generator() },
+            { "ps2", () => new Pcsx2Generator() },  { "pcsx2", () => new Pcsx2Generator() }, { "pcsx2-16", () => new Pcsx2Generator() },
             { "fpinball", () => new FpinballGenerator() }, { "bam", () => new FpinballGenerator() },
             { "vpinball", () => new VPinballGenerator() },
             { "dosbox", () => new DosBoxGenerator() },
