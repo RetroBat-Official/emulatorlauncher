@@ -403,7 +403,10 @@ namespace emulatorLauncher.Tools
                 switch (input.Id)
                 {
                     case 2:
-                        return XINPUTMAPPING.LEFTTRIGGER;
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.RIGHTANALOG_RIGHT;
+
+                        return XINPUTMAPPING.RIGHTANALOG_LEFT;
 
                     case 5:
                         return XINPUTMAPPING.RIGHTTRIGGER;
@@ -421,16 +424,13 @@ namespace emulatorLauncher.Tools
                         return XINPUTMAPPING.LEFTANALOG_UP;
 
                     case 4:
+                        return XINPUTMAPPING.LEFTTRIGGER;
+
+                    case 3:
                         if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
                             return XINPUTMAPPING.RIGHTANALOG_DOWN;
 
                         return XINPUTMAPPING.RIGHTANALOG_UP;
-
-                    case 3:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
-                            return XINPUTMAPPING.RIGHTANALOG_RIGHT;
-
-                        return XINPUTMAPPING.RIGHTANALOG_LEFT;
                 }
             }
 
