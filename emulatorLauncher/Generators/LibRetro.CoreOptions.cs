@@ -14,6 +14,7 @@ namespace emulatorLauncher.libRetro
         {
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
+            ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             Configure4Do(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
@@ -478,6 +479,24 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player1_mouse_index"] = "0";
+                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+            }
+        }
+
+        private void ConfigureStella(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "stella")
+                return;
+
+            // Lightgun
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                retroarchConfig["input_libretro_device_p1"] = "4";
                 retroarchConfig["input_player1_mouse_index"] = "0";
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
@@ -994,12 +1013,18 @@ namespace emulatorLauncher.libRetro
                 }
                 else
                 {
-                    retroarchConfig["input_libretro_device_p1"] = "516"; // "260";
+                    if (system == "mastersystem")
+                        retroarchConfig["input_libretro_device_p1"] = "260";
+                    else
+                        retroarchConfig["input_libretro_device_p1"] = "516"; 
+
                     retroarchConfig["input_player1_mouse_index"] = "0";
                     retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                     retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                     retroarchConfig["input_player1_gun_start_mbtn"] = "3";
                 }
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
 
                 // Use remap to force input devices, or it does not load
                 CreateInputRemap("Genesis Plus GX", SystemConfig["rom"], cfg =>
@@ -1077,6 +1102,8 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                     retroarchConfig["input_player1_gun_start_mbtn"] = "3";
                 }
+
+                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
 
                 // Use remap to force input devices, or it does not load
                 CreateInputRemap("Genesis Plus GX Wide", SystemConfig["rom"], cfg =>
