@@ -137,7 +137,7 @@ namespace emulatorLauncher.libRetro
             retroconfig.DisableAll("input_player");
 
             for(int i = 1 ; i <= 5 ; i++)
-                retroconfig[string.Format("input_player{0}_joypad_index", i)] = "99";
+                retroconfig[string.Format("input_player{0}_joypad_index", i)] = (i - 1).ToString();
 
             foreach (var specialkey in retroarchspecials)
                 retroconfig.DisableAll("input_" + specialkey.Value);

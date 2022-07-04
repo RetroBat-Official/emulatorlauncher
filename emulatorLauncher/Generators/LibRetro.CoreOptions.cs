@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Xml.Linq;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher.libRetro
 {
@@ -104,7 +105,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "neocd_loadskip", "neocd_loadskip", "Off");
             BindFeature(coreSettings, "neocd_region", "neocd_region", "USA");
         }
-        
+
         private void ConfigureMednafenPce(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "mednafen_pce")
@@ -282,21 +283,21 @@ namespace emulatorLauncher.libRetro
             coreSettings["fbneo-load-subsystem-from-parent"] = "enabled";
             coreSettings["fbneo-fm-interpolation"] = "4-point 3rd order";
             coreSettings["fbneo-sample-interpolation"] = "4-point 3rd order";
-            
+
             BindFeature(coreSettings, "fbneo-neogeo-mode", "fbneo-neogeo-mode", "UNIBIOS");
             BindFeature(coreSettings, "fbneo-vertical-mode", "fbneo-vertical-mode", "disabled");
             BindFeature(coreSettings, "fbneo-lightgun-hide-crosshair", "fbneo-lightgun-hide-crosshair", "disabled");
 
             if (SystemConfig["fbneo-vertical-mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
-            
+
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 retroarchConfig["input_libretro_device_p1"] = "4";
                 retroarchConfig["input_player1_mouse_index"] = "0";
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_aux_a_mbtn"]   = "2"; // # for all games ?
-                retroarchConfig["input_player1_gun_start_mbtn"]   = "3";
+                retroarchConfig["input_player1_gun_aux_a_mbtn"] = "2"; // # for all games ?
+                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
@@ -361,8 +362,8 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                retroarchConfig["input_libretro_device_p1"] = "260";                
-                retroarchConfig["input_player1_mouse_index"] = "0";                
+                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_player1_mouse_index"] = "0";
                 retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                 retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
@@ -461,7 +462,7 @@ namespace emulatorLauncher.libRetro
             string rom = SystemConfig["rom"].AsIndexedRomName();
             foreach (var hackName in operaHacks.Select(h => h.Value).Distinct())
                 coreSettings["opera_" + hackName] = operaHacks.Any(h => h.Value == hackName && rom.Contains(h.Key)) ? "enabled" : "disabled";
-            
+
             // If ROM includes the word 'Disc', assume it's a multi disc game, and enable shared nvram if the option isn't set.
             if (Features.IsSupported("opera_nvram_storage"))
             {
@@ -470,7 +471,7 @@ namespace emulatorLauncher.libRetro
                 else if (!string.IsNullOrEmpty(SystemConfig["rom"]) && SystemConfig["rom"].ToLower().Contains("disc"))
                     coreSettings["opera_nvram_storage"] = "shared";
                 else
-                    coreSettings["opera_nvram_storage"] = "per game";                    
+                    coreSettings["opera_nvram_storage"] = "per game";
             }
 
             // Lightgun
@@ -498,7 +499,7 @@ namespace emulatorLauncher.libRetro
             // Game hacks
             string rom = SystemConfig["rom"].AsIndexedRomName();
             foreach (var hackName in operaHacks.Select(h => h.Value).Distinct())
-                coreSettings["4do_"+hackName] = operaHacks.Any(h => h.Value == hackName && rom.Contains(h.Key)) ? "enabled" : "disabled";
+                coreSettings["4do_" + hackName] = operaHacks.Any(h => h.Value == hackName && rom.Contains(h.Key)) ? "enabled" : "disabled";
 
             // If ROM includes the word 'Disc', assume it's a multi disc game, and enable shared nvram if the option isn't set.
             if (Features.IsSupported("4do_nvram_storage"))
@@ -523,7 +524,7 @@ namespace emulatorLauncher.libRetro
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
         }
-        
+
         private void ConfigureBlueMsx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "bluemsx")
@@ -545,7 +546,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["bluemsx_msxtype"] = "MSXturboR";
             else
                 coreSettings["bluemsx_msxtypec"] = "Auto";
-                   
+
             var sysDevices = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
 
             if (sysDevices.ContainsKey(system))
@@ -639,7 +640,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "nestopia_favored_system", "nestopia_favored_system", "auto");
             BindFeature(coreSettings, "nestopia_button_shift", "nestopia_button_shift", "disabled");
 
-
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 retroarchConfig["input_libretro_device_p2"] = "262";
@@ -647,8 +647,21 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
 
                 coreSettings["nestopia_zapper_device"] = "lightgun";
+
+                CreateInputRemap("Nestopia", SystemConfig["rom"], cfg =>
+                {
+                    cfg["input_libretro_device_p1"] = "1";
+                    cfg["input_libretro_device_p2"] = "262";
+                    cfg["input_remap_port_p1"] = "0";
+                    cfg["input_remap_port_p2"] = "1";
+                });
             }
-        }        
+            else
+                DeleteInputRemap("Nestopia", SystemConfig["rom"]);
+
+            // Use remap to force input devices, or it does not load
+
+        }
 
         private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
@@ -696,7 +709,7 @@ namespace emulatorLauncher.libRetro
 
             coreSettings["mame2003-plus_skip_disclaimer"] = "enabled";
             coreSettings["mame2003-plus_skip_warnings"] = "enabled";
-            coreSettings["mame2003-plus_xy_device"] = "lightgun";           
+            coreSettings["mame2003-plus_xy_device"] = "lightgun";
 
             BindFeature(coreSettings, "mame2003-plus_analog", "mame2003-plus_analog", "digital");
             BindFeature(coreSettings, "mame2003-plus_frameskip", "mame2003-plus_frameskip", "0");
@@ -742,10 +755,10 @@ namespace emulatorLauncher.libRetro
 
             bool atari800 = (system == "atari800");
             bool atariXE = !atari800 && system.IndexOf("xe", StringComparison.InvariantCultureIgnoreCase) >= 0;
-         
+
             if (atari800)
             {
-                var romExt =  Path.GetExtension(Program.SystemConfig["rom"]).ToLower();
+                var romExt = Path.GetExtension(Program.SystemConfig["rom"]).ToLower();
 
                 coreSettings["atari800_internalbasic"] = (romExt == ".bas" ? "enabled" : "disabled");
                 coreSettings["atari800_cassboot"] = (romExt == ".cas" ? "enabled" : "disabled");
@@ -757,7 +770,7 @@ namespace emulatorLauncher.libRetro
                 BindFeature(coreSettings, "atari800_artifacting", "atari800_artifacting", "disabled");
             }
             else if (atariXE)
-            {             
+            {
                 coreSettings["atari800_system"] = "130XE (128K)";
                 coreSettings["atari800_internalbasic"] = "disabled";
                 coreSettings["atari800_opt1"] = "enabled";
@@ -766,7 +779,7 @@ namespace emulatorLauncher.libRetro
                 BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
                 BindFeature(coreSettings, "atari800_sioaccel", "atari800_sioaccel", "enabled");
                 BindFeature(coreSettings, "atari800_artifacting", "atari800_artifacting", "disabled");
-            }                       
+            }
             else // Atari 5200
             {
                 coreSettings["atari800_system"] = "5200";
@@ -781,7 +794,7 @@ namespace emulatorLauncher.libRetro
             if (!atariCfg.Any())
                 atariCfg.AppendLine("Atari 800 Emulator, Version 3.1.0");
 
-            string biosPath = AppConfig.GetFullPath("bios");            
+            string biosPath = AppConfig.GetFullPath("bios");
             atariCfg["ROM_OS_A_PAL"] = Path.Combine(biosPath, "ATARIOSA.ROM");
             atariCfg["ROM_OS_BB01R2"] = Path.Combine(biosPath, "ATARIXL.ROM");
             atariCfg["ROM_BASIC_C"] = Path.Combine(biosPath, "ATARIBAS.ROM");
@@ -828,7 +841,7 @@ namespace emulatorLauncher.libRetro
                     }
                     catch { }
                 }
-            }            
+            }
             else // Atari 5200
             {
                 atariCfg["ROM_OS_A_PAL"] = "";
@@ -858,7 +871,7 @@ namespace emulatorLauncher.libRetro
         {
             if (core != "snes9x" && core != "snes9x_next")
                 return;
-            
+
             coreSettings["snes9x_show_advanced_av_settings"] = "enabled";
 
             BindFeature(coreSettings, "snes9x_blargg", "snes9x_blargg", "disabled"); // Emulated video signal
@@ -869,7 +882,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "snes9x_audio_interpolation", "snes9x_audio_interpolation", "none"); // Audio interpolation
             BindFeature(coreSettings, "snes9x_overclock_superfx", "snes9x_overclock_superfx", "100%"); // SuperFX overclock
             BindFeature(coreSettings, "snes9x_block_invalid_vram_access", "snes9x_block_invalid_vram_access", "enabled"); // Block invalid VRAM access
-                        
+
             // Unsafe hacks (config must be done in Core options)
             if (SystemConfig.isOptSet("SnesUnsafeHacks") && SystemConfig["SnesUnsafeHacks"] == "config")
             {
@@ -885,7 +898,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["snes9x_randomize_memory"] = "disabled";
                 coreSettings["snes9x_reduce_sprite_flicker"] = "disabled";
             }
-            
+
             // Advanced video options (config must be done in Core options menu)
             if (SystemConfig.isOptSet("SnesAdvancedVideoOptions") && SystemConfig["SnesAdvancedVideoOptions"] == "config")
             {
@@ -904,10 +917,10 @@ namespace emulatorLauncher.libRetro
                 coreSettings["snes9x_layer_3"] = "enabled";
                 coreSettings["snes9x_layer_4"] = "enabled";
                 coreSettings["snes9x_layer_5"] = "enabled";
-                coreSettings["snes9x_gfx_clip"] =  "enabled";
-                coreSettings["snes9x_gfx_transp"] =  "enabled";
+                coreSettings["snes9x_gfx_clip"] = "enabled";
+                coreSettings["snes9x_gfx_transp"] = "enabled";
             }
-            
+
             // Advanced audio options (config must be done in Core options menu)
             if (SystemConfig.isOptSet("SnesAdvancedAudioOptions") && SystemConfig["SnesAdvancedAudioOptions"] == "config")
             {
@@ -970,17 +983,42 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                retroarchConfig["input_libretro_device_p1"] = "260";
-                retroarchConfig["input_player2_mouse_index"] = "0";
-                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                if (gunInfo != null && gunInfo.GunType == "justifier")
+                {
+                    retroarchConfig["input_libretro_device_p2"] = "772";
+                    retroarchConfig["input_player2_mouse_index"] = "0";
+                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
+                }
+                else
+                {
+                    retroarchConfig["input_libretro_device_p1"] = "516"; // "260";
+                    retroarchConfig["input_player1_mouse_index"] = "0";
+                    retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                    retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+                }
+
+                // Use remap to force input devices, or it does not load
+                CreateInputRemap("Genesis Plus GX", SystemConfig["rom"], cfg =>
+                {
+                    cfg["input_libretro_device_p1"] = "1";
+                    cfg["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
+                    cfg["input_remap_port_p1"] = "0";
+                    cfg["input_remap_port_p2"] = "1";
+                });
             }
+            else
+                DeleteInputRemap("Genesis Plus GX", SystemConfig["rom"]);
         }
-        
+
         private void ConfigureGenesisPlusGXWide(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "genesis_plus_gx_wide")
                 return;
-            
+
             if (SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
             {
                 int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
@@ -1012,22 +1050,47 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "genesis_plus_gx_wide_render", "render", "single field");
             BindFeature(coreSettings, "genesis_plus_gx_wide_force_dtack", "genesis_plus_gx_force_dtack", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_overclock", "genesis_plus_gx_overclock", "100%");
-            BindFeature(coreSettings, "genesis_plus_gx_wide_no_sprite_limit", "genesis_plus_gx_no_sprite_limit", "disabled");            
+            BindFeature(coreSettings, "genesis_plus_gx_wide_no_sprite_limit", "genesis_plus_gx_no_sprite_limit", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_add_on", "genesis_plus_gx_add_on", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_wide_h40_extra_columns", "h40_extra_columns", "10");
 
             BindFeature(coreSettings, "genesis_plus_gx_wide_gun_cursor", "gun_cursor", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_gun_input", "gun_input", "lightgun");
-            
+
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                retroarchConfig["input_libretro_device_p1"] = "260";
-                retroarchConfig["input_player2_mouse_index"] = "0";
-                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                if (gunInfo != null && gunInfo.GunType == "justifier")
+                {
+                    retroarchConfig["input_libretro_device_p2"] = "772";
+                    retroarchConfig["input_player2_mouse_index"] = "0";
+                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
+                }
+                else
+                {
+                    retroarchConfig["input_libretro_device_p1"] = "516"; // "260";
+                    retroarchConfig["input_player1_mouse_index"] = "0";
+                    retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
+                    retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+                }
+
+                // Use remap to force input devices, or it does not load
+                CreateInputRemap("Genesis Plus GX Wide", SystemConfig["rom"], cfg =>
+                {
+                    cfg["input_libretro_device_p1"] = "1";
+                    cfg["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
+                    cfg["input_remap_port_p1"] = "0";
+                    cfg["input_remap_port_p2"] = "1";
+                });
             }
+            else
+                DeleteInputRemap("Genesis Plus GX Wide", SystemConfig["rom"]);
         }
-        
+
         private void ConfigureMame(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "mame")
@@ -1046,7 +1109,7 @@ namespace emulatorLauncher.libRetro
             }
 
             coreSettings["mame_softlists_enable"] = softLists;
-            coreSettings["mame_softlists_auto_media"] = softLists; 
+            coreSettings["mame_softlists_auto_media"] = softLists;
 
             coreSettings["mame_read_config"] = "enabled";
             coreSettings["mame_write_config"] = "enabled";
@@ -1084,7 +1147,7 @@ namespace emulatorLauncher.libRetro
             }
             catch { }
 
-            try 
+            try
             {
                 // Remove medias declared in ini file
                 string iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini", messSystem.MachineName + ".ini");
@@ -1133,13 +1196,13 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "mupen64plus-cpucore", "mupen64plus-cpucore", "pure_interpreter"); // CPU core
             BindFeature(coreSettings, "mupen64plus-rdp-plugin", "RDP_Plugin", "gliden64"); // Plugin selection           
-            
+
             // Set RSP plugin: HLE for Glide, LLE for Parallel
             if (SystemConfig.isOptSet("RDP_Plugin") && coreSettings["mupen64plus-rdp-plugin"] == "parallel")
                 coreSettings["mupen64plus-rsp-plugin"] = "parallel";
             else
                 coreSettings["mupen64plus-rsp-plugin"] = "hle";
-            
+
             // Overscan (Glide)
             if (SystemConfig.isOptSet("CropOverscan") && SystemConfig.getOptBoolean("CropOverscan"))
             {
@@ -1228,7 +1291,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mupen64plus-pak2", "mupen64plus-pak2", "none");
             BindFeature(coreSettings, "mupen64plus-pak3", "mupen64plus-pak3", "none");
             BindFeature(coreSettings, "mupen64plus-pak4", "mupen64plus-pak4", "none");
-            
+
             // Glide
             BindFeature(coreSettings, "mupen64plus-txEnhancementMode", "Texture_Enhancement", "As Is");
             BindFeature(coreSettings, "mupen64plus-43screensize", "43screensize", "640x480");
@@ -1249,7 +1312,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-super-sampled-read-back-dither", "mupen64plus-parallel-rdp-super-sampled-read-back-dither", "False");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-upscaling", "mupen64plus-parallel-rdp-upscaling", "1x");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-vi-aa", "mupen64plus-parallel-rdp-vi-aa", "False");
-            BindFeature(coreSettings, "mupen64plus-parallel-rdp-vi-bilinear", "mupen64plus-parallel-rdp-vi-bilinear", "False");            
+            BindFeature(coreSettings, "mupen64plus-parallel-rdp-vi-bilinear", "mupen64plus-parallel-rdp-vi-bilinear", "False");
         }
 
         private void ConfigureDosboxPure(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1325,7 +1388,7 @@ namespace emulatorLauncher.libRetro
             {
                 retroarchConfig["aspect_ratio_index"] = "1";
                 SystemConfig["bezel"] = "none";
-            }        
+            }
 
             BindFeature(coreSettings, "reicast_anisotropic_filtering", "anisotropic_filtering", "off");
             BindFeature(coreSettings, "reicast_texupscale", "texture_upscaling", "off");
@@ -1349,7 +1412,7 @@ namespace emulatorLauncher.libRetro
             // toadd
             BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");
             BindFeature(coreSettings, "reicast_frame_skipping", "reicast_frame_skipping", "disabled");
-            
+
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 retroarchConfig["input_libretro_device_p1"] = "4";
@@ -1471,6 +1534,45 @@ namespace emulatorLauncher.libRetro
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
+        }
+
+        private void CreateInputRemap(string cleanSystemName, string romName, Action<ConfigFile> createRemap)
+        {
+            DeleteInputRemap(cleanSystemName, romName);
+            if (createRemap == null)
+                return;
+
+            string remapName = Path.GetFileName(Path.GetDirectoryName(romName));
+
+            string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            string path = Path.Combine(dir, remapName + ".rmp");
+
+            this.AddFileForRestoration(path);
+
+            var cfg = ConfigFile.FromFile(path, new ConfigFileOptions() { CaseSensitive = true });
+            createRemap(cfg);
+            cfg.Save(path, true);
+        }
+
+        private void DeleteInputRemap(string cleanSystemName, string romName)
+        {
+            string remapName = Path.GetFileName(Path.GetDirectoryName(romName));
+
+            string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
+            string path = Path.Combine(dir, remapName + ".rmp");
+
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+
+                if (Directory.Exists(dir) && Directory.GetFiles(dir).Length == 0)
+                    Directory.Delete(dir);
+            }
+            catch { }
         }
     }
 }

@@ -42,6 +42,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["video_window_save_positions"] = "false";
             retroarchConfig["notification_show_autoconfig"] = "false";
+            retroarchConfig["notification_show_remap_load"] = "false";
             
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);

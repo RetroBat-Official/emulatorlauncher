@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\GunGames.cs" />
     <Compile Include="Common\MountFile.cs" />
     <Compile Include="Common\EnumerableExtensions.cs" />
     <Compile Include="Common\EsSystems.cs" />

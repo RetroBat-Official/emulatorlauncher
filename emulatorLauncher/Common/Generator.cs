@@ -335,6 +335,8 @@ namespace emulatorLauncher
                 try { _filesToRestore[file] = File.ReadAllBytes(file); }
                 catch { }
             }
+            else
+                _filesToRestore[file] = null;
         }
 
         public void RestoreFiles()
@@ -343,7 +345,19 @@ namespace emulatorLauncher
                 return;
 
             foreach (var file in _filesToRestore)
-                File.WriteAllBytes(file.Key, file.Value);
+            {
+                if (file.Value == null)
+                {
+                    try
+                    {
+                        if (File.Exists(file.Key))
+                            File.Delete(file.Key);
+                    }
+                    catch { }
+                }
+                else
+                    File.WriteAllBytes(file.Key, file.Value);
+            }
         }
 
         #region IsEmulationStationWindowed
