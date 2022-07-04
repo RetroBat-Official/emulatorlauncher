@@ -1122,9 +1122,9 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mame_mame_4way_enable", "4way_enable", "enabled");
             BindFeature(coreSettings, "mame_lightgun_mode", "lightgun_mode", "lightgun");
 
-            BindFeature(coreSettings, "boot_from_cli", "boot_from_cli", "enabled", true);
-            BindFeature(coreSettings, "boot_to_bios", "boot_to_bios", "disabled", true);
-            BindFeature(coreSettings, "boot_to_osd", "boot_to_osd", "disabled", true);
+            BindFeature(coreSettings, "mame_boot_from_cli", "boot_from_cli", "enabled", true);
+            BindFeature(coreSettings, "mame_boot_to_bios", "boot_to_bios", "disabled", true);
+            BindFeature(coreSettings, "mame_boot_to_osd", "boot_to_osd", "disabled", true);
         }
 
         private void CleanupMameMessConfigFiles(MessSystem messSystem)
