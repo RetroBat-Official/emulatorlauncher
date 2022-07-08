@@ -70,8 +70,11 @@ namespace emulatorLauncher
                                 var key = new Key();
                                 key.Name = keyPair[0].Trim();
 
-                                if (!key.IsComment && !_options.HasFlag(IniOptions.AllowDuplicateValues) && namesInSection.Contains(key.Name))                                        
+                                if (!key.IsComment && !_options.HasFlag(IniOptions.AllowDuplicateValues) && namesInSection.Contains(key.Name))
+                                {
+                                    strLine = iniFile.ReadLine();
                                     continue;
+                                }
 
                                 if (key.IsComment)
                                 {
