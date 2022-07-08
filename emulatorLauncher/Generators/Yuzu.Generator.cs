@@ -97,9 +97,6 @@ namespace emulatorLauncher
                     ini.WriteValue("Renderer", "scaling_filter\\default", "true");
                     ini.WriteValue("Renderer", "scaling_filter", "1");
                 }
-
-                if (ini.IsDirty)
-                    AddFileForRestoration(conf);
             }
         }
 

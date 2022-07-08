@@ -111,8 +111,6 @@ namespace emulatorLauncher
         private void SetupPaths(string emulator, string core)
         {
             string iniFile = Path.Combine(_path, "inis", "PCSX2_ui.ini");
-            if (File.Exists(iniFile))
-                AddFileForRestoration(iniFile);
 
             try
             {
@@ -203,8 +201,6 @@ namespace emulatorLauncher
                 return; // Keyboard Mode 1 is not supported anymore
 
             string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "PAD.ini" : "LilyPad.ini");
-            if (File.Exists(iniFile))
-                AddFileForRestoration(iniFile);
 
             try
             {
@@ -217,9 +213,6 @@ namespace emulatorLauncher
         private void SetupVM()
         {
             string iniFile = Path.Combine(_path, "inis", "PCSX2_vm.ini");
-
-            if (File.Exists(iniFile))
-                AddFileForRestoration(iniFile);
 
             try
             {
@@ -255,9 +248,6 @@ namespace emulatorLauncher
         private void SetupGSDx(ScreenResolution resolution)
         {
             string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "GS.ini" : "GSdx.ini");
-
-            if (File.Exists(iniFile))
-                AddFileForRestoration(iniFile);
 
             try
             {
