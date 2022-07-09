@@ -301,7 +301,7 @@ namespace emulatorLauncher
 
             ConfigItem item;
             if (_data.TryGetValue(FormatKey(key), out item) && item != null)
-                return item.Value != null && item.Value.ToLower() == "true" || item.Value == "1";
+                return item.Value != null && (item.Value.ToLower() == "true" || item.Value == "1" || item.Value.ToLower() == "enabled");
 
             return false;
         }
