@@ -60,9 +60,9 @@ namespace emulatorLauncher
         /// Log an ERROR message
         /// </summary>
         /// <param name="text">Message</param>
-        public void Error(string text)
+        public void Error(string text, Exception ex = null)
         {
-            WriteFormattedLog(LogLevel.ERROR, text);
+            WriteFormattedLog(LogLevel.ERROR, text, ex);
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace emulatorLauncher
             }
         }
 
-        private void WriteFormattedLog(LogLevel level, string text)
+        private void WriteFormattedLog(LogLevel level, string text, Exception exception = null)
         {
             string pretext;
             switch (level)
@@ -150,6 +150,13 @@ namespace emulatorLauncher
             }
 
             WriteLine(pretext + text);
+
+            var ex = exception;
+            while (ex != null)
+            {
+                WriteLine(System.DateTime.Now.ToString(datetimeFormat) + " [EXCEPTION]   " + ex.Message);
+                ex = ex.InnerException;
+            }
         }
 
         [System.Flags]

@@ -53,8 +53,17 @@ namespace emulatorLauncher.Tools
                     if (emul.Cores != null && !string.IsNullOrEmpty(core))
                     {
                         foreach (var corr in emul.Cores.Where(c => NameContains(c.Name, core)))
+                        {
                             foreach (var name in corr.GetAllFeatureNames(this.SharedFeatures))
                                 ret.Add(name);
+
+                            if (corr.Systems != null && !string.IsNullOrEmpty(system))
+                            {
+                                foreach (var sys in corr.Systems.Where(c => NameContains(c.Name, system)))
+                                    foreach (var name in sys.GetAllFeatureNames(this.SharedFeatures))
+                                        ret.Add(name);
+                            }
+                        }
                     }
                 }
             }

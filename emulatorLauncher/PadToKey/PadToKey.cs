@@ -33,7 +33,7 @@ namespace emulatorLauncher.PadToKeyboard
 #if DEBUG
                 MessageBox.Show(ex.Message);
 #endif
-                SimpleLogger.Instance.Error("PadToKey error : " + ex.Message);               
+                SimpleLogger.Instance.Error("PadToKey error : " + ex.Message, ex);               
             }
 
             return null;
