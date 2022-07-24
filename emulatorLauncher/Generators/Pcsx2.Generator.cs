@@ -133,9 +133,9 @@ namespace emulatorLauncher
                             ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
                         
                         ini.WriteValue("Folders", "UseDefaultCheats", "disabled");
-                        ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "pcsx2", "cheats"));
+                        ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "pcsx2", "cheats").Replace("\\", "\\\\"));
                         ini.WriteValue("Folders", "UseDefaultCheatsWS", "disabled");
-                        ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPath, "pcsx2", "cheats_ws"));
+                        ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPath, "pcsx2", "cheats_ws").Replace("\\", "\\\\"));
                     }
 
                     string savesPath = AppConfig.GetFullPath("saves");

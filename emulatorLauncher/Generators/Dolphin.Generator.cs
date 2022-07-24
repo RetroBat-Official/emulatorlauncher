@@ -237,6 +237,17 @@ namespace emulatorLauncher
                             ini.Remove("Enhancements", "ForceTrueColor");
                         }
                     }
+
+                    // shaders compilation
+                    if (SystemConfig.isOptSet("WaitForShadersBeforeStarting"))
+                        ini.WriteValue("Settings", "WaitForShadersBeforeStarting", SystemConfig["WaitForShadersBeforeStarting"]);
+                    else
+                        ini.WriteValue("Settings", "WaitForShadersBeforeStarting", "False");
+
+                    if (SystemConfig.isOptSet("ShaderCompilationMode"))
+                        ini.WriteValue("Settings", "ShaderCompilationMode", SystemConfig["ShaderCompilationMode"]);
+                    else
+                        ini.WriteValue("Settings", "ShaderCompilationMode", "0");
                 }
             }
             catch { }
@@ -368,6 +379,15 @@ namespace emulatorLauncher
                                 ini.WriteValue("Core", "SIDevice" + i, "0");
                         }
                     }
+
+                    // disable auto updates
+                    ini.WriteValue("AutoUpdate", "UpdateTrack", "");
+
+                    // gamecube internal language
+                    if (SystemConfig.isOptSet("gamecube_language"))
+                        ini.WriteValue("Core", "SelectedLanguage", SystemConfig["gamecube_language"]);
+                    else
+                        ini.WriteValue("Core", "SelectedLanguage", "0");
                 }
             }
 

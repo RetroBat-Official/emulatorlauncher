@@ -63,7 +63,7 @@ namespace emulatorLauncher
             { new Installer("tsugaru", "tsugaru", "tsugaru_cui.exe") }, 
             { new Installer("vpinball", "vpinball", "vpinballx.exe") }, 
             { new Installer("winuae", "winuae", "winuae64.exe") }, 
-            { new Installer("xemu", "xemu") }, 
+            { new Installer("xemu", "xemu") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
         };
 

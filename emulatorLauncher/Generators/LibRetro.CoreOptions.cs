@@ -1405,6 +1405,7 @@ namespace emulatorLauncher.libRetro
             if (core != "flycast")
                 return;
 
+            coreSettings["reicast_system"] = "auto";
             coreSettings["reicast_threaded_rendering"] = "enabled";
             coreSettings["reicast_enable_purupuru"] = "enabled"; // Enable controller force feedback
 
@@ -1435,6 +1436,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_alpha_sorting", "reicast_alpha_sorting", "per-triangle (normal)");
             BindFeature(coreSettings, "reicast_enable_rttb", "reicast_enable_rttb", "disabled");
             BindFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "disabled");
+            BindFeature(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "disabled");
+            BindFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "disabled");
 
             // toadd
             BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");

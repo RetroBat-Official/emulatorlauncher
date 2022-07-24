@@ -28,8 +28,8 @@ namespace emulatorLauncher
                 if (!SystemConfig.isOptSet("smooth"))
                     commandArray.Add("-nolinear_scale");
 
-                if (SystemConfig["ratio"] != "16/9")
-                    commandArray.Add("-force_aspect_ratio");
+                if (SystemConfig["ratio"] != "4/3")
+                    commandArray.Add("-ignore_aspect_ratio");
 
                 return;
             }
@@ -37,6 +37,8 @@ namespace emulatorLauncher
             // hypseus
             if (SystemConfig["ratio"] == "16/9")
                 commandArray.Add("-ignore_aspect_ratio");
+            else
+                commandArray.Add("-force_aspect_ratio");
         }
 
         protected string _executableName;

@@ -113,6 +113,7 @@ namespace emulatorLauncher.libRetro
         };
 
         static public Dictionary<InputKey, string> retroarchspecials = new Dictionary<InputKey, string>()
+        /*
         {
             { InputKey.start, "exit_emulator"},  
 
@@ -131,7 +132,26 @@ namespace emulatorLauncher.libRetro
             { InputKey.r2, "shader_next"},              
             { InputKey.pagedown, "ai_service"}      
         };
-        
+        */
+
+        {
+            { InputKey.start, "exit_emulator"},
+            { InputKey.b, "pause_toggle"},
+            { InputKey.a, "menu_toggle"},
+            { InputKey.x, "load_state"},
+            { InputKey.y, "save_state"},
+            { InputKey.pageup, "disk_eject_toggle"},
+            { InputKey.pagedown, "ai_service"},
+            { InputKey.l2, "disk_prev"},
+            { InputKey.r2, "disk_next"},
+            { InputKey.r3, "screenshot"},
+            { InputKey.up, "state_slot_increase"},
+            { InputKey.down, "state_slot_decrease"},
+            { InputKey.left, "rewind"},
+            { InputKey.right, "hold_fast_forward"}
+
+        };
+
         private static void CleanControllerConfig(ConfigFile retroconfig)
         {
             retroconfig.DisableAll("input_player");
@@ -170,6 +190,11 @@ namespace emulatorLauncher.libRetro
             config["input_shader_prev"] = "n";
             config["input_bind_hold"] = "2";
             config["input_bind_timeout"] = "5";
+
+            config["input_enable_hotkey"] = "nul";
+            config["input_enable_hotkey_axis"] = "nul";
+            config["input_enable_hotkey_btn"] = "nul";
+            config["input_enable_hotkey_mbtn"] = "nul";
 
             var c0 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
             if (c0 == null || c0.Config == null)
