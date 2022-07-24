@@ -239,15 +239,21 @@ namespace emulatorLauncher
                     }
 
                     // shaders compilation
-                    if (SystemConfig.isOptSet("WaitForShadersBeforeStarting"))
-                        ini.WriteValue("Settings", "WaitForShadersBeforeStarting", SystemConfig["WaitForShadersBeforeStarting"]);
-                    else
-                        ini.WriteValue("Settings", "WaitForShadersBeforeStarting", "False");
+                    if (Features.IsSupported("WaitForShadersBeforeStarting"))
+                    {
+                        if (SystemConfig.isOptSet("WaitForShadersBeforeStarting"))
+                            ini.WriteValue("Settings", "WaitForShadersBeforeStarting", SystemConfig["WaitForShadersBeforeStarting"]);
+                        else
+                            ini.WriteValue("Settings", "WaitForShadersBeforeStarting", "False");
+                    }
 
-                    if (SystemConfig.isOptSet("ShaderCompilationMode"))
-                        ini.WriteValue("Settings", "ShaderCompilationMode", SystemConfig["ShaderCompilationMode"]);
-                    else
-                        ini.WriteValue("Settings", "ShaderCompilationMode", "0");
+                    if (Features.IsSupported("ShaderCompilationMode"))
+                    {
+                        if (SystemConfig.isOptSet("ShaderCompilationMode"))
+                            ini.WriteValue("Settings", "ShaderCompilationMode", SystemConfig["ShaderCompilationMode"]);
+                        else
+                            ini.WriteValue("Settings", "ShaderCompilationMode", "2");
+                    }
                 }
             }
             catch { }
@@ -312,8 +318,16 @@ namespace emulatorLauncher
                     ini.WriteValue("Display", "KeepWindowOnTop", "False");
 
                     // language (for gamecube at least)
-                    ini.WriteValue("Core", "SelectedLanguage", getGameCubeLangFromEnvironment());
-                    ini.WriteValue("Core", "GameCubeLanguage", getGameCubeLangFromEnvironment());
+                    if (Features.IsSupported("gamecube_language") && SystemConfig.isOptSet("gamecube_language"))
+                    {
+                        ini.WriteValue("Core", "SelectedLanguage", SystemConfig["gamecube_language"]);
+                        ini.WriteValue("Core", "GameCubeLanguage", SystemConfig["gamecube_language"]);
+                    }
+                    else
+                    {
+                        ini.WriteValue("Core", "SelectedLanguage", getGameCubeLangFromEnvironment());
+                        ini.WriteValue("Core", "GameCubeLanguage", getGameCubeLangFromEnvironment());
+                    }
 
                     // backend - Default
                     if (SystemConfig.isOptSet("gfxbackend"))
@@ -382,12 +396,6 @@ namespace emulatorLauncher
 
                     // disable auto updates
                     ini.WriteValue("AutoUpdate", "UpdateTrack", "");
-
-                    // gamecube internal language
-                    if (SystemConfig.isOptSet("gamecube_language"))
-                        ini.WriteValue("Core", "SelectedLanguage", SystemConfig["gamecube_language"]);
-                    else
-                        ini.WriteValue("Core", "SelectedLanguage", "0");
                 }
             }
 

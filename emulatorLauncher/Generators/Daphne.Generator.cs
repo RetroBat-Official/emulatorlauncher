@@ -28,7 +28,7 @@ namespace emulatorLauncher
                 if (!SystemConfig.isOptSet("smooth"))
                     commandArray.Add("-nolinear_scale");
 
-                if (SystemConfig["ratio"] != "4/3")
+                if (SystemConfig["ratio"] == "16/9")
                     commandArray.Add("-ignore_aspect_ratio");
 
                 return;

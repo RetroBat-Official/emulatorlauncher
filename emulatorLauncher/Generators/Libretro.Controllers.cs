@@ -191,11 +191,6 @@ namespace emulatorLauncher.libRetro
             config["input_bind_hold"] = "2";
             config["input_bind_timeout"] = "5";
 
-            config["input_enable_hotkey"] = "nul";
-            config["input_enable_hotkey_axis"] = "nul";
-            config["input_enable_hotkey_btn"] = "nul";
-            config["input_enable_hotkey_mbtn"] = "nul";
-
             var c0 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
             if (c0 == null || c0.Config == null)
                 return;
