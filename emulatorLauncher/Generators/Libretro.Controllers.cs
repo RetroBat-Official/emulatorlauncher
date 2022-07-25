@@ -415,15 +415,15 @@ namespace emulatorLauncher.libRetro
 
         private static void WriteControllerConfig(ConfigFile retroconfig, Controller controller, string system)
         {
+            var generatedConfig = GenerateControllerConfig(retroconfig, controller, system);
+            foreach (var key in generatedConfig)
+                retroconfig[key.Key] = key.Value;
+
             if (controller.Name == "Keyboard")
                 return;
 
             // Seul sdl2 reconnait le bouton Guide
             retroconfig["input_joypad_driver"] = _inputDriver;
-
-            var generatedConfig = GenerateControllerConfig(retroconfig, controller, system);
-            foreach (var key in generatedConfig)
-                retroconfig[key.Key] = key.Value;
 
             int index = controller.DeviceIndex;
             if (index < 0)
