@@ -129,9 +129,15 @@ namespace emulatorLauncher
                 if (resolution == null)
                     resolution = ScreenResolution.CurrentResolution;
 
+                if (!string.IsNullOrEmpty(ini.GetValue("Config", "GameWidth")))
+                {
+                    ini.WriteValue("Config", "GameWidth", resolution.Width.ToString());
+                    ini.WriteValue("Config", "GameHeight", resolution.Height.ToString());
+                }
+
                 ini.WriteValue("Video", "Width", resolution.Width.ToString());
                 ini.WriteValue("Video", "Height", resolution.Height.ToString());
-                ini.WriteValue("Video", "Depth", resolution.BitsPerPel.ToString());
+              
                 ini.WriteValue("Video", "VRetrace", SystemConfig["VSync"] != "false" ? "1" : "0");                
                 ini.WriteValue("Video", "FullScreen", "1");
             }
