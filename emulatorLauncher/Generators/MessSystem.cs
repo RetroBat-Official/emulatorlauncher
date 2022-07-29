@@ -124,7 +124,7 @@ namespace emulatorLauncher
                 new MessSystem("dragon32"     ,"dragon32" , new MessRomType[] 
                         { 
                             new MessRomType("cart", new string[] { "ccc", "rom" } ), 
-                            new MessRomType("cass", new string[] { "wav", "cas" } ), 
+                            new MessRomType("cass", new string[] { "wav", "cas" }, "CLOADM\\nEXEC\\n" ), 
                             new MessRomType("flop1")
                         }),
 
@@ -224,8 +224,7 @@ namespace emulatorLauncher
                 new MessSystem("vic10"        ,"vic10"         , "cart"  ),  // Commodore MAX Machine
                 new MessSystem("cgenie"       ,"cgenie"        , "cass"  ), // EACA EG2000 Colour Genie                
                 new MessSystem("bk001001"     ,"bk001001"      , "cass"  ), // Electronika BK
-             
-              
+                           
                 new MessSystem("fmtmarty"     ,"fmtmarty"      , "cdrom") { InGameMouse = true },        // Fujitsu FM Towns Marty                               
                 new MessSystem("gp32"         ,"gp32"          , "memc"  ), // GamePark 32
                 new MessSystem("spc4000"      ,"vc4000"        , "cart"  ), // Grundig Super Play Computer 4000
@@ -236,7 +235,6 @@ namespace emulatorLauncher
                 new MessSystem("samcoupe"     ,"samcoupe"      , "flop1"  ), // MGT Sam Coupe
                 new MessSystem("microvsn"     ,"microvsn"      , "cart"  ), // Milton Bradley Microvision
                 new MessSystem("pc6001"       ,"pc6001mk2"     , "cart2"  ), // NEC PC-6001
-                new MessSystem("pecom64"      ,"pecom64"     , "cass"  ), // Pecom 64
                 new MessSystem("p2000t"       ,"p2000t"     , "cass"  ), // Philips P2000T
                 new MessSystem("vg5k"         ,"vg5k"     , "cass"  ), // Philips VG 5000
 
@@ -248,11 +246,18 @@ namespace emulatorLauncher
                 new MessSystem("mz700"        ,"mz700"     , "cass"  ), // Sharp MZ-700
                 new MessSystem("pockstat"     ,"pockstat"     , "cart"  ), // Sony PocketStation
                 new MessSystem("m5"           ,"m5"     , "cart1"  ), // Sord M5
-
-                new MessSystem("sf7000"       ,"sf7000"     , "flop"  ), // Super Control Station SF-7000
-
-                new MessSystem("oric"         ,"orica"     , "cass"  ), // Tangerine Oric
+                new MessSystem("sf7000"       ,"sf7000"     , "flop"  ), // Super Control Station SF-7000                
                 new MessSystem("supervision"  ,"svision"     , "cart"  ), // Supervision
+
+                new MessSystem("oric"         ,"orica"     , new MessRomType[]   // Tangerine Oric
+                        {                            
+                            new MessRomType("cass", null, "CLOAD\\\"\\\"\\n" ), 
+                        }),
+
+                new MessSystem("pecom64"      ,"pecom64"     , new MessRomType[]   // Pecom 64
+                        {                            
+                            new MessRomType("cass", null, "PLOAD\\nRUN\\n" ), 
+                        }),
 
                 new MessSystem("ep64"     ,"ep128", new MessRomType[]  // Enterprise Sixty Four
                         {                            
@@ -266,7 +271,6 @@ namespace emulatorLauncher
                             new MessRomType("cart")
                         }),
                    
-
                 new MessSystem("mikrosha"     ,"mikrosha", new MessRomType[]  // Mikrosha
                         {                            
                             new MessRomType("cass", new string[] { "wav", "rkm" }), 
@@ -302,7 +306,7 @@ namespace emulatorLauncher
                 new MessSystem("sorcerer"     ,"sorcerer", new MessRomType[]  // Exidy Sorcerer
                         { 
                             new MessRomType("quik", new string[] { "snp" }), 
-                            new MessRomType("cass1", new string[] { "wav", "tape" }), 
+                            new MessRomType("cass1", new string[] { "wav", "tape" }, "LOG\\n" ), 
                             new MessRomType("cart")
                         }),
 
@@ -319,11 +323,10 @@ namespace emulatorLauncher
                             new MessRomType("cass", new string[] { "wav" }), 
                             new MessRomType("flop1")
                         }),
-
-
+                        
                 new MessSystem("tvc64"       ,"tvc64", new MessRomType[] // Videoton TV 64
                         { 
-                            new MessRomType("cass", new string[] { "wav", "cas" }), 
+                            new MessRomType("cass", new string[] { "wav", "cas" }, "LOAD\\n" ), 
                             new MessRomType("cart")
                         }),
 
