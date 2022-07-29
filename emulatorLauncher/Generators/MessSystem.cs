@@ -523,7 +523,7 @@ namespace emulatorLauncher
             if (ext == "zip" || ext == "7z")
             {
                 var e = Zip.ListEntries(rom).Where(f => !f.IsDirectory).Select(f => f.Filename).ToArray();
-                if (e.Length == 1)
+                if (e.Length == 1 && !string.IsNullOrEmpty(Path.GetExtension(e[0])))
                     ext = Path.GetExtension(e[0]).ToLowerInvariant().Substring(1);
             }
 
@@ -543,7 +543,7 @@ namespace emulatorLauncher
             if (ext == "zip" || ext == "7z")
             {
                 var e = Zip.ListEntries(rom).Where(f => !f.IsDirectory).Select(f => f.Filename).ToArray(); 
-                if (e.Length == 1)
+                if (e.Length == 1 && !string.IsNullOrEmpty(Path.GetExtension(e[0])))
                     ext = Path.GetExtension(e[0]).ToLowerInvariant().Substring(1);
             }
 
