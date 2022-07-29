@@ -224,8 +224,8 @@ namespace emulatorLauncher
                 new MessSystem("vic10"        ,"vic10"         , "cart"  ),  // Commodore MAX Machine
                 new MessSystem("cgenie"       ,"cgenie"        , "cass"  ), // EACA EG2000 Colour Genie                
                 new MessSystem("bk001001"     ,"bk001001"      , "cass"  ), // Electronika BK
-                new MessSystem("ep64"         ,"ep128"         , "flop"  ), // Enterprise Sixty Four
-                new MessSystem("exl100"       ,"exl100"        , "flop"  ), // Exelvision EXL 100                
+             
+              
                 new MessSystem("fmtmarty"     ,"fmtmarty"      , "cdrom") { InGameMouse = true },        // Fujitsu FM Towns Marty                               
                 new MessSystem("gp32"         ,"gp32"          , "memc"  ), // GamePark 32
                 new MessSystem("spc4000"      ,"vc4000"        , "cart"  ), // Grundig Super Play Computer 4000
@@ -253,7 +253,20 @@ namespace emulatorLauncher
 
                 new MessSystem("oric"         ,"orica"     , "cass"  ), // Tangerine Oric
                 new MessSystem("supervision"  ,"svision"     , "cart"  ), // Supervision
-                                        
+
+                new MessSystem("ep64"     ,"ep128", new MessRomType[]  // Enterprise Sixty Four
+                        {                            
+                            new MessRomType("cass", new string[] { "wav" }), 
+                            new MessRomType("cart")
+                        }),
+                   
+                new MessSystem("exl100"     ,"exl100", new MessRomType[]  // Exelvision EXL 100                
+                        {                            
+                            new MessRomType("cass", new string[] { "wav" }), 
+                            new MessRomType("cart")
+                        }),
+                   
+
                 new MessSystem("mikrosha"     ,"mikrosha", new MessRomType[]  // Mikrosha
                         {                            
                             new MessRomType("cass", new string[] { "wav", "rkm" }), 
@@ -422,7 +435,10 @@ namespace emulatorLauncher
             {
                 var bios = AppConfig.GetFullPath("bios");
 
-                commandArray.Add(bios + ";" + Path.GetDirectoryName(rom));
+                if (Directory.Exists(Path.Combine(bios, "mess")))
+                    commandArray.Add(Path.Combine(bios, "mess") + ";" + bios + ";" + Path.GetDirectoryName(rom));
+                else
+                    commandArray.Add(bios + ";" + Path.GetDirectoryName(rom));
 
                 commandArray.Add("-cfg_directory");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "cfg")));
