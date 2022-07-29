@@ -206,6 +206,114 @@ namespace emulatorLauncher
                             new MessRomType("flop")
                         }),
 
+                        
+                new MessSystem("einstein"     ,"einstein"      , "flop1"  ), // Tatung Einstein TC-01
+                new MessSystem("pmd85"        ,"pmd85"         , "cass"  ), // Tesla PMD 85
+                new MessSystem("laser200"     ,"laser200"      , "dump" ), // VTech Laser 200
+                new MessSystem("vc4000"       ,"vc4000"        , "cart"  ),  // Interton VC 4000
+                new MessSystem("mpu2000"      ,"vc4000"        , "cart"  ),  // Acetronic MPU 2000
+                new MessSystem("mpt05"        ,"vc4000"        , "cart"  ),  // ITMC MPT-05
+                new MessSystem("tcs"          ,"vc4000"        , "cart"  ),  // Rowtron Television Computer System
+                new MessSystem("pegasus"      ,"pegasus"       , "rom1"  ),  // Amber Pegasus
+                new MessSystem("cpc6128p"     ,"cpc6128p"      , "flop1"  ), // Amstrad CPC Plus
+                new MessSystem("apogee"       ,"apogee"        , "cass"  ),  // Apogee BK-01
+                new MessSystem("apple2"       ,"apple2ee"      , "flop1"  ), // Apple II
+                new MessSystem("apple2gs"     ,"apple2gsr1"    , "flop3"  ), // Apple II GS
+                new MessSystem("sv8000"       ,"sv8000"        , "cart"  ),  // Bandai Super Vision 8000
+                new MessSystem("pv2000"       ,"pv2000"        , "cart"  ),  // Casio PV-2000
+                new MessSystem("vic10"        ,"vic10"         , "cart"  ),  // Commodore MAX Machine
+                new MessSystem("cgenie"       ,"cgenie"        , "cass"  ), // EACA EG2000 Colour Genie                
+                new MessSystem("bk001001"     ,"bk001001"      , "cass"  ), // Electronika BK
+                new MessSystem("ep64"         ,"ep128"         , "flop"  ), // Enterprise Sixty Four
+                new MessSystem("exl100"       ,"exl100"        , "flop"  ), // Exelvision EXL 100                
+                new MessSystem("fmtmarty"     ,"fmtmarty"      , "cdrom") { InGameMouse = true },        // Fujitsu FM Towns Marty                               
+                new MessSystem("gp32"         ,"gp32"          , "memc"  ), // GamePark 32
+                new MessSystem("spc4000"      ,"vc4000"        , "cart"  ), // Grundig Super Play Computer 4000
+                new MessSystem("hmg2650"      ,"arcadia"       , "cart"  ), // Hanimex HMG 2650
+                new MessSystem("interact"     ,"interact"      , "cass"  ), // Interact Home Computer
+                new MessSystem("abc80"        ,"abc80"         , "flop1"  ), // Luxor ABC 80
+                new MessSystem("aquarius"     ,"aquarius"      , "cart1"  ), // Mattel Aquarius
+                new MessSystem("samcoupe"     ,"samcoupe"      , "flop1"  ), // MGT Sam Coupe
+                new MessSystem("microvsn"     ,"microvsn"      , "cart"  ), // Milton Bradley Microvision
+                new MessSystem("pc6001"       ,"pc6001mk2"     , "cart2"  ), // NEC PC-6001
+                new MessSystem("pecom64"      ,"pecom64"     , "cass"  ), // Pecom 64
+                new MessSystem("p2000t"       ,"p2000t"     , "cass"  ), // Philips P2000T
+                new MessSystem("vg5k"         ,"vg5k"     , "cass"  ), // Philips VG 5000
+
+                new MessSystem("radio86"      ,"radio86"     , "cass"  ), // Radio-86RK Partner-01.01
+                new MessSystem("studio2"      ,"studio2"     , "cart"  ), // RCA Studio II
+
+                new MessSystem("svmu"         ,"svmu"     , "quik"  ), // Sega Visual Memory Unit
+                new MessSystem("mz2500"       ,"mz2500"     , "flop1"  ), // Sharp MZ-2500
+                new MessSystem("mz700"        ,"mz700"     , "cass"  ), // Sharp MZ-700
+                new MessSystem("pockstat"     ,"pockstat"     , "cart"  ), // Sony PocketStation
+                new MessSystem("m5"           ,"m5"     , "cart1"  ), // Sord M5
+
+                new MessSystem("sf7000"       ,"sf7000"     , "flop"  ), // Super Control Station SF-7000
+
+                new MessSystem("oric"         ,"orica"     , "cass"  ), // Tangerine Oric
+                new MessSystem("supervision"  ,"svision"     , "cart"  ), // Supervision
+                                        
+                new MessSystem("mikrosha"     ,"mikrosha", new MessRomType[]  // Mikrosha
+                        {                            
+                            new MessRomType("cass", new string[] { "wav", "rkm" }), 
+                            new MessRomType("cart")
+                        }),
+
+                new MessSystem("mtx"      ,"mtx512", new MessRomType[]  // Memotech MTX
+                        { 
+                            new MessRomType("dump", new string[] { "mtx" }), 
+                            new MessRomType("quik", new string[] { "run" }), 
+                            new MessRomType("cass", new string[] { "wav" }), 
+                            new MessRomType("cart1")
+                        }),
+
+                new MessSystem("hector"      ,"hec2hrx", new MessRomType[]  // Hector HRX
+                        { 
+                            new MessRomType("cass", new string[] { "wav", "k7", "cin", "for" }), 
+                            new MessRomType("flop1")
+                        }),
+
+                new MessSystem("jupace"      ,"jupace", new MessRomType[]  // Jupiter ACE
+                        { 
+                            new MessRomType("dump", new string[] { "ace" }), 
+                            new MessRomType("cass")
+                        }),
+
+                new MessSystem("galaxyp"    ,"galaxyp", new MessRomType[]  // Galaksija Plus
+                        { 
+                            new MessRomType("dump", new string[] { "gal" }), 
+                            new MessRomType("cass")
+                        }),
+
+                new MessSystem("sorcerer"     ,"sorcerer", new MessRomType[]  // Exidy Sorcerer
+                        { 
+                            new MessRomType("quik", new string[] { "snp" }), 
+                            new MessRomType("cass1", new string[] { "wav", "tape" }), 
+                            new MessRomType("cart")
+                        }),
+
+                new MessSystem("vic20"        ,"vic20", new MessRomType[]  // Commodore VIC-20
+                        { 
+                            new MessRomType("flop", new string[] { "mfi", "dfi", "d64", "g64", "g41", "g71" }), 
+                            new MessRomType("cass", new string[] { "wav", "tap" }), 
+                            new MessRomType("cart")
+                        }),
+
+                new MessSystem("vector06"       ,"vector06", new MessRomType[] // Vector-06C
+                        { 
+                            new MessRomType("cart", new string[] { "bin", "emr" }), 
+                            new MessRomType("cass", new string[] { "wav" }), 
+                            new MessRomType("flop1")
+                        }),
+
+
+                new MessSystem("tvc64"       ,"tvc64", new MessRomType[] // Videoton TV 64
+                        { 
+                            new MessRomType("cass", new string[] { "wav", "cas" }), 
+                            new MessRomType("cart")
+                        }),
+
                 new MessSystem("scv"          ,"scv"      ,"cart"  ),
                 new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ) { InGameMouse = true },        
                 new MessSystem("advision"     ,"advision" ,"cart"  ),
@@ -241,7 +349,7 @@ namespace emulatorLauncher
                 new MessSystem("gbcolor"      ,"gbcolor"  ,"cart"  ),
                 new MessSystem("gameboy"      ,"gameboy"  ,"cart"  ),
                 new MessSystem("apple2gs"     ,"apple2gs" ,"flop1" ),
-                new MessSystem("bk0010"       ,"bk0010"   ,"cass"  )
+                new MessSystem("bk0010"       ,"bk001001" ,"cass"  ),                
             };
 
         public string Name { get; private set; }
@@ -259,23 +367,23 @@ namespace emulatorLauncher
             {
                 string altModel = SystemConfig["altmodel"];
 
-                if (messMode == null && system != null)
+                if (messMode == null && !string.IsNullOrEmpty(system))
                     messMode = MessSystems.FirstOrDefault(m => system.Equals(altModel, StringComparison.InvariantCultureIgnoreCase));
 
-                if (messMode == null && system != null)
+                if (messMode == null && !string.IsNullOrEmpty(system))
                     messMode = MessSystems.FirstOrDefault(m => system.Equals(altModel, StringComparison.InvariantCultureIgnoreCase));                
             }
 
-            if (messMode == null && system != null)
+            if (messMode == null && !string.IsNullOrEmpty(system))
                 messMode = MessSystems.FirstOrDefault(m => system.Equals(m.Name, StringComparison.InvariantCultureIgnoreCase));
 
-            if (messMode == null && system != null)
+            if (messMode == null && !string.IsNullOrEmpty(system))
                 messMode = MessSystems.FirstOrDefault(m => system.Equals(m.MachineName, StringComparison.InvariantCultureIgnoreCase));
 
-            if (messMode == null && core != null)
+            if (messMode == null && !string.IsNullOrEmpty(core))
                 messMode = MessSystems.FirstOrDefault(m => core.Equals(m.Name, StringComparison.InvariantCultureIgnoreCase));
 
-            if (messMode == null && core != null)
+            if (messMode == null && !string.IsNullOrEmpty(core))
                 messMode = MessSystems.FirstOrDefault(m => core.Equals(m.MachineName, StringComparison.InvariantCultureIgnoreCase));
 
             return messMode;

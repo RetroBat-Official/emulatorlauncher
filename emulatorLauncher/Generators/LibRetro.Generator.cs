@@ -874,8 +874,19 @@ namespace emulatorLauncher.libRetro
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            if (string.IsNullOrEmpty(RetroarchPath))
+            if (string.IsNullOrEmpty(RetroarchPath) || string.IsNullOrEmpty(core))
                 return null;
+
+            string subCore = null;
+
+            int split = core.IndexOfAny(new char[] { ':', '/' });
+            if (split >= 0)
+            {
+                subCore = core.Substring(split + 1);
+                core = core.Substring(0, split);
+
+                SystemConfig["subcore"] = subCore;
+            }
             
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
                 core = Path.GetFileNameWithoutExtension(rom);
@@ -1038,7 +1049,7 @@ namespace emulatorLauncher.libRetro
                 Environment.SetEnvironmentVariable("HOME", RetroarchPath);
             }
 
-            MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system) : null;
+            MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
             if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
             {
                 var messArgs = messSystem.GetMameCommandLineArguments(system, rom);

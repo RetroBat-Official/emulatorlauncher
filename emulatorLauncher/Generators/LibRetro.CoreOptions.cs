@@ -1125,7 +1125,7 @@ namespace emulatorLauncher.libRetro
 
             string softLists = "enabled";
 
-            MessSystem messSystem = MessSystem.GetMessSystem(system);
+            MessSystem messSystem = MessSystem.GetMessSystem(system, SystemConfig["subcore"]);
             if (messSystem != null)
             {
                 CleanupMameMessConfigFiles(messSystem);
