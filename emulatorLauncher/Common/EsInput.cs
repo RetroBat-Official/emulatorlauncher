@@ -361,21 +361,8 @@ namespace emulatorLauncher.Tools
             else if (input.Type == "button" && input.Id == 7)
                 ret.Id = 6;
 
-            if (input.Type == "axis")
-            {
-                // Axe 1 (up/down) inversé
-                if (ret.Id == 1)
-                    ret.Value = -ret.Value;
-                else if (ret.Id == 2) // Axe 2 (l2) devient axe 4
-                    ret.Id = 4;
-                else if (ret.Id == 3) // Analog right left/right
-                    ret.Id--;
-                else if (ret.Id == 4) // Analog right up/down
-                {
-                    ret.Id = 3;
-                    ret.Value = -ret.Value;
-                }                
-            }
+            if (input.Type == "axis" && ret.Id == 1 || ret.Id == 3) // up/down axes are inverted
+                ret.Value = -ret.Value;
          
             return ret;
         }
