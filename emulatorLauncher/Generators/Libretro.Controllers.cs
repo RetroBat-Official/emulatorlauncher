@@ -292,7 +292,7 @@ namespace emulatorLauncher.libRetro
                     { InputKey.l3, "l3"}, 
                     { InputKey.r3, "r3"},
                     { InputKey.start, "start"}, 
-                    { InputKey.pagedown, "select"} // select
+                    { InputKey.pagedown, "r"} // select
                 };
             }
 
