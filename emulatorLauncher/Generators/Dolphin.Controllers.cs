@@ -83,12 +83,18 @@ namespace emulatorLauncher
             { InputKey.joystick2up,     "C-Stick/Up" },    
             { InputKey.joystick2left,   "C-Stick/Left"}          
         };
-
+        /*
         static InputKeyMapping reversedButtons = new InputKeyMapping()
         { 
             { InputKey.y,               "Buttons/X" },  
             { InputKey.b,               "Buttons/A" },
             { InputKey.x,               "Buttons/Y" },  
+            { InputKey.a,               "Buttons/B" }
+        };
+        */
+        static InputKeyMapping reversedButtons = new InputKeyMapping()
+        {
+            { InputKey.b,               "Buttons/A" },
             { InputKey.a,               "Buttons/B" }
         };
 
@@ -483,7 +489,9 @@ namespace emulatorLauncher
   //                      ini.WriteValue(gcpad, "C-Stick/Modifier" , "`Thumb R`");
                         ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
                         ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
-                        ini.WriteValue(gcpad, "Rumble/Motor", "`Motor L``Motor R`");
+                        ini.WriteValue(gcpad, "Rumble/Motor", "`Motor L`|`Motor R`");
+                        ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 108.24 109.27 115.00 109.59 106.10 101.96 100.00 101.96 105.22 107.49 117.34 112.43 108.24 101.96 100.00 101.96 108.24 116.11 116.57 116.72 108.24 101.96 100.00 101.96 108.24 109.75 115.91 109.18 107.47 101.96");
+                        ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 108.24 112.26 122.26 118.12 108.24 101.96 100.00 101.96 108.24 114.92 117.37 115.98 108.24 101.96 100.00 101.96 105.40 112.07 114.52 113.89 104.20 99.64 99.97 101.73 106.63 108.27 103.63 104.40 107.15 101.96");
                     }
                 }
 
