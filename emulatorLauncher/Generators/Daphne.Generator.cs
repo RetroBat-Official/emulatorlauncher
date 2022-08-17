@@ -23,10 +23,13 @@ namespace emulatorLauncher
 
 		protected virtual void UpdateCommandline(List<string> commandArray)
         {
+            if (SystemConfig.isOptSet("fastboot") && !SystemConfig.getOptBoolean("fastboot"))
+                commandArray.Remove("-fastboot");
+
             if (_executableName == "daphne")
             {
-                if (!SystemConfig.isOptSet("smooth"))
-                    commandArray.Add("-nolinear_scale");
+                //if (!SystemConfig.isOptSet("smooth"))
+                //    commandArray.Add("-nolinear_scale");
 
                 if (SystemConfig["ratio"] == "16/9")
                     commandArray.Add("-ignore_aspect_ratio");
@@ -37,6 +40,9 @@ namespace emulatorLauncher
             // hypseus
             if (_executableName == "hypseus")
             {
+                if (SystemConfig.isOptSet("smooth") && !SystemConfig.getOptBoolean("smooth"))
+                    commandArray.Add("-nolinear_scale");
+
                 if (SystemConfig["ratio"] == "16/9")
                     commandArray.Add("-ignore_aspect_ratio");
                 else
@@ -44,6 +50,13 @@ namespace emulatorLauncher
 
                 if (SystemConfig.isOptSet("hypseus_scanlines") && SystemConfig["hypseus_scanlines"] == "scanlines")
                     commandArray.Add("-scanlines");
+
+                if (SystemConfig.isOptSet("hypseus_renderer") && SystemConfig["hypseus_renderer"] == "vulkan")
+                {
+                    commandArray.Remove("-opengl");
+                    commandArray.Add("-vulkan");
+
+                }
 
                 return;
             }
@@ -148,7 +161,7 @@ namespace emulatorLauncher
                        romName, 
                        "vldp", 
                         "-framefile", frameFile, 
-                        "-useoverlaysb", "2", 
+                        "-useoverlaysb", "2",
                         "-homedir", _daphneHomedir
                    });
             }
