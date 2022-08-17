@@ -168,8 +168,8 @@ namespace emulatorLauncher
                     ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
 
                     // search for custom textures
-                    ini.WriteValue("Settings", "HiresTextures", "True");
-                    ini.WriteValue("Settings", "CacheHiresTextures", "True");
+                    //ini.WriteValue("Settings", "HiresTextures", "True");
+                    //ini.WriteValue("Settings", "CacheHiresTextures", "True");
 
                     if (SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
                         ini.WriteValue("Settings", "InternalResolution", SystemConfig["internalresolution"]);
@@ -178,20 +178,30 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Settings", "InternalResolution", "0");
 
-                    // HiResTextures - Default On
-                    if (SystemConfig.isOptSet("hires_textures"))
+                    // HiResTextures
+                    /*if (SystemConfig.isOptSet("hires_textures"))
                     {
-                        if (!SystemConfig.getOptBoolean("hires_textures"))
-                        {
-                            ini.WriteValue("Settings", "HiresTextures", "False");
-                            ini.WriteValue("Settings", "CacheHiresTextures", "False");
-                        }
-                        else
+                        if (SystemConfig.getOptBoolean("hires_textures"))
                         {
                             ini.WriteValue("Settings", "HiresTextures", "True");
                             ini.WriteValue("Settings", "CacheHiresTextures", "True");
                         }
+                        else
+                        {
+                            ini.WriteValue("Settings", "HiresTextures", "False");
+                            ini.WriteValue("Settings", "CacheHiresTextures", "False");
+                        }
                     }
+                    */
+                    if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
+                        ini.WriteValue("Settings", "HiresTextures", "True");
+                    else
+                        ini.WriteValue("Settings", "HiresTextures", "False");
+
+                    if (SystemConfig.isOptSet("CacheHiresTextures") && SystemConfig.getOptBoolean("CacheHiresTextures"))
+                        ini.WriteValue("Settings", "CacheHiresTextures", "True");
+                    else
+                        ini.WriteValue("Settings", "CacheHiresTextures", "False");
 
                     // anisotropic filtering - Auto 0
                     if (SystemConfig.isOptSet("anisotropic_filtering"))                    
@@ -254,6 +264,24 @@ namespace emulatorLauncher
                         else
                             ini.WriteValue("Settings", "ShaderCompilationMode", "2");
                     }
+
+                    // Scaled EFB copy
+                    if (Features.IsSupported("EFBScaledCopy"))
+                    {
+                        if (SystemConfig.isOptSet("EFBScaledCopy"))
+                            ini.WriteValue("Hacks", "EFBScaledCopy", SystemConfig["EFBScaledCopy"]);
+                        else
+                            ini.WriteValue("Hacks", "EFBScaledCopy", "True");
+                    }
+
+                    // Force texture filtering
+                    if (Features.IsSupported("ForceFiltering"))
+                    {
+                        if (SystemConfig.isOptSet("ForceFiltering"))
+                            ini.WriteValue("Enhancements", "ForceFiltering", SystemConfig["ForceFiltering"]);
+                        else
+                            ini.WriteValue("Enhancements", "ForceFiltering", "True");
+                    }
                 }
             }
             catch { }
@@ -298,16 +326,23 @@ namespace emulatorLauncher
                         ini.WriteValue("Display", "Fullscreen", "True");
 
                     // draw or not FPS
-                    if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
+                    /*if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
                     {
                         ini.WriteValue("General", "ShowLag", "True");
-                        ini.WriteValue("General", "ShowFPSCounter", "True");
+                        ini.WriteValue("General", "ShowFrameCount", "True");
                     }
                     else
                     {
                         ini.WriteValue("General", "ShowLag", "False");
                         ini.WriteValue("General", "ShowFrameCount", "False");
                     }
+                    */
+
+                    // OSD Messages
+                    if (SystemConfig.isOptSet("OnScreenDisplayMessages") && SystemConfig.getOptBoolean("OnScreenDisplayMessages"))
+                        ini.WriteValue("Interface", "OnScreenDisplayMessages", "True");
+                    else
+                        ini.WriteValue("Interface", "OnScreenDisplayMessages", "False");
 
                     // don't ask about statistics
                     ini.WriteValue("Analytics", "PermissionAsked", "True");
@@ -354,10 +389,16 @@ namespace emulatorLauncher
                     }
 
                     // Enable MMU - Default On
-                    if (!SystemConfig.isOptSet("enable_mmu") ||SystemConfig.getOptBoolean("enable_mmu"))
+                    if (SystemConfig.isOptSet("enable_mmu") && SystemConfig.getOptBoolean("enable_mmu"))
                         ini.WriteValue("Core", "MMU", "True");
                     else
                         ini.WriteValue("Core", "MMU", "False");
+
+                    // CPU Thread (Dual Core)
+                    if (SystemConfig.isOptSet("CPUThread") && SystemConfig.getOptBoolean("CPUThread"))
+                        ini.WriteValue("Core", "CPUThread", "True");
+                    else
+                        ini.WriteValue("Core", "CPUThread", "False");
 
                     // gamecube pads forced as standard pad
                     bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
