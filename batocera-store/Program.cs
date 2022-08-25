@@ -6,15 +6,18 @@ using System.Threading;
 using emulatorLauncher;
 using System.IO;
 using System.Xml.Serialization;
+using emulatorLauncher.Tools;
 
 namespace batocera_store
 {
     class Program
     {
+        static string RootInstallPath { get { return Path.GetDirectoryName(Path.GetDirectoryName(typeof(Program).Assembly.Location)); } }
+
         static int Main(string[] args)
         {
             if (args.Length == 0)
-            {
+            {                
                 Console.WriteLine("usage :");
                 Console.WriteLine("  install <package>");
                 Console.WriteLine("  remove  <package>");
@@ -29,69 +32,361 @@ namespace batocera_store
 
             AppConfig = ConfigFile.FromFile(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "emulatorLauncher.cfg"));
             AppConfig.ImportOverrides(ConfigFile.FromArguments(args));
-            
+
+            var repositories = new List<Repository>();
+
+            foreach (var path in Directory.GetFiles(Path.GetDirectoryName(typeof(Program).Assembly.Location), "batocera-store*.cfg"))
+                repositories.AddRange(RepositoryFactory.FromFile(path));
+
+            if (repositories.Count == 0)
+            {
+                Console.WriteLine("batocera-store.cfg not found or not valid");
+                return 1;
+            }
+
+            Repositories = repositories.ToArray();
+
             switch (args[0])
             {
-                case "install": 
-                    Thread.Sleep(1000);
-                    Console.WriteLine("OK");
+                case "clean":
+                case "clean-all":
+                case "refresh":
+                    CleanPackages();
+                    break;
+
+                case "update":
+                    // Mise à jour des packages installés ( si version > )
+                    UpdatePackages();                    
+                    break;
+
+                case "list-repositories":
+                    ListRepositories();
                     break;
 
                 case "list":
-                    Console.WriteLine(Properties.Resources.batocera_store);
+                    ListPackages();
+                    break;
+
+                case "remove":
+                case "uninstall":
+                    if (args.Length < 2)
+                    {
+                        Console.WriteLine("invalid command line");
+                        break;
+                    }
+
+                    if (!UnInstall(args[1]))
+                        return 1;
+
+                    break;
+                    
+                case "install":
+                    if (args.Length < 2)
+                    {
+                        Console.WriteLine("invalid command line");
+                        break;
+                    }
+
+                    if (!Install(args[1]))
+                        return 1;
+
                     break;
             }           
 
             return 0;
         }
 
+        static void ListRepositories()
+        {
+            foreach (var repo in Repositories)
+                Console.WriteLine(repo.Name);
+        }
+
+        static void ListPackages()
+        {
+            var allInstalledPackages = PackageFileManager.GetInstalledPackages()
+                .Packages
+                .GroupBy(p => p.Repository)
+                .ToDictionary(n => n.Key, n => n.ToDictionary(p => p.Name, p => p));
+                        
+            var items = new List<Package>();
+
+            foreach (var repo in Repositories)
+            {
+                var packages = repo.GetOnlinePackages();
+                if (packages == null)
+                    continue;
+
+                Dictionary<string, InstalledPackage> repoInstalledPackages = null;
+                allInstalledPackages.TryGetValue(repo.Name, out repoInstalledPackages);
+
+                foreach (var package in packages)
+                {
+                    package.Repository = repo.Name;
+
+                    InstalledPackage installedPackage = null;
+
+                    if (repoInstalledPackages != null)
+                        repoInstalledPackages.TryGetValue(package.Name, out installedPackage);
+
+                    if (installedPackage != null)
+                    {
+                        package.Status = "installed";
+                        package.InstalledSize = installedPackage.InstalledSize;
+                    }
+                    else
+                    {
+                        package.InstalledSize = null;
+                        package.Status = null;
+                    }
+
+                    if (!string.IsNullOrEmpty(package.Version))
+                    {
+                        package.AvailableVersion = package.Version;
+                        package.Version = null;
+                    }
+
+                    package.Games = null;
+                    items.Add(package);
+                }
+            }
+
+            var store = new StorePackages() { Packages = items.ToArray() };
+            var xml = store.ToXml();
+
+            Console.WriteLine(xml);
+        }
+
+        static void CleanPackages()
+        {
+            foreach (var repo in Repositories)
+                repo.Cleanup();
+        }
+
+
+        static bool UnInstall(string packageName)
+        {
+
+            Repository repository = null;
+            Package package = null;
+
+            foreach (var repo in Repositories)
+            {
+                package = repo.GetOnlinePackages().FirstOrDefault(p => p.Name == packageName);
+                if (package != null)
+                {
+                    repository = repo;
+                    break;
+                }
+            }
+
+            if (package == null)
+            {
+                Console.WriteLine("Package " + packageName + " not found");
+                return false;
+            }
+
+            var installedPackages = PackageFileManager.GetInstalledPackages();
+
+            var installed = installedPackages.Packages.FirstOrDefault(p => p.Repository == repository.Name && p.Name == package.Name);
+            if (installed == null)
+            {
+                Console.WriteLine("Package " + packageName + " is not installed");
+                return false;
+            }
+
+            NotifyProgress("Removing " + packageName);
+
+            if (installed.InstalledFiles != null && installed.InstalledFiles.Files != null)
+            {
+                string root = RootInstallPath;
+
+                foreach (var file in installed.InstalledFiles.Files)
+                {
+                    string fullPath = Path.Combine(root, file);
+                    
+                    if (File.Exists(fullPath))
+                    {
+                        try { File.Delete(fullPath); }
+                        catch { }
+                    }
+                }
+
+                foreach (var file in installed.InstalledFiles.Files.ToArray().Reverse())
+                {
+                    string fullPath = Path.Combine(root, file);
+
+                    if (Directory.Exists(fullPath))
+                    {
+                        try { Directory.Delete(fullPath); }
+                        catch { }
+                    }
+                }
+
+                NotifyEmulationStation(package, "removegames");
+            }
+
+            installedPackages.Packages.Remove(installed);
+            installedPackages.Save();
+
+            Console.WriteLine("OK");
+            return true;
+        }
+
+        static bool Install(string packageName)
+        {
+            Repository repository = null;
+            Package package = null;
+
+            foreach (var repo in Repositories)
+            {
+                package = repo.GetOnlinePackages().FirstOrDefault(p => p.Name == packageName);
+                if (package != null)
+                {
+                    repository = repo;
+                    break;
+                }
+            }
+          
+            if (package == null)
+            {
+                Console.WriteLine("Package " + packageName + " not found");
+                return false;
+            }
+
+            try
+            {
+                int pc = -1;
+
+                string installFile = repository.DownloadPackageSetup(package, (o, pe) =>
+                {
+                    if (pc != pe.ProgressPercentage)
+                    {
+                        pc = pe.ProgressPercentage;
+                        NotifyProgress("Downloading " + packageName, pe.ProgressPercentage);
+                    }
+                });
+
+                if (File.Exists(installFile))
+                {
+                    var entries = Zip.ListEntries(installFile);
+                    if (entries.Length == 0)
+                    {
+                        Console.WriteLine("Error : file does not contain any entry to install");
+                        
+                        try { File.Delete(installFile); }
+                        catch { }
+
+                        return false;
+                    }
+                    else
+                    {
+                        NotifyProgress("Extracting " + packageName);
+
+                        Zip.Extract(installFile, RootInstallPath);
+
+                        NotifyProgress("Installing" + packageName);
+
+                        NotifyEmulationStation(package, "addgames");
+
+                        var installedPackages = PackageFileManager.GetInstalledPackages();
+
+                        var installed = installedPackages.Packages.FirstOrDefault(p => p.Repository == repository.Name && p.Name == package.Name);
+                        if (installed != null)
+                            installedPackages.Packages.Remove(installed);
+
+                        installedPackages.Packages.Add(new InstalledPackage()
+                        {
+                            Name = package.Name,
+                            Repository = repository.Name,
+                            Version = package.AvailableVersion,
+                            InstalledSize = (entries.Sum(e => e.Length) / 1024).ToString(),
+                            InstalledFiles = new InstalledFiles() { Files = entries.Select(e => e.Filename).ToList() }
+                        });
+
+                        installedPackages.Save();
+                    }
+
+                    try { File.Delete(installFile); }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error : " + ex.Message);
+                return false;
+            }
+
+            Console.WriteLine("OK");
+            return true;
+        }
+
+        private static void NotifyProgress(string text, int percent = -1)
+        {
+            if (percent < 0)
+                Console.WriteLine(text);
+            else
+                Console.WriteLine(text+" >>> "+percent.ToString()+"%");
+
+            Thread.Sleep(100);
+        }
+
+        private static void NotifyEmulationStation(Package package, string verb)
+        {
+            if (package.Games != null && package.Games.Any())
+            {
+                foreach (var gp in package.Games.GroupBy(g => g.System))
+                {
+                    if (string.IsNullOrEmpty(gp.Key))
+                        continue;
+
+                    var gamelist = new GameList() { Games = new System.ComponentModel.BindingList<Game>() };
+                    foreach (var game in gp)
+                    {
+                        try { gamelist.Games.Add(game.ToXml().FromXmlString<Game>()); }
+                        catch { }
+                    }
+
+                    var xml = gamelist.ToXml();
+
+                    try
+                    {
+                        WebTools.PostString("http://" + "127.0.0.1:1234/"+verb+"/" + gp.Key, xml);
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        private static void UpdatePackages()
+        {
+            var allInstalledPackages = PackageFileManager.GetInstalledPackages()
+                .Packages
+                .GroupBy(p => p.Repository)
+                .ToDictionary(n => n.Key, n => n.ToDictionary(p => p.Name, p => p));
+
+            foreach (var repository in Repositories)
+            {
+                Dictionary<string, InstalledPackage> repoInstalledPackages = null;
+                if (!allInstalledPackages.TryGetValue(repository.Name, out repoInstalledPackages))
+                    continue;
+
+                repository.Cleanup();
+
+                foreach (var package in repository.GetOnlinePackages())
+                {
+                    InstalledPackage installedPackage = null;
+                    if (!repoInstalledPackages.TryGetValue(package.Name, out installedPackage))
+                        continue;
+
+                    if (installedPackage.Version != package.AvailableVersion)
+                        Install(package.Name);
+                }
+            }
+        }
+
+
+        public static Repository[] Repositories { get; private set; }
         public static ConfigFile AppConfig { get; private set; }
-    }
-    
-    [XmlType("packages")]
-    [XmlRoot("packages")]
-    public class BatoceraStorePackages
-    {
-        [XmlElement("package")]
-        public Package[] Packages { get; set; }
-    }
-
-    public class Package
-    {
-        [XmlElement("name")]
-        public string Name { get; set; }
-
-        [XmlElement("repository")]
-        public string Repository { get; set; }
-
-        [XmlElement("available_version")]
-        public string AvailableVersion { get; set; }
-
-        [XmlElement("description")]
-        public string Description { get; set; }
-
-        [XmlElement("url")]
-        public string Url { get; set; }
-
-        [XmlElement("packager")]
-        public string Packager { get; set; }
-
-        [XmlElement("download_size")]
-        public string DownloadSize { get; set; }
-
-        [XmlElement("installed_size")]
-        public string InstalledSize { get; set; }
-
-        [XmlElement("status")]
-        public string Status { get; set; }
-
-        [XmlElement("licence")]
-        public string Licence { get; set; }
-
-        [XmlElement("group")]
-        public string Group { get; set; }
-
-        [XmlElement("arch")]
-        public string Arch { get; set; }
-    }
+    }    
 }
