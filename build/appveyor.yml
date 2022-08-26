@@ -19,6 +19,8 @@ after_build:
 - 7z a batocera-ports.zip batocera-systems.exe
 - copy batocera-padsinfo\bin\Release\batocera-padsinfo.exe .
 - 7z a batocera-ports.zip batocera-padsinfo.exe
+- copy batocera-store\bin\Release\batocera-store.exe .
+- 7z a batocera-ports.zip batocera-store.exe
 - copy mount\bin\Release\mount.exe .
 - 7z a batocera-ports.zip mount.exe
 - 7z a batocera-ports.zip 7za.exe

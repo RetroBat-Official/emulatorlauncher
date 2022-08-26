@@ -13,6 +13,8 @@ namespace batocera_store
     class Program
     {
         static string RootInstallPath { get { return Path.GetDirectoryName(Path.GetDirectoryName(typeof(Program).Assembly.Location)); } }
+        static Repository[] Repositories { get; set; }
+        static ConfigFile AppConfig { get; set; }
 
         static int Main(string[] args)
         {
@@ -162,11 +164,9 @@ namespace batocera_store
             foreach (var repo in Repositories)
                 repo.Cleanup();
         }
-
-
+        
         static bool UnInstall(string packageName)
         {
-
             Repository repository = null;
             Package package = null;
 
@@ -258,10 +258,14 @@ namespace batocera_store
             {
                 int pc = -1;
 
+                int time = Environment.TickCount;
+
                 string installFile = repository.DownloadPackageSetup(package, (o, pe) =>
                 {
-                    if (pc != pe.ProgressPercentage)
+                    int curTime = Environment.TickCount;
+                    if (pc != pe.ProgressPercentage && curTime - time > 50)
                     {
+                        time = curTime;
                         pc = pe.ProgressPercentage;
                         NotifyProgress("Downloading " + packageName, pe.ProgressPercentage);
                     }
@@ -285,7 +289,7 @@ namespace batocera_store
 
                         Zip.Extract(installFile, RootInstallPath);
 
-                        NotifyProgress("Installing" + packageName);
+                        NotifyProgress("Installing " + packageName);
 
                         NotifyEmulationStation(package, "addgames");
 
@@ -321,43 +325,6 @@ namespace batocera_store
             return true;
         }
 
-        private static void NotifyProgress(string text, int percent = -1)
-        {
-            if (percent < 0)
-                Console.WriteLine(text);
-            else
-                Console.WriteLine(text+" >>> "+percent.ToString()+"%");
-
-            Thread.Sleep(100);
-        }
-
-        private static void NotifyEmulationStation(Package package, string verb)
-        {
-            if (package.Games != null && package.Games.Any())
-            {
-                foreach (var gp in package.Games.GroupBy(g => g.System))
-                {
-                    if (string.IsNullOrEmpty(gp.Key))
-                        continue;
-
-                    var gamelist = new GameList() { Games = new System.ComponentModel.BindingList<Game>() };
-                    foreach (var game in gp)
-                    {
-                        try { gamelist.Games.Add(game.ToXml().FromXmlString<Game>()); }
-                        catch { }
-                    }
-
-                    var xml = gamelist.ToXml();
-
-                    try
-                    {
-                        WebTools.PostString("http://" + "127.0.0.1:1234/"+verb+"/" + gp.Key, xml);
-                    }
-                    catch { }
-                }
-            }
-        }
-
         private static void UpdatePackages()
         {
             var allInstalledPackages = PackageFileManager.GetInstalledPackages()
@@ -385,8 +352,42 @@ namespace batocera_store
             }
         }
 
+        private static void NotifyProgress(string text, int percent = -1)
+        {
+            if (percent < 0)
+                Console.WriteLine(text);
+            else
+                Console.WriteLine(text + " >>> " + percent.ToString() + "%");
+        }
 
-        public static Repository[] Repositories { get; private set; }
-        public static ConfigFile AppConfig { get; private set; }
+        private static void NotifyEmulationStation(Package package, string verb)
+        {
+            if (package.Games == null || !package.Games.Any())
+                return;
+
+            foreach (var gp in package.Games.GroupBy(g => g.System))
+            {
+                if (string.IsNullOrEmpty(gp.Key))
+                    continue;
+
+                var gamelist = new GameList() { Games = new System.ComponentModel.BindingList<Game>() };
+                foreach (var game in gp)
+                {
+                    try { gamelist.Games.Add(game.ToXml().FromXmlString<Game>()); }
+                    catch { }
+                }
+
+                var xml = gamelist.ToXml();
+
+                try
+                {
+                    WebTools.PostString("http://" + "127.0.0.1:1234/" + verb + "/" + gp.Key, xml);
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error("Unable to add games to emulationstation", ex);
+                }
+            }
+        }
     }    
 }

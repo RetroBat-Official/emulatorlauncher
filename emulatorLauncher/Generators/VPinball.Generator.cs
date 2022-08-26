@@ -46,6 +46,8 @@ namespace emulatorLauncher
 
             string romPath = Path.Combine(Path.GetDirectoryName(rom), "roms");
             if (!Directory.Exists(romPath))
+                romPath = Path.Combine(Path.GetDirectoryName(rom), ".roms");
+            if (!Directory.Exists(romPath))
                 romPath = null;
 
             ScreenRes sr = ScreenRes.Load(Path.GetDirectoryName(rom));
