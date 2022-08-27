@@ -97,6 +97,7 @@
     <Compile Include="Imapi\Imapi2Interop.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Common\InputKeyMapping.cs" />
+	<Compile Include="Generators\Nes3d.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
