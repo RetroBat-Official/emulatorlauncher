@@ -53,6 +53,35 @@ namespace emulatorLauncher
             return false;
         }
 
+        public static string PostString(string url, string content)
+        {
+            var req = WebRequest.Create(url) as HttpWebRequest;
+            req.Method = "POST";
+            req.UserAgent = UserAgent;
+            req.KeepAlive = false;
+
+            byte[] data = Encoding.UTF8.GetBytes(content);
+
+            req.ContentLength = data.Length;
+
+            using (var newStream = req.GetRequestStream())
+            {
+                newStream.Write(data, 0, data.Length);
+                newStream.Close();
+            }
+
+            var resp = req.GetResponse() as HttpWebResponse;
+            if (resp != null)
+            {
+                if (resp.StatusCode == HttpStatusCode.OK)
+                    return resp.ReadResponseString();
+
+                resp.Close();
+            }
+
+            return null;
+        }
+
         public static string DownloadString(string url)
         {
             var req = WebRequest.Create(url) as HttpWebRequest;
