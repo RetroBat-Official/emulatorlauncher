@@ -10,10 +10,18 @@ namespace emulatorLauncher.libRetro
 {
     partial class LibRetroGenerator : Generator
     {
+        private bool _isWidescreen;
+
         private void ConfigureCoreOptions(ConfigFile retroarchConfig, string system, string core)
         {
+            // ratio is widescreen ?
+            int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
+            if (idx == 1 || idx == 2 || idx == 4 || idx == 6 || idx == 7 || idx == 9 || idx == 14 || idx == 16 || idx == 18 || idx == 19 || idx == 24)
+                _isWidescreen = true;
+
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
+            ConfigureDolphin(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             Configure4Do(retroarchConfig, coreSettings, system, core);
@@ -56,14 +64,27 @@ namespace emulatorLauncher.libRetro
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
 
             // Disable Bezel as default if a widescreen ratio is set. Can be manually set.
-            if (SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
+            /*if (SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
             {
                 int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
-                if (idx == 1 || idx == 2 || idx == 4 || idx == 6 || idx == 7 || idx == 9 || idx == 14 || idx == 16 || idx == 18 || idx == 19)
+                if (idx == 1 || idx == 2 || idx == 4 || idx == 6 || idx == 7 || idx == 9 || idx == 14 || idx == 16 || idx == 18 || idx == 19 || idx == 24)
                 {
                     retroarchConfig["aspect_ratio_index"] = idx.ToString();
                     retroarchConfig["video_aspect_ratio_auto"] = "false";
                     SystemConfig["bezel"] = "none";
+
+                }
+            }
+            */
+
+            if (SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
+            {
+                if (_isWidescreen)
+                {
+                    retroarchConfig["aspect_ratio_index"] = idx.ToString();
+                    retroarchConfig["video_aspect_ratio_auto"] = "false";
+                    SystemConfig["bezel"] = "none";
+
                 }
             }
         }
@@ -92,6 +113,73 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start"] = "enter";
                 retroarchConfig["input_player1_gun_select"] = "space";
             }
+        }
+
+        private void ConfigureDolphin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "dolphin")
+                return;
+
+            if (!SystemConfig.isOptSet("video_driver"))
+                retroarchConfig["video_driver"] = "vulkan";
+
+            retroarchConfig["driver_switch_enable"] = "false";
+
+            coreSettings["dolphin_renderer"] = "Hardware";
+            coreSettings["dolphin_widescreen_hack"] = "disabled";
+
+            BindFeature(coreSettings, "dolphin_efb_scale", "dolphin_efb_scale", "x2 (1280 x 1056)");
+            BindFeature(coreSettings, "dolphin_max_anisotropy", "dolphin_max_anisotropy", "1x");
+            BindFeature(coreSettings, "dolphin_shader_compilation_mode", "dolphin_shader_compilation_mode", "sync");
+            BindFeature(coreSettings, "dolphin_wait_for_shaders", "dolphin_wait_for_shaders", "disabled");
+            BindFeature(coreSettings, "dolphin_load_custom_textures", "dolphin_load_custom_textures", "disabled");
+            BindFeature(coreSettings, "dolphin_cache_custom_textures", "dolphin_cache_custom_textures", "disabled");
+            BindFeature(coreSettings, "dolphin_enable_rumble", "dolphin_enable_rumble", "enabled");
+            BindFeature(coreSettings, "dolphin_osd_enabled", "dolphin_osd_enabled", "enabled");
+            BindFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "disabled");
+
+            BindFeature(coreSettings, "dolphin_language", "dolphin_language", "English");
+
+            // to add
+            BindFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled");
+            BindFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled");
+
+            // gamecube
+            if (system == "gamecube" || system == "gc")
+            {
+                BindFeature(coreSettings, "dolphin_widescreen_hack", "dolphin_widescreen_hack", "disabled");
+
+            }
+
+            // wii
+            if (system == "wii")
+            {
+
+                /*string _path = AppConfig.GetFullPath(RetroarchPath);
+                string remapFile = Path.Combine(_path, "config" + "\\\\" + "remap" + "\\\\" + "dolphin-emu" + "\\\\", "dolphin-emu.rmp");
+                try
+                {
+                    using (var ini = new IniFile(remapFile))
+                    {                        
+
+                        if ((SystemConfig.isOptSet("input_libretro_device_p1")) && (!string.IsNullOrEmpty(SystemConfig["input_libretro_device_p1"])))
+                            ini.WriteValue("", "input_libretro_device_p1", SystemConfig["input_libretro_device_p1"]);
+                        else
+                            ini.WriteValue("", "input_libretro_device_p1", "769");
+
+                    }
+                }
+                catch { }
+                */
+                if (_isWidescreen)
+                    coreSettings["dolphin_widescreen"] = "enabled";
+                else
+                    coreSettings["dolphin_widescreen"] = "disabled";         
+
+                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");
+
+            }
+
         }
 
         private void ConfigureNeocd(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

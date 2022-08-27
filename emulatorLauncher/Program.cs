@@ -36,6 +36,7 @@ namespace emulatorLauncher
     {
         static Dictionary<string, Func<Generator>> generators = new Dictionary<string, Func<Generator>>
         {
+			{ "3dsen", () => new Nes3dGenerator() },
             { "retrobat", () => new RetrobatLauncherGenerator() },
             { "libretro", () => new LibRetroGenerator() }, { "angle", () => new LibRetroGenerator() },
 			{ "amigaforever", () => new AmigaForeverGenerator() },
@@ -84,7 +85,8 @@ namespace emulatorLauncher
             { "arcadeflashweb", () => new ArcadeFlashWebGenerator() },			
             { "solarus", () => new SolarusGenerator() },
             { "eka2l1", () => new Eka2l1Generator() }, 
-            { "n-gage", () => new Eka2l1Generator() },             
+            { "n-gage", () => new Eka2l1Generator() },
+			{ "nosgba", () => new NosGbaGenerator() },		
 			{ "pinballfx3", () => new PinballFX3Generator() }			
         };
 

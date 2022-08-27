@@ -35,9 +35,6 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("steam");
 
-            if (core == "pinballfx3" || core == "pinballfx3-steam" || core == "steam")
-                path = AppConfig.GetFullPath("steam");
-
             string exe = Path.Combine(path, "Pinball FX3.exe");
             if (!File.Exists(exe))
             {
@@ -60,18 +57,11 @@ namespace emulatorLauncher
             {
                 commandArray.Remove("-applaunch 442120");
                 commandArray.Remove("-offline");
-                commandArray.Remove("-class");
+                //commandArray.Remove("-class");
             }
 
             string _args = string.Join(" ", commandArray);
-            /*
-            return new ProcessStartInfo()
-            {
-                FileName = exe,
-                Arguments = _args + " -table_" + Path.GetFileNameWithoutExtension(rom),
-                WorkingDirectory = path,
-            };
-            */
+
             var ret = new ProcessStartInfo()
             {
                 FileName = exe,
@@ -89,7 +79,6 @@ namespace emulatorLauncher
             }
 
             return ret;
-
 
     }
 

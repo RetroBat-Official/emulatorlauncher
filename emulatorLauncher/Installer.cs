@@ -64,6 +64,7 @@ namespace emulatorLauncher
             { new Installer("vpinball", "vpinball", "vpinballx.exe") }, 
             { new Installer("winuae", "winuae", "winuae64.exe") }, 
             { new Installer("xemu", "xemu") },
+			{ new Installer("nosgba", "nosgba", "no$gba.exe") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
         };
 
