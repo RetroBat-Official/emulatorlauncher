@@ -134,6 +134,10 @@ namespace batocera_store
                     if (installedPackage != null)
                     {
                         package.Status = "installed";
+                        
+                        if (string.IsNullOrEmpty(package.DownloadSize))
+                            package.DownloadSize = installedPackage.DownloadSize;
+
                         package.InstalledSize = installedPackage.InstalledSize;
                     }
                     else
@@ -254,6 +258,27 @@ namespace batocera_store
                 return false;
             }
 
+            // Check disc space
+            if (!string.IsNullOrEmpty(package.InstalledSize))
+            {
+                long size;
+                if (long.TryParse(package.InstalledSize, out size) && size != 0)
+                {
+                    try
+                    {
+                        var drv = new DriveInfo(RootInstallPath.Substring(0, 1));
+
+                        long freeSpace = drv.TotalFreeSpace / 1024;
+                        if (size > freeSpace)
+                        {
+                            Console.WriteLine("Not enough space on drive to install");
+                            return false;
+                        }
+                    }
+                    catch { }
+                }
+            }
+
             try
             {
                 int pc = -1;
@@ -303,7 +328,8 @@ namespace batocera_store
                         {
                             Name = package.Name,
                             Repository = repository.Name,
-                            Version = package.AvailableVersion,
+                            Version = package.AvailableVersion,                            
+                            DownloadSize = (new FileInfo(installFile).Length / 1024).ToString(),
                             InstalledSize = (entries.Sum(e => e.Length) / 1024).ToString(),
                             InstalledFiles = new InstalledFiles() { Files = entries.Select(e => e.Filename).ToList() }
                         });

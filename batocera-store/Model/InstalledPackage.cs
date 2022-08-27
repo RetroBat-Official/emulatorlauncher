@@ -17,6 +17,9 @@ namespace batocera_store
         [XmlElement("version")]
         public string Version { get; set; }
 
+        [XmlElement("download_size")]
+        public string DownloadSize { get; set; }
+
         [XmlElement("installed_size")]
         public string InstalledSize { get; set; }
 
