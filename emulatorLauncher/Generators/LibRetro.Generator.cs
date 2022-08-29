@@ -875,20 +875,23 @@ namespace emulatorLauncher.libRetro
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            if (string.IsNullOrEmpty(RetroarchPath) || string.IsNullOrEmpty(core))
+            if (string.IsNullOrEmpty(RetroarchPath))
                 return null;
 
             string subCore = null;
 
-            int split = core.IndexOfAny(new char[] { ':', '/' });
-            if (split >= 0)
+            if (!string.IsNullOrEmpty(core))
             {
-                subCore = core.Substring(split + 1);
-                core = core.Substring(0, split);
+                int split = core.IndexOfAny(new char[] { ':', '/' });
+                if (split >= 0)
+                {
+                    subCore = core.Substring(split + 1);
+                    core = core.Substring(0, split);
 
-                SystemConfig["subcore"] = subCore;
+                    SystemConfig["subcore"] = subCore;
+                }
             }
-            
+
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
                 core = Path.GetFileNameWithoutExtension(rom);
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
