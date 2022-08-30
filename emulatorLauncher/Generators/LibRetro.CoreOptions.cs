@@ -706,7 +706,17 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
 
                 coreSettings["fceumm_zapper_mode"] = "lightgun";
+                
+                CreateInputRemap("FCEUmm", SystemConfig["rom"], cfg =>
+                {
+                    cfg["input_libretro_device_p1"] = "1";
+                    cfg["input_libretro_device_p2"] = "258";
+                    cfg["input_remap_port_p1"] = "0";
+                    cfg["input_remap_port_p2"] = "1";
+                });
             }
+            else            
+                DeleteInputRemap("FCEUmm", SystemConfig["rom"]);
         }
 
         private void ConfigureNestopia(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1540,7 +1550,16 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                CreateInputRemap("Flycast", SystemConfig["rom"], cfg =>
+                {
+                    cfg["input_libretro_device_p1"] = "4";
+                    cfg["input_player1_analog_dpad_mode"] = "0";                     
+                    cfg["input_remap_port_p1"] = "0";                    
+                });
             }
+            else
+                DeleteInputRemap("Flycast", SystemConfig["rom"]);
         }
 
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
