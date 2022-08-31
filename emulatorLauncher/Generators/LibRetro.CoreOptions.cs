@@ -42,11 +42,7 @@ namespace emulatorLauncher.libRetro
 
             for (int i = 0; i < sb.Length; i++)
             {
-                if (space)
-                    sb[i] = sb[i].ToString().ToUpperInvariant().First();
-                else
-                    sb[i] = sb[i].ToString().ToLowerInvariant().First();
-
+                sb[i] = space ? char.ToUpperInvariant(sb[i]) : char.ToLowerInvariant(sb[i]);
                 space = (sb[i] == ' ');
             }
 
