@@ -10,10 +10,56 @@ namespace emulatorLauncher.libRetro
 {
     partial class LibRetroGenerator : Generator
     {
+        private static string GetFullCoreName(string core)
+        {
+            var coreNames = new Dictionary<string, string>()
+            {
+                { "fbneo", "FinalBurn Neo" },
+                { "mednafen_saturn", "Beetle Saturn" },
+                { "kronos", "Kronos" },
+                { "opera", "Opera" },
+                { "stella", "Stella" },
+                { "4do", "4DO" },
+                { "fceumm", "FCEUmm" },
+                { "nestopia", "Nestopia" },
+                { "snes9x", "Snes9x" },
+                { "genesis_plus_gx", "Genesis Plus GX" },
+                { "genesis_plus_gx_wide", "Genesis Plus GX Wide" },
+                { "flycast", "Flycast" },
+                { "mesen", "Mesen" },
+                { "mame2003", "MAME 2003 (0.78)" },   
+                { "mame2003_plus", "MAME 2003-Plus" },               
+                { "mednafen_psx_hw", "Beetle PSX HW" }
+            };
+
+            string ret;
+            if (coreNames.TryGetValue(core, out ret))
+                return ret;
+
+            var sb = new StringBuilder(core.Replace("_", " "));
+
+            bool space = true;
+
+            for (int i = 0; i < sb.Length; i++)
+            {
+                if (space)
+                    sb[i] = sb[i].ToString().ToUpperInvariant().First();
+                else
+                    sb[i] = sb[i].ToString().ToLowerInvariant().First();
+
+                space = (sb[i] == ' ');
+            }
+
+            return sb.ToString();
+        }
+
+
         private bool _isWidescreen;
 
         private void ConfigureCoreOptions(ConfigFile retroarchConfig, string system, string core)
         {
+            InputRemap = new Dictionary<string, string>();
+
             // ratio is widescreen ?
             int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
             if (idx == 1 || idx == 2 || idx == 4 || idx == 6 || idx == 7 || idx == 9 || idx == 14 || idx == 16 || idx == 18 || idx == 19 || idx == 24)
@@ -32,6 +78,7 @@ namespace emulatorLauncher.libRetro
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
+            ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
             ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
@@ -87,6 +134,18 @@ namespace emulatorLauncher.libRetro
 
                 }
             }
+
+            // Injects cores input remaps
+            if (InputRemap.Count > 0)
+            {
+                CreateInputRemap(GetFullCoreName(core), SystemConfig["rom"], cfg =>
+                {
+                    foreach (var remap in InputRemap)
+                        cfg[remap.Key] = remap.Value;
+                });
+            }
+            else
+                DeleteInputRemap(GetFullCoreName(core), SystemConfig["rom"]);
         }
 
         /// <summary>
@@ -174,7 +233,7 @@ namespace emulatorLauncher.libRetro
                 if (_isWidescreen)
                     coreSettings["dolphin_widescreen"] = "enabled";
                 else
-                    coreSettings["dolphin_widescreen"] = "disabled";         
+                    coreSettings["dolphin_widescreen"] = "disabled";
 
                 BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");
 
@@ -389,6 +448,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "4";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -458,6 +521,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -507,6 +574,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -573,6 +644,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -591,6 +666,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "4";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -629,6 +708,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -706,17 +789,12 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
 
                 coreSettings["fceumm_zapper_mode"] = "lightgun";
-                
-                CreateInputRemap("FCEUmm", SystemConfig["rom"], cfg =>
-                {
-                    cfg["input_libretro_device_p1"] = "1";
-                    cfg["input_libretro_device_p2"] = "258";
-                    cfg["input_remap_port_p1"] = "0";
-                    cfg["input_remap_port_p2"] = "1";
-                });
+
+                InputRemap["input_libretro_device_p1"] = "1";
+                InputRemap["input_libretro_device_p2"] = "258";
+                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_remap_port_p2"] = "1";
             }
-            else            
-                DeleteInputRemap("FCEUmm", SystemConfig["rom"]);
         }
 
         private void ConfigureNestopia(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -765,19 +843,12 @@ namespace emulatorLauncher.libRetro
 
                 coreSettings["nestopia_zapper_device"] = "lightgun";
 
-                CreateInputRemap("Nestopia", SystemConfig["rom"], cfg =>
-                {
-                    cfg["input_libretro_device_p1"] = "1";
-                    cfg["input_libretro_device_p2"] = "262";
-                    cfg["input_remap_port_p1"] = "0";
-                    cfg["input_remap_port_p2"] = "1";
-                });
+                // Use remap to force input devices, or it does not load
+                InputRemap["input_libretro_device_p1"] = "1";
+                InputRemap["input_libretro_device_p2"] = "262";
+                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_remap_port_p2"] = "1";
             }
-            else
-                DeleteInputRemap("Nestopia", SystemConfig["rom"]);
-
-            // Use remap to force input devices, or it does not load
-
         }
 
         private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -821,11 +892,22 @@ namespace emulatorLauncher.libRetro
 
         private void ConfigureMame2003(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
+            if (core != "mame2003")
+                return;
+
+            coreSettings["mame2003_skip_disclaimer"] = "enabled";
+            coreSettings["mame2003_skip_warnings"] = "enabled";
+            coreSettings["mame2003_mouse_device"] = "mouse";
+        }
+
+        private void ConfigureMame2003Plus(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
             if (core != "mame078plus" && core != "mame2003_plus")
                 return;
 
             coreSettings["mame2003-plus_skip_disclaimer"] = "enabled";
             coreSettings["mame2003-plus_skip_warnings"] = "enabled";
+            coreSettings["mame2003-plus_mouse_device"] = "mouse";
             coreSettings["mame2003-plus_xy_device"] = "lightgun";
 
             BindFeature(coreSettings, "mame2003-plus_analog", "mame2003-plus_analog", "digital");
@@ -1070,6 +1152,9 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_libretro_device_p1"] = "260";
                 retroarchConfig["input_player2_mouse_index"] = "0";
                 retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -1114,7 +1199,7 @@ namespace emulatorLauncher.libRetro
                     if (system == "mastersystem")
                         retroarchConfig["input_libretro_device_p1"] = "260";
                     else
-                        retroarchConfig["input_libretro_device_p1"] = "516"; 
+                        retroarchConfig["input_libretro_device_p1"] = "516";
 
                     retroarchConfig["input_player1_mouse_index"] = "0";
                     retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
@@ -1125,16 +1210,11 @@ namespace emulatorLauncher.libRetro
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
 
                 // Use remap to force input devices, or it does not load
-                CreateInputRemap("Genesis Plus GX", SystemConfig["rom"], cfg =>
-                {
-                    cfg["input_libretro_device_p1"] = "1";
-                    cfg["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
-                    cfg["input_remap_port_p1"] = "0";
-                    cfg["input_remap_port_p2"] = "1";
-                });
+                InputRemap["input_libretro_device_p1"] = "1";
+                InputRemap["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
+                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_remap_port_p2"] = "1";
             }
-            else
-                DeleteInputRemap("Genesis Plus GX", SystemConfig["rom"]);
         }
 
         private void ConfigureGenesisPlusGXWide(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1204,16 +1284,11 @@ namespace emulatorLauncher.libRetro
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
 
                 // Use remap to force input devices, or it does not load
-                CreateInputRemap("Genesis Plus GX Wide", SystemConfig["rom"], cfg =>
-                {
-                    cfg["input_libretro_device_p1"] = "1";
-                    cfg["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
-                    cfg["input_remap_port_p1"] = "0";
-                    cfg["input_remap_port_p2"] = "1";
-                });
+                InputRemap["input_libretro_device_p1"] = "1";
+                InputRemap["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
+                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_remap_port_p2"] = "1";
             }
-            else
-                DeleteInputRemap("Genesis Plus GX Wide", SystemConfig["rom"]);
         }
 
         private void ConfigureMame(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1551,15 +1626,10 @@ namespace emulatorLauncher.libRetro
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
 
-                CreateInputRemap("Flycast", SystemConfig["rom"], cfg =>
-                {
-                    cfg["input_libretro_device_p1"] = "4";
-                    cfg["input_player1_analog_dpad_mode"] = "0";                     
-                    cfg["input_remap_port_p1"] = "0";                    
-                });
+                InputRemap["input_libretro_device_p1"] = "4";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
-            else
-                DeleteInputRemap("Flycast", SystemConfig["rom"]);
         }
 
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1580,6 +1650,11 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_libretro_device_p2"] = "262";
                 retroarchConfig["input_player2_mouse_index"] = "0";
                 retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+
+                InputRemap["input_libretro_device_p1"] = "1";
+                InputRemap["input_libretro_device_p2"] = "262";
+                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_remap_port_p2"] = "1";
             }
         }
 
@@ -1670,11 +1745,21 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
+        #region Input remaps
+        private Dictionary<string, string> InputRemap = new Dictionary<string, string>();
+
         private void CreateInputRemap(string cleanSystemName, string romName, Action<ConfigFile> createRemap)
         {
+            if (string.IsNullOrEmpty(cleanSystemName))
+                return;
+
             DeleteInputRemap(cleanSystemName, romName);
             if (createRemap == null)
                 return;
@@ -1696,6 +1781,9 @@ namespace emulatorLauncher.libRetro
 
         private void DeleteInputRemap(string cleanSystemName, string romName)
         {
+            if (string.IsNullOrEmpty(cleanSystemName))
+                return;
+
             string remapName = Path.GetFileName(Path.GetDirectoryName(romName));
 
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
@@ -1711,5 +1799,6 @@ namespace emulatorLauncher.libRetro
             }
             catch { }
         }
+        #endregion
     }
 }
