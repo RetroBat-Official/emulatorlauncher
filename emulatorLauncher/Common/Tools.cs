@@ -19,6 +19,60 @@ namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        public static bool IsSindenLightGunConnected()
+        {
+            // Find Sinden process
+            var px = Process.GetProcessesByName("Lightgun").FirstOrDefault();
+            if (px == null)
+                return false;
+
+            // When Sinden Lightgun app is running & Start is pressed, there's an ActiveMovie window in the process, with the class name "FilterGraphWindow"
+            if (!User32.FindHwnds(px.Id, hWnd => User32.GetClassName(hWnd) == "FilterGraphWindow", false).Any())
+                return false;
+
+            // Check if any Sinden Gun is connected
+            string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
+
+            foreach (ManagementObject obj1 in new ManagementObjectSearcher("Select * from WIN32_SerialPort").Get())
+            {
+                object pnpDeviceID = obj1.GetPropertyValue("PNPDeviceID");
+                if (pnpDeviceID == null)
+                    continue;
+
+                string deviceId = pnpDeviceID.ToString();
+
+                if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static string GetProcessCommandline(this Process process)
+        {
+            if (process == null)
+                return null;
+
+            try
+            {
+                using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + process.Id))
+                {
+                    var commandLine = cquery.Get()
+                        .OfType<System.Management.ManagementObject>()
+                        .Select(p => (string)p["CommandLine"])
+                        .FirstOrDefault();
+
+                    return commandLine;
+                }
+            }
+            catch
+            {
+
+            }
+
+            return null;
+        }
+
         public static bool IsDeveloperModeEnabled
         {
             get

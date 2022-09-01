@@ -384,31 +384,6 @@ namespace emulatorLauncher
             return null;
         }
 
-        static string GetProcessCommandline(Process process)
-        {
-            if (process == null)
-                return null;
-
-            try
-            {
-                using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + process.Id))
-                {
-                    var commandLine = cquery.Get()
-                        .OfType<System.Management.ManagementObject>()
-                        .Select(p => (string)p["CommandLine"])
-                        .FirstOrDefault();
-
-                    return commandLine;
-                }
-            }
-            catch
-            {
-
-            }
-
-            return null;
-        }
-
         public static bool IsEmulationStationWindowed(out Rectangle bounds, bool updateSize = false)
         {
             bool isWindowed = false;
@@ -419,7 +394,7 @@ namespace emulatorLauncher
             if (process == null)
                 return false;
 
-            var px = GetProcessCommandline(process);
+            var px = process.GetProcessCommandline();
             if (string.IsNullOrEmpty(px))
                 return false;
 

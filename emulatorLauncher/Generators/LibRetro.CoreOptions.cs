@@ -1369,12 +1369,14 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                retroarchConfig["input_libretro_device_p1"] = "260";
+                retroarchConfig["input_libretro_device_p2"] = "516";
                 retroarchConfig["input_player2_mouse_index"] = "0";
-                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";                
+                retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player2_gun_start_mbtn"] = "3";
 
-                InputRemap["input_libretro_device_p1"] = "260";
-                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_libretro_device_p2"] = "516";
+                InputRemap["input_remap_port_p2"] = "1";
             }
         }
 

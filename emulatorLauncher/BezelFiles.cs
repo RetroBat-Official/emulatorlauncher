@@ -45,6 +45,10 @@ namespace emulatorLauncher
 
                 return _infos;
             }
+            set
+            {
+                _infos = value;
+            }
         }
 
                     
@@ -73,21 +77,12 @@ namespace emulatorLauncher
 
         public static BezelFiles GetBezelFiles(string systemName, string rom, ScreenResolution resolution)
         {
+            if (systemName == null || rom == null)
+                return null;
+
             int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
             int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
 
-            float screenRatio = (float)resX / (float)resY;
-
-            if (screenRatio < 1.4)
-                return null;
-
-            return GetBezelFiles(systemName, rom);
-        }
-
-        public static BezelFiles GetBezelFiles(string systemName, string rom)
-        {
-            if (systemName == null || rom == null)
-                return null;
 
             string overlayUser = Program.AppConfig.GetFullPath("decorations");
 
@@ -100,7 +95,7 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("forceNoBezel") && Program.SystemConfig.getOptBoolean("forceNoBezel"))
                 bezel = null;
             else if (!Program.SystemConfig.isOptSet("bezel"))
-            {     
+            {
                 if (!string.IsNullOrEmpty(Program.CurrentGame.Bezel) && File.Exists(Program.CurrentGame.Bezel))
                     return new BezelFiles() { PngFile = Program.CurrentGame.Bezel };
 
@@ -109,6 +104,15 @@ namespace emulatorLauncher
 
             if (string.IsNullOrEmpty(bezel) || bezel == "none")
                 return null;
+
+            float screenRatio = (float)resX / (float)resY;
+            if (screenRatio < 1.4)
+            {
+                if (Program.SystemConfig.isOptSet("use_guns") && Program.SystemConfig.getOptBoolean("use_guns") && Misc.IsSindenLightGunConnected())
+                    return CreateSindenBorderBezel(null, resolution);
+
+                return null;
+            }
 
             string romBase = Path.GetFileNameWithoutExtension(rom);
 
@@ -182,12 +186,177 @@ namespace emulatorLauncher
             }
 
             if (!File.Exists(overlay_png_file))
+            {
+                if (Program.SystemConfig.isOptSet("use_guns") && Program.SystemConfig.getOptBoolean("use_guns") && Misc.IsSindenLightGunConnected())
+                    return CreateSindenBorderBezel(null, resolution);
+
                 return null;
+            }
 
             if (!File.Exists(overlay_info_file))
                 overlay_info_file = null;
 
-            return new BezelFiles() { PngFile = overlay_png_file, InfoFile = overlay_info_file };
+            if (overlay_png_file != null)
+                overlay_png_file = Path.GetFullPath(overlay_png_file);
+
+            if (overlay_info_file != null)
+                overlay_info_file = Path.GetFullPath(overlay_info_file);
+
+            var ret = new BezelFiles() { PngFile = overlay_png_file, InfoFile = overlay_info_file };
+
+            if (Program.SystemConfig.isOptSet("use_guns") && Program.SystemConfig.getOptBoolean("use_guns") && Misc.IsSindenLightGunConnected())
+                return CreateSindenBorderBezel(ret);
+
+            return ret;
+        }
+
+        public static BezelFiles CreateSindenBorderBezel(BezelFiles input, ScreenResolution resolution = null)
+        {
+            if (input == null)
+                input = new BezelFiles();
+
+            if (resolution == null)
+                resolution = ScreenResolution.CurrentResolution;
+
+            try
+            {
+                Dictionary<string, string> LightgunOptions = new Dictionary<string, string>();
+
+                var px = System.Diagnostics.Process.GetProcessesByName("Lightgun").FirstOrDefault();
+                if (px != null)
+                {
+                    var cmd = px.GetProcessCommandline().SplitCommandLine().FirstOrDefault();
+                    if (cmd != null)
+                    {
+                        cmd = cmd.Replace("\"", "") + ".config";
+                        if (File.Exists(cmd))
+                        {
+                            foreach (var setting in File.ReadAllText(cmd).ExtractStrings("<add ", "/>"))
+                            {
+                                var key = setting.ExtractString("key=\"", "\"");
+                                var value = setting.ExtractString("value=\"", "\"");
+
+                                LightgunOptions[key] = value;
+                            }
+                        }
+                    }
+                }
+
+                bool showPrimaryBorder = LightgunOptions.ContainsKey("chkShowPrimaryBorder") ? LightgunOptions["chkShowPrimaryBorder"].ToInteger() != 0 : true;
+                bool showSecondaryBorder = LightgunOptions.ContainsKey("chkShowSecondaryBorder") ? LightgunOptions["chkShowSecondaryBorder"].ToInteger() != 0 : false;
+
+                int primaryBorderWidth = LightgunOptions.ContainsKey("txtPrimaryBorderWidth") ? LightgunOptions["txtPrimaryBorderWidth"].ToInteger() : 2;
+                int secondaryBorderWidth = LightgunOptions.ContainsKey("txtSecondaryBorderWidth") ? LightgunOptions["txtSecondaryBorderWidth"].ToInteger() : 0;
+
+                Color primaryColor = Color.White;
+
+                try
+                {
+                    primaryColor = Color.FromArgb(LightgunOptions["txtColorPrimaryR"].ToInteger(), LightgunOptions["txtColorPrimaryG"].ToInteger(), LightgunOptions["txtColorPrimaryB"].ToInteger());
+                }
+                catch { }
+
+                Color secondaryColor = Color.Black;
+
+                try
+                {
+                    secondaryColor = Color.FromArgb(LightgunOptions["txtColorSecondaryR"].ToInteger(), LightgunOptions["txtColorSecondaryG"].ToInteger(), LightgunOptions["txtColorSecondaryB"].ToInteger());
+                }
+                catch { }
+
+                using (Image img = File.Exists(input.PngFile) ? Image.FromFile(input.PngFile) : null)
+                {
+                    int resX = img != null ? img.Width : resolution.Width;
+                    int resY = img != null ? img.Height : resolution.Height;
+
+                    var fn = "sinden.bezel." + resX + "x" + resY + ".png";
+                    if (File.Exists(input.PngFile))
+                    {
+                        var f = Path.GetFileNameWithoutExtension(input.PngFile);
+                        var d = Path.GetFileName(Path.GetDirectoryName(input.PngFile));
+
+                        fn = "sinden.bezel." + d + "." + f + "." + resX + "x" + resY + ".png";
+                    }
+
+                    string output_png_file = Path.Combine(Path.GetTempPath(), fn);
+
+                    int primaryBorderSize = (resY * primaryBorderWidth) / 100;
+                    int secondaryBorderSize = (resY * secondaryBorderWidth) / 100;
+
+                    int borderSize = (showSecondaryBorder ? secondaryBorderSize : 0) + (showPrimaryBorder ? primaryBorderSize : 0);
+
+                    using (Bitmap bmp = new Bitmap(resX, resY))
+                    {
+                        using (Graphics g = Graphics.FromImage(bmp))
+                        {
+                            var rect = new Rectangle(0, 0, resX, resY);
+                            rect.Inflate(-borderSize, -borderSize);
+
+                            if (showPrimaryBorder)
+                            {
+                                g.ExcludeClip(rect);
+                                g.Clear(primaryColor);
+                                g.ResetClip();
+                            }
+
+                            if (showSecondaryBorder)
+                            {
+                                if (showPrimaryBorder)
+                                    rect.Inflate(primaryBorderSize, primaryBorderSize);
+
+                                g.ExcludeClip(rect);
+                                g.Clear(secondaryColor);
+                                g.ResetClip();
+
+                                if (showPrimaryBorder)
+                                    rect.Inflate(-primaryBorderSize, -primaryBorderSize);
+                            }
+
+                            if (img != null)
+                            {
+                                g.DrawImage(img, rect);
+
+                                rect.Inflate(1, 1);
+                                rect.Width--;
+                                rect.Height--;
+                                g.DrawRectangle(Pens.Black, rect);
+                            }
+                        }
+
+                        bmp.Save(output_png_file, System.Drawing.Imaging.ImageFormat.Png);
+                        input.PngFile = output_png_file;
+                    }
+
+                    if (input.BezelInfos == null)
+                        input.BezelInfos = new BezelInfo();
+
+                    input.BezelInfos.opacity = 1;
+
+                    if (input.BezelInfos.width.GetValueOrDefault() == 0)
+                        input.BezelInfos.width = resX;
+
+                    if (input.BezelInfos.height.GetValueOrDefault() == 0)
+                        input.BezelInfos.height = resY;
+
+                    if (input.BezelInfos.top.GetValueOrDefault() < borderSize)
+                        input.BezelInfos.top = borderSize;
+
+                    if (input.BezelInfos.top.GetValueOrDefault() < borderSize)
+                        input.BezelInfos.top = borderSize;
+
+                    if (input.BezelInfos.left.GetValueOrDefault() < borderSize)
+                        input.BezelInfos.left = borderSize;
+
+                    if (input.BezelInfos.bottom.GetValueOrDefault() < borderSize)
+                        input.BezelInfos.bottom = borderSize;
+
+                    if (input.BezelInfos.right.GetValueOrDefault() < borderSize)
+                        input.BezelInfos.right = borderSize;
+                }
+            }
+            catch { }
+
+            return input;
         }
         
         public static string GetStretchedBezel(string overlay_png_file, int resX, int resY)
