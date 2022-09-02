@@ -372,9 +372,24 @@ namespace emulatorLauncher
             EvMapyKeysFile gameMapping = EvMapyKeysFile.TryLoad(filePath);
             if (gameMapping == null && SystemConfig["system"] != null)
             {
-                var systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", SystemConfig["system"] + ".keys");
+                var core = SystemConfig["core"];
+                var system = SystemConfig["system"];
+
+                string systemMapping = "";
+
+                if (!string.IsNullOrEmpty(core))
+                {
+                    systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", system + "." + core + ".keys");
+
+                    if (!File.Exists(systemMapping))
+                        systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), system + "." + core + ".keys");
+                }
+
                 if (!File.Exists(systemMapping))
-                    systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), SystemConfig["system"] + ".keys");
+                    systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", system + ".keys");
+
+                if (!File.Exists(systemMapping))
+                    systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), system + ".keys");
 
                 if (File.Exists(systemMapping))
                     gameMapping = EvMapyKeysFile.TryLoad(systemMapping);

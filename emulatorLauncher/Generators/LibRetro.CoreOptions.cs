@@ -1369,13 +1369,21 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                retroarchConfig["input_libretro_device_p2"] = "516";
+                string gunId = "260";
+
+                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                if (gunInfo != null && gunInfo.GunType == "justifier")
+                    gunId = "516";
+
+                coreSettings["snes9x_superscope_reverse_buttons"] = (gunInfo != null && gunInfo.ReversedButtons ? "enabled" : "disabled");
+
+                retroarchConfig["input_libretro_device_p2"] = gunId;
                 retroarchConfig["input_player2_mouse_index"] = "0";
                 retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";                
                 retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player2_gun_start_mbtn"] = "3";
 
-                InputRemap["input_libretro_device_p2"] = "516";
+                InputRemap["input_libretro_device_p2"] = gunId;
                 InputRemap["input_remap_port_p2"] = "1";
             }
         }
@@ -1407,35 +1415,36 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
-                if (gunInfo != null && gunInfo.GunType == "justifier")
+                if (system == "mastersystem")
                 {
-                    retroarchConfig["input_libretro_device_p2"] = "772";
-                    retroarchConfig["input_player2_mouse_index"] = "0";
-                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
-                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
-                }
-                else
-                {
-                    if (system == "mastersystem")
-                        retroarchConfig["input_libretro_device_p1"] = "260";
-                    else
-                        retroarchConfig["input_libretro_device_p1"] = "516";
-
+                    retroarchConfig["input_libretro_device_p1"] = "260";
                     retroarchConfig["input_player1_mouse_index"] = "0";
                     retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                     retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                     retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+
+                    InputRemap["input_libretro_device_p1"] = "260";
+                    InputRemap["input_remap_port_p1"] = "0";
+                }
+                else
+                {
+                    var gunId = "516";
+
+                    var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                    if (gunInfo != null && gunInfo.GunType == "justifier")
+                        gunId = "772";
+
+                    retroarchConfig["input_libretro_device_p2"] = gunId;
+                    retroarchConfig["input_player2_mouse_index"] = "0";
+                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
+
+                    InputRemap["input_libretro_device_p2"] = gunId;
+                    InputRemap["input_remap_port_p2"] = "1";
                 }
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                // Use remap to force input devices, or it does not load
-                InputRemap["input_libretro_device_p1"] = "1";
-                InputRemap["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
-                InputRemap["input_remap_port_p1"] = "0";
-                InputRemap["input_remap_port_p2"] = "1";
             }
         }
 
@@ -1485,31 +1494,36 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
-                if (gunInfo != null && gunInfo.GunType == "justifier")
+                if (system == "mastersystem")
                 {
-                    retroarchConfig["input_libretro_device_p2"] = "772";
-                    retroarchConfig["input_player2_mouse_index"] = "0";
-                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
-                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
-                }
-                else
-                {
-                    retroarchConfig["input_libretro_device_p1"] = "516"; // "260";
+                    retroarchConfig["input_libretro_device_p1"] = "260";
                     retroarchConfig["input_player1_mouse_index"] = "0";
                     retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                     retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                     retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+
+                    InputRemap["input_libretro_device_p1"] = "260";
+                    InputRemap["input_remap_port_p1"] = "0";
+                }
+                else
+                {
+                    var gunId = "516";
+
+                    var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                    if (gunInfo != null && gunInfo.GunType == "justifier")
+                        gunId = "772";
+
+                    retroarchConfig["input_libretro_device_p2"] = gunId;
+                    retroarchConfig["input_player2_mouse_index"] = "0";
+                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
+
+                    InputRemap["input_libretro_device_p2"] = gunId;
+                    InputRemap["input_remap_port_p2"] = "1";
                 }
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                // Use remap to force input devices, or it does not load
-                InputRemap["input_libretro_device_p1"] = "1";
-                InputRemap["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
-                InputRemap["input_remap_port_p1"] = "0";
-                InputRemap["input_remap_port_p2"] = "1";
             }
         }
 
