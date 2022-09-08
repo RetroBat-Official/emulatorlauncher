@@ -21,13 +21,53 @@ namespace emulatorLauncher
 
             string root = Path.Combine(Program.AppConfig.GetFullPath("home"), "es_features.locale");
 
+            langs.Insert(0, "");
+
             foreach (var lang in langs)
             {
                 string locale = Path.Combine(root, lang);
                 Directory.CreateDirectory(locale);
 
-                var file = PoFile.Read(Path.Combine(locale, "es-features.po"));               
+                var file = PoFile.Read(Path.Combine(locale, string.IsNullOrEmpty(lang) ? "es-features-template.po" : "es-features.po"));
+
+                // Import translations from batocera-es-system.po
+                if (File.Exists(Path.Combine(locale, "batocera-es-system.po")))
+                {
+                    var import = PoFile.Read(Path.Combine(locale, "batocera-es-system.po"));
+
+                    foreach (var item in import.Items)
+                    {
+                        if (file.Items.Any(i => i.MsgId == item.MsgId))
+                            continue;
+
+                        if (!strings.Contains(item.MsgId))
+                            continue;
+
+                        file.Items.Add(new PoItem()
+                        {
+                            MsgCtx = item.MsgCtx,
+                            MsgId = item.MsgId,
+                            MsgStr = item.MsgStr,
+                            Comment = item.Comment
+                        });
+                    }
+
+                    File.Delete(Path.Combine(locale, "batocera-es-system.po"));
+                }
+
                 file.Items.RemoveWhere(i => !strings.Contains(i.MsgId));
+
+                if (file.Items.Count == 0 && !string.IsNullOrEmpty(lang))
+                {
+                    try
+                    {
+                        File.Delete(Path.Combine(locale, "es-features.po"));
+                        Directory.Delete(locale, true);
+                    }
+                    catch { }
+
+                    continue;
+                }
 
                 foreach (var str in strings)
                 {
