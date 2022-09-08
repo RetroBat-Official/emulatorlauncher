@@ -146,7 +146,7 @@ namespace emulatorLauncher
             return false;
         }
 
-        static string ReadResponseString(this WebResponse response)
+        public static string ReadResponseString(this WebResponse response)
         {
             using (MemoryStream ms = new MemoryStream())
             {
@@ -155,7 +155,7 @@ namespace emulatorLauncher
             }
         }
 
-        static void ReadResponseStream(this WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
+        public static void ReadResponseStream(this WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
         {
             if (destinationStream == null)
                 throw new ArgumentException("Stream null");
