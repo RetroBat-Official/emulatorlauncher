@@ -46,7 +46,7 @@ namespace emulatorLauncher
             }
             catch (Exception ex)
             {
-                SimpleLogger.Instance.Error(ex.Message);
+                SimpleLogger.Instance.Error("[UrlExists] Exception " + ex.Message, ex);
             }
 
             _urlExistsCache[url] = false;
@@ -134,12 +134,12 @@ namespace emulatorLauncher
                     goto retry;
                 }
 
-                SimpleLogger.Instance.Error(ex.Message);
+                SimpleLogger.Instance.Error("[DownloadToStream] WebException : " + ex.Message, ex);
                 throw ex;
             }
             catch (Exception ex)
             {
-                SimpleLogger.Instance.Error(ex.Message);
+                SimpleLogger.Instance.Error("[DownloadToStream] Exception : " + ex.Message, ex);
                 throw ex;
             }
 

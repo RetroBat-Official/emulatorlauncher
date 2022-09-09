@@ -133,17 +133,17 @@ namespace emulatorLauncher
                 // Delete Extraction path if required
                 if (deleteExtractedFiles)
                 {
-                    SimpleLogger.Instance.Info("Directory.Delete(" + extractionPath + ", true)");
+                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + extractionPath + ", true)");
 
                     try { Directory.Delete(extractionPath, true); }
                     catch(Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
 
-                    SimpleLogger.Instance.Info("Directory.Delete(" + Path.GetDirectoryName(extractionPath) + ", false)");
+                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + Path.GetDirectoryName(extractionPath) + ", false)");
 
                     try { Directory.Delete(Path.GetDirectoryName(extractionPath)); }
                     catch (Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
 
-                    SimpleLogger.Instance.Info("Directory.Delete(" + uncompressedFolderPath + ", false)");
+                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + uncompressedFolderPath + ", false)");
 
                     try { Directory.Delete(uncompressedFolderPath); }
                     catch { }                

@@ -33,7 +33,7 @@ namespace emulatorLauncher.Tools
 #if DEBUG
                 MessageBox.Show(ex.Message);
 #endif
-                SimpleLogger.Instance.Error("InputList error : " + ex.Message);                
+                SimpleLogger.Instance.Error("[InputConfig] Error : " + ex.Message);                
             }
 
             return null;
@@ -280,9 +280,21 @@ namespace emulatorLauncher.Tools
             if (ctrl == null)
                 return input;
 
-            var mapping = ctrl.Mapping;
+            int axisValue = 1;
 
-            var sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Value == input.Value && m.Input.Id == input.Id);
+            var mapping = ctrl.Mapping;
+            var sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == input.Value);
+
+            if (sdlret == null && input.Type == "axis")
+            {
+                var invret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == -input.Value);
+                if (invret != null)
+                {
+                    sdlret = invret;
+                    axisValue = -1;
+                }
+            }
+
             if (sdlret == null)
             {
                 if (mapping.All(m => m.Axis == SDL_CONTROLLER_AXIS.INVALID))
@@ -306,7 +318,7 @@ namespace emulatorLauncher.Tools
 
                 if (sdlret == null)
                 {
-                    SimpleLogger.Instance.Warning("ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
+                    SimpleLogger.Instance.Warning("[InputConfig] ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
                     return input;
                 }
             }
@@ -316,8 +328,8 @@ namespace emulatorLauncher.Tools
             if (sdlret.Button != SDL_CONTROLLER_BUTTON.INVALID)
             {
                 ret.Type = "button";
-                ret.Value = 1;
                 ret.Id = (int)sdlret.Button;
+                ret.Value = 1;
                 return ret;
             }
             
@@ -325,7 +337,7 @@ namespace emulatorLauncher.Tools
             {
                 ret.Type = "axis";
                 ret.Id = (int)sdlret.Axis;
-                ret.Value = 1;
+                ret.Value = axisValue;
                 return ret;
             }
 
@@ -333,7 +345,7 @@ namespace emulatorLauncher.Tools
         }
 
         /// <summary>
-        /// Translate XInput to DirectInput calls
+        /// Translate EmulationStation/SDL input to XInput compatible codes
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -367,6 +379,12 @@ namespace emulatorLauncher.Tools
             return ret;
         }
 
+        /// <summary>
+        /// Translate EmulationStation/SDL input to XInput Mapping
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="revertAxis"></param>
+        /// <returns></returns>
         public XINPUTMAPPING GetXInputMapping(InputKey key, bool revertAxis = false)
         {
             Input input = this[key];

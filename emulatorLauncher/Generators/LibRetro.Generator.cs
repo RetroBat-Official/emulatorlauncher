@@ -908,7 +908,7 @@ namespace emulatorLauncher.libRetro
             if (string.IsNullOrEmpty(core))
             {
                 ExitCode = ExitCodes.MissingCore;
-                SimpleLogger.Instance.Error("Libretro : core was not provided");
+                SimpleLogger.Instance.Error("[LibretroGenerator] Core was not provided");
                 return null;
             }
             else
@@ -940,7 +940,7 @@ namespace emulatorLauncher.libRetro
 
                     if (!File.Exists(corePath))
                     {
-                        SimpleLogger.Instance.Error("Libretro : core is not installed");
+                        SimpleLogger.Instance.Error("[LibretroGenerator] Core is not installed");
                         ExitCode = ExitCodes.MissingCore;
                         return null;
                     }

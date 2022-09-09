@@ -34,7 +34,7 @@ namespace batocera_store
             }
 
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
-            SimpleLogger.Instance.Info(Path.GetFileNameWithoutExtension(typeof(Program).Assembly.Location)+ " " + string.Join(" ", args));
+            SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
 
             AppConfig = ConfigFile.FromFile(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "emulatorLauncher.cfg"));
             AppConfig.ImportOverrides(ConfigFile.FromArguments(args));
@@ -53,7 +53,7 @@ namespace batocera_store
 
             Repositories = repositories.ToArray();
 
-            switch (args[0])
+            switch ((args[0]??"").Replace("-", "").ToLowerInvariant())
             {
                 case "clean":
                 case "clean-all":

@@ -56,7 +56,7 @@ namespace emulatorLauncher.Tools
 #if DEBUG
                 MessageBox.Show(ex.Message);
 #endif
-                SimpleLogger.Instance.Error("GunGames.Load error : " + ex.Message);
+                SimpleLogger.Instance.Error("[GunGames] Load error : " + ex.Message);
             }
 
             return null;
