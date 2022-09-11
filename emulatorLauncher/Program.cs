@@ -44,7 +44,7 @@ namespace emulatorLauncher
 			{ "kega-fusion", () => new KegaFusionGenerator() },
 			{ "mesen", () => new MesenGenerator() },
 			{ "mgba", () => new mGBAGenerator() },			
-            { "model2", () => new Model2Generator() },
+            { "model2", () => new Model2Generator() }, { "m2emulator", () => new Model2Generator() },
             { "model3", () => new Model3Generator() }, { "supermodel", () => new Model3Generator() },
             { "openbor", () => new OpenBorGenerator() },
             { "ps3", () => new Rpcs3Generator() },  { "rpcs3", () => new Rpcs3Generator() },  
