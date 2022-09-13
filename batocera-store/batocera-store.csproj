@@ -73,6 +73,9 @@
     <Compile Include="..\emulatorLauncher\Common\Tools.cs">
       <Link>Common\Tools.cs</Link>
     </Compile>
+    <Compile Include="..\emulatorLauncher\Common\User32.cs">
+      <Link>Common\User32.cs</Link>
+    </Compile>
     <Compile Include="..\emulatorLauncher\Common\WebTools.cs">
       <Link>Common\WebTools.cs</Link>
     </Compile>

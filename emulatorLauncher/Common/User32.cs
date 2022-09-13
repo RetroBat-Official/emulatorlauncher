@@ -13,12 +13,12 @@ namespace emulatorLauncher
             return FindHwnds(processId).FirstOrDefault();
         }
 
-        public static IEnumerable<IntPtr> FindHwnds(int processId, Predicate<IntPtr> func = null)
+        public static IEnumerable<IntPtr> FindHwnds(int processId, Predicate<IntPtr> func = null, bool visibleOnly = true)
         {
             IntPtr hWnd = GetWindow(GetDesktopWindow(), GW.CHILD);
             while (hWnd != IntPtr.Zero)
             {
-                if (IsWindowVisible(hWnd))
+                if (!visibleOnly || IsWindowVisible(hWnd))
                 {
                     uint wndProcessId;
                     GetWindowThreadProcessId(hWnd, out wndProcessId);

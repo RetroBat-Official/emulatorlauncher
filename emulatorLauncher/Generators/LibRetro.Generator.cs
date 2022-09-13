@@ -694,11 +694,10 @@ namespace emulatorLauncher.libRetro
             if (systemName == "wii")
                 return;
 
-            var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom);
+            var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution);
             if (bezelInfo == null)
                 return;
 
-            string overlay_info_file = bezelInfo.InfoFile;
             string overlay_png_file = bezelInfo.PngFile;
 
             Size imageSize;

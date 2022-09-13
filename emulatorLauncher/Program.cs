@@ -123,26 +123,15 @@ namespace emulatorLauncher
             return toxml;
         }
 
+
+
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
         {
-            /*
-            StringBuilder sb = new StringBuilder();
-            var mi = IniFile.FromFile(@"H:\[Emulz]\system\emulators\mupen64\mupen64plus.ini");
-            foreach (var ss in mi.EnumerateSections())
-            {
-                string goodName = mi.GetValue(ss, "GoodName");
-                goodName = EscapeXml(goodName);
-                sb.AppendLine("<rom hash=\""+ss+"\" name=\"" + goodName + "\"/>");
-            }
-
-            File.WriteAllText("c:\\temp\\mupen.xml", sb.ToString());
-
-            */
-
             RegisterShellExtensions();
 
             if (args.Length == 0)
@@ -332,7 +321,8 @@ namespace emulatorLauncher
                         if (screenResolution != null && generator.DependsOnDesktopResolution)
                             screenResolution.Apply();
 
-                        Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
+                        if (!Program.SystemConfig.isOptSet("use_guns") || !Program.SystemConfig.getOptBoolean("use_guns"))
+                            Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
 
                         PadToKey mapping = null;
                         if (generator.UseEsPadToKey)
@@ -382,9 +372,24 @@ namespace emulatorLauncher
             EvMapyKeysFile gameMapping = EvMapyKeysFile.TryLoad(filePath);
             if (gameMapping == null && SystemConfig["system"] != null)
             {
-                var systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", SystemConfig["system"] + ".keys");
+                var core = SystemConfig["core"];
+                var system = SystemConfig["system"];
+
+                string systemMapping = "";
+
+                if (!string.IsNullOrEmpty(core))
+                {
+                    systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", system + "." + core + ".keys");
+
+                    if (!File.Exists(systemMapping))
+                        systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), system + "." + core + ".keys");
+                }
+
                 if (!File.Exists(systemMapping))
-                    systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), SystemConfig["system"] + ".keys");
+                    systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", system + ".keys");
+
+                if (!File.Exists(systemMapping))
+                    systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), system + ".keys");
 
                 if (File.Exists(systemMapping))
                     gameMapping = EvMapyKeysFile.TryLoad(systemMapping);

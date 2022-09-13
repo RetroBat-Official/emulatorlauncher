@@ -130,5 +130,8 @@ namespace emulatorLauncher.Tools
 
         [XmlAttribute("gun")]
         public string GunType { get; set; }
+
+        [XmlAttribute("reversedbuttons")]
+        public bool ReversedButtons { get; set; }
     }
 }

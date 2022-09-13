@@ -10,10 +10,276 @@ namespace emulatorLauncher.libRetro
 {
     partial class LibRetroGenerator : Generator
     {
+        public static string GetCoreName(string core)
+        {
+            var coreNames = new Dictionary<string, string>()
+            {
+                { "2048", "2048" },
+                { "3dengine", "3DEngine" },
+                { "4do", "4DO" },
+                { "81", "81" },
+                { "a5200", "a5200" },
+                { "advanced_tests", "Advanced Test" },
+                { "arduous", "Arduous" },
+                { "atari800", "Atari800" },
+                { "bk", "bk" },
+                { "blastem", "BlastEm" },
+                { "bluemsx", "blueMSX" },
+                { "bnes", "bnes/higan" },
+                { "boom3", "boom3" },
+                { "boom3_xp", "boom3_xp" },
+                { "bsnes2014_accuracy", "bsnes 2014 Accuracy" },
+                { "bsnes2014_balanced", "bsnes 2014 Balanced" },
+                { "bsnes2014_performance", "bsnes 2014 Performance" },
+                { "bsnes_cplusplus98", "bsnes C++98 (v085)" },
+                { "bsnes_hd_beta", "bsnes-hd beta" },
+                { "bsnes", "bsnes" },
+                { "bsnes_mercury_accuracy", "bsnes-mercury Accuracy" },
+                { "bsnes_mercury_balanced", "bsnes-mercury Balanced" },
+                { "bsnes_mercury_performance", "bsnes-mercury Performance" },
+                { "cannonball", "Cannonball" },
+                { "cap32", "Caprice32" },
+                { "cdi2015", "Philips CDi 2015" },
+                { "chailove", "ChaiLove" },
+                { "citra2018", "Citra 2018" },
+                { "citra_canary", "Citra Canary/Experimental" },
+                { "citra", "Citra" },
+                { "craft", "Craft" },
+                { "crocods", "CrocoDS" },
+                { "cruzes", "Cruzes" },
+                { "daphne", "Daphne" },
+                { "desmume2015", "DeSmuME 2015" },
+                { "desmume", "DeSmuME" },
+                { "dinothawr", "Dinothawr" },
+                { "directxbox", "DirectXBox" },
+                { "dolphin_launcher", "Dolphin Launcher" },
+                { "dolphin", "Dolphin" },
+                { "dosbox_core", "DOSBox-core" },
+                { "dosbox", "DOSBox" },
+                { "dosbox_pure", "DOSBox" },
+                { "dosbox_svn_ce", "DOSBox-SVN CE" },
+                { "dosbox_svn", "DOSBox-SVN" },
+                { "duckstation", "DuckStation" },
+                { "easyrpg", "EasyRPG Player" },
+                { "ecwolf", "ECWolf" },
+                { "emux_chip8", "Emux CHIP-8" },
+                { "emux_gb", "Emux GB" },
+                { "emux_nes", "Emux NES" },
+                { "emux_sms", "Emux SMS" },
+                { "fbalpha2012_cps1", "FB Alpha 2012 CPS-1" },
+                { "fbalpha2012_cps2", "FB Alpha 2012 CPS-2" },
+                { "fbalpha2012_cps3", "FB Alpha 2012 CPS-3" },
+                { "fbalpha2012", "FB Alpha 2012" },
+                { "fbalpha2012_neogeo", "FB Alpha 2012 Neo Geo" },
+                { "fbalpha", "FinalBurn Alpha" },
+                { "fbneo", "FinalBurn Neo" },
+                { "fceumm", "FCEUmm" },
+                { "ffmpeg", "FFmpeg" },
+                { "fixgb", "fixGB" },
+                { "fixnes", "fixNES" },
+                { "flycast_gles2", "Flycast GLES2" },
+                { "flycast", "Flycast" },
+                { "fmsx", "fMSX" },
+                { "freechaf", "FreeChaF" },
+                { "freeintv", "FreeIntv" },
+                { "freej2me", "FreeJ2ME" },
+                { "frodo", "Frodo" },
+                { "fsuae", "FS-UAE" },
+                { "fuse", "Fuse" },
+                { "gambatte", "Gambatte" },
+                { "gearboy", "Gearboy" },
+                { "gearcoleco", "Gearcoleco" },
+                { "gearsystem", "Gearsystem" },
+                { "genesis_plus_gx", "Genesis Plus GX" },
+                { "genesis_plus_gx_wide", "Genesis Plus GX Wide" },
+                { "gme", "Game Music Emu" },
+                { "gong", "Gong" },
+                { "gpsp", "gpSP" },
+                { "gw", "GW" },
+                { "handy", "Handy" },
+                { "hatari", "Hatari" },
+                { "hbmame", "HBMAME (Git)" },
+                { "higan_sfc_balanced", "nSide (Super Famicom Balanced)" },
+                { "higan_sfc", "nSide (Super Famicom Accuracy)" },
+                { "imageviewer", "Imageviewer" },
+                { "ishiiruka", "Ishiiruka" },
+                { "jaxe", "JAXE" },
+                { "jumpnbump", "jumpnbump" },
+                { "kronos", "Kronos" },
+                { "lowresnx", "lowresnx" },
+                { "lutro", "Lutro" },
+                { "mame2000", "MAME 2000 (0.37b5)" },
+                { "mame2003", "MAME 2003 (0.78)" },
+                { "mame2003_midway", "MAME 2003 Midway (0.78)" },
+                { "mame2003_plus", "MAME 2003-Plus" },
+                { "mame2009", "MAME 2009 (0.135u4)" },
+                { "mame2010", "MAME 2010 (0.139)" },
+                { "mame2015", "MAME 2015 (0.160)" },
+                { "mame2016", "MAME 2016 (0.174)" },
+                { "mamearcade", "MAME (Git)" },
+                { "mame", "MAME (Git)" },
+                { "mednafen_gba", "Beetle GBA" },
+                { "mednafen_lynx", "Beetle Lynx" },
+                { "mednafen_ngp", "Beetle NeoPop" },
+                { "mednafen_pce_fast", "Beetle PCE Fast" },
+                { "mednafen_pce", "Beetle PCE" },
+                { "mednafen_pcfx", "Beetle PC-FX" },
+                { "mednafen_psx_hw", "Beetle PSX HW" },
+                { "mednafen_psx", "Beetle PSX" },
+                { "mednafen_saturn", "Beetle Saturn" },
+                { "mednafen_snes", "Beetle bsnes" },
+                { "mednafen_supafaust", "Beetle Supafaust" },
+                { "mednafen_supergrafx", "Beetle SuperGrafx" },
+                { "mednafen_vb", "Beetle VB" },
+                { "mednafen_wswan", "Beetle WonderSwan" },
+                { "melonds", "melonDS" },
+                { "mesen-s", "Mesen-S" },
+                { "mesen", "Mesen" },
+                { "mess2015", "MESS 2015 (0.160)" },
+                { "meteor", "Meteor" },
+                { "mgba", "mGBA" },
+                { "minivmac", "MinivmacII" },
+                { "moonlight", "Moonlight" },
+                { "mpv", "MPV" },
+                { "mrboom", "Mr.Boom" },
+                { "mupen64plus_next_develop", "Mupen64Plus-Next" },
+                { "mupen64plus_next_gles2", "Mupen64Plus-Next" },
+                { "mupen64plus_next_gles3", "Mupen64Plus-Next" },
+                { "mupen64plus_next", "Mupen64Plus-Next" },
+                { "mu", "Mu" },
+                { "nekop2", "Neko Project II" },
+                { "neocd", "NeoCD" },
+                { "nestopia", "Nestopia" },
+                { "np2kai", "Neko Project II Kai" },
+                { "nxengine", "NXEngine" },
+                { "o2em", "O2EM" },
+                { "oberon", "Oberon" },
+                { "open-source-notices", "" },
+                { "openlara", "OpenLara" },
+                { "opentyrian", "OpenTyrian" },
+                { "opera", "Opera" },
+                { "parallel_n64_debug", "ParaLLEl (Debug)" },
+                { "parallel_n64", "ParaLLEl N64" },
+                { "pascal_pong", "PascalPong" },
+                { "pcem", "PCem" },
+                { "pcsx1", "PCSX1" },
+                { "pcsx2", "PCSX2" },
+                { "pcsx_rearmed_interpreter", "PCSX ReARMed [Interpreter]" },
+                { "pcsx_rearmed", "PCSX-ReARMed" },
+                { "pcsx_rearmed_neon", "PCSX ReARMed [NEON]" },
+                { "picodrive", "PicoDrive" },
+                { "play", "Play!" },
+                { "pocketcdg", "PocketCDG" },
+                { "pokemini", "PokeMini" },
+                { "potator", "Potator" },
+                { "ppsspp", "PPSSPP" },
+                { "prboom", "PrBoom" },
+                { "prosystem", "ProSystem" },
+                { "puae2021", "PUAE 2021" },
+                { "puae", "PUAE" },
+                { "px68k", "PX68k" },
+                { "quasi88", "QUASI88" },
+                { "quicknes", "QuickNES" },
+                { "race", "RACE" },
+                { "redbook", "Redbook" },
+                { "reminiscence", "REminiscence" },
+                { "remotejoy", "RemoteJoy" },
+                { "retro8", "Retro8" },
+                { "retrodream", "RetroDream" },
+                { "rustation", "Rustation" },
+                { "sameboy", "SameBoy" },
+                { "sameduck", "SameDuck" },
+                { "same_cdi", "SAME CDi (Git)" },
+                { "scummvm", "ScummVM" },
+                { "simcp", "SimCoupe" },
+                { "smsplus", "SMS Plus GX" },
+                { "snes9x2002", "Snes9x 2002" },
+                { "snes9x2005", "Snes9x 2005" },
+                { "snes9x2005_plus", "Snes9x 2005 Plus" },
+                { "snes9x2010", "Snes9x 2010" },
+                { "snes9x", "Snes9x" },
+                { "squirreljme", "SquirrelJME" },
+                { "stella2014", "Stella 2014" },
+                { "stella", "Stella" },
+                { "stonesoup", "Dungeon Crawl Stone Soup" },
+                { "superbroswar", "superbroswar" },
+                { "swanstation", "SwanStation" },
+                { "tempgba", "TempGBA" },
+                { "testaudio_callback", "TestAudio Callback" },
+                { "testaudio_no_callback", "TestAudio NoCallback" },
+                { "testaudio_playback_wav", "TestAudio Playback Wav" },
+                { "testgl_compute_shaders", "TestGL ComputeShaders" },
+                { "testgl_ff", "TestGL (FF)" },
+                { "testgl", "TestGL" },
+                { "testinput_buttontest", "Button Test" },
+                { "testretroluxury", "Test RetroLuxury" },
+                { "testsw", "TestSW" },
+                { "testsw_vram", "TestSW VRAM" },
+                { "testvulkan_async_compute", "TestVulkan AsyncCompute" },
+                { "testvulkan", "TestVulkan" },
+                { "test", "Test" },
+                { "test_netplay", "netplay-test" },
+                { "tgbdual", "TGB Dual" },
+                { "theodore", "theodore" },
+                { "thepowdertoy", "ThePowderToy" },
+                { "tic80", "TIC-80" },
+                { "tyrquake", "TyrQuake" },
+                { "uae4arm", "UAE4ARM" },
+                { "ume2015", "UME 2015 (0.160)" },
+                { "uzem", "uzem" },
+                { "vaporspec", "VaporSpec" },
+                { "vbam", "VBA-M" },
+                { "vba_next", "VBA Next" },
+                { "vecx", "vecx" },
+                { "vemulator", "VeMUlator" },
+                { "vice_x128", "VICE x128" },
+                { "vice_x64sc", "VICE x64sc" },
+                { "vice_x64", "VICE x64" },
+                { "vice_xcbm2", "VICE xcbm2" },
+                { "vice_xcbm5x0", "VICE xcbm5x0" },
+                { "vice_xpet", "VICE xpet" },
+                { "vice_xplus4", "VICE xplus4" },
+                { "vice_xscpu64", "VICE xscpu64" },
+                { "vice_xvic", "VICE xvic" },
+                { "virtualjaguar", "Virtual Jaguar" },
+                { "vitaquake2-rogue", "vitaQuake 2 [Rogue]" },
+                { "vitaquake2-xatrix", "vitaQuake 2 [Xatrix]" },
+                { "vitaquake2-zaero", "vitaQuake 2 [Zaero]" },
+                { "vitaquake2", "vitaQuake 2" },
+                { "vitaquake3", "vitaQuake 3" },
+                { "vitavoyager", "vitaVoyager" },
+                { "wasm4", "WASM-4" },
+                { "x1", "x1" },
+                { "x64sdl", "VICE SDL" },
+                { "xrick", "XRick" },
+                { "yabasanshiro", "YabaSanshiro" },
+                { "yabause", "Yabause" }
+            };
+
+            string ret;
+            if (coreNames.TryGetValue(core, out ret))
+                return ret;
+
+            var sb = new StringBuilder(core.Replace("_", " "));
+
+            bool space = true;
+
+            for (int i = 0; i < sb.Length; i++)
+            {
+                sb[i] = space ? char.ToUpperInvariant(sb[i]) : char.ToLowerInvariant(sb[i]);
+                space = (sb[i] == ' ');
+            }
+
+            return sb.ToString();
+        }
+
+
         private bool _isWidescreen;
 
         private void ConfigureCoreOptions(ConfigFile retroarchConfig, string system, string core)
         {
+            InputRemap = new Dictionary<string, string>();
+
             // ratio is widescreen ?
             int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
             if (idx == 1 || idx == 2 || idx == 4 || idx == 6 || idx == 7 || idx == 9 || idx == 14 || idx == 16 || idx == 18 || idx == 19 || idx == 24)
@@ -32,6 +298,7 @@ namespace emulatorLauncher.libRetro
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
+            ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
             ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
@@ -87,6 +354,18 @@ namespace emulatorLauncher.libRetro
 
                 }
             }
+
+            // Injects cores input remaps
+            if (InputRemap.Count > 0)
+            {
+                CreateInputRemap(GetCoreName(core), SystemConfig["rom"], cfg =>
+                {
+                    foreach (var remap in InputRemap)
+                        cfg[remap.Key] = remap.Value;
+                });
+            }
+            else
+                DeleteInputRemap(GetCoreName(core), SystemConfig["rom"]);
         }
 
         /// <summary>
@@ -174,7 +453,7 @@ namespace emulatorLauncher.libRetro
                 if (_isWidescreen)
                     coreSettings["dolphin_widescreen"] = "enabled";
                 else
-                    coreSettings["dolphin_widescreen"] = "disabled";         
+                    coreSettings["dolphin_widescreen"] = "disabled";
 
                 BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");
 
@@ -389,6 +668,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "4";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -458,6 +741,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -507,6 +794,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -573,6 +864,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -591,6 +886,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "4";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -629,6 +928,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -706,6 +1009,11 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
 
                 coreSettings["fceumm_zapper_mode"] = "lightgun";
+
+                InputRemap["input_libretro_device_p1"] = "1";
+                InputRemap["input_libretro_device_p2"] = "258";
+                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_remap_port_p2"] = "1";
             }
         }
 
@@ -755,19 +1063,12 @@ namespace emulatorLauncher.libRetro
 
                 coreSettings["nestopia_zapper_device"] = "lightgun";
 
-                CreateInputRemap("Nestopia", SystemConfig["rom"], cfg =>
-                {
-                    cfg["input_libretro_device_p1"] = "1";
-                    cfg["input_libretro_device_p2"] = "262";
-                    cfg["input_remap_port_p1"] = "0";
-                    cfg["input_remap_port_p2"] = "1";
-                });
+                // Use remap to force input devices, or it does not load
+                InputRemap["input_libretro_device_p1"] = "1";
+                InputRemap["input_libretro_device_p2"] = "262";
+                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_remap_port_p2"] = "1";
             }
-            else
-                DeleteInputRemap("Nestopia", SystemConfig["rom"]);
-
-            // Use remap to force input devices, or it does not load
-
         }
 
         private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -811,11 +1112,22 @@ namespace emulatorLauncher.libRetro
 
         private void ConfigureMame2003(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
+            if (core != "mame2003")
+                return;
+
+            coreSettings["mame2003_skip_disclaimer"] = "enabled";
+            coreSettings["mame2003_skip_warnings"] = "enabled";
+            coreSettings["mame2003_mouse_device"] = "mouse";
+        }
+
+        private void ConfigureMame2003Plus(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
             if (core != "mame078plus" && core != "mame2003_plus")
                 return;
 
             coreSettings["mame2003-plus_skip_disclaimer"] = "enabled";
             coreSettings["mame2003-plus_skip_warnings"] = "enabled";
+            coreSettings["mame2003-plus_mouse_device"] = "mouse";
             coreSettings["mame2003-plus_xy_device"] = "lightgun";
 
             BindFeature(coreSettings, "mame2003-plus_analog", "mame2003-plus_analog", "digital");
@@ -1057,9 +1369,22 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                retroarchConfig["input_libretro_device_p1"] = "260";
+                string gunId = "260";
+
+                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                if (gunInfo != null && gunInfo.GunType == "justifier")
+                    gunId = "516";
+
+                coreSettings["snes9x_superscope_reverse_buttons"] = (gunInfo != null && gunInfo.ReversedButtons ? "enabled" : "disabled");
+
+                retroarchConfig["input_libretro_device_p2"] = gunId;
                 retroarchConfig["input_player2_mouse_index"] = "0";
-                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";                
+                retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player2_gun_start_mbtn"] = "3";
+
+                InputRemap["input_libretro_device_p2"] = gunId;
+                InputRemap["input_remap_port_p2"] = "1";
             }
         }
 
@@ -1090,41 +1415,37 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
-                if (gunInfo != null && gunInfo.GunType == "justifier")
+                if (system == "mastersystem")
                 {
-                    retroarchConfig["input_libretro_device_p2"] = "772";
-                    retroarchConfig["input_player2_mouse_index"] = "0";
-                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
-                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
-                }
-                else
-                {
-                    if (system == "mastersystem")
-                        retroarchConfig["input_libretro_device_p1"] = "260";
-                    else
-                        retroarchConfig["input_libretro_device_p1"] = "516"; 
-
+                    retroarchConfig["input_libretro_device_p1"] = "260";
                     retroarchConfig["input_player1_mouse_index"] = "0";
                     retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                     retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                     retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+
+                    InputRemap["input_libretro_device_p1"] = "260";
+                    InputRemap["input_remap_port_p1"] = "0";
+                }
+                else
+                {
+                    var gunId = "516";
+
+                    var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                    if (gunInfo != null && gunInfo.GunType == "justifier")
+                        gunId = "772";
+
+                    retroarchConfig["input_libretro_device_p2"] = gunId;
+                    retroarchConfig["input_player2_mouse_index"] = "0";
+                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
+
+                    InputRemap["input_libretro_device_p2"] = gunId;
+                    InputRemap["input_remap_port_p2"] = "1";
                 }
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                // Use remap to force input devices, or it does not load
-                CreateInputRemap("Genesis Plus GX", SystemConfig["rom"], cfg =>
-                {
-                    cfg["input_libretro_device_p1"] = "1";
-                    cfg["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
-                    cfg["input_remap_port_p1"] = "0";
-                    cfg["input_remap_port_p2"] = "1";
-                });
             }
-            else
-                DeleteInputRemap("Genesis Plus GX", SystemConfig["rom"]);
         }
 
         private void ConfigureGenesisPlusGXWide(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1173,37 +1494,37 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
-                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
-                if (gunInfo != null && gunInfo.GunType == "justifier")
+                if (system == "mastersystem")
                 {
-                    retroarchConfig["input_libretro_device_p2"] = "772";
-                    retroarchConfig["input_player2_mouse_index"] = "0";
-                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
-                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
-                }
-                else
-                {
-                    retroarchConfig["input_libretro_device_p1"] = "516"; // "260";
+                    retroarchConfig["input_libretro_device_p1"] = "260";
                     retroarchConfig["input_player1_mouse_index"] = "0";
                     retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
                     retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
                     retroarchConfig["input_player1_gun_start_mbtn"] = "3";
+
+                    InputRemap["input_libretro_device_p1"] = "260";
+                    InputRemap["input_remap_port_p1"] = "0";
+                }
+                else
+                {
+                    var gunId = "516";
+
+                    var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                    if (gunInfo != null && gunInfo.GunType == "justifier")
+                        gunId = "772";
+
+                    retroarchConfig["input_libretro_device_p2"] = gunId;
+                    retroarchConfig["input_player2_mouse_index"] = "0";
+                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
+
+                    InputRemap["input_libretro_device_p2"] = gunId;
+                    InputRemap["input_remap_port_p2"] = "1";
                 }
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                // Use remap to force input devices, or it does not load
-                CreateInputRemap("Genesis Plus GX Wide", SystemConfig["rom"], cfg =>
-                {
-                    cfg["input_libretro_device_p1"] = "1";
-                    cfg["input_libretro_device_p2"] = gunInfo != null && gunInfo.GunType == "justifier" ? "772" : "516";
-                    cfg["input_remap_port_p1"] = "0";
-                    cfg["input_remap_port_p2"] = "1";
-                });
             }
-            else
-                DeleteInputRemap("Genesis Plus GX Wide", SystemConfig["rom"]);
         }
 
         private void ConfigureMame(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1540,6 +1861,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "4";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
@@ -1561,6 +1886,11 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_libretro_device_p2"] = "262";
                 retroarchConfig["input_player2_mouse_index"] = "0";
                 retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
+
+                InputRemap["input_libretro_device_p1"] = "1";
+                InputRemap["input_libretro_device_p2"] = "262";
+                InputRemap["input_remap_port_p1"] = "0";
+                InputRemap["input_remap_port_p2"] = "1";
             }
         }
 
@@ -1651,11 +1981,21 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_start_mbtn"] = "3";
 
                 ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+                InputRemap["input_libretro_device_p1"] = "260";
+                InputRemap["input_player1_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p1"] = "0";
             }
         }
 
+        #region Input remaps
+        private Dictionary<string, string> InputRemap = new Dictionary<string, string>();
+
         private void CreateInputRemap(string cleanSystemName, string romName, Action<ConfigFile> createRemap)
         {
+            if (string.IsNullOrEmpty(cleanSystemName))
+                return;
+
             DeleteInputRemap(cleanSystemName, romName);
             if (createRemap == null)
                 return;
@@ -1677,6 +2017,9 @@ namespace emulatorLauncher.libRetro
 
         private void DeleteInputRemap(string cleanSystemName, string romName)
         {
+            if (string.IsNullOrEmpty(cleanSystemName))
+                return;
+
             string remapName = Path.GetFileName(Path.GetDirectoryName(romName));
 
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
@@ -1692,5 +2035,6 @@ namespace emulatorLauncher.libRetro
             }
             catch { }
         }
+        #endregion
     }
 }
