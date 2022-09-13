@@ -1904,7 +1904,7 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player" + i + "_gun_start_mbtn"] = "3";
 
-                InputRemap["input_libretro_device_p" + i] = "4";
+                InputRemap["input_libretro_device_p" + i] = deviceType;
                 InputRemap["input_player" + i + "_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p" + i] = (i - 1).ToString();
             }            
