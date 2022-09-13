@@ -577,7 +577,7 @@ namespace emulatorLauncher
 
                     Controllers.RemoveAll(c => c.Config == null);
 
-                    if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || HasWiimoteGun())
+                    if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || Misc.HasWiimoteGun())
                     {
                         var keyb = new Controller() { PlayerIndex = Controllers.Count + 1 };
                         keyb.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
@@ -596,26 +596,7 @@ namespace emulatorLauncher
 
             return null;
         }
-
-        /// <summary>
-        /// Detects if WiimoteGun is running in gamepad mode
-        /// </summary>
-        /// <returns></returns>
-        public static bool HasWiimoteGun(WiiModeGunMode mode = WiiModeGunMode.Any)
-        {
-            IntPtr hWndWiimoteGun = User32.FindWindow("WiimoteGun", null);
-            if (hWndWiimoteGun != IntPtr.Zero)
-            {
-                if (mode == WiiModeGunMode.Any)
-                    return true;
-
-                int wndMode = (int)User32.GetProp(hWndWiimoteGun, "mode");
-                return wndMode == (int)mode;
-            }
-
-            return false;
-        }
-
+        
         private static void ImportShaderOverrides()
         {
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shaderset") && SystemConfig["shaderset"] != "none")
@@ -733,11 +714,5 @@ namespace emulatorLauncher
         public override string ToString() { return Name + " (" + PlayerIndex.ToString()+")"; }
     }
 
-    enum WiiModeGunMode : int
-    {
-        Any = 0,
-        Mouse = 1,
-        Gamepad = 2
-    }
 
 }

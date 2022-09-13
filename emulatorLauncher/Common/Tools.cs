@@ -57,11 +57,34 @@ namespace emulatorLauncher.Tools
             }
 
             if (IsSindenLightGunConnected())
+            {
+                if (HasWiimoteGun(WiiModeGunMode.Mouse) && sindenLightGun > 0)
+                    return Math.Max(mouses, sindenLightGun + 1);
+
                 return Math.Max(mouses, sindenLightGun);
+            }
 
             return mouses;
         }
 
+        /// <summary>
+        /// Detects if WiimoteGun is running in gamepad mode
+        /// </summary>
+        /// <returns></returns>
+        public static bool HasWiimoteGun(WiiModeGunMode mode = WiiModeGunMode.Any)
+        {
+            IntPtr hWndWiimoteGun = User32.FindWindow("WiimoteGun", null);
+            if (hWndWiimoteGun != IntPtr.Zero)
+            {
+                if (mode == WiiModeGunMode.Any)
+                    return true;
+
+                int wndMode = (int)User32.GetProp(hWndWiimoteGun, "mode");
+                return wndMode == (int)mode;
+            }
+
+            return false;
+        }
 
         public static bool IsSindenLightGunConnected()
         {
@@ -259,5 +282,12 @@ namespace emulatorLauncher.Tools
 
             return -1;
         }
+    }
+
+    enum WiiModeGunMode : int
+    {
+        Any = 0,
+        Mouse = 1,
+        Gamepad = 2
     }
 }

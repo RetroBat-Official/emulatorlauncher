@@ -123,7 +123,7 @@ namespace emulatorLauncher.libRetro
             if (c0 == null || c0.Config == null)
                 return;
 
-            if (Program.HasWiimoteGun())
+            if (Misc.HasWiimoteGun())
             {
                 var keyB = Program.Controllers.FirstOrDefault(c => c.Name == "Keyboard");
                 if (keyB != null && keyB.Config != null)
