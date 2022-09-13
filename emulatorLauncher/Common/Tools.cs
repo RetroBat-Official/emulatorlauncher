@@ -19,6 +19,42 @@ namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        public static int GetLightGunCount()
+        {
+            int mouses = 0;
+
+            var searcher = new ManagementObjectSearcher("select * from Win32_PointingDevice");
+            foreach (var obj in searcher.Get())
+            {
+                object pnpDeviceID = obj.GetPropertyValue("PointingType");
+                if (pnpDeviceID is ushort && ((ushort)pnpDeviceID) == 2)
+                    mouses++;
+            }
+
+            int sindenLightGun = 0;
+
+            if (IsSindenLightGunConnected())
+            {
+                // Check if any Sinden Gun is connected
+                string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
+
+                foreach (ManagementObject obj1 in new ManagementObjectSearcher("Select * from WIN32_SerialPort").Get())
+                {
+                    object pnpDeviceID = obj1.GetPropertyValue("PNPDeviceID");
+                    if (pnpDeviceID == null)
+                        continue;
+
+                    string deviceId = pnpDeviceID.ToString();
+
+                    if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
+                        sindenLightGun++;
+                }
+            }
+
+            return Math.Max(mouses, sindenLightGun);
+        }
+
+
         public static bool IsSindenLightGunConnected()
         {
             // Find Sinden process

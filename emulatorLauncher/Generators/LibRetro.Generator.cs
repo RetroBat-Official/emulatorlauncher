@@ -44,6 +44,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["notification_show_autoconfig"] = "false";
             retroarchConfig["notification_show_remap_load"] = "false";
             retroarchConfig["driver_switch_enable"] = "true";
+            retroarchConfig["input_driver"] = "dinput";
 
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);

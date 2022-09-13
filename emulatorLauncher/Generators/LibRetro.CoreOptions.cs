@@ -672,6 +672,8 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_libretro_device_p1"] = "4";
                 InputRemap["input_player1_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p1"] = "0";
+
+                SetupMultiGuns(retroarchConfig, "4");
             }
         }
 
@@ -745,6 +747,8 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_libretro_device_p1"] = "260";
                 InputRemap["input_player1_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p1"] = "0";
+
+                SetupMultiGuns(retroarchConfig, "260");
             }
         }
 
@@ -798,6 +802,8 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_libretro_device_p1"] = "260";
                 InputRemap["input_player1_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p1"] = "0";
+
+                SetupMultiGuns(retroarchConfig, "260");
             }
         }
 
@@ -868,6 +874,8 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_libretro_device_p1"] = "260";
                 InputRemap["input_player1_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p1"] = "0";
+
+                SetupMultiGuns(retroarchConfig, "260");
             }
         }
 
@@ -890,6 +898,8 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_libretro_device_p1"] = "4";
                 InputRemap["input_player1_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p1"] = "0";
+
+                SetupMultiGuns(retroarchConfig, "4");
             }
         }
 
@@ -932,6 +942,8 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_libretro_device_p1"] = "260";
                 InputRemap["input_player1_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p1"] = "0";
+
+                SetupMultiGuns(retroarchConfig, "260");
             }
         }
 
@@ -1504,6 +1516,8 @@ namespace emulatorLauncher.libRetro
 
                     InputRemap["input_libretro_device_p1"] = "260";
                     InputRemap["input_remap_port_p1"] = "0";
+
+                    SetupMultiGuns(retroarchConfig, "260");
                 }
                 else
                 {
@@ -1865,7 +1879,35 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_libretro_device_p1"] = "4";
                 InputRemap["input_player1_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p1"] = "0";
+
+                SetupMultiGuns(retroarchConfig, "4");
             }
+        }
+
+        private void SetupMultiGuns(ConfigFile retroarchConfig, string deviceType)
+        {
+            if (!SystemConfig.getOptBoolean("use_guns"))
+                return;
+
+            int gunCount = Misc.GetLightGunCount();
+            if (gunCount <= 1)
+                return;
+            
+            // DirectInput does not differenciate mouse indexes
+            retroarchConfig["input_driver"] = "raw";
+
+            for (int i = 2; i <= gunCount; i++)
+            {
+                retroarchConfig["input_libretro_device_p" + i] = deviceType;
+                retroarchConfig["input_player" + i + "_mouse_index"] = (i-1).ToString();
+                retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player" + i + "_gun_start_mbtn"] = "3";
+
+                InputRemap["input_libretro_device_p" + i] = "4";
+                InputRemap["input_player" + i + "_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p" + i] = (i - 1).ToString();
+            }            
         }
 
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1985,6 +2027,8 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_libretro_device_p1"] = "260";
                 InputRemap["input_player1_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p1"] = "0";
+
+                SetupMultiGuns(retroarchConfig, "260");
             }
         }
 
