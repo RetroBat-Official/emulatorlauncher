@@ -21,37 +21,45 @@ namespace emulatorLauncher.Tools
     {
         public static int GetLightGunCount()
         {
+            string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
+
             int mouses = 0;
 
             var searcher = new ManagementObjectSearcher("select * from Win32_PointingDevice");
             foreach (var obj in searcher.Get())
             {
-                object pnpDeviceID = obj.GetPropertyValue("PointingType");
-                if (pnpDeviceID is ushort && ((ushort)pnpDeviceID) == 2)
+                object pnpDeviceID = obj.GetPropertyValue("PNPDeviceID");
+                if (pnpDeviceID == null)
+                    continue;
+
+                string deviceId = pnpDeviceID.ToString();
+                if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
+                    continue;
+
+                object pointingType = obj.GetPropertyValue("PointingType");
+                if (pointingType is ushort && ((ushort)pointingType) == 2)
                     mouses++;
             }
 
             int sindenLightGun = 0;
 
-            if (IsSindenLightGunConnected())
+            // Count connected Sinden Guns 
+            foreach (ManagementObject obj1 in new ManagementObjectSearcher("Select * from WIN32_SerialPort").Get())
             {
-                // Check if any Sinden Gun is connected
-                string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
+                object pnpDeviceID = obj1.GetPropertyValue("PNPDeviceID");
+                if (pnpDeviceID == null)
+                    continue;
 
-                foreach (ManagementObject obj1 in new ManagementObjectSearcher("Select * from WIN32_SerialPort").Get())
-                {
-                    object pnpDeviceID = obj1.GetPropertyValue("PNPDeviceID");
-                    if (pnpDeviceID == null)
-                        continue;
+                string deviceId = pnpDeviceID.ToString();
 
-                    string deviceId = pnpDeviceID.ToString();
-
-                    if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
-                        sindenLightGun++;
-                }
+                if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
+                    sindenLightGun++;
             }
 
-            return Math.Max(mouses, sindenLightGun);
+            if (IsSindenLightGunConnected())
+                return Math.Max(mouses, sindenLightGun);
+
+            return mouses;
         }
 
 
