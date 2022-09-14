@@ -367,33 +367,7 @@ namespace emulatorLauncher.libRetro
             else
                 DeleteInputRemap(GetCoreName(core), SystemConfig["rom"]);
         }
-
-        /// <summary>
-        /// Injects keyboard actions for lightgun games
-        /// </summary>
-        /// <param name="retroarchConfig"></param>
-        /// <param name="playerId"></param>
-        private void ConfigurePlayer1LightgunKeyboardActions(ConfigFile retroarchConfig)
-        {
-            if (!SystemConfig.getOptBoolean("use_guns"))
-                return;
-
-            var keyb = Controllers.Where(c => c.Name == "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
-            if (keyb != null)
-            {
-                var start = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.start);
-                retroarchConfig["input_player1_gun_start"] = start == null ? "nul" : LibretroControllers.GetConfigValue(start);
-
-                var select = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.select);
-                retroarchConfig["input_player1_gun_select"] = select == null ? "nul" : LibretroControllers.GetConfigValue(select);
-            }
-            else
-            {
-                retroarchConfig["input_player1_gun_start"] = "enter";
-                retroarchConfig["input_player1_gun_select"] = "space";
-            }
-        }
-
+        
         private void ConfigureDolphin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "dolphin")
@@ -659,22 +633,7 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig["fbneo-vertical-mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
 
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p1"] = "4";
-                retroarchConfig["input_player1_mouse_index"] = "0";
-                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_aux_a_mbtn"] = "2"; // # for all games ?
-                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                InputRemap["input_libretro_device_p1"] = "4";
-                InputRemap["input_player1_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p1"] = "0";
-
-                SetupMultiGuns(retroarchConfig, "4");
-            }
+            SetupLightGuns(retroarchConfig, "4");
         }
 
         private void ConfigureCitra(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -734,22 +693,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_saturn_mouse_sensitivity", "beetle_saturn_mouse_sensitivity", "100%");
             BindFeature(coreSettings, "beetle_saturn_virtuagun_input", "beetle_saturn_virtuagun_input", "lightgun", true);
 
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p1"] = "260";
-                retroarchConfig["input_player1_mouse_index"] = "0";
-                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
-                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                InputRemap["input_libretro_device_p1"] = "260";
-                InputRemap["input_player1_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p1"] = "0";
-
-                SetupMultiGuns(retroarchConfig, "260");
-            }
+            SetupLightGuns(retroarchConfig, "260");
         }
 
         private void ConfigurePicodrive(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -789,22 +733,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "kronos_videocoretype", "videocoretype", "opengl");
             BindFeature(coreSettings, "kronos_videoformattype", "videoformattype", "auto");
 
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p1"] = "260";
-                retroarchConfig["input_player1_mouse_index"] = "0";
-                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
-                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                InputRemap["input_libretro_device_p1"] = "260";
-                InputRemap["input_player1_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p1"] = "0";
-
-                SetupMultiGuns(retroarchConfig, "260");
-            }
+            SetupLightGuns(retroarchConfig, "260");
         }
 
         private void ConfigureHandy(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -861,22 +790,7 @@ namespace emulatorLauncher.libRetro
             }
 
             // Lightgun
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p1"] = "260";
-                retroarchConfig["input_player1_mouse_index"] = "0";
-                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
-                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                InputRemap["input_libretro_device_p1"] = "260";
-                InputRemap["input_player1_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p1"] = "0";
-
-                SetupMultiGuns(retroarchConfig, "260");
-            }
+            SetupLightGuns(retroarchConfig, "260");
         }
 
         private void ConfigureStella(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -885,22 +799,7 @@ namespace emulatorLauncher.libRetro
                 return;
 
             // Lightgun
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p1"] = "4";
-                retroarchConfig["input_player1_mouse_index"] = "0";
-                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
-                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                InputRemap["input_libretro_device_p1"] = "4";
-                InputRemap["input_player1_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p1"] = "0";
-
-                SetupMultiGuns(retroarchConfig, "4");
-            }
+            SetupLightGuns(retroarchConfig, "4");            
         }
 
         private void Configure4Do(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -929,22 +828,7 @@ namespace emulatorLauncher.libRetro
             }
 
             // Lightgun
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p1"] = "260";
-                retroarchConfig["input_player1_mouse_index"] = "0";
-                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
-                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                InputRemap["input_libretro_device_p1"] = "260";
-                InputRemap["input_player1_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p1"] = "0";
-
-                SetupMultiGuns(retroarchConfig, "260");
-            }
+            SetupLightGuns(retroarchConfig, "260");
         }
 
         private void ConfigureBlueMsx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1014,19 +898,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "enabled");
             BindFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled");
 
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p2"] = "258";
-                retroarchConfig["input_player2_mouse_index"] = "0";
-                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-
-                coreSettings["fceumm_zapper_mode"] = "lightgun";
-
-                InputRemap["input_libretro_device_p1"] = "1";
-                InputRemap["input_libretro_device_p2"] = "258";
-                InputRemap["input_remap_port_p1"] = "0";
-                InputRemap["input_remap_port_p2"] = "1";
-            }
+            SetupLightGuns(retroarchConfig, "258", 2);
         }
 
         private void ConfigureNestopia(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1067,20 +939,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "nestopia_favored_system", "nestopia_favored_system", "auto");
             BindFeature(coreSettings, "nestopia_button_shift", "nestopia_button_shift", "disabled");
 
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p2"] = "262";
-                retroarchConfig["input_player2_mouse_index"] = "0";
-                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-
-                coreSettings["nestopia_zapper_device"] = "lightgun";
-
-                // Use remap to force input devices, or it does not load
-                InputRemap["input_libretro_device_p1"] = "1";
-                InputRemap["input_libretro_device_p2"] = "262";
-                InputRemap["input_remap_port_p1"] = "0";
-                InputRemap["input_remap_port_p2"] = "1";
-            }
+            coreSettings["nestopia_zapper_device"] = "lightgun";
+            SetupLightGuns(retroarchConfig, "262", 2);            
         }
 
         private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1389,14 +1249,7 @@ namespace emulatorLauncher.libRetro
 
                 coreSettings["snes9x_superscope_reverse_buttons"] = (gunInfo != null && gunInfo.ReversedButtons ? "enabled" : "disabled");
 
-                retroarchConfig["input_libretro_device_p2"] = gunId;
-                retroarchConfig["input_player2_mouse_index"] = "0";
-                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";                
-                retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
-                retroarchConfig["input_player2_gun_start_mbtn"] = "3";
-
-                InputRemap["input_libretro_device_p2"] = gunId;
-                InputRemap["input_remap_port_p2"] = "1";
+                SetupLightGuns(retroarchConfig, gunId, 2);
             }
         }
 
@@ -1428,16 +1281,7 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 if (system == "mastersystem")
-                {
-                    retroarchConfig["input_libretro_device_p1"] = "260";
-                    retroarchConfig["input_player1_mouse_index"] = "0";
-                    retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
-                    retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                    InputRemap["input_libretro_device_p1"] = "260";
-                    InputRemap["input_remap_port_p1"] = "0";
-                }
+                    SetupLightGuns(retroarchConfig, "260");
                 else
                 {
                     var gunId = "516";
@@ -1446,17 +1290,8 @@ namespace emulatorLauncher.libRetro
                     if (gunInfo != null && gunInfo.GunType == "justifier")
                         gunId = "772";
 
-                    retroarchConfig["input_libretro_device_p2"] = gunId;
-                    retroarchConfig["input_player2_mouse_index"] = "0";
-                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
-                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
-
-                    InputRemap["input_libretro_device_p2"] = gunId;
-                    InputRemap["input_remap_port_p2"] = "1";
+                    SetupLightGuns(retroarchConfig, gunId, 2);
                 }
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
             }
         }
 
@@ -1507,18 +1342,7 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 if (system == "mastersystem")
-                {
-                    retroarchConfig["input_libretro_device_p1"] = "260";
-                    retroarchConfig["input_player1_mouse_index"] = "0";
-                    retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
-                    retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                    InputRemap["input_libretro_device_p1"] = "260";
-                    InputRemap["input_remap_port_p1"] = "0";
-
-                    SetupMultiGuns(retroarchConfig, "260");
-                }
+                    SetupLightGuns(retroarchConfig, "260");
                 else
                 {
                     var gunId = "516";
@@ -1527,17 +1351,8 @@ namespace emulatorLauncher.libRetro
                     if (gunInfo != null && gunInfo.GunType == "justifier")
                         gunId = "772";
 
-                    retroarchConfig["input_libretro_device_p2"] = gunId;
-                    retroarchConfig["input_player2_mouse_index"] = "0";
-                    retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player2_gun_offscreen_shot_mbtn"] = "2";
-                    retroarchConfig["input_player2_gun_start_mbtn"] = "3";
-
-                    InputRemap["input_libretro_device_p2"] = gunId;
-                    InputRemap["input_remap_port_p2"] = "1";
-                }
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+                    SetupLightGuns(retroarchConfig, gunId, 2);
+                }                
             }
         }
 
@@ -1866,48 +1681,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");
             BindFeature(coreSettings, "reicast_frame_skipping", "reicast_frame_skipping", "disabled");
 
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p1"] = "4";
-                retroarchConfig["input_player1_mouse_index"] = "0";
-                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_offscreen_shot_mbtn"] = "2";
-                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                InputRemap["input_libretro_device_p1"] = "4";
-                InputRemap["input_player1_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p1"] = "0";
-
-                SetupMultiGuns(retroarchConfig, "4");
-            }
-        }
-
-        private void SetupMultiGuns(ConfigFile retroarchConfig, string deviceType)
-        {
-            if (!SystemConfig.getOptBoolean("use_guns"))
-                return;
-
-            int gunCount = Misc.GetLightGunCount();
-            if (gunCount <= 1)
-                return;
-            
-            // DirectInput does not differenciate mouse indexes
-            retroarchConfig["input_driver"] = "raw";
-
-            for (int i = 2; i <= gunCount; i++)
-            {
-                retroarchConfig["input_libretro_device_p" + i] = deviceType;
-                retroarchConfig["input_player" + i + "_mouse_index"] = (i-1).ToString();
-                retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = "2";
-                retroarchConfig["input_player" + i + "_gun_start_mbtn"] = "3";
-
-                InputRemap["input_libretro_device_p" + i] = deviceType;
-                InputRemap["input_player" + i + "_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p" + i] = (i - 1).ToString();
-            }            
+            SetupLightGuns(retroarchConfig, "4");
         }
 
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1923,17 +1697,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mesen_shift_buttons_clockwise", "shift_buttons", "disabled");
             BindFeature(coreSettings, "mesen_fake_stereo", "fake_stereo", "disabled");
 
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p2"] = "262";
-                retroarchConfig["input_player2_mouse_index"] = "0";
-                retroarchConfig["input_player2_gun_trigger_mbtn"] = "1";
-
-                InputRemap["input_libretro_device_p1"] = "1";
-                InputRemap["input_libretro_device_p2"] = "262";
-                InputRemap["input_remap_port_p1"] = "0";
-                InputRemap["input_remap_port_p2"] = "1";
-            }
+            SetupLightGuns(retroarchConfig, "262", 2);
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2014,22 +1778,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun", true);
             BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross", true);
 
-            if (SystemConfig.getOptBoolean("use_guns"))
-            {
-                retroarchConfig["input_libretro_device_p1"] = "260";
-                retroarchConfig["input_player1_mouse_index"] = "0";
-                retroarchConfig["input_player1_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player1_gun_aux_a_mbtn"] = "2";
-                retroarchConfig["input_player1_gun_start_mbtn"] = "3";
-
-                ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
-
-                InputRemap["input_libretro_device_p1"] = "260";
-                InputRemap["input_player1_analog_dpad_mode"] = "0";
-                InputRemap["input_remap_port_p1"] = "0";
-
-                SetupMultiGuns(retroarchConfig, "260");
-            }
+            SetupLightGuns(retroarchConfig, "260");
         }
 
         #region Input remaps
@@ -2079,6 +1828,90 @@ namespace emulatorLauncher.libRetro
             }
             catch { }
         }
+        #endregion
+
+        #region Lightguns setup
+        /// <summary>
+        /// Injects keyboard actions for lightgun games
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        /// <param name="playerId"></param>
+        private void ConfigurePlayer1LightgunKeyboardActions(ConfigFile retroarchConfig)
+        {
+            if (!SystemConfig.getOptBoolean("use_guns"))
+                return;
+
+            var keyb = Controllers.Where(c => c.Name == "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
+            if (keyb != null)
+            {
+                var start = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.start);
+                retroarchConfig["input_player1_gun_start"] = start == null ? "nul" : LibretroControllers.GetConfigValue(start);
+
+                var select = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.select);
+                retroarchConfig["input_player1_gun_select"] = select == null ? "nul" : LibretroControllers.GetConfigValue(select);
+            }
+            else
+            {
+                retroarchConfig["input_player1_gun_start"] = "enter";
+                retroarchConfig["input_player1_gun_select"] = "space";
+            }
+        }
+
+        /// <summary>
+        /// Injects guns settings
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        /// <param name="deviceType"></param>
+        /// <param name="playerIndex"></param>
+        private void SetupLightGuns(ConfigFile retroarchConfig, string deviceType, int playerIndex = 1)
+        {
+            if (!SystemConfig.getOptBoolean("use_guns"))
+                return;
+
+            retroarchConfig["input_libretro_device_p" + playerIndex] = deviceType;
+            retroarchConfig["input_player" + playerIndex + "_mouse_index"] = "0";
+            retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = "1";
+            retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = "2";
+            retroarchConfig["input_player" + playerIndex + "_gun_start_mbtn"] = "3";
+
+            InputRemap["input_libretro_device_p" + playerIndex] = deviceType;
+            InputRemap["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
+            InputRemap["input_remap_port_p" + playerIndex] = "0";
+
+            if (playerIndex > 1)
+                return; // If device has to be set as player 2, then exit, there's no multigun support
+
+            ConfigurePlayer1LightgunKeyboardActions(retroarchConfig);
+
+            int gunCount = RawLightgun.GetUsableLightGunCount();
+            if (gunCount <= 1) // If there's only one gun ( or just one sinden gun + one mouse ), then ignore multigun
+                return;
+
+            var guns = RawLightgun.GetRawLightguns();
+            if (guns.Length <= 1)
+                return;
+
+            // DirectInput does not differenciate mouse indexes. We have to use "Raw" with multiple guns
+            retroarchConfig["input_driver"] = "raw";
+
+            for (int i = 1; i <= guns.Length; i++)
+            {
+                int deviceIndex = guns[i - 1].Index; // i-1;
+
+                SimpleLogger.Instance.Debug("[LightGun] Assigned player " + i + " to -> " + guns[i - 1].ToString());
+
+                retroarchConfig["input_libretro_device_p" + i] = deviceType;
+                retroarchConfig["input_player" + i + "_mouse_index"] = deviceIndex.ToString();
+                retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = "1";
+                retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player" + i + "_gun_start_mbtn"] = "3";
+
+                InputRemap["input_libretro_device_p" + i] = deviceType;
+                InputRemap["input_player" + i + "_analog_dpad_mode"] = "0";
+                InputRemap["input_remap_port_p" + i] = deviceIndex.ToString();
+            }
+        }
+        
         #endregion
     }
 }

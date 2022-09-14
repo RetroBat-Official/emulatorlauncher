@@ -19,102 +19,22 @@ namespace emulatorLauncher.Tools
 {
     static class Misc
     {
-        #region Apis
-        enum RawInputDeviceType : uint
-        {
-            MOUSE = 0,
-            KEYBOARD = 1,
-            HID = 2
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct RAWINPUTDEVICELIST
-        {
-            public IntPtr hDevice;
-            public RawInputDeviceType Type;
-        }
-
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern uint GetRawInputDeviceList
-        (
-            [In, Out] RAWINPUTDEVICELIST[] RawInputDeviceList,
-            ref uint NumDevices,
-            uint Size /* = (uint)Marshal.SizeOf(typeof(RawInputDeviceList)) */
-        );
-
-        [DllImport("User32.dll")]
-        static extern uint GetRawInputDeviceInfo(IntPtr hDevice, uint uiCommand, IntPtr pData, ref uint pcbSize);
-
-        [DllImport("hid.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern bool HidD_GetProductString(IntPtr HidDeviceObject, StringBuilder Buffer, uint BufferLength);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern IntPtr CreateFile(String lpFileName, UInt32 dwDesiredAccess, UInt32 dwShareMode, IntPtr lpSecurityAttributes, UInt32 dwCreationDisposition, UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool CloseHandle(IntPtr hObject);
-        #endregion
-
-        public static string[] GetRawMouseNames()
-        {
-            List<string> mouseNames = new List<string>();
-
-            uint RIDI_DEVICENAME = 0x20000007;
-            uint deviceCount = 0;
-            uint dwSize = (uint)Marshal.SizeOf(typeof(RAWINPUTDEVICELIST));
-
-            uint retValue = GetRawInputDeviceList(null, ref deviceCount, dwSize);
-            if (retValue == 0)
-            {
-                // Now allocate an array of the specified number of entries
-                RAWINPUTDEVICELIST[] deviceList = new RAWINPUTDEVICELIST[deviceCount];
-
-                // Now make the call again, using the array
-                retValue = GetRawInputDeviceList(deviceList, ref deviceCount, dwSize);
-
-                var miceList = deviceList.Where(d => d.Type == RawInputDeviceType.MOUSE).ToList();
-
-                foreach (var mouse in miceList)
-                {
-                    uint pcbSize = 0;
-                    string deviceName = "";
-                    GetRawInputDeviceInfo(mouse.hDevice, RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
-                    if (pcbSize <= 0)
-                        continue;
-
-                    IntPtr pData = Marshal.AllocHGlobal((int)pcbSize);
-                    GetRawInputDeviceInfo(mouse.hDevice, RIDI_DEVICENAME, pData, ref pcbSize);
-                    deviceName = Marshal.PtrToStringAnsi(pData);
-                    Marshal.FreeHGlobal(pData);
-
-                    if (string.IsNullOrEmpty(deviceName))
-                        continue;
-
-                    IntPtr hhid = CreateFile(deviceName, 0, 3, IntPtr.Zero, 3, 0x00000080, IntPtr.Zero);
-                    if (hhid != new IntPtr(-1))
-                    {
-                        StringBuilder buf = new StringBuilder(255);
-                        buf.Clear();
-
-                        if (HidD_GetProductString(hhid, buf, 255))
-                            mouseNames.Add(buf.ToString());
-
-                        CloseHandle(hhid);
-                    }
-                }
-            }
-
-            return mouseNames.ToArray();
-        }
-
+        /*
         public static int GetLightGunCount()
         {
-            GetRawMouseNames();
+            var guns = RawLightgun.GetRawLightguns();
 
+            int sindenLightGun = guns.Count(g => g.Type == RawLighGunType.SindenLightgun);
+            int wiiMote = guns.Count(g => g.Type == RawLighGunType.MayFlashWiimote);
+            int mice = guns.Count(g => g.Type == RawLighGunType.Mouse);
+
+            return mice;
+            
             string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
 
             int mouses = 0;
+            int sindenLightGun = 0;
+            int wiimotes = 0;
 
             var searcher = new ManagementObjectSearcher("select * from Win32_PointingDevice");
             foreach (var obj in searcher.Get())
@@ -131,8 +51,6 @@ namespace emulatorLauncher.Tools
                 if (pointingType is ushort && ((ushort)pointingType) == 2)
                     mouses++;
             }
-
-            int sindenLightGun = 0;
 
             // Count connected Sinden Guns 
             foreach (ManagementObject obj1 in new ManagementObjectSearcher("Select * from WIN32_SerialPort").Get())
@@ -157,7 +75,7 @@ namespace emulatorLauncher.Tools
 
             return mouses;
         }
-
+        */
         /// <summary>
         /// Detects if WiimoteGun is running in gamepad mode
         /// </summary>
@@ -381,4 +299,8 @@ namespace emulatorLauncher.Tools
         Mouse = 1,
         Gamepad = 2
     }
+
+
+
+
 }
