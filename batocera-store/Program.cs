@@ -7,6 +7,7 @@ using emulatorLauncher;
 using System.IO;
 using System.Xml.Serialization;
 using emulatorLauncher.Tools;
+using System.Net;
 
 namespace batocera_store
 {
@@ -32,6 +33,9 @@ namespace batocera_store
                 return 0;
             }
 
+            SimpleLogger.Instance.Info("--------------------------------------------------------------");
+            SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
+
             AppConfig = ConfigFile.FromFile(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "emulatorLauncher.cfg"));
             AppConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
@@ -42,13 +46,14 @@ namespace batocera_store
 
             if (repositories.Count == 0)
             {
+                SimpleLogger.Instance.Error("batocera-store.cfg not found or not valid");                        
                 Console.WriteLine("batocera-store.cfg not found or not valid");
                 return 1;
             }
 
             Repositories = repositories.ToArray();
 
-            switch (args[0])
+            switch ((args[0]??"").Replace("-", "").ToLowerInvariant())
             {
                 case "clean":
                 case "clean-all":
@@ -73,7 +78,8 @@ namespace batocera_store
                 case "uninstall":
                     if (args.Length < 2)
                     {
-                        Console.WriteLine("invalid command line");
+                        SimpleLogger.Instance.Error("invalid command line");
+                        Console.WriteLine("invalid arguments");
                         break;
                     }
 
@@ -85,7 +91,8 @@ namespace batocera_store
                 case "install":
                     if (args.Length < 2)
                     {
-                        Console.WriteLine("invalid command line");
+                        SimpleLogger.Instance.Error("invalid command line");
+                        Console.WriteLine("invalid arguments");
                         break;
                     }
 
@@ -184,17 +191,19 @@ namespace batocera_store
                 }
             }
 
-            if (package == null)
-            {
-                Console.WriteLine("Package " + packageName + " not found");
-                return false;
-            }
-
             var installedPackages = PackageFileManager.GetInstalledPackages();
 
-            var installed = installedPackages.Packages.FirstOrDefault(p => p.Repository == repository.Name && p.Name == package.Name);
+            InstalledPackage installed = null;
+
+            if (repository != null)
+                installed = installedPackages.Packages.FirstOrDefault(p => p.Repository == repository.Name && p.Name == packageName);
+
+            if (installed == null)
+                installed = installedPackages.Packages.FirstOrDefault(p => p.Name == packageName);
+
             if (installed == null)
             {
+                SimpleLogger.Instance.Error("Package " + packageName + " is not installed");
                 Console.WriteLine("Package " + packageName + " is not installed");
                 return false;
             }
@@ -227,7 +236,8 @@ namespace batocera_store
                     }
                 }
 
-                NotifyEmulationStation(package, "removegames");
+                if (package != null)
+                    NotifyEmulationStation(package, "removegames");
             }
 
             installedPackages.Packages.Remove(installed);
@@ -271,6 +281,7 @@ namespace batocera_store
                         long freeSpace = drv.TotalFreeSpace / 1024;
                         if (size > freeSpace)
                         {
+                            SimpleLogger.Instance.Error("Not enough space on drive to install");
                             Console.WriteLine("Not enough space on drive to install");
                             return false;
                         }
@@ -301,8 +312,9 @@ namespace batocera_store
                     var entries = Zip.ListEntries(installFile);
                     if (entries.Length == 0)
                     {
-                        Console.WriteLine("Error : file does not contain any entry to install");
-                        
+                        Console.WriteLine("Error : file does not contain any content to install");
+                        SimpleLogger.Instance.Error("Error : file '" + installFile + "' does not contain any content to install");
+
                         try { File.Delete(installFile); }
                         catch { }
 
@@ -407,7 +419,15 @@ namespace batocera_store
 
                 try
                 {
-                    WebTools.PostString("http://" + "127.0.0.1:1234/" + verb + "/" + gp.Key, xml);
+                    WebTools.PostString("http://" + "127.0.0.1:1234/" + verb + "/czeceezcz" + gp.Key, xml);
+                }
+                catch (WebException wx)
+                {
+                    string result = wx.Response != null ? wx.Response.ReadResponseString() : null;
+                    if (!string.IsNullOrEmpty(result))
+                        SimpleLogger.Instance.Error("Unable to add games to emulationstation : " + result, wx);                        
+                    else
+                        SimpleLogger.Instance.Error("Unable to add games to emulationstation", wx);                        
                 }
                 catch (Exception ex)
                 {

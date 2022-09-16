@@ -38,7 +38,7 @@ namespace batocera_store
         {
             string file = Path.Combine(RootPath, repo.Name + ".cfg");
 
-            if (!File.Exists(file) || DateTime.Now - File.GetCreationTime(file) <= new TimeSpan(0, 0, 15, 0))
+            if (!File.Exists(file) || (DateTime.Now - File.GetCreationTime(file) > new TimeSpan(0, 0, 15, 0)))
                 DownloadControlFile(repo);
 
             if (File.Exists(file))
@@ -79,6 +79,8 @@ namespace batocera_store
             {
                 using (FileStream fileStream = new FileStream(file, FileMode.Create))
                     WebTools.DownloadToStream(fileStream, uri.AbsoluteUri);
+
+                File.SetCreationTime(file, DateTime.Now);
             }
             catch
             {

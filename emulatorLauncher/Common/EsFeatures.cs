@@ -118,11 +118,11 @@ namespace emulatorLauncher.Tools
                 if (ret != null)
                     return ret;
 
-                SimpleLogger.Instance.Warning("es_features.cfg file is null. Using default features");
+                SimpleLogger.Instance.Warning("[Features] es_features.cfg file is null. Using default features");
             }
             catch (Exception ex)
             {
-                SimpleLogger.Instance.Error("es_features.cfg file is invalid : " + ex.Message);
+                SimpleLogger.Instance.Error("[Features] es_features.cfg file is invalid : " + ex.Message);
                 throw ex;
             }
 
