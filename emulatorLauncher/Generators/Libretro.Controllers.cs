@@ -22,14 +22,6 @@ namespace emulatorLauncher.libRetro
             if (Program.SystemConfig["input_driver"] == "xinput")
                 _inputDriver = "xinput";
 
-            /*
-            bool allXInput = !Program.Controllers.Where(c => c.Input != null && c.Input.Type != "keyboard").Any(j => !j.Input.IsXInputDevice());
-            if (allXInput)
-                _inputDriver = "xinput";
-            else
-                SetupAutoConfig();
-            */
-
             // no menu in non full uimode
             if (Program.SystemConfig.isOptSet("uimode") && Program.SystemConfig["uimode"] != "Full" && retroarchspecials.ContainsKey(InputKey.a))
                 retroarchspecials.Remove(InputKey.a);
@@ -43,49 +35,7 @@ namespace emulatorLauncher.libRetro
 
             return true;
         }
-
-        private static void SetupAutoConfig()
-        {
-            List<Controller> excludedControllers = new List<Controller>();
-
-            var retroarchPath = Path.Combine(Program.AppConfig.GetFullPath("retroarch"), "autoconfig", _inputDriver);
-            if (Directory.Exists(retroarchPath))
-            {
-                foreach (var file in Directory.GetFiles(retroarchPath, "*.cfg", SearchOption.AllDirectories))
-                {
-                    var cfg = ConfigFile.FromFile(file);
-                    if (cfg == null || cfg["input_driver"] != "sdl2")
-                        continue;
-
-                    var sdl = SdlGameControllers.GetGameController(cfg["input_device"]);
-                    if (sdl != null)
-                    {
-                        var ctl = Program.Controllers.FirstOrDefault(f => f.Config.ProductGuid == sdl.Guid);
-                        if (ctl != null)
-                            excludedControllers.Add(ctl);
-                    }
-                }
-
-                foreach (var controller in Program.Controllers.Where(c => !excludedControllers.Contains(c)))
-                {
-                    var sdl = SdlGameControllers.GetGameController(controller.Config.ProductGuid);
-                    if (sdl != null)
-                    {
-                        var cfg = new ConfigFile();
-
-                        cfg["input_device"] = sdl.Name;
-                        if (sdl.Name != controller.Config.DeviceName)
-                            cfg["input_device_display_name"] = controller.Config.DeviceName;
-
-                        cfg["input_driver"] = "sdl2";
-                        cfg["input_vendor_id"] = sdl.VendorId.ToString();
-                        cfg["input_product_id"] = sdl.ProductId.ToString();
-                        cfg.Save(Path.Combine(retroarchPath, sdl.Name + ".cfg"), true);
-                    }
-                }
-            }
-        }
-
+        
         static public List<InputKey> retroarchdirs = new List<InputKey>() { InputKey.up, InputKey.down, InputKey.left, InputKey.right };
 
         static public Dictionary<InputKey, string> retroarchjoysticks = new Dictionary<InputKey, string>()
@@ -113,27 +63,6 @@ namespace emulatorLauncher.libRetro
         };
 
         static public Dictionary<InputKey, string> retroarchspecials = new Dictionary<InputKey, string>()
-        /*
-        {
-            { InputKey.start, "exit_emulator"},  
-
-            { InputKey.b, "reset"}, 
-            { InputKey.a, "menu_toggle"},  // A et B inversés par rapport à batocera
-
-            { InputKey.x, "load_state"}, 
-            { InputKey.y, "save_state"}, 
-            { InputKey.pageup, "screenshot"}, 
-            //{ InputKey.start, "exit_emulator"},  
-            { InputKey.up, "state_slot_increase"},  
-            { InputKey.down, "state_slot_decrease"},  
-            { InputKey.left, "rewind"},  
-            { InputKey.right, "hold_fast_forward"}, 
-            { InputKey.l2, "shader_prev"},  
-            { InputKey.r2, "shader_next"},              
-            { InputKey.pagedown, "ai_service"}      
-        };
-        */
-
         {
             { InputKey.start, "exit_emulator"},
             { InputKey.b, "pause_toggle"},
@@ -149,7 +78,6 @@ namespace emulatorLauncher.libRetro
             { InputKey.down, "state_slot_decrease"},
             { InputKey.left, "rewind"},
             { InputKey.right, "hold_fast_forward"}
-
         };
 
         private static void CleanControllerConfig(ConfigFile retroconfig)
@@ -195,7 +123,7 @@ namespace emulatorLauncher.libRetro
             if (c0 == null || c0.Config == null)
                 return;
 
-            if (Program.HasWiimoteGun())
+            if (Misc.HasWiimoteGun())
             {
                 var keyB = Program.Controllers.FirstOrDefault(c => c.Name == "Keyboard");
                 if (keyB != null && keyB.Config != null)
@@ -306,22 +234,6 @@ namespace emulatorLauncher.libRetro
                     retroarchbtns[InputKey.l2] = "l";
                 }
             }
-            /*
-            if (Program.Features.IsSupported("gamepadbuttons"))
-            {
-                bool useNintendoConvention = !Program.SystemConfig.isOptSet("gamepadbuttons") || !Program.SystemConfig.getOptBoolean("gamepadbuttons");
-                if (useNintendoConvention)
-                {                    
-                    retroarchbtns[InputKey.a] = "a";
-                    retroarchbtns[InputKey.b] = "b";
-                    retroconfig["menu_swap_ok_cancel_buttons"] = "false";
-                }
-                else
-                    retroconfig["menu_swap_ok_cancel_buttons"] = "true";
-            }
-            else
-                retroconfig["menu_swap_ok_cancel_buttons"] = "true";
-            */
 
             var conflicts = new List<string>();
 
@@ -382,8 +294,6 @@ namespace emulatorLauncher.libRetro
                         continue;
 
                     if (input.Type != "key")
-                        //            config[string.Format("input_{0}", specialkey.Value)] = getConfigValue(input);
-                        //        else
                         config[string.Format("input_{0}_{1}", specialkey.Value, typetoname[input.Type])] = GetConfigValue(input);
                 }
             }

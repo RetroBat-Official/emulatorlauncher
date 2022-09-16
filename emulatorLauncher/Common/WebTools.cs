@@ -46,7 +46,7 @@ namespace emulatorLauncher
             }
             catch (Exception ex)
             {
-                SimpleLogger.Instance.Error(ex.Message);
+                SimpleLogger.Instance.Error("[UrlExists] Exception " + ex.Message, ex);
             }
 
             _urlExistsCache[url] = false;
@@ -134,19 +134,19 @@ namespace emulatorLauncher
                     goto retry;
                 }
 
-                SimpleLogger.Instance.Error(ex.Message);
+                SimpleLogger.Instance.Error("[DownloadToStream] WebException : " + ex.Message, ex);
                 throw ex;
             }
             catch (Exception ex)
             {
-                SimpleLogger.Instance.Error(ex.Message);
+                SimpleLogger.Instance.Error("[DownloadToStream] Exception : " + ex.Message, ex);
                 throw ex;
             }
 
             return false;
         }
 
-        static string ReadResponseString(this WebResponse response)
+        public static string ReadResponseString(this WebResponse response)
         {
             using (MemoryStream ms = new MemoryStream())
             {
@@ -155,7 +155,7 @@ namespace emulatorLauncher
             }
         }
 
-        static void ReadResponseStream(this WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
+        public static void ReadResponseStream(this WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
         {
             if (destinationStream == null)
                 throw new ArgumentException("Stream null");

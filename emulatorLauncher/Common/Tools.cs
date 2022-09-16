@@ -19,6 +19,82 @@ namespace emulatorLauncher.Tools
 {
     static class Misc
     {
+        /*
+        public static int GetLightGunCount()
+        {
+            var guns = RawLightgun.GetRawLightguns();
+
+            int sindenLightGun = guns.Count(g => g.Type == RawLighGunType.SindenLightgun);
+            int wiiMote = guns.Count(g => g.Type == RawLighGunType.MayFlashWiimote);
+            int mice = guns.Count(g => g.Type == RawLighGunType.Mouse);
+
+            return mice;
+            
+            string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
+
+            int mouses = 0;
+            int sindenLightGun = 0;
+            int wiimotes = 0;
+
+            var searcher = new ManagementObjectSearcher("select * from Win32_PointingDevice");
+            foreach (var obj in searcher.Get())
+            {
+                object pnpDeviceID = obj.GetPropertyValue("PNPDeviceID");
+                if (pnpDeviceID == null)
+                    continue;
+
+                string deviceId = pnpDeviceID.ToString();
+                if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
+                    continue;
+
+                object pointingType = obj.GetPropertyValue("PointingType");
+                if (pointingType is ushort && ((ushort)pointingType) == 2)
+                    mouses++;
+            }
+
+            // Count connected Sinden Guns 
+            foreach (ManagementObject obj1 in new ManagementObjectSearcher("Select * from WIN32_SerialPort").Get())
+            {
+                object pnpDeviceID = obj1.GetPropertyValue("PNPDeviceID");
+                if (pnpDeviceID == null)
+                    continue;
+
+                string deviceId = pnpDeviceID.ToString();
+
+                if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
+                    sindenLightGun++;
+            }
+
+            if (IsSindenLightGunConnected())
+            {
+                if (HasWiimoteGun(WiiModeGunMode.Mouse) && sindenLightGun > 0)
+                    return Math.Max(mouses, sindenLightGun + 1);
+
+                return Math.Max(mouses, sindenLightGun);
+            }
+
+            return mouses;
+        }
+        */
+        /// <summary>
+        /// Detects if WiimoteGun is running in gamepad mode
+        /// </summary>
+        /// <returns></returns>
+        public static bool HasWiimoteGun(WiiModeGunMode mode = WiiModeGunMode.Any)
+        {
+            IntPtr hWndWiimoteGun = User32.FindWindow("WiimoteGun", null);
+            if (hWndWiimoteGun != IntPtr.Zero)
+            {
+                if (mode == WiiModeGunMode.Any)
+                    return true;
+
+                int wndMode = (int)User32.GetProp(hWndWiimoteGun, "mode");
+                return wndMode == (int)mode;
+            }
+
+            return false;
+        }
+
         public static bool IsSindenLightGunConnected()
         {
             // Find Sinden process
@@ -216,4 +292,15 @@ namespace emulatorLauncher.Tools
             return -1;
         }
     }
+
+    enum WiiModeGunMode : int
+    {
+        Any = 0,
+        Mouse = 1,
+        Gamepad = 2
+    }
+
+
+
+
 }

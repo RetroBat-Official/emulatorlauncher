@@ -24,7 +24,7 @@ namespace emulatorLauncher.PadToKeyboard
                 PadToKey ret = xmlFile.FromXml<PadToKey>();
                 if (ret != null)
                 {
-                    SimpleLogger.Instance.Info("PadToKey : loaded " + xmlFile);               
+                    SimpleLogger.Instance.Info("[PadToKey] Loaded " + xmlFile);               
                     return ret;
                 }
             }
@@ -33,7 +33,7 @@ namespace emulatorLauncher.PadToKeyboard
 #if DEBUG
                 MessageBox.Show(ex.Message);
 #endif
-                SimpleLogger.Instance.Error("PadToKey error : " + ex.Message, ex);               
+                SimpleLogger.Instance.Error("[PadToKey] Error : " + ex.Message, ex);               
             }
 
             return null;

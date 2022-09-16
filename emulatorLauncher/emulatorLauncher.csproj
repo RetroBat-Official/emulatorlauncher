@@ -81,6 +81,7 @@
     <Compile Include="Common\OrderedDictionary.cs" />
     <Compile Include="Common\ProcessExtensions.cs" />
     <Compile Include="Common\ProgressInformation.cs" />
+    <Compile Include="Common\RawLightGun.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
@@ -97,7 +98,7 @@
     <Compile Include="Imapi\Imapi2Interop.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Common\InputKeyMapping.cs" />
-	<Compile Include="Generators\Nes3d.Generator.cs" />
+    <Compile Include="Generators\Nes3d.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
@@ -148,7 +149,7 @@
     <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\Project64.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
-	<Compile Include="Generators\NosGba.Generator.cs" />
+    <Compile Include="Generators\NosGba.Generator.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
     <Compile Include="PadToKey\JoystickListener.cs" />

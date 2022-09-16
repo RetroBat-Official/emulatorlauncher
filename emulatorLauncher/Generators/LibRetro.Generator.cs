@@ -44,6 +44,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["notification_show_autoconfig"] = "false";
             retroarchConfig["notification_show_remap_load"] = "false";
             retroarchConfig["driver_switch_enable"] = "true";
+            retroarchConfig["input_driver"] = "dinput";
 
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
@@ -908,7 +909,7 @@ namespace emulatorLauncher.libRetro
             if (string.IsNullOrEmpty(core))
             {
                 ExitCode = ExitCodes.MissingCore;
-                SimpleLogger.Instance.Error("Libretro : core was not provided");
+                SimpleLogger.Instance.Error("[LibretroGenerator] Core was not provided");
                 return null;
             }
             else
@@ -940,7 +941,7 @@ namespace emulatorLauncher.libRetro
 
                     if (!File.Exists(corePath))
                     {
-                        SimpleLogger.Instance.Error("Libretro : core is not installed");
+                        SimpleLogger.Instance.Error("[LibretroGenerator] Core is not installed");
                         ExitCode = ExitCodes.MissingCore;
                         return null;
                     }

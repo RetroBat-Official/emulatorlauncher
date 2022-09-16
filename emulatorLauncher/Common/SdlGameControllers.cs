@@ -16,40 +16,43 @@ namespace emulatorLauncher.Tools
             SDL.SDL_InitSubSystem(SDL.SDL_INIT_JOYSTICK);
             
             int numJoysticks = SDL.SDL_NumJoysticks();
+            SimpleLogger.Instance.Info("[SdlGameControllers] " + numJoysticks + " SDL controller(s) connected");
+
             for (int i = 0; i < numJoysticks; i++)
-            {                
-                if (SDL.SDL_IsGameController(i) == SDL.SDL_bool.SDL_TRUE)
+            {
+                var guid = SDL.SDL_JoystickGetDeviceGUID(i);
+                if (_controllers.ContainsKey(guid))
+                    continue;
+
+                var name = SDL.SDL_GameControllerNameForIndex(i);
+                if (string.IsNullOrEmpty(name))
+                    continue;
+
+                if (SDL.SDL_IsGameController(i) != SDL.SDL_bool.SDL_TRUE)
                 {
-                    var mappingString = SDL.SDL_GameControllerMappingForDeviceIndex(i);
-                    if (mappingString == null)
-                        continue;
-                    
-                    string[] mapArray = mappingString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (mapArray.Length == 0)
-                        continue;
-
-                    List<SdlControllerMapping> sdlMapping = ExtractMapping(mapArray.Skip(2).ToArray());
-                    
-                    SdlGameControllers ctl = new SdlGameControllers();
-
-                    ctl.Index = i;
-                    ctl.Guid = SDL.SDL_JoystickGetDeviceGUID(i);
-                    ctl.VendorId =  int.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
-                    ctl.ProductId = int.Parse((mapArray[0].Substring(18, 2) + mapArray[0].Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
-                    ctl.Name = SDL.SDL_GameControllerNameForIndex(i);
-                    ctl.Mapping = sdlMapping;
-                    ctl.SdlBinding = mappingString;
-
-                    IntPtr joy = SDL.SDL_JoystickOpen(i);
-                    if (joy != IntPtr.Zero)
-                    {
-                        ctl.InstanceID = SDL.SDL_JoystickInstanceID(joy);
-                        SDL.SDL_JoystickClose(joy);
-                    }
-
-                    if (!_controllers.ContainsKey(ctl.Guid))
-                        _controllers[ctl.Guid] = ctl;
+                    SimpleLogger.Instance.Info("[SdlGameControllers] Loading Unknown SDL controller mapping : " + name + ", " + guid.ToString());
+                    continue;
                 }
+                else
+                    SimpleLogger.Instance.Info("[SdlGameControllers] Loading SDL controller mapping : " + name + ", " + guid.ToString());
+
+                var mappingString = SDL.SDL_GameControllerMappingForDeviceIndex(i);
+                if (string.IsNullOrEmpty(mappingString))
+                    continue;
+
+                string[] mapArray = mappingString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                if (mapArray.Length == 0)
+                    continue;
+
+                SdlGameControllers ctl = new SdlGameControllers();
+                ctl.Guid = guid;
+                ctl.VendorId = int.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                ctl.ProductId = int.Parse((mapArray[0].Substring(18, 2) + mapArray[0].Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                ctl.Name = name;
+                ctl.Mapping = ExtractMapping(mapArray.Skip(2));
+                ctl.SdlBinding = mappingString;
+
+                _controllers[ctl.Guid] = ctl;
             }
 
             // Add all other mappings ( Debug without physical controller )
@@ -63,146 +66,137 @@ namespace emulatorLauncher.Tools
 
                 SdlGameControllers ctl = new SdlGameControllers();
                 ctl.Guid = InputConfig.FromEmulationStationGuidString(mapArray[0]);
+                if (_controllers.ContainsKey(ctl.Guid))
+                    continue;
+
                 ctl.VendorId = int.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.ProductId = int.Parse((mapArray[0].Substring(18, 2) + mapArray[0].Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.Name = mapArray[1];
-                ctl.Mapping = ExtractMapping(mapArray.Skip(2).ToArray());
+                ctl.Mapping = ExtractMapping(mapArray.Skip(2));
                 ctl.SdlBinding = mappingString;
 
-                IntPtr joy = SDL.SDL_JoystickOpen(i);
-                if (joy != IntPtr.Zero)
-                {
-                    ctl.InstanceID = SDL.SDL_JoystickInstanceID(joy);
-                    SDL.SDL_JoystickClose(joy);
-                }
-
-                if (_controllers.ContainsKey(ctl.Guid))
-                {
-                }
-                else
-                    _controllers[ctl.Guid] = ctl;
+                _controllers[ctl.Guid] = ctl;
             }
-                        
+    
             SDL.SDL_QuitSubSystem(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_Quit();
         }
 
-        private static List<SdlControllerMapping> ExtractMapping(string[] mapArray)
+        private static SdlControllerMapping[] ExtractMapping(IEnumerable<string> mapArray)
         {
-            List<SdlControllerMapping> sdlMapping = new List<SdlControllerMapping>();
+            var sdlMapping = new List<SdlControllerMapping>();
 
             foreach (var tt in mapArray)
             {
                 var map = tt.Split(new char[] { ':' });
-                if (map.Length == 2)
+                if (map.Length != 2)
+                    continue;
+
+                var sm = new SdlControllerMapping();
+
+                char half_axis_output = ' ';
+
+                string name = map[0];
+                if (name.Length > 0 && (name[0] == '+' || name[0] == '-'))
                 {
-                    SdlControllerMapping sm = new SdlControllerMapping();
-
-                    char half_axis_output = ' ';
-
-                    string name = map[0];
-                    if (name.Length > 0 && (name[0] == '+' || name[0] == '-'))
-                    {
-                        half_axis_output = name[0];
-                        name = name.Substring(1);
-                    }
-
-                    if (half_axis_output == '+')
-                    {
-                        sm.AxisMin = 0;
-                        sm.AxisMax = 32767;
-                    }
-                    else if (half_axis_output == '-')
-                    {
-                        sm.AxisMin = 0;
-                        sm.AxisMax = -32768;
-                    }
-                    else
-                    {
-                        sm.AxisMin = -32768;
-                        sm.AxisMax = 32767;
-                    }
-
-                    sm.Button = SDL_CONTROLLER_BUTTON.INVALID;
-                    sm.Axis = SDL_CONTROLLER_AXIS.INVALID;
-
-                    switch (map[0])
-                    {
-                        // Buttons
-                        case "a": sm.Button = SDL_CONTROLLER_BUTTON.A; break;
-                        case "b": sm.Button = SDL_CONTROLLER_BUTTON.B; break;
-                        case "back": sm.Button = SDL_CONTROLLER_BUTTON.BACK; break;
-                        case "dpdown": sm.Button = SDL_CONTROLLER_BUTTON.DPAD_DOWN; break;
-                        case "dpleft": sm.Button = SDL_CONTROLLER_BUTTON.DPAD_LEFT; break;
-                        case "dpright": sm.Button = SDL_CONTROLLER_BUTTON.DPAD_RIGHT; break;
-                        case "dpup": sm.Button = SDL_CONTROLLER_BUTTON.DPAD_UP; break;
-                        case "leftshoulder": sm.Button = SDL_CONTROLLER_BUTTON.LEFTSHOULDER; break;
-                        case "rightstick": sm.Button = SDL_CONTROLLER_BUTTON.RIGHTSTICK; break;
-                        case "leftstick": sm.Button = SDL_CONTROLLER_BUTTON.LEFTSTICK; break;
-                        case "rightshoulder": sm.Button = SDL_CONTROLLER_BUTTON.RIGHTSHOULDER; break;
-                        case "start": sm.Button = SDL_CONTROLLER_BUTTON.START; break;
-                        case "x": sm.Button = SDL_CONTROLLER_BUTTON.X; break;
-                        case "y": sm.Button = SDL_CONTROLLER_BUTTON.Y; break;
-                        case "guide": sm.Button = SDL_CONTROLLER_BUTTON.GUIDE; break;
-
-                        // Axis
-                        case "lefttrigger": sm.Axis = SDL_CONTROLLER_AXIS.TRIGGERLEFT; break;
-                        case "righttrigger": sm.Axis = SDL_CONTROLLER_AXIS.TRIGGERRIGHT; break;
-                        case "leftx": sm.Axis = SDL_CONTROLLER_AXIS.LEFTX; break;
-                        case "lefty": sm.Axis = SDL_CONTROLLER_AXIS.LEFTY; break;
-                        case "rightx": sm.Axis = SDL_CONTROLLER_AXIS.RIGHTX; break;
-                        case "righty": sm.Axis = SDL_CONTROLLER_AXIS.RIGHTY; break;
-
-                        default:
-                            continue;
-                    }
-
-                    // 030000007d0400000840000000000000,Destroyer Tiltpad,+leftx:h0.2,+lefty:h0.4,-leftx:h0.8,-lefty:h0.1,a:b1,b:b2,dpdown:+a1,dpleft:-a0,dpright:+a0,dpup:-a1,leftshoulder:b4,rightshoulder:b5,x:b0,y:b3,platform:Windows,
-
-                    Input cfg = new Input();
-
-                    if (map[1].StartsWith("b"))
-                    {
-                        cfg.Type = "button";
-                        cfg.Id = map[1].Substring(1).ToInteger();
-                        cfg.Value = 1;
-                    }
-                    else if (map[1].StartsWith("a"))
-                    {
-                        cfg.Type = "axis";
-                        cfg.Id = map[1].Substring(1).ToInteger();
-                        cfg.Value = 1;
-                    }
-                    else if (map[1].StartsWith("+a"))
-                    {
-                        cfg.Type = "axis";
-                        cfg.Id = map[1].Substring(2).ToInteger();
-                        cfg.Value = 1;
-                    }
-                    else if (map[1].StartsWith("-a"))
-                    {
-                        cfg.Type = "axis";
-                        cfg.Id = map[1].Substring(2).ToInteger();
-                        cfg.Value = -1;
-                    }
-                    else if (map[1].StartsWith("h")) // h0.4
-                    {
-                        var hatIds = map[1].Substring(1).Split(new char[] { '.' }).Select(v => v.ToInteger()).ToArray();
-                        if (hatIds.Length > 1)
-                        {
-                            cfg.Type = "hat";
-                            cfg.Id = hatIds[0];
-                            cfg.Value = hatIds[1];
-                        }
-                    }
-                    else
-                        continue;
-
-                    sm.Input = cfg;
-                    sdlMapping.Add(sm);
+                    half_axis_output = name[0];
+                    name = name.Substring(1);
                 }
+
+                if (half_axis_output == '+')
+                {
+                    sm.AxisMin = 0;
+                    sm.AxisMax = 32767;
+                }
+                else if (half_axis_output == '-')
+                {
+                    sm.AxisMin = 0;
+                    sm.AxisMax = -32768;
+                }
+                else
+                {
+                    sm.AxisMin = -32768;
+                    sm.AxisMax = 32767;
+                }
+
+                sm.Button = SDL_CONTROLLER_BUTTON.INVALID;
+                sm.Axis = SDL_CONTROLLER_AXIS.INVALID;
+
+                switch (map[0])
+                {
+                    // Buttons
+                    case "a": sm.Button = SDL_CONTROLLER_BUTTON.A; break;
+                    case "b": sm.Button = SDL_CONTROLLER_BUTTON.B; break;
+                    case "back": sm.Button = SDL_CONTROLLER_BUTTON.BACK; break;
+                    case "dpdown": sm.Button = SDL_CONTROLLER_BUTTON.DPAD_DOWN; break;
+                    case "dpleft": sm.Button = SDL_CONTROLLER_BUTTON.DPAD_LEFT; break;
+                    case "dpright": sm.Button = SDL_CONTROLLER_BUTTON.DPAD_RIGHT; break;
+                    case "dpup": sm.Button = SDL_CONTROLLER_BUTTON.DPAD_UP; break;
+                    case "leftshoulder": sm.Button = SDL_CONTROLLER_BUTTON.LEFTSHOULDER; break;
+                    case "rightstick": sm.Button = SDL_CONTROLLER_BUTTON.RIGHTSTICK; break;
+                    case "leftstick": sm.Button = SDL_CONTROLLER_BUTTON.LEFTSTICK; break;
+                    case "rightshoulder": sm.Button = SDL_CONTROLLER_BUTTON.RIGHTSHOULDER; break;
+                    case "start": sm.Button = SDL_CONTROLLER_BUTTON.START; break;
+                    case "x": sm.Button = SDL_CONTROLLER_BUTTON.X; break;
+                    case "y": sm.Button = SDL_CONTROLLER_BUTTON.Y; break;
+                    case "guide": sm.Button = SDL_CONTROLLER_BUTTON.GUIDE; break;
+
+                    // Axis
+                    case "lefttrigger": sm.Axis = SDL_CONTROLLER_AXIS.TRIGGERLEFT; break;
+                    case "righttrigger": sm.Axis = SDL_CONTROLLER_AXIS.TRIGGERRIGHT; break;
+                    case "leftx": sm.Axis = SDL_CONTROLLER_AXIS.LEFTX; break;
+                    case "lefty": sm.Axis = SDL_CONTROLLER_AXIS.LEFTY; break;
+                    case "rightx": sm.Axis = SDL_CONTROLLER_AXIS.RIGHTX; break;
+                    case "righty": sm.Axis = SDL_CONTROLLER_AXIS.RIGHTY; break;
+
+                    default:
+                        continue;
+                }
+
+                Input cfg = new Input();
+
+                if (map[1].StartsWith("b"))
+                {
+                    cfg.Type = "button";
+                    cfg.Id = map[1].Substring(1).ToInteger();
+                    cfg.Value = 1;
+                }
+                else if (map[1].StartsWith("a"))
+                {
+                    cfg.Type = "axis";
+                    cfg.Id = map[1].Substring(1).ToInteger();
+                    cfg.Value = 1;
+                }
+                else if (map[1].StartsWith("+a"))
+                {
+                    cfg.Type = "axis";
+                    cfg.Id = map[1].Substring(2).ToInteger();
+                    cfg.Value = 1;
+                }
+                else if (map[1].StartsWith("-a"))
+                {
+                    cfg.Type = "axis";
+                    cfg.Id = map[1].Substring(2).ToInteger();
+                    cfg.Value = -1;
+                }
+                else if (map[1].StartsWith("h"))
+                {
+                    var hatIds = map[1].Substring(1).Split(new char[] { '.' }).Select(v => v.ToInteger()).ToArray();
+                    if (hatIds.Length > 1)
+                    {
+                        cfg.Type = "hat";
+                        cfg.Id = hatIds[0];
+                        cfg.Value = hatIds[1];
+                    }
+                }
+                else
+                    continue;
+
+                sm.Input = cfg;
+                sdlMapping.Add(sm);
             }
-            return sdlMapping;
+
+            return sdlMapping.ToArray();
         }
 
         public static bool IsGameController(Guid guid)
@@ -210,7 +204,7 @@ namespace emulatorLauncher.Tools
             return _controllers.ContainsKey(guid);
         }
 
-        public static List<SdlControllerMapping> GetGameControllerMapping(Guid guid)
+        public static SdlControllerMapping[] GetGameControllerMapping(Guid guid)
         {
             SdlGameControllers ctrl;
             if (_controllers.TryGetValue(guid, out ctrl))
@@ -240,14 +234,12 @@ namespace emulatorLauncher.Tools
 
         static Dictionary<Guid, SdlGameControllers> _controllers;
 
-        public int Index { get; set; }
         public Guid Guid { get; set; }
         public string Name { get; set; }
-        public List<SdlControllerMapping> Mapping { get; set; }
+        public SdlControllerMapping[] Mapping { get; set; }
         public string SdlBinding { get; set; }
         public int VendorId { get; set; }
         public int ProductId { get; set; }
-        public int InstanceID { get; set; }
     }
 
     class SdlControllerMapping

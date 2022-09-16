@@ -21,7 +21,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "/f \"" + rom + "\"",
+                Arguments = "/f /2 \"" + rom + "\"",
             };
         }
     }
