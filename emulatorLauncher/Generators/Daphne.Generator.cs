@@ -162,7 +162,7 @@ namespace emulatorLauncher
 
                 if (!Directory.Exists(_symLink))
                 {
-                    this.SetCustomError("Unable to create symbolic link. Please activate developer mode to enable this");
+                    this.SetCustomError("Unable to create symbolic link. Please activate developer mode in Windows settings to allow this.");
                     ExitCode = ExitCodes.CustomError;
                     return null;                    
                 }
