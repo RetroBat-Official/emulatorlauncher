@@ -158,7 +158,14 @@ namespace emulatorLauncher
                 }
                 catch { }
 
-                FileTools.CreateSymlink(_symLink, rom, true);              
+                FileTools.CreateSymlink(_symLink, rom, true);
+
+                if (!Directory.Exists(_symLink))
+                {
+                    this.SetCustomError("Unable to create symbolic link. Please activate developer mode to enable this");
+                    ExitCode = ExitCodes.CustomError;
+                    return null;                    
+                }
             }
             else
             {
