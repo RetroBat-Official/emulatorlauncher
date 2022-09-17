@@ -1032,7 +1032,7 @@ namespace emulatorLauncher.libRetro
 
             //  Auto Select Model
             if (system == "gx4000")
-                coreSettings["cap32_model"] = "6128+";
+                coreSettings["cap32_model"] = "6128+ (experimental)";
             else
                 BindFeature(coreSettings, "cap32_model", "cap32_model", "6128+", true);
 
