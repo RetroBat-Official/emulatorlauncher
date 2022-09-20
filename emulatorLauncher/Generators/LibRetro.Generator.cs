@@ -233,6 +233,41 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "screen_orientation", "RotateScreen", "0"); // screen orientation
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
             BindFeature(retroarchConfig, "crt_switch_resolution_super", "CRTSuperRes", "0"); // CRT Resolution
+            
+            // Stats
+            if (SystemConfig.isOptSet("DrawStats"))
+            {
+                if (SystemConfig["DrawStats"] == "fps_only")
+                {
+                    retroarchConfig["fps_show"] = "true";
+                    retroarchConfig["memory_show"] = "false";
+                    retroarchConfig["statistics_show"] = "false";
+                }
+                else if (SystemConfig["DrawStats"] == "mem_only")
+                {
+                    retroarchConfig["fps_show"] = "false";
+                    retroarchConfig["memory_show"] = "true";
+                    retroarchConfig["statistics_show"] = "false";
+                }
+                else if (SystemConfig["DrawStats"] == "fps_mem")
+                {
+                    retroarchConfig["fps_show"] = "true";
+                    retroarchConfig["memory_show"] = "true";
+                    retroarchConfig["statistics_show"] = "false";
+                }
+                else if (SystemConfig["DrawStats"] == "tech_stats")
+                {
+                    retroarchConfig["fps_show"] = "false";
+                    retroarchConfig["memory_show"] = "false";
+                    retroarchConfig["statistics_show"] = "true";
+                }
+            }
+            else
+            {
+                retroarchConfig["fps_show"] = "false";
+                retroarchConfig["memory_show"] = "false";
+                retroarchConfig["statistics_show"] = "false";
+            }
 
             // Default controllers
             retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
