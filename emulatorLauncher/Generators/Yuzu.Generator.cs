@@ -45,6 +45,9 @@ namespace emulatorLauncher
                 ini.WriteValue("UI", "fullscreen\\default", "false");
                 ini.WriteValue("UI", "fullscreen", "true");
 
+                ini.WriteValue("UI", "use_docked_mode\\default", "true");
+                ini.WriteValue("UI", "use_docked_mode", "true");
+
                 //      CreateControllerConfiguration(ini);
 
                 if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))

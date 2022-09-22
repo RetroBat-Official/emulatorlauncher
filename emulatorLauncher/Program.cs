@@ -44,7 +44,7 @@ namespace emulatorLauncher
 			{ "kega-fusion", () => new KegaFusionGenerator() },
 			{ "mesen", () => new MesenGenerator() },
 			{ "mgba", () => new mGBAGenerator() },			
-            { "model2", () => new Model2Generator() },
+            { "model2", () => new Model2Generator() }, { "m2emulator", () => new Model2Generator() },
             { "model3", () => new Model3Generator() }, { "supermodel", () => new Model3Generator() },
             { "openbor", () => new OpenBorGenerator() },
             { "ps3", () => new Rpcs3Generator() },  { "rpcs3", () => new Rpcs3Generator() },  
@@ -123,33 +123,22 @@ namespace emulatorLauncher
             return toxml;
         }
 
+
+
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
         {
-            /*
-            StringBuilder sb = new StringBuilder();
-            var mi = IniFile.FromFile(@"H:\[Emulz]\system\emulators\mupen64\mupen64plus.ini");
-            foreach (var ss in mi.EnumerateSections())
-            {
-                string goodName = mi.GetValue(ss, "GoodName");
-                goodName = EscapeXml(goodName);
-                sb.AppendLine("<rom hash=\""+ss+"\" name=\"" + goodName + "\"/>");
-            }
-
-            File.WriteAllText("c:\\temp\\mupen.xml", sb.ToString());
-
-            */
-
             RegisterShellExtensions();
 
             if (args.Length == 0)
                 return;
 
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
-            SimpleLogger.Instance.Info(Environment.CommandLine);
+            SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
 
             try { SetProcessDPIAware(); }
             catch { }
@@ -222,21 +211,21 @@ namespace emulatorLauncher
 
             if (!SystemConfig.isOptSet("rom"))
             {
-                SimpleLogger.Instance.Error("rom not set");
+                SimpleLogger.Instance.Error("[Error] rom not set");
                 Environment.ExitCode = (int) ExitCodes.BadCommandLine;
                 return;
             }
 
             if (!File.Exists(SystemConfig.GetFullPath("rom")) && !Directory.Exists(SystemConfig.GetFullPath("rom")))
             {
-                SimpleLogger.Instance.Error("rom does not exist");
+                SimpleLogger.Instance.Error("[Error] rom does not exist");
                 Environment.ExitCode = (int)ExitCodes.BadCommandLine;
                 return;
             }
 
             if (!SystemConfig.isOptSet("system"))
             {
-                SimpleLogger.Instance.Error("system not set");
+                SimpleLogger.Instance.Error("[Error] system not set");
                 Environment.ExitCode = (int)ExitCodes.BadCommandLine;
                 return;
             }
@@ -257,7 +246,7 @@ namespace emulatorLauncher
                 {
                     CurrentGame = gamelist.Games.FirstOrDefault();
                     if (CurrentGame != null)                        
-                        SimpleLogger.Instance.Info("Game : " + CurrentGame.Name);
+                        SimpleLogger.Instance.Info("[Game] " + CurrentGame.Name);
                 }
             }
 
@@ -291,7 +280,7 @@ namespace emulatorLauncher
 
             if (generator != null)
             {
-                SimpleLogger.Instance.Info("Generator : " + generator.GetType().Name);
+                SimpleLogger.Instance.Info("[Generator] Using " + generator.GetType().Name);
 
                 try
                 {
@@ -299,7 +288,7 @@ namespace emulatorLauncher
                 }
                 catch (Exception ex)
                 {                    
-                    WriteCustomErrorFile("Error : es_features.cfg is invalid :\r\n" + ex.Message); // Delete custom err
+                    WriteCustomErrorFile("[Error] es_features.cfg is invalid :\r\n" + ex.Message); // Delete custom err
                     Environment.ExitCode = (int)ExitCodes.CustomError;
                     return;
                 }
@@ -317,11 +306,10 @@ namespace emulatorLauncher
                     catch (Exception ex)
                     {
                         generator.Cleanup();
-
-                        SimpleLogger.Instance.Error(ex.Message);
+                        
                         Program.WriteCustomErrorFile(ex.Message);
                         Environment.ExitCode = (int) ExitCodes.CustomError;
-                        SimpleLogger.Instance.Error("Generator exception : " + ex.Message);
+                        SimpleLogger.Instance.Error("[Generator] Exception : " + ex.Message);
                         return;
                     }
 
@@ -332,7 +320,8 @@ namespace emulatorLauncher
                         if (screenResolution != null && generator.DependsOnDesktopResolution)
                             screenResolution.Apply();
 
-                        Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
+                        if (!Program.SystemConfig.isOptSet("use_guns") || !Program.SystemConfig.getOptBoolean("use_guns"))
+                            Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
 
                         PadToKey mapping = null;
                         if (generator.UseEsPadToKey)
@@ -342,9 +331,9 @@ namespace emulatorLauncher
                         mapping = generator.SetupCustomPadToKeyMapping(mapping);
 
                         if (path.Arguments != null)
-                            SimpleLogger.Instance.Info("Running : " + path.FileName + " " + path.Arguments);
+                            SimpleLogger.Instance.Info("[Running] " + path.FileName + " " + path.Arguments);
                         else
-                            SimpleLogger.Instance.Info("Running :  " + path.FileName);
+                            SimpleLogger.Instance.Info("[Running]  " + path.FileName);
 
                         using (new HighPerformancePowerScheme())
                         using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
@@ -358,7 +347,7 @@ namespace emulatorLauncher
                     }
                     else
                     {
-                        SimpleLogger.Instance.Error("generator failed");
+                        SimpleLogger.Instance.Error("[Generator] Failed. path is null");
                         Environment.ExitCode = (int) generator.ExitCode;
                     }
                 }
@@ -367,12 +356,12 @@ namespace emulatorLauncher
             }
             else
             {
-                SimpleLogger.Instance.Error("Can't find generator");
+                SimpleLogger.Instance.Error("[Generator] Can't find generator");
                 Environment.ExitCode = (int)ExitCodes.UnknownEmulator;
             }
 
             if (Environment.ExitCode != 0)
-                SimpleLogger.Instance.Error("Exit code : " + Environment.ExitCode);
+                SimpleLogger.Instance.Error("[Generator] Exit code " + Environment.ExitCode);
         }
 
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
@@ -382,9 +371,24 @@ namespace emulatorLauncher
             EvMapyKeysFile gameMapping = EvMapyKeysFile.TryLoad(filePath);
             if (gameMapping == null && SystemConfig["system"] != null)
             {
-                var systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", SystemConfig["system"] + ".keys");
+                var core = SystemConfig["core"];
+                var system = SystemConfig["system"];
+
+                string systemMapping = "";
+
+                if (!string.IsNullOrEmpty(core))
+                {
+                    systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", system + "." + core + ".keys");
+
+                    if (!File.Exists(systemMapping))
+                        systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), system + "." + core + ".keys");
+                }
+
                 if (!File.Exists(systemMapping))
-                    systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), SystemConfig["system"] + ".keys");
+                    systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", system + ".keys");
+
+                if (!File.Exists(systemMapping))
+                    systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), system + ".keys");
 
                 if (File.Exists(systemMapping))
                     gameMapping = EvMapyKeysFile.TryLoad(systemMapping);
@@ -573,7 +577,7 @@ namespace emulatorLauncher
 
                     Controllers.RemoveAll(c => c.Config == null);
 
-                    if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || HasWiimoteGun())
+                    if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || Misc.HasWiimoteGun())
                     {
                         var keyb = new Controller() { PlayerIndex = Controllers.Count + 1 };
                         keyb.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
@@ -592,26 +596,7 @@ namespace emulatorLauncher
 
             return null;
         }
-
-        /// <summary>
-        /// Detects if WiimoteGun is running in gamepad mode
-        /// </summary>
-        /// <returns></returns>
-        public static bool HasWiimoteGun(WiiModeGunMode mode = WiiModeGunMode.Any)
-        {
-            IntPtr hWndWiimoteGun = User32.FindWindow("WiimoteGun", null);
-            if (hWndWiimoteGun != IntPtr.Zero)
-            {
-                if (mode == WiiModeGunMode.Any)
-                    return true;
-
-                int wndMode = (int)User32.GetProp(hWndWiimoteGun, "mode");
-                return wndMode == (int)mode;
-            }
-
-            return false;
-        }
-
+        
         private static void ImportShaderOverrides()
         {
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shaderset") && SystemConfig["shaderset"] != "none")
@@ -634,7 +619,7 @@ namespace emulatorLauncher
         /// <param name="message"></param>
         public static void WriteCustomErrorFile(string message)
         {
-            SimpleLogger.Instance.Error(message);
+            SimpleLogger.Instance.Error("[Error] " + message);
 
             string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "launch_error.log");
 
@@ -729,11 +714,5 @@ namespace emulatorLauncher
         public override string ToString() { return Name + " (" + PlayerIndex.ToString()+")"; }
     }
 
-    enum WiiModeGunMode : int
-    {
-        Any = 0,
-        Mouse = 1,
-        Gamepad = 2
-    }
 
 }

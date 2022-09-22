@@ -65,11 +65,11 @@ namespace emulatorLauncher.PadToKeyboard
 
             if (conf != null)
             {
-                SimpleLogger.Instance.Info("PadToKey : Add joystick " + name);
+                SimpleLogger.Instance.Info("[PadToKey] Add joystick " + name);
                 _joysticks.Add(new Joystick(instanceId, joy, conf));
             }
             else
-                SimpleLogger.Instance.Error("PadToKey : unknown joystick " + name);
+                SimpleLogger.Instance.Error("[PadToKey] Unknown joystick " + name);
         }
 
         public void RemoveJoystick(int which)

@@ -133,17 +133,17 @@ namespace emulatorLauncher
                 // Delete Extraction path if required
                 if (deleteExtractedFiles)
                 {
-                    SimpleLogger.Instance.Info("Directory.Delete(" + extractionPath + ", true)");
+                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + extractionPath + ", true)");
 
                     try { Directory.Delete(extractionPath, true); }
                     catch(Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
 
-                    SimpleLogger.Instance.Info("Directory.Delete(" + Path.GetDirectoryName(extractionPath) + ", false)");
+                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + Path.GetDirectoryName(extractionPath) + ", false)");
 
                     try { Directory.Delete(Path.GetDirectoryName(extractionPath)); }
                     catch (Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
 
-                    SimpleLogger.Instance.Info("Directory.Delete(" + uncompressedFolderPath + ", false)");
+                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + uncompressedFolderPath + ", false)");
 
                     try { Directory.Delete(uncompressedFolderPath); }
                     catch { }                
@@ -384,31 +384,6 @@ namespace emulatorLauncher
             return null;
         }
 
-        static string GetProcessCommandline(Process process)
-        {
-            if (process == null)
-                return null;
-
-            try
-            {
-                using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + process.Id))
-                {
-                    var commandLine = cquery.Get()
-                        .OfType<System.Management.ManagementObject>()
-                        .Select(p => (string)p["CommandLine"])
-                        .FirstOrDefault();
-
-                    return commandLine;
-                }
-            }
-            catch
-            {
-
-            }
-
-            return null;
-        }
-
         public static bool IsEmulationStationWindowed(out Rectangle bounds, bool updateSize = false)
         {
             bool isWindowed = false;
@@ -419,7 +394,7 @@ namespace emulatorLauncher
             if (process == null)
                 return false;
 
-            var px = GetProcessCommandline(process);
+            var px = process.GetProcessCommandline();
             if (string.IsNullOrEmpty(px))
                 return false;
 

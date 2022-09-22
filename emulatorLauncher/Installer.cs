@@ -46,7 +46,7 @@ namespace emulatorLauncher
             { new Installer("dosbox") },
             { new Installer("hypseus", "hypseus", "hypseus.exe") },
             { new Installer("love") }, 
-            { new Installer("m2emulator", "m2emulator", "emulator.exe") },
+            { new Installer("m2emulator", "m2emulator", "emulator_multicpu.exe") },
             { new Installer("mednafen", "mednafen") },        
             { new Installer("mgba", "mgba") }, 
             { new Installer("openbor") }, 
@@ -65,6 +65,8 @@ namespace emulatorLauncher
             { new Installer("winuae", "winuae", "winuae64.exe") }, 
             { new Installer("xemu", "xemu") },
 			{ new Installer("nosgba", "nosgba", "no$gba.exe") },
+            { new Installer("yuzu", "yuzu", "yuzu.exe") },
+            { new Installer("ryujinx", "ryujinx", "Ryujinx.exe") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
         };
 

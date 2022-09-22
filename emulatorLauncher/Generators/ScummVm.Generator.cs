@@ -26,6 +26,13 @@ namespace emulatorLauncher
 
             rom = this.TryUnZipGameIfNeeded(system, rom, true);
 
+            if (Directory.Exists(rom))
+            {
+                rom = Directory.GetFiles(rom, "*.scummvm").FirstOrDefault();
+                if (string.IsNullOrEmpty(rom))
+                    throw new ApplicationException("Unable to find scummvm file in the provided folder");
+            }
+
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
 
@@ -93,7 +100,15 @@ namespace emulatorLauncher
             commandArray.Add("--config=\"" + iniPath + "\"");
             commandArray.Add("--logfile=\"" + Path.ChangeExtension(iniPath, ".log") + "\"");            
             commandArray.Add("-p\"" + Path.GetDirectoryName(rom)+"\"");
-            commandArray.Add("\"" + File.ReadAllText(rom) + "\"");
+
+            string gameName = File.ReadAllText(rom);
+
+            if (string.IsNullOrEmpty(gameName))
+                gameName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+            else
+                gameName = gameName.Trim();               
+
+            commandArray.Add("\"" + gameName + "\"");
 
             var args = string.Join(" ", commandArray.ToArray()); // .Select(a => a.Contains(" ") ? "\"" + a + "\"" : a)
 

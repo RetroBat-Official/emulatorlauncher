@@ -56,7 +56,7 @@ namespace emulatorLauncher.Tools
 #if DEBUG
                 MessageBox.Show(ex.Message);
 #endif
-                SimpleLogger.Instance.Error("GunGames.Load error : " + ex.Message);
+                SimpleLogger.Instance.Error("[GunGames] Load error : " + ex.Message);
             }
 
             return null;
@@ -130,5 +130,8 @@ namespace emulatorLauncher.Tools
 
         [XmlAttribute("gun")]
         public string GunType { get; set; }
+
+        [XmlAttribute("reversedbuttons")]
+        public bool ReversedButtons { get; set; }
     }
 }

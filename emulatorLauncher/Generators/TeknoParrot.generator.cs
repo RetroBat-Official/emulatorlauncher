@@ -172,7 +172,7 @@ namespace emulatorLauncher
             GameProfile profile = FindGameProfile(path, rom, gameName);
             if (profile == null)
             {
-                SimpleLogger.Instance.Error("Unable to find gameprofile for " + rom);
+                SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find gameprofile for " + rom);
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game profile.\r\nPlease make sure the game folder is named like the xml file in emulators/teknoparrot/GameProfiles folder or like the <GameName> element in the xml" };
             }
 
@@ -189,7 +189,7 @@ namespace emulatorLauncher
 
             if (userProfile == null)
             {
-                SimpleLogger.Instance.Error("Unable create userprofile for " + rom);
+                SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable create userprofile for " + rom);
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to create userprofile" };
             }
             
@@ -202,7 +202,7 @@ namespace emulatorLauncher
 
                 if (userProfile.GamePath == null)
                 {
-                    SimpleLogger.Instance.Error("Unable to find Game executable for " + rom);
+                    SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find Game executable for " + rom);
                     return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game executable" };
                 }
             }
