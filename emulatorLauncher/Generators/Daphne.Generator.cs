@@ -95,13 +95,13 @@ namespace emulatorLauncher
 
             string romName = Path.GetFileNameWithoutExtension(rom);
 
-            string commandsFile = rom + "/" + romName + ".commands";
+            string commandsFile = rom + "\\" + romName + ".commands";
 
-            string singeFile = rom + "/" + romName + ".singe";
+            string singeFile = rom + "\\" + romName + ".singe";
             if (!File.Exists(singeFile))
                 singeFile = FindFile(rom, "*.singe", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
 
-            string frameFile = rom + "/" + romName + ".txt";
+            string frameFile = rom + "\\" + romName + ".txt";
             if (File.Exists(singeFile))
             {
                 _executableName = "hypseus";
@@ -130,6 +130,8 @@ namespace emulatorLauncher
 
             if (File.Exists(singeFile) && _executableName == "hypseus")
             {
+                _daphneHomedir = emulatorPath;
+
                 commandArray.AddRange(new string[]                       
                    {                        
                         "singe", 
@@ -138,11 +140,15 @@ namespace emulatorLauncher
                         "-framefile", frameFile, 
                         "-script", singeFile, 
                         "-manymouse", 
+                        "-datadir", _daphneHomedir,
                         "-homedir", _daphneHomedir
                     });
-                
-                string directoryName = Path.GetFileName(rom);
 
+                if (RawLightgun.GetRawLightguns().Any(gun => gun.Type == RawLighGunType.SindenLightgun))
+                    commandArray.AddRange(new string[] { "-sinden", "2", "w" });
+
+                string directoryName = Path.GetFileName(rom);
+    
                 _symLink = Path.Combine(emulatorPath, directoryName);
 
                 try
@@ -152,7 +158,14 @@ namespace emulatorLauncher
                 }
                 catch { }
 
-                FileTools.CreateSymlink(_symLink, rom, true);              
+                FileTools.CreateSymlink(_symLink, rom, true);
+
+                if (!Directory.Exists(_symLink))
+                {
+                    this.SetCustomError("Unable to create symbolic link. Please activate developer mode in Windows settings to allow this.");
+                    ExitCode = ExitCodes.CustomError;
+                    return null;                    
+                }
             }
             else
             {
