@@ -23,22 +23,17 @@ namespace emulatorLauncher.Tools
             for (int i = 0; i < numJoysticks; i++)
             {
                 var guid = SDL.SDL_JoystickGetDeviceGUID(i);
-                if (_controllers.ContainsKey(guid))
-                    continue;
-
                 var sdlGuid = InputConfig.ToSdlGuidString(guid);
 
                 var name = SDL.SDL_GameControllerNameForIndex(i);
-                if (string.IsNullOrEmpty(name))
-                    continue;
-                
+
                 SdlGameControllers ctl = new SdlGameControllers();
                 ctl.Guid = guid;
                 ctl.VendorId = int.Parse((sdlGuid.Substring(10, 2) + sdlGuid.Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.ProductId = int.Parse((sdlGuid.Substring(18, 2) + sdlGuid.Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.Name = name;
                 ctl.Path = SDL.SDL_JoystickPathForIndex(i);
-               
+
                 if (SDL.SDL_IsGameController(i) != SDL.SDL_bool.SDL_TRUE)
                 {
                     SimpleLogger.Instance.Info("[SdlGameControllers] Loading Unknown SDL controller mapping : " + i + " => " + ctl.ToString());
@@ -46,6 +41,12 @@ namespace emulatorLauncher.Tools
                 }
                 else
                     SimpleLogger.Instance.Info("[SdlGameControllers] Loading SDL controller mapping : " + i + " => " + ctl.ToString());
+
+                if (_controllers.ContainsKey(guid))
+                    continue;
+
+                if (string.IsNullOrEmpty(name))
+                    continue;
 
                 var mappingString = SDL.SDL_GameControllerMappingForDeviceIndex(i);
                 if (string.IsNullOrEmpty(mappingString))
