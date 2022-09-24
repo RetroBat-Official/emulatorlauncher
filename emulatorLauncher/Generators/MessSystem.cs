@@ -417,7 +417,7 @@ namespace emulatorLauncher
             return path;
         }
 
-        public string GetMameCommandLineArguments(string system, string rom)
+        public string GetMameCommandLineArguments(string system, string rom, bool injectCfgDirectory = true)
         {
             List<string> commandArray = new List<string>();
 
@@ -443,11 +443,14 @@ namespace emulatorLauncher
                 else
                     commandArray.Add(bios + ";" + Path.GetDirectoryName(rom));
 
-                commandArray.Add("-cfg_directory");
-                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "cfg")));
+                if (injectCfgDirectory)
+                {
+                    commandArray.Add("-cfg_directory");
+                    commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "cfg")));
 
-                commandArray.Add("-inipath");
-                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "ini")));
+                    commandArray.Add("-inipath");
+                    commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "ini")));
+                }
 
                 commandArray.Add("-hashpath");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
