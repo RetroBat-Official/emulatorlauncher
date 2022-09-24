@@ -50,7 +50,7 @@ namespace emulatorLauncher
                 args = string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
             }
             else
-                args = messMode.GetMameCommandLineArguments(system, rom);
+                args = messMode.GetMameCommandLineArguments(system, rom, false);
 
             return new ProcessStartInfo()
             {
