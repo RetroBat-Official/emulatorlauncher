@@ -55,11 +55,33 @@ namespace emulatorLauncher.Tools
         {
             get
             {
-                return FromEmulationStationGuidString(DeviceGUID);
+                return FromSdlGuidString(DeviceGUID);
             }
         }
 
-        public static System.Guid FromEmulationStationGuidString(string esGuidString)
+        public static string ToSdlGuidString(Guid guid)
+        {
+            string esGuidString = guid.ToString();
+
+            // 030000005e040000e002000000007801
+
+            string ret =
+                esGuidString.Substring(6, 2) +
+                esGuidString.Substring(4, 2) +
+                esGuidString.Substring(2, 2) +
+                esGuidString.Substring(0, 2) +
+                esGuidString.Substring(10 + 1, 2) +
+                esGuidString.Substring(8 + 1, 2) +
+                esGuidString.Substring(14 + 2, 2) +
+                esGuidString.Substring(12 + 2, 2) +
+                esGuidString.Substring(16 + 3, 4) +
+                esGuidString.Substring(20 + 4);
+
+            return ret;
+        }
+
+
+        public static System.Guid FromSdlGuidString(string esGuidString)
         {
             if (esGuidString.Length == 32)
             {
