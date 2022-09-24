@@ -167,10 +167,7 @@ namespace emulatorLauncher
 
                     ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
 
-                    // search for custom textures
-                    //ini.WriteValue("Settings", "HiresTextures", "True");
-                    //ini.WriteValue("Settings", "CacheHiresTextures", "True");
-
+                    // internal resolution
                     if (SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
                         ini.WriteValue("Settings", "InternalResolution", SystemConfig["internalresolution"]);
                     else if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
@@ -179,20 +176,6 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "InternalResolution", "0");
 
                     // HiResTextures
-                    /*if (SystemConfig.isOptSet("hires_textures"))
-                    {
-                        if (SystemConfig.getOptBoolean("hires_textures"))
-                        {
-                            ini.WriteValue("Settings", "HiresTextures", "True");
-                            ini.WriteValue("Settings", "CacheHiresTextures", "True");
-                        }
-                        else
-                        {
-                            ini.WriteValue("Settings", "HiresTextures", "False");
-                            ini.WriteValue("Settings", "CacheHiresTextures", "False");
-                        }
-                    }
-                    */
                     if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
                         ini.WriteValue("Settings", "HiresTextures", "True");
                     else
@@ -221,13 +204,8 @@ namespace emulatorLauncher
                         if (SystemConfig.getOptBoolean("perf_hacks"))
                         {
                             ini.WriteValue("Hacks", "BBoxEnable", "False");
-                            ini.WriteValue("Hacks", "DeferEFBCopies", "True");
-                            ini.WriteValue("Hacks", "EFBEmulateFormatChanges", "False");
-                            ini.WriteValue("Hacks", "EFBScaledCopy", "True");
-                            ini.WriteValue("Hacks", "EFBToTextureEnable", "True");
                             ini.WriteValue("Hacks", "SkipDuplicateXFBs", "True");
                             ini.WriteValue("Hacks", "XFBToTextureEnable", "True");
-                            ini.WriteValue("Enhancements", "ForceFiltering", "True");
                             ini.WriteValue("Enhancements", "ArbitraryMipmapDetection", "True");
                             ini.WriteValue("Enhancements", "DisableCopyFilter", "True");
                             ini.WriteValue("Enhancements", "ForceTrueColor", "True");
@@ -235,13 +213,8 @@ namespace emulatorLauncher
                         else
                         {
                             ini.Remove("Hacks", "BBoxEnable");
-                            ini.Remove("Hacks", "DeferEFBCopies");
-                            ini.Remove("Hacks", "EFBEmulateFormatChanges");
-                            ini.Remove("Hacks", "EFBScaledCopy");
-                            ini.Remove("Hacks", "EFBToTextureEnable");
                             ini.Remove("Hacks", "SkipDuplicateXFBs");
                             ini.Remove("Hacks", "XFBToTextureEnable");
-                            ini.Remove("Enhancements", "ForceFiltering");
                             ini.Remove("Enhancements", "ArbitraryMipmapDetection");
                             ini.Remove("Enhancements", "DisableCopyFilter");
                             ini.Remove("Enhancements", "ForceTrueColor");
@@ -265,6 +238,15 @@ namespace emulatorLauncher
                             ini.WriteValue("Settings", "ShaderCompilationMode", "2");
                     }
 
+                    // Skip EFB Access
+                    if (Features.IsSupported("EFBAccessEnable"))
+                    {
+                        if (SystemConfig.isOptSet("EFBAccessEnable"))
+                            ini.WriteValue("Hacks", "EFBAccessEnable", SystemConfig["EFBAccessEnable"]);
+                        else
+                            ini.WriteValue("Hacks", "EFBAccessEnable", "False");
+                    }
+
                     // Scaled EFB copy
                     if (Features.IsSupported("EFBScaledCopy"))
                     {
@@ -274,14 +256,49 @@ namespace emulatorLauncher
                             ini.WriteValue("Hacks", "EFBScaledCopy", "True");
                     }
 
+                    // EFB emulate format
+                    if (Features.IsSupported("EFBEmulateFormatChanges"))
+                    {
+                        if (SystemConfig.isOptSet("EFBEmulateFormatChanges"))
+                            ini.WriteValue("Hacks", "EFBEmulateFormatChanges", SystemConfig["EFBEmulateFormatChanges"]);
+                        else
+                            ini.WriteValue("Hacks", "EFBEmulateFormatChanges", "True");
+                    }
+
+                    // Store EFB Copies
+                    if (Features.IsSupported("EFBCopies"))
+                    {
+                        if(SystemConfig["EFBCopies"] == "efb_to_texture_defer")
+                        {
+                            ini.WriteValue("Hacks", "EFBToTextureEnable", "True");
+                            ini.WriteValue("Hacks", "DeferEFBCopies", "True");
+                        }
+                        else if (SystemConfig["EFBCopies"] == "efb_to_ram_defer")
+                        {
+                            ini.WriteValue("Hacks", "EFBToTextureEnable", "False");
+                            ini.WriteValue("Hacks", "DeferEFBCopies", "True");
+                        }
+                        else if (SystemConfig["EFBCopies"] == "efb_to_ram")
+                        {
+                            ini.WriteValue("Hacks", "EFBToTextureEnable", "False");
+                            ini.WriteValue("Hacks", "DeferEFBCopies", "False");
+                        }
+                        else
+                        {
+                            ini.Remove("Hacks", "EFBToTextureEnable");
+                            ini.Remove("Hacks", "DeferEFBCopies");
+                        }
+                    }
+
                     // Force texture filtering
                     if (Features.IsSupported("ForceFiltering"))
                     {
                         if (SystemConfig.isOptSet("ForceFiltering"))
                             ini.WriteValue("Enhancements", "ForceFiltering", SystemConfig["ForceFiltering"]);
                         else
-                            ini.WriteValue("Enhancements", "ForceFiltering", "True");
+                            ini.WriteValue("Enhancements", "ForceFiltering", "False");
                     }
+
                 }
             }
             catch { }
@@ -337,6 +354,12 @@ namespace emulatorLauncher
                         ini.WriteValue("General", "ShowFrameCount", "False");
                     }
                     */
+
+                    // Skip BIOS
+                    if (SystemConfig.isOptSet("skip_bios") && !SystemConfig.getOptBoolean("skip_bios"))
+                        ini.WriteValue("Core", "SkipIPL", "False");
+                    else
+                        ini.WriteValue("Core", "SkipIPL", "True");
 
                     // OSD Messages
                     if (SystemConfig.isOptSet("OnScreenDisplayMessages") && SystemConfig.getOptBoolean("OnScreenDisplayMessages"))
@@ -436,7 +459,7 @@ namespace emulatorLauncher
                     }
 
                     // disable auto updates
-                    ini.WriteValue("AutoUpdate", "UpdateTrack", "");
+                    ini.WriteValue("AutoUpdate", "UpdateTrack", " ");
                 }
             }
 
