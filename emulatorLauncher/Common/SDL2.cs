@@ -1132,6 +1132,23 @@ namespace emulatorLauncher
         [DllImport(nativeLibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void SDL_GetVersion(out SDL_version ver);
 
+        static Version _version;
+
+        public static Version Version
+        {
+            get
+            {
+                if (_version == null)
+                {
+                    SDL.SDL_version ver;
+                    SDL.SDL_GetVersion(out ver);
+                    _version = new Version(ver.major, ver.minor, ver.patch, 0);
+                }
+
+                return _version;
+            }
+        }
+
         [DllImport(nativeLibName, EntryPoint = "SDL_GetRevision", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr INTERNAL_SDL_GetRevision();
         public static string SDL_GetRevision()
@@ -6060,6 +6077,29 @@ namespace emulatorLauncher
             IntPtr joystick,
             int player_index
         );
+
+        [DllImport(nativeLibName, EntryPoint = "SDL_JoystickPathForIndex", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr INTERNAL_SDL_JoystickPathForIndex(int device_index);
+
+        public static string SDL_JoystickPathForIndex(int device_index)
+        {
+            if (Version >= new Version(2, 24, 0 , 0))
+                return UTF8_ToManaged(INTERNAL_SDL_JoystickPathForIndex(device_index));
+
+            return null;
+        }
+
+        [DllImport(nativeLibName, EntryPoint = "SDL_JoystickPath", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr INTERNAL_SDL_JoystickPath(IntPtr joystick);
+      
+        public static string SDL_JoystickPath(IntPtr joystick)
+        {
+            if (Version >= new Version(2, 24, 0, 0))
+                return UTF8_ToManaged(INTERNAL_SDL_JoystickPath(joystick));
+
+            return null;
+        }
+        
 
         #endregion
 
