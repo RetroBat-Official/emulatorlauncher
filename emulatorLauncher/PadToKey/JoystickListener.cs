@@ -589,6 +589,13 @@ namespace emulatorLauncher.PadToKeyboard
             {
                 Process p = Process.GetProcessById((int)pid);
 
+                if (_mapping.ForceApplyToProcess != null)
+                {
+                    var pf = Process.GetProcessesByName(_mapping.ForceApplyToProcess).FirstOrDefault();
+                    if (pf != null)
+                        p = pf;
+                }
+
                 if (p != null && p.MainWindowHandle != IntPtr.Zero && p.MainWindowHandle != User32.GetDesktopWindow())
                     hMainWnd = p.MainWindowHandle;
 

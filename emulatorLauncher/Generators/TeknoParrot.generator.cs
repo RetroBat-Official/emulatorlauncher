@@ -682,6 +682,8 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(_exename))
                 return mapping;
 
+            mapping.ForceApplyToProcess = "TeknoParrotUI";
+
             mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "TeknoParrotUI", InputKey.hotkey | InputKey.start, "(%{KILL})");
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
@@ -853,6 +855,7 @@ namespace emulatorLauncher
             int ret = base.RunAndWait(path);
 
             KillProcessTree("TeknoParrotUI");
+            KillProcessTree(_exename);
 
             if (Process.GetProcessesByName("OpenParrotLoader").Length > 0 || Process.GetProcessesByName("OpenParrotLoader64").Length > 0)
             {

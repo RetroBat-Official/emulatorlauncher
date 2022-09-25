@@ -7,6 +7,7 @@ using System.IO;
 using System.Windows.Forms;
 using emulatorLauncher.Tools;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace emulatorLauncher.PadToKeyboard
 {
@@ -68,6 +69,9 @@ namespace emulatorLauncher.PadToKeyboard
             }
             set { _applications = value; }
         }
+
+        [XmlIgnore]
+        public string ForceApplyToProcess { get; set; }
 
         public static PadToKey AddOrUpdateKeyMapping(PadToKey mapping, string processName, InputKey inputKey, string key)
         {
