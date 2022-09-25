@@ -339,7 +339,13 @@ namespace emulatorLauncher.libRetro
             if (index < 0)
                 index = controller.PlayerIndex - 1;
 
-            if (_inputDriver != "sdl2")
+            if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath))
+            {
+                var ctrl = SdlGameControllers.GetGameControllerByPath(controller.DevicePath);
+                if (ctrl != null)
+                    index = ctrl.Index;
+            }
+            else if (_inputDriver != "sdl2")
             {
                 var dinputIndex = controller.Config.GetDirectInputDeviceIndex();
                 if (dinputIndex >= 0)

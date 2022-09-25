@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using emulatorLauncher;
+using emulatorLauncher.Tools;
+using System.Management;
+using System.Runtime.InteropServices;
 
 namespace batocera_padsinfo
 {
@@ -44,6 +47,11 @@ namespace batocera_padsinfo
                 var guid = ToEmulationStationGuidString(SDL.SDL_JoystickGetGUID(joy));
                 var name = SDL.SDL_JoystickName(joy);
 
+                string devicePath = null;
+                string hidpath = SDL.SDL_JoystickPathForIndex(i);
+                if (!string.IsNullOrEmpty(hidpath))
+                    devicePath = InputDevices.GetInputDeviceParent(hidpath);
+
                 string level = "100";
                 SDL.SDL_JoystickPowerLevel pw = SDL.SDL_JoystickCurrentPowerLevel(joy);
                 if (pw == SDL.SDL_JoystickPowerLevel.SDL_JOYSTICK_POWER_UNKNOWN)
@@ -74,14 +82,28 @@ namespace batocera_padsinfo
                         break;
                 }
 
-                Console.WriteLine(string.Format("  <pad device=\"{0}\" name=\"{1}\" id=\"{2}\" battery=\"{3}\" status=\"{4}\" />",
+
+                if (!string.IsNullOrEmpty(devicePath))
+                {
+                    Console.WriteLine(string.Format("  <pad device=\"{0}\" name=\"{1}\" id=\"{2}\" battery=\"{3}\" status=\"{4}\" path=\"{5}\" />",
                     guid,
                     name,
                     i,
                     level,
-                    status
+                    status,
+                    devicePath
                     ));
-
+                }
+                else
+                {
+                    Console.WriteLine(string.Format("  <pad device=\"{0}\" name=\"{1}\" id=\"{2}\" battery=\"{3}\" status=\"{4}\" />",
+                        guid,
+                        name,
+                        i,
+                        level,
+                        status
+                        ));
+                }
                 SDL.SDL_JoystickClose(joy);
             }
 

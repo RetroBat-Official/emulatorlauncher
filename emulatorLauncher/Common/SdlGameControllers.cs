@@ -10,7 +10,8 @@ namespace emulatorLauncher.Tools
     {
         static SdlGameControllers()
         {
-            _controllers = new Dictionary<Guid, SdlGameControllers>();
+            _controllersByGuid = new Dictionary<Guid, SdlGameControllers>();
+            _controllersByPath = new Dictionary<string, SdlGameControllers>();
 
             SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_InitSubSystem(SDL.SDL_INIT_JOYSTICK);
@@ -28,11 +29,24 @@ namespace emulatorLauncher.Tools
                 var name = SDL.SDL_GameControllerNameForIndex(i);
 
                 SdlGameControllers ctl = new SdlGameControllers();
+                ctl.Index = i;
                 ctl.Guid = guid;
                 ctl.VendorId = int.Parse((sdlGuid.Substring(10, 2) + sdlGuid.Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.ProductId = int.Parse((sdlGuid.Substring(18, 2) + sdlGuid.Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.Name = name;
-                ctl.Path = SDL.SDL_JoystickPathForIndex(i);
+
+                string hidpath = SDL.SDL_JoystickPathForIndex(i);
+                if (!string.IsNullOrEmpty(hidpath))
+                {
+                    _controllersByPath[hidpath] = ctl;
+
+                    ctl.Path = InputDevices.GetInputDeviceParent(hidpath);
+                    _controllersByPath[ctl.Path] = ctl;
+
+                    var shortenPath = InputDevices.ShortenDevicePath(ctl.Path);
+                    if (shortenPath != ctl.Path)
+                        _controllersByPath[shortenPath] = ctl;
+                }
 
                 if (SDL.SDL_IsGameController(i) != SDL.SDL_bool.SDL_TRUE)
                 {
@@ -42,7 +56,7 @@ namespace emulatorLauncher.Tools
                 else
                     SimpleLogger.Instance.Info("[SdlGameControllers] Loading SDL controller mapping : " + i + " => " + ctl.ToString());
 
-                if (_controllers.ContainsKey(guid))
+                if (_controllersByGuid.ContainsKey(guid))
                     continue;
 
                 if (string.IsNullOrEmpty(name))
@@ -59,7 +73,7 @@ namespace emulatorLauncher.Tools
                 ctl.Mapping = ExtractMapping(mapArray.Skip(2));
                 ctl.SdlBinding = mappingString;
 
-                _controllers[ctl.Guid] = ctl;
+                _controllersByGuid[ctl.Guid] = ctl;
             }
 
             // Add all other mappings ( Debug without physical controller )
@@ -73,7 +87,7 @@ namespace emulatorLauncher.Tools
 
                 SdlGameControllers ctl = new SdlGameControllers();
                 ctl.Guid = InputConfig.FromSdlGuidString(mapArray[0]);
-                if (_controllers.ContainsKey(ctl.Guid))
+                if (_controllersByGuid.ContainsKey(ctl.Guid))
                     continue;
 
                 ctl.VendorId = int.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
@@ -82,12 +96,13 @@ namespace emulatorLauncher.Tools
                 ctl.Mapping = ExtractMapping(mapArray.Skip(2));
                 ctl.SdlBinding = mappingString;
 
-                _controllers[ctl.Guid] = ctl;
+                _controllersByGuid[ctl.Guid] = ctl;
             }
     
             SDL.SDL_QuitSubSystem(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_Quit();
         }
+
 
         private static SdlControllerMapping[] ExtractMapping(IEnumerable<string> mapArray)
         {
@@ -208,13 +223,13 @@ namespace emulatorLauncher.Tools
 
         public static bool IsGameController(Guid guid)
         {
-            return _controllers.ContainsKey(guid);
+            return _controllersByGuid.ContainsKey(guid);
         }
 
         public static SdlControllerMapping[] GetGameControllerMapping(Guid guid)
         {
             SdlGameControllers ctrl;
-            if (_controllers.TryGetValue(guid, out ctrl))
+            if (_controllersByGuid.TryGetValue(guid, out ctrl))
                 return ctrl.Mapping;
 
             return null;
@@ -223,15 +238,28 @@ namespace emulatorLauncher.Tools
         public static SdlGameControllers GetGameController(Guid guid)
         {
             SdlGameControllers ctrl;
-            if (_controllers.TryGetValue(guid, out ctrl))
+            if (_controllersByGuid.TryGetValue(guid, out ctrl))
                 return ctrl;
+
+            return null;
+        }
+
+        public static SdlGameControllers GetGameControllerByPath(string path)
+        {
+            SdlGameControllers ctrl;
+
+            if (_controllersByPath.TryGetValue(path, out ctrl))
+                return ctrl;
+
+            if (_controllersByPath.TryGetValue(InputDevices.ShortenDevicePath(path), out ctrl))
+                return ctrl;            
 
             return null;
         }
 
         public static SdlGameControllers GetGameController(string name)
         {
-            return _controllers.Values.Where(c => c.Name == name).FirstOrDefault();
+            return _controllersByGuid.Values.Where(c => c.Name == name).FirstOrDefault();
         }
 
         public override string ToString()
@@ -242,8 +270,10 @@ namespace emulatorLauncher.Tools
             return Guid + ", " + Name;
         }
 
-        static Dictionary<Guid, SdlGameControllers> _controllers;
+        static Dictionary<Guid, SdlGameControllers> _controllersByGuid;
+        static Dictionary<string, SdlGameControllers> _controllersByPath;
 
+        public int Index { get; set; }
         public Guid Guid { get; set; }
         public string Name { get; set; }
         public SdlControllerMapping[] Mapping { get; set; }

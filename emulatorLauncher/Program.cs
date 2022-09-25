@@ -309,7 +309,7 @@ namespace emulatorLauncher
                         
                         Program.WriteCustomErrorFile(ex.Message);
                         Environment.ExitCode = (int) ExitCodes.CustomError;
-                        SimpleLogger.Instance.Error("[Generator] Exception : " + ex.Message);
+                        SimpleLogger.Instance.Error("[Generator] Exception : " + ex.Message, ex);
                         return;
                     }
 
@@ -551,6 +551,7 @@ namespace emulatorLauncher
                     {
                         case "index": player.DeviceIndex = val.ToInteger(); break;
                         case "guid": player.Guid = val.ToUpper(); break;
+                        case "path": player.DevicePath = val; break;
                         case "name": player.Name = val; break;
                         case "nbbuttons": player.NbButtons = val.ToInteger(); break;
                         case "nbhats": player.NbHats = val.ToInteger(); break;
@@ -704,6 +705,7 @@ namespace emulatorLauncher
         public int PlayerIndex { get; set; }
         public int DeviceIndex { get; set; }
         public string Guid { get; set; }
+        public string DevicePath { get; set; }
         public string Name { get; set; }
         public int NbButtons { get; set; }
         public int NbHats { get; set; }
