@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.IO;
+using System.Management;
 
 namespace emulatorLauncher.PadToKeyboard
 {
@@ -546,11 +547,30 @@ namespace emulatorLauncher.PadToKeyboard
 
             try
             {
-                Process p = Process.GetProcessById((int)pid);
-                p.Kill();
+                KillProcessAndChildren((int)pid);
+              //  Process p = Process.GetProcessById((int)pid);
+               // p.Kill();
                 ProcessKilled = true;
             }
             catch { }
+        }
+
+        private static void KillProcessAndChildren(int pid)
+        {
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
+            ManagementObjectCollection moc = searcher.Get();
+            foreach (ManagementObject mo in moc)
+                KillProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
+
+            try
+            {
+                Process proc = Process.GetProcessById(pid);
+                proc.Kill();
+            }
+            catch (ArgumentException)
+            {
+                // Process already exited.
+            }
         }
 
         string GetActiveProcessFileName(out bool isDesktop, out IntPtr hMainWnd)

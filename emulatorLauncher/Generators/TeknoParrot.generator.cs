@@ -682,6 +682,7 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(_exename))
                 return mapping;
 
+            mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "TeknoParrotUI", InputKey.hotkey | InputKey.start, "(%{KILL})");
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
