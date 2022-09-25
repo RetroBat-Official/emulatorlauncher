@@ -176,6 +176,8 @@ namespace emulatorLauncher
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game profile.\r\nPlease make sure the game folder is named like the xml file in emulators/teknoparrot/GameProfiles folder or like the <GameName> element in the xml" };
             }
 
+            SetupParrotData(path);
+
             GameProfile userProfile = null;
 
             var userProfilePath = Path.Combine(Path.Combine(path, "UserProfiles", Path.GetFileName(profile.FileName)));
@@ -244,6 +246,24 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = "--profile=" + profileName // + " --startMinimized",
             };
+        }
+
+        private static void SetupParrotData(string path)
+        {
+            string parrotData = Path.Combine(path, "ParrotData.xml");
+
+            ParrotData data = null;
+
+            try { data = XmlExtensions.FromXml<ParrotData>(parrotData); }
+            catch { data = new ParrotData(); }
+
+            if (!data.SilentMode || data.ConfirmExit)
+            {
+                data.SilentMode = true;
+                data.ConfirmExit = false;
+
+                File.WriteAllText(parrotData, data.ToXml());
+            }
         }
 
         private static void ExtractUserProfiles(string path)
@@ -881,5 +901,53 @@ namespace emulatorLauncher
         {
             return pthi.JoystickButtons.Any(j => !j.HideWithXInput && lists.Contains(j.InputMapping));
         }
+    }
+
+    public class ParrotData
+    {
+        public ParrotData()
+        {
+            ExitGameKey = "0x1B";
+            PauseGameKey = "0x13";
+
+            ScoreCollapseGUIKey = "0x79";
+            CheckForUpdates = true;
+
+            ConfirmExit = true;
+            DownloadIcons = true;
+            UiDisableHardwareAcceleration = false;
+
+            UiColour = "lightblue";
+            UiDarkMode = false;
+            UiHolidayThemes = true;
+        }
+
+        public bool UseSto0ZDrivingHack { get; set; }
+        public int StoozPercent { get; set; }
+        public bool FullAxisGas { get; set; }
+        public bool FullAxisBrake { get; set; }
+        public bool ReverseAxisGas { get; set; }
+        public bool ReverseAxisBrake { get; set; }
+
+        public string LastPlayed { get; set; }
+        public string ExitGameKey { get; set; }
+        public string PauseGameKey { get; set; }
+
+        public string ScoreSubmissionID { get; set; }
+        public string ScoreCollapseGUIKey { get; set; }
+
+        public bool SaveLastPlayed { get; set; }
+
+        public bool UseDiscordRPC { get; set; }
+        public bool SilentMode { get; set; }
+        public bool CheckForUpdates { get; set; }
+
+        public bool ConfirmExit { get; set; }
+        public bool DownloadIcons { get; set; }
+        public bool UiDisableHardwareAcceleration { get; set; }
+
+        public string UiColour { get; set; }
+        public bool UiDarkMode { get; set; }
+        public bool UiHolidayThemes { get; set; }
     }
 }
