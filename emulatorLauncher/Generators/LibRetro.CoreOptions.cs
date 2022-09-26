@@ -1456,6 +1456,31 @@ namespace emulatorLauncher.libRetro
             if (core != "mupen64plus_next" && core != "mupen64plus_next_gles3")
                 return;
 
+            if (system == "n64dd")
+            {
+
+                // Nintendo 64DD IPL bios selection workaround
+                // mupen64plus doesn't allow multiple bios selection and looks only for a IPL.n64 file in bios\mupen64plus
+                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus");
+                if (!string.IsNullOrEmpty(biosPath))
+                {
+                    string biosFileTarget = Path.Combine(biosPath, "IPL.n64");
+                    string biosFileSource = Path.Combine(biosPath, SystemConfig["ipl_bios"]);
+
+                    if (Features.IsSupported("ipl_bios") && SystemConfig.isOptSet("ipl_bios"))
+                    {
+                        if (File.Exists(biosFileTarget))
+                            File.Delete(biosFileTarget);
+
+                        if (File.Exists(biosFileSource))
+                            File.Copy(biosFileSource, biosFileTarget);
+
+                    }
+
+                }            
+
+            }
+
             //coreSettings["mupen64plus-cpucore"] = "pure_interpreter";
             coreSettings["mupen64plus-rsp-plugin"] = "hle";
             coreSettings["mupen64plus-EnableLODEmulation"] = "True";
@@ -1683,6 +1708,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "disabled");
             BindFeature(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "disabled");
             BindFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "disabled");
+            BindFeature(coreSettings, "reicast_pvr2_filtering", "reicast_pvr2_filtering", "disabled");
 
             // toadd
             BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");
