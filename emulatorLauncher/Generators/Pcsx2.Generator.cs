@@ -253,7 +253,15 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    ini.WriteValue("Settings", "UserHacks", "1");
+                    
+                    if (!_isPcsx17)
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    
+                    if ((_isPcsx17) && (SystemConfig.isOptSet("UserHacks") && !string.IsNullOrEmpty(SystemConfig["UserHacks"])))
+                        ini.WriteValue("Settings", "UserHacks", SystemConfig["UserHacks"]);
+                    else if (_isPcsx17)
+                        ini.WriteValue("Settings", "UserHacks", "0");
+
 
                     if (!string.IsNullOrEmpty(SystemConfig["internalresolution"]))
                         ini.WriteValue("Settings", "upscale_multiplier", SystemConfig["internalresolution"]);
