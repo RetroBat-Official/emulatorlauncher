@@ -633,7 +633,7 @@ namespace emulatorLauncher.libRetro
             new UIModeSetting("quick_menu_show_options", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_recording", "false", "true", "true"),           
             new UIModeSetting("quick_menu_show_reset_core_association", "false", "false", "true"),
-            new UIModeSetting("quick_menu_show_restart_content", "true", "true", "true"),
+            new UIModeSetting("quick_menu_show_restart_content", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_save_content_dir_overrides", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_save_core_overrides", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_save_game_overrides", "false", "false", "true"),
@@ -642,7 +642,7 @@ namespace emulatorLauncher.libRetro
             new UIModeSetting("quick_menu_show_start_recording", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_start_streaming", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_streaming", "false", "true", "true"),
-            new UIModeSetting("quick_menu_show_take_screenshot", "true", "true", "true"),
+            new UIModeSetting("quick_menu_show_take_screenshot", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_undo_save_load_state", "false", "false", "true"),
             // quick_menu_show_save_load_state always true
             new UIModeSetting("settings_show_ai_service", "false", "true", "true"),
