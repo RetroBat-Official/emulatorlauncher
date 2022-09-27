@@ -523,22 +523,21 @@ namespace emulatorLauncher
 
         private static InputConfig[] LoadControllerConfiguration(string[] args)
         {
-            Controllers = new List<Controller>();
+            var controllers = new Dictionary<int, Controller>();
 
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i].StartsWith("-p") && args[i].Length > 3)
                 {
-                    int playerId;
-                    int.TryParse(args[i].Substring(2, 1), out playerId);
+                    int playerId = new string(args[i].Substring(2).TakeWhile(c => char.IsNumber(c)).ToArray()).ToInteger();
 
-                    Controller player = Controllers.FirstOrDefault(c => c.PlayerIndex == playerId);
-                    if (player == null)
+                    Controller player;
+                    if (!controllers.TryGetValue(playerId, out player))
                     {
                         player = new Controller() { PlayerIndex = playerId };
-                        Controllers.Add(player);
+                        controllers[playerId] = player;
                     }
-
+                    
                     if (args.Length < i + 1)
                         break;
 
@@ -559,6 +558,8 @@ namespace emulatorLauncher
                     }
                 }
             }
+
+            Controllers = controllers.Select(c => c.Value).OrderBy(c => c.PlayerIndex).ToList();
 
             try
             {
