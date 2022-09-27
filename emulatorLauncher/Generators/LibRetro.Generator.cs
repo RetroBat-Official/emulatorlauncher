@@ -233,6 +233,41 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "screen_orientation", "RotateScreen", "0"); // screen orientation
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
             BindFeature(retroarchConfig, "crt_switch_resolution_super", "CRTSuperRes", "0"); // CRT Resolution
+            
+            // Stats
+            if (SystemConfig.isOptSet("DrawStats"))
+            {
+                if (SystemConfig["DrawStats"] == "fps_only")
+                {
+                    retroarchConfig["fps_show"] = "true";
+                    retroarchConfig["memory_show"] = "false";
+                    retroarchConfig["statistics_show"] = "false";
+                }
+                else if (SystemConfig["DrawStats"] == "mem_only")
+                {
+                    retroarchConfig["fps_show"] = "false";
+                    retroarchConfig["memory_show"] = "true";
+                    retroarchConfig["statistics_show"] = "false";
+                }
+                else if (SystemConfig["DrawStats"] == "fps_mem")
+                {
+                    retroarchConfig["fps_show"] = "true";
+                    retroarchConfig["memory_show"] = "true";
+                    retroarchConfig["statistics_show"] = "false";
+                }
+                else if (SystemConfig["DrawStats"] == "tech_stats")
+                {
+                    retroarchConfig["fps_show"] = "false";
+                    retroarchConfig["memory_show"] = "false";
+                    retroarchConfig["statistics_show"] = "true";
+                }
+            }
+            else
+            {
+                retroarchConfig["fps_show"] = "false";
+                retroarchConfig["memory_show"] = "false";
+                retroarchConfig["statistics_show"] = "false";
+            }
 
             // Default controllers
             retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
@@ -559,6 +594,7 @@ namespace emulatorLauncher.libRetro
         {
             new UIModeSetting("desktop_menu_enable", "false", "false", "true"),
             new UIModeSetting("content_show_add", "false", "false", "true"),
+            new UIModeSetting("content_show_contentless_cores", "false", "false", "true"),
             new UIModeSetting("content_show_explore", "false", "false", "true"),
             new UIModeSetting("content_show_favorite", "false", "false", "true"),
             new UIModeSetting("content_show_favorites", "false", "false", "true"),
@@ -577,7 +613,7 @@ namespace emulatorLauncher.libRetro
             new UIModeSetting("menu_show_latency", "false", "true", "true"),
             new UIModeSetting("menu_show_legacy_thumbnail_updater", "false", "false", "true"),
             new UIModeSetting("menu_show_load_content", "false", "false", "true"),
-            new UIModeSetting("menu_show_load_content_animation", "false", "false", "true"),
+            //new UIModeSetting("menu_show_load_content_animation", "false", "false", "true"), // not a menu element but a notification
             new UIModeSetting("menu_show_load_core", "false", "false", "true"),
             new UIModeSetting("menu_show_load_disc", "false", "false", "true"),
             new UIModeSetting("menu_show_online_updater", "false", "true", "true"),
@@ -590,13 +626,14 @@ namespace emulatorLauncher.libRetro
             new UIModeSetting("quick_menu_show_add_to_favorites", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_cheats", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_close_content", "false", "false", "true"),
+            new UIModeSetting("settings_show_video", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_controls", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_core_options_flush", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_download_thumbnails", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_options", "false", "true", "true"),
-            new UIModeSetting("quick_menu_show_recording", "false", "true", "true"),
+            new UIModeSetting("quick_menu_show_recording", "false", "true", "true"),           
             new UIModeSetting("quick_menu_show_reset_core_association", "false", "false", "true"),
-            new UIModeSetting("quick_menu_show_restart_content", "false", "false", "true"),
+            new UIModeSetting("quick_menu_show_restart_content", "true", "true", "true"),
             new UIModeSetting("quick_menu_show_save_content_dir_overrides", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_save_core_overrides", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_save_game_overrides", "false", "false", "true"),
@@ -605,7 +642,7 @@ namespace emulatorLauncher.libRetro
             new UIModeSetting("quick_menu_show_start_recording", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_start_streaming", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_streaming", "false", "true", "true"),
-            new UIModeSetting("quick_menu_show_take_screenshot", "false", "true", "true"),
+            new UIModeSetting("quick_menu_show_take_screenshot", "true", "true", "true"),
             new UIModeSetting("quick_menu_show_undo_save_load_state", "false", "false", "true"),
             // quick_menu_show_save_load_state always true
             new UIModeSetting("settings_show_ai_service", "false", "true", "true"),

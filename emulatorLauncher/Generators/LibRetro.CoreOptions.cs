@@ -376,25 +376,31 @@ namespace emulatorLauncher.libRetro
             if (!SystemConfig.isOptSet("video_driver"))
                 retroarchConfig["video_driver"] = "vulkan";
 
+            if (!SystemConfig.isOptSet("input_driver"))
+                retroarchConfig["input_driver"] = "xinput";
+
             retroarchConfig["driver_switch_enable"] = "false";
 
             coreSettings["dolphin_renderer"] = "Hardware";
+            coreSettings["dolphin_cpu_core"] = "JIT64";
+            coreSettings["dolphin_dsp_hle"] = "enabled";
+            coreSettings["dolphin_dsp_jit"] = "enabled";
             coreSettings["dolphin_widescreen_hack"] = "disabled";
 
-            BindFeature(coreSettings, "dolphin_efb_scale", "dolphin_efb_scale", "x2 (1280 x 1056)");
+            BindFeature(coreSettings, "dolphin_efb_scale", "dolphin_efb_scale", "x1 (640 x 528)");
             BindFeature(coreSettings, "dolphin_max_anisotropy", "dolphin_max_anisotropy", "1x");
             BindFeature(coreSettings, "dolphin_shader_compilation_mode", "dolphin_shader_compilation_mode", "sync");
             BindFeature(coreSettings, "dolphin_wait_for_shaders", "dolphin_wait_for_shaders", "disabled");
             BindFeature(coreSettings, "dolphin_load_custom_textures", "dolphin_load_custom_textures", "disabled");
             BindFeature(coreSettings, "dolphin_cache_custom_textures", "dolphin_cache_custom_textures", "disabled");
             BindFeature(coreSettings, "dolphin_enable_rumble", "dolphin_enable_rumble", "enabled");
-            BindFeature(coreSettings, "dolphin_osd_enabled", "dolphin_osd_enabled", "enabled");
+            BindFeature(coreSettings, "dolphin_osd_enabled", "dolphin_osd_enabled", "disabled");
             BindFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "disabled");
 
             BindFeature(coreSettings, "dolphin_language", "dolphin_language", "English");
 
             // to add
-            BindFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled");
+            BindFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "disabled");
             BindFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled");
 
             // gamecube
@@ -402,34 +408,35 @@ namespace emulatorLauncher.libRetro
             {
                 BindFeature(coreSettings, "dolphin_widescreen_hack", "dolphin_widescreen_hack", "disabled");
 
+                try
+                {
+                    // use Dolphin.ini for options not available in retroarch-core-options.cfg
+                    string iniPath = Path.Combine(AppConfig.GetFullPath("saves"), "gamecube", "User", "Config", "Dolphin.ini");
+                    if (File.Exists(iniPath))
+                    {
+                        using (var ini = new IniFile(iniPath, IniOptions.UseSpaces))
+                        {
+                            // Skip BIOS or not (IPL.bin required in saves\gamecube\User\GC\<EUR, JAP or USA>)
+                            if (SystemConfig.isOptSet("skip_bios"))
+                                ini.WriteValue("Core", "SkipIPL", SystemConfig["skip_bios"]);
+                            else
+                                ini.WriteValue("Core", "SkipIPL", "True");
+                        }
+                    }
+                }
+                catch { }
+
             }
 
             // wii
             if (system == "wii")
             {
-
-                /*string _path = AppConfig.GetFullPath(RetroarchPath);
-                string remapFile = Path.Combine(_path, "config" + "\\\\" + "remap" + "\\\\" + "dolphin-emu" + "\\\\", "dolphin-emu.rmp");
-                try
-                {
-                    using (var ini = new IniFile(remapFile))
-                    {                        
-
-                        if ((SystemConfig.isOptSet("input_libretro_device_p1")) && (!string.IsNullOrEmpty(SystemConfig["input_libretro_device_p1"])))
-                            ini.WriteValue("", "input_libretro_device_p1", SystemConfig["input_libretro_device_p1"]);
-                        else
-                            ini.WriteValue("", "input_libretro_device_p1", "769");
-
-                    }
-                }
-                catch { }
-                */
                 if (_isWidescreen)
                     coreSettings["dolphin_widescreen"] = "enabled";
                 else
                     coreSettings["dolphin_widescreen"] = "disabled";
 
-                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");
+                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");               
 
             }
 
@@ -1032,7 +1039,7 @@ namespace emulatorLauncher.libRetro
 
             //  Auto Select Model
             if (system == "gx4000")
-                coreSettings["cap32_model"] = "6128+";
+                coreSettings["cap32_model"] = "6128+ (experimental)";
             else
                 BindFeature(coreSettings, "cap32_model", "cap32_model", "6128+", true);
 
@@ -1449,6 +1456,31 @@ namespace emulatorLauncher.libRetro
             if (core != "mupen64plus_next" && core != "mupen64plus_next_gles3")
                 return;
 
+            if (system == "n64dd")
+            {
+
+                // Nintendo 64DD IPL bios selection workaround
+                // mupen64plus doesn't allow multiple bios selection and looks only for a IPL.n64 file in bios\mupen64plus
+                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus");
+                if (!string.IsNullOrEmpty(biosPath))
+                {
+                    string biosFileTarget = Path.Combine(biosPath, "IPL.n64");
+                    string biosFileSource = Path.Combine(biosPath, SystemConfig["ipl_bios"]);
+
+                    if (Features.IsSupported("ipl_bios") && SystemConfig.isOptSet("ipl_bios"))
+                    {
+                        if (File.Exists(biosFileTarget))
+                            File.Delete(biosFileTarget);
+
+                        if (File.Exists(biosFileSource))
+                            File.Copy(biosFileSource, biosFileTarget);
+
+                    }
+
+                }            
+
+            }
+
             //coreSettings["mupen64plus-cpucore"] = "pure_interpreter";
             coreSettings["mupen64plus-rsp-plugin"] = "hle";
             coreSettings["mupen64plus-EnableLODEmulation"] = "True";
@@ -1676,6 +1708,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "disabled");
             BindFeature(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "disabled");
             BindFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "disabled");
+            BindFeature(coreSettings, "reicast_pvr2_filtering", "reicast_pvr2_filtering", "disabled");
 
             // toadd
             BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");
@@ -1911,7 +1944,8 @@ namespace emulatorLauncher.libRetro
                 InputRemap["input_remap_port_p" + i] = deviceIndex.ToString();
             }
         }
-        
+
         #endregion
+
     }
 }

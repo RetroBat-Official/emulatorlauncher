@@ -65,6 +65,8 @@ namespace emulatorLauncher
             { new Installer("winuae", "winuae", "winuae64.exe") }, 
             { new Installer("xemu", "xemu") },
 			{ new Installer("nosgba", "nosgba", "no$gba.exe") },
+            { new Installer("yuzu", "yuzu", "yuzu.exe") },
+            { new Installer("ryujinx", "ryujinx", "Ryujinx.exe") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
         };
 
