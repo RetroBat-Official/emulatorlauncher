@@ -110,6 +110,10 @@ namespace emulatorLauncher
         }
         private void SetupPaths(string emulator, string core)
         {
+            var biosList = new string[] { 
+                            "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
+                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
+
             string iniFile = Path.Combine(_path, "inis", "PCSX2_ui.ini");
 
             try
@@ -122,10 +126,6 @@ namespace emulatorLauncher
                     if (!string.IsNullOrEmpty(biosPath))
                     {
                         ini.WriteValue("Folders", "UseDefaultBios", "disabled");
-
-                        var biosList = new string[] { 
-                            "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
-                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
 
                         if (biosList.Any(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b))))
                             ini.WriteValue("Folders", "Bios", Path.Combine(biosPath, "pcsx2", "bios").Replace("\\", "\\\\"));
@@ -188,6 +188,43 @@ namespace emulatorLauncher
                                 ini.WriteValue("Filenames", "GS", SystemConfig["gs_plugin"]);
                             else
                                 ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
+                        }
+
+                        foreach (var key in new string[] { "SPU2", "CDVD", "USB", "FW", "DEV9", "BIOS"})
+                        {
+                            string value = ini.GetValue("Filenames", key);
+                            if (value == null || value == "Please Configure")
+                            {
+                                switch (key)
+                                {
+                                    case "SPU2":
+                                        value = "Spu2-X.dll";
+                                        break;
+                                    case "CDVD":
+                                        value = "cdvdGigaherz.dll";
+                                        break;
+                                    case "USB":
+                                        value = "USBnull.dll";
+                                        break;
+                                    case "FW":
+                                        value = "FWnull.dll";
+                                        break;
+                                    case "DEV9":
+                                        value = "DEV9null.dll";
+                                        break;
+                                    case "BIOS":
+
+                                        var biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b)));
+                                        if (!string.IsNullOrEmpty(biosFile))
+                                            value = biosFile;
+                                        else
+                                            value = "SCPH30004R.bin";
+
+                                        break;
+                                }
+
+                                ini.WriteValue("Filenames", key, value);
+                            }
                         }
                     }
                 }
