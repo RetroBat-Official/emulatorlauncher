@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Threading;
 
 namespace emulatorLauncher
 {
@@ -103,6 +104,10 @@ namespace emulatorLauncher
 
         private void WriteLine(string text, bool append = true)
         {
+            int err = 0;
+
+            retry:
+
             try
             {
                 System.Diagnostics.Debug.WriteLine(text);
@@ -114,6 +119,17 @@ namespace emulatorLauncher
                         writer.WriteLine(text);
                     }
                 }
+            }
+            catch (System.IO.IOException ex)
+            {
+                err++;
+                if (err < 5)
+                {
+                    Thread.Sleep(5 * err);
+                    goto retry;
+                }
+
+                throw ex;
             }
             catch
             {

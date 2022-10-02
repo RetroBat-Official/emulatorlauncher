@@ -419,10 +419,12 @@ namespace batocera_store
 
                 try
                 {
-                    WebTools.PostString("http://" + "127.0.0.1:1234/" + verb + "/czeceezcz" + gp.Key, xml);
+                    WebTools.PostString("http://" + "127.0.0.1:1234/" + verb + "/" + gp.Key, xml);
                 }
                 catch (WebException wx)
                 {
+                    SimpleLogger.Instance.Debug("http://" + "127.0.0.1:1234/" + verb + "/" + gp.Key);
+                    
                     string result = wx.Response != null ? wx.Response.ReadResponseString() : null;
                     if (!string.IsNullOrEmpty(result))
                         SimpleLogger.Instance.Error("Unable to add games to emulationstation : " + result, wx);                        
@@ -431,6 +433,8 @@ namespace batocera_store
                 }
                 catch (Exception ex)
                 {
+                    SimpleLogger.Instance.Debug("http://" + "127.0.0.1:1234/" + verb + "/" + gp.Key);            
+
                     SimpleLogger.Instance.Error("Unable to add games to emulationstation", ex);
                 }
             }
