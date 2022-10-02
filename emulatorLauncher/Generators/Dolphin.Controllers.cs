@@ -157,8 +157,7 @@ namespace emulatorLauncher
 
             var wiiMapping = new InputKeyMapping(_wiiMapping);
 
-            //if (rom.Contains(".side.") && Program.SystemConfig["controller_mode"] != "disabled" && Program.SystemConfig["controller_mode"] != "cc")
-            if (Program.SystemConfig["classic_controller"] != "1" && Program.SystemConfig["wiimote_side"] == "1")
+            if ((rom.Contains(".side.") && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "side")
             {
                 extraOptions["Options/Sideways Wiimote"] = "1";
                 wiiMapping[InputKey.x] = "Buttons/B";
@@ -174,54 +173,46 @@ namespace emulatorLauncher
             // 12 possible combinations : is si / it ti / in ni / st ts / sn ns / tn nt
 
             // i
-            //if (rom.Contains(".is.") || rom.Contains(".it.") || rom.Contains(".in.") ||
-            //    (Program.SystemConfig.isOptSet("controller_mode") && Program.SystemConfig["controller_mode"] != "disabled" && Program.SystemConfig["controller_mode"] != "in" && Program.SystemConfig["controller_mode"] != "cc"))
-            if (Program.SystemConfig["classic_controlle"] != "1" && (Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "in"))
+            if (((rom.Contains(".is.") || rom.Contains(".it.") || rom.Contains(".in.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "in")
             {
                 wiiMapping[InputKey.joystick1up] = "IR/Up";
                 wiiMapping[InputKey.joystick1left] = "IR/Left";
             }
 
-            //if (rom.Contains(".si.") || rom.Contains(".ti.") || rom.Contains(".ni.") || Program.SystemConfig["controller_mode"] == "in")
-            if (Program.SystemConfig["classic_controlle"] != "1" && (Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ni"))
+            if (((rom.Contains(".si.") || rom.Contains(".ti.") || rom.Contains(".ni.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ni")
             {
                 wiiMapping[InputKey.joystick2up] = "IR/Up";
                 wiiMapping[InputKey.joystick2left] = "IR/Left";
             }
 
             // s
-            //if (rom.Contains(".si.") || rom.Contains(".st.") || rom.Contains(".sn."))
-            if (Program.SystemConfig["classic_controlle"] != "1" && (Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "sn"))
+            if (((rom.Contains(".si.") || rom.Contains(".st.") || rom.Contains(".sn.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "sn")
             {
                 wiiMapping[InputKey.joystick1up]   = "Swing/Up";
                 wiiMapping[InputKey.joystick1left] = "Swing/Left";
             }
 
-            //if (rom.Contains(".is.") || rom.Contains(".ts.") || rom.Contains(".ns.") || Program.SystemConfig["controller_mode"] == "is")
-            if (Program.SystemConfig["classic_controlle"] != "1" && (Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "ns"))
+            if (((rom.Contains(".is.") || rom.Contains(".ts.") || rom.Contains(".ns.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "ns")
             {
                 wiiMapping[InputKey.joystick2up]   = "Swing/Up";
                 wiiMapping[InputKey.joystick2left] = "Swing/Left";
             }
 
             // t
-            //if (rom.Contains(".ti.") || rom.Contains(".ts.") || rom.Contains(".tn."))
-            if (Program.SystemConfig["classic_controlle"] != "1" && (Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "tn"))
+            if (((rom.Contains(".ti.") || rom.Contains(".ts.") || rom.Contains(".tn.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "tn")
             {
                 wiiMapping[InputKey.joystick1up] = "Tilt/Forward";
                 wiiMapping[InputKey.joystick1left] = "Tilt/Left";
             }
 
-            //if (rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt.") || Program.SystemConfig["controller_mode"] == "it")
-            if (Program.SystemConfig["classic_controlle"] != "1" && (Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "nt"))
+            if (((rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "nt")
             {
                 wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
                 wiiMapping[InputKey.joystick2left] = "Tilt/Left";
             }
 
             // n
-            //if (rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt.") || Program.SystemConfig["controller_mode"] == "in")
-            if (Program.SystemConfig["classic_controlle"] != "1" && (Program.SystemConfig["controller_mode"] == "ni" || Program.SystemConfig["controller_mode"] == "ns" || Program.SystemConfig["controller_mode"] == "nt"))
+            if (((rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "ni" || Program.SystemConfig["controller_mode"] == "ns" || Program.SystemConfig["controller_mode"] == "nt")
             {
                 extraOptions["Extension"] = "Nunchuk";
                 wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
@@ -230,8 +221,7 @@ namespace emulatorLauncher
                 wiiMapping[InputKey.joystick1left] = "Nunchuk/Stick/Left";
             }
 
-            //if (rom.Contains(".in.") || rom.Contains(".sn.") || rom.Contains(".tn."))
-            if (Program.SystemConfig["classic_controlle"] != "1" && (Program.SystemConfig["controller_mode"] == "in" || Program.SystemConfig["controller_mode"] == "sn" || Program.SystemConfig["controller_mode"] == "tn"))
+            if (((rom.Contains(".in.") || rom.Contains(".sn.") || rom.Contains(".tn.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "in" || Program.SystemConfig["controller_mode"] == "sn" || Program.SystemConfig["controller_mode"] == "tn")
             {
                 extraOptions["Extension"] = "Nunchuk";
                 wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
@@ -241,8 +231,7 @@ namespace emulatorLauncher
             }
 
             // cc : Classic Controller Settings
-            //if (rom.Contains(".cc.") || Program.SystemConfig["controller_mode"] == "cc")
-            if (Program.SystemConfig["classic_controller"] == "1")
+            if (rom.Contains(".cc.") || Program.SystemConfig["controller_mode"] == "cc")
             {
                 extraOptions["Extension"] = "Classic";
                 wiiMapping[InputKey.x] = "Classic/Buttons/X";
