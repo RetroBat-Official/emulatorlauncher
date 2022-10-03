@@ -268,7 +268,7 @@ namespace emulatorLauncher
                     // Store EFB Copies
                     if (Features.IsSupported("EFBCopies"))
                     {
-                        if(SystemConfig["EFBCopies"] == "efb_to_texture_defer")
+                        if (SystemConfig["EFBCopies"] == "efb_to_texture_defer")
                         {
                             ini.WriteValue("Hacks", "EFBToTextureEnable", "True");
                             ini.WriteValue("Hacks", "DeferEFBCopies", "True");
@@ -455,7 +455,12 @@ namespace emulatorLauncher
                             }
                             else
                                 ini.WriteValue("Core", "SIDevice" + i, "0");
-                        }
+
+                            if ((Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] == "2"))
+                                 ini.WriteValue("Core", "SIDevice" + i, "12");
+
+                        }                   
+
                     }
 
                     // disable auto updates
