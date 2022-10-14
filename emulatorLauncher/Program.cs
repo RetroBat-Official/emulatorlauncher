@@ -86,7 +86,7 @@ namespace emulatorLauncher
             { "solarus", () => new SolarusGenerator() },
             { "eka2l1", () => new Eka2l1Generator() }, 
             { "n-gage", () => new Eka2l1Generator() },
-			{ "nosgba", () => new NosGbaGenerator() },		
+			{ "nosgba", () => new NosGbaGenerator() }, { "no$gba", () => new NosGbaGenerator() },
 			{ "pinballfx3", () => new PinballFX3Generator() }			
         };
 
@@ -400,15 +400,17 @@ namespace emulatorLauncher
             PadToKeyApp app = new PadToKeyApp();
             app.Name = Path.GetFileNameWithoutExtension(path.FileName).ToLower();
 
-            int controllerIndex = 0;
+            int playerIndex = 0;
 
             foreach (var player in gameMapping)
             {
                 if (player == null)
                 {
-                    controllerIndex++;
+                    playerIndex++;
                     continue;
                 }
+
+                var controller = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == playerIndex + 1);
 
                 foreach (var action in player)
                 {
@@ -458,7 +460,7 @@ namespace emulatorLauncher
 
                     PadToKeyInput input = new PadToKeyInput();
                     input.Name = k;
-                    input.ControllerIndex = controllerIndex;
+                    input.ControllerIndex = controller == null ? playerIndex : controller.DeviceIndex;
 
                     bool custom = false;
 
@@ -496,7 +498,7 @@ namespace emulatorLauncher
                         app.Input.Add(input);
                 }
 
-                controllerIndex++;
+                playerIndex++;
             }
 
             if (app.Input.Count > 0)
