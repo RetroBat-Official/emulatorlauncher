@@ -716,12 +716,17 @@ namespace emulatorLauncher
 
         public InputConfig Config { get; set; }
 
+        public string ToShortString()
+        {
+            return Name + ", Device:" + DeviceIndex.ToString() + ", Player:" + PlayerIndex.ToString();
+        }
+
         public override string ToString() 
         {
             if (!string.IsNullOrEmpty(DevicePath))
-                return Name + " - DeviceIndex : " + DeviceIndex.ToString() + ", PlayerIndex : " + PlayerIndex.ToString() + ", DevicePath : " + DevicePath;
+                return Name + " - Device:" + DeviceIndex.ToString() + ", Player:" + PlayerIndex.ToString() + ", Path:" + DevicePath;
 
-            return Name + " - DeviceIndex : " + DeviceIndex.ToString() + ", PlayerIndex : " + PlayerIndex.ToString() + ", Guid : " + (Guid ?? "null");
+            return Name + " - Device:" + DeviceIndex.ToString() + ", Player:" + PlayerIndex.ToString() + ", Guid:" + (Guid.ToString() ?? "null");
         }
     }
 

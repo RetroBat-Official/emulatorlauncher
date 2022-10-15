@@ -24,6 +24,14 @@ namespace emulatorLauncher.PadToKeyboard
             OldState = new JoyInputState();
         }
 
+        public void Close()
+        {
+            if (SdlJoystick != IntPtr.Zero)
+                SDL.SDL_JoystickClose(SdlJoystick);
+
+            SdlJoystick = IntPtr.Zero;
+        }
+
         public IEnumerable<Input> GetButtons(int id)
         {
             return Controller.Config.Input.Where(i => i.Type == "button" && i.Id == id);
@@ -100,7 +108,7 @@ namespace emulatorLauncher.PadToKeyboard
                 return _joysticks.FirstOrDefault(j => j.Id == which);
             }
         }
-
+        
         #region IEnumerable
         IEnumerator<Joystick> IEnumerable<Joystick>.GetEnumerator()
         {
