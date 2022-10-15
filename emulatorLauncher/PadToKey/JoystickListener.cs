@@ -264,7 +264,7 @@ namespace emulatorLauncher.PadToKeyboard
                             if (joy.State == joy.OldState)
                                 continue;
 
-                            ProcessJoystickState(joy.Controller.PlayerIndex - 1, joy.State, joy.OldState);
+                            ProcessJoystickState(joy.Controller, joy.State, joy.OldState);
                             
                             joy.OldState = joy.State.Clone();                            
                         }
@@ -282,7 +282,7 @@ namespace emulatorLauncher.PadToKeyboard
             SDL.SDL_Quit();
         }
 
-        private void ProcessJoystickState(int playerIndex, JoyInputState keyState, JoyInputState prevState)
+        private void ProcessJoystickState(Controller controller, JoyInputState keyState, JoyInputState prevState)
         {
             //Debug.WriteLine("ProcessJoystickState : " + keyState.ToString() + " - OldState : " + prevState.ToString());
 
@@ -298,7 +298,7 @@ namespace emulatorLauncher.PadToKeyboard
                     if (!keyMap.IsValid())
                         continue;
 
-                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != playerIndex)
+                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != controller.DeviceIndex)
                         continue;
 
                     SendInput(keyState, prevState, hWndProcess, process, keyMap);
@@ -313,7 +313,7 @@ namespace emulatorLauncher.PadToKeyboard
                     if (!keyMap.IsValid())
                         continue;
 
-                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != playerIndex)
+                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != controller.DeviceIndex)
                         continue;
 
                     if (mapping != null && mapping[keyMap.Name] != null)
