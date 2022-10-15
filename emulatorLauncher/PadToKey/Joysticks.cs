@@ -61,9 +61,12 @@ namespace emulatorLauncher.PadToKeyboard
 
             Controller conf = null;
 
-            string hidpath = SDL.SDL_JoystickPathForIndex(i);
+            string hidpath = InputDevices.GetInputDeviceParent(SDL.SDL_JoystickPathForIndex(i));
             if (!string.IsNullOrEmpty(hidpath))
                 conf = _controllers.FirstOrDefault(cfg => cfg.DevicePath == hidpath);
+
+            if (conf == null)
+                conf = _controllers.FirstOrDefault(cfg => cfg.DeviceIndex == i);
 
             if (conf == null)
                 conf = _controllers.FirstOrDefault(cfg => cfg.Config.ProductGuid == guid);
