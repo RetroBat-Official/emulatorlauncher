@@ -80,6 +80,7 @@
     <Compile Include="Common\IsoFile.cs" />
     <Compile Include="Common\Job.cs" />
     <Compile Include="Common\OrderedDictionary.cs" />
+    <Compile Include="Common\PortableZip.cs" />
     <Compile Include="Common\ProcessExtensions.cs" />
     <Compile Include="Common\ProgressInformation.cs" />
     <Compile Include="Common\RawLightGun.cs" />
@@ -151,6 +152,7 @@
     <Compile Include="Generators\Project64.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
     <Compile Include="Generators\NosGba.Generator.cs" />
+    <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
     <Compile Include="PadToKey\JoystickListener.cs" />
@@ -240,6 +242,7 @@
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />
+    <None Include="Resources\mamecrcs.xml.gz" />
     <None Include="Resources\xbox_hdd.qcow2.zip" />
   </ItemGroup>
   <ItemGroup>

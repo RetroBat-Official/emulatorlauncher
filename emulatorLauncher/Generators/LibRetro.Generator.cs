@@ -929,6 +929,22 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
+            // Detect best core for MAME games ( If not overridden by the user )
+            if (system == "mame" && subCore == null && core != null && core.StartsWith("mame"))
+            {
+                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && !"missing".Equals(Program.CurrentGame.Tag) && string.IsNullOrEmpty(Program.CurrentGame.Core))
+                {
+                    var bestCore = MameVersionDetector.FindBestMameCore(rom);
+                    if (!string.IsNullOrEmpty(bestCore))
+                    {
+                        core = bestCore.Replace("-", "_");
+                        SimpleLogger.Instance.Info("[FindBestMameCore] Detected compatible mame core : " + core);
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[FindBestMameCore] No detected compatible mame core");
+                }
+            }
+
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
                 core = Path.GetFileNameWithoutExtension(rom);
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")

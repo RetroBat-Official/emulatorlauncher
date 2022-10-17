@@ -179,6 +179,27 @@ namespace emulatorLauncher
                 }
             }
 
+            if (args.Any(a => "-listmame".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                string mamePath = Path.Combine(AppConfig.GetFullPath("roms"), "mame");
+                if (Directory.Exists(mamePath))
+                {
+                    string fn = Path.Combine(Path.GetTempPath(), "mameroms.txt");
+
+                    try
+                    {
+                        if (File.Exists(fn))
+                            File.Delete(fn);
+                    }
+                    catch { }
+
+                    File.WriteAllText(fn, MameVersionDetector.ListAllGames(mamePath));
+                    Process.Start(fn);
+                }
+             
+                return;
+            }
+
             if (args.Any(a => "-makeiso".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
                 IsoFile.ConvertToIso(SystemConfig["makeiso"]);
@@ -255,7 +276,8 @@ namespace emulatorLauncher
                 CurrentGame = new Game()
                 {
                     path = SystemConfig.GetFullPath("rom"),
-                    Name = Path.GetFileNameWithoutExtension(SystemConfig["rom"])
+                    Name = Path.GetFileNameWithoutExtension(SystemConfig["rom"]),
+                    Tag = "missing"
                 };
             }
 
