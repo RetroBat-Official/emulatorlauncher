@@ -12,7 +12,7 @@ namespace emulatorLauncher
     {
         private static MameGames games;
 
-        public static string FindBestMameCore(string rom)
+        public static string FindBestMameCore(string rom, string[] supportedCores = null)
         {
             if (string.IsNullOrEmpty(rom) || Path.GetExtension(rom).ToLowerInvariant() != ".zip")
                 return null;
@@ -38,6 +38,8 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(game.Core))
                     return game.Core;
 
+                HashSet<string> cores = supportedCores == null ? null : new HashSet<string>(supportedCores.Select(c => c.Replace("_", "-")));
+
                 using (var zip = ZipArchive.OpenRead(rom))
                 {
                     var entries = zip.Entries.ToList();
@@ -46,6 +48,9 @@ namespace emulatorLauncher
                     // Exact match
                     foreach (var mm in game.Cores)
                     {
+                        if (cores != null && !cores.Contains(mm.Core))
+                            continue;
+
                         int crcCount = mm.Crcs.Length;
                         var gameCrcs = mm.Crcs.ToArray();
 
@@ -56,6 +61,9 @@ namespace emulatorLauncher
                     // All required CRCs are present
                     foreach (var mm in game.Cores)
                     {
+                        if (cores != null && !cores.Contains(mm.Core))
+                            continue;
+
                         int crcCount = mm.Crcs.Length;
                         var gameCrcs = mm.Crcs.ToArray();
 
@@ -66,6 +74,9 @@ namespace emulatorLauncher
                     // Some crcs are missing....
                     foreach (var mm in game.Cores)
                     {
+                        if (cores != null && !cores.Contains(mm.Core))
+                            continue;
+
                         int crcCount = mm.Crcs.Length;
                         var gameCrcs = mm.Crcs.ToArray();
 
