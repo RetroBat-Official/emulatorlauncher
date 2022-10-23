@@ -369,7 +369,7 @@ namespace emulatorLauncher
             regKeyc = vp.CreateSubKey("Controller");
             if (regKeyc != null)
             {
-                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] != "0")
+                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
                     SetOption(regKeyc, "ForceDisableB2S", 0);
                 else
                     SetOption(regKeyc, "ForceDisableB2S", 1);
