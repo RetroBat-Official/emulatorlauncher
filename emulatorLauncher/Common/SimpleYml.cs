@@ -128,7 +128,10 @@ namespace emulatorLauncher.Tools
                 return root;
 
             string yml = File.ReadAllText(ymlFile);
-            return Parse(yml);
+
+            YmlFile file = Parse(yml);
+            file._path = ymlFile;
+            return file;
         }
     }
 
