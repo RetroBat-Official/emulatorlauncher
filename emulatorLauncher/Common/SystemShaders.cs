@@ -20,7 +20,7 @@ namespace emulatorLauncher
         public static string GetShader(string yml, string system)
         {
             if (_ymlShadersCache == null)
-                _ymlShadersCache = new SimpleYml<YmlShader>(yml);
+                _ymlShadersCache = SimpleYml<YmlShader>.Parse(yml);
 
             var ret = _ymlShadersCache.Where(i => i.system == system).Select(i => i.shader).FirstOrDefault();
             if( ret == null)

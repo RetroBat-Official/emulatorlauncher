@@ -39,19 +39,14 @@ namespace emulatorLauncher.Tools
             stack.Push(root);
 
             var lines = yml.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines)
+            for (int i = 0; i < lines.Length; i++)
             {
+                string line = lines[i];
+
                 if (string.IsNullOrEmpty(line))
                     continue;
 
-                int indent = 0;
-                foreach (var chr in line)
-                    if (chr == 32)
-                        indent++;
-                    else
-                        break;
-
-                indent /= 2;
+                int indent = GetIndent(line);
 
                 string tmp = line.Trim();
                 int idx = tmp.IndexOf(":");
@@ -75,6 +70,29 @@ namespace emulatorLauncher.Tools
                     }
                     else
                     {
+                        if (value == "|")
+                        {
+                            StringBuilder sbValue = new StringBuilder();
+                            
+                            i++;
+                            while (i < lines.Length)
+                            {
+                                var childLine = lines[i];
+                                int childIndent = GetIndent(childLine);
+                                if (childIndent <= indent)
+                                    break;
+
+                                if (sbValue.Length > 0)
+                                    sbValue.AppendLine();
+
+                                sbValue.Append(childLine);
+                                i++;
+                            }
+
+                            i--;
+                            value = "|\r\n" + sbValue.ToString();
+                        }
+
                         var item = new YmlElement() { Name = name, Value = value };
                         current.Elements.Add(item);
                     }
@@ -87,6 +105,19 @@ namespace emulatorLauncher.Tools
             }
 
             return root;
+        }
+
+        private static int GetIndent(string line)
+        {
+            int indent = 0;
+            foreach (var chr in line)
+                if (chr == 32)
+                    indent++;
+                else
+                    break;
+
+            indent /= 2;
+            return indent;
         }
 
         public static YmlFile Load(string ymlFile)
@@ -233,7 +264,7 @@ namespace emulatorLauncher.Tools
     {
         private List<T> _values;
 
-        private List<T> FillElements(object obj, YmlContainer ymlElements)
+        private static List<T> FillElements(object obj, YmlContainer ymlElements)
         {
             List<T> ret = null; 
 
@@ -286,9 +317,11 @@ namespace emulatorLauncher.Tools
             return ret;
         }
 
-        public SimpleYml(string yml)
+        public static SimpleYml<T> Parse(string yml)
         {
-            _values = FillElements(typeof(T), YmlFile.Parse(yml));            
+            var ret = new SimpleYml<T>();
+            ret._values = FillElements(typeof(T), YmlFile.Parse(yml));
+            return ret;
         }
 
         public IEnumerator<T> GetEnumerator()
