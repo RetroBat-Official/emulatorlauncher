@@ -18,7 +18,8 @@ namespace emulatorLauncher.Tools
 
         public void Save()
         {
-            Save(_path);
+            if (!string.IsNullOrEmpty(_path))
+                Save(_path);
         }
 
         public void Save(string ymlFile)
@@ -28,20 +29,15 @@ namespace emulatorLauncher.Tools
 
         private string _path;
 
-        public static YmlFile Load(string ymlFile)
+        public static YmlFile Parse(string yml)
         {
             var root = new YmlFile() { Name = "root", Indent = -1 };
-            root._path = ymlFile;
-            if (!File.Exists(ymlFile))
-                return root;
 
             YmlContainer current = root;
-            
+
             Stack<YmlContainer> stack = new Stack<YmlContainer>();
             stack.Push(root);
 
-            string yml = File.ReadAllText(ymlFile);
-            
             var lines = yml.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var line in lines)
             {
@@ -49,10 +45,10 @@ namespace emulatorLauncher.Tools
                     continue;
 
                 int indent = 0;
-                foreach (var chr in line) 
-                    if (chr == 32) 
-                        indent++; 
-                    else 
+                foreach (var chr in line)
+                    if (chr == 32)
+                        indent++;
+                    else
                         break;
 
                 indent /= 2;
@@ -89,11 +85,20 @@ namespace emulatorLauncher.Tools
                     current.Elements.Add(item);
                 }
             }
-            
+
             return root;
         }
 
-        
+        public static YmlFile Load(string ymlFile)
+        {
+            var root = new YmlFile() { Name = "root", Indent = -1 };
+            root._path = ymlFile;
+            if (!File.Exists(ymlFile))
+                return root;
+
+            string yml = File.ReadAllText(ymlFile);
+            return Parse(yml);
+        }
     }
 
     class YmlElement
@@ -122,6 +127,11 @@ namespace emulatorLauncher.Tools
             var element = Elements.OfType<YmlContainer>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
             if (element == null)
             {
+                // Convert Element to Container
+                var item = Elements.FirstOrDefault(e => !(e is YmlContainer) && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                if (item != null)
+                    Elements.Remove(item);
+
                 element = new YmlContainer() { Name = key };
                 Elements.Add(element);
             }
@@ -144,6 +154,11 @@ namespace emulatorLauncher.Tools
                 var element = Elements.FirstOrDefault(e => !(e is YmlContainer) && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (element == null)
                 {
+                    // Convert Container to Element
+                    var container = Elements.FirstOrDefault(e => e is YmlContainer && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                    if (container != null)
+                        Elements.Remove(container);
+
                     element = new YmlElement() { Name = key };
                     Elements.Add(element);
                 }
@@ -214,49 +229,66 @@ namespace emulatorLauncher.Tools
         internal int Indent;
     }
 
-    class SimpleYml<T> : IEnumerable<T> where T : IYmlItem, new()
+    class SimpleYml<T> : IEnumerable<T> where T : new()
     {
         private List<T> _values;
 
+        private List<T> FillElements(object obj, YmlContainer ymlElements)
+        {
+            List<T> ret = null; 
+
+            foreach (var ymlEntry in ymlElements.Elements)
+            {
+                YmlContainer container = ymlEntry as YmlContainer;
+                if (container != null)
+                {
+                    if (typeof(T).Equals(obj))
+                    {
+                        T current = Activator.CreateInstance<T>();
+
+                        var ymlNameProperty = typeof(T).GetProperties().FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(YmlNameAttribute)));
+                        if (ymlNameProperty != null)
+                            ymlNameProperty.SetValue(current, container.Name, null);
+                       
+                        FillElements(current, container);
+
+                        if (ret == null)
+                            ret = new List<T>();
+
+                        ret.Add(current);
+                    }
+                    else
+                    {
+                        var propertyType = (obj is Type) ? (Type)obj : obj.GetType();
+                        var objectProperty = propertyType.GetProperty(ymlEntry.Name);
+                        if (objectProperty != null && !objectProperty.PropertyType.IsValueType && objectProperty.PropertyType != typeof(string))
+                        {
+                            object child = Activator.CreateInstance(objectProperty.PropertyType);
+
+                            var ymlNameProperty = objectProperty.PropertyType.GetProperties().FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(YmlNameAttribute)));
+                            if (ymlNameProperty != null)
+                                ymlNameProperty.SetValue(obj, container.Name, null);
+
+                            FillElements(child, container);
+                            objectProperty.SetValue(obj, child, null);
+                        }
+                    }
+                    continue;
+                }
+
+                var type = (obj is Type) ? (Type)obj : obj.GetType();
+
+                var property = type.GetProperty(ymlEntry.Name);
+                if (property != null)
+                    property.SetValue(obj, ymlEntry.Value, null);
+            }
+
+            return ret;
+        }
+
         public SimpleYml(string yml)
         {
-            _values = new List<T>();
-
-            if (string.IsNullOrEmpty(yml))
-                return;
-
-            T current = default(T);
-
-            var lines = yml.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines)
-            {
-                if (string.IsNullOrEmpty(line))
-                    continue;
-
-                int indent = 0;
-                foreach (var chr in line) if (chr == 32) indent++; else break;
-                indent /= 2;
-
-                string tmp = line.Trim();
-                int idx = tmp.IndexOf(":");
-                if (idx >= 0)
-                {
-                    string name = tmp.Substring(0, idx).Trim();
-                    string value = tmp.Substring(idx + 1).Trim();
-
-                    if (indent == 0 & string.IsNullOrEmpty(value))
-                    {
-                        current = new T() { system = name };
-                        _values.Add(current);
-                    }
-                    else if (current != null && indent == 1 && !string.IsNullOrEmpty(value))
-                    {
-                        var property = typeof(T).GetProperty(name);
-                        if (property != null)
-                            property.SetValue(current, value, null);
-                    }
-                }
-            }
+            _values = FillElements(typeof(T), YmlFile.Parse(yml));            
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -270,9 +302,5 @@ namespace emulatorLauncher.Tools
         }
     }
 
-    interface IYmlItem
-    {
-        string system { get; set; }
-    }
-
+    class YmlNameAttribute : Attribute { }
 }

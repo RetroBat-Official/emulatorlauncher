@@ -8,8 +8,9 @@ namespace emulatorLauncher
 {  
     class SystemShaders
     {
-        class YmlShader : IYmlItem
+        class YmlShader
         {
+            [YmlName]
             public string system { get; set; }
 
             public string shader { get; set; }
