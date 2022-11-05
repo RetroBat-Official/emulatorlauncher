@@ -1798,6 +1798,18 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_pgxp_vertex"] = "disabled";
             }
 
+            //Custom textures
+            if (SystemConfig.isOptSet("mednafen_texture_replacement") && (SystemConfig["mednafen_texture_replacement"] == "enabled"))
+            {
+                coreSettings["beetle_psx_hw_replace_textures"] = "enabled";
+                coreSettings["beetle_psx_hw_track_textures"] = "enabled";
+            }
+            else
+            {
+                coreSettings["beetle_psx_hw_replace_textures"] = "disabled";
+                coreSettings["beetle_psx_hw_track_textures"] = "disabled";
+            }
+
             BindFeature(coreSettings, "beetle_psx_hw_internal_resolution", "internal_resolution", "1x(native)");
             BindFeature(coreSettings, "beetle_psx_hw_filter", "texture_filtering", "nearest");
             BindFeature(coreSettings, "beetle_psx_hw_dither_mode", "dither_mode", "disabled");
