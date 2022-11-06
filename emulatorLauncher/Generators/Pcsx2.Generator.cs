@@ -366,6 +366,18 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("skipdraw"))
                         ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
 
+                    //Custom textures
+                    if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
+                    {
+                        ini.WriteValue("Settings", "LoadTextureReplacements", "1");
+                        ini.WriteValue("Settings", "PrecacheTextureReplacements", "1");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Settings", "LoadTextureReplacements", "0");
+                        ini.WriteValue("Settings", "PrecacheTextureReplacements", "0");
+                    }
+
                     if (!_isPcsx17)
                     {
                         if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
