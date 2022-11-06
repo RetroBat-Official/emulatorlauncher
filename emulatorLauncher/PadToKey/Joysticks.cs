@@ -24,6 +24,14 @@ namespace emulatorLauncher.PadToKeyboard
             OldState = new JoyInputState();
         }
 
+        public void Close()
+        {
+            if (SdlJoystick != IntPtr.Zero)
+                SDL.SDL_JoystickClose(SdlJoystick);
+
+            SdlJoystick = IntPtr.Zero;
+        }
+
         public IEnumerable<Input> GetButtons(int id)
         {
             return Controller.Config.Input.Where(i => i.Type == "button" && i.Id == id);
@@ -59,13 +67,24 @@ namespace emulatorLauncher.PadToKeyboard
             var guid2 = SDL.SDL_JoystickGetDeviceGUID(i);
             var name = SDL.SDL_JoystickName(joy);
 
-            var conf = _controllers.FirstOrDefault(cfg => cfg.Config.ProductGuid == guid);
+            Controller conf = null;
+
+            string hidpath = InputDevices.GetInputDeviceParent(SDL.SDL_JoystickPathForIndex(i));
+            if (!string.IsNullOrEmpty(hidpath))
+                conf = _controllers.FirstOrDefault(cfg => cfg.DevicePath == hidpath);
+
+            if (conf == null)
+                conf = _controllers.FirstOrDefault(cfg => cfg.DeviceIndex == i);
+
+            if (conf == null)
+                conf = _controllers.FirstOrDefault(cfg => cfg.Config.ProductGuid == guid);
+
             if (conf == null)
                 conf = _controllers.FirstOrDefault(cfg => cfg.Config.DeviceName == name);
 
             if (conf != null)
             {
-                SimpleLogger.Instance.Info("[PadToKey] Add joystick " + name);
+                SimpleLogger.Instance.Info("[PadToKey] Add joystick " + conf.ToString());
                 _joysticks.Add(new Joystick(instanceId, joy, conf));
             }
             else
@@ -89,7 +108,7 @@ namespace emulatorLauncher.PadToKeyboard
                 return _joysticks.FirstOrDefault(j => j.Id == which);
             }
         }
-
+        
         #region IEnumerable
         IEnumerator<Joystick> IEnumerable<Joystick>.GetEnumerator()
         {

@@ -929,6 +929,40 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
+            // Detect best core for MAME games ( If not overridden by the user )
+            if (system == "mame" && subCore == null && core != null && core.StartsWith("mame"))
+            {
+                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && !"missing".Equals(Program.CurrentGame.Tag) && string.IsNullOrEmpty(Program.CurrentGame.Core))
+                {
+                    string[] supportedCores = null;
+
+                    // Load supported core list from es_systems.cfg
+                    var esSystems = EsSystems.Load(Path.Combine(Program.LocalPath, ".emulationstation", "es_systems.cfg"));
+                    if (esSystems != null)
+                    {
+                        supportedCores = esSystems.Systems
+                            .Where(sys => sys.Name == system)
+                            .SelectMany(sys => sys.Emulators)
+                            .Where(emul => emul.Name == emulator)
+                            .SelectMany(emul => emul.Cores)
+                            .Select(cr => cr.Name)
+                            .ToArray();
+
+                        if (supportedCores.Length == 0)
+                            supportedCores = null;
+                    }
+
+                    var bestCore = MameVersionDetector.FindBestMameCore(rom, supportedCores);
+                    if (!string.IsNullOrEmpty(bestCore))
+                    {
+                        core = bestCore.Replace("-", "_");
+                        SimpleLogger.Instance.Info("[FindBestMameCore] Detected compatible mame core : " + core);
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[FindBestMameCore] No detected compatible mame core. Using current default core : " + core);
+                }
+            }
+
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
                 core = Path.GetFileNameWithoutExtension(rom);
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")

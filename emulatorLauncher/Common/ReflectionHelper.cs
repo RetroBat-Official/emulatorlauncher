@@ -8,6 +8,7 @@ namespace emulatorLauncher
     static class ReflectionHelper
     {
         private static Dictionary<Type, ReflectionProperties> _types = new Dictionary<Type, ReflectionProperties>();
+        private static Dictionary<Type, ReflectionFields> _fields = new Dictionary<Type, ReflectionFields>();
 
         public static ReflectionProperties GetReflectionProperties(this Type type)
         {
@@ -17,6 +18,17 @@ namespace emulatorLauncher
 
             prop = new ReflectionProperties(type);
             _types[type] = prop;
+            return prop;
+        }
+
+        public static ReflectionFields GetReflectionFields(this Type type)
+        {
+            ReflectionFields prop;
+            if (_fields.TryGetValue(type, out prop))
+                return prop;
+
+            prop = new ReflectionFields(type);
+            _fields[type] = prop;
             return prop;
         }
 
@@ -30,7 +42,7 @@ namespace emulatorLauncher
             return pi.GetValue(instance);
         }
 
-        public static T GetValue<T>(this Type t, object instance, string propertyName) 
+        public static T GetValue<T>(this Type t, object instance, string propertyName)
         {
             var rp = GetReflectionProperties(t);
             var pi = rp.GetProperty(propertyName);
@@ -43,7 +55,27 @@ namespace emulatorLauncher
 
             if (obj != null)
             {
-                try { return (T) Convert.ChangeType(obj, typeof(T)); }
+                try { return (T)Convert.ChangeType(obj, typeof(T)); }
+                catch { }
+            }
+
+            return default(T);
+        }
+
+        public static T GetFieldValue<T>(this Type t, object instance, string fieldName)
+        {
+            var rp = GetReflectionFields(t);
+            var pi = rp.GetField(fieldName);
+            if (pi == null)
+                return default(T);
+
+            var obj = pi.GetValue(instance);
+            if (obj is T)
+                return (T)obj;
+
+            if (obj != null)
+            {
+                try { return (T)Convert.ChangeType(obj, typeof(T)); }
                 catch { }
             }
 
@@ -94,5 +126,46 @@ namespace emulatorLauncher
         private Dictionary<string, ReflectionProperty> _properties = new Dictionary<string, ReflectionProperty>();
     }
 
+    class ReflectionField
+    {
+        private System.Reflection.FieldInfo _field;
 
+        public ReflectionField(System.Reflection.FieldInfo pi)
+        {
+            _field = pi;
+        }
+
+        public object GetValue(object instance)
+        {
+            return _field.GetValue(instance);
+        }
+    }
+
+    class ReflectionFields
+    {
+        private Type _type;
+
+        public ReflectionFields(Type t)
+        {
+            _type = t;
+        }
+
+        public ReflectionField GetField(string name)
+        {
+            ReflectionField prop;
+            if (_properties.TryGetValue(name, out prop))
+                return prop;
+
+            var propInfo = _type.GetField(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (propInfo == null)
+                return null;
+
+            prop = new ReflectionField(propInfo);
+            _properties[name] = prop;
+            return prop;
+
+        }
+
+        private Dictionary<string, ReflectionField> _properties = new Dictionary<string, ReflectionField>();
+    }
 }

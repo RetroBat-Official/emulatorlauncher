@@ -30,8 +30,6 @@ namespace emulatorLauncher.Tools
 
             ((IRelativePath)gl).FilePath = Path.GetDirectoryName(filename);
             gl.Systems.ForEach(s => s.RelativePath = gl);
-            gl.Systems.RemoveAll(s => s.Name == "favorites" || s.Name == "imageviewer" || s.Name == "library");
-            gl.Systems.RemoveAll(s => !Directory.Exists(s.RomPath));
 
             return gl;
         }

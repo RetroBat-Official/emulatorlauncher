@@ -237,7 +237,7 @@ namespace emulatorLauncher
                 else
                 {
                     // Fake version number based on last write time
-                    var date = File.GetLastWriteTime(exe).ToString("0.yy.MM.dd");
+                    var date = File.GetLastWriteTime(exe).ToUniversalTime().ToString("0.yy.MM.dd");
                     return date;
                 }
                 

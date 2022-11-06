@@ -112,12 +112,7 @@ namespace emulatorLauncher.Properties {
         ///ntsc-hardware-fbx
         ///nes-classic-fbx-fs
         ///nescap
-        ///wavebeam
-        ///custom
-        ///disabled
-        ///SGB - 1A
-        ///SGB - 1B
-        ///S [rest of string was truncated]&quot;;.
+        ///wav [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string blacklisted_words {
             get {
@@ -246,6 +241,16 @@ namespace emulatorLauncher.Properties {
         internal static string mame {
             get {
                 return ResourceManager.GetString("mame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] mamecrcs_xml_gz {
+            get {
+                object obj = ResourceManager.GetObject("mamecrcs_xml_gz", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         

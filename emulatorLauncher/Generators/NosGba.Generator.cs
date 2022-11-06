@@ -12,6 +12,8 @@ namespace emulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("nosgba");
+            if (string.IsNullOrEmpty(path))
+                path = AppConfig.GetFullPath("no$gba");
 
             string exe = Path.Combine(path, "no$gba.exe");
             if (!File.Exists(exe))
