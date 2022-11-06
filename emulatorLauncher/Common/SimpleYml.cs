@@ -38,7 +38,7 @@ namespace emulatorLauncher.Tools
             Stack<YmlContainer> stack = new Stack<YmlContainer>();
             stack.Push(root);
 
-            var lines = yml.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = yml.Split(new char[] { '\r', '\n' }, StringSplitOptions.None);
             for (int i = 0; i < lines.Length; i++)
             {
                 string line = lines[i];
@@ -78,6 +78,14 @@ namespace emulatorLauncher.Tools
                             while (i < lines.Length)
                             {
                                 var childLine = lines[i];
+
+                                if (childLine.Trim().Length == 0)
+                                {                                        
+                                    sbValue.AppendLine();
+                                    i++;
+                                    continue;
+                                }
+
                                 int childIndent = GetIndent(childLine);
                                 if (childIndent <= indent)
                                     break;
@@ -85,12 +93,15 @@ namespace emulatorLauncher.Tools
                                 if (sbValue.Length > 0)
                                     sbValue.AppendLine();
 
-                                sbValue.Append(childLine);
+                                sbValue.Append(childLine.Substring((indent + 1) * 2));
                                 i++;
                             }
 
+                            if (sbValue.Length > 0)
+                                sbValue.AppendLine();
+
                             i--;
-                            value = "|\r\n" + sbValue.ToString();
+                            value = sbValue.ToString();
                         }
 
                         var item = new YmlElement() { Name = name, Value = value };
@@ -253,10 +264,24 @@ namespace emulatorLauncher.Tools
                 {
                     sb.Append(element.Name);
                     sb.Append(": ");
-                    sb.AppendLine(element.Value.ToString());
+                    
+                    if (element.Value.Contains("\r\n"))
+                    {
+                        sb.AppendLine("|");
+
+                        var offset = new string(' ', (indent+1) * 2);
+                        var lines = element.Value.Split(new string[] { "\r\n" }, StringSplitOptions.None);
+                        for (int i = 0; i < lines.Length - 1; i++)
+                        {
+                            sb.Append(offset);
+                            sb.AppendLine(lines[i]);
+                        }
+                    }
+                    else
+                        sb.AppendLine(element.Value);
                 }
                 else
-                    sb.AppendLine(element.Value.ToString());
+                    sb.AppendLine(element.Value);
             }
         }
 
