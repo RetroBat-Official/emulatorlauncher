@@ -32,13 +32,15 @@ namespace emulatorLauncher.Tools
         public static YmlFile Parse(string yml)
         {
             var root = new YmlFile() { Name = "root", Indent = -1 };
+            if (string.IsNullOrEmpty(yml))
+                return root;
 
             YmlContainer current = root;
 
             Stack<YmlContainer> stack = new Stack<YmlContainer>();
             stack.Push(root);
 
-            var lines = yml.Split(new char[] { '\r', '\n' }, StringSplitOptions.None);
+            var lines = yml.Replace("\r\n", "\n").Replace("\r", "").Split(new char[] { '\n' }, StringSplitOptions.None);
             for (int i = 0; i < lines.Length; i++)
             {
                 string line = lines[i];
@@ -70,18 +72,22 @@ namespace emulatorLauncher.Tools
                     }
                     else
                     {
-                        if (value == "|")
+                        if (value == "|" || value == ">")
                         {
                             StringBuilder sbValue = new StringBuilder();
                             
                             i++;
                             while (i < lines.Length)
                             {
-                                var childLine = lines[i];
+                                var childLine = lines[i].Replace("\r", "");
 
                                 if (childLine.Trim().Length == 0)
-                                {                                        
-                                    sbValue.AppendLine();
+                                {                     
+                                    if (value == "|")
+                                        sbValue.AppendLine();
+                                    else
+                                        sbValue.Append(" ");
+
                                     i++;
                                     continue;
                                 }
@@ -91,7 +97,12 @@ namespace emulatorLauncher.Tools
                                     break;
 
                                 if (sbValue.Length > 0)
-                                    sbValue.AppendLine();
+                                {
+                                    if (value == "|")
+                                        sbValue.AppendLine();
+                                    else
+                                        sbValue.Append(" ");
+                                }
 
                                 sbValue.Append(childLine.Substring((indent + 1) * 2));
                                 i++;

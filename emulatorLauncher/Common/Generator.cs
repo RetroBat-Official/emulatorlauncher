@@ -462,6 +462,12 @@ namespace emulatorLauncher
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
         }
 
+        protected void BindFeature(DynamicJson cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+        }
+
         protected void BindBoolFeature(ConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
