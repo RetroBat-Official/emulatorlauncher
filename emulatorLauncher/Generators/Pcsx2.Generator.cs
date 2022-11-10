@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Management;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -327,9 +328,36 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "TVShader", "0");
 
                     if (SystemConfig.isOptSet("Offset") && !string.IsNullOrEmpty(SystemConfig["Offset"]))
+                    {
                         ini.WriteValue("Settings", "UserHacks_WildHack", SystemConfig["Offset"]);
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
                     else if (Features.IsSupported("Offset"))
                         ini.WriteValue("Settings", "UserHacks_WildHack", "0");
+
+                    if (SystemConfig.isOptSet("UserHacks_HalfPixelOffset") && !string.IsNullOrEmpty(SystemConfig["UserHacks_HalfPixelOffset"]))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_HalfPixelOffset", SystemConfig["UserHacks_HalfPixelOffset"]);
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (Features.IsSupported("Offset"))
+                        ini.WriteValue("Settings", "UserHacks_HalfPixelOffset", "0");
+
+                    if (SystemConfig.isOptSet("UserHacks_Half_Bottom_Override") && !string.IsNullOrEmpty(SystemConfig["UserHacks_Half_Bottom_Override"]))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_Half_Bottom_Override", SystemConfig["UserHacks_Half_Bottom_Override"]);
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (Features.IsSupported("Offset"))
+                        ini.WriteValue("Settings", "UserHacks_Half_Bottom_Override", "-1");
+
+                    if (SystemConfig.isOptSet("UserHacks_round_sprite_offset") && !string.IsNullOrEmpty(SystemConfig["UserHacks_round_sprite_offset"]))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_round_sprite_offset", SystemConfig["UserHacks_round_sprite_offset"]);
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (Features.IsSupported("Offset"))
+                        ini.WriteValue("Settings", "UserHacks_round_sprite_offset", "0");
 
                     if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
                         ini.WriteValue("Settings", "linear_present", SystemConfig["bilinear_filtering"]);
@@ -357,14 +385,82 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "MaxAnisotropy", "0");
 
                     if (SystemConfig.isOptSet("align_sprite") && !string.IsNullOrEmpty(SystemConfig["align_sprite"]))
+                    {
                         ini.WriteValue("Settings", "UserHacks_align_sprite_X", SystemConfig["align_sprite"]);
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
                     else if (Features.IsSupported("align_sprite"))
                         ini.WriteValue("Settings", "UserHacks_align_sprite_X", "0");
 
-                    if (SystemConfig.isOptSet("skipdraw") && !string.IsNullOrEmpty(SystemConfig["skipdraw"]))
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw", SystemConfig["skipdraw"]);
+                    if (SystemConfig.isOptSet("UserHacks_merge_pp_sprite") && !string.IsNullOrEmpty(SystemConfig["UserHacks_merge_pp_sprite"]))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_merge_pp_sprite", SystemConfig["UserHacks_merge_pp_sprite"]);
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (Features.IsSupported("align_sprite"))
+                        ini.WriteValue("Settings", "UserHacks_merge_pp_sprite", "0");
+
+                    if (SystemConfig.isOptSet("UserHacks_Disable_Safe_Features") && !string.IsNullOrEmpty(SystemConfig["UserHacks_Disable_Safe_Features"]))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_Disable_Safe_Features", SystemConfig["UserHacks_Disable_Safe_Features"]);
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (Features.IsSupported("UserHacks_Disable_Safe_Features"))
+                        ini.WriteValue("Settings", "UserHacks_Disable_Safe_Features", "0");
+
+                    if (SystemConfig.isOptSet("TextureOffsets") && (SystemConfig["TextureOffsets"] == "1"))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_TCOffsetX", "500");
+                        ini.WriteValue("Settings", "UserHacks_TCOffsetY", "500");
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (SystemConfig.isOptSet("TextureOffsets") && (SystemConfig["TextureOffsets"] == "2"))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_TCOffsetX", "0");
+                        ini.WriteValue("Settings", "UserHacks_TCOffsetY", "1000");
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (Features.IsSupported("TextureOffsets"))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_TCOffsetX", "0");
+                        ini.WriteValue("Settings", "UserHacks_TCOffsetY", "0");
+                    }
+
+                    if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "1");
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "2");
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "3");
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "4");
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
+                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "5");
+                        ini.WriteValue("Settings", "UserHacks", "1");
+                    }
                     else if (Features.IsSupported("skipdraw"))
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
+                    {
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "0");
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "0");
+                    }
 
                     //Custom textures
                     if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
