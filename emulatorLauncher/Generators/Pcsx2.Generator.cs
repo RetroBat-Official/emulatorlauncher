@@ -248,6 +248,7 @@ namespace emulatorLauncher
             catch { }
         }
 
+        //Setup PCSX2_vm.ini file (both 1.6 & 1.7)
         private void SetupVM()
         {
             string iniFile = Path.Combine(_path, "inis", "PCSX2_vm.ini");
@@ -283,6 +284,7 @@ namespace emulatorLauncher
             catch { }
         }
 
+        //Setup GS.ini (v1.7) and GSdx.ini (v1.6) 
         private void SetupGSDx(ScreenResolution resolution)
         {
             string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "GS.ini" : "GSdx.ini");
@@ -291,16 +293,14 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    
-                    if (!_isPcsx17)
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    
-                    if ((_isPcsx17) && (SystemConfig.isOptSet("UserHacks") && !string.IsNullOrEmpty(SystemConfig["UserHacks"])))
+
+                //Activate user hacks - valid for 1.6 and 1.7 - default activation if a hack is enabled later  
+                    if ((SystemConfig.isOptSet("UserHacks") && !string.IsNullOrEmpty(SystemConfig["UserHacks"])))
                         ini.WriteValue("Settings", "UserHacks", SystemConfig["UserHacks"]);
                     else if (_isPcsx17)
                         ini.WriteValue("Settings", "UserHacks", "0");
 
-
+                    //Resolution upscale (both 1.6 & 1.7)
                     if (!string.IsNullOrEmpty(SystemConfig["internalresolution"]))
                         ini.WriteValue("Settings", "upscale_multiplier", SystemConfig["internalresolution"]);
                     else
@@ -320,13 +320,16 @@ namespace emulatorLauncher
                         }
                     }
 
+                    //Enable External Shader (both 1.6 & 1.7)
                     ini.WriteValue("Settings", "shaderfx", "1");
 
+                    //TVShader (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("TVShader") && !string.IsNullOrEmpty(SystemConfig["TVShader"]))
                         ini.WriteValue("Settings", "TVShader", SystemConfig["TVShader"]);
                     else if (Features.IsSupported("TVShader"))
                         ini.WriteValue("Settings", "TVShader", "0");
 
+                    //Wild Arms offset (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("Offset") && !string.IsNullOrEmpty(SystemConfig["Offset"]))
                     {
                         ini.WriteValue("Settings", "UserHacks_WildHack", SystemConfig["Offset"]);
@@ -335,6 +338,7 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Offset"))
                         ini.WriteValue("Settings", "UserHacks_WildHack", "0");
 
+                    //Half Pixel Offset (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("UserHacks_HalfPixelOffset") && !string.IsNullOrEmpty(SystemConfig["UserHacks_HalfPixelOffset"]))
                     {
                         ini.WriteValue("Settings", "UserHacks_HalfPixelOffset", SystemConfig["UserHacks_HalfPixelOffset"]);
@@ -343,6 +347,7 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Offset"))
                         ini.WriteValue("Settings", "UserHacks_HalfPixelOffset", "0");
 
+                    //Half-screen fix (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("UserHacks_Half_Bottom_Override") && !string.IsNullOrEmpty(SystemConfig["UserHacks_Half_Bottom_Override"]))
                     {
                         ini.WriteValue("Settings", "UserHacks_Half_Bottom_Override", SystemConfig["UserHacks_Half_Bottom_Override"]);
@@ -351,6 +356,7 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Offset"))
                         ini.WriteValue("Settings", "UserHacks_Half_Bottom_Override", "-1");
 
+                    //Round sprite (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("UserHacks_round_sprite_offset") && !string.IsNullOrEmpty(SystemConfig["UserHacks_round_sprite_offset"]))
                     {
                         ini.WriteValue("Settings", "UserHacks_round_sprite_offset", SystemConfig["UserHacks_round_sprite_offset"]);
@@ -359,31 +365,37 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Offset"))
                         ini.WriteValue("Settings", "UserHacks_round_sprite_offset", "0");
 
+                    //Shader - Texture filtering of display (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
                         ini.WriteValue("Settings", "linear_present", SystemConfig["bilinear_filtering"]);
                     else if (Features.IsSupported("bilinear_filtering"))
                         ini.WriteValue("Settings", "linear_present", "0");
 
+                    //Shader - FXAA Shader (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("fxaa") && !string.IsNullOrEmpty(SystemConfig["fxaa"]))
                         ini.WriteValue("Settings", "fxaa", SystemConfig["fxaa"]);
                     else if (Features.IsSupported("fxaa"))
                         ini.WriteValue("Settings", "fxaa", "0");
 
+                    //Renderer
                     if (SystemConfig.isOptSet("renderer") && !string.IsNullOrEmpty(SystemConfig["renderer"]))
                         ini.WriteValue("Settings", "Renderer", SystemConfig["renderer"]);
                     else if (Features.IsSupported("renderer"))
                         ini.WriteValue("Settings", "Renderer", "12");
 
+                    //Deinterlacing : automatic or NONE options (1.6 & 1.7)
                     if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]))
                         ini.WriteValue("Settings", "interlace", SystemConfig["interlace"]);
                     else if (Features.IsSupported("interlace"))
                         ini.WriteValue("Settings", "interlace", "7");
 
+                    //Anisotropic filtering (1.6 & 1.7)
                     if (SystemConfig.isOptSet("anisotropic_filtering") && !string.IsNullOrEmpty(SystemConfig["anisotropic_filtering"]))
                         ini.WriteValue("Settings", "MaxAnisotropy", SystemConfig["anisotropic_filtering"]);
                     else if (Features.IsSupported("anisotropic_filtering"))
                         ini.WriteValue("Settings", "MaxAnisotropy", "0");
 
+                    //Align sprite (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("align_sprite") && !string.IsNullOrEmpty(SystemConfig["align_sprite"]))
                     {
                         ini.WriteValue("Settings", "UserHacks_align_sprite_X", SystemConfig["align_sprite"]);
@@ -392,6 +404,7 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("align_sprite"))
                         ini.WriteValue("Settings", "UserHacks_align_sprite_X", "0");
 
+                    //Merge sprite (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("UserHacks_merge_pp_sprite") && !string.IsNullOrEmpty(SystemConfig["UserHacks_merge_pp_sprite"]))
                     {
                         ini.WriteValue("Settings", "UserHacks_merge_pp_sprite", SystemConfig["UserHacks_merge_pp_sprite"]);
@@ -400,6 +413,7 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("align_sprite"))
                         ini.WriteValue("Settings", "UserHacks_merge_pp_sprite", "0");
 
+                    //Disable safe features (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("UserHacks_Disable_Safe_Features") && !string.IsNullOrEmpty(SystemConfig["UserHacks_Disable_Safe_Features"]))
                     {
                         ini.WriteValue("Settings", "UserHacks_Disable_Safe_Features", SystemConfig["UserHacks_Disable_Safe_Features"]);
@@ -408,6 +422,7 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("UserHacks_Disable_Safe_Features"))
                         ini.WriteValue("Settings", "UserHacks_Disable_Safe_Features", "0");
 
+                    //Texture Offsets (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("TextureOffsets") && (SystemConfig["TextureOffsets"] == "1"))
                     {
                         ini.WriteValue("Settings", "UserHacks_TCOffsetX", "500");
@@ -426,6 +441,7 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "UserHacks_TCOffsetY", "0");
                     }
 
+                    //Skipdraw Range (both 1.6 & 1.7)
                     if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
                     {
                         ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
@@ -461,6 +477,11 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "0");
                         ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "0");
                     }
+                    //CRC Hack Level
+                    if (SystemConfig.isOptSet("crc_hack_level") && !string.IsNullOrEmpty(SystemConfig["crc_hack_level"]))
+                        ini.WriteValue("Settings", "crc_hack_level", SystemConfig["crc_hack_level"]);
+                    else if (Features.IsSupported("crc_hack_level"))
+                        ini.WriteValue("Settings", "crc_hack_level", "-1");
 
                     //Custom textures
                     if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
