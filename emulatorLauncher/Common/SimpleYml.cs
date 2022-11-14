@@ -48,20 +48,23 @@ namespace emulatorLauncher.Tools
                 if (string.IsNullOrEmpty(line))
                     continue;
 
-                int indent = GetIndent(line);
-
+                int indent = GetIndent(line);                
                 string tmp = line.Trim();
-                int idx = tmp.IndexOf(":");
-                if (idx >= 0)
-                {
-                    string name = tmp.Substring(0, idx).Trim();
-                    string value = tmp.Substring(idx + 1).Trim();
 
+                if (!string.IsNullOrEmpty(tmp))
+                {
                     while (stack.Count > 0 && current.Indent >= indent)
                         current = stack.Pop();
 
                     if (!stack.Contains(current))
                         stack.Push(current);
+                }
+
+                int idx = tmp.IndexOf(":");
+                if (idx >= 0)
+                {
+                    string name = tmp.Substring(0, idx).Trim();
+                    string value = tmp.Substring(idx + 1).Trim();
 
                     if (string.IsNullOrEmpty(value))
                     {
@@ -119,7 +122,7 @@ namespace emulatorLauncher.Tools
                         current.Elements.Add(item);
                     }
                 }
-                else
+                else if (!string.IsNullOrEmpty(tmp))
                 {
                     var item = new YmlElement() { Name = "", Value = tmp };
                     current.Elements.Add(item);
@@ -178,18 +181,34 @@ namespace emulatorLauncher.Tools
             Elements = new List<YmlElement>();
         }
 
+        private void AddElement(YmlElement element)
+        {
+            if (Elements.Count > 0 && string.IsNullOrEmpty(Elements[Elements.Count - 1].Name) && Elements[Elements.Count - 1].Value == "...")
+            {
+                Elements.Insert(Elements.Count - 1, element);
+                return;
+            }
+
+            Elements.Add(element);
+        }
+
         public YmlContainer GetOrCreateContainer(string key)
         {
             var element = Elements.OfType<YmlContainer>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
             if (element == null)
             {
+                element = new YmlContainer() { Name = key };
+
                 // Convert Element to Container
                 var item = Elements.FirstOrDefault(e => !(e is YmlContainer) && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (item != null)
+                {
+                    int pos = Elements.IndexOf(item);
                     Elements.Remove(item);
-
-                element = new YmlContainer() { Name = key };
-                Elements.Add(element);
+                    Elements.Insert(pos, element);
+                }
+                else                
+                    AddElement(element);
             }
 
             return element;
@@ -210,13 +229,18 @@ namespace emulatorLauncher.Tools
                 var element = Elements.FirstOrDefault(e => !(e is YmlContainer) && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (element == null)
                 {
+                    element = new YmlElement() { Name = key };
+
                     // Convert Container to Element
                     var container = Elements.FirstOrDefault(e => e is YmlContainer && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                     if (container != null)
+                    {
+                        int pos = Elements.IndexOf(container);
                         Elements.Remove(container);
-
-                    element = new YmlElement() { Name = key };
-                    Elements.Add(element);
+                        Elements.Insert(pos, element);
+                    }
+                    else                    
+                        AddElement(element);
                 }
 
                 element.Value = value;
