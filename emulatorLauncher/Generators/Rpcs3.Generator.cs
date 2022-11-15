@@ -111,9 +111,9 @@ namespace emulatorLauncher
 
             // Handle Core part of yml file
             var core = yml.GetOrCreateContainer("Core");
-            BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)");
+            BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)"); //this option changes in the latest version of RCPS3 (es_features only)
             BindFeature(core, "PPU LLVM Precompilation", "lvmprecomp", "true");
-            BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)");
+            BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)"); //this option changes in the latest version of RCPS3 (es_features only)
             BindFeature(core, "Lower SPU thread priority", "lowerspuprio", "false");
             BindFeature(core, "Preferred SPU Threads", "sputhreads", "0");
             BindFeature(core, "SPU loop detection", "spuloopdetect", "false");
@@ -128,7 +128,7 @@ namespace emulatorLauncher
             BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
             BindFeature(video, "Resolution", "rpcs3_internal_resolution", "1280x720");
             BindFeature(video, "Aspect ratio", "ratio", "16:9");
-            BindFeature(video, "Frame limit", "framelimit", "Auto");
+            BindFeature(video, "Frame limit", "framelimit", "Auto"); //this option changes in the latest version of RCPS3 (es_features only)
             BindFeature(video, "MSAA", "msaa", "Auto");
             BindFeature(video, "Shader Mode", "shadermode", "Async Shader Recompiler");
             BindFeature(video, "Write Color Buffers", "writecolorbuffers", "false");
@@ -151,7 +151,7 @@ namespace emulatorLauncher
             var audio = yml.GetOrCreateContainer("Audio");
             BindFeature(audio, "Renderer", "audiobackend", "XAudio2");
             BindFeature(audio, "Audio Format", "audiochannels", "Downmix to Stereo");
-            
+
             // Handle Miscellaneous part of yml file
             var misc = yml.GetOrCreateContainer("Miscellaneous");
             BindFeature(misc, "Start games in fullscreen mode", "startfullscreen", "true");
