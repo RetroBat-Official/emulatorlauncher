@@ -8,8 +8,9 @@ namespace emulatorLauncher
 {  
     class SystemShaders
     {
-        class YmlShader : IYmlItem
+        class YmlShader
         {
+            [YmlName]
             public string system { get; set; }
 
             public string shader { get; set; }
@@ -19,7 +20,7 @@ namespace emulatorLauncher
         public static string GetShader(string yml, string system)
         {
             if (_ymlShadersCache == null)
-                _ymlShadersCache = new SimpleYml<YmlShader>(yml);
+                _ymlShadersCache = SimpleYml<YmlShader>.Parse(yml);
 
             var ret = _ymlShadersCache.Where(i => i.system == system).Select(i => i.shader).FirstOrDefault();
             if( ret == null)

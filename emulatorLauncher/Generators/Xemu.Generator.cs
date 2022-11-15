@@ -88,7 +88,7 @@ namespace emulatorLauncher
                     if (!string.IsNullOrEmpty(hddPath))
                         ini.WriteValue("system", "hdd_path", hddPath);
 
-                    if (!string.IsNullOrEmpty(eepromPath))
+                    if (!string.IsNullOrEmpty(flashPath))
                         ini.WriteValue("system", "flash_path", flashPath);
 
                     if (!string.IsNullOrEmpty(bootRom))
@@ -160,7 +160,7 @@ namespace emulatorLauncher
                     if (!string.IsNullOrEmpty(hddPath))
                         ini.WriteValue("sys.files", "hdd_path", "'" + hddPath + "'");
 
-                    if (!string.IsNullOrEmpty(eepromPath))
+                    if (!string.IsNullOrEmpty(flashPath))
                         ini.WriteValue("sys.files", "flashrom_path", "'" + flashPath + "'");
 
                     if (!string.IsNullOrEmpty(bootRom))

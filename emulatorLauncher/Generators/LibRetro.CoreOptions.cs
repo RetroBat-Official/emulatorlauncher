@@ -537,8 +537,12 @@ namespace emulatorLauncher.libRetro
             coreSettings["ppsspp_frameskiptype"] = "number of frames";
             coreSettings["ppsspp_rendering_mode"] = "buffered";
             coreSettings["ppsspp_locked_cpu_speed"] = "off";
-            coreSettings["ppsspp_cheats"] = "enabled";
             coreSettings["ppsspp_button_preference"] = "cross";
+
+            if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
+                coreSettings["ppsspp_cheats"] = "disabled";
+            else
+                coreSettings["ppsspp_cheats"] = "enabled";
 
             switch (SystemConfig["PerformanceMode"])
             {
@@ -1796,6 +1800,18 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_pgxp_mode"] = "disabled";
                 coreSettings["beetle_psx_hw_pgxp_texture"] = "disabled";
                 coreSettings["beetle_psx_hw_pgxp_vertex"] = "disabled";
+            }
+
+            //Custom textures
+            if (SystemConfig.isOptSet("mednafen_texture_replacement") && (SystemConfig["mednafen_texture_replacement"] == "enabled"))
+            {
+                coreSettings["beetle_psx_hw_replace_textures"] = "enabled";
+                coreSettings["beetle_psx_hw_track_textures"] = "enabled";
+            }
+            else
+            {
+                coreSettings["beetle_psx_hw_replace_textures"] = "disabled";
+                coreSettings["beetle_psx_hw_track_textures"] = "disabled";
             }
 
             BindFeature(coreSettings, "beetle_psx_hw_internal_resolution", "internal_resolution", "1x(native)");

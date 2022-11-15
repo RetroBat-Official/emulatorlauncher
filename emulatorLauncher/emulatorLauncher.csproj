@@ -46,6 +46,7 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="SharpDX, Version=3.0.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SharpDX.dll</HintPath>
@@ -71,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\DynamicJson.cs" />
     <Compile Include="Common\GunGames.cs" />
     <Compile Include="Common\InputDevices.cs" />
     <Compile Include="Common\MountFile.cs" />
