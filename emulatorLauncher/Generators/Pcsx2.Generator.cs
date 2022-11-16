@@ -124,7 +124,7 @@ namespace emulatorLauncher
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
-            :
+            
             //setting up command line parameters
             List<string> commandArray = new List<string>();
             if (_isPcsxqt)
