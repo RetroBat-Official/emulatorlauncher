@@ -600,17 +600,24 @@ namespace emulatorLauncher
                 //Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
                 {
-                    if (SystemConfig.getOptBoolean("retroachievements.hardcore"))
-                        ini.WriteValue("Achievements", "ChallengeMode", "true");
-                    else
-                        ini.WriteValue("Achievements", "ChallengeMode", "false");
-
-                    ini.WriteValue("Achievements", "Enabled", SystemConfig["retroachievements"]);
+                    ini.WriteValue("Achievements", "Enabled", "true");
                     ini.WriteValue("Achievements", "TestMode", "false");
                     ini.WriteValue("Achievements", "UnofficialTestMode", "false");
-                    ini.WriteValue("Achievements", "Leaderboards", "true");
                     ini.WriteValue("Achievements", "SoundEffects", "true");
-                    ini.WriteValue("Achievements", "PrimedIndicators", "true");
+                    ini.WriteValue("Achievements", "RichPresence", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false");
+                    ini.WriteValue("Achievements", "PrimedIndicators", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
+                    ini.WriteValue("Achievements", "Leaderboards", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
+                    ini.WriteValue("Achievements", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
+                    
+                    // Inject credentials
+                    if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
+                    {
+                        ini.WriteValue("Achievements", "Username", SystemConfig["retroachievements.username"]);
+                        ini.WriteValue("Achievements", "Token", SystemConfig["retroachievements.token"]);
+                        
+                        if (string.IsNullOrEmpty(ini.GetValue("Achievements", "Token")))
+                            ini.WriteValue("Achievements", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
+                    }
                 }
                 else
                 {
