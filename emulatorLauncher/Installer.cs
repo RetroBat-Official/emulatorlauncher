@@ -22,7 +22,7 @@ namespace emulatorLauncher
 
             { new Installer("arcadeflashweb") },           
             { new Installer("libretro", "retroarch" ) }, { new Installer("angle", "retroarch" ) }, // "libretro_cores.7z" ???
-            { new Installer("duckstation", "duckstation", "duckstation-nogui-x64-ReleaseLTCG.exe") },  
+            { new Installer("duckstation", new string[] { "duckstation"}, new string[] { "duckstation-nogui-x64-ReleaseLTCG.exe", "duckstation-nogui-x64-Release.exe", "duckstation-nogui.exe" }) },
             { new Installer("kega-fusion", "kega-fusion", "Fusion.exe") }, 
             { new Installer("mesen") }, 
             { new Installer("model3", "supermodel") }, 
@@ -64,9 +64,10 @@ namespace emulatorLauncher
             { new Installer("vpinball", "vpinball", "vpinballx.exe") }, 
             { new Installer("winuae", "winuae", "winuae64.exe") }, 
             { new Installer("xemu", "xemu") },
-			{ new Installer("nosgba", "nosgba", "no$gba.exe") },
+            { new Installer("nosgba", "nosgba", "no$gba.exe") },
             { new Installer("yuzu", "yuzu", "yuzu.exe") },
             { new Installer("ryujinx", "ryujinx", "Ryujinx.exe") },
+            { new Installer("xenia", "xenia", "xenia.exe") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
         };
 

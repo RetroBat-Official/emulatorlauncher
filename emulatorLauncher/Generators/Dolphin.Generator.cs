@@ -192,11 +192,19 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Enhancements", "MaxAnisotropy", "0");
 
-                    // antialiasing
+                    // antialiasing (new dolhpin version adds SSAA)
+                    if (SystemConfig.isOptSet("ssaa") && SystemConfig.getOptBoolean("ssaa"))
+                        ini.WriteValue("Settings", "SSAA", SystemConfig["ssaa"]);
+                    else
+                        ini.WriteValue("Settings", "SSAA", "false");
+                    
                     if (SystemConfig.isOptSet("antialiasing"))
                         ini.WriteValue("Settings", "MSAA", "0x0000000" + SystemConfig["antialiasing"]);
                     else
+                    {
                         ini.WriteValue("Settings", "MSAA", "0x00000001");
+                        ini.WriteValue("Settings", "SSAA", "false");
+                    }
 
                     // various performance hacks - Default Off
                     if (SystemConfig.isOptSet("perf_hacks"))

@@ -111,18 +111,37 @@ namespace emulatorLauncher
 
             // Handle Core part of yml file
             var core = yml.GetOrCreateContainer("Core");
-            BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)");
+            BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)"); //this option changes in the latest version of RCPS3 (es_features only)
             BindFeature(core, "PPU LLVM Precompilation", "lvmprecomp", "true");
-            BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)");
+            BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)"); //this option changes in the latest version of RCPS3 (es_features only)
             BindFeature(core, "Lower SPU thread priority", "lowerspuprio", "false");
             BindFeature(core, "Preferred SPU Threads", "sputhreads", "0");
             BindFeature(core, "SPU loop detection", "spuloopdetect", "false");
             BindFeature(core, "SPU Block Size", "spublocksize", "Safe");
             BindFeature(core, "Accurate RSX reservation access", "accuratersx", "false");
-            BindFeature(core, "Accurate xfloat", "accuratexfloat", "false");
             BindFeature(core, "PPU LLVM Accurate Vector NaN values", "vectornan", "false");
             BindFeature(core, "Full Width AVX-512", "fullavx", "false");
-            
+
+            //xfloat is managed through 3 options now in latest release
+            if (SystemConfig.isOptSet("xfloat") && (SystemConfig["xfloat"] == "Accurate"))
+            {
+                core["Accurate xfloat"] = "true";
+                core["Approximate xfloat"] = "false";
+                core["Relaxed xfloat"] = "false";
+            }
+            else if (SystemConfig.isOptSet("xfloat") && (SystemConfig["xfloat"] == "Relaxed"))
+            {
+                core["Accurate xfloat"] = "false";
+                core["Approximate xfloat"] = "false";
+                core["Relaxed xfloat"] = "true";
+            }
+            else if (Features.IsSupported("xfloat")) 
+            {
+                core["Accurate xfloat"] = "false";
+                core["Approximate xfloat"] = "true";
+                core["Relaxed xfloat"] = "false";
+            }
+
             // Handle Video part of yml file
             var video = yml.GetOrCreateContainer("Video");
             BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
@@ -142,16 +161,60 @@ namespace emulatorLauncher
             BindFeature(video, "Multithreaded RSX", "multithreadedrsx", "false");
             BindFeature(video, "Enable 3D", "enable3d", "false");
             BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
-            
+            BindFeature(video, "Shader Precision", "shader_quality", "Auto");
+
+            //ZCULL Accuracy
+            if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))
+            {
+                core["Relaxed ZCULL Sync"] = "false";
+                core["Accurate ZCULL stats"] = "false";
+            }
+            else if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Relaxed"))
+            {
+                core["Relaxed ZCULL Sync"] = "true";
+                core["Accurate ZCULL stats"] = "false";
+            }
+            else if (Features.IsSupported("zcull_accuracy"))
+            {
+                core["Relaxed ZCULL Sync"] = "false";
+                core["Accurate ZCULL stats"] = "true";
+            }
+
             // Handle Vulkan part of yml file
             var vulkan = video.GetOrCreateContainer("Vulkan");
             BindFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "false");
-            
+            BindFeature(vulkan, "Enable FidelityFX Super Resolution Upscaling", "fsr_upscaling", "false");
+
+            // Handle Performance Overlay part of yml file
+            var performance = video.GetOrCreateContainer("Performance Overlay");
+            if (SystemConfig.isOptSet("performance_overlay") && (SystemConfig["performance_overlay"] == "detailed"))
+            {
+                performance["Enabled"] = "true";
+                performance["Enable Framerate Graph"] = "true";
+                performance["Enable Frametime Graph"] = "true";
+            }
+            else if (SystemConfig.isOptSet("performance_overlay") && (SystemConfig["performance_overlay"] == "simple"))
+            {
+                performance["Enabled"] = "true";
+                performance["Enable Framerate Graph"] = "false";
+                performance["Enable Frametime Graph"] = "false";
+            }
+            else if (Features.IsSupported("performance_overlay"))
+            {
+                performance["Enabled"] = "false";
+                performance["Enable Framerate Graph"] = "false";
+                performance["Enable Frametime Graph"] = "false";
+            }
+
             // Handle Audio part of yml file
             var audio = yml.GetOrCreateContainer("Audio");
-            BindFeature(audio, "Renderer", "audiobackend", "XAudio2");
-            BindFeature(audio, "Audio Format", "audiochannels", "Downmix to Stereo");
-            
+            BindFeature(audio, "Renderer", "audiobackend", "Cubeb");
+            BindFeature(audio, "Audio Format", "audiochannels", "Stereo");
+
+            // Handle System part of yml file
+            var system_region = yml.GetOrCreateContainer("System");
+            BindFeature(system_region, "License Area", "ps3_region", "SCEE");
+
             // Handle Miscellaneous part of yml file
             var misc = yml.GetOrCreateContainer("Miscellaneous");
             BindFeature(misc, "Start games in fullscreen mode", "startfullscreen", "true");
