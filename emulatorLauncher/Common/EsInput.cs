@@ -55,59 +55,9 @@ namespace emulatorLauncher.Tools
         {
             get
             {
-                return FromSdlGuidString(DeviceGUID);
+                return DeviceGUID.FromSdlGuidString();
             }
         }
-
-        public static string ToSdlGuidString(Guid guid)
-        {
-            string esGuidString = guid.ToString();
-
-            // 030000005e040000e002000000007801
-
-            string ret =
-                esGuidString.Substring(6, 2) +
-                esGuidString.Substring(4, 2) +
-                esGuidString.Substring(2, 2) +
-                esGuidString.Substring(0, 2) +
-                esGuidString.Substring(10 + 1, 2) +
-                esGuidString.Substring(8 + 1, 2) +
-                esGuidString.Substring(14 + 2, 2) +
-                esGuidString.Substring(12 + 2, 2) +
-                esGuidString.Substring(16 + 3, 4) +
-                esGuidString.Substring(20 + 4);
-
-            return ret;
-        }
-
-
-        public static System.Guid FromSdlGuidString(string esGuidString)
-        {
-            if (esGuidString.Length == 32)
-            {
-                string guid =
-                    esGuidString.Substring(6, 2) +
-                    esGuidString.Substring(4, 2) +
-                    esGuidString.Substring(2, 2) +
-                    esGuidString.Substring(0, 2) +
-                    "-" +
-                    esGuidString.Substring(10, 2) +
-                    esGuidString.Substring(8, 2) +
-                    "-" +
-                    esGuidString.Substring(14, 2) +
-                    esGuidString.Substring(12, 2) +
-                    "-" +
-                    esGuidString.Substring(16, 4) +
-                    "-" +
-                    esGuidString.Substring(20);
-
-                try { return new System.Guid(guid); }
-                catch { }
-            }
-
-            return Guid.Empty;
-        }
-
 
         [XmlAttribute("type")]
         public string Type { get; set; }
@@ -130,7 +80,7 @@ namespace emulatorLauncher.Tools
             }
         }
 
-        bool IsXInputDevice(string vendorId, string productId)
+        private bool IsXInputDevice(string vendorId, string productId)
         {
             var ParseIds = new Regex(@"([VP])ID_([\da-fA-F]{4})");
             // Used to grab the VID/PID components from the device ID string.                
@@ -167,13 +117,14 @@ namespace emulatorLauncher.Tools
         }
 
         private bool? _isXinput;
+        private static string[] _xInputDriverIdentifiers = new string[] { "72" /* 'r' for RawInput */, "78" /* 'x' for XInput */ };
 
         public bool IsXInputDevice()
         {
             if (_isXinput.HasValue)
                 return _isXinput.Value;
-
-            if (DeviceGUID == null || DeviceGUID.Length < 32 || !DeviceGUID.StartsWith("03000000"))
+            
+            if (DeviceGUID == null || DeviceGUID.Length < 32 || !DeviceGUID.StartsWith("03") /* XInput is always 03 (USB) */ || !_xInputDriverIdentifiers.Contains(DeviceGUID.Substring(28, 2)))
                 _isXinput = false;
             else
             {
@@ -752,5 +703,77 @@ namespace emulatorLauncher.Tools
         public string SystemName { get; set; }
 
         public bool Present { get; set; }
+    }
+
+    public static class InputExtentions
+    {
+        /*
+        This GUID fits the standard form:
+             * 16-bit bus
+             * 16-bit CRC16 of the joystick name (can be zero)
+             * 16-bit vendor ID
+             * 16-bit zero
+             * 16-bit product ID
+             * 16-bit zero
+             * 16-bit version
+             * 8-bit driver identifier ('h' for HIDAPI, 'x' for XInput, etc.)
+             * 8-bit driver-dependent type info`
+        */
+
+        public static Guid ToOldSdlGuid(this  Guid guid)
+        {
+            return new Guid("0000" + guid.ToString().Substring(4));
+        }
+
+        public static string ToSdlGuidString(this  Guid guid)
+        {
+            string esGuidString = guid.ToString();
+
+            // 030000005e040000e002000000007801
+
+            string ret =
+                esGuidString.Substring(6, 2) +
+                esGuidString.Substring(4, 2) +
+                esGuidString.Substring(2, 2) +
+                esGuidString.Substring(0, 2) +
+                esGuidString.Substring(10 + 1, 2) +
+                esGuidString.Substring(8 + 1, 2) +
+                esGuidString.Substring(14 + 2, 2) +
+                esGuidString.Substring(12 + 2, 2) +
+                esGuidString.Substring(16 + 3, 4) +
+                esGuidString.Substring(20 + 4);
+
+            return ret;
+        }
+
+
+        public static System.Guid FromSdlGuidString(this string esGuidString)
+        {
+            if (esGuidString.Length == 32)
+            {
+                string guid =
+                    esGuidString.Substring(6, 2) +
+                    esGuidString.Substring(4, 2) +
+                    esGuidString.Substring(2, 2) +
+                    esGuidString.Substring(0, 2) +
+                    "-" +
+                    esGuidString.Substring(10, 2) +
+                    esGuidString.Substring(8, 2) +
+                    "-" +
+                    esGuidString.Substring(14, 2) +
+                    esGuidString.Substring(12, 2) +
+                    "-" +
+                    esGuidString.Substring(16, 4) +
+                    "-" +
+                    esGuidString.Substring(20);
+
+                try { return new System.Guid(guid); }
+                catch { }
+            }
+
+            return Guid.Empty;
+        }
+
+
     }
 }

@@ -597,6 +597,10 @@ namespace emulatorLauncher
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
                         if (pi.Config == null)
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetOldSdlGuid() && c.DeviceName == pi.Name);
+                        if (pi.Config == null)
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetOldSdlGuid());
+                        if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
@@ -737,6 +741,24 @@ namespace emulatorLauncher
         public int NbHats { get; set; }
         public int NbAxes { get; set; }
 
+        public string GetOldSdlGuid()
+        {
+            StringBuilder sb = new StringBuilder(Guid.Length);
+
+            if (!string.IsNullOrEmpty(Guid))
+            {
+                for (int i = 0; i < Guid.Length; i++)
+                {
+                    if (i < 4 || i >= 8)
+                        sb.Append(Guid[i]);
+                    else
+                        sb.Append("0");
+                }
+            }
+
+            return sb.ToString();
+        }
+        
         public InputConfig Config { get; set; }
 
         public string ToShortString()
