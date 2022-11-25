@@ -31,8 +31,8 @@ namespace emulatorLauncher.Tools
                 SdlGameControllers ctl = new SdlGameControllers();
                 ctl.Index = i;
                 ctl.Guid = guid;
-                ctl.VendorId = int.Parse((sdlGuid.Substring(10, 2) + sdlGuid.Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
-                ctl.ProductId = int.Parse((sdlGuid.Substring(18, 2) + sdlGuid.Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                ctl.VendorId = ushort.Parse((sdlGuid.Substring(10, 2) + sdlGuid.Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                ctl.ProductId = ushort.Parse((sdlGuid.Substring(18, 2) + sdlGuid.Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.Name = name;
 
                 string hidpath = SDL.SDL_JoystickPathForIndex(i);
@@ -75,7 +75,7 @@ namespace emulatorLauncher.Tools
 
                 _controllersByGuid[ctl.Guid] = ctl;
 
-                var oldGuid = ctl.Guid.ToOldSdlGuid();
+                var oldGuid = ctl.Guid.ConvertSdlGuid(SdlVersion.SDL2_0_X);
                 if (ctl.Guid != oldGuid)
                     _controllersByGuid[oldGuid] = ctl;
             }
@@ -94,15 +94,15 @@ namespace emulatorLauncher.Tools
                 if (_controllersByGuid.ContainsKey(ctl.Guid))
                     continue;
 
-                ctl.VendorId = int.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
-                ctl.ProductId = int.Parse((mapArray[0].Substring(18, 2) + mapArray[0].Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                ctl.VendorId = ushort.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                ctl.ProductId = ushort.Parse((mapArray[0].Substring(18, 2) + mapArray[0].Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.Name = mapArray[1];
                 ctl.Mapping = ExtractMapping(mapArray.Skip(2));
                 ctl.SdlBinding = mappingString;
 
                 _controllersByGuid[ctl.Guid] = ctl;
 
-                var oldGuid = ctl.Guid.ToOldSdlGuid();
+                var oldGuid = ctl.Guid.ConvertSdlGuid(SdlVersion.SDL2_0_X);
                 if (ctl.Guid != oldGuid)
                     _controllersByGuid[oldGuid] = ctl;
             }
@@ -234,7 +234,7 @@ namespace emulatorLauncher.Tools
             if (_controllersByGuid.TryGetValue(guid, out ctrl))
                 return ctrl;
 
-            var oldGuid = guid.ToOldSdlGuid();
+            var oldGuid = guid.ConvertSdlGuid(SdlVersion.SDL2_0_X);
             if (guid != oldGuid)
             {
                 if (_controllersByGuid.TryGetValue(oldGuid, out ctrl))
@@ -284,8 +284,8 @@ namespace emulatorLauncher.Tools
         public string Name { get; set; }
         public SdlControllerMapping[] Mapping { get; set; }
         public string SdlBinding { get; set; }
-        public int VendorId { get; set; }
-        public int ProductId { get; set; }
+        public ushort VendorId { get; set; }
+        public ushort ProductId { get; set; }
 
         public string Path { get; set; }
     }

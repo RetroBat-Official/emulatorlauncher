@@ -597,9 +597,9 @@ namespace emulatorLauncher
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
                         if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetOldSdlGuid() && c.DeviceName == pi.Name);
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetSdlGuid() && c.DeviceName == pi.Name);
                         if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetOldSdlGuid());
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetSdlGuid());
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
                         if (pi.Config == null)
@@ -623,7 +623,10 @@ namespace emulatorLauncher
 
                 return inputConfig;
             }
-            catch { }
+            catch(Exception ex)
+            { 
+
+            }
 
             return null;
         }
@@ -741,25 +744,38 @@ namespace emulatorLauncher
         public int NbHats { get; set; }
         public int NbAxes { get; set; }
 
-        public string GetOldSdlGuid()
+        public string GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X)
         {
-            StringBuilder sb = new StringBuilder(Guid.Length);
+            if (version == SdlVersion.Current)
+                return Guid;
 
-            if (!string.IsNullOrEmpty(Guid))
-            {
-                for (int i = 0; i < Guid.Length; i++)
-                {
-                    if (i < 4 || i >= 8)
-                        sb.Append(Guid[i]);
-                    else
-                        sb.Append("0");
-                }
-            }
-
-            return sb.ToString();
+            return Guid
+                .FromSdlGuidString()
+                .ConvertSdlGuid(version)
+                .ToSdlGuidString();            
         }
         
         public InputConfig Config { get; set; }
+
+        private SdlGameControllers _sdlController;
+        private bool _sdlControllerKnown = false;
+
+        public SdlGameControllers SdlController
+        {
+            get
+            {
+                if (!_sdlControllerKnown)
+                {
+                    _sdlControllerKnown = true;
+                    _sdlController = string.IsNullOrEmpty(DevicePath) ?
+                         SdlGameControllers.GetGameController(Guid.FromSdlGuidString()) :
+                         SdlGameControllers.GetGameControllerByPath(DevicePath);
+                }
+                    
+                return _sdlController;
+            }
+        }
+
 
         public string ToShortString()
         {
@@ -774,6 +790,4 @@ namespace emulatorLauncher
             return Name + " - Device:" + DeviceIndex.ToString() + ", Player:" + PlayerIndex.ToString() + ", Guid:" + (Guid.ToString() ?? "null");
         }
     }
-
-
 }

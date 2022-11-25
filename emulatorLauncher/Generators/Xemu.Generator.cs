@@ -133,7 +133,7 @@ namespace emulatorLauncher
                             if (ctl.Name == "Keyboard")
                                 ini.WriteValue("input.bindings", "port" + port, "'keyboard'");
                             else if (ctl.Config != null && ctl.Config.IsXInputDevice())
-                                ini.WriteValue("input.bindings", "port" + port, "'" + ctl.GetOldSdlGuid().ToLowerInvariant() + "'");
+                                ini.WriteValue("input.bindings", "port" + port, "'" + ctl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant() + "'");
 
                             port++;
                         }

@@ -15,8 +15,8 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        FileVersionInfo _sdlVersion = null;
-
+        private SdlVersion _sdlVersion = SdlVersion.Current;
+        
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath(emulator.Replace("-", " "));
@@ -27,6 +27,10 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            string sdl2 = Path.Combine(path, "SDL2.exe");
+            if (File.Exists(sdl2))
+                _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
+            
             SetupConfiguration(path);
             
             return new ProcessStartInfo()
@@ -115,7 +119,7 @@ namespace emulatorLauncher
             if (input.Type == "key")
                 return "engine:keyboard,code:" + input.Id + ",toggle:0";
 
-            string value = "engine:sdl,port:0,guid:" + controller.GetOldSdlGuid().ToLowerInvariant();
+            string value = "engine:sdl,port:0,guid:" + controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
 
             if (input.Type == "button")
                 value += ",button:" + input.Id;
@@ -138,7 +142,7 @@ namespace emulatorLauncher
 
             if (leftVal != null && topVal != null && leftVal.Type == topVal.Type && leftVal.Type == "axis")
             {
-                string value = "engine:sdl,port:0,guid:" + controller.GetOldSdlGuid().ToLowerInvariant();
+                string value = "engine:sdl,port:0,guid:" + controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
                 value += ",axis_x:" + leftVal.Id + ",axis_y:" + topVal.Id + ",deadzone:0.100000,range:1.000000";
 
                 ini.WriteValue("Controls", name + "\\default", "false");

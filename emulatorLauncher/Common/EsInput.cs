@@ -28,12 +28,12 @@ namespace emulatorLauncher.Tools
                 if (ret != null)
                     return ret.InputConfigs.ToArray();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 #if DEBUG
                 MessageBox.Show(ex.Message);
 #endif
-                SimpleLogger.Instance.Error("[InputConfig] Error : " + ex.Message);                
+                SimpleLogger.Instance.Error("[InputConfig] Error : " + ex.Message);
             }
 
             return null;
@@ -123,7 +123,7 @@ namespace emulatorLauncher.Tools
         {
             if (_isXinput.HasValue)
                 return _isXinput.Value;
-            
+
             if (DeviceGUID == null || DeviceGUID.Length < 32 || !DeviceGUID.StartsWith("03") /* XInput is always 03 (USB) */ || !_xInputDriverIdentifiers.Contains(DeviceGUID.Substring(28, 2)))
                 _isXinput = false;
             else
@@ -172,7 +172,7 @@ namespace emulatorLauncher.Tools
                         return index;
 
                     index++;
-                }                 
+                }
             }
 
             return -1;
@@ -297,7 +297,7 @@ namespace emulatorLauncher.Tools
             }
 
             Input ret = new Input() { Name = input.Name };
-           
+
             if (sdlret.Button != SDL_CONTROLLER_BUTTON.INVALID)
             {
                 ret.Type = "button";
@@ -305,7 +305,7 @@ namespace emulatorLauncher.Tools
                 ret.Value = 1;
                 return ret;
             }
-            
+
             if (sdlret.Axis != SDL_CONTROLLER_AXIS.INVALID)
             {
                 ret.Type = "axis";
@@ -348,7 +348,7 @@ namespace emulatorLauncher.Tools
 
             if (input.Type == "axis" && ret.Id == 1 || ret.Id == 3) // up/down axes are inverted
                 ret.Value = -ret.Value;
-         
+
             return ret;
         }
 
@@ -369,12 +369,12 @@ namespace emulatorLauncher.Tools
 
             if (!IsXInputDevice())
                 return XINPUTMAPPING.UNKNOWN;
-            
+
             if (input.Type == "button")
                 return (XINPUTMAPPING)input.Id;
 
             if (input.Type == "hat")
-                return (XINPUTMAPPING) (input.Value + 10);
+                return (XINPUTMAPPING)(input.Value + 10);
 
             if (input.Type == "axis")
             {
@@ -388,7 +388,7 @@ namespace emulatorLauncher.Tools
 
                     case 5:
                         return XINPUTMAPPING.RIGHTTRIGGER;
-                    
+
                     case 0:
                         if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
                             return XINPUTMAPPING.LEFTANALOG_RIGHT;
@@ -434,14 +434,14 @@ namespace emulatorLauncher.Tools
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-                   
-            if ((int) Name != 0)
+
+            if ((int)Name != 0)
                 sb.Append(" name:" + Name);
 
             if (Type != null)
                 sb.Append(" type:" + Type);
 
-            sb.Append(" id:" + Id);            
+            sb.Append(" id:" + Id);
             sb.Append(" value:" + Value);
 
             return sb.ToString().Trim();
@@ -451,12 +451,12 @@ namespace emulatorLauncher.Tools
         {
             if (base.Equals(obj))
                 return true;
-            
+
             Input src = obj as Input;
             if (src == null)
                 return false;
 
-            return Name == src.Name && Id == src.Id && Value == src.Value && Type == src.Type;            
+            return Name == src.Name && Id == src.Id && Value == src.Value && Type == src.Type;
         }
 
         public override int GetHashCode()
@@ -467,7 +467,7 @@ namespace emulatorLauncher.Tools
 
     [Flags]
     public enum InputKey
-    {        
+    {
         // batocera ES compatibility
         hotkey = 8,
         pageup = 512,
@@ -484,7 +484,7 @@ namespace emulatorLauncher.Tools
         down = 4,
         hotkeyenable = 8,
         left = 16,
-        
+
         leftanalogdown = 32,
         leftanalogleft = 64,
         leftanalogright = 128,
@@ -499,10 +499,10 @@ namespace emulatorLauncher.Tools
         leftthumb = 1024,
         rightthumb = 262144,
 
-        leftshoulder = 512,        
+        leftshoulder = 512,
         lefttrigger = 2048,
 
-        rightshoulder = 131072,        
+        rightshoulder = 131072,
         righttrigger = 524288,
 
         right = 4096,
@@ -522,7 +522,7 @@ namespace emulatorLauncher.Tools
         joystick2left = 32768,
         joystick2right = 65536
     }
-    
+
     public enum XINPUTMAPPING
     {
         UNKNOWN = -1,
@@ -530,7 +530,7 @@ namespace emulatorLauncher.Tools
         A = 0,
         B = 1,
         Y = 2,
-        X = 3,        
+        X = 3,
         LEFTSHOULDER = 4,
         RIGHTSHOULDER = 5,
 
@@ -705,75 +705,4 @@ namespace emulatorLauncher.Tools
         public bool Present { get; set; }
     }
 
-    public static class InputExtentions
-    {
-        /*
-        This GUID fits the standard form:
-             * 16-bit bus
-             * 16-bit CRC16 of the joystick name (can be zero)
-             * 16-bit vendor ID
-             * 16-bit zero
-             * 16-bit product ID
-             * 16-bit zero
-             * 16-bit version
-             * 8-bit driver identifier ('h' for HIDAPI, 'x' for XInput, etc.)
-             * 8-bit driver-dependent type info`
-        */
-
-        public static Guid ToOldSdlGuid(this  Guid guid)
-        {
-            return new Guid("0000" + guid.ToString().Substring(4));
-        }
-
-        public static string ToSdlGuidString(this  Guid guid)
-        {
-            string esGuidString = guid.ToString();
-
-            // 030000005e040000e002000000007801
-
-            string ret =
-                esGuidString.Substring(6, 2) +
-                esGuidString.Substring(4, 2) +
-                esGuidString.Substring(2, 2) +
-                esGuidString.Substring(0, 2) +
-                esGuidString.Substring(10 + 1, 2) +
-                esGuidString.Substring(8 + 1, 2) +
-                esGuidString.Substring(14 + 2, 2) +
-                esGuidString.Substring(12 + 2, 2) +
-                esGuidString.Substring(16 + 3, 4) +
-                esGuidString.Substring(20 + 4);
-
-            return ret;
-        }
-
-
-        public static System.Guid FromSdlGuidString(this string esGuidString)
-        {
-            if (esGuidString.Length == 32)
-            {
-                string guid =
-                    esGuidString.Substring(6, 2) +
-                    esGuidString.Substring(4, 2) +
-                    esGuidString.Substring(2, 2) +
-                    esGuidString.Substring(0, 2) +
-                    "-" +
-                    esGuidString.Substring(10, 2) +
-                    esGuidString.Substring(8, 2) +
-                    "-" +
-                    esGuidString.Substring(14, 2) +
-                    esGuidString.Substring(12, 2) +
-                    "-" +
-                    esGuidString.Substring(16, 4) +
-                    "-" +
-                    esGuidString.Substring(20);
-
-                try { return new System.Guid(guid); }
-                catch { }
-            }
-
-            return Guid.Empty;
-        }
-
-
-    }
 }

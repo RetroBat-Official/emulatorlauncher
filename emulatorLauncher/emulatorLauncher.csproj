@@ -87,6 +87,7 @@
     <Compile Include="Common\ProgressInformation.cs" />
     <Compile Include="Common\RawLightGun.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
+    <Compile Include="Common\SdlJoystickGuidManager.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
     <Compile Include="Common\XmlExtensions.cs" />

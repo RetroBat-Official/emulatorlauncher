@@ -219,7 +219,7 @@ namespace emulatorLauncher
                 .ToList()
                 .IndexOf(ctrl);
 
-            string uuid = index + "_" + ctrl.GetOldSdlGuid().ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
+            string uuid = index + "_" + ctrl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
             //WiiU and cemu only allow 2 Gamepads, players 1&2 will be set as Gamepads, following players as Pro Controller(s)
             bool procontroller = false;
