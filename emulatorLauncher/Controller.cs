@@ -145,7 +145,18 @@ namespace emulatorLauncher
                     _dInputDeviceKnown = true;
 
                     if (Config != null && Name != "Keyboard")
-                        _dInputDevice = DirectInputInfo.Controllers.FirstOrDefault(c => c.IsDirectInputDevice(Config.DeviceGUID));
+                    {                        
+                        if (!string.IsNullOrEmpty(this.DevicePath))
+                        {
+                            _dInputDevice = DirectInputInfo.Controllers.FirstOrDefault(c => this.DevicePath == c.ParentDevice);
+
+                            if (_dInputDevice == null)
+                                _dInputDevice = DirectInputInfo.Controllers.FirstOrDefault(c => this.DevicePath == c.DevicePath);
+                        }
+
+                        if (_dInputDevice == null)
+                            _dInputDevice = DirectInputInfo.Controllers.FirstOrDefault(c => c.TestDirectInputDevice(Config.DeviceGUID));
+                    }
                 }
 
                 return _dInputDevice;
