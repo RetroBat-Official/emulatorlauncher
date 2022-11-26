@@ -47,11 +47,14 @@ namespace emulatorLauncher
                 {
                     _sdlControllerKnown = true;
 
-                    if (!string.IsNullOrEmpty(DevicePath))
-                        _sdlController = SdlGameControllers.GetGameControllerByPath(DevicePath);
+                    if (Name != "Keyboard")
+                    {
+                        if (!string.IsNullOrEmpty(DevicePath))
+                            _sdlController = SdlGameControllers.GetGameControllerByPath(DevicePath);
 
-                    if (_sdlController == null)
-                        _sdlController = SdlGameControllers.GetGameController(Guid.FromSdlGuidString());
+                        if (_sdlController == null)
+                            _sdlController = SdlGameControllers.GetGameController(Guid.FromSdlGuidString());
+                    }
                 }
 
                 return _sdlController;
@@ -71,7 +74,7 @@ namespace emulatorLauncher
                 {
                     _winmmJoystickKnown = true;
 
-                    if (this.Config != null)
+                    if (this.Config != null && Name != "Keyboard")
                     {
                         var di = DirectInput;
                         if (di != null)
@@ -100,7 +103,7 @@ namespace emulatorLauncher
                 if (_xInputDevice != null)
                     return true;
 
-                return Config != null && XInputDevice.IsXInputDevice(this.Config.DeviceGUID);
+                return Name != "Keyboard" && Config != null && XInputDevice.IsXInputDevice(this.Config.DeviceGUID);
             }
         }
 
@@ -112,7 +115,7 @@ namespace emulatorLauncher
                 {
                     _xInputDeviceKnown = true;
 
-                    if (!IsXInputDevice)
+                    if (Name == "Keyboard" || !IsXInputDevice)
                         return null;
 
                     var xinputindex = Program.Controllers
@@ -130,14 +133,22 @@ namespace emulatorLauncher
         #endregion
 
         #region DirectInputInfo
+        private DirectInputInfo _dInputDevice;
+        private bool _dInputDeviceKnown;
+
         public DirectInputInfo DirectInput
         {
             get
             {
-                if (Config != null)
-                    return DirectInputInfo.Controllers.FirstOrDefault(c => c.IsDirectInputDevice(Config.DeviceGUID));
+                if (!_dInputDeviceKnown)
+                {
+                    _dInputDeviceKnown = true;
 
-                return null;
+                    if (Config != null && Name != "Keyboard")
+                        _dInputDevice = DirectInputInfo.Controllers.FirstOrDefault(c => c.IsDirectInputDevice(Config.DeviceGUID));
+                }
+
+                return _dInputDevice;
             }
         }
         #endregion
