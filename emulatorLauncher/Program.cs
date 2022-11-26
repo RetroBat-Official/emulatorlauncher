@@ -597,6 +597,10 @@ namespace emulatorLauncher
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
                         if (pi.Config == null)
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetSdlGuid() && c.DeviceName == pi.Name);
+                        if (pi.Config == null)
+                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetSdlGuid());
+                        if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
@@ -619,7 +623,10 @@ namespace emulatorLauncher
 
                 return inputConfig;
             }
-            catch { }
+            catch(Exception ex)
+            { 
+
+            }
 
             return null;
         }
@@ -720,38 +727,4 @@ namespace emulatorLauncher
             key.Close();
         }
     }
-
-    class Controller
-    {
-        public Controller()
-        {
-            DeviceIndex = -1;
-        }
-
-        public int PlayerIndex { get; set; }
-        public int DeviceIndex { get; set; }
-        public string Guid { get; set; }
-        public string DevicePath { get; set; }
-        public string Name { get; set; }
-        public int NbButtons { get; set; }
-        public int NbHats { get; set; }
-        public int NbAxes { get; set; }
-
-        public InputConfig Config { get; set; }
-
-        public string ToShortString()
-        {
-            return Name + ", Device:" + DeviceIndex.ToString() + ", Player:" + PlayerIndex.ToString();
-        }
-
-        public override string ToString() 
-        {
-            if (!string.IsNullOrEmpty(DevicePath))
-                return Name + " - Device:" + DeviceIndex.ToString() + ", Player:" + PlayerIndex.ToString() + ", Path:" + DevicePath;
-
-            return Name + " - Device:" + DeviceIndex.ToString() + ", Player:" + PlayerIndex.ToString() + ", Guid:" + (Guid.ToString() ?? "null");
-        }
-    }
-
-
 }

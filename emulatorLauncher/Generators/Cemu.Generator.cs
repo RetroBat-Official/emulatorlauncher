@@ -81,9 +81,6 @@ namespace emulatorLauncher
 
             string controllerProfiles = Path.Combine(path, "controllerProfiles");
 
-            //Initialize a dictionnary to track joystick Guid and increment index in case multiple joysticks have same guid, cemu adds x_ in front where x = index
-            var pad_dict = new Padsuid();
-
             //Create a single controllerprofile file for each controller
             foreach (var controller in this.Controllers)
             {
@@ -101,28 +98,24 @@ namespace emulatorLauncher
                 
                 //Go to input configuration
                 using (XmlWriter writer = XmlWriter.Create(controllerXml, Settings))
-                    ConfigureInputxml(writer, controller, pad_dict);
+                    ConfigureInputXml(writer, controller);
             }
         }
 
         //Configure input - routing between joystick or keyboard
-        private static void ConfigureInputxml(XmlWriter writer, Controller controller, Padsuid pad_dict)
+        private static void ConfigureInputXml(XmlWriter writer, Controller controller)
         {
             if (controller == null || controller.Config == null)
                 return;
 
             if (controller.Config.Type == "joystick")
-            {
-                int index = controller.DeviceIndex;
-                ConfigureJoystickxml(writer, controller.Config, controller.PlayerIndex - 1, controller.DeviceIndex, pad_dict);
-            }
-
+                ConfigureJoystickXml(writer, controller, controller.PlayerIndex - 1);
             else
-                ConfigureKeyboardxml(writer, controller.Config);
+                ConfigureKeyboardXml(writer, controller.Config);
         }
 
         //configuration of keyboard in xml format
-        private static void ConfigureKeyboardxml(XmlWriter writer, InputConfig keyboard)
+        private static void ConfigureKeyboardXml(XmlWriter writer, InputConfig keyboard)
         {
             if (keyboard == null)
                 return;
@@ -200,36 +193,33 @@ namespace emulatorLauncher
         }
 
         //Configuration of joysticks
-        private static void ConfigureJoystickxml(XmlWriter writer, InputConfig joy, int playerIndex, int deviceindex, Padsuid pad_dict)
+        private static void ConfigureJoystickXml(XmlWriter writer, Controller ctrl, int playerIndex)
         {
+            if (ctrl == null)
+                return;
+
+            InputConfig joy = ctrl.Config;
             if (joy == null)
                 return;
-            string xbox = "";
 
-            if (joy.IsXInputDevice())
+            string xbox = "";
+            if (ctrl.IsXInputDevice)
                 xbox = "yes";
 
-            //get joystick data (type, api, guid, index)
+            // Get joystick data (type, api, guid, index)
             string type;                            //will be used to switch from Gamepad to Pro Controller
-            string api = "SDLController";           //all controllers in cemu are mapped as sdl controllers
-            int index = 0;                          //used to increment controller index before guid in config file
+            string api = "SDLController";           //all controllers in cemu are mapped as sdl controllers                              
             string devicename = joy.DeviceName;
-            string guid = joy.DeviceGUID;
 
-            //add guid to dictionnary if first controller with this guid or increment index if same guid already exists
-            bool guidexists = pad_dict.guidindex.ContainsKey(guid);
-            if (!guidexists)
-            {
-                pad_dict.guidindex.Add(guid, 0);
-                index = 0;
-            }
-            else
-            {
-                index = pad_dict.guidindex[guid] + 1;
-                pad_dict.guidindex[guid] += 1;
-            }
+            int index = Program.Controllers                
+                .GroupBy(c => c.Guid)
+                .Where(c => c.Key == ctrl.Guid)
+                .SelectMany(c => c)
+                .OrderBy(c => SdlGameControllers.GetControllerIndex(c))
+                .ToList()
+                .IndexOf(ctrl);
 
-            string uuid = index + "_" + guid;       //string uuid of the cemu config file
+            string uuid = index + "_" + ctrl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
             //WiiU and cemu only allow 2 Gamepads, players 1&2 will be set as Gamepads, following players as Pro Controller(s)
             bool procontroller = false;
@@ -279,7 +269,7 @@ namespace emulatorLauncher
                 var a = joy[k];
                 if (a != null)
                 {
-                    var val = GetInputValuexml(joy, k, api, r);
+                    var val = GetInputValuexml(ctrl, k, api, r);
                     writer.WriteStartElement("entry");
                     writer.WriteElementString("mapping", v);
                     writer.WriteElementString("button", val);
@@ -292,14 +282,14 @@ namespace emulatorLauncher
             //Write mappings of buttons
 
             //revert gamepadbuttons if set in features
-            if (joy.IsXInputDevice() && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
+            if (ctrl.IsXInputDevice && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
             {
                 writemapping("1", InputKey.b, false);
                 writemapping("2", InputKey.a, false);
                 writemapping("3", InputKey.x, false);
                 writemapping("4", InputKey.y, false);
             }
-            else if (joy.IsXInputDevice())
+            else if (ctrl.IsXInputDevice)
             {
                 writemapping("1", InputKey.a, false);
                 writemapping("2", InputKey.b, false);
@@ -365,16 +355,18 @@ namespace emulatorLauncher
         }
 
         //Generate key bindings
-        private static string GetInputValuexml(InputConfig joy, InputKey ik, string api, bool invertAxis = false)
+        private static string GetInputValuexml(Controller ctrl, InputKey ik, string api, bool invertAxis = false)
         {
+            InputConfig joy = ctrl.Config;
+
             var a = joy[ik];        //inputkey
             Int64 val = a.Id;       //id from es_input config file
             Int64 pid = 1;          //pid will be used to retrieve value in es_input config file for hat and axis
 
             //L1 and R1 for XInput sends wrong id, cemu is based on SDl id's
-            if (joy.IsXInputDevice() && a.Type == "button" && val == 5)
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 5)
                 return "10";
-            else if (joy.IsXInputDevice() && a.Type == "button" && val == 4)
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 4)
                 return "9";
 
             //Return code for left and right triggers (l2 & r2)
@@ -384,9 +376,9 @@ namespace emulatorLauncher
                 return "43";
 
             //start and select for XInput sends wrong id, cemu is based on SDl id's
-            if (joy.IsXInputDevice() && a.Type == "button" && val == 6)
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 6)
                 return "4";
-            else if (joy.IsXInputDevice() && a.Type == "button" && val == 7)
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 7)
                 return "6";
 
             //D-pad for XInput is identified as "hat", retrieve value to define right direction
@@ -426,9 +418,9 @@ namespace emulatorLauncher
             }
 
             //l3 and r3 (thumbs) have different id than cemu
-            if (joy.IsXInputDevice() && a.Type == "button" && val == 8)
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 8)
                 return "7";
-            else if (joy.IsXInputDevice() && a.Type == "button" && val == 9)
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 9)
                 return "8";
 
             string ret = val.ToString();
@@ -502,11 +494,4 @@ namespace emulatorLauncher
             return value;
         }
     }
-
-    //Dictionnary to store guid and index of controllers
-    public class Padsuid
-    {
-        public Dictionary<string, int> guidindex = new Dictionary<string, int>();
-    }
-
 }

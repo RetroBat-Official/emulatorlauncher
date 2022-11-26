@@ -8,7 +8,6 @@ using System.Windows.Forms;
 using System.Management;
 using System.Text.RegularExpressions;
 using System.Globalization;
-using SharpDX.DirectInput;
 using System.Diagnostics;
 
 namespace emulatorLauncher.Tools
@@ -28,12 +27,12 @@ namespace emulatorLauncher.Tools
                 if (ret != null)
                     return ret.InputConfigs.ToArray();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 #if DEBUG
                 MessageBox.Show(ex.Message);
 #endif
-                SimpleLogger.Instance.Error("[InputConfig] Error : " + ex.Message);                
+                SimpleLogger.Instance.Error("[InputConfig] Error : " + ex.Message);
             }
 
             return null;
@@ -55,59 +54,9 @@ namespace emulatorLauncher.Tools
         {
             get
             {
-                return FromSdlGuidString(DeviceGUID);
+                return DeviceGUID.FromSdlGuidString();
             }
         }
-
-        public static string ToSdlGuidString(Guid guid)
-        {
-            string esGuidString = guid.ToString();
-
-            // 030000005e040000e002000000007801
-
-            string ret =
-                esGuidString.Substring(6, 2) +
-                esGuidString.Substring(4, 2) +
-                esGuidString.Substring(2, 2) +
-                esGuidString.Substring(0, 2) +
-                esGuidString.Substring(10 + 1, 2) +
-                esGuidString.Substring(8 + 1, 2) +
-                esGuidString.Substring(14 + 2, 2) +
-                esGuidString.Substring(12 + 2, 2) +
-                esGuidString.Substring(16 + 3, 4) +
-                esGuidString.Substring(20 + 4);
-
-            return ret;
-        }
-
-
-        public static System.Guid FromSdlGuidString(string esGuidString)
-        {
-            if (esGuidString.Length == 32)
-            {
-                string guid =
-                    esGuidString.Substring(6, 2) +
-                    esGuidString.Substring(4, 2) +
-                    esGuidString.Substring(2, 2) +
-                    esGuidString.Substring(0, 2) +
-                    "-" +
-                    esGuidString.Substring(10, 2) +
-                    esGuidString.Substring(8, 2) +
-                    "-" +
-                    esGuidString.Substring(14, 2) +
-                    esGuidString.Substring(12, 2) +
-                    "-" +
-                    esGuidString.Substring(16, 4) +
-                    "-" +
-                    esGuidString.Substring(20);
-
-                try { return new System.Guid(guid); }
-                catch { }
-            }
-
-            return Guid.Empty;
-        }
-
 
         [XmlAttribute("type")]
         public string Type { get; set; }
@@ -129,166 +78,7 @@ namespace emulatorLauncher.Tools
                 return Input.FirstOrDefault(i => i.Name == key);
             }
         }
-
-        bool IsXInputDevice(string vendorId, string productId)
-        {
-            var ParseIds = new Regex(@"([VP])ID_([\da-fA-F]{4})");
-            // Used to grab the VID/PID components from the device ID string.                
-            // Iterate over all PNP devices.                
-
-            foreach (var device in HdiGameDevice.GetGameDevices())
-            {
-                var DeviceId = device.DeviceId;
-                if (DeviceId.Contains("IG_"))
-                {
-                    // Check the VID/PID components against the joystick's.                            
-                    var Ids = ParseIds.Matches(DeviceId);
-                    if (Ids.Count == 2)
-                    {
-                        ushort? VId = null, PId = null;
-                        foreach (Match M in Ids)
-                        {
-                            ushort Value = ushort.Parse(M.Groups[2].Value, NumberStyles.HexNumber);
-                            switch (M.Groups[1].Value)
-                            {
-                                case "V": VId = Value; break;
-                                case "P": PId = Value; break;
-                            }
-                        }
-
-                        //if (VId.HasValue && this.VendorId == VId && PId.HasValue && this.ProductId == PId) return true; 
-                        if (VId.HasValue && vendorId == VId.Value.ToString("X4") && PId.HasValue && productId == PId.Value.ToString("X4"))
-                            return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private bool? _isXinput;
-
-        public bool IsXInputDevice()
-        {
-            if (_isXinput.HasValue)
-                return _isXinput.Value;
-
-            if (DeviceGUID == null || DeviceGUID.Length < 32 || !DeviceGUID.StartsWith("03000000"))
-                _isXinput = false;
-            else
-            {
-                string vendorId = (DeviceGUID.Substring(10, 2) + DeviceGUID.Substring(8, 2)).ToUpper();
-                string productId = (DeviceGUID.Substring(18, 2) + DeviceGUID.Substring(16, 2)).ToUpper();
-
-                _isXinput = IsXInputDevice(vendorId, productId);
-            }
-
-            return _isXinput.Value;
-        }
-
-        public Guid GetJoystickInstanceGuid()
-        {
-            var info = GetDirectInputInfo();
-            if (info != null)
-                return info.InstanceGuid;
-
-            return Guid.Empty;
-        }
-
-        public class DirectInputInfo
-        {
-            public string Name { get; set; }
-            public Guid InstanceGuid { get; set; }
-            public Guid ProductGuid { get; set; }
-            public bool IsXInput { get; set; }
-        }
-
-
-        public int GetDirectInputDeviceIndex()
-        {
-            var guid = GetJoystickInstanceGuid();
-
-            int index = 0;
-            using (var directInput = new SharpDX.DirectInput.DirectInput())
-            {
-
-                foreach (var deviceInstance in directInput.GetDevices())
-                {
-                    if (deviceInstance.Usage != SharpDX.Multimedia.UsageId.GenericGamepad && deviceInstance.Usage != SharpDX.Multimedia.UsageId.GenericJoystick)
-                        continue;
-
-                    if (deviceInstance.InstanceGuid == guid)
-                        return index;
-
-                    index++;
-                }                 
-            }
-
-            return -1;
-        }
-
-        public DirectInputInfo GetDirectInputInfo()
-        {
-            if (this.Type == "keyboard")
-                return null;
-
-            if (string.IsNullOrEmpty(DeviceGUID))
-                return null;
-
-            try
-            {
-                using (var directInput = new SharpDX.DirectInput.DirectInput())
-                {
-                    foreach (var deviceInstance in directInput.GetDevices())
-                    {
-                        if (deviceInstance.Usage != SharpDX.Multimedia.UsageId.GenericGamepad && deviceInstance.Usage != SharpDX.Multimedia.UsageId.GenericJoystick)
-                            continue;
-
-                        var ret = TestDirectInputDevice(deviceInstance);
-                        if (ret != null)
-                            return ret;
-                    }
-                }
-            }
-            catch { }
-
-            return null;
-        }
-
-        private DirectInputInfo TestDirectInputDevice(DeviceInstance deviceInstance)
-        {
-            string vendorId = (this.DeviceGUID.Substring(10, 2) + this.DeviceGUID.Substring(8, 2)).ToUpper();
-            string productId = (this.DeviceGUID.Substring(18, 2) + this.DeviceGUID.Substring(16, 2)).ToUpper();
-
-            string guidString = deviceInstance.ProductGuid.ToString().Replace("-", "");
-            if (guidString.EndsWith("504944564944"))
-            {
-                string dxproductId = guidString.Substring(0, 4).ToUpper();
-                string dxvendorId = guidString.Substring(4, 4).ToUpper();
-
-                if (vendorId == dxvendorId && productId == dxproductId)
-                {
-                    DirectInputInfo info = new DirectInputInfo();
-                    info.Name = deviceInstance.InstanceName;
-                    info.ProductGuid = deviceInstance.ProductGuid;
-                    info.InstanceGuid = deviceInstance.InstanceGuid;
-                    info.IsXInput = true;
-                    return info;
-                }
-            }
-            else if (this.ProductGuid == deviceInstance.ProductGuid || this.ProductGuid == deviceInstance.InstanceGuid)
-            {
-                DirectInputInfo info = new DirectInputInfo();
-                info.Name = deviceInstance.InstanceName;
-                info.ProductGuid = deviceInstance.ProductGuid;
-                info.InstanceGuid = deviceInstance.InstanceGuid;
-                info.IsXInput = true;
-                return info;
-            }
-
-            return null;
-        }
-
+        
         public Input ToSdlCode(InputKey key)
         {
             Input input = this[key];
@@ -346,7 +136,7 @@ namespace emulatorLauncher.Tools
             }
 
             Input ret = new Input() { Name = input.Name };
-           
+
             if (sdlret.Button != SDL_CONTROLLER_BUTTON.INVALID)
             {
                 ret.Type = "button";
@@ -354,7 +144,7 @@ namespace emulatorLauncher.Tools
                 ret.Value = 1;
                 return ret;
             }
-            
+
             if (sdlret.Axis != SDL_CONTROLLER_AXIS.INVALID)
             {
                 ret.Type = "axis";
@@ -380,7 +170,7 @@ namespace emulatorLauncher.Tools
             if (input.Type == "key")
                 return input;
 
-            if (!IsXInputDevice())
+            if (!XInputDevice.IsXInputDevice(this.DeviceGUID))
                 return input;
 
             Input ret = new Input();
@@ -397,7 +187,7 @@ namespace emulatorLauncher.Tools
 
             if (input.Type == "axis" && ret.Id == 1 || ret.Id == 3) // up/down axes are inverted
                 ret.Value = -ret.Value;
-         
+
             return ret;
         }
 
@@ -416,14 +206,14 @@ namespace emulatorLauncher.Tools
             if (input.Type == "key")
                 return XINPUTMAPPING.UNKNOWN;
 
-            if (!IsXInputDevice())
+            if (!XInputDevice.IsXInputDevice(this.DeviceGUID))
                 return XINPUTMAPPING.UNKNOWN;
-            
+
             if (input.Type == "button")
                 return (XINPUTMAPPING)input.Id;
 
             if (input.Type == "hat")
-                return (XINPUTMAPPING) (input.Value + 10);
+                return (XINPUTMAPPING)(input.Value + 10);
 
             if (input.Type == "axis")
             {
@@ -437,7 +227,7 @@ namespace emulatorLauncher.Tools
 
                     case 5:
                         return XINPUTMAPPING.RIGHTTRIGGER;
-                    
+
                     case 0:
                         if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
                             return XINPUTMAPPING.LEFTANALOG_RIGHT;
@@ -463,7 +253,6 @@ namespace emulatorLauncher.Tools
 
             return XINPUTMAPPING.UNKNOWN;
         }
-
     }
 
     public class Input
@@ -483,14 +272,14 @@ namespace emulatorLauncher.Tools
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-                   
-            if ((int) Name != 0)
+
+            if ((int)Name != 0)
                 sb.Append(" name:" + Name);
 
             if (Type != null)
                 sb.Append(" type:" + Type);
 
-            sb.Append(" id:" + Id);            
+            sb.Append(" id:" + Id);
             sb.Append(" value:" + Value);
 
             return sb.ToString().Trim();
@@ -500,12 +289,12 @@ namespace emulatorLauncher.Tools
         {
             if (base.Equals(obj))
                 return true;
-            
+
             Input src = obj as Input;
             if (src == null)
                 return false;
 
-            return Name == src.Name && Id == src.Id && Value == src.Value && Type == src.Type;            
+            return Name == src.Name && Id == src.Id && Value == src.Value && Type == src.Type;
         }
 
         public override int GetHashCode()
@@ -516,7 +305,7 @@ namespace emulatorLauncher.Tools
 
     [Flags]
     public enum InputKey
-    {        
+    {
         // batocera ES compatibility
         hotkey = 8,
         pageup = 512,
@@ -533,7 +322,7 @@ namespace emulatorLauncher.Tools
         down = 4,
         hotkeyenable = 8,
         left = 16,
-        
+
         leftanalogdown = 32,
         leftanalogleft = 64,
         leftanalogright = 128,
@@ -548,10 +337,10 @@ namespace emulatorLauncher.Tools
         leftthumb = 1024,
         rightthumb = 262144,
 
-        leftshoulder = 512,        
+        leftshoulder = 512,
         lefttrigger = 2048,
 
-        rightshoulder = 131072,        
+        rightshoulder = 131072,
         righttrigger = 524288,
 
         right = 4096,
@@ -571,7 +360,7 @@ namespace emulatorLauncher.Tools
         joystick2left = 32768,
         joystick2right = 65536
     }
-    
+
     public enum XINPUTMAPPING
     {
         UNKNOWN = -1,
@@ -579,7 +368,7 @@ namespace emulatorLauncher.Tools
         A = 0,
         B = 1,
         Y = 2,
-        X = 3,        
+        X = 3,
         LEFTSHOULDER = 4,
         RIGHTSHOULDER = 5,
 
@@ -686,71 +475,4 @@ namespace emulatorLauncher.Tools
         TRIGGERRIGHT = 5
     }
 
-    class HdiGameDevice
-    {
-        private static List<HdiGameDevice> _devices;
-
-        public static HdiGameDevice[] GetGameDevices()
-        {
-            if (_devices == null)
-            {
-                List<HdiGameDevice> devices = new List<HdiGameDevice>();
-
-                try
-                {
-                    using (var QueryPnp = new ManagementObjectSearcher(@"\\.\root\cimv2", string.Format("SELECT * FROM Win32_PNPEntity WHERE Present = True AND PNPClass = 'HIDClass'"), new EnumerationOptions() { BlockSize = 20 }))
-                    {
-                        foreach (var PnpDevice in QueryPnp.Get())
-                        {
-                            var hardwareID = (string[])PnpDevice.Properties["HardwareID"].Value;
-                            if (hardwareID == null || !hardwareID.Contains("HID_DEVICE_SYSTEM_GAME"))
-                                continue;
-
-                            devices.Add(new HdiGameDevice(PnpDevice));
-                        }
-                    }
-                }
-                catch { }
-
-                _devices = devices;
-            }
-
-            return _devices.ToArray();
-        }
-
-        private HdiGameDevice(ManagementBaseObject PnpDevice)
-        {
-            DeviceId = (string)PnpDevice.Properties["DeviceID"].Value;
-            Caption = (string)PnpDevice.Properties["Caption"].Value;
-            ClassGuid = (string)PnpDevice.Properties["ClassGuid"].Value;
-            PNPClass = (string)PnpDevice.Properties["PNPClass"].Value;
-            PNPDeviceID = (string)PnpDevice.Properties["PNPDeviceID"].Value;
-            Status = (string)PnpDevice.Properties["Status"].Value;
-            Description = (string)PnpDevice.Properties["Description"].Value;
-            Manufacturer = (string)PnpDevice.Properties["Manufacturer"].Value;
-            Name = (string)PnpDevice.Properties["Name"].Value;
-            HardwareID = (string[])PnpDevice.Properties["HardwareID"].Value;
-
-            SystemCreationClassName = (string)PnpDevice.Properties["SystemCreationClassName"].Value;
-            SystemName = (string)PnpDevice.Properties["SystemName"].Value;
-
-            Present = (bool)PnpDevice.Properties["Present"].Value;
-        }
-
-        public string Caption { get; set; }
-        public string ClassGuid { get; set; }
-        public string Description { get; set; }
-        public string DeviceId { get; set; }
-        public string[] HardwareID { get; set; }
-        public string Manufacturer { get; set; }
-        public string Name { get; set; }
-        public string PNPClass { get; set; }
-        public string PNPDeviceID { get; set; }
-        public string Status { get; set; }
-
-        public string SystemCreationClassName { get; set; }
-        public string SystemName { get; set; }
-
-        public bool Present { get; set; }
-    }
 }

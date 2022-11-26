@@ -347,9 +347,9 @@ namespace emulatorLauncher
                         tech = "DInput";
                         deviceName = "Keyboard Mouse";                        
                     } 
-                    else if (!pad.Config.IsXInputDevice())
+                    else if (!pad.IsXInputDevice)
                     {
-                        var di = pad.Config.GetDirectInputInfo();
+                        var di = pad.DirectInput;
                         if (di == null)
                             continue;
                         

@@ -299,7 +299,7 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            bool xInput = Program.Controllers.All(c => c.Config != null && c.Config.IsXInputDevice());
+            bool xInput = Program.Controllers.All(c => c.Config != null && c.IsXInputDevice);
 
             var inputAPI = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Input API");
             if (inputAPI != null)
@@ -401,27 +401,27 @@ namespace emulatorLauncher
 
                     if (c.Config[InputKey.leftanalogleft] != null)
                     {
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogup, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogleft, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogdown, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogright, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
+                        ImportDirectInputButton(userProfile, c, InputKey.leftanalogup, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
+                        ImportDirectInputButton(userProfile, c, InputKey.leftanalogleft, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
+                        ImportDirectInputButton(userProfile, c, InputKey.leftanalogdown, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
+                        ImportDirectInputButton(userProfile, c, InputKey.leftanalogright, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
                     }
                     else
                     {
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
+                        ImportDirectInputButton(userProfile, c, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
+                        ImportDirectInputButton(userProfile, c, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
+                        ImportDirectInputButton(userProfile, c, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
+                        ImportDirectInputButton(userProfile, c, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
                     }
 
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.select, InputMapping.JvsTwoCoin1, InputMapping.Coin1);
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.start, InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart);
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.a, InputMapping.JvsTwoP1Button1, InputMapping.P1Button1);
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.b, InputMapping.JvsTwoP1Button2, InputMapping.P1Button2);
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.x, InputMapping.JvsTwoP1Button3, InputMapping.P1Button3);
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.y, InputMapping.JvsTwoP1Button4, InputMapping.P1Button4);
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.lefttrigger, InputMapping.JvsTwoP1Button5, InputMapping.P1Button5);
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.righttrigger, InputMapping.JvsTwoP1Button6, InputMapping.P1Button6);
+                    ImportDirectInputButton(userProfile, c, InputKey.select, InputMapping.JvsTwoCoin1, InputMapping.Coin1);
+                    ImportDirectInputButton(userProfile, c, InputKey.start, InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart);
+                    ImportDirectInputButton(userProfile, c, InputKey.a, InputMapping.JvsTwoP1Button1, InputMapping.P1Button1);
+                    ImportDirectInputButton(userProfile, c, InputKey.b, InputMapping.JvsTwoP1Button2, InputMapping.P1Button2);
+                    ImportDirectInputButton(userProfile, c, InputKey.x, InputMapping.JvsTwoP1Button3, InputMapping.P1Button3);
+                    ImportDirectInputButton(userProfile, c, InputKey.y, InputMapping.JvsTwoP1Button4, InputMapping.P1Button4);
+                    ImportDirectInputButton(userProfile, c, InputKey.lefttrigger, InputMapping.JvsTwoP1Button5, InputMapping.P1Button5);
+                    ImportDirectInputButton(userProfile, c, InputKey.righttrigger, InputMapping.JvsTwoP1Button6, InputMapping.P1Button6);
 
                 }
 
@@ -538,8 +538,10 @@ namespace emulatorLauncher
             }
         }
 
-        private static void ImportDirectInputButton(GameProfile userProfile, InputConfig c, InputKey key, params InputMapping[] mapping)
+        private static void ImportDirectInputButton(GameProfile userProfile, Controller ctrl, InputKey key, params InputMapping[] mapping)
         {
+            InputConfig c = ctrl.Config;
+
             var start = userProfile.JoystickButtons.FirstOrDefault(j => !j.HideWithDirectInput && mapping.Contains(j.InputMapping));
 
             bool reverseAxis = false;
@@ -555,7 +557,7 @@ namespace emulatorLauncher
                 key = InputKey.leftanalogleft;
             }
 
-            var info = c.GetDirectInputInfo();
+            var info = ctrl.DirectInput;
 
             if (start != null && c[key] != null && info != null)
             {

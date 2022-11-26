@@ -72,9 +72,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\Joysticks\DirectInputInfo.cs" />
     <Compile Include="Common\DynamicJson.cs" />
     <Compile Include="Common\GunGames.cs" />
+    <Compile Include="Common\Joysticks\HdiGameDevice.cs" />
     <Compile Include="Common\InputDevices.cs" />
+    <Compile Include="Common\Joysticks\XInputDevice.cs" />
     <Compile Include="Common\MountFile.cs" />
     <Compile Include="Common\EnumerableExtensions.cs" />
     <Compile Include="Common\EsSystems.cs" />
@@ -85,11 +88,14 @@
     <Compile Include="Common\PortableZip.cs" />
     <Compile Include="Common\ProcessExtensions.cs" />
     <Compile Include="Common\ProgressInformation.cs" />
-    <Compile Include="Common\RawLightGun.cs" />
+    <Compile Include="Common\Joysticks\RawLightGun.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
+    <Compile Include="Common\Joysticks\SdlJoystickGuidManager.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
+    <Compile Include="Common\Joysticks\WinmmJoystick.cs" />
     <Compile Include="Common\XmlExtensions.cs" />
+    <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
@@ -192,7 +198,7 @@
     <Compile Include="Common\ScreenResolution.cs" />
     <Compile Include="Common\IniFile.cs" />
     <Compile Include="Common\SDL2.cs" />
-    <Compile Include="Common\SdlGameControllers.cs" />
+    <Compile Include="Common\Joysticks\SdlGameControllers.cs" />
     <Compile Include="Common\SimpleLogger.cs" />
     <Compile Include="Common\SimpleYml.cs" />
     <Compile Include="Common\SystemDefaults.cs" />
