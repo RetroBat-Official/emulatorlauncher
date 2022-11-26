@@ -345,9 +345,9 @@ namespace emulatorLauncher.libRetro
             }
             else if (_inputDriver != "sdl2")
             {
-                var dinputIndex = controller.Config.GetDirectInputDeviceIndex();
-                if (dinputIndex >= 0)
-                    index = dinputIndex;
+                var directInput = controller.DirectInput;
+                if (directInput != null && directInput.DeviceIndex >= 0)
+                    index = directInput.DeviceIndex;
             }
 
             retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = index.ToString();

@@ -48,6 +48,8 @@ namespace emulatorLauncher.Tools
                         _controllersByPath[shortenPath] = ctl;
                 }
 
+                _controllersByPath[i.ToString().PadLeft(4, '0') + "@" + sdlGuid] = ctl;
+
                 if (SDL.SDL_IsGameController(i) != SDL.SDL_bool.SDL_TRUE)
                 {
                     SimpleLogger.Instance.Info("[SdlGameControllers] Loading Unknown SDL controller mapping : " + i + " => " + ctl.ToString());

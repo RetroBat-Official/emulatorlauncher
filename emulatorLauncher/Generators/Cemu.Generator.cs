@@ -203,7 +203,7 @@ namespace emulatorLauncher
                 return;
 
             string xbox = "";
-            if (joy.IsXInputDevice())
+            if (ctrl.IsXInputDevice)
                 xbox = "yes";
 
             // Get joystick data (type, api, guid, index)
@@ -269,7 +269,7 @@ namespace emulatorLauncher
                 var a = joy[k];
                 if (a != null)
                 {
-                    var val = GetInputValuexml(joy, k, api, r);
+                    var val = GetInputValuexml(ctrl, k, api, r);
                     writer.WriteStartElement("entry");
                     writer.WriteElementString("mapping", v);
                     writer.WriteElementString("button", val);
@@ -282,14 +282,14 @@ namespace emulatorLauncher
             //Write mappings of buttons
 
             //revert gamepadbuttons if set in features
-            if (joy.IsXInputDevice() && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
+            if (ctrl.IsXInputDevice && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
             {
                 writemapping("1", InputKey.b, false);
                 writemapping("2", InputKey.a, false);
                 writemapping("3", InputKey.x, false);
                 writemapping("4", InputKey.y, false);
             }
-            else if (joy.IsXInputDevice())
+            else if (ctrl.IsXInputDevice)
             {
                 writemapping("1", InputKey.a, false);
                 writemapping("2", InputKey.b, false);
@@ -355,16 +355,18 @@ namespace emulatorLauncher
         }
 
         //Generate key bindings
-        private static string GetInputValuexml(InputConfig joy, InputKey ik, string api, bool invertAxis = false)
+        private static string GetInputValuexml(Controller ctrl, InputKey ik, string api, bool invertAxis = false)
         {
+            InputConfig joy = ctrl.Config;
+
             var a = joy[ik];        //inputkey
             Int64 val = a.Id;       //id from es_input config file
             Int64 pid = 1;          //pid will be used to retrieve value in es_input config file for hat and axis
 
             //L1 and R1 for XInput sends wrong id, cemu is based on SDl id's
-            if (joy.IsXInputDevice() && a.Type == "button" && val == 5)
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 5)
                 return "10";
-            else if (joy.IsXInputDevice() && a.Type == "button" && val == 4)
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 4)
                 return "9";
 
             //Return code for left and right triggers (l2 & r2)
@@ -374,9 +376,9 @@ namespace emulatorLauncher
                 return "43";
 
             //start and select for XInput sends wrong id, cemu is based on SDl id's
-            if (joy.IsXInputDevice() && a.Type == "button" && val == 6)
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 6)
                 return "4";
-            else if (joy.IsXInputDevice() && a.Type == "button" && val == 7)
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 7)
                 return "6";
 
             //D-pad for XInput is identified as "hat", retrieve value to define right direction
@@ -416,9 +418,9 @@ namespace emulatorLauncher
             }
 
             //l3 and r3 (thumbs) have different id than cemu
-            if (joy.IsXInputDevice() && a.Type == "button" && val == 8)
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 8)
                 return "7";
-            else if (joy.IsXInputDevice() && a.Type == "button" && val == 9)
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 9)
                 return "8";
 
             string ret = val.ToString();

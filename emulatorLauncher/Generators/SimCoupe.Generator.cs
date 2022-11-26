@@ -49,7 +49,7 @@ namespace emulatorLauncher
                     continue;
                 }
 
-                var dxInfo = Program.Controllers[i].Config.GetDirectInputInfo();
+                var dxInfo = Program.Controllers[i].DirectInput;
                 if (dxInfo == null || string.IsNullOrEmpty(dxInfo.Name))
                     commandArray.AddRange(new string[] { "-joydev" + (i + 1).ToString(), "None" });
                 else
