@@ -273,7 +273,7 @@ namespace emulatorLauncher
             }
             catch (Exception ex)
             {
-
+                SimpleLogger.Instance.Error("[IniFile] Save failed " + ex.Message, ex);
             }
         }
 

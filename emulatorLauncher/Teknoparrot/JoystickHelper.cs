@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
+using emulatorLauncher;
 
 namespace TeknoParrotUi.Common
 {
@@ -44,13 +45,13 @@ namespace TeknoParrotUi.Common
 #if !DEBUG
                 if (profile.DevOnly)
                 {
-                    Debug.WriteLine("Skipping loading dev profile " + fileName);
+                    SimpleLogger.Instance.Warning("Skipping loading dev profile " + fileName);
                     return null;
                 }
 #endif
                 if (profile.Is64Bit && !Environment.Is64BitOperatingSystem)
                 {
-                    Debug.WriteLine("Skipping loading profile (64 bit profile on 32 bit OS)");
+                    SimpleLogger.Instance.Warning("Skipping loading profile (64 bit profile on 32 bit OS)");
                     return null;
                 }
 
@@ -114,6 +115,7 @@ namespace TeknoParrotUi.Common
             }
             catch (Exception e)
             {
+                SimpleLogger.Instance.Error("[TeknoParrotUi] " + e.Message, e);
                 return null;
             }
         }

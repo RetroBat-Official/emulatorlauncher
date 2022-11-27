@@ -310,9 +310,9 @@ namespace emulatorLauncher.libRetro
         private static Input GetInputCode(Controller controller, InputKey btnkey)
         {
             if (_inputDriver == "sdl2")
-                return controller.Config.ToSdlCode(btnkey);
+                return controller.GetSdlInput(btnkey);
 
-            return controller.Config.ToXInputCodes(btnkey);
+            return controller.GetXInputInput(btnkey);
         }
 
         public static byte[] StringToByteArray(string hex)

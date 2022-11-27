@@ -236,8 +236,8 @@ namespace emulatorLauncher
             { InputKey.left,            "button_dleft" }, 
             { InputKey.right,           "button_dright" },
             
-            { InputKey.leftshoulder,    "button_l" },
-            { InputKey.rightshoulder,   "button_r" },          
+            { InputKey.pageup,          "button_l" },
+            { InputKey.pagedown,        "button_r" },          
 
             { InputKey.l2,              "button_zl" },
             { InputKey.r2,              "button_zr"},

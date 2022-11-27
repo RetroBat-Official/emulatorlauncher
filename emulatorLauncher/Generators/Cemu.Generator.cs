@@ -175,14 +175,14 @@ namespace emulatorLauncher
             writemapping("14", InputKey.right);
             writemapping("15", InputKey.l3);
             writemapping("16", InputKey.r3);
-            writemapping("17", InputKey.leftanalogup);
-            writemapping("18", InputKey.leftanalogdown);
-            writemapping("19", InputKey.leftanalogleft);
-            writemapping("20", InputKey.leftanalogright);
-            writemapping("21", InputKey.rightanalogup);
-            writemapping("22", InputKey.rightanalogdown);
-            writemapping("23", InputKey.rightanalogleft);
-            writemapping("24", InputKey.rightanalogright);
+            writemapping("17", InputKey.joystick1up);
+            writemapping("18", InputKey.joystick1down);
+            writemapping("19", InputKey.joystick1left);
+            writemapping("20", InputKey.joystick1right);
+            writemapping("21", InputKey.joystick2up);
+            writemapping("22", InputKey.joystick2down);
+            writemapping("23", InputKey.joystick2left);
+            writemapping("24", InputKey.joystick2right);
             writemapping("26", InputKey.hotkey);
 
             //close xml elements
@@ -215,7 +215,7 @@ namespace emulatorLauncher
                 .GroupBy(c => c.Guid)
                 .Where(c => c.Key == ctrl.Guid)
                 .SelectMany(c => c)
-                .OrderBy(c => SdlGameControllers.GetControllerIndex(c))
+                .OrderBy(c => SdlGameController.GetControllerIndex(c))
                 .ToList()
                 .IndexOf(ctrl);
 

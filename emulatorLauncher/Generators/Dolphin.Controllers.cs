@@ -407,14 +407,14 @@ namespace emulatorLauncher
                         }
                         else if (tech == "XInput")
                         {
-                            var mapping = pad.Config.GetXInputMapping(x.Key);
+                            var mapping = pad.GetXInputMapping(x.Key);
                             if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                 ini.WriteValue(gcpad, value, xInputMapping[mapping]);
 
                             string reverseAxis;
                             if (anyReverseAxes.TryGetValue(value, out reverseAxis))
                             {
-                                mapping = pad.Config.GetXInputMapping(x.Key, true);
+                                mapping = pad.GetXInputMapping(x.Key, true);
                                 if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }

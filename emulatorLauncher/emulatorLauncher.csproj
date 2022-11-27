@@ -198,7 +198,7 @@
     <Compile Include="Common\ScreenResolution.cs" />
     <Compile Include="Common\IniFile.cs" />
     <Compile Include="Common\SDL2.cs" />
-    <Compile Include="Common\Joysticks\SdlGameControllers.cs" />
+    <Compile Include="Common\Joysticks\SdlGameController.cs" />
     <Compile Include="Common\SimpleLogger.cs" />
     <Compile Include="Common\SimpleYml.cs" />
     <Compile Include="Common\SystemDefaults.cs" />

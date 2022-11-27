@@ -36,10 +36,10 @@ namespace emulatorLauncher
         public InputConfig Config { get; set; }
 
         #region SdlController
-        private SdlGameControllers _sdlController;
+        private SdlGameController _sdlController;
         private bool _sdlControllerKnown = false;
 
-        public SdlGameControllers SdlController
+        public SdlGameController SdlController
         {
             get
             {
@@ -50,10 +50,10 @@ namespace emulatorLauncher
                     if (Name != "Keyboard")
                     {
                         if (!string.IsNullOrEmpty(DevicePath))
-                            _sdlController = SdlGameControllers.GetGameControllerByPath(DevicePath);
+                            _sdlController = SdlGameController.GetGameControllerByPath(DevicePath);
 
                         if (_sdlController == null)
-                            _sdlController = SdlGameControllers.GetGameController(Guid.FromSdlGuidString());
+                            _sdlController = SdlGameController.GetGameController(Guid.FromSdlGuidString());
                     }
                 }
 
@@ -176,7 +176,211 @@ namespace emulatorLauncher
 
             return Name + " - Device:" + DeviceIndex.ToString() + ", Player:" + PlayerIndex.ToString() + ", Guid:" + (Guid.ToString() ?? "null");
         }
+
+        /// <summary>
+        /// Translate EmulationStation Input to SDL Input
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Input GetSdlInput(InputKey key)
+        {
+            if (Config == null)
+                return null;
+
+            Input input = Config[key];
+            if (input == null)
+                return null;
+
+            if (input.Type == "key")
+                return input;
+
+            var ctrl = this.SdlController;
+            if (ctrl == null)
+                return input;
+
+            int axisValue = 1;
+
+            var mapping = ctrl.Mapping;
+            var sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == input.Value);
+
+            if (sdlret == null && input.Type == "axis")
+            {
+                var invret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == -input.Value);
+                if (invret != null)
+                {
+                    sdlret = invret;
+                    axisValue = -1;
+                }
+            }
+
+            if (sdlret == null)
+            {
+                if (mapping.All(m => m.Axis == SDL_CONTROLLER_AXIS.INVALID))
+                {
+                    switch (key)
+                    {
+                        case InputKey.left:
+                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_LEFT);
+                            break;
+                        case InputKey.right:
+                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_RIGHT);
+                            break;
+                        case InputKey.up:
+                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_UP);
+                            break;
+                        case InputKey.down:
+                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_DOWN);
+                            break;
+                    }
+                }
+
+                if (sdlret == null)
+                {
+                    SimpleLogger.Instance.Warning("[InputConfig] ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
+                    return input;
+                }
+            }
+
+            Input ret = new Input() { Name = input.Name };
+
+            if (sdlret.Button != SDL_CONTROLLER_BUTTON.INVALID)
+            {
+                ret.Type = "button";
+                ret.Id = (int)sdlret.Button;
+                ret.Value = 1;
+                return ret;
+            }
+
+            if (sdlret.Axis != SDL_CONTROLLER_AXIS.INVALID)
+            {
+                ret.Type = "axis";
+                ret.Id = (int)sdlret.Axis;
+                ret.Value = axisValue;
+                return ret;
+            }
+
+            return GetXInputInput(key);
+        }
+
+        /// <summary>
+        /// Translate EmulationStation Input to XInput Input
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Input GetXInputInput(InputKey key)
+        {
+            if (Config == null)
+                return null;
+
+            Input input = Config[key];
+            if (input == null)
+                return null;
+
+            if (input.Type == "key")
+                return input;
+
+            if (!this.IsXInputDevice)
+                return input;
+
+            Input ret = new Input();
+            ret.Name = input.Name;
+            ret.Type = input.Type;
+            ret.Id = input.Id;
+            ret.Value = input.Value;
+
+            // Inverstion de start et select
+            if (input.Type == "button" && input.Id == 6)
+                ret.Id = 7;
+            else if (input.Type == "button" && input.Id == 7)
+                ret.Id = 6;
+
+            if (input.Type == "axis" && ret.Id == 1 || ret.Id == 3) // up/down axes are inverted
+                ret.Value = -ret.Value;
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Translate EmulationStation to XInput Mapping
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="revertAxis"></param>
+        /// <returns></returns>
+        public XINPUTMAPPING GetXInputMapping(InputKey key, bool revertAxis = false)
+        {
+            if (Config == null)
+                return XINPUTMAPPING.UNKNOWN;
+
+            Input input = Config[key];
+            if (input == null)
+                return XINPUTMAPPING.UNKNOWN;
+
+            if (input.Type == "key")
+                return XINPUTMAPPING.UNKNOWN;
+
+            if (IsXInputDevice)
+                return XINPUTMAPPING.UNKNOWN;
+
+            if (input.Type == "button")
+                return (XINPUTMAPPING)input.Id;
+
+            if (input.Type == "hat")
+                return (XINPUTMAPPING)(input.Value + 10);
+
+            if (input.Type == "axis")
+            {
+                switch (input.Id)
+                {
+                    case 2:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.RIGHTANALOG_RIGHT;
+
+                        return XINPUTMAPPING.RIGHTANALOG_LEFT;
+
+                    case 5:
+                        return XINPUTMAPPING.RIGHTTRIGGER;
+
+                    case 0:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.LEFTANALOG_RIGHT;
+
+                        return XINPUTMAPPING.LEFTANALOG_LEFT;
+
+                    case 1:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.LEFTANALOG_DOWN;
+
+                        return XINPUTMAPPING.LEFTANALOG_UP;
+
+                    case 4:
+                        return XINPUTMAPPING.LEFTTRIGGER;
+
+                    case 3:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                            return XINPUTMAPPING.RIGHTANALOG_DOWN;
+
+                        return XINPUTMAPPING.RIGHTANALOG_UP;
+                }
+            }
+
+            return XINPUTMAPPING.UNKNOWN;
+        }
+
+        /// <summary>
+        /// Translate EmulationStation input to XInput button flags
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public XInputButtonFlags GetXInputButtonFlags(InputKey key)
+        {
+            XInputButtonFlags result;
+            if (Enum.TryParse<XInputButtonFlags>(GetXInputMapping(key).ToString(), out result))
+                return result;
+
+            return XInputButtonFlags.NONE;
+        }
     }
+
 
 
 }

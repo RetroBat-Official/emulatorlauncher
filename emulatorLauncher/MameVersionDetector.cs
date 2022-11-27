@@ -116,7 +116,7 @@ namespace emulatorLauncher
             }
             catch(Exception ex)
             {
-
+                SimpleLogger.Instance.Error("[ReadGZipStream] Failed " + ex.Message, ex);
             }
 
             return null;

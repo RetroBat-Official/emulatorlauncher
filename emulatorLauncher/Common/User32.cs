@@ -139,6 +139,18 @@ namespace emulatorLauncher
 
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int SetWindowPos(IntPtr hWnd, IntPtr hWndAfter, int X, int Y, int Width, int Height, [MarshalAs(UnmanagedType.U4)]SWP flags);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool UpdateLayeredWindow(IntPtr hwnd, IntPtr hdcDst,
+            ref POINT pptDst, ref SIZE psize, IntPtr hdcSrc, ref POINT pprSrc,
+            Int32 crKey, ref BLENDFUNCTION pblend, Int32 dwFlags);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
     }
 
     public static class Kernel32
@@ -160,6 +172,23 @@ namespace emulatorLauncher
 
     }
 
+    public static class Gdi32
+    {
+        [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr CreateCompatibleDC(IntPtr hDC);
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteObject(IntPtr hObject);
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT
     {
@@ -167,6 +196,44 @@ namespace emulatorLauncher
         public int top;
         public int right;
         public int bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        public Int32 x;
+        public Int32 y;
+
+        public POINT(Int32 x, Int32 y)
+        { this.x = x; this.y = y; }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SIZE
+    {
+        public Int32 cx;
+        public Int32 cy;
+
+        public SIZE(Int32 cx, Int32 cy)
+        { this.cx = cx; this.cy = cy; }
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct ARGB
+    {
+        public byte Blue;
+        public byte Green;
+        public byte Red;
+        public byte Alpha;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct BLENDFUNCTION
+    {
+        public byte BlendOp;
+        public byte BlendFlags;
+        public byte SourceConstantAlpha;
+        public byte AlphaFormat;
     }
 
     public enum GWL : int
