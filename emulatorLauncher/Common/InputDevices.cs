@@ -10,6 +10,9 @@ namespace emulatorLauncher.Tools
     {
         public static string GetInputDeviceParent(string devicePath)
         {
+            if (string.IsNullOrEmpty(devicePath))
+                return "";
+
             string path = devicePath;
 
             int vidindex = path.IndexOf("VID_", StringComparison.InvariantCultureIgnoreCase);

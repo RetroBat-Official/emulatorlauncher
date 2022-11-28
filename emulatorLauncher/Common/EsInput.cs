@@ -166,12 +166,9 @@ namespace emulatorLauncher.Tools
         hotkey = 8,
 
         #region retrocompatible values / used for deserialisation of old es_input.cfg files
-        [Obsolete]
         hotkeyenable = 8,
 
-        [Obsolete]
         l1 = 512,
-        [Obsolete]
         r1 = 131072,
 
         leftanalogdown = 32,
@@ -184,19 +181,13 @@ namespace emulatorLauncher.Tools
         rightanalogleft = 32768,
         rightanalogright = 65536,
 
-        [Obsolete]
         leftthumb = 1024,
-        [Obsolete]
         rightthumb = 262144,
 
-        [Obsolete]
         leftshoulder = 512,
-        [Obsolete]
         lefttrigger = 2048,
 
-        [Obsolete]
         rightshoulder = 131072,
-        [Obsolete]
         righttrigger = 524288
         #endregion
     }

@@ -609,6 +609,7 @@ namespace emulatorLauncher
                     Controllers.RemoveAll(c => c.Config == null);
 
 #if DEBUG
+                    /*
                     foreach (var c in Controllers)
                     {
                         var dinput = c.DirectInput;
@@ -616,6 +617,7 @@ namespace emulatorLauncher
                         var winmm = c.WinmmJoystick;
                         var sdl = c.SdlController;
                     }
+                    */
 #endif
 
                     if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || Misc.HasWiimoteGun())

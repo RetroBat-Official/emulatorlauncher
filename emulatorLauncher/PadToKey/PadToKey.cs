@@ -32,7 +32,7 @@ namespace emulatorLauncher.PadToKeyboard
             catch (Exception ex)
             {
 #if DEBUG
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("[PadToKey] Error :\r\n" + ex.Message);
 #endif
                 SimpleLogger.Instance.Error("[PadToKey] Error : " + ex.Message, ex);               
             }
