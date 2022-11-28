@@ -385,6 +385,10 @@ namespace emulatorLauncher
                                 value = "Buttons/A";
                             else if (x.Key == InputKey.b)
                                 value = "Buttons/B";
+                            else if (x.Key == InputKey.x)
+                                value = "Buttons/X";
+                            else if (x.Key == InputKey.y)
+                                value = "Buttons/Y";
                             else if (x.Key == InputKey.up)
                                 value = "Main Stick/Up";
                             else if (x.Key == InputKey.down)
