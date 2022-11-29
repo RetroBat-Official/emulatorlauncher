@@ -451,6 +451,7 @@ namespace emulatorLauncher.PadToKeyboard
         KEY_RIGHTBRACE = 0x1b,
         KEY_ENTER = 0x1c,
         KEY_LEFTCTL = 0x1D,
+        KEY_LEFTCTRL = 0x1D,
         KEY_A = 0x1e,
         KEY_S = 0x1f,
         KEY_D = 0x20,

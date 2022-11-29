@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
 using System.Xml.Linq;
+using System.Xml;
 
 namespace emulatorLauncher
 {
@@ -24,6 +25,9 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            rom = TryUnZipGameIfNeeded(system, rom);
+
+            //read m3u if rom is in m3u format
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
@@ -44,7 +48,7 @@ namespace emulatorLauncher
 
                     var fps = settings.Descendants().FirstOrDefault(d => d.Name == "FPS");
                     if (fps != null)
-                    {                        
+                    {
                         bool showFPS = SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS");
                         if (showFPS.ToString().ToLower() != fps.Value)
                         {
@@ -56,6 +60,7 @@ namespace emulatorLauncher
                 catch { }
             }
 
+            //controller configuration
             CreateControllerConfiguration(path);
 
             string romdir = Path.GetDirectoryName(rom);
@@ -67,7 +72,8 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
             };
         }
-        
+
+        //Create controller configuration
         private void CreateControllerConfiguration(string path)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -75,319 +81,354 @@ namespace emulatorLauncher
 
             string controllerProfiles = Path.Combine(path, "controllerProfiles");
 
+            //Create a single controllerprofile file for each controller
             foreach (var controller in this.Controllers)
             {
                 if (controller.Config == null)
                     continue;
 
-                string controllerTxt = Path.Combine(controllerProfiles, "controller" + (controller.PlayerIndex - 1) + ".txt");
-                using (IniFile ini = new IniFile(controllerTxt, true))
-                {
-                    ConfigureInput(ini, controller);
-                    ini.Save();
-                }
+                string controllerXml = Path.Combine(controllerProfiles, "controller" + (controller.PlayerIndex - 1) + ".xml");
+                
+                //Create xml file with correct settings
+                XmlWriterSettings Settings = new XmlWriterSettings();
+                Settings.Encoding = Encoding.UTF8;
+                Settings.Indent = true;
+                Settings.IndentChars = ("\t");
+                Settings.OmitXmlDeclaration = false;
+                
+                //Go to input configuration
+                using (XmlWriter writer = XmlWriter.Create(controllerXml, Settings))
+                    ConfigureInputXml(writer, controller);
             }
         }
 
-        private static void ConfigureInput(IniFile ini, Controller controller)
+        //Configure input - routing between joystick or keyboard
+        private static void ConfigureInputXml(XmlWriter writer, Controller controller)
         {
             if (controller == null || controller.Config == null)
                 return;
 
             if (controller.Config.Type == "joystick")
-                ConfigureJoystick(ini, controller.Config, controller.PlayerIndex -1);
+                ConfigureJoystickXml(writer, controller, controller.PlayerIndex - 1);
             else
-                ConfigureKeyboard(ini, controller.Config);
+                ConfigureKeyboardXml(writer, controller.Config);
         }
 
-
-        private static void ConfigureKeyboard(IniFile ini, InputConfig keyboard)
+        //configuration of keyboard in xml format
+        private static void ConfigureKeyboardXml(XmlWriter writer, InputConfig keyboard)
         {
             if (keyboard == null)
                 return;
 
-            ini.WriteValue("General", "emulate", "Wii U GamePad");
-            ini.WriteValue("General", "api", "Keyboard");
-            ini.WriteValue("General", "controller", null);
+            //Create start of the xml document until mappings part
+            writer.WriteStartDocument();
+            writer.WriteStartElement("emulated_controller");
+            writer.WriteElementString("type", "Wii U GamePad");
+            writer.WriteStartElement("controller");
+            writer.WriteElementString("api", "Keyboard");
+            writer.WriteElementString("uuid", "keyboard");
+            writer.WriteElementString("display_name", "Keyboard");
+            writer.WriteStartElement("axis");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of axis
+            writer.WriteStartElement("rotation");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of rotation
+            writer.WriteStartElement("trigger");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of trigger
+            writer.WriteStartElement("mappings");
 
-            ini.WriteValue("Controller", "rumble", "0");
-            ini.WriteValue("Controller", "leftRange", "1");
-            ini.WriteValue("Controller", "rightRange", "1");
-            ini.WriteValue("Controller", "leftDeadzone", "0.15");
-            ini.WriteValue("Controller", "rightDeadzone", "0.15");
-            ini.WriteValue("Controller", "buttonThreshold", "0.5");
-
-            Action<string, InputKey> writeIni = (v, k) =>
+            //Define action to generate key mappings based on SdlToKeyCode
+            Action<string, InputKey> writemapping = (v, k) =>
             {
                 var a = keyboard[k];
                 if (a != null)
                 {
                     byte value = SdlToKeyCode(a.Id);
-                    ini.WriteValue("Controller", v, "key_" + value.ToString());
+                    writer.WriteStartElement("entry");
+                    writer.WriteElementString("mapping", v);
+                    writer.WriteElementString("button", value.ToString());
+                    writer.WriteEndElement();//end of entry
                 }
-                else if (ini.GetValue("Controller", v) != null && ini.GetValue("Controller", v).StartsWith("button"))
-                    ini.WriteValue("Controller", v, "");
+                else
+                    return;
             };
 
-            writeIni("1", InputKey.a);
-            writeIni("2", InputKey.b);
-            writeIni("3", InputKey.x);
-            writeIni("4", InputKey.y);
+            //create button mapping part of the xml document            
+            writemapping("1", InputKey.a);
+            writemapping("2", InputKey.b);
+            writemapping("3", InputKey.x);
+            writemapping("4", InputKey.y);
+            writemapping("5", InputKey.pageup);
+            writemapping("6", InputKey.pagedown);
+            writemapping("7", InputKey.l2);
+            writemapping("8", InputKey.r2);
+            writemapping("9", InputKey.start);
+            writemapping("10", InputKey.select);
+            writemapping("11", InputKey.up);
+            writemapping("12", InputKey.down);
+            writemapping("13", InputKey.left);
+            writemapping("14", InputKey.right);
+            writemapping("15", InputKey.l3);
+            writemapping("16", InputKey.r3);
+            writemapping("17", InputKey.leftanalogup);
+            writemapping("18", InputKey.leftanalogdown);
+            writemapping("19", InputKey.leftanalogleft);
+            writemapping("20", InputKey.leftanalogright);
+            writemapping("21", InputKey.rightanalogup);
+            writemapping("22", InputKey.rightanalogdown);
+            writemapping("23", InputKey.rightanalogleft);
+            writemapping("24", InputKey.rightanalogright);
+            writemapping("26", InputKey.hotkey);
 
-            writeIni("5", InputKey.pageup);
-            writeIni("6", InputKey.pagedown);
-
-            writeIni("7", InputKey.lefttrigger);
-            writeIni("8", InputKey.righttrigger);
-
-            writeIni("9", InputKey.start);
-            writeIni("10", InputKey.select);
-
-            writeIni("11", InputKey.up);
-            writeIni("12", InputKey.down);
-            writeIni("13", InputKey.left);
-            writeIni("14", InputKey.right);
-
-            if (ini.GetValue("Controller", "15") != null && ini.GetValue("Controller", "15").StartsWith("button"))
-                ini.WriteValue("Controller", "15", null);
-
-            if (ini.GetValue("Controller", "16") != null && ini.GetValue("Controller", "16").StartsWith("button"))
-                ini.WriteValue("Controller", "16", null);
-
-            writeIni("17", InputKey.joystick1up);
-            writeIni("18", InputKey.joystick1up);
-            writeIni("19", InputKey.joystick1left);
-            writeIni("20", InputKey.joystick1left);
-
-            writeIni("21", InputKey.joystick2up);
-            writeIni("22", InputKey.joystick2up);
-            writeIni("23", InputKey.joystick2left);
-            writeIni("24", InputKey.joystick2left);
-
-            writeIni("26", InputKey.hotkeyenable);
+            //close xml elements
+            writer.WriteEndElement();//end of mappings
+            writer.WriteEndElement();//end of controller
+            writer.WriteEndElement();//end of emulated_controller
+            writer.WriteEndDocument();
         }
 
-        private static void ConfigureJoystick(IniFile ini, InputConfig joy, int playerIndex)
+        //Configuration of joysticks
+        private static void ConfigureJoystickXml(XmlWriter writer, Controller ctrl, int playerIndex)
         {
+            if (ctrl == null)
+                return;
+
+            InputConfig joy = ctrl.Config;
             if (joy == null)
                 return;
 
-            string api;
-            string guid = string.Empty;
+            string xbox = "";
+            if (ctrl.IsXInputDevice)
+                xbox = "yes";
 
-            if (joy.IsXInputDevice())
-            {
-                api = "XInput";
-                guid = "0";
-            }
+            // Get joystick data (type, api, guid, index)
+            string type;                            //will be used to switch from Gamepad to Pro Controller
+            string api = "SDLController";           //all controllers in cemu are mapped as sdl controllers                              
+            string devicename = joy.DeviceName;
+
+            int index = Program.Controllers                
+                .GroupBy(c => c.Guid)
+                .Where(c => c.Key == ctrl.Guid)
+                .SelectMany(c => c)
+                .OrderBy(c => SdlGameControllers.GetControllerIndex(c))
+                .ToList()
+                .IndexOf(ctrl);
+
+            string uuid = index + "_" + ctrl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
+
+            //WiiU and cemu only allow 2 Gamepads, players 1&2 will be set as Gamepads, following players as Pro Controller(s)
+            bool procontroller = false;
+            if (playerIndex == 0 || playerIndex == 1)
+                type = "Wii U GamePad";
             else
             {
-                api = "DirectInput";
-                Guid gd = joy.GetJoystickInstanceGuid();
-                if (gd == Guid.Empty)
+                type = "Wii U Pro Controller";
+                procontroller = true;               //bool will be used later as button mapping is not the same between Gamepad & Pro controller
+            }
+
+            //Create start of the xml document until mappings part
+            writer.WriteStartDocument();
+            writer.WriteStartElement("emulated_controller");
+            writer.WriteElementString("type", type);
+            writer.WriteStartElement("controller");
+            writer.WriteElementString("api", api);
+            writer.WriteElementString("uuid", uuid);
+            writer.WriteElementString("display_name", devicename);
+
+            //set rumble if option is set
+            if (Program.SystemConfig.isOptSet("cemu_enable_rumble") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_enable_rumble"]))
+                writer.WriteElementString("rumble", Program.SystemConfig["cemu_enable_rumble"]);
+
+            //set motion if option is set in features
+            if (xbox != "yes" && Program.SystemConfig.isOptSet("cemu_enable_motion") && Program.SystemConfig.getOptBoolean("cemu_enable_motion"))
+                writer.WriteElementString("motion", Program.SystemConfig["cemu_enable_motion"]);
+
+            //Default deadzones and ranges for axis, rotation and trigger
+            writer.WriteStartElement("axis");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of axis
+            writer.WriteStartElement("rotation");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of rotation
+            writer.WriteStartElement("trigger");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of trigger
+            writer.WriteStartElement("mappings");
+
+            //Define action to generate key bindings
+            Action<string, InputKey, bool> writemapping = (v, k, r) =>
+            {
+                var a = joy[k];
+                if (a != null)
+                {
+                    var val = GetInputValuexml(ctrl, k, api, r);
+                    writer.WriteStartElement("entry");
+                    writer.WriteElementString("mapping", v);
+                    writer.WriteElementString("button", val);
+                    writer.WriteEndElement();//end of entry
+                }
+                else
                     return;
-
-                guid = gd.ToString().ToUpper();
-            }
-
-            if (playerIndex == 0)
-                ini.WriteValue("General", "emulate", "Wii U GamePad");
-            else
-                ini.WriteValue("General", "emulate", "Wii U Classic Controller");
-            
-            ini.WriteValue("General", "api", api);
-            ini.WriteValue("General", "controller", guid);
-
-            ini.WriteValue("Controller", "rumble", "0");
-            ini.WriteValue("Controller", "leftRange", "1");
-            ini.WriteValue("Controller", "rightRange", "1");
-            ini.WriteValue("Controller", "leftDeadzone", "0.15");
-            ini.WriteValue("Controller", "rightDeadzone", "0.15");
-            ini.WriteValue("Controller", "buttonThreshold", "0.5");
-
-            Action<string, InputKey, bool> writeIni = (v, k, r) =>                
-            { 
-                var val = GetInputValue(joy, k, api, r); 
-                ini.WriteValue("Controller", v, val); 
             };
 
-            writeIni("1", InputKey.a, false);
-            writeIni("2", InputKey.b, false);
-            writeIni("3", InputKey.x, false);
-            writeIni("4", InputKey.y, false);
+            //Write mappings of buttons
 
-            writeIni("5", InputKey.pageup, false);
-            writeIni("6", InputKey.pagedown, false);
-
-            writeIni("7", InputKey.leftthumb, false); 
-            writeIni("8", InputKey.rightthumb, false);
-
-            writeIni("9", InputKey.start, false);
-            writeIni("10", InputKey.select, false);
-
-            writeIni("11", InputKey.up, false);
-            writeIni("12", InputKey.down, false);
-            writeIni("13", InputKey.left, false);
-            writeIni("14", InputKey.right, false);
-
-            writeIni("15", InputKey.lefttrigger, false);
-            writeIni("16", InputKey.righttrigger, false);
-
-            writeIni("17", InputKey.joystick1up, false);
-            writeIni("18", InputKey.joystick1up, true);
-            writeIni("19", InputKey.joystick1left, false);
-            writeIni("20", InputKey.joystick1left, true);
-
-            writeIni("21", InputKey.joystick2up, false);
-            writeIni("22", InputKey.joystick2up, true);
-            writeIni("23", InputKey.joystick2left, false);
-            writeIni("24", InputKey.joystick2left, true);
-            /*
-            if (joy[InputKey.select] != null && !joy[InputKey.select].Equals(joy[InputKey.hotkey]))
-                writeIni("26", InputKey.hotkey, false);
-            else*/
-                ini.WriteValue("Controller", "26", null);
-        }
-
-        private static string GetInputValue(InputConfig joy, InputKey ik, string api, bool invertAxis = false)
-        {
-            var a = joy[ik];
-            if (a == null)
+            //revert gamepadbuttons if set in features
+            if (ctrl.IsXInputDevice && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
             {
-                if (api == "XInput" && GetCEmuInputIndex(ik) == 7)
-                    return "button_1000000";
-                else if (api == "XInput" && GetCEmuInputIndex(ik) == 8)
-                    return "button_2000000";
-
-                return null;
+                writemapping("1", InputKey.b, false);
+                writemapping("2", InputKey.a, false);
+                writemapping("3", InputKey.x, false);
+                writemapping("4", InputKey.y, false);
+            }
+            else if (ctrl.IsXInputDevice)
+            {
+                writemapping("1", InputKey.a, false);
+                writemapping("2", InputKey.b, false);
+                writemapping("3", InputKey.y, false);
+                writemapping("4", InputKey.x, false);
+            }
+            else
+            {
+                writemapping("1", InputKey.b, false);
+                writemapping("2", InputKey.a, false);
+                writemapping("3", InputKey.x, false);
+                writemapping("4", InputKey.y, false);
+            }
+                    
+            writemapping("5", InputKey.pageup, false);
+            writemapping("6", InputKey.pagedown, false);
+            writemapping("7", InputKey.l2, false);
+            writemapping("8", InputKey.r2, false);
+            writemapping("9", InputKey.start, false);
+            writemapping("10", InputKey.select, false);
+            
+            //Pro controller skips 11 while Gamepad continues numbering
+            if (procontroller)
+            {
+                writemapping("12", InputKey.up, false);
+                writemapping("13", InputKey.down, false);
+                writemapping("14", InputKey.left, false);
+                writemapping("15", InputKey.right, false);
+                writemapping("16", InputKey.l3, false);
+                writemapping("17", InputKey.r3, false);
+                writemapping("18", InputKey.leftanalogup, false);
+                writemapping("19", InputKey.leftanalogup, true);
+                writemapping("20", InputKey.leftanalogleft, false);
+                writemapping("21", InputKey.leftanalogleft, true);
+                writemapping("22", InputKey.rightanalogup, false);
+                writemapping("23", InputKey.rightanalogup, true);
+                writemapping("24", InputKey.rightanalogleft, false);
+                writemapping("25", InputKey.rightanalogleft, true);
+            }
+            else
+            {
+                writemapping("11", InputKey.up, false);
+                writemapping("12", InputKey.down, false);
+                writemapping("13", InputKey.left, false);
+                writemapping("14", InputKey.right, false);
+                writemapping("15", InputKey.l3, false);
+                writemapping("16", InputKey.r3, false);
+                writemapping("17", InputKey.leftanalogup, false);
+                writemapping("18", InputKey.leftanalogup, true);
+                writemapping("19", InputKey.leftanalogleft, false);
+                writemapping("20", InputKey.leftanalogleft, true);
+                writemapping("21", InputKey.rightanalogup, false);
+                writemapping("22", InputKey.rightanalogup, true);
+                writemapping("23", InputKey.rightanalogleft, false);
+                writemapping("24", InputKey.rightanalogleft, true);
             }
 
-            Int64 val = a.Id;
-            Int64 pid = 1;
+            //close xml sections 
+            writer.WriteEndElement();//end of mappings
+            writer.WriteEndElement();//end of controller
+            writer.WriteEndElement();//end of emulated_controller
+            writer.WriteEndDocument();
+        }
 
+        //Generate key bindings
+        private static string GetInputValuexml(Controller ctrl, InputKey ik, string api, bool invertAxis = false)
+        {
+            InputConfig joy = ctrl.Config;
+
+            var a = joy[ik];        //inputkey
+            Int64 val = a.Id;       //id from es_input config file
+            Int64 pid = 1;          //pid will be used to retrieve value in es_input config file for hat and axis
+
+            //L1 and R1 for XInput sends wrong id, cemu is based on SDl id's
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 5)
+                return "10";
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 4)
+                return "9";
+
+            //Return code for left and right triggers (l2 & r2)
+            if (a.Type == "axis" && val == 4)
+                return "42";
+            if (a.Type == "axis" && val == 5)
+                return "43";
+
+            //start and select for XInput sends wrong id, cemu is based on SDl id's
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 6)
+                return "4";
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 7)
+                return "6";
+
+            //D-pad for XInput is identified as "hat", retrieve value to define right direction
             if (a.Type == "hat")
             {
                 pid = a.Value;
-                if (val == 0)
+                switch (pid)
                 {
-                    switch (pid)
-                    {
-                        case 1: pid = 0x04000000; break;
-                        case 2: pid = 0x20000000; break;
-                        case 4: pid = 0x08000000; break;
-                        case 8: pid = 0x10000000; break;
-                    }
-
-                    val = 0;
-                }
-                else
-                {
-                    pid = 0x2000000 * pid;
-                    val = 0;
+                    case 1: return "11";
+                    case 4: return "12";
+                    case 8: return "13";
+                    case 2: return "14";
                 }
             }
 
+            //Set return values for left and right sticks
             if (a.Type == "axis")
             {
-                pid = a.Value;
-
-                int axisVal = invertAxis ? -1 : 1;
-
-                if (api == "XInput" && val == 1 || val == 4)
-                    axisVal = -axisVal;
+                pid = a.Value;                      //get value
+                int axisVal = invertAxis ? -1 : 1;  //if mapping is "true"
 
                 switch (val)
                 {
                     case 0: // left analog left/right
-                        if (pid == axisVal)     pid = 0x0040000000;                                
-                        else                    pid = 0x1000000000;
-                        break;
+                        if (pid == axisVal) return "38";
+                        else return "44";
                     case 1: // left analog up/down
-                        if (pid == axisVal)     pid = 0x0080000000; 
-                        else                    pid = 0x2000000000;
-                        break;
-                    case 2: // Triggers Analogiques L+R
-                        if (pid == axisVal)     pid = 0x0100000000;                                 
-                        else                    pid = 0x4000000000;
-                        break;
-                    case 3: // right analog left/right
-                        if (pid == axisVal)     pid = 0x0200000000; 
-                        else                    pid = 0x8000000000;
-                        break;
-                    case 4: // right analog up/down
-                        if (pid == axisVal)     pid = 0x0400000000; 
-                        else                    pid = 0x10000000000;
-                        break;
-                    case 5: // Triggers Analogiques R
-                        if (pid == axisVal) pid = 0x0800000000;
-                        else                pid = 0x10000000000;
-                        break;
+                        if (pid == axisVal) return "39";
+                        else return "45";
+                    case 2: // right analog left/right
+                        if (pid == axisVal) return "40";
+                        else return "46";
+                    case 3: // right analog up/down
+                        if (pid == axisVal) return "41";
+                        else return "47";
                 }
-
-                if (pid == axisVal && val == 1)
-                    pid = 0x80000000;
-                else
-                    val = 0;
             }
 
-            // Invert start/select on XInput
-            if (api == "XInput" && val == 7)
-                val = 6;
-            else if (api == "XInput" && val == 6)
-                val = 7;
+            //l3 and r3 (thumbs) have different id than cemu
+            if (ctrl.IsXInputDevice && a.Type == "button" && val == 8)
+                return "7";
+            else if (ctrl.IsXInputDevice && a.Type == "button" && val == 9)
+                return "8";
 
-            //(GetCEmuInputIndex(ik, api == "XInput") + (invertAxis ? 1 : 0)).ToString() + " = 
-            string ret = "button_" + (pid << (int)val).ToString("X");
+            string ret = val.ToString();
             return ret;
+
         }
 
-        public static int GetCEmuInputIndex(InputKey k, bool XInput = false)
-        {
-            if (XInput && k == InputKey.start)
-                return 10;
-            else if (XInput && k == InputKey.select)
-                return 9;
-
-            switch (k)
-            {
-                case InputKey.a: return 1;
-                case InputKey.b: return 2;
-                case InputKey.x: return 3;
-                case InputKey.y: return 4;
-
-                case InputKey.leftshoulder: return 5;
-                case InputKey.rightshoulder: return 6;
-
-                case InputKey.lefttrigger: return 7;
-                case InputKey.righttrigger: return 8;
-
-                case InputKey.start: return 9;
-                case InputKey.select: return 10;
-
-                case InputKey.up: return 11;
-                case InputKey.down: return 12;
-                case InputKey.left: return 13;
-                case InputKey.right: return 14;
-
-                case InputKey.leftthumb: return 15;
-                case InputKey.rightthumb: return 16;
-
-                case InputKey.leftanalogup: return 17;
-                case InputKey.leftanalogdown: return 18;
-                case InputKey.leftanalogleft: return 19;
-                case InputKey.leftanalogright: return 20;
-
-
-                case InputKey.rightanalogup: return 21;
-                case InputKey.rightanalogdown: return 22;
-                case InputKey.rightanalogleft: return 23;
-                case InputKey.rightanalogright: return 24;
-
-                case InputKey.hotkeyenable: return 26;
-            }
-            return -1;
-        }
-
+        //Search keyboard keycode
         private static byte SdlToKeyCode(long sdlCode)
         {
             switch (sdlCode)
@@ -419,7 +460,7 @@ namespace emulatorLauncher
 
                 case 0x40000049: return 45; // Insert = 0x40000049,
                 case 0x0000007f: return 46; // Delete = 0x0000007f,
-                    
+
                 case 0x40000059: return 97;  //KP_1 = 0x40000059,
                 case 0X4000005A: return 98;  //KP_2 = 0X4000005A,
                 case 0x4000005b: return 99;  // KP_3 = ,
@@ -446,16 +487,6 @@ namespace emulatorLauncher
                 case 0x40000043: return 121; // F10
                 case 0x40000044: return 122; // F11
                 case 0x40000045: return 123; // F12
-                /*        
-            KP_Period = 0x40000063,
-            KP_Divide = 0x40000054,
-                   
-            NumlockClear = 0x40000053,
-            ScrollLock = 0x40000047,*/
-                //RightShift = 0x400000e5,
-                //LeftCtrl = 0x400000e0,
-                //   RightCtrl = 0x400000e4,
-                //     RightAlt = 0x400000e6,
             }
 
             sdlCode = sdlCode & 0xFFFF;

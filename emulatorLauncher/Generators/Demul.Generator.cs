@@ -30,7 +30,7 @@ namespace emulatorLauncher
                 return null;
 
             SetupGeneralConfig(path, rom, system, core);
-            SetupDx11Config(path, rom, system);
+            SetupDx11Config(path, rom, system, resolution);
 
             string demulCore = "dreamcast";
 
@@ -66,7 +66,7 @@ namespace emulatorLauncher
             };
         }
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             var process = Process.Start(path);
 
@@ -91,18 +91,22 @@ namespace emulatorLauncher
             }
 
             if (process != null)
+            {
                 process.WaitForExit();
+                try { return process.ExitCode; }
+                catch { }
+            }
+
+            return -1;
         }
 
         private void SetupGeneralConfig(string path, string rom, string system, string core)
         {
             string iniFile = Path.Combine(path, "Demul.ini");
-            if (!File.Exists(iniFile))
-                return;
 
             try
             {
-                using (var ini = new IniFile(iniFile, true))
+                using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("files", "roms0", AppConfig.GetFullPath("bios"));
                     ini.WriteValue("files", "roms1", Path.GetDirectoryName(rom));
@@ -112,7 +116,10 @@ namespace emulatorLauncher
 
                     string gpu = "gpuDX11.dll";
                     if (_oldVersion || core == "gaelco" || system == "galeco")
+                    {
+                        _videoDriverName = "gpuDX11old";
                         gpu = "gpuDX11old.dll";
+                    }
 
                     ini.WriteValue("plugins", "gpu", gpu);
 
@@ -133,18 +140,23 @@ namespace emulatorLauncher
             catch { }
         }
 
-        private void SetupDx11Config(string path, string rom, string system)
+        private string _videoDriverName = "gpuDX11";
+
+        private void SetupDx11Config(string path, string rom, string system, ScreenResolution resolution)
         {
-            string iniFile = Path.Combine(path, "gpuDX11.ini");
-            if (!File.Exists(iniFile))
-                return;
+            string iniFile = Path.Combine(path, _videoDriverName + ".ini");
 
             try
             {
-                using (var ini = new IniFile(iniFile, true))
+                if (resolution == null)
+                    resolution = ScreenResolution.CurrentResolution;
+
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("main", "UseFullscreen", "0");
-                    ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");                    
+                    ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");
+                    ini.WriteValue("resolution", "Width", resolution.Width.ToString());
+                    ini.WriteValue("resolution", "Height", resolution.Height.ToString());            
                 }
             }
 

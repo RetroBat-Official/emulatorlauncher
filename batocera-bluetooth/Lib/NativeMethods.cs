@@ -5,6 +5,8 @@
 // Copyright (c) 2003-2020 In The Hand Ltd, All rights reserved.
 // This source code is licensed under the MIT License
 
+// https://github.com/inthehand/32feet/tree/main/InTheHand.Net.Bluetooth/Platforms/Win32
+
 using System;
 using System.Runtime.InteropServices;
 
@@ -28,41 +30,45 @@ namespace InTheHand.Net.Bluetooth.Win32
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool BluetoothFindDeviceClose(IntPtr hFind);
 
-        /*
-    
+        [DllImport(irpropsDll, SetLastError = true)]
+        internal static extern int BluetoothRemoveDevice(ref BLUETOOTH_ADDRESS pAddress);
 
-        [DllImport("User32")]
-        internal static extern IntPtr GetActiveWindow();
-
-        // Requires Vista SP2 or later
         [DllImport(bthpropsDll, SetLastError = true, CharSet = CharSet.Unicode)]
-        internal static extern int BluetoothRegisterForAuthenticationEx(ref BLUETOOTH_DEVICE_INFO pbtdi, out IntPtr phRegHandle, BluetoothAuthenticationCallbackEx pfnCallback, IntPtr pvParam);
+        internal static extern int BluetoothAuthenticateDeviceEx(IntPtr hwndParentIn, IntPtr hRadioIn, ref BLUETOOTH_DEVICE_INFO pbtdiInout, byte[] pbtOobData, 
+            BluetoothAuthenticationRequirements authenticationRequirement);
+
+        [DllImport(bthpropsDll, SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern int BluetoothGetDeviceInfo(IntPtr hRadio, ref BLUETOOTH_DEVICE_INFO pbtdi);
 
         [return: MarshalAs(UnmanagedType.Bool)]
         internal delegate bool BluetoothAuthenticationCallbackEx(IntPtr pvParam, ref BLUETOOTH_AUTHENTICATION_CALLBACK_PARAMS pAuthCallbackParams);
 
-        [DllImport(bthpropsDll, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool BluetoothUnregisterAuthentication(IntPtr hRegHandle);
+        // Requires Vista SP2 or later
+        [DllImport(bthpropsDll, SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern int BluetoothRegisterForAuthenticationEx(ref BLUETOOTH_DEVICE_INFO pbtdi, out IntPtr phRegHandle, BluetoothAuthenticationCallbackEx pfnCallback, IntPtr pvParam);
 
 
         [DllImport(bthpropsDll, SetLastError = false, CharSet = CharSet.Unicode)]
         internal static extern int BluetoothSendAuthenticationResponseEx(IntPtr hRadio, ref BLUETOOTH_AUTHENTICATE_RESPONSE__PIN_INFO pauthResponse);
 
         [DllImport(bthpropsDll, SetLastError = false, CharSet = CharSet.Unicode)]
-        internal static extern int BluetoothSendAuthenticationResponseEx(IntPtr hRadio, ref BLUETOOTH_AUTHENTICATE_RESPONSE__OOB_DATA_INFO pauthResponse);
-
-        [DllImport(bthpropsDll, SetLastError = false, CharSet = CharSet.Unicode)]
         internal static extern int BluetoothSendAuthenticationResponseEx(IntPtr hRadio, ref BLUETOOTH_AUTHENTICATE_RESPONSE__NUMERIC_COMPARISON_PASSKEY_INFO pauthResponse);
 
-        [DllImport(bthpropsDll, SetLastError = true, CharSet = CharSet.Unicode)]
-        internal static extern int BluetoothGetDeviceInfo(IntPtr hRadio, ref BLUETOOTH_DEVICE_INFO pbtdi);
+        [DllImport(bthpropsDll, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool BluetoothUnregisterAuthentication(IntPtr hRegHandle);
+
+        /*
+    
+
+        [DllImport("User32")]
+        internal static extern IntPtr GetActiveWindow();
+
+        [DllImport(bthpropsDll, SetLastError = false, CharSet = CharSet.Unicode)]
+        internal static extern int BluetoothSendAuthenticationResponseEx(IntPtr hRadio, ref BLUETOOTH_AUTHENTICATE_RESPONSE__OOB_DATA_INFO pauthResponse);
 
         [DllImport(bthpropsDll, SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern int BluetoothAuthenticateDeviceEx(IntPtr hwndParentIn, IntPtr hRadioIn, ref BLUETOOTH_DEVICE_INFO pbtdiInout, byte[] pbtOobData, BluetoothAuthenticationRequirements authenticationRequirement);
-
-        [DllImport(irpropsDll, SetLastError = true)]
-        internal static extern int BluetoothRemoveDevice(ref ulong pAddress);
 
         // Radio
         [DllImport(irpropsDll, SetLastError = true)]
@@ -159,5 +165,169 @@ namespace InTheHand.Net.Bluetooth.Win32
         /// </summary>
         internal uint Numeric_Value_Passkey;
          */
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 20)]
+    internal struct BLUETOOTH_PIN_INFO
+    {
+        public const int BTH_MAX_PIN_SIZE = 16;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = BTH_MAX_PIN_SIZE)]
+        internal byte[] pin;
+        internal int pinLength;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 52)]
+    internal struct BLUETOOTH_AUTHENTICATE_RESPONSE__PIN_INFO // see above
+    {
+        internal ulong bthAddressRemote;
+        internal BluetoothAuthenticationMethod authMethod;
+        internal BLUETOOTH_PIN_INFO pinInfo;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
+        private readonly byte[] _padding;
+        internal byte negativeResponse;
+    }
+
+    internal enum BluetoothAuthenticationMethod : int // MSFT+Win32 BLUETOOTH_AUTHENTICATION_METHOD
+    {
+        /// <summary>
+        /// The Bluetooth device supports authentication via a PIN.
+        /// </summary>
+        Legacy = 0x1,
+
+        /// <summary>
+        /// The Bluetooth device supports authentication via out-of-band data.
+        /// </summary>
+        OutOfBand,
+
+        /// <summary>
+        /// The Bluetooth device supports authentication via numeric comparison.
+        /// </summary>
+        NumericComparison,
+
+        /// <summary>
+        /// The Bluetooth device supports authentication via passkey notification.
+        /// </summary>
+        PasskeyNotification,
+
+        /// <summary>
+        /// The Bluetooth device supports authentication via passkey.
+        /// </summary>
+        Passkey,
+    }
+
+    internal enum BluetoothIoCapability : int // MSFT+Win32 BLUETOOTH_IO_CAPABILITY
+    {
+        /// <summary>
+        /// The Bluetooth device is capable of output via display only.
+        /// </summary>
+        DisplayOnly = 0x00,
+
+        /// <summary>
+        /// The Bluetooth device is capable of output via a display, 
+        /// and has the additional capability to presenting a yes/no question to the user.
+        /// </summary>
+        DisplayYesNo = 0x01,
+
+        /// <summary>
+        /// The Bluetooth device is capable of input via keyboard.
+        /// </summary>
+        KeyboardOnly = 0x02,
+
+        /// <summary>
+        /// The Bluetooth device is not capable of input/output.
+        /// </summary>
+        NoInputNoOutput = 0x03,
+
+        /// <summary>
+        /// The input/output capabilities for the Bluetooth device are undefined.
+        /// </summary>
+        Undefined = 0xff
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BLUETOOTH_AUTHENTICATION_CALLBACK_PARAMS
+    {
+        /// <summary>
+        /// A BLUETOOTH_DEVICE_INFO structure that contains information about a Bluetooth device.
+        /// </summary>
+        internal BLUETOOTH_DEVICE_INFO deviceInfo;
+
+        /// <summary>
+        /// A BLUETOOTH_AUTHENTICATION_METHOD enumeration that defines the authentication method utilized by the Bluetooth device.
+        /// </summary>
+        internal BluetoothAuthenticationMethod authenticationMethod;
+
+        /// <summary>
+        /// A BLUETOOTH_IO_CAPABILITY enumeration that defines the input/output capabilities of the Bluetooth device.
+        /// </summary>
+        internal BluetoothIoCapability ioCapability;
+
+        /// <summary>
+        /// A AUTHENTICATION_REQUIREMENTS specifies the 'Man in the Middle' protection required for authentication.
+        /// </summary>
+        internal BluetoothAuthenticationRequirements authenticationRequirements;
+
+        //union{
+        //    ULONG   Numeric_Value;
+        //    ULONG   Passkey;
+        //};
+
+        /// <summary>
+        /// A ULONG value used for Numeric Comparison authentication.
+        /// or
+        /// A ULONG value used as the passkey used for authentication.
+        /// </summary>
+        internal uint Numeric_Value_Passkey;
+    }
+    enum BluetoothAuthenticationRequirements
+    {
+        MITMProtectionNotRequired = 0x00,
+        MITMProtectionRequired = 0x01,
+        MITMProtectionNotRequiredBonding = 0x02,
+        MITMProtectionRequiredBonding = 0x03,
+        MITMProtectionNotRequiredGeneralBonding = 0x04,
+        MITMProtectionRequiredGeneralBonding = 0x05,
+        MITMProtectionNotDefined = 0xff
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    struct BLUETOOTH_ADDRESS
+    {
+        [FieldOffset(0)]
+        [MarshalAs(UnmanagedType.I8)]
+        public ulong ullLong;
+        [FieldOffset(0)]
+        [MarshalAs(UnmanagedType.U1)]
+        public Byte rgBytes_0;
+        [FieldOffset(1)]
+        [MarshalAs(UnmanagedType.U1)]
+        public Byte rgBytes_1;
+        [FieldOffset(2)]
+        [MarshalAs(UnmanagedType.U1)]
+        public Byte rgBytes_2;
+        [FieldOffset(3)]
+        [MarshalAs(UnmanagedType.U1)]
+        public Byte rgBytes_3;
+        [FieldOffset(4)]
+        [MarshalAs(UnmanagedType.U1)]
+        public Byte rgBytes_4;
+        [FieldOffset(5)]
+        [MarshalAs(UnmanagedType.U1)]
+        public Byte rgBytes_5;
+    };
+
+    [StructLayout(LayoutKind.Sequential, Size = 52)]
+    internal struct BLUETOOTH_AUTHENTICATE_RESPONSE__NUMERIC_COMPARISON_PASSKEY_INFO // see above
+    {
+        internal ulong bthAddressRemote;
+        internal BluetoothAuthenticationMethod authMethod;
+        internal uint numericComp_passkey;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 28)]
+        private readonly byte[] _padding;
+
+        internal byte negativeResponse;
     }
 }

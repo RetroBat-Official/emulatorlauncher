@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.PadToKeyboard;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -11,178 +13,58 @@ namespace emulatorLauncher
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string path = AppConfig.GetFullPath("mame64");
-            if (string.IsNullOrEmpty(path))
-                path = AppConfig.GetFullPath("mame");
+            string path = AppConfig.GetFullPath("mame");
+            if (string.IsNullOrEmpty(path) && Environment.Is64BitOperatingSystem)
+                path = AppConfig.GetFullPath("mame64");
 
-            string exe = Path.Combine(path, "mame64.exe");
-            if (!File.Exists(exe))
-                exe = Path.Combine(path, "mame.exe");
+            string exe = Path.Combine(path, "mame.exe");
+            if (!File.Exists(exe) && Environment.Is64BitOperatingSystem)
+                exe = Path.Combine(path, "mame64.exe");
             if (!File.Exists(exe))
                 exe = Path.Combine(path, "mame32.exe");
 
             if (!File.Exists(exe))
                 return null;
 
-            if (core == "fmtownsux" || core == "fmtowns")
+            _exeName = Path.GetFileNameWithoutExtension(exe);
+
+            string args = null;
+
+            MessSystem messMode = MessSystem.GetMessSystem(system, core);
+            if (messMode == null)
             {
-                string args = "-cdrom \"" + rom + "\"";
+                List<string> commandArray = new List<string>();
 
-                SetupFmTownsRomPaths(path, rom);
+                commandArray.Add("-skip_gameinfo");
 
-                if (Directory.Exists(rom))
-                {
-                    var cueFile = Directory.GetFiles(rom, "*.cue").FirstOrDefault();
-                    if (!string.IsNullOrEmpty(cueFile))
-                        args = "-cdrom \"" + cueFile + "\"";
-                    else
-                    {
-                        SimpleLogger.Instance.Info("TsugaruGenerator : Cue file not found");
-                        return null;
-                    }
-                }
+                // rompath
+                commandArray.Add("-rompath");
+                if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
+                    commandArray.Add(AppConfig.GetFullPath("bios") + ";" + Path.GetDirectoryName(rom));
                 else
-                {
-                    string ext = Path.GetExtension(rom).ToLowerInvariant();
-                    if (ext == ".cue" || ext == ".iso")
-                        args = "-cdrom \"" + rom + "\"";
-                    else
-                        args = "-flop1 \"" + rom + "\"";
-                }
+                    commandArray.Add(Path.GetDirectoryName(rom));
 
-                return new ProcessStartInfo()
-                {
-                    FileName = exe,
-                    WorkingDirectory = path,
-                    Arguments = "fmtownsux " + args,
-                };
+                // Unknown system, try to run with rom name only
+                commandArray.Add(Path.GetFileName(rom));
+
+                args = string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
             }
-            
-            SetupRomPaths(path, rom);
+            else
+                args = messMode.GetMameCommandLineArguments(system, rom, false);
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "\"" + rom + "\"",
+                Arguments = args,
             };
         }
 
-        private void SetupFmTownsRomPaths(string path, string rom)
+        private string _exeName;
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            try
-            {
-                string biosPath = null;
-
-                if (!string.IsNullOrEmpty(AppConfig["bios"]))
-                {
-                    if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtownsux")))
-                        biosPath = Path.Combine(AppConfig.GetFullPath("bios"));
-                }
-
-                if (string.IsNullOrEmpty(biosPath))
-                    return;
-
-                string iniFile = GetIniPaths(path)
-                        .Select(p => Path.Combine(AbsolutePath(path, p), "fmtownsux.ini"))
-                        .Where(p => File.Exists(p))
-                        .FirstOrDefault();
-
-                if (string.IsNullOrEmpty(iniFile))
-                    iniFile = Path.Combine(path, "fmtownsux.ini");
-
-                if (!File.Exists(iniFile))
-                    File.WriteAllText(iniFile, Properties.Resources.mame);
-
-                var lines = File.ReadAllLines(iniFile).ToList();
-                int idx = lines.FindIndex(l => l.StartsWith("rompath"));
-                if (idx >= 0)
-                {
-                    
-                    var line = lines[idx];
-                    var name = line.Substring(0, 26);
-
-                    var paths = line.Substring(26)
-                        .Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Where(p => Directory.Exists(AbsolutePath(path, p)))
-                        .ToList();
-
-                    if (!paths.Contains(biosPath))
-                    {
-                        paths.Add(biosPath);
-                        lines[idx] = name + string.Join(";", paths.ToArray());
-                        File.WriteAllLines(iniFile, lines);
-                    }
-                }
-            }
-            catch { }
-        }
-
-        private string AbsolutePath(string path, string val)
-        {
-            if (string.IsNullOrEmpty(val))
-                return val;
-
-            if (val == ".")
-                return path;
-
-            return Path.Combine(path, val);
-        }
-
-        private string[] GetIniPaths(string path)
-        {
-            try
-            {
-                string iniFile = Path.Combine(path, "mame.ini");
-                if (File.Exists(iniFile))
-                {
-                    var lines = File.ReadAllLines(iniFile).ToList();
-                    int idx = lines.FindIndex(l => l.StartsWith("inipath"));
-                    if (idx >= 0)
-                    {
-                        return lines[idx]
-                            .Substring(26)
-                            .Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-                            .ToArray();
-                    }
-                }
-            }
-            catch { }
-
-            return new string[] { ".", "ini", "ini/presets" };
-        }
-
-        private void SetupRomPaths(string path, string rom)
-        {
-            try
-            {
-                string romPath = Path.GetDirectoryName(rom);
-
-                string iniFile = Path.Combine(path, "mame.ini");
-                if (!File.Exists(iniFile))
-                    File.WriteAllText(iniFile, Properties.Resources.mame);
-                var lines = File.ReadAllLines(iniFile).ToList();
-                int idx = lines.FindIndex(l => l.StartsWith("rompath"));
-                if (idx >= 0)
-                {
-
-                    var line = lines[idx];
-                    var name = line.Substring(0, 26);
-
-                    var paths = line.Substring(26)
-                        .Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Where(p => Directory.Exists(AbsolutePath(path, p)))
-                        .ToList();
-
-                    if (!paths.Contains(romPath))
-                    {
-                        paths.Add(romPath);
-                        lines[idx] = name + string.Join(";", paths.ToArray());
-                        File.WriteAllLines(iniFile, lines);
-                    }
-                }
-            }
-            catch { }
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
     }
 }

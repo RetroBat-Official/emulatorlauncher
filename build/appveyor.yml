@@ -1,6 +1,12 @@
-version: 1.0.{build}
+version: 1.0.0.{build}
 configuration: Release
-platform: x86
+platform: Any CPU
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
 build:
   project: batocera-ports.sln
   verbosity: minimal
@@ -13,6 +19,10 @@ after_build:
 - 7z a batocera-ports.zip batocera-systems.exe
 - copy batocera-padsinfo\bin\Release\batocera-padsinfo.exe .
 - 7z a batocera-ports.zip batocera-padsinfo.exe
+- copy batocera-store\bin\Release\batocera-store.exe .
+- 7z a batocera-ports.zip batocera-store.exe
+- copy mount\bin\Release\mount.exe .
+- 7z a batocera-ports.zip mount.exe
 - 7z a batocera-ports.zip 7za.exe
 - 7z a batocera-ports.zip 7za.dll
 - 7z a batocera-ports.zip 7zxa.dll
@@ -20,12 +30,20 @@ after_build:
 - 7z a batocera-ports.zip unzip32.dll
 - 7z a batocera-ports.zip pdftoppm.exe
 - 7z a batocera-ports.zip pdfinfo.exe
+- 7z a batocera-ports.zip rdsquashfs.exe
+- 7z a batocera-ports.zip liblzma.dll
+- 7z a batocera-ports.zip liblzo2-2.dll
+- 7z a batocera-ports.zip libsquashfs.dll
+- 7z a batocera-ports.zip libzstd.dll
+- 7z a batocera-ports.zip xbox-iso-vfs.exe
+- 7z a batocera-ports.zip 7z.exe
+- 7z a batocera-ports.zip 7z.dll
 artifacts:
-- path: batocera-ports.zip 
+- path: batocera-ports.zip
 deploy:
 - provider: GitHub
   tag: continuous
   release: continuous
   auth_token:
-    secure: gCm0RpSlfboTKUWIY8Sf7aWrrcZq+1bMtQo/yoZ3y34N21bHbnO6C+T4+0k6sZUX
+    secure: afMGqkbqCFPGpQOgnu9WZOaMG2l8hCUPeeGQU9JvZYeQGC+1LcfgXjGJF6LIOFrs
   force_update: true

@@ -41,7 +41,7 @@ namespace emulatorLauncher
             var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
             if (controller != null)
             {
-                var directInput = controller.Config.GetDirectInputInfo();
+                var directInput = controller.DirectInput;
                 if (directInput != null)
                 {
                     string fpinballName = directInput.Name.Length > 47 ? directInput.Name.Substring(0, 47) : directInput.Name;
@@ -105,15 +105,9 @@ namespace emulatorLauncher
         string _rom;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
-        {
+        {            
             string path = AppConfig.GetFullPath("fpinball");
-
-            _rom = rom;
-            _splash = ShowSplash(rom);
-
-            if ("bam".Equals(emulator, StringComparison.InvariantCultureIgnoreCase) || "bam".Equals(core, StringComparison.InvariantCultureIgnoreCase))
-                _bam = Path.Combine(path, "BAM", "FPLoader.exe");
-
+            
             string exe = Path.Combine(path, "Future Pinball.exe");
             if (!File.Exists(exe))
             {
@@ -121,6 +115,21 @@ namespace emulatorLauncher
                 if (!File.Exists(exe))
                     return null;
             }
+
+            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+
+            if (Directory.Exists(rom))
+            {
+                rom = Directory.GetFiles(rom, "*.fpt").FirstOrDefault();
+                if (string.IsNullOrEmpty(rom))
+                    throw new ApplicationException("Unable to find any table in the provided folder");
+            }
+            
+            _rom = rom;
+            _splash = ShowSplash(rom);
+
+            if ("bam".Equals(emulator, StringComparison.InvariantCultureIgnoreCase) || "bam".Equals(core, StringComparison.InvariantCultureIgnoreCase))
+                _bam = Path.Combine(path, "BAM", "FPLoader.exe");
 
             if (_bam != null && File.Exists(_bam))
                 ScreenResolution.SetHighDpiAware(_bam);
@@ -158,8 +167,8 @@ namespace emulatorLauncher
 
             return ret;
         }
-                
-        public override void RunAndWait(ProcessStartInfo path)
+
+        public override int RunAndWait(ProcessStartInfo path)
         {
             Process process = null;
 
@@ -182,7 +191,16 @@ namespace emulatorLauncher
                 process = Process.Start(path);
 
             if (process != null)
+            {
                 process.WaitForExit();
+
+                try { return process.ExitCode; }
+                catch { }
+
+                return 0;
+            }
+
+            return -1;
         }
 
         public override void Cleanup()
@@ -350,7 +368,7 @@ namespace emulatorLauncher
                 if (controller != null)
                 {
                     LoadingForm frm = new LoadingForm();
-                    frm.WarningText = "Warning : Future Pinball requires developper mode enabled in Windows settings";
+                    frm.WarningText = Properties.Resources.FPinballDeveloperMode;
                     frm.Show();
                 }
             }

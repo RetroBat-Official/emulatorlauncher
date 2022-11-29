@@ -38,12 +38,10 @@ namespace emulatorLauncher
         private void SetupConfig(string path)
         {
             string iniFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "ppsspp.ini");
-            if (!File.Exists(iniFile))
-                return;
 
             try
             {
-                using (var ini = new IniFile(iniFile, true))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("Graphics", "FullScreen", "True");
 

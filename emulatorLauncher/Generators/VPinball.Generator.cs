@@ -28,6 +28,14 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+            if (Directory.Exists(rom))
+            {
+                rom = Directory.GetFiles(rom, "*.vpx").FirstOrDefault();
+                if (string.IsNullOrEmpty(rom))
+                    return null;
+            }
+
             _rom = rom;
             _splash = ShowSplash(rom);
 
@@ -37,6 +45,8 @@ namespace emulatorLauncher
             EnsureVPinMameRegistered(path);
 
             string romPath = Path.Combine(Path.GetDirectoryName(rom), "roms");
+            if (!Directory.Exists(romPath))
+                romPath = Path.Combine(Path.GetDirectoryName(rom), ".roms");
             if (!Directory.Exists(romPath))
                 romPath = null;
 
@@ -61,16 +71,27 @@ namespace emulatorLauncher
 
             SetupOptions(path, romPath, resolution);
 
+            List<string> commandArray = new List<string>();
+                        
+            Version version = new Version();
+            if (Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion.Replace(",", ".").Replace(" ", ""), out version) && version >= new Version(10, 7, 0, 0))
+                commandArray.Add("-ExtMinimized");            
+
+            commandArray.Add("-play");
+            commandArray.Add(rom);
+
+            string args = string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-play  \"" + rom + "\"",
+                Arguments = args,
                 WindowStyle = _splash != null ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal,
                 UseShellExecute = true
             };
         }
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             try
             {
@@ -86,8 +107,33 @@ namespace emulatorLauncher
                         Application.DoEvents();
                     }
                 }
+                
+                try
+                {
+                    Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
+                    foreach (Process backGlass in backGlasses)
+                        backGlass.Kill();
+
+                    Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
+                    foreach (Process ultraDMD in ultraDMDs)
+                        ultraDMD.Kill();
+                }
+                catch { }
+
+                int exitCode = px.ExitCode;
+
+                // vpinball always returns -1 when exiting
+                if (exitCode == -1)
+                    return 0;
+
+                return exitCode;
             }
-            catch { }
+            catch 
+            { 
+
+            }
+
+            return -1;
         }
 
         public override void Cleanup()
@@ -97,6 +143,8 @@ namespace emulatorLauncher
                 _splash.Dispose();
                 _splash = null;
             }
+
+            base.Cleanup();
         }
 
         private static void KillProcess(Process px, string rom)
@@ -104,16 +152,7 @@ namespace emulatorLauncher
             try
             {
                 ScreenCapture.AddScreenCaptureToGameList(rom);
-
                 px.Kill();
-
-                Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
-                foreach (Process backGlass in backGlasses)
-                    backGlass.Kill();
-
-                Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
-                foreach (Process ultraDMD in ultraDMDs)
-                    ultraDMD.Kill();
             }
             catch { }
         }
@@ -307,7 +346,7 @@ namespace emulatorLauncher
                 Process px = new Process();
                 px.EnableRaisingEvents = true;
                 px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = Path.Combine(Misc.GetSystemDirectory(), "regsvr32.exe");
+                px.StartInfo.FileName = Path.Combine(FileTools.GetSystemDirectory(), "regsvr32.exe");
                 px.StartInfo.Arguments = "/s \"" + Path.Combine(path, "VPinMame", "VPinMAME.dll") + "\"";
                 px.StartInfo.UseShellExecute = true;
                 px.StartInfo.CreateNoWindow = true;
@@ -330,7 +369,7 @@ namespace emulatorLauncher
             regKeyc = vp.CreateSubKey("Controller");
             if (regKeyc != null)
             {
-                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] == "1")
+                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
                     SetOption(regKeyc, "ForceDisableB2S", 0);
                 else
                     SetOption(regKeyc, "ForceDisableB2S", 1);

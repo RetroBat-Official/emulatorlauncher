@@ -17,6 +17,8 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+
             string savePath = "";
 
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))

@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{FE4B5BD2-D1BE-4B31-B9D8-B8060BA2174A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>mount</RootNamespace>
+    <AssemblyName>mount</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\EmulationStation\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\emulatorLauncher\Common\EnumerableExtensions.cs">
+      <Link>Common\EnumerableExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\FileTools.cs">
+      <Link>Common\FileTools.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\ProcessExtensions.cs">
+      <Link>Common\ProcessExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\ReflectionHelper.cs">
+      <Link>Common\ReflectionHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\StringExtensions.cs">
+      <Link>Common\StringExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\ZipFile.cs">
+      <Link>Common\ZipFile.cs</Link>
+    </Compile>
+    <Compile Include="MountedFileEntry.cs" />
+    <Compile Include="OverlayDeletionRepository.cs" />
+    <Compile Include="DokanNet\BufferPool.cs" />
+    <Compile Include="DokanNet\Dokan.cs" />
+    <Compile Include="DokanNet\DokanException.cs" />
+    <Compile Include="DokanNet\DokanFileInfo.cs" />
+    <Compile Include="DokanNet\DokanHelper.cs" />
+    <Compile Include="DokanNet\DokanOperationProxy.cs" />
+    <Compile Include="DokanNet\DokanOptions.cs" />
+    <Compile Include="DokanNet\DokanResult.cs" />
+    <Compile Include="DokanNet\DokanStatus.cs" />
+    <Compile Include="DokanNet\FileAccess.cs" />
+    <Compile Include="DokanNet\FileInformation.cs" />
+    <Compile Include="DokanNet\FileSystemFeatures.cs" />
+    <Compile Include="DokanNet\IDokanFileInfo.cs" />
+    <Compile Include="DokanNet\IDokanOperations.cs" />
+    <Compile Include="DokanNet\IDokanOperationsUnsafe.cs" />
+    <Compile Include="DokanNet\Logging\ConsoleLogger.cs" />
+    <Compile Include="DokanNet\Logging\DebugViewLogger.cs" />
+    <Compile Include="DokanNet\Logging\ILogger.cs" />
+    <Compile Include="DokanNet\Logging\Logger.cs" />
+    <Compile Include="DokanNet\Logging\LoggerExtensions.cs" />
+    <Compile Include="DokanNet\Logging\NullLogger.cs" />
+    <Compile Include="DokanNet\Logging\TraceLogger.cs" />
+    <Compile Include="DokanNet\MockDokanFileInfo.cs" />
+    <Compile Include="DokanNet\Native\BY_HANDLE_FILE_INFORMATION.cs" />
+    <Compile Include="DokanNet\Native\DOKAN_OPERATIONS.cs" />
+    <Compile Include="DokanNet\Native\DOKAN_OPTIONS.cs" />
+    <Compile Include="DokanNet\Native\NativeMethods.cs" />
+    <Compile Include="DokanNet\Native\SECURITY_INFORMATION.cs" />
+    <Compile Include="DokanNet\Native\WIN32_FIND_DATA.cs" />
+    <Compile Include="DokanNet\Native\WIN32_FIND_STREAM_DATA.cs" />
+    <Compile Include="DokanNet\NtStatus.cs" />
+    <Compile Include="DokanNet\NullFormatProvider.cs" />
+    <Compile Include="FileEntry.cs" />
+    <Compile Include="OverlayFileEntry.cs" />
+    <Compile Include="Properties\Resources.Designer.cs" />
+    <Compile Include="Temp\PortableZip.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DokanOperations.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

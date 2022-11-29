@@ -165,16 +165,18 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            // ExtractUserProfiles("h:\\");
+            rom = this.TryUnZipGameIfNeeded(system, rom);
 
             string gameName = Path.GetFileNameWithoutExtension(rom);
 
             GameProfile profile = FindGameProfile(path, rom, gameName);
             if (profile == null)
             {
-                SimpleLogger.Instance.Error("Unable to find gameprofile for " + rom);
+                SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find gameprofile for " + rom);
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game profile.\r\nPlease make sure the game folder is named like the xml file in emulators/teknoparrot/GameProfiles folder or like the <GameName> element in the xml" };
             }
+
+            SetupParrotData(path);
 
             GameProfile userProfile = null;
 
@@ -189,7 +191,7 @@ namespace emulatorLauncher
 
             if (userProfile == null)
             {
-                SimpleLogger.Instance.Error("Unable create userprofile for " + rom);
+                SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable create userprofile for " + rom);
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to create userprofile" };
             }
             
@@ -202,7 +204,7 @@ namespace emulatorLauncher
 
                 if (userProfile.GamePath == null)
                 {
-                    SimpleLogger.Instance.Error("Unable to find Game executable for " + rom);
+                    SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find Game executable for " + rom);
                     return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game executable" };
                 }
             }
@@ -246,6 +248,24 @@ namespace emulatorLauncher
             };
         }
 
+        private static void SetupParrotData(string path)
+        {
+            string parrotData = Path.Combine(path, "ParrotData.xml");
+
+            ParrotData data = null;
+
+            try { data = XmlExtensions.FromXml<ParrotData>(parrotData); }
+            catch { data = new ParrotData(); }
+
+            if (!data.SilentMode || data.ConfirmExit)
+            {
+                data.SilentMode = true;
+                data.ConfirmExit = false;
+
+                File.WriteAllText(parrotData, data.ToXml());
+            }
+        }
+
         private static void ExtractUserProfiles(string path)
         {
 
@@ -279,7 +299,7 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            bool xInput = Program.Controllers.All(c => c.Config != null && c.Config.IsXInputDevice());
+            bool xInput = Program.Controllers.All(c => c.Config != null && c.IsXInputDevice);
 
             var inputAPI = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Input API");
             if (inputAPI != null)
@@ -308,8 +328,8 @@ namespace emulatorLauncher
                         ImportXInputButton(userProfile, c.Config, InputKey.leftanalogleft, InputMapping.Analog4);
                         ImportXInputButton(userProfile, c.Config, InputKey.rightthumb, InputMapping.Analog2);
 
-                        ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
-                        ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
+                        ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
+                        ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
 
                         ImportXInputButton(userProfile, c.Config, InputKey.a, InputMapping.JvsTwoP1Button1, InputMapping.P1Button1);
                         ImportXInputButton(userProfile, c.Config, InputKey.b, InputMapping.ExtensionOne12);
@@ -321,10 +341,10 @@ namespace emulatorLauncher
                         {
                             if (userProfile.HasAnyXInputButton(InputMapping.Analog0))
                             {
-                                ImportXInputButton(userProfile, c.Config, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
-                                ImportXInputButton(userProfile, c.Config, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
-                                ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
-                                ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
+                                ImportXInputButton(userProfile, c.Config, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
+                                ImportXInputButton(userProfile, c.Config, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
+                                ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
+                                ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
 
                                 // Wheel
                                 ImportXInputButton(userProfile, c.Config, InputKey.leftanalogleft, InputMapping.Analog0);
@@ -338,18 +358,18 @@ namespace emulatorLauncher
                             }
                             else
                             {
-                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogleft, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
-                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogright, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
-                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogup, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
-                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogdown, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogleft, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogright, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogup, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
+                                ImportXInputButton(userProfile, c.Config, InputKey.leftanalogdown, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
                             }
                         }
                         else
                         {
-                            ImportXInputButton(userProfile, c.Config, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft);
-                            ImportXInputButton(userProfile, c.Config, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight);
-                            ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp);
-                            ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown);
+                            ImportXInputButton(userProfile, c.Config, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
+                            ImportXInputButton(userProfile, c.Config, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
+                            ImportXInputButton(userProfile, c.Config, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
+                            ImportXInputButton(userProfile, c.Config, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
                         }
 
                         if (userProfile.HasAnyXInputButton(InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart, InputMapping.JvsTwoCoin1, InputMapping.Coin1))
@@ -381,27 +401,27 @@ namespace emulatorLauncher
 
                     if (c.Config[InputKey.leftanalogleft] != null)
                     {
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogup, new InputMapping[] { InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp });
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogleft, new InputMapping[] { InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft });
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogdown, new InputMapping[] { InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown });
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.leftanalogright, new InputMapping[] { InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight });
+                        ImportDirectInputButton(userProfile, c, InputKey.leftanalogup, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
+                        ImportDirectInputButton(userProfile, c, InputKey.leftanalogleft, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
+                        ImportDirectInputButton(userProfile, c, InputKey.leftanalogdown, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
+                        ImportDirectInputButton(userProfile, c, InputKey.leftanalogright, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
                     }
                     else
                     {
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.up, new InputMapping[] { InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp });
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.left, new InputMapping[] { InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft });
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.down, new InputMapping[] { InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown });
-                        ImportDirectInputButton(userProfile, c.Config, InputKey.right, new InputMapping[] { InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight });
+                        ImportDirectInputButton(userProfile, c, InputKey.up, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);
+                        ImportDirectInputButton(userProfile, c, InputKey.left, InputMapping.JvsTwoP1ButtonLeft, InputMapping.P1ButtonLeft, InputMapping.P1RelativeLeft);
+                        ImportDirectInputButton(userProfile, c, InputKey.down, InputMapping.JvsTwoP1ButtonDown, InputMapping.P1ButtonDown, InputMapping.P1RelativeDown);
+                        ImportDirectInputButton(userProfile, c, InputKey.right, InputMapping.JvsTwoP1ButtonRight, InputMapping.P1ButtonRight, InputMapping.P1RelativeRight);
                     }
 
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.select, new InputMapping[] { InputMapping.JvsTwoCoin1, InputMapping.Coin1 });
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.start, new InputMapping[] { InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart });
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.a, new InputMapping[] { InputMapping.JvsTwoP1Button1, InputMapping.P1Button1 });
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.b, new InputMapping[] { InputMapping.JvsTwoP1Button2, InputMapping.P1Button2 });
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.x, new InputMapping[] { InputMapping.JvsTwoP1Button3, InputMapping.P1Button3 });
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.y, new InputMapping[] { InputMapping.JvsTwoP1Button4, InputMapping.P1Button4 });
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.lefttrigger, new InputMapping[] { InputMapping.JvsTwoP1Button5, InputMapping.P1Button5 });
-                    ImportDirectInputButton(userProfile, c.Config, InputKey.righttrigger, new InputMapping[] { InputMapping.JvsTwoP1Button6, InputMapping.P1Button6 });
+                    ImportDirectInputButton(userProfile, c, InputKey.select, InputMapping.JvsTwoCoin1, InputMapping.Coin1);
+                    ImportDirectInputButton(userProfile, c, InputKey.start, InputMapping.JvsTwoP1ButtonStart, InputMapping.P1ButtonStart);
+                    ImportDirectInputButton(userProfile, c, InputKey.a, InputMapping.JvsTwoP1Button1, InputMapping.P1Button1);
+                    ImportDirectInputButton(userProfile, c, InputKey.b, InputMapping.JvsTwoP1Button2, InputMapping.P1Button2);
+                    ImportDirectInputButton(userProfile, c, InputKey.x, InputMapping.JvsTwoP1Button3, InputMapping.P1Button3);
+                    ImportDirectInputButton(userProfile, c, InputKey.y, InputMapping.JvsTwoP1Button4, InputMapping.P1Button4);
+                    ImportDirectInputButton(userProfile, c, InputKey.lefttrigger, InputMapping.JvsTwoP1Button5, InputMapping.P1Button5);
+                    ImportDirectInputButton(userProfile, c, InputKey.righttrigger, InputMapping.JvsTwoP1Button6, InputMapping.P1Button6);
 
                 }
 
@@ -518,8 +538,10 @@ namespace emulatorLauncher
             }
         }
 
-        private static void ImportDirectInputButton(GameProfile userProfile, InputConfig c, InputKey key, InputMapping[] mapping)
+        private static void ImportDirectInputButton(GameProfile userProfile, Controller ctrl, InputKey key, params InputMapping[] mapping)
         {
+            InputConfig c = ctrl.Config;
+
             var start = userProfile.JoystickButtons.FirstOrDefault(j => !j.HideWithDirectInput && mapping.Contains(j.InputMapping));
 
             bool reverseAxis = false;
@@ -535,7 +557,7 @@ namespace emulatorLauncher
                 key = InputKey.leftanalogleft;
             }
 
-            var info = c.GetDirectInputInfo();
+            var info = ctrl.DirectInput;
 
             if (start != null && c[key] != null && info != null)
             {
@@ -671,6 +693,9 @@ namespace emulatorLauncher
             if (name.Contains("."))
                 name = name.Replace(".", "");
 
+            if (name.Contains("'"))
+                name = name.Replace("'", "");
+
             return name.Trim();
         }
 
@@ -679,23 +704,10 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(_exename))
                 return mapping;
 
-            if (Program.Controllers.Count(c => c.Config != null && c.Config.DeviceName != "Keyboard") == 0)
-                return mapping;
+            mapping.ForceApplyToProcess = "TeknoParrotUI";
 
-            if (mapping == null)
-                mapping = new PadToKeyboard.PadToKey();
-
-            var app = new PadToKeyApp();
-            app.Name = _exename;
-
-            PadToKeyInput mouseInput = new PadToKeyInput();
-            mouseInput.Name = InputKey.hotkey | InputKey.start;
-            mouseInput.Type = PadToKeyType.Keyboard;
-            mouseInput.Key = "(%{KILL})";
-            app.Input.Add(mouseInput);
-            mapping.Applications.Add(app);
-
-            return mapping;
+            mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "TeknoParrotUI", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
         private static void KillProcessTree(string processName)
@@ -841,7 +853,7 @@ namespace emulatorLauncher
             return null;
         }
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             if (path.FileName == "WARNING")
             {
@@ -859,12 +871,13 @@ namespace emulatorLauncher
                     }
                 }
 
-                return;
+                return 0;
             }
 
-            base.RunAndWait(path);
+            int ret = base.RunAndWait(path);
 
             KillProcessTree("TeknoParrotUI");
+            KillProcessTree(_exename);
 
             if (Process.GetProcessesByName("OpenParrotLoader").Length > 0 || Process.GetProcessesByName("OpenParrotLoader64").Length > 0)
             {
@@ -877,6 +890,8 @@ namespace emulatorLauncher
             KillProcessTree("BudgieLoader");
             KillProcessTree("OpenParrotKonamiLoader");
             killIDZ();
+
+            return 0;
         }
         
     }
@@ -888,5 +903,53 @@ namespace emulatorLauncher
         {
             return pthi.JoystickButtons.Any(j => !j.HideWithXInput && lists.Contains(j.InputMapping));
         }
+    }
+
+    public class ParrotData
+    {
+        public ParrotData()
+        {
+            ExitGameKey = "0x1B";
+            PauseGameKey = "0x13";
+
+            ScoreCollapseGUIKey = "0x79";
+            CheckForUpdates = true;
+
+            ConfirmExit = true;
+            DownloadIcons = true;
+            UiDisableHardwareAcceleration = false;
+
+            UiColour = "lightblue";
+            UiDarkMode = false;
+            UiHolidayThemes = true;
+        }
+
+        public bool UseSto0ZDrivingHack { get; set; }
+        public int StoozPercent { get; set; }
+        public bool FullAxisGas { get; set; }
+        public bool FullAxisBrake { get; set; }
+        public bool ReverseAxisGas { get; set; }
+        public bool ReverseAxisBrake { get; set; }
+
+        public string LastPlayed { get; set; }
+        public string ExitGameKey { get; set; }
+        public string PauseGameKey { get; set; }
+
+        public string ScoreSubmissionID { get; set; }
+        public string ScoreCollapseGUIKey { get; set; }
+
+        public bool SaveLastPlayed { get; set; }
+
+        public bool UseDiscordRPC { get; set; }
+        public bool SilentMode { get; set; }
+        public bool CheckForUpdates { get; set; }
+
+        public bool ConfirmExit { get; set; }
+        public bool DownloadIcons { get; set; }
+        public bool UiDisableHardwareAcceleration { get; set; }
+
+        public string UiColour { get; set; }
+        public bool UiDarkMode { get; set; }
+        public bool UiHolidayThemes { get; set; }
     }
 }

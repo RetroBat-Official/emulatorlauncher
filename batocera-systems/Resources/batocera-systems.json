@@ -1,119 +1,215 @@
 {
-    "atari5200": { "name": "Atari 5200", "biosFiles": [ { "md5": "281f20ea4320404ec820fb7ec0693b38", "file": "bios/5200.rom"          },
-                                                        { "md5": "06daac977823773a3eea3422fd26a703", "file": "bios/ATARIXL.ROM"       },
-										                { "md5": "0bac0c6a50104045d902df4503a4c30b", "file": "bios/ATARIBAS.ROM"      },
-                                                        { "md5": "eb1f32f5d9f382db1bbfb8d7f9cb343a", "file": "bios/ATARIOSA.ROM"      },
-                                                        { "md5": "a3e8d617c95d08031fe1b20d541434b2", "file": "bios/ATARIOSB.ROM"      } ] },
-	"atari7800": { "name": "Atari 7800", "biosFiles": [ { "md5": "397bb566584be7b9764e7a68974c4263", "file": "bios/7800 BIOS (E).rom" },
-														{ "md5": "0763f1ffb006ddbe32e52d497ee848ae", "file": "bios/7800 BIOS (U).rom" },
-														{ "md5": "ce6a86574d0c9de9075705f14e99d090", "file": "bios/ProSystem.dat"     } ] },
-    "atarist":   { "name": "Atari ST", "biosFiles":   [ { "md5": "b2a8570de2e850c5acf81cb80512d9f6", "file": "bios/tos.img"           } ] },
-    "lynx":      { "name": "Lynx", "biosFiles":       [ { "md5": "fcd403db69f54290b51035d82f835e7b", "file": "bios/lynxboot.img"	  } ] },
+	"atari800": { "name": "Atari 800", "biosFiles":		[ { "md5": "06daac977823773a3eea3422fd26a703", "file": "bios/ATARIXL.ROM"       },
+                                                      { "md5": "0bac0c6a50104045d902df4503a4c30b", "file": "bios/ATARIBAS.ROM"      },
+                                                      { "md5": "eb1f32f5d9f382db1bbfb8d7f9cb343a", "file": "bios/ATARIOSA.ROM"      },
+                                                      { "md5": "a3e8d617c95d08031fe1b20d541434b2", "file": "bios/ATARIOSB.ROM"      } ] },
 
-	"amiga":  { "name": "Amiga",	"biosFiles":  [ { "md5": "bb72565701b1b6faece07d68ea5da639", "file": "bios/kick40060.CD32.ext"},
-                                                    { "md5": "89da1838a24460e4b93f4f0c5d92d48d", "file": "bios/kick34005.CDTV"},
-                                                    { "md5": "85ad74194e87c08904327de1a9443b7a", "file": "bios/kick33180.A500"},
-                                                    { "md5": "82a21c1890cae844b3df741f2762d48d", "file": "bios/kick34005.A500"},
-                                                    { "md5": "dc10d7bdd1b6f450773dfb558477c230", "file": "bios/kick37175.A500"},
-                                                    { "md5": "5f8924d013dd57a89cf349f4cdedc6b1", "file": "bios/kick40060.CD32"},
-                                                    { "md5": "646773759326fbac3b2311fd8c8793ee", "file": "bios/kick40068.A1200"},
-                                                    { "md5": "9bdedde6a4f33555b4a270c8ca53297d", "file": "bios/kick40068.A4000"} ] },
+	"atari5200": { "name": "Atari 5200", "biosFiles": [ { "md5": "281f20ea4320404ec820fb7ec0693b38", "file": "bios/5200.rom"          } ] },
+
+	"atari7800": { "name": "Atari 7800", "biosFiles": [ { "md5": "397bb566584be7b9764e7a68974c4263", "file": "bios/7800 BIOS (E).rom" },
+                                                      { "md5": "0763f1ffb006ddbe32e52d497ee848ae", "file": "bios/7800 BIOS (U).rom" },
+                                                      { "md5": "ce6a86574d0c9de9075705f14e99d090", "file": "bios/ProSystem.dat"     } ] },
+
+	"atarist":   { "name": "Atari ST", "biosFiles":   [ { "md5": "c1c57ce48e8ee4135885cee9e63a68a2", "file": "bios/tos.img"           } ] },
+
+	"lynx":      { "name": "Lynx", "biosFiles":       [ { "md5": "fcd403db69f54290b51035d82f835e7b", "file": "bios/lynxboot.img"	  } ] },
+
+	"amiga":  { "name": "Amiga",	"biosFiles":	[ { "md5": "bb72565701b1b6faece07d68ea5da639", "file": "bios/kick40060.CD32.ext"},
+                                                { "md5": "89da1838a24460e4b93f4f0c5d92d48d", "file": "bios/kick34005.CDTV"		},
+                                                { "md5": "85ad74194e87c08904327de1a9443b7a", "file": "bios/kick33180.A500"		},
+                                                { "md5": "82a21c1890cae844b3df741f2762d48d", "file": "bios/kick34005.A500"		},
+                                                { "md5": "dc10d7bdd1b6f450773dfb558477c230", "file": "bios/kick37175.A500"		},
+                                                { "md5": "5f8924d013dd57a89cf349f4cdedc6b1", "file": "bios/kick40060.CD32"		},
+                                                { "md5": "646773759326fbac3b2311fd8c8793ee", "file": "bios/kick40068.A1200"		},
+                                                { "md5": "9bdedde6a4f33555b4a270c8ca53297d", "file": "bios/kick40068.A4000"		} ] },
 
 	"o2em": { "name": "Odyssey 2", "biosFiles": [ { "md5": "562d5ebf9e030a40d6fabfc2f33139fd", "file": "bios/o2rom.bin" },
-												  { "md5": "f1071cdb0b6b10dde94d3bc8a6146387", "file": "bios/c52.bin"   },
-												  { "md5": "c500ff71236068e0dc0d0603d265ae76", "file": "bios/g7400.bin" },
-												  { "md5": "279008e4a0db2dc5f1c048853b033828", "file": "bios/jopac.bin" } ] },
+                                                { "md5": "f1071cdb0b6b10dde94d3bc8a6146387", "file": "bios/c52.bin"   },
+                                                { "md5": "c500ff71236068e0dc0d0603d265ae76", "file": "bios/g7400.bin" },
+                                                { "md5": "279008e4a0db2dc5f1c048853b033828", "file": "bios/jopac.bin" } ] },
 
+	"intellivision": { "name": "Mattel Intellivision", "biosFiles": [ { "md5": "62e761035cb657903761800f4437b8af", "file": "bios/exec.bin"   },
+                                                                    { "md5": "0cd5946c6473e42e8e4c2137785e427f", "file": "bios/grom.bin"   } ] },
 
-    "intellivision": { "name": "Mattel Intellivision", "biosFiles": [ { "md5": "62e761035cb657903761800f4437b8af", "file": "bios/exec.bin"   },
-																	  { "md5": "0cd5946c6473e42e8e4c2137785e427f", "file": "bios/grom.bin"   },
-																	  { "md5": "2e72a9a2b897d330a35c8b07a6146c52", "file": "bios/ECS.bin"    },
-																	  { "md5": "d5530f74681ec6e0f282dab42e6b1c5f", "file": "bios/IVOICE.bin" } ] },
+	"msx": { "name": "MSX", "biosFiles":	[ { "md5": "364a1a579fe5cb8dba54519bcfcdac0d", "file": "bios/MSX.ROM"      },
+                                          { "md5": "80dcd1ad1a4cf65d64b7ba10504e8190", "file": "bios/DISK.ROM"	  	},
+                                          { "md5": "6f69cc8b5ed761b03afd78000dfb0e19", "file": "bios/FMPAC.ROM"    },
+                                          { "md5": "6418d091cd6907bbcf940324339e43bb", "file": "bios/MSXDOS2.ROM"  },
+                                          { "md5": "403cdea1cbd2bb24fae506941f8f655e", "file": "bios/PAINTER.ROM"  },
+                                          { "md5": "febe8782b466d7c3b16de6d104826b34", "file": "bios/KANJI.ROM"    } ] },
 
-    "msx": { "name": "MSX", "biosFiles": [ { "md5": "364a1a579fe5cb8dba54519bcfcdac0d", "file": "bios/MSX.ROM"      },
-										   { "md5": "ec3a01c91f24fbddcbcab0ad301bc9ef", "file": "bios/MSX2.ROM"     },
-										   { "md5": "2183c2aff17cf4297bdb496de78c2e8a", "file": "bios/MSX2EXT.ROM"  },
-										   { "md5": "847cc025ffae665487940ff2639540e5", "file": "bios/MSX2P.ROM"    },
-										   { "md5": "7c8243c71d8f143b2531f01afa6a05dc", "file": "bios/MSX2PEXT.ROM" },
-										   { "md5": "80dcd1ad1a4cf65d64b7ba10504e8190", "file": "bios/DISK.ROM"	    },
-										   { "md5": "6f69cc8b5ed761b03afd78000dfb0e19", "file": "bios/FMPAC.ROM"    },
-										   { "md5": "6418d091cd6907bbcf940324339e43bb", "file": "bios/MSXDOS2.ROM"  },
-										   { "md5": "403cdea1cbd2bb24fae506941f8f655e", "file": "bios/PAINTER.ROM"  },
-										   { "md5": "febe8782b466d7c3b16de6d104826b34", "file": "bios/KANJI.ROM"    } ] },
+	"msx2": { "name": "MSX2", "biosFiles": 	[ { "md5": "ec3a01c91f24fbddcbcab0ad301bc9ef", "file": "bios/MSX2.ROM"     },
+                                            { "md5": "2183c2aff17cf4297bdb496de78c2e8a", "file": "bios/MSX2EXT.ROM"  } ] },
 
-	"pcengine":   { "name": "PC Engine", "biosFiles":  [ { "md5": "ff1a674273fe3540ccef576376407d1d", "file": "bios/syscard3.pce" } ] },
-    "pcfx":       { "name": "PC-FX", "biosFiles":      [ { "md5": "08e36edbea28a017f79f8d4f7ff9b6d7", "file": "bios/pcfx.rom"     } ] },
-    "supergrafx": { "name": "Supergrafx", "biosFiles": [ { "md5": "ff1a674273fe3540ccef576376407d1d", "file": "bios/syscard3.pce" },
-														 { "md5": "", "file": "bios/syscard2.pce"								  },
-														 { "md5": "", "file": "bios/syscard1.pce"								  },
-														 { "md5": "", "file": "bios/gexpress.pce"								  } ] },
+	"msx2+": { "name": "MSX2+", "biosFiles":	[ { "md5": "847cc025ffae665487940ff2639540e5", "file": "bios/MSX2P.ROM"    },
+                                              { "md5": "7c8243c71d8f143b2531f01afa6a05dc", "file": "bios/MSX2PEXT.ROM" } ] },
+
+	"pcengine":   { "name": "PC Engine", "biosFiles":  [ { "md5": "38179df8f4ac870017db21ebcbf53114", "file": "bios/syscard3.pce" } ] },
+
+	"supergrafx": { "name": "Supergrafx", "biosFiles": [ { "md5": "38179df8f4ac870017db21ebcbf53114", "file": "bios/syscard3.pce" } ] },
+
+	"pcfx":       { "name": "PC-FX", "biosFiles":      [ { "md5": "08e36edbea28a017f79f8d4f7ff9b6d7", "file": "bios/pcfx.rom"     } ] },
 
 	"fds":         { "name": "Nintendo Family Computer Disk System", "biosFiles": [ { "md5": "7bfe8c0540ed4bd6a0f1e2a0f0118ced", "file": "bios/NstDatabase.xml" },
-																		            { "md5": "ca30b50f880eb660a320674ed365ef7a", "file": "bios/disksys.rom"     } ] },
-    "gb":          { "name": "Game Boy", "biosFiles":                             [ { "md5": "32fbbd84168d3482956eb3c5051637f5", "file": "bios/gb_bios.bin"  	},
-											                                        { "md5": "dbfce9db9deaa2567f6a84fde55f9680", "file": "bios/gbc_bios.bin" 	} ] },
+                                                                                  { "md5": "ca30b50f880eb660a320674ed365ef7a", "file": "bios/disksys.rom"     } ] },
+
+	"gb":          { "name": "Game Boy", "biosFiles":                             [ { "md5": "32fbbd84168d3482956eb3c5051637f5", "file": "bios/gb_bios.bin"  	},
+                                                                                  { "md5": "dbfce9db9deaa2567f6a84fde55f9680", "file": "bios/gbc_bios.bin" 	} ] },
+
 	"gbc":         { "name": "Game Boy Color", "biosFiles":                       [ { "md5": "32fbbd84168d3482956eb3c5051637f5", "file": "bios/gb_bios.bin"  	},
-													                                { "md5": "dbfce9db9deaa2567f6a84fde55f9680", "file": "bios/gbc_bios.bin" 	} ] },
-    "gba":         { "name": "Game Boy Advance", "biosFiles":                     [ { "md5": "a860e8c0b6d573d191e4ec7db1b1e4f6", "file": "bios/gba_bios.bin" 	},
-														                            { "md5": "32fbbd84168d3482956eb3c5051637f5", "file": "bios/gb_bios.bin"  	},
-														                            { "md5": "dbfce9db9deaa2567f6a84fde55f9680", "file": "bios/gbc_bios.bin" 	},
-														                            { "md5": "d574d4f9c12f305074798f54c091a8b4", "file": "bios/sgb_bios.bin" 	} ] },
-    "n64":         { "name": "Nintendo 64", "biosFiles":                          [ { "md5": "8d3d9f294b6e174bc7b1d2fd1c727530", "file": "bios/64DD_IPL.bin"    } ] },
-    "nds":         { "name": "Nintendo DS", "biosFiles":                          [ { "md5": "145eaef5bd3037cbc247c213bb3da1b3", "file": "bios/firmware.bin" 	},
-												                                    { "md5": "df692a80a5b1bc90728bc3dfc76cd948", "file": "bios/bios7.bin"    	},
-												                                    { "md5": "a392174eb3e572fed6447e956bde4b25", "file": "bios/bios9.bin"    	} ] },
-    "pokemini":    { "name": "Nintendo Pokemon Mini", "biosFiles":                [ { "md5": "1e4fb124a3a886865acb574f388c803d", "file": "bios/bios.min"        } ] },
-    "satellaview": { "name": "Satellaview", "biosFiles":                          [ { "md5": "fed4d8242cfbed61343d53d48432aced", "file": "bios/BS-X.bin"        } ] },
-    "sufami":      { "name": "Sufami", "biosFiles":                               [ { "md5": "d3a44ba7d42a74d3ac58cb9c14c6a5ca", "file": "bios/STBIOS.bin"      } ] },
+                                                                                  { "md5": "dbfce9db9deaa2567f6a84fde55f9680", "file": "bios/gbc_bios.bin" 	} ] },
 
-    "3do":	{ "name": "3DO", "biosFiles": [ { "md5": "f47264dd47fe30f73ab3c010015c155b", "file": "bios/panafz1.bin"			},
-											{ "md5": "51f2f43ae2f3508a14d9f56597e2d3ce", "file": "bios/panafz10.bin"		},
-											{ "md5": "8639fd5e549bd6238cfee79e3e749114", "file": "bios/goldstar.bin"		},
-											{ "md5": "35fa1a1ebaaeea286dc5cd15487c13ea", "file": "bios/sanyotry.bin"		},
-											{ "md5": "8970fc987ab89a7f64da9f8a8c4333ff", "file": "bios/3do_arcade_saot.bin" } ] },
+	"gba":         { "name": "Game Boy Advance", "biosFiles":                     [ { "md5": "a860e8c0b6d573d191e4ec7db1b1e4f6", "file": "bios/gba_bios.bin" 	},
+                                                                                  { "md5": "32fbbd84168d3482956eb3c5051637f5", "file": "bios/gb_bios.bin"  	},
+                                                                                  { "md5": "dbfce9db9deaa2567f6a84fde55f9680", "file": "bios/gbc_bios.bin" 	},
+                                                                                  { "md5": "d574d4f9c12f305074798f54c091a8b4", "file": "bios/sgb_bios.bin" 	} ] },
 
-    "dreamcast":    { "name": "Dreamcast", "biosFiles":    [ { "md5": "e10c53c2f8b90bab96ead2d368858623", "file": "bios/dc/dc_boot.bin"   	  },
-													         { "md5": "0a93f7940c455905bea6e392dfde92a4", "file": "bios/dc/dc_flash.bin"  	  } ] },
-    "gamegear":     { "name": "Game Gear", "biosFiles":    [ { "md5": "672e104c3be3a238301aceffc3b23fd6", "file": "bios/bios.gg" 	   	  } ] },
-    "mastersystem": { "name": "MasterSystem", "biosFiles": [ { "md5": "840481177270d5642a14ca71ee72844c", "file": "bios/bios_E.sms"    	  },
-															 { "md5": "840481177270d5642a14ca71ee72844c", "file": "bios/bios_U.sms"    	  },
-															 { "md5": "24a519c53f67b00640d0048ef7089105", "file": "bios/bios_J.sms"    	  } ] },
-    "sega32x":      { "name": "Sega 32x", "biosFiles":     [ { "md5": "e66fa1dc5820d254611fdcdba0662372", "file": "bios/bios_CD_E.bin" 	  },
-													         { "md5": "854b9150240a198070150e4566ae1290", "file": "bios/bios_CD_U.bin" 	  },
-													         { "md5": "278a9397d192149e84e820ac621a8edd", "file": "bios/bios_CD_J.bin"	  } ] },
-    "saturn":       { "name": "Sega Saturn", "biosFiles":  [ { "md5": "af5828fdff51384f99b3c4926be27762", "file": "bios/saturn_bios.bin"  },
-													         { "md5": "85ec9ca47d8f6807718151cbcca8b964", "file": "bios/sega_101.bin"	  },
-													         { "md5": "3240872c70984b6cbfda1586cab68dbe", "file": "bios/mpr-17933.bin"	  },
-													         { "md5": "255113ba943c92a54facd25a10fd780c", "file": "bios/mpr-18811-mx.ic1" },
-													         { "md5": "1cd19988d1d72a3e7caa0b73234c96b4", "file": "bios/mpr-19367-mx.ic1" },
-													         { "md5": "",                                 "file": "bios/stvbios.zip"	  } ] },
-    "segacd":       { "name": "Sega CD", "biosFiles":      [ { "md5": "e66fa1dc5820d254611fdcdba0662372", "file": "bios/bios_CD_E.bin" 	  },
-												             { "md5": "854b9150240a198070150e4566ae1290", "file": "bios/bios_CD_U.bin" 	  },
-												             { "md5": "278a9397d192149e84e820ac621a8edd", "file": "bios/bios_CD_J.bin" 	  } ] },
-    "naomi":        { "name": "Naomi", "biosFiles":        [ { "md5": "eb4099aeb42ef089cfe94f8fe95e51f6", "file": "bios/dc/naomi.zip"} ] },
-    "atomiswave":   { "name": "Atomiswave", "biosFiles":   [ { "md5": "0ec5ae5b5a5c4959fa8b43fcf8687f7c", "file": "bios/dc/awbios.zip"       } ] },
+	"sgb":					{ "name": "Super Game Boy", "biosFiles":	[ { "md5": "d574d4f9c12f305074798f54c091a8b4", "file": "bios/sgb_boot.bin"	},
+                                                              { "md5": "e0430bca9925fb9882148fd2dc2418c1", "file": "bios/sgb2_boot.bin" },
+                                                              { "md5": "b15ddb15721c657d82c5bab6db982ee9", "file": "bios/SGB1.sfc"			},
+                                                              { "md5": "8ecd73eb4edf7ed7e81aef1be80031d5", "file": "bios/SGB2.sfc"			} ] },
 
-    "x68000": { "name": "Sharp x68000", "biosFiles": [ { "md5": "", "file": "bios/keropi/iplrom.dat"   },
-													   { "md5": "", "file": "bios/keropi/iplrom30.dat" },
-													   { "md5": "", "file": "bios/keropi/iplromco.dat" },
-													   { "md5": "", "file": "bios/keropi/iplromxv.dat" },
-													   { "md5": "", "file": "bios/keropi/cgrom.dat"	   } ] },
+	"n64":					{ "name": "Nintendo 64", "biosFiles":	[ { "md5": "8d3d9f294b6e174bc7b1d2fd1c727530", "file": "bios/64DD_IPL.bin"  } ] },
 
-	"neogeo":   { "name": "NeoGeo", "biosFiles":    [ { "md5": "", "file": "bios/neogeo.zip" } ] },
-	"neogeocd": { "name": "NeoGeo CD", "biosFiles": [ { "md5": "", "file": "bios/neogeo.zip" },
-													  { "md5": "", "file": "bios/neocdz.zip" },
-													  { "md5": "", "file": "bios/neocd/neocdz.zip"} ] },                                                    
+	"nds":					{ "name": "Nintendo DS", "biosFiles":	[ { "md5": "145eaef5bd3037cbc247c213bb3da1b3", "file": "bios/firmware.bin" 	},
+                                                          { "md5": "df692a80a5b1bc90728bc3dfc76cd948", "file": "bios/bios7.bin"    	},
+                                                          { "md5": "a392174eb3e572fed6447e956bde4b25", "file": "bios/bios9.bin"    	} ] },
 
-    "psx": { "name": "PSX", "biosFiles": [ { "md5": "dc2b9bf8da62ec93e868cfd29f0d067d", "file": "bios/scph1001.bin"   },
-                                           { "md5": "8dd7d5296a650fac7319bce665a6a53c", "file": "bios/scph5500.bin"   },
-										   { "md5": "490f666e1afb15b7362b406ed1cea246", "file": "bios/scph5501.bin"   },
-										   { "md5": "32736f17079d0b2b7024407c39bd3050", "file": "bios/scph5502.bin"   },
-                                           { "md5": "1e68c231d0896b7eadcad1d7d8e76129", "file": "bios/scph7001.bin"   } ] },
-    "ps2": { "name": "PS2", "biosFiles": [ { "md5": "28922c703cc7d2cf856f177f2985b3a9", "file": "bios/SCPH30004R.bin" },
-										   { "md5": "3faf7c064a4984f53e2ef5e80ed543bc", "file": "bios/SCPH30004R.MEC" },
-										   { "md5": "d5ce2c7d119f563ce04bc04dbc3a323e", "file": "bios/scph39001.bin"  },
-										   { "md5": "3faf7c064a4984f53e2ef5e80ed543bc", "file": "bios/scph39001.MEC"  },
-										   { "md5": "9a9e8ed7668e6adfc8f7766c08ab9cd0", "file": "bios/EROM.BIN" 	  },
-										   { "md5": "44552702b05697a14ccbe2ca22ee7139", "file": "bios/rom1.bin" 	  },
-										   { "md5": "b406d05922dac2eaf3c2e68157b1b468", "file": "bios/ROM2.BIN" 	  } ] }
+	"pokemini":			{ "name": "Nintendo Pokemon Mini", "biosFiles": [ { "md5": "1e4fb124a3a886865acb574f388c803d", "file": "bios/bios.min"      } ] },
+
+	"satellaview":	{ "name": "Satellaview", "biosFiles": [ { "md5": "fed4d8242cfbed61343d53d48432aced", "file": "bios/BS-X.bin"      } ] },
+
+	"sufami":				{ "name": "Sufami", "biosFiles": [ { "md5": "d3a44ba7d42a74d3ac58cb9c14c6a5ca", "file": "bios/STBIOS.bin"    } ] },
+
+	"3do":					{ "name": "3DO", "biosFiles": [ { "md5": "f47264dd47fe30f73ab3c010015c155b", "file": "bios/panafz1.bin"	},
+                                                  { "md5": "51f2f43ae2f3508a14d9f56597e2d3ce", "file": "bios/panafz10.bin"},
+                                                  { "md5": "8639fd5e549bd6238cfee79e3e749114", "file": "bios/goldstar.bin"} ] },
+
+	"dreamcast":    { "name": "Dreamcast", "biosFiles":   [ { "md5": "e10c53c2f8b90bab96ead2d368858623", "file": "bios/dc_boot.bin"		},
+                                                          { "md5": "0a93f7940c455905bea6e392dfde92a4", "file": "bios/dc_flash.bin"	} ] },
+
+	"saturn":       { "name": "Sega Saturn", "biosFiles": [ { "md5": "85ec9ca47d8f6807718151cbcca8b964", "file": "bios/sega_101.bin"			},
+                                                          { "md5": "3240872c70984b6cbfda1586cab68dbe", "file": "bios/mpr-17933.bin"			},
+                                                          { "md5": "255113ba943c92a54facd25a10fd780c", "file": "bios/mpr-18811-mx.ic1"	},
+                                                          { "md5": "1cd19988d1d72a3e7caa0b73234c96b4", "file": "bios/mpr-19367-mx.ic1"	},
+                                                          { "md5": "af5828fdff51384f99b3c4926be27762", "file": "bios/saturn_bios.bin"		} ] },
+
+	"segacd":       { "name": "Sega CD", "biosFiles":     [ { "md5": "e66fa1dc5820d254611fdcdba0662372", "file": "bios/bios_CD_E.bin" 	  },
+                                                          { "md5": "854b9150240a198070150e4566ae1290", "file": "bios/bios_CD_U.bin" 	  },
+                                                          { "md5": "278a9397d192149e84e820ac621a8edd", "file": "bios/bios_CD_J.bin" 	  } ] },
+
+	"naomi":        { "name": "Naomi", "biosFiles":		[ { "md5": "eb4099aeb42ef089cfe94f8fe95e51f6", "file": "bios/dc/naomi.zip"} ] },
+
+	"naomi2":       { "name": "Naomi2", "biosFiles":	[ { "md5": "", "file": "bios/dc/naomi2.zip"} ] },
+
+	"hikaru": 			{ "name": "Hikaru", "biosFiles": 	[ { "md5": "aac601811a25d7b31a3d5f3f1f82f338", "file": "bios/hikaru.zip" },
+                                                      { "md5": "e95415b161121bef35ade12367138c63", "file": "bios/mie.zip"	   } ] },
+
+	"atomiswave":   { "name": "Atomiswave", "biosFiles":   [ { "md5": "0ec5ae5b5a5c4959fa8b43fcf8687f7c", "file": "bios/awbios.zip"	} ] },
+
+	"x68000":				{ "name": "Sharp x68000", "biosFiles":	[ { "md5": "7fd4caabac1d9169e289f0f7bbf71d8e", "file": "bios/keropi/iplrom.dat"   },
+                                                            { "md5": "cb0a5cfcf7247a7eab74bb2716260269", "file": "bios/keropi/cgrom.dat"	  } ] },
+
+	"x1":						{ "name": "Sharp x1", "biosFiles": 		[ { "md5": "eeeea1cd29c6e0e8b094790ae969bfa7", "file": "bios/xmil/IPLROM.X1"  },
+                                                          { "md5": "56c28adcf1f3a2f87cf3d57c378013f5", "file": "bios/xmil/iplrom.x1t"	} ] },
+
+	"neogeo":				{ "name": "NeoGeo", "biosFiles":    [ { "md5": "dffb72f116d36d025068b23970a4f6df", "file": "bios/neogeo.zip" } ] },
+
+	"neogeocd":			{ "name": "NeoGeo CD", "biosFiles": [ { "md5": "dffb72f116d36d025068b23970a4f6df", "file": "bios/neogeo.zip" },
+                                                        { "md5": "c733b4b7bd30fa849874d96c591c8639", "file": "bios/neocdz.zip" } ] },                                                    
+
+	"psx": { "name": "PSX", "biosFiles":	[ { "md5": "dc2b9bf8da62ec93e868cfd29f0d067d", "file": "bios/scph1001.bin"   },
+                                          { "md5": "8dd7d5296a650fac7319bce665a6a53c", "file": "bios/scph5500.bin"   },
+                                          { "md5": "490f666e1afb15b7362b406ed1cea246", "file": "bios/scph5501.bin"   },
+                                          { "md5": "32736f17079d0b2b7024407c39bd3050", "file": "bios/scph5502.bin"   },
+                                          { "md5": "1e68c231d0896b7eadcad1d7d8e76129", "file": "bios/scph7001.bin"   } ] },
+
+	"ps2": { "name": "PS2", "biosFiles":	[ { "md5": "28922c703cc7d2cf856f177f2985b3a9", "file": "bios/SCPH30004R.bin"	},
+                                          { "md5": "3faf7c064a4984f53e2ef5e80ed543bc", "file": "bios/SCPH30004R.MEC"	},
+                                          { "md5": "d5ce2c7d119f563ce04bc04dbc3a323e", "file": "bios/scph39001.bin"		},
+                                          { "md5": "3faf7c064a4984f53e2ef5e80ed543bc", "file": "bios/scph39001.MEC"		},
+                                          { "md5": "9a9e8ed7668e6adfc8f7766c08ab9cd0", "file": "bios/EROM.BIN" 				},
+                                          { "md5": "44552702b05697a14ccbe2ca22ee7139", "file": "bios/rom1.bin" 				},
+                                          { "md5": "b406d05922dac2eaf3c2e68157b1b468", "file": "bios/ROM2.BIN" 				} ] },
+										   
+	"ps3": { "name": "PS3", "biosFiles":  [ { "md5": "a0b63a3e4ae92ed176d6b9a67ce447f0", "file": "bios/PS3UPDAT.PUP" } ] },
+
+	"lynx48k": { "name": "Camputers Lynx", "biosFiles": [ { "md5": "85ae78a20ffaff388dd09c75d9e1ec0e", "file": "lynx48k.zip" } ] },
+
+	"advision": { "name": "Adventure Vision", "biosFiles": [ { "md5": "1c08606408029751fd30ac91d2bf30d5", "file": "advision.zip"	},
+                                                           { "md5": "", "file": "bios/mame/hash/advision.xml"										} ] },
+
+	"astrocde": { "name": "Astrocade", "biosFiles": [ { "md5": "f58a3823ab308ef0a02b498d126e5d96", "file": "astrocde.zip" },
+                                                    { "md5": "", "file": "bios/mame/hash/astrocde.xml"									} ] },
+
+	"scv": { "name": "Super Cassette Vision", "biosFiles":	[ { "md5": "33df021613fb12abe2ad14b9eb17c7fe", "file": "scv.zip"	},
+                                                            { "md5": "", "file": "bios/mame/hash/scv.xml"										} ] },	
+
+	"gmaster": { "name": "Game Master", "biosFiles":	[ { "md5": "4239d6f44a0d78d27c69f9b95885f48e", "file": "gmaster.zip"	},
+                                                      { "md5": "", "file": "bios/mame/hash/gmaster.xml"										} ] },
+
+	"gamecom": { "name": "Game.com", "biosFiles": [ { "md5": "f2087ed09f7fa8d8856cfafb20dd00dc", "file": "gamecom.zip"	},
+                                                  { "md5": "", "file": "bios/mame/hash/gamecom.xml"										} ] },
+
+	"gamepock": { "name": "Game Pocket", "biosFiles": [ { "md5": "887479fe3c69a0b935c57a7a738e26c4", "file": "gamepock.zip" },
+                                                      { "md5": "", "file": "bios/mame/hash/gamepock.xml"									} ] },
+
+	"gamate": { "name": "Gamate", "biosFiles":	[ { "md5": "320bf3d4142fa1043255db7ff87d17c7", "file": "gamate.zip" },
+                                                { "md5": "", "file": "bios/mame/hash/gamate.xml"									} ] },
+
+	"arcadia": { "name": "Arcadia 2001", "biosFiles": [ { "md5": "37e9746f4491aa2df9a83729d1a93620", "file": "ar_bios.zip"	},
+                                                      { "md5": "", "file": "bios/mame/hash/arcadia.xml"										} ] },
+
+	"apfm1000": { "name": "APF M-1000", "biosFiles":	[ { "md5": "b197db12f7a13827717bbeb7cfd9542a", "file": "apfm1000.zip" },
+                                                      { "md5": "", "file": "bios/mame/hash/apfm1000.xml"									} ] },
+
+	"tutor": { "name": "APF M-1000", "biosFiles": [ { "md5": "", "file": "tutor.zip"								},
+                                                  { "md5": "", "file": "bios/mame/hash/tutor.xml" } ] },
+
+	"cdi": { "name": "Philips CD-I", "biosFiles": [ { "md5": "", "file": "bios/cdimono1.zip"			},
+                                                  { "md5": "", "file": "bios/mame/hash/cdi.xml" } ] },
+
+	"bbcmicro": { "name": "BBC", "biosFiles": [ { "md5": "", "file": "bios/bbcb.zip" } ] },
+
+	"crvision": { "name": "Creativision", "biosFiles":	[ { "md5": "", "file": "bios/crvision.zip"						},
+                                                        { "md5": "", "file": "bios/mame/hash/crvision.xml"	} ] },
+
+	"vsmile": { "name": "Super Cassette Vision", "biosFiles": [ { "md5": "", "file": "bios/vsmile.zip" } ] },
+
+	"coco": { "name": "Color Computer", "biosFiles":	[ { "md5": "", "file": "bios/coco.zip"								},
+                                                      { "md5": "", "file": "bios/coco2.zip"								},
+                                                      { "md5": "", "file": "bios/mame/hash/coco_cart.xml" },
+                                                      { "md5": "", "file": "bios/mame/hash/coco_flop.xml" } ] },
+
+	"fmtowns": { "name": "FMTowns", "biosFiles":	[ { "md5": "", "file": "bios/fmtowns.zip"		},
+                                                  { "md5": "", "file": "bios/fmtownsux.zip" } ] },               
+
+	"fm7": { "name": "FM-7", "biosFiles": [ { "md5": "", "file": "bios/fm7.zip"			},
+                                          { "md5": "", "file": "bios/fm77av.zip"	} ] },                    
+
+	"ti99": { "name": "TI/99", "biosFiles": [ { "md5": "", "file": "bios/ti99_4a.zip"							},
+                                            { "md5": "", "file": "bios/ti99_speech.zip"					},
+                                            { "md5": "", "file": "bios/mame/hash/ti99_cart.xml" } ] }               
+
+	"xbox": { "name": "XBox", "biosFiles": 	[ { "md5": "d49c52a4102f6df7bcf8d0617ac475ed", "file": "bios/mcpx_1.0.bin"     },
+                                            { "md5": "39cee882148a87f93cb440b99dde3ceb", "file": "bios/Complex_4627.bin" } ] },
+
+	"pc88": { "name": "NEC PC-8800", "biosFiles": [ { "md5": "4f984e04a99d56c4cfe36115415d6eb8", "file": "bios/quasi88/N88.ROM" 		},
+                                                  { "md5": "793f86784e5608352a5d7f03f03e0858", "file": "bios/quasi88/N88SUB.ROM" 	},
+                                                  { "md5": "2ff07b8769367321128e03924af668a0", "file": "bios/quasi88/N88N.ROM"  	},
+                                                  { "md5": "d675a2ca186c6efcd6277b835de4c7e5", "file": "bios/quasi88/N88EXT0.ROM" },
+                                                  { "md5": "e844534dfe5744b381444dbe61ef1b66", "file": "bios/quasi88/N88EXT1.ROM" },
+                                                  { "md5": "6548fa45061274dee1ea8ae1e9e93910", "file": "bios/quasi88/N88EXT2.ROM" },
+                                                  { "md5": "fc4b76a402ba501e6ba6de4b3e8b4273", "file": "bios/quasi88/N88EXT3.ROM" } ] },
+
+	"pc98": { "name": "NEC PC-9800", "biosFiles": [ { "md5": "e246140dec5124c5e404869a84caefce", "file": "bios/np2kai/BIOS.ROM" 		},
+                                                  { "md5": "2af6179d7de4893ea0b705c00e9a98d6", "file": "bios/np2kai/FONT.ROM" 		},
+                                                  { "md5": "caf90f22197aed6f14c471c21e64658d", "file": "bios/np2kai/SOUND.ROM"  	},
+                                                  { "md5": "e9fc3890963b12cf15d0a2eea5815b72", "file": "bios/bios/np2kai/ITF.ROM" },
+                                                  { "md5": "7da1e5b7c482d4108d22a5b09631d967", "file": "bios/np2kai/font.bmp" 		} ] },
+
+	"channelf": { "name": "Fairchild ChannelF", "biosFiles": [ 	{ "md5": "ac9804d4c0e9d07e33472e3726ed15c3", "file": "bios/sl31253.bin" },
+                                                              { "md5": "da98f4bb3242ab80d76629021bb27585", "file": "bios/sl31254.bin" },
+                                                              { "md5": "95d339631d867c8f1d15a5f2ec26069d", "file": "bios/sl90025.bin" } ] }               
+
 }

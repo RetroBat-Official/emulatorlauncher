@@ -18,7 +18,12 @@ namespace emulatorLauncher.PadToKeyboard
 
             try
             {
-                return JsonSerializer.DeserializeFile<EvMapyKeysFile>(fileName);
+                EvMapyKeysFile ret = JsonSerializer.DeserializeFile<EvMapyKeysFile>(fileName);
+                if (ret != null)
+                {
+                    SimpleLogger.Instance.Info("[Pad2Key] loaded " + fileName);
+                    return ret;
+                }
             }
             catch
             {

@@ -7,6 +7,7 @@ using System.IO;
 using System.Windows.Forms;
 using emulatorLauncher.Tools;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace emulatorLauncher.PadToKeyboard
 {
@@ -21,16 +22,19 @@ namespace emulatorLauncher.PadToKeyboard
 
             try
             {
-                PadToKey ret = Misc.FromXml<PadToKey>(xmlFile);
+                PadToKey ret = xmlFile.FromXml<PadToKey>();
                 if (ret != null)
+                {
+                    SimpleLogger.Instance.Info("[PadToKey] Loaded " + xmlFile);               
                     return ret;
+                }
             }
             catch (Exception ex)
             {
 #if DEBUG
                 MessageBox.Show(ex.Message);
 #endif
-                SimpleLogger.Instance.Error("PadToKey error : " + ex.Message);               
+                SimpleLogger.Instance.Error("[PadToKey] Error : " + ex.Message, ex);               
             }
 
             return null;
@@ -64,6 +68,48 @@ namespace emulatorLauncher.PadToKeyboard
                 return _applications; 
             }
             set { _applications = value; }
+        }
+
+        [XmlIgnore]
+        public string ForceApplyToProcess { get; set; }
+
+        public static PadToKey AddOrUpdateKeyMapping(PadToKey mapping, string processName, InputKey inputKey, string key)
+        {
+            if (string.IsNullOrEmpty(processName))
+                return mapping;
+
+            if (Program.Controllers.Count(c => c.Config != null && c.Config.DeviceName != "Keyboard") == 0)
+                return mapping;
+
+            if (mapping == null)
+                mapping = new PadToKeyboard.PadToKey();
+
+            PadToKeyInput input = null;
+            PadToKeyApp app = null;
+
+            if (mapping != null && mapping[processName] != null)
+            {
+                app = mapping[processName];
+                input = app[inputKey];
+            }
+
+            if (app == null)
+            {
+                app = new PadToKeyApp() { Name = processName };
+                mapping.Applications.Add(app);
+            }
+
+            if (input == null)
+            {
+                input = new PadToKeyInput();
+                input.Name = inputKey;
+                app.Input.Add(input);
+            }
+
+            input.Type = PadToKeyType.Keyboard;
+            input.Key = key;
+
+            return mapping;
         }
 
         private List<PadToKeyApp> _applications;
@@ -202,8 +248,8 @@ namespace emulatorLauncher.PadToKeyboard
                 foreach (var fld in typeof(ScanCode).GetFields(BindingFlags.Static | BindingFlags.Public))
                     if (fld.Name.ToLowerInvariant() == code || fld.Name.ToLowerInvariant() == "key_" + code)
                         values.Add((uint)fld.GetValue(null));
-                
-                return new uint[] { };
+
+                return values.ToArray();
             }
         }
 

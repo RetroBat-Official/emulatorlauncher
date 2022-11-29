@@ -8,16 +8,21 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.IO;
+using System.Management;
 
 namespace emulatorLauncher.PadToKeyboard
 {
     class JoystickListener : IDisposable
     {
+        public bool ProcessKilled { get; private set; }
+
         private PadToKey _mapping;
         private Controller[] _inputList;
 
         private AutoResetEvent _waitHandle;
         private Thread thread;
+
+        private HashSet<PadToKeyInput> _pressedKeys = new HashSet<PadToKeyInput>();
 
         public JoystickListener(Controller[] inputList, PadToKey mapping)
         {
@@ -47,6 +52,23 @@ namespace emulatorLauncher.PadToKeyboard
 
         public void Dispose()
         {
+            // Fix vpinball/Esc key : if any key kills the process. We need to simulate the key is released ( or dragndrop does not work anymore when ESC )
+            if (_pressedKeys.Any())
+            {
+                foreach (var input in _pressedKeys)
+                {
+                    if (input.ScanCodes.Length != 0)
+                    {
+                        foreach (uint sc in input.ScanCodes)
+                            SendKey.SendScanCode(sc, false);
+                    }
+                    else if (input.Keys != Keys.None)
+                        SendKey.Send(input.Keys, false);
+                }
+
+                _pressedKeys.Clear();
+            }
+
             if (_waitHandle != null)
             {
                 _waitHandle.Set();
@@ -56,6 +78,18 @@ namespace emulatorLauncher.PadToKeyboard
 
         public static InputKey RevertedAxis(InputKey key)
         {
+            if (key == InputKey.left)
+                return InputKey.right;
+
+            if (key == InputKey.right)
+                return InputKey.up;
+
+            if (key == InputKey.up)
+                return InputKey.down;
+
+            if (key == InputKey.down)
+                return InputKey.up;
+
             if (key == InputKey.leftanalogleft)
                 return InputKey.leftanalogright;
 
@@ -76,9 +110,10 @@ namespace emulatorLauncher.PadToKeyboard
             Joysticks joysticks = new Joysticks(_inputList);
 
             SDL.SDL_SetHint(SDL.SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
-            SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK);
+
+            SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK | SDL.SDL_INIT_VIDEO); // Since SDL 2.0.16, SDL_INIT_VIDEO is required or joystick events are not received....
             SDL.SDL_InitSubSystem(SDL.SDL_INIT_JOYSTICK);
-            SDL.SDL_JoystickEventState(1);
+            SDL.SDL_JoystickEventState(SDL.SDL_ENABLE);
 
             int numJoysticks = SDL.SDL_NumJoysticks();
             for (int i = 0; i < numJoysticks; i++)
@@ -229,7 +264,7 @@ namespace emulatorLauncher.PadToKeyboard
                             if (joy.State == joy.OldState)
                                 continue;
 
-                            ProcessJoystickState(joy.Controller.PlayerIndex - 1, joy.State, joy.OldState);
+                            ProcessJoystickState(joy.Controller, joy.State, joy.OldState);
                             
                             joy.OldState = joy.State.Clone();                            
                         }
@@ -241,13 +276,13 @@ namespace emulatorLauncher.PadToKeyboard
             }
 
             foreach(var joy in joysticks)
-                SDL.SDL_JoystickClose(joy.SdlJoystick);
+                joy.Close();
             
             SDL.SDL_QuitSubSystem(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_Quit();
         }
 
-        private void ProcessJoystickState(int playerIndex, JoyInputState keyState, JoyInputState prevState)
+        private void ProcessJoystickState(Controller controller, JoyInputState keyState, JoyInputState prevState)
         {
             //Debug.WriteLine("ProcessJoystickState : " + keyState.ToString() + " - OldState : " + prevState.ToString());
 
@@ -263,10 +298,10 @@ namespace emulatorLauncher.PadToKeyboard
                     if (!keyMap.IsValid())
                         continue;
 
-                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != playerIndex)
+                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != controller.DeviceIndex)
                         continue;
 
-                    SendInput(keyState, prevState, hWndProcess, process, keyMap);
+                    SendInput(controller, keyState, prevState, hWndProcess, process, keyMap);
                 }
             }
 
@@ -278,18 +313,18 @@ namespace emulatorLauncher.PadToKeyboard
                     if (!keyMap.IsValid())
                         continue;
 
-                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != playerIndex)
+                    if (keyMap.ControllerIndex >= 0 && keyMap.ControllerIndex != controller.DeviceIndex)
                         continue;
 
                     if (mapping != null && mapping[keyMap.Name] != null)
-                        continue;                 
+                        continue;
 
-                    SendInput(keyState, prevState, hWndProcess, process, keyMap);
+                    SendInput(controller, keyState, prevState, hWndProcess, process, keyMap);
                 }
             }
         }
 
-        private void SendInput(JoyInputState newState, JoyInputState oldState, IntPtr hWndProcess, string process, PadToKeyInput input)
+        private void SendInput(Controller controller, JoyInputState newState, JoyInputState oldState, IntPtr hWndProcess, string process, PadToKeyInput input)
         {
             if (input.Type == PadToKeyType.Mouse && (input.Code == "CLICK" || input.Code == "RCLICK" || input.Code == "MCLICK"))
             {
@@ -384,33 +419,45 @@ namespace emulatorLauncher.PadToKeyboard
                     if (input.Keys != 0)
                     {
                         if (process == null)
-                            SimpleLogger.Instance.Info("SendKey : " + input.Key + " to <unknown process>");
+                            SimpleLogger.Instance.Info("[SendKey] " + input.Key + " to <unknown process>");
                         else
-                            SimpleLogger.Instance.Info("SendKey : " + input.Key + " to " + process);
+                            SimpleLogger.Instance.Info("[SendKey] " + input.Key + " to " + process);
                     }
 
                     if (input.Key == "(%{CLOSE})" && hWndProcess != IntPtr.Zero)
                     {
+                        SimpleLogger.Instance.Info("[SendKey] Send WM_CLOSE to " + process);
+
                         const int WM_CLOSE = 0x0010;
                         User32.SendMessage(hWndProcess, WM_CLOSE, 0, 0);
+                        ProcessKilled = true;
                     }
                     else if (input.Key == "(%{KILL})" && hWndProcess != IntPtr.Zero)
                     {
+                        SimpleLogger.Instance.Info("[SendKey] Kill " + process);
                         KillProcess(hWndProcess, process);
                     }
                     else if (input.Key == "(%{F4})" && process == "emulationstation")
                     {
+                        SimpleLogger.Instance.Info("[SendKey] Send Alt+F4 to " + process);
+
                         SendKey.Send(Keys.Alt, true);
                         SendKey.Send(Keys.F4, true);
                         SendKey.Send(Keys.Alt, false);
                         SendKey.Send(Keys.F4, false);
+                        ProcessKilled = true;
                     }
                     else
+                    {
+                        SimpleLogger.Instance.Info("[SendKey] Send " + input.Key + " to " + process);
                         SendKeys.SendWait(input.Key);
+                        if (input.Key == "(%{F4})")
+                            ProcessKilled = true;
+                    }
                 }
             }
             else if (input.Keys != 0 || input.ScanCodes.Length != 0)
-                SendKeyMap(input, oldState, newState, process);
+                SendKeyMap(controller, input, oldState, newState, process);
         }
 
         private System.Threading.Timer _mouseTimer = null;
@@ -435,37 +482,60 @@ namespace emulatorLauncher.PadToKeyboard
             SendKey.MoveMouseBy(x, y);
         }
 
-        private void SendKeyMap(PadToKeyInput input, JoyInputState oldState, JoyInputState newState, string processName)
+        private void SendKeyMap(Controller controller, PadToKeyInput input, JoyInputState oldState, JoyInputState newState, string processName)
         {
             if (oldState.HasNewInput(input.Name, newState))
             {
-                if (processName == null)
-                    SimpleLogger.Instance.Info("SendKey : Release '" + input.Keys + "' to <unknown process>");
-                else
-                    SimpleLogger.Instance.Info("SendKey : Release '" + input.Keys + "' to " + processName);
-
-                if (input.ScanCodes.Length != 0)
-                {
-                    foreach(uint sc in input.ScanCodes)
-                        SendKey.SendScanCode(sc, false);
-                }
-                else if (input.Keys != Keys.None)
-                    SendKey.Send(input.Keys, false);
-            }
-            else if (newState.HasNewInput(input.Name, oldState))
-            {
-                if (processName == null)
-                    SimpleLogger.Instance.Info("SendKey : Press '" + input.Keys + "' to <unknown process>");
-                else
-                    SimpleLogger.Instance.Info("SendKey : Press '" + input.Keys + "' to " + processName);
-
                 if (input.ScanCodes.Length != 0)
                 {
                     foreach (uint sc in input.ScanCodes)
-                        SendKey.SendScanCode(sc, true);
+                    {
+                        if (processName == null)
+                            SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Release '" + ((LinuxScanCode)sc).ToString() + "' to <unknown process>");
+                        else
+                            SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Release '" + ((LinuxScanCode)sc).ToString() + "' to " + processName);
+
+                        SendKey.SendScanCode(sc, false);
+                        _pressedKeys.Remove(input);
+                    }
                 }
                 else if (input.Keys != Keys.None)
+                {
+                    if (processName == null)
+                        SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Release '" + input.Keys + "' to <unknown process>");
+                    else
+                        SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Release '" + input.Keys + "' to " + processName);
+
+                    SendKey.Send(input.Keys, false);
+                    _pressedKeys.Remove(input);
+                }
+            }
+            else if (newState.HasNewInput(input.Name, oldState))
+            {
+                if (input.ScanCodes.Length != 0)
+                {
+                    foreach (uint sc in input.ScanCodes)
+                    {                        
+                        if (processName == null)
+                            SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Press '" + ((LinuxScanCode)sc).ToString() + "' to <unknown process>");
+                        else
+                            SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Press '" + ((LinuxScanCode)sc).ToString() + "' to " + processName);
+
+                        SendKey.SendScanCode(sc, true);
+
+                        _pressedKeys.Add(input);
+                    }
+                }
+                else if (input.Keys != Keys.None)
+                {
+                    if (processName == null)
+                        SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Press '" + input.Keys + "' to <unknown process>");
+                    else
+                        SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Press '" + input.Keys + "' to " + processName);
+
                     SendKey.Send(input.Keys, true);
+                    _pressedKeys.Add(input);
+                }
             }
         }
 
@@ -477,10 +547,30 @@ namespace emulatorLauncher.PadToKeyboard
 
             try
             {
-                Process p = Process.GetProcessById((int)pid);
-                p.Kill();
+                KillProcessAndChildren((int)pid);
+              //  Process p = Process.GetProcessById((int)pid);
+               // p.Kill();
+                ProcessKilled = true;
             }
             catch { }
+        }
+
+        private static void KillProcessAndChildren(int pid)
+        {
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
+            ManagementObjectCollection moc = searcher.Get();
+            foreach (ManagementObject mo in moc)
+                KillProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
+
+            try
+            {
+                Process proc = Process.GetProcessById(pid);
+                proc.Kill();
+            }
+            catch (ArgumentException)
+            {
+                // Process already exited.
+            }
         }
 
         string GetActiveProcessFileName(out bool isDesktop, out IntPtr hMainWnd)
@@ -498,6 +588,13 @@ namespace emulatorLauncher.PadToKeyboard
             try
             {
                 Process p = Process.GetProcessById((int)pid);
+
+                if (_mapping.ForceApplyToProcess != null)
+                {
+                    var pf = Process.GetProcessesByName(_mapping.ForceApplyToProcess).FirstOrDefault();
+                    if (pf != null)
+                        p = pf;
+                }
 
                 if (p != null && p.MainWindowHandle != IntPtr.Zero && p.MainWindowHandle != User32.GetDesktopWindow())
                     hMainWnd = p.MainWindowHandle;

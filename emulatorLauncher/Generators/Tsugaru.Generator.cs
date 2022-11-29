@@ -44,7 +44,7 @@ namespace emulatorLauncher
 
             if (string.IsNullOrEmpty(biosPath) || !File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
             {
-                SimpleLogger.Instance.Info("TsugaruGenerator : Bios path not found");
+                SimpleLogger.Instance.Info("[TsugaruGenerator] Bios path not found");
                 return null;
             }
 
@@ -65,7 +65,7 @@ namespace emulatorLauncher
                 }
                 else
                 {
-                    SimpleLogger.Instance.Info("TsugaruGenerator : Cue file not found");
+                    SimpleLogger.Instance.Info("[TsugaruGenerator] Cue file not found");
                     return null;
                 }
             }
@@ -136,7 +136,7 @@ namespace emulatorLauncher
             };
         }
 
-        public override void RunAndWait(ProcessStartInfo path)
+        public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
 
@@ -186,6 +186,14 @@ namespace emulatorLauncher
 
             if (bezel != null)
                 bezel.Dispose();
+
+            if (process != null)
+            {
+                try { return process.ExitCode; }
+                catch { }
+            }
+
+            return -1;
         }
 
     }

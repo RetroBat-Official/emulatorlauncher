@@ -13,6 +13,8 @@ namespace emulatorLauncher
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            rom = this.TryUnZipGameIfNeeded(system, rom);
+
             _systemName = system;
 
             string path = Path.GetDirectoryName(rom);
@@ -33,25 +35,33 @@ namespace emulatorLauncher
                     rom = Directory.GetFiles(path, "*.exe").FirstOrDefault();
                 
                 if (Path.GetFileName(rom) == "autorun.cmd")
-                {                    
-                    var wineCommand = File.ReadAllText(rom);
+                {
+                    var wineCmd = File.ReadAllLines(rom);
+                    if (wineCmd == null || wineCmd.Length == 0)
+                        throw new Exception("autorun.cmd is empty");
 
-                    int idx = wineCommand.IndexOf("CMD=");
-                    if (idx >= 0)
-                        wineCommand = wineCommand.Substring(idx + 4).Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                    var dir = wineCmd.Where(l => l.StartsWith("DIR=")).Select(l => l.Substring(4)).FirstOrDefault();
 
-                    var args = SplitCommandLine(wineCommand);
+                    var wineCommand = wineCmd.Where(l => l.StartsWith("CMD=")).Select(l => l.Substring(4)).FirstOrDefault();
+                    if (string.IsNullOrEmpty(wineCommand) && wineCmd.Length > 0)
+                        wineCommand = wineCmd.FirstOrDefault();
+
+                    var args = wineCommand.SplitCommandLine();
                     if (args.Length > 0)
                     {
-                        string exe = Path.Combine(path, args[0]);
+                        string exe = string.IsNullOrEmpty(dir) ? Path.Combine(path, args[0]) : Path.Combine(path, dir.Replace("/", "\\"), args[0]);
                         if (File.Exists(exe))
                         {
                             rom = exe;
-                            
+
                             if (args.Length > 1)
                                 arguments = string.Join(" ", args.Skip(1).ToArray());
                         }
+                        else
+                            throw new Exception("Invalid autorun.cmd executable");
                     }
+                    else
+                        throw new Exception("Invalid autorun.cmd command");
                 }
             }
 
@@ -68,7 +78,7 @@ namespace emulatorLauncher
                     rom = Path.Combine(path, rom.Substring(1));
             }
 
-            UpdateMugenConfig(path);
+            UpdateMugenConfig(path, resolution);
 
             var ret = new ProcessStartInfo()
             {
@@ -88,21 +98,10 @@ namespace emulatorLauncher
             else
                 _exename = Path.GetFileNameWithoutExtension(rom);
 
-            return ret;
-        }
+            // If game was uncompressed, say we are going to launch, so the deletion will not be silent
+            ValidateUncompressedGame();
 
-        static string[] SplitCommandLine(string commandLine)
-        {
-            char[] parmChars = commandLine.ToCharArray();
-            bool inQuote = false;
-            for (int index = 0; index < parmChars.Length; index++)
-            {
-                if (parmChars[index] == '"')
-                    inQuote = !inQuote;
-                if (!inQuote && parmChars[index] == ' ')
-                    parmChars[index] = '\n';
-            }
-            return (new string(parmChars)).Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Replace("\"", "")).ToArray();
+            return ret;
         }
 
         private string _systemName;
@@ -110,35 +109,13 @@ namespace emulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_systemName != "mugen")
+            if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
                 return mapping;
 
-            if (string.IsNullOrEmpty(_exename))
-                return mapping;
-
-            if (Program.Controllers.Count(c => c.Config != null && c.Config.DeviceName != "Keyboard") == 0)
-                return mapping;
-
-            if (mapping != null && mapping[_exename] != null && mapping[_exename][InputKey.hotkey | InputKey.start] != null)
-                return mapping;
-
-            if (mapping == null)
-                mapping = new PadToKeyboard.PadToKey();
-
-            var app = new PadToKeyApp();
-            app.Name = _exename;
-
-            PadToKeyInput mouseInput = new PadToKeyInput();
-            mouseInput.Name = InputKey.hotkey | InputKey.start;
-            mouseInput.Type = PadToKeyType.Keyboard;
-            mouseInput.Key = "(%{KILL})";
-            app.Input.Add(mouseInput);
-            mapping.Applications.Add(app);
-
-            return mapping;
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
-        private void UpdateMugenConfig(string path)
+        private void UpdateMugenConfig(string path, ScreenResolution resolution)
         {
             if (_systemName != "mugen")
                 return;
@@ -147,9 +124,46 @@ namespace emulatorLauncher
             if (!File.Exists(cfg))
                 return;
 
-            var data = File.ReadAllText(cfg);
-            data = data.Replace("FullScreen = 0", "FullScreen = 1");
-            File.WriteAllText(cfg, data);
+            using (var ini = IniFile.FromFile(cfg, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+            {
+                if (resolution == null)
+                    resolution = ScreenResolution.CurrentResolution;
+
+                if (!string.IsNullOrEmpty(ini.GetValue("Config", "GameWidth")))
+                {
+                    ini.WriteValue("Config", "GameWidth", resolution.Width.ToString());
+                    ini.WriteValue("Config", "GameHeight", resolution.Height.ToString());
+                }
+
+                ini.WriteValue("Video", "Width", resolution.Width.ToString());
+                ini.WriteValue("Video", "Height", resolution.Height.ToString());
+              
+                ini.WriteValue("Video", "VRetrace", SystemConfig["VSync"] != "false" ? "1" : "0");                
+                ini.WriteValue("Video", "FullScreen", "1");
+            }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            if (_systemName == "windows")
+            {
+                using (var frm = new System.Windows.Forms.Form())
+                {
+                    // Some games fail to allocate DirectX surface if EmulationStation is showing fullscren : pop an invisible window between ES & the game solves the problem
+                    frm.ShowInTaskbar = false;
+                    frm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+                    frm.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+                    frm.Opacity = 0;
+                    frm.Show();
+
+                    System.Windows.Forms.Application.DoEvents();
+                    base.RunAndWait(path);
+                }
+            }
+            else
+                base.RunAndWait(path);
+
+            return 0;
         }
     }
 }

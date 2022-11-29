@@ -142,4 +142,61 @@
   <data name="xbox_hdd_qcow2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\xbox_hdd.qcow2.zip;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="retrobat" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\retrobat.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>Downloading {0}</value>
+  </data>
+  <data name="FPinballDeveloperMode" xml:space="preserve">
+    <value>Warning : Future Pinball requires developper mode enabled in Windows settings</value>
+  </data>
+  <data name="Installing" xml:space="preserve">
+    <value>Installing....</value>
+  </data>
+  <data name="LookingForUpdates" xml:space="preserve">
+    <value>Looking for updates...</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="EmulatorNotInstalled" xml:space="preserve">
+    <value>The emulator '{0}' is not installed.
+Install now ?</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>An update is available for {0} :
+Update version : {1}
+Installed version : {2}
+Install now ?</value>
+  </data>
+  <data name="Updating" xml:space="preserve">
+    <value>Updating {0}</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="CoreNotInstalled" xml:space="preserve">
+    <value>The core '{0}' is not installed.
+Install now ?</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="ErrorOccured" xml:space="preserve">
+    <value>An error occured :
+{0}</value>
+  </data>
+  <data name="blacklisted_words" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\blacklisted-words.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="KeepUncompressedFile" xml:space="preserve">
+    <value>Do you want to keep the uncompressed game for further use ?</value>
+  </data>
+  <data name="UnCompressing" xml:space="preserve">
+    <value>Decompressing {0}</value>
+  </data>
+  <data name="mamecrcs_xml_gz" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\mamecrcs.xml.gz;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
