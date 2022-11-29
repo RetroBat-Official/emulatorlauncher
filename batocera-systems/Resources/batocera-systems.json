@@ -189,7 +189,7 @@
 
 	"ti99": { "name": "TI/99", "biosFiles": [ { "md5": "", "file": "bios/ti99_4a.zip"							},
                                             { "md5": "", "file": "bios/ti99_speech.zip"					},
-                                            { "md5": "", "file": "bios/mame/hash/ti99_cart.xml" } ] }               
+                                            { "md5": "", "file": "bios/mame/hash/ti99_cart.xml" } ] } ,              
 
 	"xbox": { "name": "XBox", "biosFiles": 	[ { "md5": "d49c52a4102f6df7bcf8d0617ac475ed", "file": "bios/mcpx_1.0.bin"     },
                                             { "md5": "39cee882148a87f93cb440b99dde3ceb", "file": "bios/Complex_4627.bin" } ] },
