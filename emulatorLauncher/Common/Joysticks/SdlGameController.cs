@@ -12,7 +12,9 @@ namespace emulatorLauncher.Tools
         {
             _controllersByGuid = new Dictionary<Guid, SdlGameController>();
             _controllersByPath = new Dictionary<string, SdlGameController>();
-
+                       
+            SDL.SDL_SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI, "0");
+            
             SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_InitSubSystem(SDL.SDL_INIT_JOYSTICK);
             

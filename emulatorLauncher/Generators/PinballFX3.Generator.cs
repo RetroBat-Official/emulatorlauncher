@@ -13,9 +13,6 @@ namespace emulatorLauncher
 {
     class PinballFX3Generator : Generator
     {
-
-        bool _steam = false;
-
         public PinballFX3Generator()
         {
             DependsOnDesktopResolution = true;
