@@ -307,10 +307,10 @@ namespace emulatorLauncher
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
-                for (int i = 0; i < 5; i++)
+                for (int i = 1; i < 5; i++)
                 {
-                    ini.ClearSection("[" + anyDefKey + i.ToString() + "]");
-                    ini.WriteValue("[" + anyDefKey + i.ToString() + "]", "Source", "2");
+                    ini.ClearSection(anyDefKey + i.ToString());
+                    ini.WriteValue(anyDefKey + i.ToString(), "Source", "2");
                 }
 
                 ini.Save();
