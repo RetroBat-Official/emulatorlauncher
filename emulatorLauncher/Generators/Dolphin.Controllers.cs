@@ -422,9 +422,9 @@ namespace emulatorLauncher
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }
                         }
-                        else
+                        else // DirectInput
                         {
-                            var input = pad.Config[x.Key];
+                            var input = pad.GetDirectInputMapping(x.Key);
                             if (input == null)
                                 continue;
 

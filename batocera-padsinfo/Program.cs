@@ -37,7 +37,6 @@ namespace batocera_padsinfo
             Console.WriteLine("<?xml version=\"1.0\"?>");
             Console.WriteLine("<pads>");
 
-            SDL.SDL_SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI, "0");
             SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_InitSubSystem(SDL.SDL_INIT_JOYSTICK);
 

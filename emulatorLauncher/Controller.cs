@@ -379,6 +379,26 @@ namespace emulatorLauncher
 
             return XInputButtonFlags.NONE;
         }
+
+        public Input GetDirectInputMapping(InputKey key)
+        {
+            if (Config == null)
+                return null;
+
+            Input input = Config[key];
+            if (input == null)
+                return null;
+
+            var guid = this.Guid.FromSdlGuidString();
+            if (guid.GetWrappedTechID() == SdlWrappedTechId.HID)
+            {
+                var dinput = HidToDirectInput.Instance.FromInput(guid, input);
+                if (dinput != null)
+                    return dinput;
+            }
+
+            return input;
+        }
     }
 
 

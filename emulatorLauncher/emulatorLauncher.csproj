@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\Joysticks\HidToDirectInput.cs" />
     <Compile Include="Common\Joysticks\DirectInputInfo.cs" />
     <Compile Include="Common\DynamicJson.cs" />
     <Compile Include="Common\GunGames.cs" />
@@ -248,6 +249,7 @@
     <None Include="Reshader\ReShade.ini" />
     <None Include="Resources\configgen-defaults.yml" />
     <None Include="Resources\eeprom.bin" />
+    <None Include="Resources\hidtodinput.cfg" />
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />

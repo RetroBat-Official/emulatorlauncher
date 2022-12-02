@@ -109,7 +109,6 @@ namespace emulatorLauncher.PadToKeyboard
         {
             Joysticks joysticks = new Joysticks(_inputList);
 
-            SDL.SDL_SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI, "0");
             SDL.SDL_SetHint(SDL.SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 
             SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK | SDL.SDL_INIT_VIDEO); // Since SDL 2.0.16, SDL_INIT_VIDEO is required or joystick events are not received....

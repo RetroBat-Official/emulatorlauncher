@@ -38,6 +38,25 @@ namespace emulatorLauncher.Tools
             return null;
         }
 
+        public static InputConfig[] Parse(string xmlData)
+        {
+            try
+            {
+                EsInput ret = xmlData.FromXmlString<EsInput>();
+                if (ret != null)
+                    return ret.InputConfigs.ToArray();
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.Message);
+#endif
+                SimpleLogger.Instance.Error("[InputConfig] Error : " + ex.Message);
+            }
+
+            return null;
+        }
+
         [XmlElement("inputConfig")]
         public List<InputConfig> InputConfigs { get; set; }
     }
