@@ -10,6 +10,30 @@ namespace emulatorLauncher
 {
     static class XmlExtensions
     {
+        public static System.Xml.Linq.XElement GetOrCreateElement(this System.Xml.Linq.XContainer container, string name)
+        {
+            var element = container.Element(name);
+            if (element == null)
+            {
+                element = new System.Xml.Linq.XElement(name);
+                container.Add(element);
+            }
+            return element;
+        }
+
+        public static System.Xml.Linq.XElement SetElementValue(this System.Xml.Linq.XContainer container, string name, string value)
+        {
+            var element = container.Element(name);
+            if (element == null)
+            {
+                element = new System.Xml.Linq.XElement(name);
+                container.Add(element);
+            }
+
+            element.Value = value;
+            return element;
+        }
+
         public static T FromXml<T>(this string xmlPathName) where T : class
         {
             if (string.IsNullOrEmpty(xmlPathName))

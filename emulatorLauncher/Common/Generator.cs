@@ -456,6 +456,13 @@ namespace emulatorLauncher
             return s;
         }
 
+        protected void BindFeature(System.Xml.Linq.XElement cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+           // if (force || Features.IsSupported(featureName))
+                cfg.SetElementValue(settingName, SystemConfig.GetValueOrDefault(featureName, defaultValue));
+        }
+
+
         protected void BindFeature(YmlContainer cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
