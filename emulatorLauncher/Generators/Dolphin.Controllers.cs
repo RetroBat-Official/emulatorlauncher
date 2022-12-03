@@ -33,8 +33,6 @@ namespace emulatorLauncher
             return true;            
         }
 
-
-
         static InputKeyMapping gamecubeMapping = new InputKeyMapping()
         { 
             { InputKey.l3,              "Main Stick/Modifier"},
@@ -47,8 +45,8 @@ namespace emulatorLauncher
             { InputKey.a,               "Buttons/A" },
             { InputKey.start,           "Buttons/Start" },
             { InputKey.pagedown,        "Buttons/Z" },  
-                { InputKey.l2,              "Triggers/L" }, 
-                { InputKey.r2,              "Triggers/R" },
+            { InputKey.l2,              "Triggers/L" }, 
+            { InputKey.r2,              "Triggers/R" },
             { InputKey.up,              "D-Pad/Up" }, 
             { InputKey.down,            "D-Pad/Down" }, 
             { InputKey.left,            "D-Pad/Left" }, 
@@ -83,15 +81,7 @@ namespace emulatorLauncher
             { InputKey.joystick2up,     "C-Stick/Up" },    
             { InputKey.joystick2left,   "C-Stick/Left"}          
         };
-        /*
-        static InputKeyMapping reversedButtons = new InputKeyMapping()
-        { 
-            { InputKey.y,               "Buttons/X" },  
-            { InputKey.b,               "Buttons/A" },
-            { InputKey.x,               "Buttons/Y" },  
-            { InputKey.a,               "Buttons/B" }
-        };
-        */
+
         static InputKeyMapping reversedButtons = new InputKeyMapping()
         {
             { InputKey.b,               "Buttons/A" },
@@ -289,17 +279,6 @@ namespace emulatorLauncher
             { XINPUTMAPPING.LEFTTRIGGER,        "`Trigger L`" },
             { XINPUTMAPPING.RIGHTTRIGGER,       "`Trigger R`" }
         };
-        /*
-        private static void removeControllerConfig_gamecube()
-        {
-            string path = Program.AppConfig.GetFullPath("dolphin");
-
-            string iniFile = Path.Combine(path, "User", "Config", "GCPadNew.ini");
-            if (!File.Exists(iniFile))
-                return;
-
-            File.Delete(iniFile);
-        }*/
 
         private static void generateControllerConfig_realwiimotes(string path, string filename, string anyDefKey)
         {

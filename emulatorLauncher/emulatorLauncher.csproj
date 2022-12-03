@@ -101,6 +101,9 @@
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Generators\Cemu.Controllers.cs">
+      <DependentUpon>Cemu.Generator.cs</DependentUpon>
+    </Compile>    
     <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />

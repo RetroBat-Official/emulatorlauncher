@@ -23,7 +23,7 @@ namespace emulatorLauncher
 
         public static int JoystickValue(InputKey key, Controller c)
         {
-            var a = c.Config[key];
+            var a = c.GetDirectInputMapping(key);
             if (a == null)
                 return -1;
 

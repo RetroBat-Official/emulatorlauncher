@@ -182,7 +182,7 @@ namespace emulatorLauncher
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Input GetSdlInput(InputKey key)
+        public Input GetSdlMapping(InputKey key)
         {
             if (Config == null)
                 return null;
@@ -374,7 +374,7 @@ namespace emulatorLauncher
         public XInputButtonFlags GetXInputButtonFlags(InputKey key)
         {
             XInputButtonFlags result;
-            if (Enum.TryParse<XInputButtonFlags>(GetXInputMapping(key).ToString(), out result))
+            if (Enum.TryParse<XInputButtonFlags>(GetXInputInput(key).ToString(), out result))
                 return result;
 
             return XInputButtonFlags.NONE;
@@ -401,6 +401,28 @@ namespace emulatorLauncher
         }
     }
 
+    static class InputExtensions
+    {
+        private static Dictionary<InputKey, InputKey> revertedAxis = new Dictionary<InputKey, InputKey>()
+        {
+            { InputKey.joystick1right, InputKey.joystick1left },
+            { InputKey.joystick1down, InputKey.joystick1up },
+            { InputKey.joystick2right, InputKey.joystick2left },
+            { InputKey.joystick2down, InputKey.joystick2up },
+        };
 
+        public static InputKey GetRevertedAxis(this InputKey key, out bool reverted)
+        {
+            reverted = false;
 
+            InputKey revertedKey;
+            if (revertedAxis.TryGetValue(key, out revertedKey))
+            {
+                key = revertedKey;
+                reverted = true;
+            }
+
+            return key;
+        }
+    }
 }

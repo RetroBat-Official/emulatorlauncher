@@ -538,31 +538,30 @@ namespace emulatorLauncher
             }
         }
 
+        private static Dictionary<InputKey, InputKey> revertedAxis = new Dictionary<InputKey, InputKey>()
+        {
+            { InputKey.joystick1right, InputKey.joystick1left },
+            { InputKey.joystick1down, InputKey.joystick1up },
+            { InputKey.joystick2right, InputKey.joystick2left },
+            { InputKey.joystick2down, InputKey.joystick2up },
+        };
+
         private static void ImportDirectInputButton(GameProfile userProfile, Controller ctrl, InputKey key, params InputMapping[] mapping)
         {
-            InputConfig c = ctrl.Config;
+            var info = ctrl.DirectInput;
+            if (info == null)
+                return;
 
             var start = userProfile.JoystickButtons.FirstOrDefault(j => !j.HideWithDirectInput && mapping.Contains(j.InputMapping));
+            if (start == null)
+                return;
 
-            bool reverseAxis = false;
+            bool reverseAxis;
+            key = key.GetRevertedAxis(out reverseAxis);
 
-            if (c[key] == null && key == InputKey.leftanalogdown)
+            var input = ctrl.GetDirectInputMapping(key);
+            if (input != null)
             {
-                reverseAxis = true;
-                key = InputKey.leftanalogup;
-            }
-            if (c[key] == null && key == InputKey.leftanalogright)
-            {
-                reverseAxis = true;
-                key = InputKey.leftanalogleft;
-            }
-
-            var info = ctrl.DirectInput;
-
-            if (start != null && c[key] != null && info != null)
-            {
-                var ss = c[key];
-
                 start.DirectInputButton = new JoystickButton();
                 start.DirectInputButton.JoystickGuid = info.InstanceGuid;
                 start.DirectInputButton.IsAxis = false;
@@ -573,25 +572,25 @@ namespace emulatorLauncher
                 start.DirectInputButton.IsReverseAxis = false;
                 start.DirectInputButton.Button = 0;
 
-                if (ss.Type == "button")
-                    start.DirectInputButton.Button = (int)ss.Id + 48;
-                else if (ss.Type == "hat")
+                if (input.Type == "button")
+                    start.DirectInputButton.Button = (int)input.Id + 48;
+                else if (input.Type == "hat")
                 {
                     start.DirectInputButton.Button = 32;
-                    if (ss.Value == 1) // Top
+                    if (input.Value == 1) // Top
                         start.DirectInputButton.PovDirection = 0;
-                    else if (ss.Value == 4) // Down
+                    else if (input.Value == 4) // Down
                         start.DirectInputButton.PovDirection = 18000;
-                    else if (ss.Value == 8) // Left
+                    else if (input.Value == 8) // Left
                         start.DirectInputButton.PovDirection = 27000;
-                    else if (ss.Value == 2) // Right
+                    else if (input.Value == 2) // Right
                         start.DirectInputButton.PovDirection = 9000;
                 }
-                else if (ss.Type == "axis")
+                else if (input.Type == "axis")
                 {
-                    start.DirectInputButton.Button = (int) ss.Id * 4;
+                    start.DirectInputButton.Button = (int)input.Id * 4;
                     start.DirectInputButton.IsAxis = true;
-                    start.DirectInputButton.IsAxisMinus = reverseAxis ? ss.Value > 0 : ss.Value < 0;
+                    start.DirectInputButton.IsAxisMinus = reverseAxis ? input.Value > 0 : input.Value < 0;
                 }
             }
         }
