@@ -51,7 +51,7 @@ namespace emulatorLauncher
             foreach (var toFix in xml.ExtractStrings("\"", "\"", true).Distinct().Where(s => s.Contains("& ")))
                 xml = xml.Replace(toFix, toFix.Replace("& ", "&amp; "));
 
-            using (var reader = new StringReader(xml))
+            using (var reader = new StringReader(xml.TrimStart('\uFEFF')))
             using (var xmlReader = XmlReader.Create(reader, settings))
             {
                 var obj = serializer.Deserialize(xmlReader);

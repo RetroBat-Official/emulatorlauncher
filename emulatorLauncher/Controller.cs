@@ -318,7 +318,7 @@ namespace emulatorLauncher
             if (input.Type == "key")
                 return XINPUTMAPPING.UNKNOWN;
 
-            if (IsXInputDevice)
+            if (!IsXInputDevice)
                 return XINPUTMAPPING.UNKNOWN;
 
             if (input.Type == "button")

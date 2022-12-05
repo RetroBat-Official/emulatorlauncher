@@ -103,7 +103,7 @@
     </Compile>
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
-    </Compile>    
+    </Compile>
     <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
@@ -252,7 +252,9 @@
     <None Include="Reshader\ReShade.ini" />
     <None Include="Resources\configgen-defaults.yml" />
     <None Include="Resources\eeprom.bin" />
-    <None Include="Resources\hidtodinput.cfg" />
+    <None Include="Resources\hidtodinput.cfg">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />

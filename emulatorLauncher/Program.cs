@@ -109,24 +109,6 @@ namespace emulatorLauncher
         [DllImport("user32.dll")]
         public static extern bool SetProcessDPIAware();
 
-        public static string EscapeXml(this string s)
-        {
-            string toxml = s;
-            if (!string.IsNullOrEmpty(toxml))
-            {
-                // replace literal values with entities
-                toxml = toxml.Replace("&", "&amp;");
-                toxml = toxml.Replace("'", "&apos;");
-                toxml = toxml.Replace("\"", "&quot;");
-                toxml = toxml.Replace(">", "&gt;");
-                toxml = toxml.Replace("<", "&lt;");
-            }
-            return toxml;
-        }
-
-
-
-
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -137,6 +119,8 @@ namespace emulatorLauncher
 
             if (args.Length == 0)
                 return;
+
+            AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
 
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
@@ -385,6 +369,23 @@ namespace emulatorLauncher
 
             if (Environment.ExitCode != 0)
                 SimpleLogger.Instance.Error("[Generator] Exit code " + Environment.ExitCode);
+        }
+
+        private static void OnCurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = e.ExceptionObject as System.Exception;
+            if (ex == null)
+                SimpleLogger.Instance.Error("[CurrentDomain] Unhandled exception");
+            else
+            {
+                SimpleLogger.Instance.Error("[CurrentDomain] Unhandled exception : " + ex.Message, ex);
+
+                if (e.IsTerminating)
+                {
+                    Program.WriteCustomErrorFile(ex.Message);
+                    Environment.Exit((int)ExitCodes.CustomError);
+                }
+            }
         }
 
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)

@@ -314,22 +314,20 @@ namespace emulatorLauncher
     
         private string getGameCubeLangFromEnvironment()
         {
-            Dictionary<string, int> availableLanguages = new Dictionary<string,int>() 
+            var availableLanguages = new Dictionary<string, string>() 
             { 
-                {"en", 0 }, { "de", 1 }, { "fr", 2 }, { "es", 3 }, { "it", 4 }, { "nl", 5 } 
+                {"en", "0" }, { "de", "1" }, { "fr", "2" }, { "es", "3" }, { "it", "4" }, { "nl", "5" } 
             };
 
-            if (!SystemConfig.isOptSet("Language"))
-                return "0";
+            var lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
 
-            string lang = SystemConfig["Language"]??"";
-            int idx = lang.IndexOf("_");
-            if (idx >= 0)
-                lang = lang.Substring(0, idx);
-
-            int ret = 0;
-            availableLanguages.TryGetValue(lang, out ret);
-            return ret.ToString();
+            return "0";
         }
 
         private void SetupGeneralConfig(string path, string system)
