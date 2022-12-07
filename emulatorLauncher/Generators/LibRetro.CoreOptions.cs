@@ -326,6 +326,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
+            Configurevicex64(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -1830,6 +1831,17 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross", true);
 
             SetupLightGuns(retroarchConfig, "260");
+        }
+
+        private void Configurevicex64(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "vice_x64")
+                return;
+
+            BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 PAL auto");
+            BindFeature(coreSettings, "vice_crop", "crop", "disabled");
+            BindFeature(coreSettings, "vice_warp_boost", "warp_boost", "enabled");
+
         }
 
         #region Input remaps
