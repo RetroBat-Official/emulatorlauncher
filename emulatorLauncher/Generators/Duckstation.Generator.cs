@@ -53,6 +53,18 @@ namespace emulatorLauncher
                 exe = Path.Combine(_path, "duckstation-nogui.exe");
 
             if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-qt-x64-ReleaseLTCG.exe");
+
+            if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-qt-x64-Release.exe");
+
+            if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-qt-x64.exe");
+
+            if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-qt.exe");
+
+            if (!File.Exists(exe))
                 return null;
 
             SetupSettings();
