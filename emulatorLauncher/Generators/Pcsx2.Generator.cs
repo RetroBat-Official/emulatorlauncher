@@ -48,10 +48,6 @@ namespace emulatorLauncher
 
             _path = AppConfig.GetFullPath(folderName);
 
-            //If path does not exist try pcsx2 1.7 path
-            if (string.IsNullOrEmpty(_path))
-                _path = AppConfig.GetFullPath("pcsx2");
-
             //If path does not exist try pcsx2 1.6 path
             if (string.IsNullOrEmpty(_path))
                 _path = AppConfig.GetFullPath("pcsx2-16");
@@ -69,7 +65,7 @@ namespace emulatorLauncher
 
             // v1.7.0 ???
             Version version = new Version();
-            if (Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion, out version))
+            if (!_isPcsxqt && Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion, out version))
                 _isPcsx17 = version >= new Version(1, 7, 0, 0);
 
             // Select avx2 build for qt version
