@@ -129,7 +129,7 @@ namespace emulatorLauncher.PadToKeyboard
             if (!_keys.TryGetValue((int)k, out newValue))
                 return 0;
 
-            if (k == InputKey.rightanalogright || k == InputKey.rightanalogdown || k == InputKey.leftanalogright || k == InputKey.leftanalogdown)
+            if (k == InputKey.joystick2right || k == InputKey.joystick2down || k == InputKey.joystick1right || k == InputKey.joystick2down)
                 return Math.Abs(newValue.Value);
 
             return -Math.Abs(newValue.Value);

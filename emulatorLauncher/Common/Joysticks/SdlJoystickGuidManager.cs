@@ -134,6 +134,14 @@ namespace emulatorLauncher.Tools
             return ushort.Parse(sdlGuid, System.Globalization.NumberStyles.HexNumber);
         }
 
+        public static SdlWrappedTechId GetWrappedTechID(this Guid guid)
+        {
+            var sdlGuid = guid.ToSdlGuidString();
+            string id = sdlGuid.Substring(28, 2).ToUpper();
+            int intValue = int.Parse(id, System.Globalization.NumberStyles.HexNumber);
+            return (SdlWrappedTechId)intValue;
+        }
+
         public static VendorIds GetVendorID(this Guid guid)
         {
             var sdlGuid = guid.ToSdlGuidString();
@@ -156,6 +164,13 @@ namespace emulatorLauncher.Tools
         Current,
         SDL2_24,
         SDL2_0_X
+    }
+
+    public enum SdlWrappedTechId
+    {
+        DirectInput = 0,
+        HID = 0x68,
+        XInput = 0x72
     }
 
     public enum VendorIds

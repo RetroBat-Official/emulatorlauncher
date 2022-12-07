@@ -189,6 +189,16 @@ namespace emulatorLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] hidtodinput {
+            get {
+                object obj = ResourceManager.GetObject("hidtodinput", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Installing.....
         /// </summary>
         internal static string Installing {

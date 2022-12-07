@@ -524,6 +524,8 @@ namespace emulatorLauncher
             "SDL_ENABLE_STEAM_CONTROLLERS";
         public const string SDL_HINT_ANDROID_TRAP_BACK_BUTTON =
             "SDL_ANDROID_TRAP_BACK_BUTTON";
+        public const string SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS =
+           "SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS";
 
         /* Only available in 2.0.10 or higher. */
         public const string SDL_HINT_MOUSE_TOUCH_EVENTS =

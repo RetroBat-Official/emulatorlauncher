@@ -199,4 +199,7 @@ Install now ?</value>
   <data name="mamecrcs_xml_gz" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\mamecrcs.xml.gz;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="hidtodinput" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\hidtodinput.cfg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

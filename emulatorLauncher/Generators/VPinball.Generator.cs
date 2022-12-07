@@ -191,33 +191,58 @@ namespace emulatorLauncher
             return null;
         }
 
+        private static bool FileUrlValueExists(object value)
+        {
+            if (value == null)
+                return false;
+
+            try
+            {
+                string localPath = new Uri(value.ToString()).LocalPath;
+                if (File.Exists(localPath))
+                    return true;
+            }
+            catch { }
+
+            return false;
+        }
+
+        private static bool IsComServerAvailable(string name)
+        {
+            RegistryKey key = Registry.ClassesRoot.OpenSubKey(name, false);
+            if (key == null)
+                return false;
+
+            object defaultValue = key.GetValue(null);
+
+            if (!"mscoree.dll".Equals(defaultValue) && FileUrlValueExists(key.GetValue(null)))
+            {
+                key.Close();
+                return true;
+            }
+
+            if ("mscoree.dll".Equals(defaultValue) && FileUrlValueExists(key.GetValue("CodeBase")))
+            {
+                key.Close();
+                return true;
+            }
+
+            key.Close();
+            return false;
+        }
 
         private static void EnsureUltraDMDRegistered(string path)
         {
             try
             {
-                //                HKEY_CLASSES_ROOT\WOW6432Node\CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}
-                RegistryKey regKeyc = Registry.ClassesRoot.OpenSubKey(@"CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}\LocalServer32", false);
-                if (regKeyc != null)
-                {
-                    object pth = regKeyc.GetValue(null);
-                    if (pth != null)
-                    {
-                        try
-                        {
-                            string localPath = new Uri(pth.ToString()).LocalPath;
-                            if (File.Exists(localPath))
-                            {
-                                regKeyc.Close();
-                                return;
-                            }
-                        }
-                        catch { }
-                    }
+                // Check for valid out-of-process COM server ( UltraDMD ) 
+                if (IsComServerAvailable(@"CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}\LocalServer32"))
+                    return;
 
-                    regKeyc.Close();
-                }
-
+                // Check for valid in-process COM server ( FlexDMD )
+                if (IsComServerAvailable(@"CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}\InprocServer32"))
+                    return;
+                
                 string ultraDMD = Path.Combine(path, "UltraDMD", "UltraDMD.exe");
                 if (!File.Exists(ultraDMD))
                     ultraDMD = Path.Combine(path, "XDMD", "UltraDMD.exe");

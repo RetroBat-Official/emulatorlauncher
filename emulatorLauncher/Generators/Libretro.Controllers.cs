@@ -310,9 +310,12 @@ namespace emulatorLauncher.libRetro
         private static Input GetInputCode(Controller controller, InputKey btnkey)
         {
             if (_inputDriver == "sdl2")
-                return controller.Config.ToSdlCode(btnkey);
+                return controller.GetSdlMapping(btnkey);
 
-            return controller.Config.ToXInputCodes(btnkey);
+            if (_inputDriver == "dinput")
+                return controller.GetDirectInputMapping(btnkey);
+
+            return controller.GetXInputInput(btnkey);
         }
 
         public static byte[] StringToByteArray(string hex)
@@ -340,15 +343,11 @@ namespace emulatorLauncher.libRetro
                 index = controller.PlayerIndex - 1;
 
             if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath) && controller.SdlController != null)
-            {
                 index = controller.SdlController.Index;
-            }
-            else if (_inputDriver != "sdl2")
-            {
-                var directInput = controller.DirectInput;
-                if (directInput != null && directInput.DeviceIndex >= 0)
-                    index = directInput.DeviceIndex;
-            }
+            else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex >= 0)
+                index = controller.DirectInput.DeviceIndex;
+            else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex >= 0)
+                index = controller.XInput.DeviceIndex;
 
             retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = index.ToString();
             retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.PlayerIndex)] = GetAnalogMode(controller, system);

@@ -70,4 +70,86 @@ namespace emulatorLauncher.Tools
             return IsXInputDevice(vendorId, productId);
         }
     }
+
+    enum XINPUT_GAMEPAD
+    {
+        A = 0,
+        B = 1,
+        X = 2,
+        Y = 3,
+        LEFTSHOULDER = 4,
+        RIGHTSHOULDER = 5,
+
+        BACK = 6,
+        START = 7,
+
+        LEFTSTICK = 8,
+        RIGHTSTICK = 9,
+        GUIDE = 10
+    }
+
+    enum XINPUT_HATS
+    {
+        DPAD_UP = 1,
+        DPAD_RIGHT = 2,
+        DPAD_DOWN = 4,
+        DPAD_LEFT = 8
+    }
+
+    public enum XINPUTMAPPING
+    {
+        UNKNOWN = -1,
+
+        A = 0,
+        B = 1,
+        Y = 2,
+        X = 3,
+        LEFTSHOULDER = 4,
+        RIGHTSHOULDER = 5,
+
+        BACK = 6,
+        START = 7,
+
+        LEFTSTICK = 8,
+        RIGHTSTICK = 9,
+        GUIDE = 10,
+
+        DPAD_UP = 11,
+        DPAD_RIGHT = 12,
+        DPAD_DOWN = 14,
+        DPAD_LEFT = 18,
+
+        LEFTANALOG_UP = 21,
+        LEFTANALOG_RIGHT = 22,
+        LEFTANALOG_DOWN = 24,
+        LEFTANALOG_LEFT = 28,
+
+        RIGHTANALOG_UP = 31,
+        RIGHTANALOG_RIGHT = 32,
+        RIGHTANALOG_DOWN = 34,
+        RIGHTANALOG_LEFT = 38,
+
+        RIGHTTRIGGER = 51,
+        LEFTTRIGGER = 52
+    }
+
+    [Flags]
+    public enum XInputButtonFlags : ushort
+    {
+        NONE = 0,
+        DPAD_UP = 1,
+        DPAD_DOWN = 2,
+        DPAD_LEFT = 4,
+        DPAD_RIGHT = 8,
+        START = 16,
+        BACK = 32,
+        LEFTTRIGGER = 64,
+        RIGHTTRIGGER = 128,
+        LEFTSHOULDER = 256,
+        RIGHTSHOULDER = 512,
+        A = 4096,
+        B = 8192,
+        X = 16384,
+        Y = 32768
+    }
 }

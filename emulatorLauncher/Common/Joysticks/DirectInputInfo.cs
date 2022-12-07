@@ -27,7 +27,7 @@ namespace emulatorLauncher.Tools
                             {
                                 if (deviceInstance.Usage != SharpDX.Multimedia.UsageId.GenericGamepad && deviceInstance.Usage != SharpDX.Multimedia.UsageId.GenericJoystick)
                                     continue;
-
+                                
                                 string guidString = deviceInstance.ProductGuid.ToString().Replace("-", "");
 
                                 string dxproductId = guidString.Substring(0, 4).ToUpper();
@@ -40,6 +40,15 @@ namespace emulatorLauncher.Tools
                                 info.InstanceGuid = deviceInstance.InstanceGuid;
                                 info.VendorId = ushort.Parse(dxvendorId, System.Globalization.NumberStyles.HexNumber);
                                 info.ProductId = ushort.Parse(dxproductId, System.Globalization.NumberStyles.HexNumber);
+
+                                try
+                                {
+                                    var joystick = new SharpDX.DirectInput.Joystick(directInput, deviceInstance.InstanceGuid);
+                                    info.DevicePath = joystick.Properties.InterfacePath;
+                                    info.JoystickID = joystick.Properties.JoystickId;
+                                    info.ParentDevice = InputDevices.GetInputDeviceParent(info.DevicePath);
+                                }
+                                catch { }
 
                                 ret.Add(info);
                                 index++;
@@ -61,8 +70,11 @@ namespace emulatorLauncher.Tools
         public Guid ProductGuid { get; set; }
         public ushort VendorId { get; set; }
         public ushort ProductId { get; set; }
+        public string DevicePath { get; set; }
+        public string ParentDevice { get; set; }
+        public int JoystickID { get; set; }
 
-        public bool IsDirectInputDevice(string deviceGuid)
+        public bool TestDirectInputDevice(string deviceGuid)
         {
             if (deviceGuid == null || deviceGuid.Length < 32)
                 return false;

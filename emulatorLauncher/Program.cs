@@ -109,24 +109,6 @@ namespace emulatorLauncher
         [DllImport("user32.dll")]
         public static extern bool SetProcessDPIAware();
 
-        public static string EscapeXml(this string s)
-        {
-            string toxml = s;
-            if (!string.IsNullOrEmpty(toxml))
-            {
-                // replace literal values with entities
-                toxml = toxml.Replace("&", "&amp;");
-                toxml = toxml.Replace("'", "&apos;");
-                toxml = toxml.Replace("\"", "&quot;");
-                toxml = toxml.Replace(">", "&gt;");
-                toxml = toxml.Replace("<", "&lt;");
-            }
-            return toxml;
-        }
-
-
-
-
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -137,6 +119,8 @@ namespace emulatorLauncher
 
             if (args.Length == 0)
                 return;
+
+            AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
 
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
@@ -387,6 +371,23 @@ namespace emulatorLauncher
                 SimpleLogger.Instance.Error("[Generator] Exit code " + Environment.ExitCode);
         }
 
+        private static void OnCurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = e.ExceptionObject as System.Exception;
+            if (ex == null)
+                SimpleLogger.Instance.Error("[CurrentDomain] Unhandled exception");
+            else
+            {
+                SimpleLogger.Instance.Error("[CurrentDomain] Unhandled exception : " + ex.Message, ex);
+
+                if (e.IsTerminating)
+                {
+                    Program.WriteCustomErrorFile(ex.Message);
+                    Environment.Exit((int)ExitCodes.CustomError);
+                }
+            }
+        }
+
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
         {
             string filePath = SystemConfig["rom"] + (Directory.Exists(SystemConfig["rom"]) ? "\\padto.keys" : ".keys");
@@ -445,13 +446,13 @@ namespace emulatorLauncher
                         if (action.Triggers.FirstOrDefault() == "joystick1")
                         {
                             PadToKeyInput mouseInput = new PadToKeyInput();
-                            mouseInput.Name = InputKey.leftanalogleft;
+                            mouseInput.Name = InputKey.joystick1left;
                             mouseInput.Type = PadToKeyType.Mouse;
                             mouseInput.Code = "X";
                             app.Input.Add(mouseInput);
 
                             mouseInput = new PadToKeyInput();
-                            mouseInput.Name = InputKey.leftanalogup;
+                            mouseInput.Name = InputKey.joystick1up;
                             mouseInput.Type = PadToKeyType.Mouse;
                             mouseInput.Code = "Y";
                             app.Input.Add(mouseInput);
@@ -459,13 +460,13 @@ namespace emulatorLauncher
                         else if (action.Triggers.FirstOrDefault() == "joystick2")
                         {
                             PadToKeyInput mouseInput = new PadToKeyInput();
-                            mouseInput.Name = InputKey.rightanalogleft;
+                            mouseInput.Name = InputKey.joystick2left;
                             mouseInput.Type = PadToKeyType.Mouse;
                             mouseInput.Code = "X";
                             app.Input.Add(mouseInput);
 
                             mouseInput = new PadToKeyInput();
-                            mouseInput.Name = InputKey.rightanalogup;
+                            mouseInput.Name = InputKey.joystick2up;
                             mouseInput.Type = PadToKeyType.Mouse;
                             mouseInput.Code = "Y";
                             app.Input.Add(mouseInput);
@@ -608,6 +609,18 @@ namespace emulatorLauncher
 
                     Controllers.RemoveAll(c => c.Config == null);
 
+#if DEBUG
+                    /*
+                    foreach (var c in Controllers)
+                    {
+                        var dinput = c.DirectInput;
+                        var xinput = c.XInput;
+                        var winmm = c.WinmmJoystick;
+                        var sdl = c.SdlController;
+                    }
+                    */
+#endif
+
                     if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || Misc.HasWiimoteGun())
                     {
                         var keyb = new Controller() { PlayerIndex = Controllers.Count + 1 };
@@ -623,9 +636,9 @@ namespace emulatorLauncher
 
                 return inputConfig;
             }
-            catch(Exception ex)
-            { 
-
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[LoadControllerConfiguration] Failed " + ex.Message, ex);
             }
 
             return null;

@@ -90,17 +90,17 @@ namespace emulatorLauncher.PadToKeyboard
             if (key == InputKey.down)
                 return InputKey.up;
 
-            if (key == InputKey.leftanalogleft)
-                return InputKey.leftanalogright;
+            if (key == InputKey.joystick1left)
+                return InputKey.joystick1right;
 
-            else if (key == InputKey.leftanalogup)
-                return InputKey.leftanalogdown;
+            else if (key == InputKey.joystick1up)
+                return InputKey.joystick1down;
 
-            if (key == InputKey.rightanalogleft)
-                return InputKey.rightanalogright;
+            if (key == InputKey.joystick2left)
+                return InputKey.joystick2right;
 
-            if (key == InputKey.rightanalogup)
-                return InputKey.rightanalogdown;
+            if (key == InputKey.joystick2up)
+                return InputKey.joystick2down;
 
             return key;
         }

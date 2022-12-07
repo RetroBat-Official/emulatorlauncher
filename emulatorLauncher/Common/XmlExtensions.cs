@@ -10,6 +10,17 @@ namespace emulatorLauncher
 {
     static class XmlExtensions
     {
+        public static System.Xml.Linq.XElement GetOrCreateElement(this System.Xml.Linq.XContainer container, string name)
+        {
+            var element = container.Element(name);
+            if (element == null)
+            {
+                element = new System.Xml.Linq.XElement(name);
+                container.Add(element);
+            }
+            return element;
+        }
+
         public static T FromXml<T>(this string xmlPathName) where T : class
         {
             if (string.IsNullOrEmpty(xmlPathName))
@@ -40,7 +51,7 @@ namespace emulatorLauncher
             foreach (var toFix in xml.ExtractStrings("\"", "\"", true).Distinct().Where(s => s.Contains("& ")))
                 xml = xml.Replace(toFix, toFix.Replace("& ", "&amp; "));
 
-            using (var reader = new StringReader(xml))
+            using (var reader = new StringReader(xml.TrimStart('\uFEFF')))
             using (var xmlReader = XmlReader.Create(reader, settings))
             {
                 var obj = serializer.Deserialize(xmlReader);

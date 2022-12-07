@@ -25,7 +25,7 @@ namespace emulatorLauncher
             if (a == null)
             {
                 if (key == InputKey.hotkey)
-                    a = c.Config[InputKey.hotkeyenable];
+                    a = c.Config[InputKey.hotkey];
 
                 if (a == null)
                     return 0;
@@ -155,8 +155,7 @@ namespace emulatorLauncher
 
         string GetBuildToUse(string rom)
         {
-            return null;
-
+            /*
             string path = AppConfig.GetFullPath("openbor");
 
             int buildIndex = rom.LastIndexOf(']');
@@ -173,6 +172,7 @@ namespace emulatorLauncher
                 else if (buildNumber < 6340 && File.Exists(Path.Combine(path, "6330", "OpenBOR.exe")))
                     return "6330";
             }
+            */
 
             return null;
         }
@@ -248,7 +248,7 @@ namespace emulatorLauncher
                     ini["keys." + idx + ".4"] = KeyboardValue(InputKey.a, c).ToString(); // ATTACK
                     ini["keys." + idx + ".5"] = KeyboardValue(InputKey.x, c).ToString();
                     ini["keys." + idx + ".6"] = KeyboardValue(InputKey.y, c).ToString();
-                    ini["keys." + idx + ".7"] = KeyboardValue(InputKey.rightshoulder, c).ToString(); // ATTACK4
+                    ini["keys." + idx + ".7"] = KeyboardValue(InputKey.pagedown, c).ToString(); // ATTACK4
                     ini["keys." + idx + ".8"] = KeyboardValue(InputKey.b, c).ToString(); // JUMP
                     ini["keys." + idx + ".9"] = KeyboardValue(InputKey.select, c).ToString();
                     ini["keys." + idx + ".10"] = KeyboardValue(InputKey.start, c).ToString();
@@ -268,7 +268,7 @@ namespace emulatorLauncher
                 ini["keys." + idx + ".4"] = JoystickValue(InputKey.a, c).ToString(); // ATTACK
                 ini["keys." + idx + ".5"] = JoystickValue(InputKey.x, c).ToString();
                 ini["keys." + idx + ".6"] = JoystickValue(InputKey.y, c).ToString();
-                ini["keys." + idx + ".7"] = JoystickValue(InputKey.rightshoulder, c).ToString(); // ATTACK4
+                ini["keys." + idx + ".7"] = JoystickValue(InputKey.pagedown, c).ToString(); // ATTACK4
                 ini["keys." + idx + ".8"] = JoystickValue(InputKey.b, c).ToString(); // JUMP
                 ini["keys." + idx + ".9"] = JoystickValue(InputKey.select, c).ToString();
                 ini["keys." + idx + ".10"] = JoystickValue(InputKey.start, c).ToString();
@@ -397,7 +397,7 @@ namespace emulatorLauncher
                     conf.keys[idx].attack1 = KeyboardValue(InputKey.a, c); // ATTACK
                     conf.keys[idx].attack2 = KeyboardValue(InputKey.x, c);
                     conf.keys[idx].attack3 = KeyboardValue(InputKey.y, c);
-                    conf.keys[idx].attack4 = KeyboardValue(InputKey.rightshoulder, c); // ATTACK4
+                    conf.keys[idx].attack4 = KeyboardValue(InputKey.pagedown, c); // ATTACK4
                     conf.keys[idx].jump = KeyboardValue(InputKey.b, c); // JUMP
                     conf.keys[idx].special = KeyboardValue(InputKey.select, c);
                     conf.keys[idx].start  = KeyboardValue(InputKey.start, c);
@@ -413,7 +413,7 @@ namespace emulatorLauncher
                 conf.keys[idx].attack1 = JoystickValue(InputKey.a, c); // ATTACK
                 conf.keys[idx].attack2 = JoystickValue(InputKey.x, c);
                 conf.keys[idx].attack3 = JoystickValue(InputKey.y, c);
-                conf.keys[idx].attack4 = JoystickValue(InputKey.rightshoulder, c); // ATTACK4
+                conf.keys[idx].attack4 = JoystickValue(InputKey.pagedown, c); // ATTACK4
                 conf.keys[idx].jump = JoystickValue(InputKey.b, c); // JUMP
                 conf.keys[idx].special = JoystickValue(InputKey.select, c);
                 conf.keys[idx].start  = JoystickValue(InputKey.start, c);

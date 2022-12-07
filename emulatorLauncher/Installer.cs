@@ -392,7 +392,7 @@ namespace emulatorLauncher
             return WebTools.UrlExists(PackageUrl);
         }
 
-        public static bool DownloadAndInstall(string url, string installFolder, ProgressChangedEventHandler progress = null)
+        public static void DownloadAndInstall(string url, string installFolder, ProgressChangedEventHandler progress = null)
         {
             string localFile = Path.GetFileName(url);
             string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", localFile);
@@ -408,21 +408,18 @@ namespace emulatorLauncher
                 if (progress != null)
                     progress(null, new ProgressChangedEventArgs(100, null));
 
-                Zip.Extract(fn, installFolder);
-                return true;
+                Zip.Extract(fn, installFolder);                
             }
             finally
             {
                 try { if (File.Exists(fn)) File.Delete(fn); }
                 catch { }
             }
-
-            return false;
         }
 
-        public bool DownloadAndInstall(ProgressChangedEventHandler progress = null)
+        public void DownloadAndInstall(ProgressChangedEventHandler progress = null)
         {
-            return DownloadAndInstall(PackageUrl, GetInstallFolder(), progress);           
+            DownloadAndInstall(PackageUrl, GetInstallFolder(), progress);           
         }
 
         #region CollectVersions

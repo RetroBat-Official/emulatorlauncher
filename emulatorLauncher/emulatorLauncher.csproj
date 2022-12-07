@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\Joysticks\HidToDirectInput.cs" />
     <Compile Include="Common\Joysticks\DirectInputInfo.cs" />
     <Compile Include="Common\DynamicJson.cs" />
     <Compile Include="Common\GunGames.cs" />
@@ -99,6 +100,9 @@
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Generators\Cemu.Controllers.cs">
+      <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ScummVm.Generator.cs" />
@@ -198,7 +202,7 @@
     <Compile Include="Common\ScreenResolution.cs" />
     <Compile Include="Common\IniFile.cs" />
     <Compile Include="Common\SDL2.cs" />
-    <Compile Include="Common\Joysticks\SdlGameControllers.cs" />
+    <Compile Include="Common\Joysticks\SdlGameController.cs" />
     <Compile Include="Common\SimpleLogger.cs" />
     <Compile Include="Common\SimpleYml.cs" />
     <Compile Include="Common\SystemDefaults.cs" />
@@ -248,6 +252,9 @@
     <None Include="Reshader\ReShade.ini" />
     <None Include="Resources\configgen-defaults.yml" />
     <None Include="Resources\eeprom.bin" />
+    <None Include="Resources\hidtodinput.cfg">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />

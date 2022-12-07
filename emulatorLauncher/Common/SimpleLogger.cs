@@ -143,22 +143,22 @@ namespace emulatorLauncher
             switch (level)
             {
                 case LogLevel.TRACE:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [TRACE]   ";
+                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [TRACE]     ";
                     break;
                 case LogLevel.INFO:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [INFO]    ";
+                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [INFO]      ";
                     break;
                 case LogLevel.DEBUG:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [DEBUG]   ";
+                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [DEBUG]     ";
                     break;
                 case LogLevel.WARNING:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [WARNING] ";
+                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [WARNING]   ";
                     break;
                 case LogLevel.ERROR:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [ERROR]   ";
+                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [ERROR]     ";
                     break;
                 case LogLevel.FATAL:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [FATAL]   ";
+                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [FATAL]     ";                                                                             
                     break;
                 default:
                     pretext = "";
@@ -170,11 +170,14 @@ namespace emulatorLauncher
             var ex = exception;
             while (ex != null)
             {
-                WriteLine(System.DateTime.Now.ToString(datetimeFormat) + " [EXCEPTION]   " + ex.Message);
+                WriteLine(System.DateTime.Now.ToString(datetimeFormat) + " [EXCEPTION] [" + ex.GetType().Name + "] " + ex.Message);
                 ex = ex.InnerException;
             }
-        }
 
+            if (level == LogLevel.ERROR && exception != null && !string.IsNullOrEmpty(exception.StackTrace))
+                WriteLine(System.DateTime.Now.ToString(datetimeFormat) + " [STACK]     [StackTrace] " + exception.StackTrace.Trim());
+        }
+        
         [System.Flags]
         private enum LogLevel
         {
