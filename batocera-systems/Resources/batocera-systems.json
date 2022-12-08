@@ -133,6 +133,9 @@
                                           { "md5": "b406d05922dac2eaf3c2e68157b1b468", "file": "bios/ROM2.BIN" 				} ] },
 										   
 	"ps3": { "name": "PS3", "biosFiles":  [ { "md5": "a0b63a3e4ae92ed176d6b9a67ce447f0", "file": "bios/PS3UPDAT.PUP" } ] },
+	
+	"psvita": { "name": "PS Vita", "biosFiles":  [ { "md5": "8B5F60B56C3DA8365B973DBA570C53A5", "file": "bios/PSP2UPDAT.PUP" },
+	                                               { "md5": "F2C7B12FE85496EC88A0391B514D6E3B", "file": "bios/PSVUPDAT.PUP" } ] },
 
 	"lynx48k": { "name": "Camputers Lynx", "biosFiles": [ { "md5": "85ae78a20ffaff388dd09c75d9e1ec0e", "file": "lynx48k.zip" } ] },
 
