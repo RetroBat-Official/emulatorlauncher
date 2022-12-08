@@ -191,8 +191,8 @@ namespace emulatorLauncher
             // t
             if (((rom.Contains(".ti.") || rom.Contains(".ts.") || rom.Contains(".tn.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "tn")
             {
-                wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
-                wiiMapping[InputKey.joystick2left] = "Tilt/Left";
+                wiiMapping[InputKey.joystick1up] = "Tilt/Forward";
+                wiiMapping[InputKey.joystick1left] = "Tilt/Left";
             }
 
             if (((rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "nt")
