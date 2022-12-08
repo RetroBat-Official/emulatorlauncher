@@ -314,9 +314,12 @@ namespace emulatorLauncher
 
                     if (pad.Config == null)
                         continue;
-                  
+
                     // SIDevice0 = 7 -> Keyb GCKeyNew.ini
                     // SIDevice1 = 6 -> controlleur standard GCPadNew.ini
+
+                    string guid = pad.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
+                    var prod = new Guid(guid).GetProductID();
 
                     string tech = "XInput";
                     string deviceName = "Gamepad";
@@ -328,12 +331,12 @@ namespace emulatorLauncher
                     } 
                     else if (!pad.IsXInputDevice)
                     {
-                        var di = pad.DirectInput;
-                        if (di == null)
+                        var s = pad.SdlController;
+                        if (s == null)
                             continue;
                         
-                        tech = "DInput";
-                        deviceName = di.Name;
+                        tech = "SDL";
+                        deviceName = s.Name;
                     }
              
                     if (double_pads.ContainsKey(tech + "/" + deviceName))
@@ -401,57 +404,39 @@ namespace emulatorLauncher
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }
                         }
-                        else // DirectInput
+                        else // SDL
                         {
-                            var input = pad.GetDirectInputMapping(x.Key);
+                            var input = pad.GetSdlMapping(x.Key);
+
                             if (input == null)
                                 continue;
 
                             if (input.Type == "button")
                             {
-                                if (input.Id == 0) // Invert A & B
+                                if (input.Id == 0) // invert A&B
                                     ini.WriteValue(gcpad, value, "`Button 1`");
-                                else if (input.Id == 1) // Invert A & B
+                                else if (input.Id == 1) // invert A&B
                                     ini.WriteValue(gcpad, value, "`Button 0`");
                                 else
                                     ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
                             }
-                            else if (input.Type == "hat")
-                            {
-                                string hat = "`Hat " + input.Id + " N`";
 
-                                if (input.Value == 2) // SDL_HAT_RIGHT
-                                    hat = "`Hat " + input.Id + " E`";
-                                else if (input.Value == 4) // SDL_HAT_DOWN
-                                    hat = "`Hat " + input.Id + " S`";
-                                else if (input.Value == 8) // SDL_HAT_LEFT
-                                    hat = "`Hat " + input.Id + " W`";
-
-                                ini.WriteValue(gcpad, value, hat);
-                            }
                             else if (input.Type == "axis")
                             {
                                 Func<Input, bool, string> axisValue = (inp, revertAxis) =>
                                 {                                     
                                     string axis = "`Axis ";
 
-                                    if (inp.Id == 2 || inp.Id == 5)
-                                        axis += "Z";
-                                    else if (inp.Id == 0 || inp.Id == 3)
-                                        axis += "X";
-                                    else
-                                        axis += "Y";
-
-                                    if (inp.Id == 3 || inp.Id == 4)
-                                        axis += "r";
-
-                                    if (inp.Id == 5)
-                                        revertAxis = !revertAxis;
+                                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
+                                        axis += inp.Id;
 
                                     if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))                                            
                                         axis += "+";
                                     else 
                                         axis += "-";
+
+                                    if (inp.Id == 4 || inp.Id == 5)
+                                        axis = "`Full Axis " + inp.Id + "+";
 
                                     return axis+"`";
                                 };
@@ -465,15 +450,77 @@ namespace emulatorLauncher
                         }
                     }
 
+                    ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.0");
+                    ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.0");
+
                     if (tech == "XInput")
                     {
-//                        ini.WriteValue(gcpad, "Main Stick/Modifier", "`Thumb L`");
-  //                      ini.WriteValue(gcpad, "C-Stick/Modifier" , "`Thumb R`");
+                        //ini.WriteValue(gcpad, "Main Stick/Modifier", "`Thumb L`");
+                        //ini.WriteValue(gcpad, "C-Stick/Modifier" , "`Thumb R`");
                         ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
                         ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
                         ini.WriteValue(gcpad, "Rumble/Motor", "`Motor L`|`Motor R`");
                         ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 108.24 109.27 115.00 109.59 106.10 101.96 100.00 101.96 105.22 107.49 117.34 112.43 108.24 101.96 100.00 101.96 108.24 116.11 116.57 116.72 108.24 101.96 100.00 101.96 108.24 109.75 115.91 109.18 107.47 101.96");
                         ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 108.24 112.26 122.26 118.12 108.24 101.96 100.00 101.96 108.24 114.92 117.37 115.98 108.24 101.96 100.00 101.96 105.40 112.07 114.52 113.89 104.20 99.64 99.97 101.73 106.63 108.27 103.63 104.40 107.15 101.96");
+                    }
+
+                    if (prod == ProductIds.USB_PRODUCT_NINTENDO_SWITCH_PRO)                      
+                    {
+                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "10.0000000000000000");
+                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "10.0000000000000000");
+                        ini.WriteValue(gcpad, "Main Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
+                        ini.WriteValue(gcpad, "C-Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
+                        ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
+                    }
+
+                    if (prod == ProductIds.USB_PRODUCT_SONY_DS3 ||
+                        prod == ProductIds.USB_PRODUCT_SONY_DS4 ||
+                        prod == ProductIds.USB_PRODUCT_SONY_DS4_DONGLE ||
+                        prod == ProductIds.USB_PRODUCT_SONY_DS4_SLIM ||
+                        prod == ProductIds.USB_PRODUCT_SONY_DS5)
+                    {
+                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
+                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
+                        ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                        ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                        ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
+                    }
+
+                    else
+                    {
+                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
+                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
+                        ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                        ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                    }
+
+                    if (Program.SystemConfig["controller_mode"] == "cc")
+                    {
+                        if (prod == ProductIds.USB_PRODUCT_NINTENDO_SWITCH_PRO)
+                        {
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "10.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "10.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
+                        }
+                        else if (prod == ProductIds.USB_PRODUCT_SONY_DS3 ||
+                        prod == ProductIds.USB_PRODUCT_SONY_DS4 ||
+                        prod == ProductIds.USB_PRODUCT_SONY_DS4_DONGLE ||
+                        prod == ProductIds.USB_PRODUCT_SONY_DS4_SLIM ||
+                        prod == ProductIds.USB_PRODUCT_SONY_DS5)
+                        {
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "5.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "5.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                        }
+                        else
+                        {
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "5.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "5.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                        }
                     }
                 }
 
