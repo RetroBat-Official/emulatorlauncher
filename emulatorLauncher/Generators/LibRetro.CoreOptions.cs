@@ -1855,7 +1855,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "duckstation_GPU.ForceNTSCTimings", "force_ntsc_timings", "false");
             BindFeature(coreSettings, "duckstation_GPU.WidescreenHack", "widescreen_hack", "false");
             BindFeature(coreSettings, "duckstation_GPU.MSAA", "msaa", "1");
-            BindFeature(coreSettings, "duckstation_GPU.Renderer", "video_renderer", "Auto");
         }
 
         #region Input remaps
