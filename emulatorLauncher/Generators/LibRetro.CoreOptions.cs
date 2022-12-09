@@ -327,6 +327,7 @@ namespace emulatorLauncher.libRetro
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             Configurevicex64(retroarchConfig, coreSettings, system, core);
+            ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -1843,7 +1844,18 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 PAL auto");
             BindFeature(coreSettings, "vice_crop", "crop", "disabled");
             BindFeature(coreSettings, "vice_warp_boost", "warp_boost", "enabled");
+        }
 
+        private void ConfigureSwanStation(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "swanstation")
+                return;
+
+            BindFeature(coreSettings, "duckstation_GPU.ResolutionScale", "internal_resolution", "1");
+            BindFeature(coreSettings, "duckstation_GPU.ForceNTSCTimings", "force_ntsc_timings", "false");
+            BindFeature(coreSettings, "duckstation_GPU.WidescreenHack", "widescreen_hack", "false");
+            BindFeature(coreSettings, "duckstation_GPU.MSAA", "msaa", "1");
+            BindFeature(coreSettings, "duckstation_GPU.Renderer", "video_renderer", "Auto");
         }
 
         #region Input remaps
