@@ -466,8 +466,16 @@ namespace emulatorLauncher
                     continue;
 
                 Console.WriteLine(installer.DefaultFolderName);
-                installer.DownloadAndInstall();
-                sys.Add(installer.DefaultFolderName);
+
+                try
+                {
+                    installer.DownloadAndInstall();
+                    sys.Add(installer.DefaultFolderName);
+                }
+                catch(Exception ex) 
+                {
+                    Console.WriteLine("failed " + ex.Message);
+                }
             }
 
             Kernel32.FreeConsole();
