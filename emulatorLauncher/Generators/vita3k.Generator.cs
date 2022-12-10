@@ -20,9 +20,24 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            //rom needs to be installed in the emulator first, as the argument for command-line can only be the game code, not possible to put a path to a file
-            //Using a m3u file with the game code in it in the retrobat rom folder after having installed the game in the emulator
-            rom = File.ReadAllText(rom);
+            //Check extension of rom
+            /*
+             * .m3u is used for games already installed in vita3k emulator
+             * .psvita for folders that need to be installed a first time
+             * .vpk for packages that need to be installed a first time
+             */
+            string ext = Path.GetExtension(rom);
+            
+            //get gameID for later check whether the game is already installed or not
+            string gameID = "";
+            
+            if (ext == ".m3u")
+                gameID = File.ReadAllText(rom);
+            
+            if (ext == ".vpk" || ext == ".psvita")
+            {
+                gameID = rom.Substring(rom.IndexOf('[') + 1, rom.IndexOf(']') - rom.IndexOf('[') - 1);
+            }
 
             //Define command-line arguments
             List<string> commandArray = new List<string>();
@@ -36,8 +51,20 @@ namespace emulatorLauncher
             
             //get the configfile to specify it in the command line arguments
             String configfile = Path.Combine(path, "config.yml");
-            commandArray.Add("-c" + configfile);
-            commandArray.Add("-r" + rom);
+            commandArray.Add("-c " + "\"" + configfile + "\"");
+
+            //check if game is already installed or not (if installed game folder with gameID name exists in ux0\app\<gameID> folder)
+            //if game is not yet installed ==> install it
+            //if game is installed ==> run it
+            string gamepath = Path.Combine(path, "ux0", "app", gameID);
+            
+            if (!Directory.Exists(gamepath) && (ext == ".vpk" || ext == ".psvita"))
+            {
+                commandArray.Add("-path " + "\"" + rom + "\"");     //path used to install the game
+            }
+
+            if (Directory.Exists(gamepath) || ext == "m3u")
+                commandArray.Add("-r" + gameID);                    //r used to run installed games
 
             string args = string.Join(" ", commandArray);
 

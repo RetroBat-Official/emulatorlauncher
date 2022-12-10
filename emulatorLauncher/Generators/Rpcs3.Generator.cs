@@ -8,7 +8,7 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    class Rpcs3Generator : Generator
+    partial class Rpcs3Generator : Generator
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -55,6 +55,7 @@ namespace emulatorLauncher
 
             SetupGuiConfiguration(path);
             SetupConfiguration(path);
+            CreateControllerConfiguration(path);
 
             // Check if firmware is installed in emulator, if not and if firmware is available in \bios path then install it instead of running the game
             string firmware = Path.Combine(path, "dev_flash", "vsh", "etc", "version.txt");
