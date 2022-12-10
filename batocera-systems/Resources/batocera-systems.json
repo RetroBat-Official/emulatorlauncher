@@ -111,12 +111,22 @@
                                                             { "md5": "cb0a5cfcf7247a7eab74bb2716260269", "file": "bios/keropi/cgrom.dat"	  } ] },
 
 	"x1":						{ "name": "Sharp x1", "biosFiles": 		[ { "md5": "eeeea1cd29c6e0e8b094790ae969bfa7", "file": "bios/xmil/IPLROM.X1"  },
-                                                          { "md5": "56c28adcf1f3a2f87cf3d57c378013f5", "file": "bios/xmil/iplrom.x1t"	} ] },
+																          { "md5": "56c28adcf1f3a2f87cf3d57c378013f5", "file": "bios/xmil/iplrom.x1t" } ] },
 
 	"neogeo":				{ "name": "NeoGeo", "biosFiles":    [ { "md5": "dffb72f116d36d025068b23970a4f6df", "file": "bios/neogeo.zip" } ] },
 
-	"neogeocd":			{ "name": "NeoGeo CD", "biosFiles": [ { "md5": "dffb72f116d36d025068b23970a4f6df", "file": "bios/neogeo.zip" },
-                                                        { "md5": "c733b4b7bd30fa849874d96c591c8639", "file": "bios/neocdz.zip" } ] },                                                    
+	"neogeocd":             { "name": "NeoGeo CD", "biosFiles": [ { "md5": "dffb72f116d36d025068b23970a4f6df", "file": "bios/neogeo.zip" },
+																  { "md5": "c733b4b7bd30fa849874d96c591c8639", "file": "bios/neocdz.zip" },
+																  { "md5": "", "file": "bios/neocd/neocd_f.rom"	                         },
+																  { "md5": "", "file": "bios/neocd/neocd_sf.rom"                         },
+															      { "md5": "", "file": "bios/neocd/neocd_t.rom"                          },
+															      { "md5": "", "file": "bios/neocd/neocd_st.rom"                         },
+															      { "md5": "", "file": "bios/neocd/neocd_z.rom"	                         },
+															      { "md5": "", "file": "bios/neocd/neocd_sz.rom"                         },
+															      { "md5": "", "file": "bios/neocd/front-sp1.bin"	                     },
+															      { "md5": "", "file": "bios/neocd/top-sp1.bin"	                         },
+															      { "md5": "", "file": "bios/neocd/neocd.bin"	                         },
+															      { "md5": "", "file": "bios/neocd/uni-bioscd.rom"                       } ] },                                                    
 
 	"psx": { "name": "PSX", "biosFiles":	[ { "md5": "dc2b9bf8da62ec93e868cfd29f0d067d", "file": "bios/scph1001.bin"   },
                                           { "md5": "8dd7d5296a650fac7319bce665a6a53c", "file": "bios/scph5500.bin"   },
