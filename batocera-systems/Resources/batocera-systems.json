@@ -177,14 +177,19 @@
                                                       { "md5": "", "file": "bios/mame/hash/apfm1000.xml"									} ] },
 
 	"tutor": { "name": "APF M-1000", "biosFiles": [ { "md5": "", "file": "tutor.zip"								},
-                                                  { "md5": "", "file": "bios/mame/hash/tutor.xml" } ] },
+                                                    { "md5": "", "file": "bios/mame/hash/tutor.xml"                 } ] },
 
-	"cdi": { "name": "Philips CD-I", "biosFiles": [ { "md5": "", "file": "bios/cdimono1.zip"			},
-                                                  { "md5": "", "file": "bios/mame/hash/cdi.xml" } ] },
+    "cdi": { "name": "Philips CD-I", "biosFiles": [ { "md5": "", "file": "bios/cdibios.zip"                     },
+                                                    { "md5": "", "file": "bios/cdimono1.zip"                    },
+                                                    { "md5": "", "file": "bios/cdimono2.zip"                    },
+                                                    { "md5": "", "file": "bios/mame/hash/cdi.xml"               },
+                                                    { "md5": "", "file": "bios/same_cdi/bios/cdibios.zip"       },
+                                                    { "md5": "", "file": "bios/same_cdi/bios/cdimono1.zip"      },
+                                                    { "md5": "", "file": "bios/same_cdi/bios/cdimono2.zip"      } ] },
 
-	"bbcmicro": { "name": "BBC", "biosFiles": [ { "md5": "", "file": "bios/bbcb.zip" } ] },
+    "bbcmicro": { "name": "BBC", "biosFiles": [ { "md5": "", "file": "bios/bbcb.zip" } ] },
 
-	"crvision": { "name": "Creativision", "biosFiles":	[ { "md5": "", "file": "bios/crvision.zip"						},
+    "crvision": { "name": "Creativision", "biosFiles":	[ { "md5": "", "file": "bios/crvision.zip"						},
                                                         { "md5": "", "file": "bios/mame/hash/crvision.xml"	} ] },
 
 	"vsmile": { "name": "Super Cassette Vision", "biosFiles": [ { "md5": "", "file": "bios/vsmile.zip" } ] },
