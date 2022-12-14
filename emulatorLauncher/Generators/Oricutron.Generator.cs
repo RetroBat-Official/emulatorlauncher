@@ -39,7 +39,7 @@ namespace emulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            return PadToKey.AddOrUpdateKeyMapping(mapping, "simcoupe", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "oricutron", InputKey.hotkey | InputKey.start, "(%{KILL})");
         }       
     }
 }
