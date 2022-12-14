@@ -21,6 +21,14 @@ namespace emulatorLauncher
                 if (cfg == null)
                     continue;
 
+                int index = Program.Controllers
+                .GroupBy(c => c.Guid)
+                .Where(c => c.Key == controller.Guid)
+                .SelectMany(c => c)
+                .OrderBy(c => SdlGameController.GetControllerIndex(c))
+                .ToList()
+                .IndexOf(controller);
+
                 string esGuid = controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
                 string yuzuGuid = esGuid;
 
@@ -77,9 +85,9 @@ namespace emulatorLauncher
                 if (!controller.IsXInputDevice)
                 {
                     ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
-                    ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:0,guid:" + yuzuGuid + "\"");
+                    ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:" + index + ", guid:" + yuzuGuid + "\"");
                     ini.WriteValue("Controls", player + "motionright" + "\\default", "false");
-                    ini.WriteValue("Controls", player + "motionright", "\"" + "engine:sdl,motion:0,port:0,guid:" + yuzuGuid + "\"");  
+                    ini.WriteValue("Controls", player + "motionright", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + yuzuGuid + "\"");  
                 }
                 else
                 {
@@ -93,7 +101,7 @@ namespace emulatorLauncher
                 {
                     string name = player + map.Value;
 
-                    string cvalue = FromInput(controller, cfg[map.Key], yuzuGuid);
+                    string cvalue = FromInput(controller, cfg[map.Key], yuzuGuid, index);
 
                     if (controller.Name == "Keyboard" && (map.Key == InputKey.up || map.Key == InputKey.down || map.Key == InputKey.left || map.Key == InputKey.right || map.Key == InputKey.l3))
                         cvalue = null;
@@ -110,14 +118,14 @@ namespace emulatorLauncher
                     }
                 }
 
-                ProcessStick(controller, player, "lstick", ini, yuzuGuid);
+                ProcessStick(controller, player, "lstick", ini, yuzuGuid, index);
 
                 if (controller.Name != "Keyboard")
-                    ProcessStick(controller, player, "rstick", ini, yuzuGuid);
+                    ProcessStick(controller, player, "rstick", ini, yuzuGuid, index);
             }
         }
 
-        private string FromInput(Controller controller, Input input, string guid)
+        private string FromInput(Controller controller, Input input, string guid, int index)
         {
             if (input == null)
                 return null;
@@ -125,7 +133,7 @@ namespace emulatorLauncher
             if (input.Type == "key")
                 return "engine:keyboard,code:" + input.Id + ",toggle:0";
 
-            string value = "engine:sdl,port:0,guid:" + guid;
+            string value = "engine:sdl,port:" + index + ",guid:" + guid;
 
             if (input.Type == "button")
                 value += ",button:" + input.Id;
@@ -139,17 +147,17 @@ namespace emulatorLauncher
                     long newID = input.Id;
                     if (input.Id == 4)
                         newID = 2;
-                    value = "engine:sdl,port:0,axis:" + newID + ",guid:" + guid + ",threshold:0.500000" + ",invert:+";
+                    value = "engine:sdl,port:" + index + ",axis:" + newID + ",guid:" + guid + ",threshold:0.500000" + ",invert:+";
                 }
                 else
-                    value = "engine:sdl,port:0,axis:" + input.Id + ",guid:" + guid + ",threshold:0.500000" + ",invert:+";
+                    value = "engine:sdl,port:" + index + ",axis:" + input.Id + ",guid:" + guid + ",threshold:0.500000" + ",invert:+";
             }
                 
 
             return value;
         }
 
-        private void ProcessStick(Controller controller, string player, string stickName, IniFile ini, string guid)
+        private void ProcessStick(Controller controller, string player, string stickName, IniFile ini, string guid, int index)
         {
             var cfg = controller.Config;
             
@@ -170,7 +178,7 @@ namespace emulatorLauncher
                     yuzutopval = 4;
                 }
 
-                string value = "engine:sdl," + "axis_x:" + yuzuleftval + ",port:0,guid:" + guid +",axis_y:" + yuzutopval + ",deadzone:0.150000,range:1.000000";
+                string value = "engine:sdl," + "axis_x:" + yuzuleftval + ",port:" + index + ",guid:" + guid +",axis_y:" + yuzutopval + ",deadzone:0.150000,range:1.000000";
 
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "\"" + value + "\"");
@@ -180,19 +188,19 @@ namespace emulatorLauncher
             {
                 string value = "engine:analog_from_button";
 
-                var left = FromInput(controller, cfg[InputKey.left], guid);
+                var left = FromInput(controller, cfg[InputKey.left], guid, index);
                 if (left != null) value += ",left:" + left.Replace(":", "$0").Replace(",", "$1");
 
-                var top = FromInput(controller, cfg[InputKey.up], guid);
+                var top = FromInput(controller, cfg[InputKey.up], guid, index);
                 if (top != null) value += ",up:" + top.Replace(":", "$0").Replace(",", "$1");
 
-                var right = FromInput(controller, cfg[InputKey.right], guid);
+                var right = FromInput(controller, cfg[InputKey.right], guid, index);
                 if (right != null) value += ",right:" + right.Replace(":", "$0").Replace(",", "$1");
 
-                var down = FromInput(controller, cfg[InputKey.down], guid);
+                var down = FromInput(controller, cfg[InputKey.down], guid, index);
                 if (down != null) value += ",down:" + down.Replace(":", "$0").Replace(",", "$1");
 
-                var modifier = FromInput(controller, cfg[InputKey.l3], guid);
+                var modifier = FromInput(controller, cfg[InputKey.l3], guid, index);
                 if (modifier != null) value += ",modifier:" + modifier.Replace(":", "$0").Replace(",", "$1");
 
                 value += ",modifier_scale:0.500000";
