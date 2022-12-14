@@ -31,7 +31,7 @@ namespace emulatorLauncher
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
             
-            SetupConfiguration(path);
+            SetupConfiguration(path, rom);
 
             return new ProcessStartInfo()
             {
@@ -41,24 +41,93 @@ namespace emulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path)
+        private string GetDefaultswitchLanguage()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "0" },
+                { "en", "1" },
+                { "fr", "2" },
+                { "de", "3" },
+                { "it", "4" },
+                { "es", "5" },
+                { "zh", "6" },
+                { "ko", "7" },
+                { "nl", "8" },
+                { "pt", "9" },
+                { "ru", "10" },
+                { "tw", "11" }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "11";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return "1";
+        }
+
+        private void SetupConfiguration(string path, string rom)
         {
             string conf = Path.Combine(path, "user", "config", "qt-config.ini");
 
             using (var ini = new IniFile(conf))
             {
+                //language
+                if (SystemConfig["Language"] == "en")
+                    ini.WriteValue("System", "language_index\\default", "true");
+                else
+                    ini.WriteValue("System", "language_index\\default", "false");
+                
+                ini.WriteValue("System", "language_index", GetDefaultswitchLanguage());
+
+                //region
+                if (SystemConfig.isOptSet("yuzu_region_value") && !string.IsNullOrEmpty(SystemConfig["yuzu_region_value"]) && SystemConfig["yuzu_region_value"] != "1")
+                {
+                    ini.WriteValue("System", "region_index\\default", "false");
+                    ini.WriteValue("System", "region_index", SystemConfig["yuzu_region_value"]);
+                }
+                else
+                {
+                    ini.WriteValue("System", "region_index\\default", "true");
+                    ini.WriteValue("System", "region_index", "1");
+                }
+
+                //launch in fullscreen
                 ini.WriteValue("UI", "fullscreen\\default", "false");
                 ini.WriteValue("UI", "fullscreen", "true");
 
+                //docked mode
                 ini.WriteValue("UI", "use_docked_mode\\default", "true");
                 ini.WriteValue("UI", "use_docked_mode", "true");
 
+                //disable telemetry
+                ini.WriteValue("WebService", "enable_telemetry\\default", "false");
+                ini.WriteValue("WebService", "enable_telemetry", "false");
+
+                //remove exit confirmation
+                ini.WriteValue("UI", "confirmClose\\default", "false");
+                ini.WriteValue("UI", "confirmClose", "false");
+
+                //get path for roms
+                string romPath = Path.GetDirectoryName(rom);
+                ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\","/"));
+
                 CreateControllerConfiguration(ini);
 
+                //screenshots path
+                string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/yuzu";
                 if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
                 {
                     ini.WriteValue("UI", "Screenshots\\enable_screenshot_save_as", "false");
-                    ini.WriteValue("UI", "Screenshots\\screenshot_path", AppConfig.GetFullPath("screenshots"));
+                    ini.WriteValue("UI", "Screenshots\\screenshot_path", screenshotpath);
                 }
 
                 // backend
