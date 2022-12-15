@@ -169,8 +169,10 @@ namespace emulatorLauncher.Tools
     public enum SdlWrappedTechId
     {
         DirectInput = 0,
-        HID = 0x68,
-        XInput = 0x72
+        HID = 0x68, // 'h'
+        XInput = 0x72, // 'x'
+        Virtual = 0x76, // 'v'
+        RawInput = 0x78, // 'r'
     }
 
     public enum VendorIds

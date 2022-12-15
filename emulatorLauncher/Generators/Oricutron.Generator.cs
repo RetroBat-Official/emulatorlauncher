@@ -10,7 +10,10 @@ using emulatorLauncher.Tools;
 namespace emulatorLauncher
 {
     class OricutronGenerator : Generator
-	{
+    {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
 		public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
 		{
 			string path = AppConfig.GetFullPath("oricutron");
@@ -18,6 +21,9 @@ namespace emulatorLauncher
             string exe = Path.Combine(path, "oricutron.exe");
 			if (!File.Exists(exe))
 				return null;
+
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _resolution = resolution;
 
             if (Path.GetExtension(rom).ToLower() == ".dsk")
             {
@@ -35,6 +41,22 @@ namespace emulatorLauncher
 					WorkingDirectory = path,
                     Arguments = "--fullscreen --turbotape on --tape \"" + rom + "\"",
 				};
+        }
+
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            return ret;
         }
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
