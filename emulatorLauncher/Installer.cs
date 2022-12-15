@@ -69,7 +69,8 @@ namespace emulatorLauncher
             { new Installer("ryujinx", "ryujinx", "Ryujinx.exe") },
             { new Installer("vita3k", "vita3k", "Vita3K.exe") },
             { new Installer("xenia", "xenia", "xenia.exe") },
-            { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
+            { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) },
+            { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") }
         };
 
         #region Properties

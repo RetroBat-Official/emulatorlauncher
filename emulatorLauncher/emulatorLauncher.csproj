@@ -168,6 +168,7 @@
     <Compile Include="Generators\Snes9x.Generator.cs" />
     <Compile Include="Generators\Citra.Generator.cs" />
     <Compile Include="Generators\Xenia.Generator.cs" />
+    <Compile Include="Generators\BigPEmu.Generator.cs" />
     <Compile Include="Generators\Project64.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
     <Compile Include="Generators\NosGba.Generator.cs" />
