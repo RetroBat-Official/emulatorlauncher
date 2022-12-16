@@ -414,7 +414,9 @@ namespace emulatorLauncher
             "SDL_TIMER_RESOLUTION";
         public const string SDL_HINT_RENDER_SCALE_QUALITY =
             "SDL_RENDER_SCALE_QUALITY";
-
+        public const string SDL_HINT_JOYSTICK_RAWINPUT =
+            "SDL_HINT_JOYSTICK_RAWINPUT";
+        
         /* Only available in SDL 2.0.1 or higher. */
         public const string SDL_HINT_VIDEO_HIGHDPI_DISABLED =
             "SDL_VIDEO_HIGHDPI_DISABLED";
