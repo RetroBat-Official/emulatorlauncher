@@ -70,7 +70,15 @@ namespace emulatorLauncher
         private void SetupConfiguration(string path)
         {
             //for now config file is located in %appdata% / bigpemu folder, however developer might make it portable
-            string configfile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BigPEmu", "BigPEmuConfig.bigpcfg");
+            string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BigPEmu");
+            if (!Directory.Exists(folder))
+            {
+                try { Directory.CreateDirectory(folder); }
+                catch { }
+            }
+
+            string configfile = Path.Combine(folder, "BigPEmuConfig.bigpcfg");
+
             var json = DynamicJson.Load(configfile);
             var bigpemucore = json.GetOrCreateContainer("BigPEmuConfig");
 

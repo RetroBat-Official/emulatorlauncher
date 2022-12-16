@@ -82,7 +82,7 @@ namespace emulatorLauncher.PadToKeyboard
                 return InputKey.right;
 
             if (key == InputKey.right)
-                return InputKey.up;
+                return InputKey.left;
 
             if (key == InputKey.up)
                 return InputKey.down;

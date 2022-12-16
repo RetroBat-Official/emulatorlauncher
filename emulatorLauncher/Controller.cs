@@ -21,19 +21,51 @@ namespace emulatorLauncher
         public int NbButtons { get; set; }
         public int NbHats { get; set; }
         public int NbAxes { get; set; }
+        
+        public bool IsKeyboard { get { return "Keyboard".Equals(Name, StringComparison.InvariantCultureIgnoreCase); } }
+
+        public Guid ProductGuid
+        {
+            get
+            {
+                return Guid.FromSdlGuidString();
+            }
+        }
 
         public string GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X)
         {
             if (version == SdlVersion.Current)
                 return Guid;
 
-            return Guid
-                .FromSdlGuidString()
-                .ConvertSdlGuid(version)
-                .ToSdlGuidString();
+            return ProductGuid.ConvertSdlGuid(version).ToSdlGuidString();
+        }
+
+        public VendorId VendorID
+        {
+            get
+            {
+                return ProductGuid.GetVendorID();
+            }
+        }
+
+        public ProductId ProductID
+        {
+            get
+            {
+                return ProductGuid.GetProductID();
+            }
+        }
+
+        public SdlWrappedTechId SdlWrappedTechID
+        {
+            get
+            {
+                return ProductGuid.GetWrappedTechID();
+            }
         }
 
         public InputConfig Config { get; set; }
+
 
         #region SdlController
         private SdlGameController _sdlController;
@@ -53,7 +85,7 @@ namespace emulatorLauncher
                             _sdlController = SdlGameController.GetGameControllerByPath(DevicePath);
 
                         if (_sdlController == null)
-                            _sdlController = SdlGameController.GetGameController(Guid.FromSdlGuidString());
+                            _sdlController = SdlGameController.GetGameController(ProductGuid);
                     }
                 }
 
@@ -389,10 +421,9 @@ namespace emulatorLauncher
             if (input == null)
                 return null;
 
-            var guid = this.Guid.FromSdlGuidString();
-            if (guid.GetWrappedTechID() == SdlWrappedTechId.HID)
+            if (SdlWrappedTechID == SdlWrappedTechId.HID)
             {
-                var dinput = HidToDirectInput.Instance.FromInput(guid, input);
+                var dinput = HidToDirectInput.Instance.FromInput(ProductGuid, input);
                 if (dinput != null)
                     return dinput;
             }

@@ -22,54 +22,48 @@ namespace emulatorLauncher
                 return;
 
             //Path does not exist by default so create it if inexistent
-            string subpath = Path.Combine(path, "config", "input_configs", "global");
-            System.IO.Directory.CreateDirectory(subpath);
+            string folder = Path.Combine(path, "config", "input_configs", "global");
 
-            //Check if config file already exists or not and create it if not
-            string controllerSettings = Path.Combine(path, "config", "input_configs", "global", "Default.yml");
-            if (!File.Exists(controllerSettings))
-            {
-                StreamWriter tw = new StreamWriter(File.Open(controllerSettings, FileMode.OpenOrCreate, FileAccess.Write), Encoding.UTF8);
-                tw.Close();
-            }
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            // Check if config file already exists or not and create it if not
+            string controllerSettings = Path.Combine(folder, "Default.yml");
 
             var yml = YmlFile.Load(controllerSettings);
 
             //Create a single Player block in the file for each player
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-            {
-                if (controller.Config == null)
-                    continue;
+                ConfigureInput(yml, controller);
 
-                ConfigureInputYml(controllerSettings, controller, yml);
-            }
+            // Save to yml file
+            yml.Save();
         }
 
         /// <summary>
-        /// ConfigureInputYml
+        /// Configure controller
         /// </summary>
         /// <param name="controllerSettings"></param>
         /// <param name="controller"></param>
         /// <param name="yml"></param>
-        private void ConfigureInputYml(string controllerSettings, Controller controller, YmlFile yml)
+        private void ConfigureInput(YmlContainer yml, Controller controller)
         {
             if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.Config.Type == "joystick")
-                ConfigureJoystickYml(controllerSettings, controller, controller.PlayerIndex, yml);
+            if (controller.IsKeyboard)
+                ConfigureKeyboard(yml, controller.Config);
             else
-                ConfigureKeyboardYml(controllerSettings, controller.Config, yml);
+                ConfigureJoystick(yml, controller, controller.PlayerIndex);
         }
 
         /// <summary>
-        /// ConfigureKeyboardYml
+        /// Keyboard configuration
         /// </summary>
         /// <param name="controllerSettings"></param>
         /// <param name="keyboard"></param>
         /// <param name="yml"></param>
-       //Configuration of keyboard
-        private void ConfigureKeyboardYml(string controllerSettings, InputConfig keyboard, YmlFile yml)
+        private void ConfigureKeyboard(YmlContainer yml, InputConfig keyboard)
         {
             if (keyboard == null)
                 return;
@@ -174,20 +168,16 @@ namespace emulatorLauncher
             config["Vendor ID"] = "1356";
             config["Product ID"] = "616";
             player["Buddy Device"] = "\"\"";
-
-            // Save to yml file
-            yml.Save();
-
         }
 
         /// <summary>
-        /// ConfigureJoystickYml
+        /// Joystick configuration
         /// </summary>
         /// <param name="controllerSettings"></param>
         /// <param name="ctrl"></param>
         /// <param name="playerIndex"></param>
         /// <param name="yml"></param>
-        private void ConfigureJoystickYml(string controllerSettings, Controller ctrl, int playerIndex, YmlFile yml)
+        private void ConfigureJoystick(YmlContainer yml, Controller ctrl, int playerIndex)
         {
             if (ctrl == null)
                 return;
@@ -203,11 +193,11 @@ namespace emulatorLauncher
 
             //define type of controller
             string tech = "MMJoystick";
-            if (prod == ProductIds.USB_PRODUCT_SONY_DS5)
+            if (prod == ProductId.USB_PRODUCT_SONY_DS5)
                 tech = "DualSense";
-            else if (prod == ProductIds.USB_PRODUCT_SONY_DS4 || prod == ProductIds.USB_PRODUCT_SONY_DS4_DONGLE || prod == ProductIds.USB_PRODUCT_SONY_DS4_SLIM)
+            else if (prod == ProductId.USB_PRODUCT_SONY_DS4 || prod == ProductId.USB_PRODUCT_SONY_DS4_DONGLE || prod == ProductId.USB_PRODUCT_SONY_DS4_SLIM)
                 tech = "DS4";
-            else if (prod == ProductIds.USB_PRODUCT_SONY_DS3)
+            else if (prod == ProductId.USB_PRODUCT_SONY_DS3)
                 tech = "DS3";
             else if (ctrl.IsXInputDevice)
                 tech = "XInput";
@@ -418,30 +408,15 @@ namespace emulatorLauncher
             config["Device Class Type"] = "0";
             config["Vendor ID"] = "1356";
             config["Product ID"] = "616";
-            player["Buddy Device"] = "\"\"";
-            yml.Save();
+            player["Buddy Device"] = "\"\"";            
         }
-
-        private static Dictionary<InputKey, InputKey> revertedAxis = new Dictionary<InputKey, InputKey>()
-        {
-            { InputKey.joystick1right, InputKey.joystick1left },
-            { InputKey.joystick1down, InputKey.joystick1up },
-            { InputKey.joystick2right, InputKey.joystick2left },
-            { InputKey.joystick2down, InputKey.joystick2up },
-        };
 
         private static string GetInputKeyNameDS(Controller c, InputKey key, string tech)
         {
-            bool revertAxis = false;
             Int64 pid = -1;
 
-            InputKey revertedKey;
-
-            if (revertedAxis.TryGetValue(key, out revertedKey))
-            {
-                key = revertedKey;
-                revertAxis = true;
-            }
+            bool revertAxis = false;
+            key = key.GetRevertedAxis(out revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -498,16 +473,10 @@ namespace emulatorLauncher
 
         private static string GetInputKeyNameX(Controller c, InputKey key, string tech)
         {
-            bool revertAxis = false;
             Int64 pid = -1;
 
-            InputKey revertedKey;
-
-            if (revertedAxis.TryGetValue(key, out revertedKey))
-            {
-                key = revertedKey;
-                revertAxis = true;
-            }
+            bool revertAxis = false;
+            key = key.GetRevertedAxis(out revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -568,20 +537,13 @@ namespace emulatorLauncher
         }
 
         private static string GetInputKeyNameMM(Controller c, InputKey key, string tech)
-        {
-            bool revertAxis = false;
+        {          
             Int64 pid = -1;
 
-            InputKey revertedKey;
-
-            if (revertedAxis.TryGetValue(key, out revertedKey))
-            {
-                key = revertedKey;
-                revertAxis = true;
-            }
+            bool revertAxis = false;
+            key = key.GetRevertedAxis(out revertAxis);
 
             var input = c.GetDirectInputMapping(key);
-
             if (input == null)
                 return "\"\"";
 
@@ -624,7 +586,11 @@ namespace emulatorLauncher
              return "\"\"";
         }
 
-        //Search keyboard keycodes
+        /// <summary>
+        /// Search keyboard keycodes
+        /// </summary>
+        /// <param name="sdlCode"></param>
+        /// <returns></returns>
         private static string SdlToKeyCode(long sdlCode)
         {
             switch (sdlCode)

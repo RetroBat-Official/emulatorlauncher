@@ -629,7 +629,7 @@ namespace emulatorLauncher
                         if (keyb.Config != null)
                         {
                             keyb.Name = "Keyboard";
-                            keyb.Guid = keyb.Config.ProductGuid.ToString();
+                            keyb.Guid = "00000000000000000000000000000000";
                             Controllers.Add(keyb);
                         }
                     }

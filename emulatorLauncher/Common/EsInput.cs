@@ -68,15 +68,6 @@ namespace emulatorLauncher.Tools
             return DeviceName;
         }
 
-        [XmlIgnore]
-        public Guid ProductGuid
-        {
-            get
-            {
-                return DeviceGUID.FromSdlGuidString();
-            }
-        }
-
         [XmlAttribute("type")]
         public string Type { get; set; }
 

@@ -19,25 +19,24 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            string controllerProfiles = Path.Combine(path, "controllerProfiles");
+            string folder = Path.Combine(path, "controllerProfiles");
 
-            //Create a single controllerprofile file for each controller
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            // Create a single controllerprofile file for each controller
             foreach (var controller in this.Controllers)
             {
                 if (controller.Config == null)
                     continue;
 
-                string controllerXml = Path.Combine(controllerProfiles, "controller" + (controller.PlayerIndex - 1) + ".xml");
+                string controllerXml = Path.Combine(folder, "controller" + (controller.PlayerIndex - 1) + ".xml");
 
-                //Create xml file with correct settings
-                XmlWriterSettings Settings = new XmlWriterSettings();
-                Settings.Encoding = Encoding.UTF8;
-                Settings.Indent = true;
-                Settings.IndentChars = ("\t");
-                Settings.OmitXmlDeclaration = false;
+                // Create xml file with correct settings
+                var settings = new XmlWriterSettings() { Encoding = Encoding.UTF8, Indent = true, IndentChars = ("\t"), OmitXmlDeclaration = false };
 
-                //Go to input configuration
-                using (XmlWriter writer = XmlWriter.Create(controllerXml, Settings))
+                // Go to input configuration
+                using (XmlWriter writer = XmlWriter.Create(controllerXml, settings))
                     ConfigureInputXml(writer, controller);
             }
         }
@@ -52,10 +51,10 @@ namespace emulatorLauncher
             if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.Config.Type == "joystick")
-                ConfigureJoystickXml(writer, controller, controller.PlayerIndex - 1);
-            else
+            if (controller.IsKeyboard)
                 ConfigureKeyboardXml(writer, controller.Config);
+            else    
+                ConfigureJoystickXml(writer, controller, controller.PlayerIndex - 1);
         }
 
         /// <summary>
@@ -91,47 +90,44 @@ namespace emulatorLauncher
             writer.WriteStartElement("mappings");
 
             //Define action to generate key mappings based on SdlToKeyCode
-            Action<string, InputKey> writemapping = (v, k) =>
+            Action<string, InputKey> WriteInputKeyMapping = (v, k) =>
             {
                 var a = keyboard[k];
                 if (a != null)
                 {
-                    byte value = SdlToKeyCode(a.Id);
                     writer.WriteStartElement("entry");
                     writer.WriteElementString("mapping", v);
-                    writer.WriteElementString("button", value.ToString());
-                    writer.WriteEndElement();//end of entry
+                    writer.WriteElementString("button", SdlToKeyCode(a.Id).ToString());
+                    writer.WriteEndElement();
                 }
-                else
-                    return;
             };
 
             //create button mapping part of the xml document            
-            writemapping("1", InputKey.a);
-            writemapping("2", InputKey.b);
-            writemapping("3", InputKey.x);
-            writemapping("4", InputKey.y);
-            writemapping("5", InputKey.pageup);
-            writemapping("6", InputKey.pagedown);
-            writemapping("7", InputKey.l2);
-            writemapping("8", InputKey.r2);
-            writemapping("9", InputKey.start);
-            writemapping("10", InputKey.select);
-            writemapping("11", InputKey.up);
-            writemapping("12", InputKey.down);
-            writemapping("13", InputKey.left);
-            writemapping("14", InputKey.right);
-            writemapping("15", InputKey.l3);
-            writemapping("16", InputKey.r3);
-            writemapping("17", InputKey.joystick1up);
-            writemapping("18", InputKey.joystick1down);
-            writemapping("19", InputKey.joystick1left);
-            writemapping("20", InputKey.joystick1right);
-            writemapping("21", InputKey.joystick2up);
-            writemapping("22", InputKey.joystick2down);
-            writemapping("23", InputKey.joystick2left);
-            writemapping("24", InputKey.joystick2right);
-            writemapping("26", InputKey.hotkey);
+            WriteInputKeyMapping("1", InputKey.a);
+            WriteInputKeyMapping("2", InputKey.b);
+            WriteInputKeyMapping("3", InputKey.x);
+            WriteInputKeyMapping("4", InputKey.y);
+            WriteInputKeyMapping("5", InputKey.pageup);
+            WriteInputKeyMapping("6", InputKey.pagedown);
+            WriteInputKeyMapping("7", InputKey.l2);
+            WriteInputKeyMapping("8", InputKey.r2);
+            WriteInputKeyMapping("9", InputKey.start);
+            WriteInputKeyMapping("10", InputKey.select);
+            WriteInputKeyMapping("11", InputKey.up);
+            WriteInputKeyMapping("12", InputKey.down);
+            WriteInputKeyMapping("13", InputKey.left);
+            WriteInputKeyMapping("14", InputKey.right);
+            WriteInputKeyMapping("15", InputKey.l3);
+            WriteInputKeyMapping("16", InputKey.r3);
+            WriteInputKeyMapping("17", InputKey.joystick1up);
+            WriteInputKeyMapping("18", InputKey.joystick1down);
+            WriteInputKeyMapping("19", InputKey.joystick1left);
+            WriteInputKeyMapping("20", InputKey.joystick1right);
+            WriteInputKeyMapping("21", InputKey.joystick2up);
+            WriteInputKeyMapping("22", InputKey.joystick2down);
+            WriteInputKeyMapping("23", InputKey.joystick2left);
+            WriteInputKeyMapping("24", InputKey.joystick2right);
+            WriteInputKeyMapping("26", InputKey.hotkey);
 
             //close xml elements
             writer.WriteEndElement();//end of mappings
@@ -217,7 +213,7 @@ namespace emulatorLauncher
             writer.WriteStartElement("mappings");
 
             //Define action to generate key bindings
-            Action<string, InputKey, bool> writemapping = (v, k, r) =>
+            Action<string, InputKey, bool> WriteMapping = (v, k, r) =>
             {
                 var a = joy[k];
                 if (a != null)
@@ -225,11 +221,9 @@ namespace emulatorLauncher
                     var val = GetInputValuexml(ctrl, k, api, r);
                     writer.WriteStartElement("entry");
                     writer.WriteElementString("mapping", v);
-                    writer.WriteElementString("button", val);
-                    writer.WriteEndElement();//end of entry
+                    writer.WriteElementString("button", GetInputValuexml(ctrl, k, api, r));
+                    writer.WriteEndElement();
                 }
-                else
-                    return;
             };
 
             //Write mappings of buttons
@@ -237,67 +231,67 @@ namespace emulatorLauncher
             //revert gamepadbuttons if set in features
             if (ctrl.IsXInputDevice && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
             {
-                writemapping("1", InputKey.b, false);
-                writemapping("2", InputKey.a, false);
-                writemapping("3", InputKey.x, false);
-                writemapping("4", InputKey.y, false);
+                WriteMapping("1", InputKey.b, false);
+                WriteMapping("2", InputKey.a, false);
+                WriteMapping("3", InputKey.x, false);
+                WriteMapping("4", InputKey.y, false);
             }
             else if (ctrl.IsXInputDevice)
             {
-                writemapping("1", InputKey.a, false);
-                writemapping("2", InputKey.b, false);
-                writemapping("3", InputKey.y, false);
-                writemapping("4", InputKey.x, false);
+                WriteMapping("1", InputKey.a, false);
+                WriteMapping("2", InputKey.b, false);
+                WriteMapping("3", InputKey.y, false);
+                WriteMapping("4", InputKey.x, false);
             }
             else
             {
-                writemapping("1", InputKey.b, false);
-                writemapping("2", InputKey.a, false);
-                writemapping("3", InputKey.x, false);
-                writemapping("4", InputKey.y, false);
+                WriteMapping("1", InputKey.b, false);
+                WriteMapping("2", InputKey.a, false);
+                WriteMapping("3", InputKey.x, false);
+                WriteMapping("4", InputKey.y, false);
             }
 
-            writemapping("5", InputKey.pageup, false);
-            writemapping("6", InputKey.pagedown, false);
-            writemapping("7", InputKey.l2, false);
-            writemapping("8", InputKey.r2, false);
-            writemapping("9", InputKey.start, false);
-            writemapping("10", InputKey.select, false);
+            WriteMapping("5", InputKey.pageup, false);
+            WriteMapping("6", InputKey.pagedown, false);
+            WriteMapping("7", InputKey.l2, false);
+            WriteMapping("8", InputKey.r2, false);
+            WriteMapping("9", InputKey.start, false);
+            WriteMapping("10", InputKey.select, false);
 
             //Pro controller skips 11 while Gamepad continues numbering
             if (procontroller)
             {
-                writemapping("12", InputKey.up, false);
-                writemapping("13", InputKey.down, false);
-                writemapping("14", InputKey.left, false);
-                writemapping("15", InputKey.right, false);
-                writemapping("16", InputKey.l3, false);
-                writemapping("17", InputKey.r3, false);
-                writemapping("18", InputKey.leftanalogup, false);
-                writemapping("19", InputKey.leftanalogup, true);
-                writemapping("20", InputKey.leftanalogleft, false);
-                writemapping("21", InputKey.leftanalogleft, true);
-                writemapping("22", InputKey.rightanalogup, false);
-                writemapping("23", InputKey.rightanalogup, true);
-                writemapping("24", InputKey.rightanalogleft, false);
-                writemapping("25", InputKey.rightanalogleft, true);
+                WriteMapping("12", InputKey.up, false);
+                WriteMapping("13", InputKey.down, false);
+                WriteMapping("14", InputKey.left, false);
+                WriteMapping("15", InputKey.right, false);
+                WriteMapping("16", InputKey.l3, false);
+                WriteMapping("17", InputKey.r3, false);
+                WriteMapping("18", InputKey.leftanalogup, false);
+                WriteMapping("19", InputKey.leftanalogup, true);
+                WriteMapping("20", InputKey.leftanalogleft, false);
+                WriteMapping("21", InputKey.leftanalogleft, true);
+                WriteMapping("22", InputKey.rightanalogup, false);
+                WriteMapping("23", InputKey.rightanalogup, true);
+                WriteMapping("24", InputKey.rightanalogleft, false);
+                WriteMapping("25", InputKey.rightanalogleft, true);
             }
             else
             {
-                writemapping("11", InputKey.up, false);
-                writemapping("12", InputKey.down, false);
-                writemapping("13", InputKey.left, false);
-                writemapping("14", InputKey.right, false);
-                writemapping("15", InputKey.l3, false);
-                writemapping("16", InputKey.r3, false);
-                writemapping("17", InputKey.leftanalogup, false);
-                writemapping("18", InputKey.leftanalogup, true);
-                writemapping("19", InputKey.leftanalogleft, false);
-                writemapping("20", InputKey.leftanalogleft, true);
-                writemapping("21", InputKey.rightanalogup, false);
-                writemapping("22", InputKey.rightanalogup, true);
-                writemapping("23", InputKey.rightanalogleft, false);
-                writemapping("24", InputKey.rightanalogleft, true);
+                WriteMapping("11", InputKey.up, false);
+                WriteMapping("12", InputKey.down, false);
+                WriteMapping("13", InputKey.left, false);
+                WriteMapping("14", InputKey.right, false);
+                WriteMapping("15", InputKey.l3, false);
+                WriteMapping("16", InputKey.r3, false);
+                WriteMapping("17", InputKey.leftanalogup, false);
+                WriteMapping("18", InputKey.leftanalogup, true);
+                WriteMapping("19", InputKey.leftanalogleft, false);
+                WriteMapping("20", InputKey.leftanalogleft, true);
+                WriteMapping("21", InputKey.rightanalogup, false);
+                WriteMapping("22", InputKey.rightanalogup, true);
+                WriteMapping("23", InputKey.rightanalogleft, false);
+                WriteMapping("24", InputKey.rightanalogleft, true);
             }
 
             //close xml sections 

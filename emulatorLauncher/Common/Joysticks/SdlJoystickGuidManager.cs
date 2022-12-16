@@ -82,17 +82,17 @@ namespace emulatorLauncher.Tools
             if (GetJoystickNameCrc16(guid) == 0xd455) // "HORI Wireless Switch Pad" ??? Must check
                 return new Guid("0000" + guid.ToString().Substring(4, 30) + "00");
 
-            if (guid.GetVendorID() == VendorIds.USB_VENDOR_NINTENDO)
+            if (guid.GetVendorID() == VendorId.USB_VENDOR_NINTENDO)
             {
                 var prod = guid.GetProductID();
-                if (prod == ProductIds.USB_PRODUCT_NINTENDO_N64_CONTROLLER ||
-                    prod == ProductIds.USB_PRODUCT_NINTENDO_SEGA_GENESIS_CONTROLLER ||
-                    prod == ProductIds.USB_PRODUCT_NINTENDO_SNES_CONTROLLER ||
-                    prod == ProductIds.USB_PRODUCT_NINTENDO_SWITCH_JOYCON_GRIP ||
-                    prod == ProductIds.USB_PRODUCT_NINTENDO_SWITCH_JOYCON_LEFT ||
-                    prod == ProductIds.USB_PRODUCT_NINTENDO_SWITCH_JOYCON_PAIR ||
-                    prod == ProductIds.USB_PRODUCT_NINTENDO_SWITCH_JOYCON_RIGHT ||
-                    prod == ProductIds.USB_PRODUCT_NINTENDO_SWITCH_PRO)
+                if (prod == ProductId.USB_PRODUCT_NINTENDO_N64_CONTROLLER ||
+                    prod == ProductId.USB_PRODUCT_NINTENDO_SEGA_GENESIS_CONTROLLER ||
+                    prod == ProductId.USB_PRODUCT_NINTENDO_SNES_CONTROLLER ||
+                    prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_JOYCON_GRIP ||
+                    prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_JOYCON_LEFT ||
+                    prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_JOYCON_PAIR ||
+                    prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_JOYCON_RIGHT ||
+                    prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_PRO)
                 {
                     // Remove 8-bit driver-dependent type info
                     ret = new Guid("0000" + guid.ToString().Substring(4, 30) + "00");
@@ -142,20 +142,20 @@ namespace emulatorLauncher.Tools
             return (SdlWrappedTechId)intValue;
         }
 
-        public static VendorIds GetVendorID(this Guid guid)
+        public static VendorId GetVendorID(this Guid guid)
         {
             var sdlGuid = guid.ToSdlGuidString();
             string id = (sdlGuid.Substring(10, 2) + sdlGuid.Substring(8, 2)).ToUpper();
             int intValue = int.Parse(id, System.Globalization.NumberStyles.HexNumber);
-            return (VendorIds)intValue;
+            return (VendorId)intValue;
         }
 
-        public static ProductIds GetProductID(this Guid guid)
+        public static ProductId GetProductID(this Guid guid)
         {
             var sdlGuid = guid.ToSdlGuidString();
             string id = (sdlGuid.Substring(18, 2) + sdlGuid.Substring(16, 2)).ToUpper();
             int intValue = int.Parse(id, System.Globalization.NumberStyles.HexNumber);
-            return (ProductIds)intValue;
+            return (ProductId)intValue;
         }
     }
 
@@ -175,8 +175,9 @@ namespace emulatorLauncher.Tools
         RawInput = 0x78, // 'r'
     }
 
-    public enum VendorIds
+    public enum VendorId
     {
+        UNKNOWN = 0,
         USB_VENDOR_8BITDO = 0x2dc8,
         USB_VENDOR_AMAZON = 0x1949,
         USB_VENDOR_APPLE = 0x05ac,
@@ -202,8 +203,9 @@ namespace emulatorLauncher.Tools
         USB_VENDOR_ZEROPLUS = 0x0c12
     }
 
-    public enum ProductIds
+    public enum ProductId
     {
+        UNKNOWN = 0,
         USB_PRODUCT_8BITDO_XBOX_CONTROLLER = 0x2002,
         USB_PRODUCT_AMAZON_LUNA_CONTROLLER = 0x0419,
         USB_PRODUCT_GOOGLE_STADIA_CONTROLLER = 0x9400,

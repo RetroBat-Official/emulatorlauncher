@@ -13,7 +13,6 @@ namespace emulatorLauncher
 {
     partial class Pcsx2Generator : Generator
     {
-
         public Pcsx2Generator()
         {
             DependsOnDesktopResolution = true;
@@ -55,7 +54,16 @@ namespace emulatorLauncher
             //search first for qt version .exe, if found also set bool _isPcsxqt to true for later steps
             string exe = Path.Combine(_path, "pcsx2-qtx64.exe"); // v1.7qt filename
             if (File.Exists(exe))
+            {
                 _isPcsxqt = true;
+
+                if (core == "pcsx2-avx2" || core == "avx2")
+                {
+                    string avx2 = Path.Combine(_path, "pcsx2-qtx64-avx2.exe");
+                    if (File.Exists(avx2))
+                        exe = avx2;
+                }
+            }
             else if (!File.Exists(exe))
             {
                 exe = Path.Combine(_path, "pcsx2x64.exe"); // v1.7 filename 
@@ -68,19 +76,8 @@ namespace emulatorLauncher
             if (!_isPcsxqt && Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion, out version))
                 _isPcsx17 = version >= new Version(1, 7, 0, 0);
 
-            // Select avx2 build for qt version
-            if (_isPcsxqt && (core == "pcsx2-avx2" || core == "avx2"))
-            {
-                string avx2 = Path.Combine(_path, "pcsx2-qtx64-avx2.exe");
-
-                if (File.Exists(avx2))
-                {
-                    exe = avx2;
-                }
-            }
-
             // Select avx2 build for 1.7 non-qt version
-            if (_isPcsx17 && (core == "pcsx2-avx2" || core == "avx2"))
+            if (!_isPcsxqt && _isPcsx17 && (core == "pcsx2-avx2" || core == "avx2"))
             {
                 string avx2 = Path.Combine(_path, "pcsx2x64-avx2.exe");
 
@@ -101,17 +98,17 @@ namespace emulatorLauncher
             
             String path = AppConfig.GetFullPath(emulator);
 
-            //Configuration files
-            //qt version has now only 1 ini file versus multiple for wxwidgets version
-            if (!_isPcsxqt)
+            // Configuration files
+            // QT version has now only 1 ini file versus multiple for wxwidgets version
+            if (_isPcsxqt)
+                SetupConfigurationQT(path);
+            else
             {
                 SetupPaths(emulator, core);
                 SetupVM();
                 SetupLilyPad();
                 SetupGSDx(resolution);
             }
-            else
-                SetupConfiguration(path);
 
             File.WriteAllText(Path.Combine(_path, "portable.ini"), "RunWizard=0");
 
@@ -122,24 +119,26 @@ namespace emulatorLauncher
             _resolution = resolution;
             
             //setting up command line parameters
-            List<string> commandArray = new List<string>();
+            var commandArray = new List<string>();
+
             if (_isPcsxqt)
             {
                 commandArray.Add("-batch");
                 commandArray.Add("-fullscreen");
                 commandArray.Add("-nogui");
+
+                if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
+                    commandArray.Add("-slowboot");
             }
             else 
             {
                 commandArray.Add("--portable");
                 commandArray.Add("--fullscreen");
                 commandArray.Add("--nogui");
+
+                if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
+                    commandArray.Add("--fullboot");
             }
-            
-            if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot") && _isPcsxqt)
-                commandArray.Add("-slowboot");
-            else if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
-                commandArray.Add("--fullboot");
 
             string args = string.Join(" ", commandArray);
 
@@ -151,6 +150,8 @@ namespace emulatorLauncher
                 Arguments = args + " \"" + rom + "\"",
             };
         }
+
+        #region wxwidgets version
         private void SetupPaths(string emulator, string core)
         {
             var biosList = new string[] { 
@@ -334,9 +335,8 @@ namespace emulatorLauncher
             try
             {
                 using (var ini = new IniFile(iniFile))
-                {
-
-                //Activate user hacks - valid for 1.6 and 1.7 - default activation if a hack is enabled later  
+                {                
+                    //Activate user hacks - valid for 1.6 and 1.7 - default activation if a hack is enabled later  
                     if ((SystemConfig.isOptSet("UserHacks") && !string.IsNullOrEmpty(SystemConfig["UserHacks"])))
                         ini.WriteValue("Settings", "UserHacks", SystemConfig["UserHacks"]);
                     else if (_isPcsx17)
@@ -586,16 +586,21 @@ namespace emulatorLauncher
             }
             catch { }
         }
+        #endregion
 
-        //Setup Configuration of PCSX2.ini file for New PCSX2 QT version
-        private void SetupConfiguration(string path)
+        #region QT version
+        /// <summary>
+        /// Setup Configuration of PCSX2.ini file for New PCSX2 QT version
+        /// </summary>
+        /// <param name="path"></param>
+        private void SetupConfigurationQT(string path)
         {
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
-            CreateControllerConfiguration(conf);
-
-            using (var ini = new IniFile(conf, IniOptions.UseSpaces))
+            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces))
             {
+                CreateControllerConfiguration(ini);
+
                 //Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
                 {
@@ -677,7 +682,7 @@ namespace emulatorLauncher
 
                 //UI section
                 ini.WriteValue("UI", "ConfirmShutdown", "false");
-
+                
                 //Enable cheats automatically on load if Retroachievements is not set only
                 if (SystemConfig.isOptSet("enable_cheats") && !SystemConfig.getOptBoolean("retroachievements") && !string.IsNullOrEmpty(SystemConfig["enable_cheats"]))
                     ini.WriteValue("EmuCore", "EnableCheats", SystemConfig["enable_cheats"]);
@@ -1044,5 +1049,6 @@ namespace emulatorLauncher
 
             }
         }
+        #endregion
     }
 }

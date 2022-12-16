@@ -16,12 +16,7 @@ namespace emulatorLauncher
                 return;
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-            {
-                if (controller.Config == null)
-                    continue;
-
                 ConfigureInput(controller, ini);
-            }
         }
 
         private void ConfigureInput(Controller controller, IniFile ini)
@@ -29,10 +24,10 @@ namespace emulatorLauncher
             if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.Config.Type == "joystick")
-                ConfigureJoystick(controller, ini);
+            if (controller.IsKeyboard)
+                ConfigureKeyboard(controller, ini);
             else
-                Configurekeyboard(controller, controller.Config, ini);
+                ConfigureJoystick(controller, ini);
         }
 
         private void ConfigureJoystick(Controller controller, IniFile ini)
@@ -44,9 +39,11 @@ namespace emulatorLauncher
             if (cfg == null)
                 return;
 
-            string esGuid = controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
-            string yuzuGuid = esGuid;
-            var prodID = new Guid(yuzuGuid).GetProductID();
+            // yuzu uses 7801 at end of guid for XInput while ES has 7200
+            string yuzuGuid = controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
+
+            if (controller.IsXInputDevice && yuzuGuid.EndsWith("7200"))
+                yuzuGuid = yuzuGuid.Substring(0, yuzuGuid.Length - 4) + "7801";
 
             int index = Program.Controllers
                     .GroupBy(c => c.Guid)
@@ -55,10 +52,6 @@ namespace emulatorLauncher
                     .OrderBy(c => SdlGameController.GetControllerIndex(c))
                     .ToList()
                     .IndexOf(controller);
-
-            //yuzu uses 7801 at end of guid for XInput while ES has 7200
-            if (controller.IsXInputDevice)
-                yuzuGuid = yuzuGuid.Substring(0, yuzuGuid.Length - 4) + "7801";
 
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 
@@ -148,7 +141,6 @@ namespace emulatorLauncher
 
             ProcessStick(controller, player, "lstick", ini, yuzuGuid, index);
             ProcessStick(controller, player, "rstick", ini, yuzuGuid, index);
-
         }
 
         private string FromInput(Controller controller, Input input, string guid, int index)
@@ -213,8 +205,12 @@ namespace emulatorLauncher
             }
         }
 
-        private static void Configurekeyboard(Controller controller, InputConfig keyboard, IniFile ini)
+        private static void ConfigureKeyboard(Controller controller, IniFile ini)
         {
+            if (controller == null)
+                return;
+
+            InputConfig keyboard = controller.Config;
             if (keyboard == null)
                 return;
 

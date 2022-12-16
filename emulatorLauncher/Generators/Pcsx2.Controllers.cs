@@ -13,119 +13,108 @@ namespace emulatorLauncher
 {
     partial class Pcsx2Generator : Generator
     {
-        private void CreateControllerConfiguration(string ini)
+        private void CreateControllerConfiguration(IniFile pcsx2ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
-           
-            using (IniFile pcsx2ini = new IniFile(ini, IniOptions.UseSpaces))
+
+            // clear existing pad sections of ini file
+            for (int i = 1; i < 9; i++)
+                pcsx2ini.ClearSection("Pad" + i.ToString());
+
+            // If more than 2 controllers plugged, PCSX2 must be set to use multitap, if more than 5, both multitaps must be activated
+            if (Controllers.Count > 5)
             {
-                // clear existing pad sections of ini file
-                for (int i = 1; i < 9; i++)
-                {
-                    pcsx2ini.ClearSection("Pad" + i.ToString());
-                    pcsx2ini.Save();
-                }
-
-                //If more than 2 controllers plugged, PCSX2 must be set to use multitap, if more than 5, both multitaps must be activated
-                if (Controllers.Count > 5)
-                {
-                    pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
-                    pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
-                }   
-                else if (Controllers.Count > 2)
-                    pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
-                else
-                {
-                    pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
-                    pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
-                }
-
-                //loop controllers
-                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-                {
-                    if (controller.Config == null)
-                        continue;
-
-                    //ini has one section for each pad (from Pad1 to Pad8)
-                    string padNumber = "Pad" + controller.PlayerIndex;
-
-                    ConfigureInput(ini, controller, padNumber);
-                }
+                pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
+                pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
             }
+            else if (Controllers.Count > 2)
+                pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
+            else
+            {
+                pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
+                pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
+            }
+
+            // loop controllers                
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+                ConfigureInput(pcsx2ini, controller, "Pad" + controller.PlayerIndex); // ini has one section for each pad (from Pad1 to Pad8)
         }
 
-        private void ConfigureInput(string ini, Controller controller, string padNumber)
+        private void ConfigureInput(IniFile pcsx2ini, Controller controller, string padNumber)
         {
             if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.Config.Type == "joystick")
-                ConfigureJoystick(ini, controller, controller.PlayerIndex, padNumber);
+            if (controller.IsKeyboard)
+                ConfigureKeyboard(pcsx2ini, controller.Config, padNumber);
             else
-                ConfigureKeyboard(ini, controller.Config, padNumber);
+                ConfigureJoystick(pcsx2ini, controller, controller.PlayerIndex, padNumber);
         }
 
-        //Keyboard
-        private void ConfigureKeyboard(string ini, InputConfig keyboard, string padNumber)
+        /// <summary>
+        /// Keyboard
+        /// </summary>
+        /// <param name="pcsx2ini"></param>
+        /// <param name="keyboard"></param>
+        /// <param name="padNumber"></param>
+        private void ConfigureKeyboard(IniFile pcsx2ini, InputConfig keyboard, string padNumber)
         {
             if (keyboard == null)
                 return;
 
-            using (var pcsx2ini = new IniFile(ini, IniOptions.UseSpaces))
+            Action<string, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
             {
+                var a = keyboard[k];
+                if (a != null)
+                    pcsx2ini.WriteValue(v, w, "Keyboard/" + SdlToKeyCode(a.Id));
+            };
 
-                Action<string, string, InputKey> writemapping = (v, w, k) =>
-                {
-                    var a = keyboard[k];
-                    if (a != null)
-                    {
-                        string value = "Keyboard/" + SdlToKeyCode(a.Id);
-                        pcsx2ini.WriteValue(v, w, value);
-                    }
-                    else
-                        return;
-                };
-                pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
-                pcsx2ini.WriteValue(padNumber, "InvertL", "0");
-                pcsx2ini.WriteValue(padNumber, "InvertR", "0");
-                pcsx2ini.WriteValue(padNumber, "Deadzone", "0");
-                pcsx2ini.WriteValue(padNumber, "AxisScale", "1.33");
-                pcsx2ini.WriteValue(padNumber, "LargeMotorScale", "1");
-                pcsx2ini.WriteValue(padNumber, "SmallMotorScale", "1");
-                pcsx2ini.WriteValue(padNumber, "ButtonDeadzone", "0");
-                pcsx2ini.WriteValue(padNumber, "PressureModifier", "0.5");
+            pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
+            pcsx2ini.WriteValue(padNumber, "InvertL", "0");
+            pcsx2ini.WriteValue(padNumber, "InvertR", "0");
+            pcsx2ini.WriteValue(padNumber, "Deadzone", "0");
+            pcsx2ini.WriteValue(padNumber, "AxisScale", "1.33");
+            pcsx2ini.WriteValue(padNumber, "LargeMotorScale", "1");
+            pcsx2ini.WriteValue(padNumber, "SmallMotorScale", "1");
+            pcsx2ini.WriteValue(padNumber, "ButtonDeadzone", "0");
+            pcsx2ini.WriteValue(padNumber, "PressureModifier", "0.5");
 
-                //Perform mappings based on es_input
-                writemapping(padNumber, "Up", InputKey.up);
-                writemapping(padNumber, "Right", InputKey.right);
-                writemapping(padNumber, "Down", InputKey.down);
-                writemapping(padNumber, "Left", InputKey.left);
-                writemapping(padNumber, "Triangle", InputKey.x);
-                writemapping(padNumber, "Circle", InputKey.a);
-                writemapping(padNumber, "Cross", InputKey.b);
-                writemapping(padNumber, "Square", InputKey.y);
-                writemapping(padNumber, "Start", InputKey.start);
-                writemapping(padNumber, "Select", InputKey.select);
-                writemapping(padNumber, "L1", InputKey.pageup);
-                writemapping(padNumber, "L2", InputKey.l2);
-                writemapping(padNumber, "R1", InputKey.pagedown);
-                writemapping(padNumber, "R2", InputKey.r2);
-                writemapping(padNumber, "L3", InputKey.l3);
-                writemapping(padNumber, "R3", InputKey.r3);
-                writemapping(padNumber, "LUp", InputKey.leftanalogup);
-                writemapping(padNumber, "LRight", InputKey.leftanalogright);
-                writemapping(padNumber, "LDown", InputKey.leftanalogdown);
-                writemapping(padNumber, "LLeft", InputKey.leftanalogleft);
-                writemapping(padNumber, "RUp", InputKey.rightanalogup);
-                writemapping(padNumber, "RRight", InputKey.rightanalogright);
-                writemapping(padNumber, "RDown", InputKey.rightanalogdown);
-                writemapping(padNumber, "RLeft", InputKey.rightanalogleft);
-            }
+            //Perform mappings based on es_input
+            WriteKeyboardMapping(padNumber, "Up", InputKey.up);
+            WriteKeyboardMapping(padNumber, "Right", InputKey.right);
+            WriteKeyboardMapping(padNumber, "Down", InputKey.down);
+            WriteKeyboardMapping(padNumber, "Left", InputKey.left);
+            WriteKeyboardMapping(padNumber, "Triangle", InputKey.x);
+            WriteKeyboardMapping(padNumber, "Circle", InputKey.a);
+            WriteKeyboardMapping(padNumber, "Cross", InputKey.b);
+            WriteKeyboardMapping(padNumber, "Square", InputKey.y);
+            WriteKeyboardMapping(padNumber, "Start", InputKey.start);
+            WriteKeyboardMapping(padNumber, "Select", InputKey.select);
+            WriteKeyboardMapping(padNumber, "L1", InputKey.pageup);
+            WriteKeyboardMapping(padNumber, "L2", InputKey.l2);
+            WriteKeyboardMapping(padNumber, "R1", InputKey.pagedown);
+            WriteKeyboardMapping(padNumber, "R2", InputKey.r2);
+            WriteKeyboardMapping(padNumber, "L3", InputKey.l3);
+            WriteKeyboardMapping(padNumber, "R3", InputKey.r3);
+            WriteKeyboardMapping(padNumber, "LUp", InputKey.leftanalogup);
+            WriteKeyboardMapping(padNumber, "LRight", InputKey.leftanalogright);
+            WriteKeyboardMapping(padNumber, "LDown", InputKey.leftanalogdown);
+            WriteKeyboardMapping(padNumber, "LLeft", InputKey.leftanalogleft);
+            WriteKeyboardMapping(padNumber, "RUp", InputKey.rightanalogup);
+            WriteKeyboardMapping(padNumber, "RRight", InputKey.rightanalogright);
+            WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
+            WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
         }
 
-        //Gamepad configuration
-        private void ConfigureJoystick(string ini, Controller ctrl, int playerIndex, string padNumber)
+        /// <summary>
+        /// Gamepad configuration
+        /// </summary>
+        /// <param name="pcsx2ini"></param>
+        /// <param name="ctrl"></param>
+        /// <param name="playerIndex"></param>
+        /// <param name="padNumber"></param>
+        private void ConfigureJoystick(IniFile pcsx2ini, Controller ctrl, int playerIndex, string padNumber)
         {
             if (ctrl == null)
                 return;
@@ -135,101 +124,64 @@ namespace emulatorLauncher
                 return;
 
             //Define tech (SDL or XInput)
-            string tech = null;
+            string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
-            if (ctrl.IsXInputDevice)
-                tech = "XInput";
-            else
-                tech = "SDL";
-            
             //Start writing in ini file
-            using (var pcsx2ini = new IniFile(ini, IniOptions.UseSpaces))
+            pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
+
+            string techPadNumber = null;
+
+            if (tech == "XInput")
+                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
+            else
             {
-                pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
+                var nsametech = Program.Controllers
+                    .Where(c => c.Config != null && !c.IsKeyboard && !c.IsXInputDevice)
+                    .OrderBy(c => c.PlayerIndex)
+                    .ToList().IndexOf(ctrl);
 
-                //Set index (incremental by tech SDL & XInput)
-                int nsametech = 0;
-                string techPadNumber = null;
-
-                Dictionary<string, int> double_pads = new Dictionary<string, int>();
-
-                if (double_pads.ContainsKey(tech))
-                    nsametech = double_pads[tech];
-                else
-                    nsametech = 0;
-
-                int index = -1;
-
-                double_pads[tech] = nsametech + 1;
-
-                if (tech == "XInput")
-                {
-                    index = ctrl.XInput.DeviceIndex;
-                    techPadNumber = "XInput-" + index + "/";
-                } 
-                else
-                    techPadNumber = "SDL-" + nsametech + "/";
-
-                //Write button mapping
-                pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
-                pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
-                pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
-                pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
-                pcsx2ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
-                pcsx2ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
-                pcsx2ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
-                pcsx2ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
-                pcsx2ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
-                pcsx2ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
-                pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
-                pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
-                pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
-                pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
-                pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
-                pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
-                pcsx2ini.WriteValue(padNumber, "Analog", techPadNumber + "Guide");
-                pcsx2ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
-                pcsx2ini.WriteValue(padNumber, "LRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
-                pcsx2ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
-                pcsx2ini.WriteValue(padNumber, "LLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
-                pcsx2ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogup, tech));
-                pcsx2ini.WriteValue(padNumber, "RRight", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogright, tech));
-                pcsx2ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown, tech));
-                pcsx2ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft, tech));
-                pcsx2ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
-                pcsx2ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
+                techPadNumber = "SDL-" + nsametech + "/";
             }
+            
+            //Write button mapping
+            pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
+            pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
+            pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
+            pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+            pcsx2ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
+            pcsx2ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
+            pcsx2ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
+            pcsx2ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
+            pcsx2ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
+            pcsx2ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
+            pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
+            pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
+            pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
+            pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
+            pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
+            pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
+            pcsx2ini.WriteValue(padNumber, "Analog", techPadNumber + "Guide");
+            pcsx2ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
+            pcsx2ini.WriteValue(padNumber, "LRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
+            pcsx2ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
+            pcsx2ini.WriteValue(padNumber, "LLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
+            pcsx2ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogup, tech));
+            pcsx2ini.WriteValue(padNumber, "RRight", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogright, tech));
+            pcsx2ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown, tech));
+            pcsx2ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft, tech));
+            pcsx2ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
+            pcsx2ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
         }
 
-        private static Dictionary<InputKey, InputKey> revertedAxis = new Dictionary<InputKey, InputKey>()
-        {
-            { InputKey.joystick1right, InputKey.joystick1left },
-            { InputKey.joystick1down, InputKey.joystick1up },
-            { InputKey.joystick2right, InputKey.joystick2left },
-            { InputKey.joystick2down, InputKey.joystick2up },
-        };
-
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
-        {
-            bool revertAxis = false;
+        {            
             Int64 pid = -1;
 
-            //If controller is nintendo, A/B and X/Y are reversed
-            bool revertbuttons = false;
+            // If controller is nintendo, A/B and X/Y are reversed
+            bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);
 
-            string guid = c.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
-            var prod = new Guid(guid).GetVendorID();
-
-            if (prod == VendorIds.USB_VENDOR_NINTENDO)
-                revertbuttons = true;
-
-            InputKey revertedKey;
-
-            if (revertedAxis.TryGetValue(key, out revertedKey))
-            {
-                key = revertedKey;
-                revertAxis = true;
-            }
+            bool revertAxis = false;
+            key = key.GetRevertedAxis(out revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -239,32 +191,16 @@ namespace emulatorLauncher
                     pid = input.Id;
                     switch (pid)
                     {
-                        case 0:
-                            if (revertbuttons) return "B";
-                            else return "A";
-                        case 1:
-                            if (revertbuttons) return "A";
-                            else return "B";
-                        case 2:
-                            if (revertbuttons) return "X";
-                            else return "Y";
-                        case 3:
-                            if (revertbuttons) return "Y";
-                            else return "X";
+                        case 0: return revertbuttons ? "B" : "A";
+                        case 1: return revertbuttons ? "A" : "B";
+                        case 2: return revertbuttons ? "X" : "Y";
+                        case 3: return revertbuttons ? "Y" : "X";
                         case 4: return "LeftShoulder";
                         case 5: return "RightShoulder";
-                        case 6:
-                            if (tech == "XInput") return "Back";
-                            else return "Start";
-                        case 7:
-                            if (tech == "XInput") return "Start";
-                            else return "Back";
-                        case 8:
-                            if (tech == "XInput") return "LeftStick";
-                            else return "RightStick";
-                        case 9:
-                            if (tech == "XInput") return "RightStick";
-                            else return "LeftShoulder";
+                        case 6: return tech == "XInput" ? "Back" : "Start";
+                        case 7: return tech == "XInput" ? "Start" : "Back";
+                        case 8: return tech == "XInput" ? "LeftStick" : "RightStick";
+                        case 9: return tech == "XInput" ? "RightStick" : "LeftShoulder";
                         case 10: return "RightShoulder";
                         case 11: return "DPadUp";
                         case 12: return "DPadDown";

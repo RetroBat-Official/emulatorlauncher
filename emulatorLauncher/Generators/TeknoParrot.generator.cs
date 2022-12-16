@@ -538,14 +538,6 @@ namespace emulatorLauncher
             }
         }
 
-        private static Dictionary<InputKey, InputKey> revertedAxis = new Dictionary<InputKey, InputKey>()
-        {
-            { InputKey.joystick1right, InputKey.joystick1left },
-            { InputKey.joystick1down, InputKey.joystick1up },
-            { InputKey.joystick2right, InputKey.joystick2left },
-            { InputKey.joystick2down, InputKey.joystick2up },
-        };
-
         private static void ImportDirectInputButton(GameProfile userProfile, Controller ctrl, InputKey key, params InputMapping[] mapping)
         {
             var info = ctrl.DirectInput;
