@@ -11,7 +11,7 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    class Pcsx2Generator : Generator
+    partial class Pcsx2Generator : Generator
     {
 
         public Pcsx2Generator()
@@ -591,7 +591,10 @@ namespace emulatorLauncher
         private void SetupConfiguration(string path)
         {
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
-            using (var ini = new IniFile(conf))
+
+            CreateControllerConfiguration(conf);
+
+            using (var ini = new IniFile(conf, IniOptions.UseSpaces))
             {
                 //Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))

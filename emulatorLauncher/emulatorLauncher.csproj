@@ -157,6 +157,9 @@
     <Compile Include="Generators\DosBox.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Generator.cs" />
+    <Compile Include="Generators\Pcsx2.Controllers.cs">
+      <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Pico8.Generator.cs" />
     <Compile Include="Generators\Rpcs3.Generator.cs" />
     <Compile Include="Generators\Rpcs3.Controllers.cs">
