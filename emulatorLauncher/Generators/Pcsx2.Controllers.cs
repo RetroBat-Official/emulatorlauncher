@@ -36,6 +36,12 @@ namespace emulatorLauncher
                 pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
             }
 
+            //activate only SDL
+            pcsx2ini.WriteValue("InputSources", "DInput", "false");
+            pcsx2ini.WriteValue("InputSources", "XInput", "false");
+            pcsx2ini.WriteValue("InputSources", "SDL", "true");
+            pcsx2ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
+
             // loop controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
                 ConfigureInput(pcsx2ini, controller, "Pad" + controller.PlayerIndex); // ini has one section for each pad (from Pad1 to Pad8)
@@ -129,20 +135,10 @@ namespace emulatorLauncher
             //Start writing in ini file
             pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
 
-            string techPadNumber = null;
+            //Get SDL controller index
+            int index = ctrl.DeviceIndex;
+            string techPadNumber = "SDL-" + index + "/";
 
-            if (tech == "XInput")
-                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
-            else
-            {
-                var nsametech = Program.Controllers
-                    .Where(c => c.Config != null && !c.IsKeyboard && !c.IsXInputDevice)
-                    .OrderBy(c => c.PlayerIndex)
-                    .ToList().IndexOf(ctrl);
-
-                techPadNumber = "SDL-" + nsametech + "/";
-            }
-            
             //Write button mapping
             pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
             pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
