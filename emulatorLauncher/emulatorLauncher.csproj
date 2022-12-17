@@ -250,6 +250,9 @@
     <EmbeddedResource Include="InstallerFrm.resx">
       <DependentUpon>InstallerFrm.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="..\.emulationstation\es_features.cfg">
+      <Link>es_features.cfg</Link>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -279,7 +282,12 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Release (
+    <PostBuildEvent>if $(ConfigurationName) == Debug (
+ECHO Copy es_features.cfg to "$(TargetDir).emulationstation"
+copy "$(SolutionDir).emulationstation\es_features.cfg" "$(TargetDir).emulationstation"
+)
+
+if $(ConfigurationName) == Release (
 "$(SolutionDir)ILMerge.exe" /out:"$(TargetDir)$(TargetFileName)" "$(TargetDir)$(TargetFileName)" /ndebug /wildcards "$(TargetDir)*.dll" /targetplatform:v4,%25systemroot%25\Microsoft.NET\Framework\v4.0.30319
 )</PostBuildEvent>
   </PropertyGroup>

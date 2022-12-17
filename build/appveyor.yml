@@ -38,6 +38,7 @@ after_build:
 - 7z a batocera-ports.zip xbox-iso-vfs.exe
 - 7z a batocera-ports.zip 7z.exe
 - 7z a batocera-ports.zip 7z.dll
+- 7z a batocera-ports.zip .emulationstation\es_features.cfg
 artifacts:
 - path: batocera-ports.zip
 deploy:
