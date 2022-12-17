@@ -174,7 +174,7 @@ namespace emulatorLauncher
             Int64 pid = -1;
 
             // If controller is nintendo, A/B and X/Y are reversed
-            bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);
+            //bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);
 
             bool revertAxis = false;
             key = key.GetRevertedAxis(out revertAxis);
@@ -187,14 +187,14 @@ namespace emulatorLauncher
                     pid = input.Id;
                     switch (pid)
                     {
-                        case 0: return revertbuttons ? "B" : "A";
-                        case 1: return revertbuttons ? "A" : "B";
-                        case 2: return revertbuttons ? "X" : "Y";
-                        case 3: return revertbuttons ? "Y" : "X";
-                        case 4: return "LeftShoulder";
+                        case 0: return "A";
+                        case 1: return "B";
+                        case 2: return "Y";
+                        case 3: return "X";
+                        case 4: return tech == "XInput" ? "LeftShoulder" : "Back";
                         case 5: return "RightShoulder";
                         case 6: return tech == "XInput" ? "Back" : "Start";
-                        case 7: return tech == "XInput" ? "Start" : "Back";
+                        case 7: return tech == "XInput" ? "Start" : "LeftStick";
                         case 8: return tech == "XInput" ? "LeftStick" : "RightStick";
                         case 9: return tech == "XInput" ? "RightStick" : "LeftShoulder";
                         case 10: return "RightShoulder";
