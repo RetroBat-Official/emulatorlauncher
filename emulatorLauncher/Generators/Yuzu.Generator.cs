@@ -94,7 +94,7 @@ namespace emulatorLauncher
                     ini.WriteValue("System", "region_index\\default", "false");
                     ini.WriteValue("System", "region_index", SystemConfig["yuzu_region_value"]);
                 }
-                else
+                else if (Features.IsSupported("yuzu_region_value"))
                 {
                     ini.WriteValue("System", "region_index\\default", "true");
                     ini.WriteValue("System", "region_index", "1");
