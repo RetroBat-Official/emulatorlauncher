@@ -39,11 +39,18 @@ namespace emulatorLauncher
             if (cfg == null)
                 return;
 
-            // yuzu uses 7801 at end of guid for XInput while ES has 7200
             string yuzuGuid = controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
 
-            if (controller.IsXInputDevice && yuzuGuid.EndsWith("7200"))
-                yuzuGuid = yuzuGuid.Substring(0, yuzuGuid.Length - 4) + "7801";
+            // Yuzu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
+            // Convert Guid to XInput
+            if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
+            {
+                if (controller.SdlWrappedTechID == SdlWrappedTechId.RawInput && controller.XInput != null)
+                {
+                    var guid = yuzuGuid.FromSdlGuidString();
+                    yuzuGuid = guid.ToXInputGuid(controller.XInput.DeviceIndex + 1).ToSdlGuidString();
+                }
+            }
 
             int index = Program.Controllers
                     .GroupBy(c => c.Guid)

@@ -171,6 +171,13 @@ namespace emulatorLauncher.Tools
             int intValue = int.Parse(id, System.Globalization.NumberStyles.HexNumber);
             return (ProductId)intValue;
         }
+
+        public static Guid ToXInputGuid(this Guid guid, int playerIndex)
+        {
+            var sdlGuid = guid.ToSdlGuidString();
+            string id = (sdlGuid.Substring(0, 28) + "78" + playerIndex.ToString("X2")).ToUpper();
+            return id.FromSdlGuidString();
+        }
     }
 
     public enum SdlVersion
@@ -185,9 +192,9 @@ namespace emulatorLauncher.Tools
     {
         DirectInput = 0,
         HID = 0x68, // 'h'
-        XInput = 0x72, // 'x'
+        RawInput = 0x72, // 'x'
         Virtual = 0x76, // 'v'
-        RawInput = 0x78, // 'r'
+        XInput = 0x78 // 'x'
     }
 
     public enum VendorId
