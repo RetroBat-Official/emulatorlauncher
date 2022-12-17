@@ -7971,5 +7971,42 @@ namespace emulatorLauncher
         };
         #endregion
 
+        #region SDL_crc16
+        static ushort crc16_for_byte(byte r)
+        {
+            ushort crc = 0;
+
+            for (int i = 0; i < 8; ++i) 
+            {
+                if (((crc ^ r) & 1) != 0)
+                    crc = (ushort)(0xA001 ^ crc >> 1);
+                else
+                    crc = (ushort)(0 ^ crc >> 1);
+
+                r >>= 1;
+            }
+            return crc;
+        }
+
+        public static ushort SDL_crc16(byte[] data)
+        {
+            ushort crc = 0;
+
+            // As an optimization we can precalculate a 256 entry table for each byte
+            for (int i = 0; i < data.Length; ++i) 
+            {
+                byte bt = (byte) (((byte)crc) ^ data[i]);
+
+                ushort us = crc16_for_byte(bt);
+                crc = (ushort)(us ^ crc >> 8);
+            }
+            return crc;
+        }
+
+        public static ushort SDL_Swap16(ushort x)
+        {
+            return (ushort)((ushort)((x & 0xff) << 8) | ((x >> 8) & 0xff));
+        }
+        #endregion
     }
 }

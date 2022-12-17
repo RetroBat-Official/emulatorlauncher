@@ -34,10 +34,11 @@ namespace emulatorLauncher
 
         public string GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X)
         {
+
             if (version == SdlVersion.Current)
                 return Guid;
 
-            return ProductGuid.ConvertSdlGuid(version).ToSdlGuidString();
+            return ProductGuid.ConvertSdlGuid(Name??"", version).ToSdlGuidString();
         }
 
         public VendorId VendorID

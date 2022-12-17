@@ -68,23 +68,37 @@ namespace emulatorLauncher.Tools
             return Guid.Empty;
         }
 
-        public static Guid ConvertSdlGuid(this Guid guid, SdlVersion version)
+        public static Guid ConvertSdlGuid(this Guid guid, string name, SdlVersion version)
         {
             if (version == SdlVersion.Current)
                 return guid;
 
-            // Pre 2.26x : remove '16-bit CRC16 of the joystick name'
-            var ret = new Guid("0000" + guid.ToString().Substring(4));
-            if (version == SdlVersion.SDL2_24)
-                return ret;
+            Guid ret = guid;
+
+            if (version == SdlVersion.SDL2_26 && name != null)
+            {
+                var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
+
+                var gg = guid.ToSdlGuidString();
+                var ggs = gg.Substring(0, 4) + crc16 + gg.Substring(8);
+                ret = ggs.FromSdlGuidString();
+            }
+            else
+            {
+                // Pre 2.26x : remove '16-bit CRC16 of the joystick name'
+                ret = new Guid("0000" + guid.ToString().Substring(4));
+                if (version == SdlVersion.SDL2_24)
+                    return ret;
+            }
 
             // SDL 2.0.X : remove 8-bit driver-dependent type info for switch controllers
             if (GetJoystickNameCrc16(guid) == 0xd455) // "HORI Wireless Switch Pad" ??? Must check
-                return new Guid("0000" + guid.ToString().Substring(4, 30) + "00");
+                return new Guid(ret.ToString().Substring(0, 34) + "00");
 
             if (guid.GetVendorID() == VendorId.USB_VENDOR_NINTENDO)
             {
                 var prod = guid.GetProductID();
+
                 if (prod == ProductId.USB_PRODUCT_NINTENDO_N64_CONTROLLER ||
                     prod == ProductId.USB_PRODUCT_NINTENDO_SEGA_GENESIS_CONTROLLER ||
                     prod == ProductId.USB_PRODUCT_NINTENDO_SNES_CONTROLLER ||
@@ -95,7 +109,7 @@ namespace emulatorLauncher.Tools
                     prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_PRO)
                 {
                     // Remove 8-bit driver-dependent type info
-                    ret = new Guid("0000" + guid.ToString().Substring(4, 30) + "00");
+                    ret = new Guid(ret.ToString().Substring(0, 34) + "00");
                 }
             }
 
@@ -163,6 +177,7 @@ namespace emulatorLauncher.Tools
     {
         Current,
         SDL2_24,
+        SDL2_26,
         SDL2_0_X
     }
 

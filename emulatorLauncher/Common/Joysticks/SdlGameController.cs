@@ -77,7 +77,11 @@ namespace emulatorLauncher.Tools
 
                 _controllersByGuid[ctl.Guid] = ctl;
 
-                var oldGuid = ctl.Guid.ConvertSdlGuid(SdlVersion.SDL2_0_X);
+                var oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_0_X);
+                if (ctl.Guid != oldGuid)
+                    _controllersByGuid[oldGuid] = ctl;
+
+                oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_26);
                 if (ctl.Guid != oldGuid)
                     _controllersByGuid[oldGuid] = ctl;
             }
@@ -104,7 +108,11 @@ namespace emulatorLauncher.Tools
 
                 _controllersByGuid[ctl.Guid] = ctl;
 
-                var oldGuid = ctl.Guid.ConvertSdlGuid(SdlVersion.SDL2_0_X);
+                var oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_0_X);
+                if (ctl.Guid != oldGuid)
+                    _controllersByGuid[oldGuid] = ctl;
+
+                oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_26);
                 if (ctl.Guid != oldGuid)
                     _controllersByGuid[oldGuid] = ctl;
             }
@@ -236,7 +244,7 @@ namespace emulatorLauncher.Tools
             if (_controllersByGuid.TryGetValue(guid, out ctrl))
                 return ctrl;
 
-            var oldGuid = guid.ConvertSdlGuid(SdlVersion.SDL2_0_X);
+            var oldGuid = guid.ConvertSdlGuid("", SdlVersion.SDL2_0_X);
             if (guid != oldGuid)
             {
                 if (_controllersByGuid.TryGetValue(oldGuid, out ctrl))
