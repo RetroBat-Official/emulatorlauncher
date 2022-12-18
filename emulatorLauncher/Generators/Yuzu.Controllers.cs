@@ -48,7 +48,7 @@ namespace emulatorLauncher
                 if (controller.SdlWrappedTechID == SdlWrappedTechId.RawInput && controller.XInput != null)
                 {
                     var guid = yuzuGuid.FromSdlGuidString();
-                    yuzuGuid = guid.ToXInputGuid(controller.XInput.DeviceIndex + 1).ToSdlGuidString();
+                    yuzuGuid = guid.ToXInputGuid(01).ToSdlGuidString();
                 }
             }
 
