@@ -91,7 +91,7 @@
     <Compile Include="Common\ProgressInformation.cs" />
     <Compile Include="Common\Joysticks\RawLightGun.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
-    <Compile Include="Common\Joysticks\SdlJoystickGuidManager.cs" />
+    <Compile Include="Common\Joysticks\SdlJoystickGuid.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
     <Compile Include="Common\Joysticks\WinmmJoystick.cs" />

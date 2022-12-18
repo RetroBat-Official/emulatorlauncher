@@ -576,7 +576,7 @@ namespace emulatorLauncher
                     switch (var)
                     {
                         case "index": player.DeviceIndex = val.ToInteger(); break;
-                        case "guid": player.Guid = val.ToUpper(); break;
+                        case "guid": player.Guid = new SdlJoystickGuid(val); break;
                         case "path": player.DevicePath = val; break;
                         case "name": player.Name = val; break;
                         case "nbbuttons": player.NbButtons = val.ToInteger(); break;
@@ -629,7 +629,7 @@ namespace emulatorLauncher
                         if (keyb.Config != null)
                         {
                             keyb.Name = "Keyboard";
-                            keyb.Guid = "00000000000000000000000000000000";
+                            keyb.Guid = new SdlJoystickGuid("00000000000000000000000000000000");
                             Controllers.Add(keyb);
                         }
                     }

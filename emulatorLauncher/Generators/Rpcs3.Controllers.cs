@@ -189,15 +189,15 @@ namespace emulatorLauncher
             //set type of controller
             string devicename = joy.DeviceName;
             string guid = ctrl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
-            var prod = new Guid(guid).GetProductID();
+            var prod = ctrl.ProductID;
 
             //define type of controller
             string tech = "MMJoystick";
-            if (prod == ProductId.USB_PRODUCT_SONY_DS5)
+            if (prod == USB_PRODUCT.SONY_DS5)
                 tech = "DualSense";
-            else if (prod == ProductId.USB_PRODUCT_SONY_DS4 || prod == ProductId.USB_PRODUCT_SONY_DS4_DONGLE || prod == ProductId.USB_PRODUCT_SONY_DS4_SLIM)
+            else if (prod == USB_PRODUCT.SONY_DS4 || prod == USB_PRODUCT.SONY_DS4_DONGLE || prod == USB_PRODUCT.SONY_DS4_SLIM)
                 tech = "DS4";
-            else if (prod == ProductId.USB_PRODUCT_SONY_DS3)
+            else if (prod == USB_PRODUCT.SONY_DS3)
                 tech = "DS3";
             else if (ctrl.IsXInputDevice)
                 tech = "XInput";

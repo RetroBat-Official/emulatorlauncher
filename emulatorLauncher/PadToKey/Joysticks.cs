@@ -77,7 +77,7 @@ namespace emulatorLauncher.PadToKeyboard
                 conf = _controllers.FirstOrDefault(cfg => cfg.DeviceIndex == i);
 
             if (conf == null)
-                conf = _controllers.FirstOrDefault(cfg => cfg.ProductGuid == guid);
+                conf = _controllers.FirstOrDefault(cfg => cfg.Guid.ToGuid() == guid);
 
             if (conf == null)
                 conf = _controllers.FirstOrDefault(cfg => cfg.Config.DeviceName == name);

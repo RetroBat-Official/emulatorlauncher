@@ -319,7 +319,7 @@ namespace emulatorLauncher
                     // SIDevice1 = 6 -> controlleur standard GCPadNew.ini
 
                     string guid = pad.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
-                    var prod = new Guid(guid).GetProductID();
+                    var prod = pad.ProductID;
 
                     string tech = "XInput";
                     string deviceName = "Gamepad";
@@ -464,7 +464,7 @@ namespace emulatorLauncher
                         ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 108.24 112.26 122.26 118.12 108.24 101.96 100.00 101.96 108.24 114.92 117.37 115.98 108.24 101.96 100.00 101.96 105.40 112.07 114.52 113.89 104.20 99.64 99.97 101.73 106.63 108.27 103.63 104.40 107.15 101.96");
                     }
 
-                    if (prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_PRO)                      
+                    if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)                      
                     {
                         ini.WriteValue(gcpad, "Main Stick/Dead Zone", "10.0000000000000000");
                         ini.WriteValue(gcpad, "C-Stick/Dead Zone", "10.0000000000000000");
@@ -473,11 +473,11 @@ namespace emulatorLauncher
                         ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
                     }
 
-                    if (prod == ProductId.USB_PRODUCT_SONY_DS3 ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4 ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4_DONGLE ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4_SLIM ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS5)
+                    if (prod == USB_PRODUCT.SONY_DS3 ||
+                        prod == USB_PRODUCT.SONY_DS4 ||
+                        prod == USB_PRODUCT.SONY_DS4_DONGLE ||
+                        prod == USB_PRODUCT.SONY_DS4_SLIM ||
+                        prod == USB_PRODUCT.SONY_DS5)
                     {
                         ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
                         ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
@@ -496,18 +496,18 @@ namespace emulatorLauncher
 
                     if (Program.SystemConfig["controller_mode"] == "cc")
                     {
-                        if (prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_PRO)
+                        if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)
                         {
                             ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "10.0000000000000000");
                             ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "10.0000000000000000");
                             ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
                             ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
                         }
-                        else if (prod == ProductId.USB_PRODUCT_SONY_DS3 ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4 ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4_DONGLE ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4_SLIM ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS5)
+                        else if (prod == USB_PRODUCT.SONY_DS3 ||
+                        prod == USB_PRODUCT.SONY_DS4 ||
+                        prod == USB_PRODUCT.SONY_DS4_DONGLE ||
+                        prod == USB_PRODUCT.SONY_DS4_SLIM ||
+                        prod == USB_PRODUCT.SONY_DS5)
                         {
                             ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "5.0000000000000000");
                             ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "5.0000000000000000");

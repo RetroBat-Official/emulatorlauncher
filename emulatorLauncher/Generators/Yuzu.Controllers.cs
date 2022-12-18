@@ -39,15 +39,17 @@ namespace emulatorLauncher
             if (cfg == null)
                 return;
 
-            string yuzuGuid = controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
+            var guid = controller.GetSdlGuid(_sdlVersion);
 
             // Yuzu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
             if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
             {
                 if (controller.SdlWrappedTechID == SdlWrappedTechId.RawInput && controller.XInput != null)
-                    yuzuGuid = yuzuGuid.FromSdlGuidString().ToXInputGuid().ToSdlGuidString();
+                    guid = guid.ToXInputGuid(controller.XInput.SubType);
             }
+
+            var yuzuGuid = guid.ToString().ToLowerInvariant();
 
             int index = Program.Controllers
                     .GroupBy(c => c.Guid)

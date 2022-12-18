@@ -12,18 +12,18 @@ namespace emulatorLauncher
     /// </summary>
     public class HidToDirectInput
     {
-        public Input FromInput(Guid guid, Input input)
+        public Input FromInput(SdlJoystickGuid guid, Input input)
         {
-            if (guid.GetWrappedTechID() != SdlWrappedTechId.HID)
+            if (guid.WrappedTechID != SdlWrappedTechId.HID)
                 return null;
 
-            var prod = ((int)guid.GetProductID()).ToString("X4");
-            var vend = ((int)guid.GetVendorID()).ToString("X4");
+            var prod = ((int)guid.ProductId).ToString("X4");
+            var vend = ((int)guid.VendorId).ToString("X4");
 
             var device = devices.FirstOrDefault(dev => dev.product == prod && dev.vendor == vend);
             if (device == null)
             {
-                SimpleLogger.Instance.Warning("Unknown HID device : " + guid.ToSdlGuidString() + ", " + guid.GetProductID() + ", " + guid.GetVendorID());
+                SimpleLogger.Instance.Warning("Unknown HID device : " + guid.ToString() + ", " + guid.ProductId + ", " + guid.VendorId);
                 return null;
             }
             
@@ -73,24 +73,23 @@ namespace emulatorLauncher
 
             foreach (var dev in input00)
             {
-                if (dev.DeviceGUID.FromSdlGuidString().GetWrappedTechID() != SdlWrappedTechId.HID)
+                var sdlGuid = new SdlJoystickGuid(dev.DeviceGUID);
+                if (sdlGuid.WrappedTechID != SdlWrappedTechId.HID)
                     continue;
 
-                var vdr = dev.DeviceGUID.FromSdlGuidString().GetVendorID();
-                var pd = dev.DeviceGUID.FromSdlGuidString().GetProductID();
+                var vendorId = sdlGuid.VendorId;
+                var productId = sdlGuid.ProductId;
 
-                var wr = new HidToDirectInputDevice() { name = dev.DeviceName, vendor = ((int)vdr).ToString("X4"), product = ((int)pd).ToString("X4") };
+                var wr = new HidToDirectInputDevice() { name = dev.DeviceName, vendor = ((int)vendorId).ToString("X4"), product = ((int)productId).ToString("X4") };
                 if (w.devices.Any(a => a.vendor == wr.vendor && a.product == wr.product))
                     continue;
 
                 foreach (var hidInput in dev.Input)
                 {
                     var dinputInput = input00
-                        .Where(a =>
-                            a.DeviceGUID.FromSdlGuidString().GetWrappedTechID() == SdlWrappedTechId.DirectInput &&
-                            a.DeviceGUID.FromSdlGuidString().GetVendorID() == vdr &&
-                            dev.DeviceGUID.FromSdlGuidString().GetProductID() == pd)
-                        .SelectMany(a => a.Input)
+                        .Select(a => new { SdlGuid = new SdlJoystickGuid(a.DeviceGUID), Item = a })
+                        .Where(a => a.SdlGuid.WrappedTechID == SdlWrappedTechId.DirectInput && a.SdlGuid.VendorId == vendorId && a.SdlGuid.ProductId == productId )
+                        .SelectMany(a => a.Item.Input)
                         .FirstOrDefault(ai => ai.Name == hidInput.Name);
 
                     if (dinputInput != null)

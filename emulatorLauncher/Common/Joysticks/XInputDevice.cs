@@ -7,11 +7,10 @@ namespace emulatorLauncher.Tools
 {
     class XInputDevice
     {
-        public XInputDevice(int index, XINPUT_DEVSUBTYPE subType = XINPUT_DEVSUBTYPE.GAMEPAD)
+        public XInputDevice(int index)
         {
             DeviceIndex = index;
-            Name = "Input Pad #" + (DeviceIndex + 1).ToString();
-            SubType = subType;
+            Name = "Input Pad #" + (DeviceIndex + 1).ToString();                        
         }
 
         public override string ToString()
@@ -21,7 +20,33 @@ namespace emulatorLauncher.Tools
 
         public int DeviceIndex { get; private set; }
         public string Name { get; private set; }
-        public XINPUT_DEVSUBTYPE SubType { get; private set; }
+
+        XINPUT_DEVSUBTYPE? _subType;
+
+        public XINPUT_DEVSUBTYPE SubType
+        {
+            get
+            {
+                if (!_subType.HasValue)
+                {
+                    _subType = XINPUT_DEVSUBTYPE.GAMEPAD;
+
+                    try
+                    {
+                        // Get subtype from SharpDX.XInput
+                        var ctrl = new SharpDX.XInput.Controller((SharpDX.XInput.UserIndex)DeviceIndex);
+                        if (ctrl.IsConnected)
+                        {
+                            var caps = ctrl.GetCapabilities(SharpDX.XInput.DeviceQueryType.Any);
+                            _subType = (XINPUT_DEVSUBTYPE)caps.SubType;
+                        }
+                    }
+                    catch { }
+                }
+
+                return _subType.Value;
+            }
+        }
 
         private static bool IsXInputDevice(string vendorId, string productId)
         {

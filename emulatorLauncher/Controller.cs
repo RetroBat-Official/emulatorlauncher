@@ -15,7 +15,7 @@ namespace emulatorLauncher
 
         public int PlayerIndex { get; set; }
         public int DeviceIndex { get; set; }
-        public string Guid { get; set; }
+        public SdlJoystickGuid Guid { get; set; }
         public string DevicePath { get; set; }
         public string Name { get; set; }
         public int NbButtons { get; set; }
@@ -24,50 +24,20 @@ namespace emulatorLauncher
         
         public bool IsKeyboard { get { return "Keyboard".Equals(Name, StringComparison.InvariantCultureIgnoreCase); } }
 
-        public Guid ProductGuid
+        public SdlJoystickGuid GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X)
         {
-            get
-            {
-                return Guid.FromSdlGuidString();
-            }
-        }
-
-        public string GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X)
-        {
-
-            if (version == SdlVersion.Current)
+            if (version == SdlVersion.Unknown)
                 return Guid;
 
-            return ProductGuid.ConvertSdlGuid(Name??"", version).ToSdlGuidString();
+            return Guid.ConvertSdlGuid(Name??"", version);            
         }
 
-        public VendorId VendorID
-        {
-            get
-            {
-                return ProductGuid.GetVendorID();
-            }
-        }
-
-        public ProductId ProductID
-        {
-            get
-            {
-                return ProductGuid.GetProductID();
-            }
-        }
-
-        public SdlWrappedTechId SdlWrappedTechID
-        {
-            get
-            {
-                return ProductGuid.GetWrappedTechID();
-            }
-        }
+        public USB_VENDOR VendorID { get { return Guid.VendorId; } }
+        public USB_PRODUCT ProductID { get { return Guid.ProductId; } }
+        public SdlWrappedTechId SdlWrappedTechID { get { return Guid.WrappedTechID; } }
 
         public InputConfig Config { get; set; }
-
-
+        
         #region SdlController
         private SdlGameController _sdlController;
         private bool _sdlControllerKnown = false;
@@ -86,7 +56,7 @@ namespace emulatorLauncher
                             _sdlController = SdlGameController.GetGameControllerByPath(DevicePath);
 
                         if (_sdlController == null)
-                            _sdlController = SdlGameController.GetGameController(ProductGuid);
+                            _sdlController = SdlGameController.GetGameController(Guid.ToGuid());
                     }
                 }
 
@@ -147,6 +117,7 @@ namespace emulatorLauncher
                 if (_xInputDeviceKnown == false)
                 {
                     _xInputDeviceKnown = true;
+
 
                     if (Name == "Keyboard" || !IsXInputDevice)
                         return null;
@@ -424,7 +395,7 @@ namespace emulatorLauncher
 
             if (SdlWrappedTechID == SdlWrappedTechId.HID)
             {
-                var dinput = HidToDirectInput.Instance.FromInput(ProductGuid, input);
+                var dinput = HidToDirectInput.Instance.FromInput(Guid, input);
                 if (dinput != null)
                     return dinput;
             }
