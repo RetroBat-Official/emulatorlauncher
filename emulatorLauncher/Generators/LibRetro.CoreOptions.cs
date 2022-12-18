@@ -716,6 +716,7 @@ namespace emulatorLauncher.libRetro
 
             coreSettings["picodrive_ramcart"] = "disabled";
 
+            BindFeature(coreSettings, "picodrive_aspect", "core_aspect", "PAR");
             BindFeature(coreSettings, "picodrive_overclk68k", "overclk68k", "disabled");
             BindFeature(coreSettings, "picodrive_overscan", "overscan", "disabled");
             BindFeature(coreSettings, "picodrive_region", "region", "Auto");
