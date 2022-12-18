@@ -172,10 +172,10 @@ namespace emulatorLauncher.Tools
             return (ProductId)intValue;
         }
 
-        public static Guid ToXInputGuid(this Guid guid, int playerIndex)
+        public static Guid ToXInputGuid(this Guid guid, XINPUT_DEVSUBTYPE subType = XINPUT_DEVSUBTYPE.GAMEPAD)
         {
             var sdlGuid = guid.ToSdlGuidString();
-            string id = (sdlGuid.Substring(0, 28) + "78" + playerIndex.ToString("X2")).ToUpper();
+            string id = (sdlGuid.Substring(0, 28) + "78" + ((byte)subType).ToString("X2")).ToUpper();
             return id.FromSdlGuidString();
         }
     }

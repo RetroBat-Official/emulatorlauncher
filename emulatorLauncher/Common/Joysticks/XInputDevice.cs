@@ -7,10 +7,11 @@ namespace emulatorLauncher.Tools
 {
     class XInputDevice
     {
-        public XInputDevice(int index)
+        public XInputDevice(int index, XINPUT_DEVSUBTYPE subType = XINPUT_DEVSUBTYPE.GAMEPAD)
         {
             DeviceIndex = index;
             Name = "Input Pad #" + (DeviceIndex + 1).ToString();
+            SubType = subType;
         }
 
         public override string ToString()
@@ -18,8 +19,9 @@ namespace emulatorLauncher.Tools
             return Name;
         }
 
-        public int DeviceIndex { get; set; }
-        public string Name { get; set; }
+        public int DeviceIndex { get; private set; }
+        public string Name { get; private set; }
+        public XINPUT_DEVSUBTYPE SubType { get; private set; }
 
         private static bool IsXInputDevice(string vendorId, string productId)
         {
@@ -151,5 +153,20 @@ namespace emulatorLauncher.Tools
         B = 8192,
         X = 16384,
         Y = 32768
+    }
+
+    public enum XINPUT_DEVSUBTYPE
+    {
+        UNKNOWN = 0x00,
+        GAMEPAD = 0x01,
+        WHEEL = 0x02,
+        ARCADE_STICK = 0x03,
+        FLIGHT_STICK = 0x04,
+        DANCE_PAD = 0x05,
+        GUITAR = 0x06,
+        GUITAR_ALTERNATE = 0x07,
+        DRUM_KIT = 0x08,
+        GUITAR_BASS = 0x0B,
+        ARCADE_PAD = 0x13
     }
 }

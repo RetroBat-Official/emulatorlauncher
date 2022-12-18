@@ -153,7 +153,7 @@ namespace emulatorLauncher
 
                     var xinputindex = Program.Controllers
                         .OrderBy(c => c.DeviceIndex)
-                        .Where(c => c.IsXInputDevice)
+                        .Where(c => c == this || c.IsXInputDevice)
                         .ToList()
                         .IndexOf(this);
 

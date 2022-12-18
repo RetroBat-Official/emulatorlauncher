@@ -46,10 +46,7 @@ namespace emulatorLauncher
             if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
             {
                 if (controller.SdlWrappedTechID == SdlWrappedTechId.RawInput && controller.XInput != null)
-                {
-                    var guid = yuzuGuid.FromSdlGuidString();
-                    yuzuGuid = guid.ToXInputGuid(controller.XInput.DeviceIndex + 1).ToSdlGuidString();
-                }
+                    yuzuGuid = yuzuGuid.FromSdlGuidString().ToXInputGuid().ToSdlGuidString();
             }
 
             int index = Program.Controllers
