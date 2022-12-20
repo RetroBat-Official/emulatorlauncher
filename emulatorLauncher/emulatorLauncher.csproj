@@ -127,6 +127,9 @@
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\Mesen.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Generator.cs" />
+    <Compile Include="Generators\Ryujinx.Controllers.cs">
+      <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\TeknoParrot.generator.cs" />
     <Compile Include="Generators\Tsugaru.Generator.cs" />
     <Compile Include="Generators\Yuzu.Generator.cs" />

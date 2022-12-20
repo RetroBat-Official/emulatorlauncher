@@ -143,6 +143,12 @@ namespace emulatorLauncher
                         ini.AppendValue("Storage", "mount_cache", SystemConfig["mount_cache"]);
                     else
                         ini.AppendValue("Storage", "mount_cache", "false");
+
+                    //Controllers section (HID)
+                    if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
+                        ini.AppendValue("HID", "hid", SystemConfig["xenia_hid"]);
+                    else
+                        ini.AppendValue("HID", "hid", "any");
                 }
             }
             catch { }

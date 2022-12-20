@@ -120,6 +120,18 @@ namespace emulatorLauncher
                         ini.WriteValue("Layout", "swap_screen", "false");
                     }
                 }
+
+                //Define console region
+                if (SystemConfig.isOptSet("citra_region_value") && !string.IsNullOrEmpty(SystemConfig["citra_region_value"]) && SystemConfig["citra_region_value"] != "-1")
+                {
+                    ini.WriteValue("System", "region_value\\default", "false");
+                    ini.WriteValue("System", "region_value", SystemConfig["citra_region_value"]);
+                }
+                else if (Features.IsSupported("citra_region_value"))
+                {
+                    ini.WriteValue("System", "region_value\\default", "true");
+                    ini.WriteValue("System", "region_value", "-1");
+                }
             }
         }
     }
