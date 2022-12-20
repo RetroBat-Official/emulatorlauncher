@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Dynamic;
 
 namespace emulatorLauncher.Tools
 {
@@ -160,30 +161,114 @@ namespace emulatorLauncher.Tools
         }
     }
 
-    class YmlElement
+    interface IYmlElement
+    {
+        string Name { get; set; }
+    }
+    
+    class YmlElement : IYmlElement
     {
         public string Name { get; set; }
         public string Value { get; set; }
 
         public override string ToString()
         {
-            if (Value != null && !(this is YmlContainer))
-                return Name + ": " + Value.ToString();
-
-            return Name;
+            return Name + ": " + Value.ToString();
         }
     }
 
-    class YmlContainer : YmlElement, IEnumerable<YmlElement>
-    {
-        public YmlContainer()
+    class YmlContainer : DynamicObject, IYmlElement, IEnumerable<IYmlElement>
+    {        
+        #region DynamicObject
+        public override IEnumerable<string> GetDynamicMemberNames()
         {
-            Elements = new List<YmlElement>();
+            return Elements.Where(d => !string.IsNullOrEmpty(d.Name)).Select(d => d.Name);
         }
 
-        private void AddElement(YmlElement element)
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            if (Elements.Count > 0 && string.IsNullOrEmpty(Elements[Elements.Count - 1].Name) && Elements[Elements.Count - 1].Value == "...")
+            var element = Elements.FirstOrDefault(e => binder.Name.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (element == null)
+                element = Elements.FirstOrDefault(e => binder.Name.Replace("_", " ").Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+
+            if (element != null)
+            {
+                YmlElement elt = element as YmlElement;
+                if (elt != null)
+                    result = elt.Value;
+                else
+                    result = element;
+
+                return true;
+            }
+            
+            result = null;
+            return true;
+        }
+
+        class YmlSetMemberBinder : SetMemberBinder
+        {
+            public YmlSetMemberBinder(string name, bool ignoreCase) : base(name, ignoreCase) { }
+            public override DynamicMetaObject FallbackSetMember(DynamicMetaObject target, DynamicMetaObject value, DynamicMetaObject errorSuggestion) { return null; }
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            if (value == null)
+            {
+                this.Remove(binder.Name.Replace("_", " "));
+                this.Remove(binder.Name);
+            }
+            else if (value is string || value.GetType().IsValueType)
+            {
+                string newValue = value.ToString();
+
+                if (value is bool)
+                    newValue = ((bool)value).ToString().ToLowerInvariant();
+                else if (value is decimal || value is float || value is double)
+                    newValue = ((double)value).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+                var element = Elements.FirstOrDefault(e => binder.Name.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                if (element == null)
+                {
+                    element = Elements.FirstOrDefault(e => binder.Name.Replace("_", " ").Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                    if (element != null)
+                    {
+                        this[binder.Name.Replace("_", " ")] = newValue;
+                    }
+                }
+
+                this[binder.Name] = newValue;
+            }
+            else
+            {
+                YmlContainer container = GetOrCreateContainer(binder.Name);
+
+                foreach (var item in value.GetType()
+                    .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                    .Select(pi => new { Name = pi.Name, Value = pi.GetValue(value, null) }))
+                {
+                    if (item.Value != null)
+                        container.TrySetMember(new YmlSetMemberBinder(item.Name, binder.IgnoreCase), item.Value);
+                }
+                    
+            }
+
+            return true;
+        }
+        #endregion
+
+        public YmlContainer()
+        {
+            Elements = new List<IYmlElement>();
+        }
+
+        public string Name { get; set; }
+
+        private void AddElement(IYmlElement element)
+        {
+            YmlElement last = (Elements.Count > 0 ? Elements[Elements.Count - 1] : null) as YmlElement;
+            if (last != null && string.IsNullOrEmpty(last.Name) && last.Value == "...")
             {
                 Elements.Insert(Elements.Count - 1, element);
                 return;
@@ -218,7 +303,7 @@ namespace emulatorLauncher.Tools
         {
             get
             {
-                var element = Elements.FirstOrDefault(e => !(e is YmlContainer) && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                var element = Elements.OfType<YmlElement>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (element != null)
                     return element.Value;
 
@@ -226,7 +311,7 @@ namespace emulatorLauncher.Tools
             }
             set
             {
-                var element = Elements.FirstOrDefault(e => !(e is YmlContainer) && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                var element = Elements.OfType<YmlElement>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (element == null)
                 {
                     element = new YmlElement() { Name = key };
@@ -254,14 +339,14 @@ namespace emulatorLauncher.Tools
                 Elements.Remove(element);
         }
 
-        public List<YmlElement> Elements { get; private set; }
+        public List<IYmlElement> Elements { get; private set; }
 
         public override string ToString()
         {
-            return "[Folder] " + base.ToString();
+            return "[Folder] " + (Name ?? "");
         }
 
-        public IEnumerator<YmlElement> GetEnumerator()
+        public IEnumerator<IYmlElement> GetEnumerator()
         {
             return Elements.GetEnumerator();
         }
@@ -273,15 +358,15 @@ namespace emulatorLauncher.Tools
 
         protected void SerializeTo(StringBuilder sb, int indent = 0)
         {
-            foreach (var element in Elements)
+            foreach (var item in Elements)
             {
-                YmlContainer container = element as YmlContainer;
+                YmlContainer container = item as YmlContainer;
                 if (container != null)
                 {
                     if (container.Elements.Count > 0)
                     {
                         sb.Append(new string(' ', indent * 2));
-                        sb.Append(element.Name);
+                        sb.Append(item.Name);
                         sb.AppendLine(":");
 
                         container.SerializeTo(sb, indent + 1);
@@ -289,6 +374,10 @@ namespace emulatorLauncher.Tools
 
                     continue;
                 }
+
+                YmlElement element = item as YmlElement;
+                if (element == null)
+                    continue;
 
                 if (element.Value == null)
                     continue;
@@ -373,8 +462,8 @@ namespace emulatorLauncher.Tools
                 var type = (obj is Type) ? (Type)obj : obj.GetType();
 
                 var property = type.GetProperty(ymlEntry.Name);
-                if (property != null)
-                    property.SetValue(obj, ymlEntry.Value, null);
+                if (property != null && ymlEntry is YmlElement)
+                    property.SetValue(obj, ((YmlElement)ymlEntry).Value, null);
             }
 
             return ret;
