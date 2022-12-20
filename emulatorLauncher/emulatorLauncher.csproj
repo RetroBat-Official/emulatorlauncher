@@ -284,7 +284,7 @@
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Debug (
 ECHO Copy es_features.cfg to "$(TargetDir).emulationstation"
-copy "$(SolutionDir).emulationstation\es_features.cfg" "$(TargetDir).emulationstation"
+xcopy /Y /Q "$(SolutionDir).emulationstation\es_features.cfg" "$(TargetDir).emulationstation\"
 )
 
 if $(ConfigurationName) == Release (
