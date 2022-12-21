@@ -44,17 +44,21 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            //Applying bezels
+            if (!SystemConfig.isOptSet("displaymode") || SystemConfig["displaymode"] == "0")
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            
             _resolution = resolution;
 
             List<string> commandArray = new List<string>();
 
-            //not useful for now but there might be a -forceweight and -forcewidth usage or later the specification of the config file if emulator gets portable
+            //arguments:
+            //first argument must always be the rom
+            //-localdata : specify to use the config file stored in "userdata" folder within emulator folder instead of the one in %APPDATA%
             commandArray.Add("\"" + rom + "\"");
+            commandArray.Add("-localdata");
 
             string args = string.Join(" ", commandArray);
-
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             SetupConfiguration(path);
 
@@ -69,8 +73,8 @@ namespace emulatorLauncher
         //Configuration file in json format "BigPEmuConfig.bigpcfg"
         private void SetupConfiguration(string path)
         {
-            //for now config file is located in %appdata% / bigpemu folder, however developer might make it portable
-            string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BigPEmu");
+            //open userdata config file
+            string folder = Path.Combine(path, "userdata");
             if (!Directory.Exists(folder))
             {
                 try { Directory.CreateDirectory(folder); }
