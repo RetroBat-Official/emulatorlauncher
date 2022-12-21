@@ -62,43 +62,43 @@ namespace emulatorLauncher
                     string audio_driver = "\"" + SystemConfig["apu"] + "\"";
                     if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
                         ini.AppendValue("APU", "apu", audio_driver);
-                    else
+                    else if (Features.IsSupported("apu"))
                         ini.AppendValue("APU", "apu", "\"any\"");
 
                     //Content section
                     if (SystemConfig.isOptSet("license_mask") && !string.IsNullOrEmpty(SystemConfig["license_mask"]))
                         ini.AppendValue("Content", "license_mask", SystemConfig["license_mask"]);
-                    else
+                    else if (Features.IsSupported("license_mask"))
                         ini.AppendValue("Content", "license_mask", "0");
 
                     //D3D12 section
                     if (SystemConfig.isOptSet("d3d12_clear_memory_page_state") && !string.IsNullOrEmpty(SystemConfig["d3d12_clear_memory_page_state"]))
                         ini.AppendValue("D3D12", "d3d12_clear_memory_page_state", SystemConfig["d3d12_clear_memory_page_state"]);
-                    else
+                    else if (Features.IsSupported("d3d12_clear_memory_page_state"))
                         ini.AppendValue("D3D12", "d3d12_clear_memory_page_state", "false");
 
                     if (SystemConfig.isOptSet("d3d12_allow_variable_refresh_rate_and_tearing") && !string.IsNullOrEmpty(SystemConfig["d3d12_allow_variable_refresh_rate_and_tearing"]))
                         ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", SystemConfig["d3d12_allow_variable_refresh_rate_and_tearing"]);
-                    else
+                    else if (Features.IsSupported("d3d12_allow_variable_refresh_rate_and_tearing"))
                         ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", "true");
 
                     //Display section
                     string fxaa = "\"" + SystemConfig["postprocess_antialiasing"] + "\"";
                     if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
                         ini.AppendValue("Display", "postprocess_antialiasing", fxaa);
-                    else
+                    else if (Features.IsSupported("postprocess_antialiasing"))
                         ini.AppendValue("Display", "postprocess_antialiasing", "\"\"");
 
                     if (SystemConfig.isOptSet("internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_display_resolution"]))
                         ini.AppendValue("Display", "internal_display_resolution", SystemConfig["internal_display_resolution"]);
-                    else
+                    else if (Features.IsSupported("internal_display_resolution"))
                         ini.AppendValue("Display", "internal_display_resolution", "8");
 
                     //GPU section
                     string video_driver = "\"" + SystemConfig["gpu"] + "\"";
                     if (SystemConfig.isOptSet("gpu") && !string.IsNullOrEmpty(SystemConfig["gpu"]))
                         ini.AppendValue("GPU", "gpu", video_driver);
-                    else
+                    else if (Features.IsSupported("gpu"))
                         ini.AppendValue("GPU", "gpu", "\"any\"");
 
                     if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "rtv"))
@@ -119,35 +119,35 @@ namespace emulatorLauncher
 
                     if (SystemConfig.isOptSet("gpu_allow_invalid_fetch_constants") && !string.IsNullOrEmpty(SystemConfig["gpu_allow_invalid_fetch_constants"]))
                         ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", SystemConfig["gpu_allow_invalid_fetch_constants"]);
-                    else
+                    else if (Features.IsSupported("gpu_allow_invalid_fetch_constants"))
                         ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "false");
 
                     if (SystemConfig.isOptSet("vsync") && !string.IsNullOrEmpty(SystemConfig["vsync"]))
                         ini.AppendValue("GPU", "vsync", SystemConfig["vsync"]);
-                    else
+                    else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
 
                     //Memory section
                     if (SystemConfig.isOptSet("scribble_heap") && !string.IsNullOrEmpty(SystemConfig["scribble_heap"]))
                         ini.AppendValue("Memory", "scribble_heap", SystemConfig["scribble_heap"]);
-                    else
+                    else if (Features.IsSupported("scribble_heap"))
                         ini.AppendValue("Memory", "scribble_heap", "false");
 
                     if (SystemConfig.isOptSet("protect_zero") && !string.IsNullOrEmpty(SystemConfig["protect_zero"]))
                         ini.AppendValue("Memory", "protect_zero", SystemConfig["protect_zero"]);
-                    else
+                    else if (Features.IsSupported("protect_zero"))
                         ini.AppendValue("Memory", "protect_zero", "true");
 
                     //Storage section
                     if (SystemConfig.isOptSet("mount_cache") && !string.IsNullOrEmpty(SystemConfig["mount_cache"]))
                         ini.AppendValue("Storage", "mount_cache", SystemConfig["mount_cache"]);
-                    else
+                    else if (Features.IsSupported("mount_cache"))
                         ini.AppendValue("Storage", "mount_cache", "false");
 
                     //Controllers section (HID)
                     if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
                         ini.AppendValue("HID", "hid", SystemConfig["xenia_hid"]);
-                    else
+                    else if (Features.IsSupported("xenia_hid"))
                         ini.AppendValue("HID", "hid", "any");
                 }
             }
