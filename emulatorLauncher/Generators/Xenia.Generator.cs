@@ -146,9 +146,9 @@ namespace emulatorLauncher
 
                     //Controllers section (HID)
                     if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
-                        ini.AppendValue("HID", "hid", SystemConfig["xenia_hid"]);
+                        ini.AppendValue("HID", "hid", "\"" + SystemConfig["xenia_hid"] + "\"");
                     else if (Features.IsSupported("xenia_hid"))
-                        ini.AppendValue("HID", "hid", "any");
+                        ini.AppendValue("HID", "hid", "\"any\"");
                 }
             }
             catch { }
