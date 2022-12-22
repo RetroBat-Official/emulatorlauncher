@@ -107,6 +107,9 @@ namespace emulatorLauncher
 
             DolphinControllers.WriteControllersConfig(path, system, rom);
 
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
+                rom = rom.Replace("\\", "/");
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
