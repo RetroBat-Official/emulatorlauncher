@@ -21,11 +21,18 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            //setting up command line parameters
+            var commandArray = new List<string>();
+
+            commandArray.Add("/fullscreen");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "\"" + rom + "\"",
+                Arguments = "\"" + rom + "\"" + " " + args,
             };
         }
     }
