@@ -161,8 +161,8 @@ namespace emulatorLauncher
             string devicename = joy.DeviceName;
 
             int index = Program.Controllers
-                .GroupBy(c => c.Guid)
-                .Where(c => c.Key == ctrl.Guid)
+                .GroupBy(c => c.Guid.ToLowerInvariant())
+                .Where(c => c.Key == ctrl.Guid.ToLowerInvariant())
                 .SelectMany(c => c)
                 .OrderBy(c => SdlGameController.GetControllerIndex(c))
                 .ToList()

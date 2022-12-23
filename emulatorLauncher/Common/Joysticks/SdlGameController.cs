@@ -31,6 +31,9 @@ namespace emulatorLauncher.Tools
                 ctl.Guid = new SdlJoystickGuid(guid);
                 ctl.Name = name;
 
+                var oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_0_X);
+                var newGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_26);
+
                 string hidpath = SDL.SDL_JoystickPathForIndex(i);
                 if (!string.IsNullOrEmpty(hidpath))
                 {
@@ -45,6 +48,12 @@ namespace emulatorLauncher.Tools
                 }
 
                 _controllersByPath[i.ToString().PadLeft(4, '0') + "@" + ctl.Guid.ToString()] = ctl;
+
+                if (ctl.Guid != oldGuid)
+                    _controllersByPath[i.ToString().PadLeft(4, '0') + "@" + oldGuid.ToString()] = ctl;
+
+                if (ctl.Guid != newGuid)
+                    _controllersByPath[i.ToString().PadLeft(4, '0') + "@" + newGuid.ToString()] = ctl;
 
                 if (SDL.SDL_IsGameController(i) != SDL.SDL_bool.SDL_TRUE)
                 {
@@ -73,13 +82,11 @@ namespace emulatorLauncher.Tools
 
                 _controllersByGuid[ctl.Guid] = ctl;
 
-                var oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_0_X);
                 if (ctl.Guid != oldGuid)
                     _controllersByGuid[oldGuid] = ctl;
-
-                oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_26);
-                if (ctl.Guid != oldGuid)
-                    _controllersByGuid[oldGuid] = ctl;
+                
+                if (ctl.Guid != newGuid)
+                    _controllersByGuid[newGuid] = ctl;
             }
 
             // Add all other mappings ( Debug without physical controller )
@@ -103,12 +110,13 @@ namespace emulatorLauncher.Tools
                 _controllersByGuid[ctl.Guid] = ctl;
 
                 var oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_0_X);
+                var newGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_26);
+
                 if (ctl.Guid != oldGuid)
                     _controllersByGuid[oldGuid] = ctl;
 
-                oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_26);
-                if (ctl.Guid != oldGuid)
-                    _controllersByGuid[oldGuid] = ctl;
+                if (ctl.Guid != newGuid)
+                    _controllersByGuid[newGuid] = ctl;
             }
     
             SDL.SDL_QuitSubSystem(SDL.SDL_INIT_JOYSTICK);

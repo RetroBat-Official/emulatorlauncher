@@ -595,17 +595,18 @@ namespace emulatorLauncher
                 {
                     foreach (var pi in Controllers)
                     {
-                        pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid && c.DeviceName == pi.Name);
+                        if (pi.IsKeyboard)
+                        {
+                            pi.Config = inputConfig.FirstOrDefault(c => "Keyboard".Equals(c.DeviceName, StringComparison.InvariantCultureIgnoreCase));
+                            if (pi.Config != null)
+                                continue;
+                        }
+
+                        pi.Config = inputConfig.FirstOrDefault(c => pi.CompatibleSdlGuids.Contains(c.DeviceGUID.ToLowerInvariant()) && c.DeviceName == pi.Name);
                         if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
-                        if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetSdlGuid() && c.DeviceName == pi.Name);
-                        if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetSdlGuid());
+                            pi.Config = inputConfig.FirstOrDefault(c => pi.CompatibleSdlGuids.Contains(c.DeviceGUID.ToLowerInvariant()));
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
-                        if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
                     }
 
                     Controllers.RemoveAll(c => c.Config == null);

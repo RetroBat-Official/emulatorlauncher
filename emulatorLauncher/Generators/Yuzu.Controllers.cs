@@ -52,8 +52,8 @@ namespace emulatorLauncher
             var yuzuGuid = guid.ToString().ToLowerInvariant();
 
             int index = Program.Controllers
-                    .GroupBy(c => c.Guid)
-                    .Where(c => c.Key == controller.Guid)
+                    .GroupBy(c => c.Guid.ToLowerInvariant())
+                    .Where(c => c.Key == controller.Guid.ToLowerInvariant())
                     .SelectMany(c => c)
                     .OrderBy(c => SdlGameController.GetControllerIndex(c))
                     .ToList()

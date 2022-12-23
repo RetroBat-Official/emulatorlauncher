@@ -32,6 +32,27 @@ namespace emulatorLauncher
             return Guid.ConvertSdlGuid(Name??"", version);            
         }
 
+        private HashSet<string> _compatibleSdlGuids;
+
+        /// <summary>
+        ///  Get list of all possible guids for a controller, given Sdl Version
+        /// </summary>
+        public HashSet<string> CompatibleSdlGuids
+        {
+            get
+            {
+                if (_compatibleSdlGuids == null)
+                {
+                    _compatibleSdlGuids = new HashSet<string>(typeof(SdlVersion).GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                        .Select(f => f.GetValue(null)).OfType<SdlVersion>()
+                        .Select(f => GetSdlGuid(f).ToLowerInvariant())
+                        .Distinct());
+                }
+
+                return _compatibleSdlGuids;
+            }
+        }
+
         public USB_VENDOR VendorID { get { return Guid.VendorId; } }
         public USB_PRODUCT ProductID { get { return Guid.ProductId; } }
         public SdlWrappedTechId SdlWrappedTechID { get { return Guid.WrappedTechID; } }
