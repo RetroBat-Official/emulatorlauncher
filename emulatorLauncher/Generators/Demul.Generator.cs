@@ -29,10 +29,7 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupGeneralConfig(path, rom, system, core);
-            SetupDx11Config(path, rom, system, resolution);
-
-            string demulCore = "dreamcast";
+            string demulCore = "dc";
 
             if (emulator == "demul-hikaru" || core == "hikaru")
                 demulCore = "hikaru";
@@ -58,12 +55,28 @@ namespace emulatorLauncher
                 }
             }
 
-            return new ProcessStartInfo()
+            SetupGeneralConfig(path, rom, system, core, demulCore);
+            SetupDx11Config(path, rom, system, resolution);
+
+            if (demulCore == "dc")
             {
-                FileName = exe,
-                WorkingDirectory = path,                
-                Arguments = "-run=" + demulCore + " -rom=\"" + Path.GetFileNameWithoutExtension(rom).ToLower() + "\"",
-            };
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = path,
+                    Arguments = "-run=" + demulCore + " -image=\"" + rom + "\"",
+                };
+            }
+
+            else
+            {
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = path,
+                    Arguments = "-run=" + demulCore + " -rom=\"" + Path.GetFileNameWithoutExtension(rom).ToLower() + "\"",
+                };
+            }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -100,7 +113,7 @@ namespace emulatorLauncher
             return -1;
         }
 
-        private void SetupGeneralConfig(string path, string rom, string system, string core)
+        private void SetupGeneralConfig(string path, string rom, string system, string core, string demulCore)
         {
             string iniFile = Path.Combine(path, "Demul.ini");
 
@@ -108,9 +121,16 @@ namespace emulatorLauncher
             {
                 using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces))
                 {
-                    ini.WriteValue("files", "roms0", AppConfig.GetFullPath("bios"));
-                    ini.WriteValue("files", "roms1", Path.GetDirectoryName(rom));
-                    ini.WriteValue("files", "romsPathsCount", "2");
+                    
+                    ini.WriteValue("files", "roms0", Path.Combine(AppConfig.GetFullPath("bios"), "dc"));
+                    ini.WriteValue("files", "roms1", AppConfig.GetFullPath("bios"));
+                    ini.WriteValue("files", "roms2", Path.Combine(AppConfig.GetFullPath("roms"), "dreamcast"));
+                    ini.WriteValue("files", "roms3", Path.Combine(AppConfig.GetFullPath("roms"), "naomi2"));
+                    ini.WriteValue("files", "roms4", Path.Combine(AppConfig.GetFullPath("roms"), "hikaru"));
+                    ini.WriteValue("files", "roms5", Path.Combine(AppConfig.GetFullPath("roms"), "gaelco"));
+                    ini.WriteValue("files", "roms6", Path.Combine(AppConfig.GetFullPath("roms"), "atomiswave"));
+                    ini.WriteValue("files", "roms7", Path.Combine(AppConfig.GetFullPath("roms"), "naomi"));
+                    ini.WriteValue("files", "romsPathsCount", "8");
 
                     ini.WriteValue("plugins", "directory", @".\plugins\");
 
@@ -123,17 +143,42 @@ namespace emulatorLauncher
 
                     ini.WriteValue("plugins", "gpu", gpu);
 
-                    if (string.IsNullOrEmpty(ini.GetValue("plugins", "gpu")))
+                    if (string.IsNullOrEmpty(ini.GetValue("plugins", "pad")))
                         ini.WriteValue("plugins", "pad", "padDemul.dll");
 
-                    if (string.IsNullOrEmpty(ini.GetValue("plugins", "gdr")))
+                    if (demulCore == "dc" && Path.GetExtension(rom).ToLower() == ".chd")
                         ini.WriteValue("plugins", "gdr", "gdrCHD.dll");
+                    else
+                        ini.WriteValue("plugins", "gdr", "gdrimage.dll");
 
                     if (string.IsNullOrEmpty(ini.GetValue("plugins", "spu")))
                         ini.WriteValue("plugins", "spu", "spuDemul.dll");
 
                     if (ini.GetValue("plugins", "net") == null)
                         ini.WriteValue("plugins", "net", "netDemul.dll");
+
+                    if (SystemConfig.isOptSet("cpumode") && !string.IsNullOrEmpty(SystemConfig["cpumode"]))
+                        ini.WriteValue("main", "cpumode", SystemConfig["cpumode"]);
+                    else if (Features.IsSupported("cpumode"))
+                        ini.WriteValue("main", "cpumode", "1");
+
+                    if (SystemConfig.isOptSet("videomode") && !string.IsNullOrEmpty(SystemConfig["videomode"]))
+                        ini.WriteValue("main", "videomode", SystemConfig["videomode"]);
+                    else if (Features.IsSupported("videomode"))
+                        ini.WriteValue("main", "videomode", "1024");
+
+                    if (SystemConfig.isOptSet("dc_region") && !string.IsNullOrEmpty(SystemConfig["dc_region"]))
+                        ini.WriteValue("main", "region", SystemConfig["dc_region"]);
+                    else if (Features.IsSupported("dc_region"))
+                        ini.WriteValue("main", "region", "1");
+
+                    if (SystemConfig.isOptSet("dc_broadcast") && !string.IsNullOrEmpty(SystemConfig["dc_broadcast"]))
+                        ini.WriteValue("main", "broadcast", SystemConfig["dc_broadcast"]);
+                    else if (Features.IsSupported("dc_broadcast"))
+                        ini.WriteValue("main", "broadcast", "1");
+
+                    ini.WriteValue("main", "timehack", SystemConfig["timehack"] != "false" ? "true" : "false");
+
                 }
             }
 
@@ -153,10 +198,15 @@ namespace emulatorLauncher
 
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
-                    ini.WriteValue("main", "UseFullscreen", "0");
+                    ini.WriteValue("main", "UseFullscreen", SystemConfig["startfullscreen"] != "false" ? "1" : "0");
                     ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
-                    ini.WriteValue("resolution", "Height", resolution.Height.ToString());            
+                    ini.WriteValue("resolution", "Height", resolution.Height.ToString());
+                    
+                    if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
+                        ini.WriteValue("main", "aspect", SystemConfig["ratio"]);
+                    else if (Features.IsSupported("ratio"))
+                        ini.WriteValue("main", "aspect", "1");
                 }
             }
 
