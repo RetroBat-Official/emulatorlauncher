@@ -134,6 +134,7 @@ namespace emulatorLauncher
                     var romsPaths = new List<string>();
                     romsPaths.Add(Path.Combine(biosPath, "dc"));
                     romsPaths.Add(biosPath);
+                    romsPaths.Add(Path.GetDirectoryName(rom));
 
                     foreach (var sys in new string[] { "dreamcast", "naomi", "naomi2", "hikaru", "gaelco", "atomiswave" })
                     {
