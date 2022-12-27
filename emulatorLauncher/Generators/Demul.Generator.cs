@@ -44,14 +44,16 @@ namespace emulatorLauncher
                 switch (system)
                 {
                     case "hikaru":
-                        demulCore = "hikaru"; break;
                     case "gaelco":
-                        demulCore = "gaelco"; break;
                     case "naomi":
+                        demulCore = system;
+                        break;
                     case "naomi2":
-                        demulCore = "naomi"; break;
+                        demulCore = "naomi"; 
+                        break;
                     case "atomiswave":
-                        demulCore = "awave"; break;
+                        demulCore = "awave"; 
+                        break;
                 }
             }
 
@@ -68,15 +70,12 @@ namespace emulatorLauncher
                 };
             }
 
-            else
+            return new ProcessStartInfo()
             {
-                return new ProcessStartInfo()
-                {
-                    FileName = exe,
-                    WorkingDirectory = path,
-                    Arguments = "-run=" + demulCore + " -rom=\"" + Path.GetFileNameWithoutExtension(rom).ToLower() + "\"",
-                };
-            }
+                FileName = exe,
+                WorkingDirectory = path,
+                Arguments = "-run=" + demulCore + " -rom=\"" + Path.GetFileNameWithoutExtension(rom).ToLower() + "\"",
+            };            
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -97,8 +96,11 @@ namespace emulatorLauncher
                 
                 var name = User32.GetWindowText(hWnd);
                 if (name != null && name.StartsWith("gpu"))
-                {                    
-                    SendKeys.SendWait("%~");
+                {
+                    var style = User32.GetWindowStyle(hWnd);
+                    if (style.HasFlag(WS.CAPTION))
+                        SendKeys.SendWait("%~");
+
                     break;
                 }
             }
@@ -121,17 +123,31 @@ namespace emulatorLauncher
             {
                 using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces))
                 {
-                    
-                    ini.WriteValue("files", "roms0", Path.Combine(AppConfig.GetFullPath("bios"), "dc"));
-                    ini.WriteValue("files", "roms1", AppConfig.GetFullPath("bios"));
-                    ini.WriteValue("files", "roms2", Path.Combine(AppConfig.GetFullPath("roms"), "dreamcast"));
-                    ini.WriteValue("files", "roms3", Path.Combine(AppConfig.GetFullPath("roms"), "naomi2"));
-                    ini.WriteValue("files", "roms4", Path.Combine(AppConfig.GetFullPath("roms"), "hikaru"));
-                    ini.WriteValue("files", "roms5", Path.Combine(AppConfig.GetFullPath("roms"), "gaelco"));
-                    ini.WriteValue("files", "roms6", Path.Combine(AppConfig.GetFullPath("roms"), "atomiswave"));
-                    ini.WriteValue("files", "roms7", Path.Combine(AppConfig.GetFullPath("roms"), "naomi"));
-                    ini.WriteValue("files", "romsPathsCount", "8");
+                    // Set Window position to screen center
+                    ini.WriteValue("main", "windowX", (Screen.PrimaryScreen.Bounds.Left + (Screen.PrimaryScreen.Bounds.Width - 646) / 2).ToString());
+                    ini.WriteValue("main", "windowY", (Screen.PrimaryScreen.Bounds.Top + (Screen.PrimaryScreen.Bounds.Height - 529) / 2).ToString());
 
+                    // Rom paths
+                    var biosPath = AppConfig.GetFullPath("bios");
+                    var romsPath = AppConfig.GetFullPath("roms");
+                    
+                    var romsPaths = new List<string>();
+                    romsPaths.Add(Path.Combine(biosPath, "dc"));
+                    romsPaths.Add(biosPath);
+
+                    foreach (var sys in new string[] { "dreamcast", "naomi", "naomi2", "hikaru", "gaelco", "atomiswave" })
+                    {
+                        var sysPath = Path.Combine(romsPath, sys);
+                        if (Directory.Exists(sysPath) && !romsPaths.Contains(sysPath))
+                            romsPaths.Add(sysPath);
+                    }
+
+                    for(int i = 0 ; i < romsPaths.Count ; i++)
+                        ini.WriteValue("files", "roms" + i, romsPaths[i]);
+
+                    ini.WriteValue("files", "romsPathsCount", romsPaths.Count.ToString());
+
+                    // Plugins
                     ini.WriteValue("plugins", "directory", @".\plugins\");
 
                     string gpu = "gpuDX11.dll";
@@ -178,10 +194,8 @@ namespace emulatorLauncher
                         ini.WriteValue("main", "broadcast", "1");
 
                     ini.WriteValue("main", "timehack", SystemConfig["timehack"] != "false" ? "true" : "false");
-
                 }
             }
-
             catch { }
         }
 
@@ -198,7 +212,7 @@ namespace emulatorLauncher
 
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
-                    ini.WriteValue("main", "UseFullscreen", SystemConfig["startfullscreen"] != "false" ? "1" : "0");
+                    ini.WriteValue("main", "UseFullscreen", "1");
                     ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
                     ini.WriteValue("resolution", "Height", resolution.Height.ToString());
@@ -209,7 +223,6 @@ namespace emulatorLauncher
                         ini.WriteValue("main", "aspect", "1");
                 }
             }
-
             catch { }
         }
     }
