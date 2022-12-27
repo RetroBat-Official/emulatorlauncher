@@ -151,6 +151,9 @@ namespace emulatorLauncher
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        public static extern int ShowWindow(IntPtr hWnd, SW cmdShow);
     }
 
     public static class Kernel32
@@ -323,4 +326,19 @@ namespace emulatorLauncher
         ASYNCWINDOWPOS = 0x4000
     }
 
+    public enum SW
+    {
+        HIDE = 0,
+        SHOWNORMAL = 1,
+        SHOWMINIMIZED = 2,
+        SHOWMAXIMIZED = 3,
+        SHOWNOACTIVATE = 4,
+        SHOW = 5,
+        MINIMIZE = 6,
+        SHOWMINNOACTIVE = 7,
+        SHOWNA = 8,
+        RESTORE = 9,
+        SHOWDEFAULT = 10,
+        FORCEMINIMIZE = 11
+    }
 }
