@@ -28,7 +28,10 @@ namespace emulatorLauncher.PadToKeyboard
         {
             bool joy2Key = Process.GetProcessesByName("JoyToKey").Length > 0;
             if (joy2Key)
+            {
+                SimpleLogger.Instance.Info("[JoystickListener] JoyToKey is running : disabling pad2key");
                 return;
+            }
 
             _inputList = inputList;
             _mapping = mapping;
