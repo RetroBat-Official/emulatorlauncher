@@ -277,9 +277,14 @@ namespace emulatorLauncher.Tools
             Elements.Add(element);
         }
 
+        public YmlContainer GetContainer(string key)
+        {
+            return Elements.OfType<YmlContainer>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+        }
+
         public YmlContainer GetOrCreateContainer(string key)
         {
-            var element = Elements.OfType<YmlContainer>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+            var element = GetContainer(key);
             if (element == null)
             {
                 element = new YmlContainer() { Name = key };
@@ -292,7 +297,7 @@ namespace emulatorLauncher.Tools
                     Elements.Remove(item);
                     Elements.Insert(pos, element);
                 }
-                else                
+                else
                     AddElement(element);
             }
 

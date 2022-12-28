@@ -653,13 +653,12 @@ namespace emulatorLauncher
                 string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
                 if (File.Exists(path))
                 {
-                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"]);
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"]);
                     if (!string.IsNullOrEmpty(renderconfig))
                         SystemConfig["shader"] = renderconfig;
                 }
             }
         }
-
 
         /// <summary>
         /// To use with Environment.ExitCode = (int)ExitCodes.CustomError;

@@ -14,6 +14,7 @@ namespace emulatorLauncher
     class DemulGenerator : Generator
     {
         private bool _oldVersion = false;
+        private bool _isUsingReshader = false;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
@@ -59,15 +60,19 @@ namespace emulatorLauncher
                 }
             }
 
-            SetupGeneralConfig(path, rom, system, core, demulCore);
-            SetupDx11Config(path, rom, system, resolution);
-
             // Allow fake decorations if ratio is set to 4/3
             if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] == "1")
             {
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                if (ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x86, system, rom, path, resolution))
+                    _isUsingReshader = true;
+                else
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
                 _resolution = resolution;
             }
+
+            SetupGeneralConfig(path, rom, system, core, demulCore);
+            SetupDx11Config(path, rom, system, resolution);
 
             if (demulCore == "dc")
             {
@@ -115,18 +120,21 @@ namespace emulatorLauncher
                     var style = User32.GetWindowStyle(hWnd);
                     if (style.HasFlag(WS.CAPTION))
                     {
-                        int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
-                        int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
-                        style &= ~WS.CAPTION;
-                        style &= ~WS.BORDER;
-                        style &= ~WS.DLGFRAME;
-                        style &= ~WS.SYSMENU;
+                        if (_isUsingReshader)
+                            SendKeys.SendWait("%~");
+                        else
+                        {
+                            int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
+                            int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
+                            style &= ~WS.CAPTION;
+                            style &= ~WS.BORDER;
+                            style &= ~WS.DLGFRAME;
+                            style &= ~WS.SYSMENU;
 
-                        User32.SetWindowStyle(hWnd, style);
-                        User32.SetMenu(hWnd, IntPtr.Zero);
-                        User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
-
-                        //SendKeys.SendWait("%~");
+                            User32.SetWindowStyle(hWnd, style);
+                            User32.SetMenu(hWnd, IntPtr.Zero);
+                            User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
+                        }                        
                     }
 
                     break;
@@ -248,7 +256,7 @@ namespace emulatorLauncher
 
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
-                    ini.WriteValue("main", "UseFullscreen", "0");
+                    ini.WriteValue("main", "UseFullscreen", _isUsingReshader ? "1" : "0");
                     ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
                     ini.WriteValue("resolution", "Height", resolution.Height.ToString());

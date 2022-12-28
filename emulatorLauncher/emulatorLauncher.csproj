@@ -275,6 +275,8 @@
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />
     <None Include="Resources\mamecrcs.xml.gz" />
+    <None Include="Resources\reshader.x64.gz" />
+    <None Include="Resources\reshader.x86.gz" />
     <None Include="Resources\xbox_hdd.qcow2.zip" />
   </ItemGroup>
   <ItemGroup>

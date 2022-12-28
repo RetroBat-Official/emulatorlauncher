@@ -327,6 +327,26 @@ namespace emulatorLauncher.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] reshader_x64_gz {
+            get {
+                object obj = ResourceManager.GetObject("reshader_x64_gz", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] reshader_x86_gz {
+            get {
+                object obj = ResourceManager.GetObject("reshader_x86_gz", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] ReShadeUI {
             get {
                 object obj = ResourceManager.GetObject("ReShadeUI", resourceCulture);

@@ -6,6 +6,9 @@ using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
+using System.IO.Compression;
+using System.ComponentModel;
+using System.Reflection;
 
 namespace emulatorLauncher
 {
@@ -13,14 +16,24 @@ namespace emulatorLauncher
     {
         // -system model2 -emulator model2 -core multicpu -rom "H:\[Emulz]\roms\model2\dayton93.zip"
         // -system model3 -emulator supermodel -core  -rom "H:\[Emulz]\roms\model3\srally2.zip"
-        public static bool Setup(ReshadeBezelType type, string system, string rom, string path, ScreenResolution resolution)
+        public static bool Setup(ReshadeBezelType type, ReshadePlatform platform, string system, string rom, string path, ScreenResolution resolution)
         {
             FileInfo fileInfo = null;
 
-            if (type == ReshadeBezelType.d3d9)
-                fileInfo = new FileInfo(Path.Combine(path, "d3d9.dll"));
-            else if (type == ReshadeBezelType.opengl)
-                fileInfo = new FileInfo(Path.Combine(path, "opengl32.dll"));
+            string dllName = Path.Combine(path, GetEnumDescription(type));
+
+            fileInfo = new FileInfo(dllName);
+
+            // Install reshader if not installed
+            if (fileInfo == null || !fileInfo.Exists)
+            {
+                if (platform == ReshadePlatform.x86)
+                    GZipBytesToFile(Properties.Resources.reshader_x86_gz, Path.Combine(path, dllName));
+                else
+                    GZipBytesToFile(Properties.Resources.reshader_x64_gz, Path.Combine(path, dllName));
+
+                fileInfo = new FileInfo(dllName);
+            }
 
             if (fileInfo == null || !fileInfo.Exists)
                 return false;
@@ -29,12 +42,11 @@ namespace emulatorLauncher
 
             bool oldVersion = new Version(version.ProductMajorPart, version.ProductMinorPart) <= new Version(4, 6);
 
-            List<string> knownTechniques = LoadKnownTechniques(oldVersion);
+            var knownTechniques = LoadKnownTechniques(oldVersion);
 
             if (!File.Exists(Path.Combine(path, "ReShade.ini")))
                 File.WriteAllText(Path.Combine(path, "ReShade.ini"), Properties.Resources.ReShadeIni);
-
-
+            
             var bezel = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             using (IniFile reShadeIni = new IniFile(Path.Combine(path, "ReShade.ini")))
@@ -146,7 +158,7 @@ namespace emulatorLauncher
             return true;
         }
 
-        private static List<string> LoadKnownTechniques(bool oldVersion)
+        static List<string> LoadKnownTechniques(bool oldVersion)
         {
             List<string> knownTechniques = new List<string>() { "Bezel@Bezel.fx" };
 
@@ -177,16 +189,64 @@ namespace emulatorLauncher
                     if (tsplit >= 0)
                         knownTechniques[i] = tmp.Substring(0, tsplit);
                 }
-            }
+            }            
 
             return knownTechniques;
+        }
+
+        static bool GZipBytesToFile(byte[] bytes, string fileName)
+        {
+            try
+            {
+                using (var reader = new MemoryStream(bytes))
+                {
+                    using (var decompressedStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                    {
+                        using (GZipStream decompressionStream = new GZipStream(reader, CompressionMode.Decompress))
+                        {
+                            decompressionStream.CopyTo(decompressedStream);
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[ReadGZipStream] Failed " + ex.Message, ex);
+            }
+
+            return false;
+        }
+
+        static string GetEnumDescription(Enum value)
+        {
+            FieldInfo fi = value.GetType().GetField(value.ToString());
+            if (fi == null)
+                return value.ToString();
+
+            var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            return (attributes.Length > 0) ? attributes[0].Description : value.ToString();
         }
     }
 
     enum ReshadeBezelType
     {
+        [Description("d3d9.dll")]
         d3d9,
-        opengl
+        [Description("d3d10.dll")]
+        d3d10,
+        [Description("d3d11.dll")]
+        d3d11,
+        [Description("opengl32.dll")]
+        opengl,
+        [Description("dxgi.dll")]
+        dxgi
+    }
+
+    enum ReshadePlatform
+    {
+        x86,
+        x64
     }
 
 }

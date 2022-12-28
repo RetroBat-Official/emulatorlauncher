@@ -125,7 +125,7 @@ namespace emulatorLauncher
             
             _resolution = resolution;
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, system, rom, path, resolution))
+            if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path,  resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             SetupConfig(path, resolution);

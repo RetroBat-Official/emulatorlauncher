@@ -41,7 +41,7 @@ namespace emulatorLauncher
             bool wideScreen = SystemConfig["widescreen"] == "1" || SystemConfig["widescreen"] == "2" || (!SystemConfig.isOptSet("widescreen") && isWideScreen);
             if (wideScreen)
             {
-                ReshadeManager.Setup(ReshadeBezelType.opengl, null, null, path, resolution);
+                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, null, null, path, resolution);
 
                 args.Add("-fullscreen");
 
@@ -52,7 +52,7 @@ namespace emulatorLauncher
             }
             else
             {
-                if (ReshadeManager.Setup(ReshadeBezelType.opengl, system, rom, path, resolution))
+                if (ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
                     args.Add("-fullscreen");
                 else
                 {
