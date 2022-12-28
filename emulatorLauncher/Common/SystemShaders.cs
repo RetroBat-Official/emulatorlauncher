@@ -29,7 +29,7 @@ namespace emulatorLauncher
 
 				foreach (var si in container.OfType<YmlElement>())
 				{								
-					if ((string.IsNullOrEmpty(emulator) || emulator == system || emulator == "libretro") && si.Name == "shader")
+					if (emulator == "libretro" && si.Name == "shader")
 						found = true;
 					else if (!string.IsNullOrEmpty(emulator) && !string.IsNullOrEmpty(core) && si.Name == emulator + "." + core)
 						found = true;
