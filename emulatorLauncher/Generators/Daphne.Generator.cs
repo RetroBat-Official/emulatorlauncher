@@ -47,7 +47,7 @@ namespace emulatorLauncher
                     commandArray.Add("-ignore_aspect_ratio");
                 else
                     commandArray.Add("-force_aspect_ratio");
-
+/*
                 if (SystemConfig.isOptSet("hypseus_scanlines") && SystemConfig["hypseus_scanlines"] == "scanlines")
                     commandArray.Add("-scanlines");
 
@@ -57,7 +57,7 @@ namespace emulatorLauncher
                     commandArray.Add("-vulkan");
 
                 }
-
+                */
                 return;
             }
         }
@@ -224,6 +224,17 @@ namespace emulatorLauncher
                     commandArray.Add(s);
                 }
             }
+
+            if (SystemConfig["ratio"] == "16/9")
+                SystemConfig["bezel"] = "none";
+
+            if (_executableName == "hypseus")
+            {
+                //if (SystemConfig["hypseus_renderer"] != "vulkan")
+                    ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, emulatorPath, resolution);
+            }
+            else
+                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, emulatorPath, resolution);
 
             string args = string.Join(" ", commandArray);
 

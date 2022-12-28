@@ -202,7 +202,7 @@ namespace emulatorLauncher
 
             StringBuilder sb = new StringBuilder();
 
-            foreach (var section in _sections)
+            foreach (var section in _sections.OrderBy(s => !string.IsNullOrEmpty(s.Name)))
             {
                 if (!string.IsNullOrEmpty(section.Name) && section.Name != "ROOT" && section.Any())
                     sb.AppendLine("[" + section.Name + "]");

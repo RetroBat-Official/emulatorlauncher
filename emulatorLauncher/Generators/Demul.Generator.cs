@@ -60,14 +60,15 @@ namespace emulatorLauncher
                 }
             }
 
-            // Allow fake decorations if ratio is set to 4/3
-            if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] == "1")
-            {
-                if (ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x86, system, rom, path, resolution))
-                    _isUsingReshader = true;
-                else
-                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            // Allow fake decorations if ratio is set to 4/3, otherwise disable bezels
+            if (SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] != "1")
+                SystemConfig["bezel"] = "none";
 
+            _isUsingReshader = ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x86, system, rom, path, resolution);
+
+            if (!_isUsingReshader)
+            {
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
                 _resolution = resolution;
             }
 
