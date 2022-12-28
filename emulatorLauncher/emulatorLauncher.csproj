@@ -152,6 +152,9 @@
     <Compile Include="Generators\Cxbx.Generator.cs" />
     <Compile Include="Generators\SimCoupe.Generator.cs" />
     <Compile Include="Generators\Model3.Generator.cs" />
+    <Compile Include="Generators\Model3.Controllers.cs">
+      <DependentUpon>Model3.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Dolphin.Generator.cs" />
     <Compile Include="Generators\Dolphin.Controllers.cs">
       <DependentUpon>Dolphin.Generator.cs</DependentUpon>
