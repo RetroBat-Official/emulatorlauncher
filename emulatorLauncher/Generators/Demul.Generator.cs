@@ -13,7 +13,9 @@ namespace emulatorLauncher
 {
     class DemulGenerator : Generator
     {
-        bool _oldVersion = false;
+        private bool _oldVersion = false;
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -60,6 +62,13 @@ namespace emulatorLauncher
             SetupGeneralConfig(path, rom, system, core, demulCore);
             SetupDx11Config(path, rom, system, resolution);
 
+            // Allow fake decorations if ratio is set to 4/3
+            if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] == "1")
+            {
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                _resolution = resolution;
+            }
+
             if (demulCore == "dc")
             {
                 return new ProcessStartInfo()
@@ -80,6 +89,12 @@ namespace emulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            path.WindowStyle = ProcessWindowStyle.Maximized;
             var process = Process.Start(path);
 
             while (process != null)
@@ -99,7 +114,20 @@ namespace emulatorLauncher
                 {
                     var style = User32.GetWindowStyle(hWnd);
                     if (style.HasFlag(WS.CAPTION))
-                        SendKeys.SendWait("%~");
+                    {
+                        int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
+                        int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
+                        style &= ~WS.CAPTION;
+                        style &= ~WS.BORDER;
+                        style &= ~WS.DLGFRAME;
+                        style &= ~WS.SYSMENU;
+
+                        User32.SetWindowStyle(hWnd, style);
+                        User32.SetMenu(hWnd, IntPtr.Zero);
+                        User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
+
+                        //SendKeys.SendWait("%~");
+                    }
 
                     break;
                 }
@@ -108,9 +136,16 @@ namespace emulatorLauncher
             if (process != null)
             {
                 process.WaitForExit();
+
+                if (bezel != null)
+                    bezel.Dispose();
+
                 try { return process.ExitCode; }
                 catch { }
             }
+            
+            if (bezel != null)
+                bezel.Dispose();
 
             return -1;
         }
@@ -124,8 +159,8 @@ namespace emulatorLauncher
                 using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces))
                 {
                     // Set Window position to screen center
-                    ini.WriteValue("main", "windowX", (Screen.PrimaryScreen.Bounds.Left + (Screen.PrimaryScreen.Bounds.Width - 646) / 2).ToString());
-                    ini.WriteValue("main", "windowY", (Screen.PrimaryScreen.Bounds.Top + (Screen.PrimaryScreen.Bounds.Height - 529) / 2).ToString());
+                    ini.WriteValue("main", "windowX", Screen.PrimaryScreen.Bounds.Left.ToString());
+                    ini.WriteValue("main", "windowY", Screen.PrimaryScreen.Bounds.Top.ToString());
 
                     // Rom paths
                     var biosPath = AppConfig.GetFullPath("bios");
@@ -213,7 +248,7 @@ namespace emulatorLauncher
 
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
-                    ini.WriteValue("main", "UseFullscreen", "1");
+                    ini.WriteValue("main", "UseFullscreen", "0");
                     ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
                     ini.WriteValue("resolution", "Height", resolution.Height.ToString());
@@ -222,6 +257,11 @@ namespace emulatorLauncher
                         ini.WriteValue("main", "aspect", SystemConfig["ratio"]);
                     else if (Features.IsSupported("ratio"))
                         ini.WriteValue("main", "aspect", "1");
+
+                    if (SystemConfig.isOptSet("smooth"))
+                        ini.WriteValue("main", "bilinearfb", SystemConfig.getOptBoolean("smooth") ? "true" : "false");
+                    else if (Features.IsSupported("ratio"))
+                        ini.WriteValue("main", "bilinearfb", "true");
                 }
             }
             catch { }
