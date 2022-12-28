@@ -202,7 +202,7 @@ namespace emulatorLauncher
 
             StringBuilder sb = new StringBuilder();
 
-            foreach (var section in _sections.OrderBy(s => !string.IsNullOrEmpty(s.Name)))
+            foreach (var section in _sections)
             {
                 if (!string.IsNullOrEmpty(section.Name) && section.Name != "ROOT" && section.Any())
                     sb.AppendLine("[" + section.Name + "]");
@@ -430,7 +430,11 @@ namespace emulatorLauncher
                 if (section == null)
                 {
                     section = new Section() { Name = sectionName };
-                    _sections.Add(section);
+
+                    if ((string.IsNullOrEmpty(sectionName) || sectionName == "ROOT") && _sections.Count > 0)
+                        _sections.Insert(0, section);
+                    else
+                        _sections.Add(section);
                 }
 
                 return section;
