@@ -45,7 +45,7 @@ namespace emulatorLauncher
                 {
                     FileName = exe,
                     WorkingDirectory = path,
-                    Arguments = "--fullscreen --rendermode opengl --aratio no --disk \"" + rom + "\"",
+                    Arguments = "--fullscreen --rendermode opengl --disk \"" + rom + "\"",
                 };
             }
 
@@ -53,7 +53,7 @@ namespace emulatorLauncher
 				{
 					FileName = exe,
 					WorkingDirectory = path,
-                    Arguments = "--fullscreen --rendermode opengl --aratio no --turbotape on --tape \"" + rom + "\"",
+                    Arguments = "--fullscreen --rendermode opengl --turbotape on --tape \"" + rom + "\"",
 				};
         }
 

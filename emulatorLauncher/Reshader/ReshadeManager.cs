@@ -27,6 +27,16 @@ namespace emulatorLauncher
             // Install reshader if not installed
             if (fileInfo == null || !fileInfo.Exists)
             {
+                try
+                {
+                    if (File.Exists(Path.Combine(path, "ReShade.ini")))
+                        File.Delete(Path.Combine(path, "ReShade.ini"));
+
+                    if (File.Exists(Path.Combine(path, "ReShadePreset.ini")))
+                        File.Delete(Path.Combine(path, "ReShadePreset.ini"));
+                }
+                catch { }
+                
                 if (platform == ReshadePlatform.x86)
                     GZipBytesToFile(Properties.Resources.reshader_x86_gz, Path.Combine(path, dllName));
                 else
@@ -57,6 +67,12 @@ namespace emulatorLauncher
 
                 if (effectSearchPaths != null && effectSearchPaths.StartsWith(".\\"))
                     effectSearchPaths = path + effectSearchPaths.Substring(1);
+
+                if (effectSearchPaths == null)
+                {
+                    effectSearchPaths = @".\reshade-shaders\Shaders";
+                    reShadeIni.WriteValue("GENERAL", "EffectSearchPaths", effectSearchPaths);
+                }
 
                 Directory.CreateDirectory(effectSearchPaths);
 
