@@ -10,6 +10,11 @@ namespace emulatorLauncher
 {
     class AppleWinGenerator : Generator
     {
+        public AppleWinGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
