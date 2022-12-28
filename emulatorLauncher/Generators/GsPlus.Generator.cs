@@ -10,6 +10,11 @@ namespace emulatorLauncher
 {
     class GsPlusGenerator : Generator
     {
+        public GsPlusGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
