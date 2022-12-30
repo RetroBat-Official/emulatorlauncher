@@ -64,11 +64,16 @@ namespace emulatorLauncher
             if (SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] != "1")
                 SystemConfig["bezel"] = "none";
 
-            _isUsingReshader = ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x86, system, rom, path, resolution);
-
-            if (!_isUsingReshader)
+            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _isUsingReshader = ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x86, system, rom, path, resolution, bezels != null);
+            if (_isUsingReshader)
             {
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                if (bezels != null) 
+                    SystemConfig["ratio"] = "0"; // Force stretch mode if bezel is used
+            }
+            else 
+            {
+                _bezelFileInfo = bezels;
                 _resolution = resolution;
             }
 
@@ -202,6 +207,12 @@ namespace emulatorLauncher
                         gpu = "gpuDX11old.dll";
                     }
 
+                    if (Features.IsSupported("internal_resolution") && SystemConfig.isOptSet("internal_resolution") && SystemConfig["internal_resolution"] != "1")
+                    {
+                        _videoDriverName = "gpuDX11old";
+                        gpu = "gpuDX11old.dll";
+                    }
+
                     ini.WriteValue("plugins", "gpu", gpu);
 
                     if (string.IsNullOrEmpty(ini.GetValue("plugins", "pad")))
@@ -247,7 +258,7 @@ namespace emulatorLauncher
         private string _videoDriverName = "gpuDX11";
 
         private void SetupDx11Config(string path, string rom, string system, ScreenResolution resolution)
-        {
+        {                                
             string iniFile = Path.Combine(path, _videoDriverName + ".ini");
 
             try
@@ -261,7 +272,12 @@ namespace emulatorLauncher
                     ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
                     ini.WriteValue("resolution", "Height", resolution.Height.ToString());
-                    
+
+                    if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
+                        ini.WriteValue("main", "scaling", SystemConfig["internal_resolution"]);
+                    else if (Features.IsSupported("internal_resolution"))
+                        ini.WriteValue("main", "scaling", "1");
+
                     if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                         ini.WriteValue("main", "aspect", SystemConfig["ratio"]);
                     else if (Features.IsSupported("ratio"))

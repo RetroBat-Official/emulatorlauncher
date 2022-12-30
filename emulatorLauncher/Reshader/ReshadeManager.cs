@@ -20,7 +20,7 @@ namespace emulatorLauncher
         // -system model3 -emulator supermodel -core  -rom "H:\[Emulz]\roms\model3\srally2.zip"
         // -system atomiswave -emulator demul -core atomiswave -rom "H:\[Emulz]\roms\atomiswave\fotns.zip"
 
-        public static bool Setup(ReshadeBezelType type, ReshadePlatform platform, string system, string rom, string path, ScreenResolution resolution)
+        public static bool Setup(ReshadeBezelType type, ReshadePlatform platform, string system, string rom, string path, ScreenResolution resolution, bool displayIsStretched = false)
         {
             var bezel = BezelFiles.GetBezelFiles(system, rom, resolution);
             string shaderName = Program.SystemConfig["shader"] ?? "";
@@ -93,6 +93,8 @@ namespace emulatorLauncher
                         }
                     }
 
+                    float displayH = 1.0f;
+
                     if (bezel != null)
                     {
                         int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
@@ -106,22 +108,53 @@ namespace emulatorLauncher
                         File.WriteAllText(Path.Combine(effectSearchPaths, "Bezel.fx"), bezelFx);
 
                         techniques.Add(bezelEffectName);
+
+                        float displayW = displayIsStretched ? 3f / 4f : 1.0f;
+
+                        var bezelEffect = reShadePreset.GetOrCreateSection("Bezel.fx");
+
+                        BezelInfo infos = bezel.BezelInfos;
+                        if (infos != null && infos.IsValid())
+                        {
+                            displayW = ((float)infos.width.Value - (float)infos.right.Value - (float)infos.left.Value) / (float)infos.width.Value;
+                            displayH = ((float)infos.height.Value - (float)infos.bottom.Value - (float)infos.top.Value) / (float)infos.height.Value;
+
+                            if (!displayIsStretched)
+                            {
+                                float fourtiers = 4f / 3f;
+                                displayW *= fourtiers;
+                            }
+
+                            float currentLeft = ((float)infos.width.Value / 2.0f) - ((float)infos.width.Value - (float)infos.right.Value - (float)infos.left.Value) / 2.0f;
+                            float currentTop = ((float)infos.height.Value / 2.0f) - ((float)infos.height.Value - (float)infos.bottom.Value - (float)infos.top.Value) / 2.0f;
+
+                            float offX = (infos.left.Value - currentLeft) / infos.width.Value / displayW;
+                            float offY = (infos.top.Value - currentTop) / infos.height.Value / displayH;
+
+                            string trans = (offX * 100f).ToString("N6", System.Globalization.CultureInfo.InvariantCulture) + "," + (offY * 100f).ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
+                            bezelEffect["GameScreen_trans"] = trans;                 
+                        }
+                        else                      
+                            bezelEffect["GameScreen_trans"] = "0.000000,0.000000";
+
+                        string sz = (displayW*100f).ToString("N6", System.Globalization.CultureInfo.InvariantCulture) + "," + (displayH*100f).ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
+                        bezelEffect["GameScreen_zoom"] = sz;                        
                     }
                     else if (File.Exists(Path.Combine(effectSearchPaths, "Bezel.fx")))
                         File.Delete(Path.Combine(effectSearchPaths, "Bezel.fx"));
                     
                     reShadePreset.WriteValue(null, "Techniques", string.Join(",", techniques.ToArray()));
 
-                    if (techniques.Contains("GeomCRT"))
+                    if (techniques.Contains("GeomCRT") || techniques.Contains("CRTGeom.fx"))
                     {
-                        var CRTGeom = reShadePreset.GetOrCreateSection("CRTGeom.fx");
-                        CRTGeom["texture_sizeX"] = "640.000000";
-                        CRTGeom["texture_sizeY"] = "320.000000";
-                        CRTGeom["video_sizeX"] = "640.000000";
-                        CRTGeom["video_sizeY"] = "320.000000";
+                        float resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
 
-                        if (bezel != null)
-                            CRTGeom["overscan_x"] = "103.000000";
+                        var CRTGeom = reShadePreset.GetOrCreateSection("CRTGeom.fx");
+                        CRTGeom["texture_sizeX"] = resX.ToString("N6", System.Globalization.CultureInfo.InvariantCulture).Replace(",", "");
+                        CRTGeom["texture_sizeY"] = (240f * displayH).ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
+                        CRTGeom["video_sizeX"] = resX.ToString("N6", System.Globalization.CultureInfo.InvariantCulture).Replace(",", "");
+                        CRTGeom["video_sizeY"] = (240f * displayH).ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
+                        CRTGeom["DOTMASK"] = "0.000000";
                     }
 
                     // TechniqueSorting

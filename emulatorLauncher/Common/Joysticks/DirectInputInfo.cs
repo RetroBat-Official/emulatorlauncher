@@ -43,10 +43,12 @@ namespace emulatorLauncher.Tools
 
                                 try
                                 {
-                                    var joystick = new SharpDX.DirectInput.Joystick(directInput, deviceInstance.InstanceGuid);
-                                    info.DevicePath = joystick.Properties.InterfacePath;
-                                    info.JoystickID = joystick.Properties.JoystickId;
-                                    info.ParentDevice = InputDevices.GetInputDeviceParent(info.DevicePath);
+                                    using (var joystick = new SharpDX.DirectInput.Joystick(directInput, deviceInstance.InstanceGuid))
+                                    {
+                                        info.DevicePath = joystick.Properties.InterfacePath;
+                                        info.JoystickID = joystick.Properties.JoystickId;
+                                        info.ParentDevice = InputDevices.GetInputDeviceParent(info.DevicePath);
+                                    }
                                 }
                                 catch { }
 
