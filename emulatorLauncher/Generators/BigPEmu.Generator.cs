@@ -13,26 +13,6 @@ namespace emulatorLauncher
 {
     class BigPEmuGenerator : Generator
     {
-        public BigPEmuGenerator()
-        {
-            DependsOnDesktopResolution = true;
-        }
-
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            return ret;
-        }
-
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
@@ -45,9 +25,9 @@ namespace emulatorLauncher
                 return null;
 
             //Applying bezels
-            if (!SystemConfig.isOptSet("displaymode") || SystemConfig["displaymode"] == "0")
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-            
+
             _resolution = resolution;
 
             List<string> commandArray = new List<string>();
@@ -68,6 +48,21 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args,
             };
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            return ret;
         }
 
         //Configuration file in json format "BigPEmuConfig.bigpcfg"
