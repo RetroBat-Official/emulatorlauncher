@@ -865,6 +865,12 @@ namespace emulatorLauncher
                     ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "5");
                     ini.WriteValue("EmuCore/GS", "UserHacks", "true");
                 }
+                else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "bully"))
+                {
+                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "6");
+                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "6");
+                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                }
                 else if (Features.IsSupported("skipdraw"))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "0");
