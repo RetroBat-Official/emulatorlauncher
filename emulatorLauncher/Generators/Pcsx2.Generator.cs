@@ -483,42 +483,84 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "UserHacks_TCOffsetY", "0");
                     }
 
-                    //Skipdraw Range (both 1.6 & 1.7)
-                    if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                    //Skipdraw Range (ini has different values between 1.6 - gsdx.ini & 1.7 - gs.ini)
+                    if (!_isPcsx17)
                     {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "1");
-                        ini.WriteValue("Settings", "UserHacks", "1");
+                        if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "1");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "2");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "3");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "4");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "5");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (Features.IsSupported("skipdraw"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "0");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
+                        }
                     }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
+                    else
                     {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "2");
-                        ini.WriteValue("Settings", "UserHacks", "1");
+                        if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "2");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "3");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "4");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "5");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (Features.IsSupported("skipdraw"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "0");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "0");
+                        }
                     }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "3");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "4");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "5");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (Features.IsSupported("skipdraw"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "0");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "0");
-                    }
+
                     //CRC Hack Level
                     if (SystemConfig.isOptSet("crc_hack_level") && !string.IsNullOrEmpty(SystemConfig["crc_hack_level"]))
                         ini.WriteValue("Settings", "crc_hack_level", SystemConfig["crc_hack_level"]);
