@@ -118,8 +118,7 @@ namespace emulatorLauncher
 
             //write pref-path with emulator path
             string vita_emulator_path = AppConfig.GetFullPath("vita3k");
-            string pref_path = vita_emulator_path;
-            yml["pref-path"] = pref_path;
+            yml["pref-path"] = vita_emulator_path;
 
             //save config file
             yml.Save();           
