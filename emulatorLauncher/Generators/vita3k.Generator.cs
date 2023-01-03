@@ -79,7 +79,57 @@ namespace emulatorLauncher
                 Arguments = args,                
             };
         }
-        
+
+        /// <summary>
+        /// UI - console language
+        /// Japanese = 0
+        /// English = 1
+        /// French = 2
+        /// German = 3
+        /// Italian = 4
+        /// Spanish = 5
+        /// Chinese = 6
+        /// Korean = 7
+        /// Dutch = 8
+        /// Portuguese = 9
+        /// Russian = 10
+        /// Taiwanese = 11
+        /// </summary>
+        /// <returns></returns>
+        private string GetDefaultvitaLanguage()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "0" },
+                { "en", "1" },
+                { "fr", "2" },
+                { "es", "3" },
+                { "de", "4" },
+                { "it", "5" },
+                { "nl", "6" },
+                { "pt", "7" },
+                { "ru", "8" },
+                { "ko", "9" },
+                { "zh", "10" },
+                { "tw", "11" },
+                { "pl", "16" }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "11";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return "1";
+        }
+
         //Configure config.yml file
         private void SetupConfiguration(string path)
         {
@@ -89,6 +139,9 @@ namespace emulatorLauncher
             yml["initial-setup"] = "true";
             yml["user-auto-connect"] = "true";
             yml["show-welcome"] = "false";
+
+            //System language
+            BindFeature(yml, "sys-lang", "psvita_language", GetDefaultvitaLanguage());
 
             //Then the emulator options
             BindFeature(yml, "backend-renderer", "backend-renderer", "Vulkan");
