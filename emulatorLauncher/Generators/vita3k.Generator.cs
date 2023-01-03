@@ -85,15 +85,16 @@ namespace emulatorLauncher
         /// Japanese = 0
         /// English = 1
         /// French = 2
-        /// German = 3
-        /// Italian = 4
-        /// Spanish = 5
-        /// Chinese = 6
-        /// Korean = 7
-        /// Dutch = 8
-        /// Portuguese = 9
-        /// Russian = 10
+        /// Spain = 3
+        /// German = 4
+        /// Italian = 5
+        /// Dutch = 6
+        /// Portuguese = 7
+        /// Russian = 8
+        /// Korean = 9
+        /// Chinese = 10
         /// Taiwanese = 11
+        /// Polish = 16
         /// </summary>
         /// <returns></returns>
         private string GetDefaultvitaLanguage()
