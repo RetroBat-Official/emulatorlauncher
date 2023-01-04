@@ -94,24 +94,24 @@ namespace emulatorLauncher
 
                 //common - start to start and select to input coins
                 //service menu and test menu can be accessed via L3 and R3 buttons
-                ini.WriteValue(" Global ", "InputStart1", "\"KEY_1, JOY" + j1index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputStart2", "\"KEY_2, JOY" + j2index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3, JOY" + j1index + "_BUTTON5\"");
-                ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4, JOY" + j2index + "_BUTTON5\"");
-                ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5, JOY" + j1index + "_BUTTON8\"");
-                ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7, JOY" + j2index + "_BUTTON8\"");
-                ini.WriteValue(" Global ", "InputTestA", "\"KEY_6, JOY" + j1index + "_BUTTON9\"");
-                ini.WriteValue(" Global ", "InputTestB", "\"KEY_8, JOY" + j2index + "_BUTTON9\"");
+                ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,JOY" + j1index + "_BUTTON7\"");
+                ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON7\"");
+                ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3,JOY" + j1index + "_BUTTON5\"");
+                ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON5\"");
+                ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5,JOY" + j1index + "_BUTTON8\"");
+                ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7,JOY" + j2index + "_BUTTON8\"");
+                ini.WriteValue(" Global ", "InputTestA", "\"KEY_6,JOY" + j1index + "_BUTTON9\"");
+                ini.WriteValue(" Global ", "InputTestB", "\"KEY_8,JOY" + j2index + "_BUTTON9\"");
 
                 //4-way digital joysticks - directional stick
-                ini.WriteValue(" Global ", "InputJoyUp", "\"JOY" + j1index + "_YAXIS_NEG, JOY" + j1index + "_POV1_UP\"");
-                ini.WriteValue(" Global ", "InputJoyDown", "\"JOY" + j1index + "_YAXIS_POS, JOY" + j1index + "_POV1_DOWN\"");
-                ini.WriteValue(" Global ", "InputJoyLeft", "\"JOY" + j1index + "_XAXIS_NEG, JOY" + j1index + "_POV1_LEFT\"");
-                ini.WriteValue(" Global ", "InputJoyRight", "\"JOY" + j1index + "_XAXIS_POS, JOY" + j1index + "_POV1_RIGHT\"");
-                ini.WriteValue(" Global ", "InputJoyUp2", "\"JOY" + j2index + "_YAXIS_NEG, JOY" + j2index + "_POV1_UP\"");
-                ini.WriteValue(" Global ", "InputJoyDown2", "\"JOY" + j2index + "_YAXIS_POS, JOY" + j2index + "_POV1_DOWN\"");
-                ini.WriteValue(" Global ", "InputJoyLeft2", "\"JOY" + j2index + "_XAXIS_NEG, JOY" + j2index + "_POV1_LEFT\"");
-                ini.WriteValue(" Global ", "InputJoyRight2", "\"JOY" + j2index + "_XAXIS_POS, JOY" + j2index + "_POV1_RIGHT\"");
+                ini.WriteValue(" Global ", "InputJoyUp", "\"JOY" + j1index + "_YAXIS_NEG,JOY" + j1index + "_POV1_UP\"");
+                ini.WriteValue(" Global ", "InputJoyDown", "\"JOY" + j1index + "_YAXIS_POS,JOY" + j1index + "_POV1_DOWN\"");
+                ini.WriteValue(" Global ", "InputJoyLeft", "\"JOY" + j1index + "_XAXIS_NEG,JOY" + j1index + "_POV1_LEFT\"");
+                ini.WriteValue(" Global ", "InputJoyRight", "\"JOY" + j1index + "_XAXIS_POS,JOY" + j1index + "_POV1_RIGHT\"");
+                ini.WriteValue(" Global ", "InputJoyUp2", "\"JOY" + j2index + "_YAXIS_NEG,JOY" + j2index + "_POV1_UP\"");
+                ini.WriteValue(" Global ", "InputJoyDown2", "\"JOY" + j2index + "_YAXIS_POS,JOY" + j2index + "_POV1_DOWN\"");
+                ini.WriteValue(" Global ", "InputJoyLeft2", "\"JOY" + j2index + "_XAXIS_NEG,JOY" + j2index + "_POV1_LEFT\"");
+                ini.WriteValue(" Global ", "InputJoyRight2", "\"JOY" + j2index + "_XAXIS_POS,JOY" + j2index + "_POV1_RIGHT\"");
 
                 //Fighting game buttons - used for virtua fighters will be mapped with the 4 buttons
                 ini.WriteValue(" Global ", "InputPunch", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON4\"" : "\"JOY" + j1index + "_BUTTON3\"");
@@ -124,7 +124,7 @@ namespace emulatorLauncher
                 ini.WriteValue(" Global ", "InputEscape2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON1\"" : "\"JOY" + j2index + "_BUTTON2\"");
 
                 //Spikeout buttons
-                ini.WriteValue(" Global ", "InputShift", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON1, JOY" + j1index + "_BUTTON11\"" : "\"JOY" + j1index + "_BUTTON2, JOY" + j1index + "_BUTTON11\"");
+                ini.WriteValue(" Global ", "InputShift", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON1,JOY" + j1index + "_BUTTON11\"" : "\"JOY" + j1index + "_BUTTON2,JOY" + j1index + "_BUTTON11\"");
                 ini.WriteValue(" Global ", "InputBeat", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2\"" : "\"JOY" + j1index + "_BUTTON1\"");
                 ini.WriteValue(" Global ", "InputCharge", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON4\"" : "\"JOY" + j1index + "_BUTTON3\"");
                 ini.WriteValue(" Global ", "InputJump", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON3\"" : "\"JOY" + j1index + "_BUTTON4\"");
@@ -196,18 +196,18 @@ namespace emulatorLauncher
                 //Virtual On buttons
                 ini.WriteValue(" Global ", "InputTwinJoyShot1", "\"JOY" + j1index + "_RYAXIS_POS\"");
                 ini.WriteValue(" Global ", "InputTwinJoyShot2", "\"JOY" + j1index + "_RZAXIS_POS\"");
-                ini.WriteValue(" Global ", "InputTwinJoyTurbo1", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON4, JOY" + j1index + "_BUTTON10\"" : "\"JOY" + j1index + "_BUTTON3, JOY" + j1index + "_BUTTON10\"");
-                ini.WriteValue(" Global ", "InputTwinJoyTurbo2", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON1, JOY" + j1index + "_BUTTON11\"" : "\"JOY" + j1index + "_BUTTON2, JOY" + j1index + "_BUTTON11\"");
+                ini.WriteValue(" Global ", "InputTwinJoyTurbo1", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON4,JOY" + j1index + "_BUTTON10\"" : "\"JOY" + j1index + "_BUTTON3,JOY" + j1index + "_BUTTON10\"");
+                ini.WriteValue(" Global ", "InputTwinJoyTurbo2", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON1,JOY" + j1index + "_BUTTON11\"" : "\"JOY" + j1index + "_BUTTON2,JOY" + j1index + "_BUTTON11\"");
 
                 //Analog joystick (Star Wars Trilogy)
                 ini.WriteValue(" Global ", "InputAnalogJoyLeft", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyRight", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyX", "\"JOY" + j1index + "_XAXIS_INV, MOUSE_XAXIS_INV\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"JOY" + j1index + "_YAXIS_INV, MOUSE_YAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyTrigger", n1 == "nintendo" ? "\"JOY" + j1index + "_RZAXIS_POS, JOY" + j1index + "_BUTTON4, MOUSE_LEFT_BUTTON\"" : "\"JOY" + j1index + "_RZAXIS_POS, JOY" + j1index + "_BUTTON3, MOUSE_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyEvent", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2, MOUSE_RIGHT_BUTTON\"" : "\"JOY" + j1index + "_BUTTON1, MOUSE_RIGHT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyX", "\"JOY" + j1index + "_XAXIS_INV,MOUSE_XAXIS_INV\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"JOY" + j1index + "_YAXIS_INV,MOUSE_YAXIS\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyTrigger", n1 == "nintendo" ? "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON4,MOUSE_LEFT_BUTTON\"" : "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON3,MOUSE_LEFT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyEvent", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2,MOUSE_RIGHT_BUTTON\"" : "\"JOY" + j1index + "_BUTTON1,MOUSE_RIGHT_BUTTON\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyEvent2", "\"NONE\"");
 
@@ -310,14 +310,14 @@ namespace emulatorLauncher
                 ini.WriteValue(" Global ", "InputSystem", "xinput");
 
                 //common - L3 and R3 will be used to navigate service menu
-                ini.WriteValue(" Global ", "InputStart1", "\"KEY_1, JOY" + j1index + "_BUTTON8\"");
-                ini.WriteValue(" Global ", "InputStart2", "\"KEY_2, JOY" + j2index + "_BUTTON8\"");
-                ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3, JOY" + j1index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4, JOY" + j2index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5, JOY" + j1index + "_BUTTON9\"");
-                ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7, JOY" + j2index + "_BUTTON9\"");
-                ini.WriteValue(" Global ", "InputTestA", "\"KEY_6, JOY" + j1index + "_BUTTON10\"");
-                ini.WriteValue(" Global ", "InputTestB", "\"KEY_8, JOY" + j2index + "_BUTTON10\"");
+                ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,JOY" + j1index + "_BUTTON8\"");
+                ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON8\"");
+                ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3,JOY" + j1index + "_BUTTON7\"");
+                ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON7\"");
+                ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5,JOY" + j1index + "_BUTTON9\"");
+                ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7,JOY" + j2index + "_BUTTON9\"");
+                ini.WriteValue(" Global ", "InputTestA", "\"KEY_6,JOY" + j1index + "_BUTTON10\"");
+                ini.WriteValue(" Global ", "InputTestB", "\"KEY_8,JOY" + j2index + "_BUTTON10\"");
 
                 //4-way digital joysticks
                 ini.WriteValue(" Global ", "InputJoyUp", "\"JOY" + j1index + "_YAXIS_NEG,JOY" + j1index + "_POV1_UP\"");
@@ -653,8 +653,8 @@ namespace emulatorLauncher
             ini.WriteValue(" Global ", "InputGunDown", "\"KEY_DOWN\"");
             ini.WriteValue(" Global ", "InputGunX", "\"MOUSE_XAXIS\"");
             ini.WriteValue(" Global ", "InputGunY", "\"MOUSE_YAXIS\"");
-            ini.WriteValue(" Global ", "InputTrigger", "\"KEY_A, MOUSE_LEFT_BUTTON\"");
-            ini.WriteValue(" Global ", "InputOffscreen", "\"KEY_S, MOUSE_RIGHT_BUTTON\"");
+            ini.WriteValue(" Global ", "InputTrigger", "\"KEY_A,MOUSE_LEFT_BUTTON\"");
+            ini.WriteValue(" Global ", "InputOffscreen", "\"KEY_S,MOUSE_RIGHT_BUTTON\"");
             ini.WriteValue(" Global ", "InputAutoTrigger", "0");
             ini.WriteValue(" Global ", "InputGunLeft2", "\"NONE\"");
             ini.WriteValue(" Global ", "InputGunRight2", "\"NONE\"");
@@ -673,8 +673,8 @@ namespace emulatorLauncher
             ini.WriteValue(" Global ", "InputAnalogGunDown", "\"KEY_DOWN\"");
             ini.WriteValue(" Global ", "InputAnalogGunX", "\"MOUSE_XAXIS\"");
             ini.WriteValue(" Global ", "InputAnalogGunY", "\"MOUSE_YAXIS\"");
-            ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "\"KEY_A, MOUSE_LEFT_BUTTON\"");
-            ini.WriteValue(" Global ", "InputAnalogTriggerRight", "\"KEY_S, MOUSE_RIGHT_BUTTON\"");
+            ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "\"KEY_A,MOUSE_LEFT_BUTTON\"");
+            ini.WriteValue(" Global ", "InputAnalogTriggerRight", "\"KEY_S,MOUSE_RIGHT_BUTTON\"");
             ini.WriteValue(" Global ", "InputAnalogGunLeft2", "\"NONE\"");
             ini.WriteValue(" Global ", "InputAnalogGunRight2", "\"NONE\"");
             ini.WriteValue(" Global ", "InputAnalogGunUp2", "\"NONE\"");

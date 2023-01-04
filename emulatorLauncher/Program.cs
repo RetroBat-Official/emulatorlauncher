@@ -89,7 +89,8 @@ namespace emulatorLauncher
             { "n-gage", () => new Eka2l1Generator() },
             { "nosgba", () => new NosGbaGenerator() }, { "no$gba", () => new NosGbaGenerator() },
             { "pinballfx3", () => new PinballFX3Generator() },
-            { "bigpemu", () => new BigPEmuGenerator() }
+            { "bigpemu", () => new BigPEmuGenerator() },
+            { "phoenix", () => new PhoenixGenerator() }, { "phoenix-3do", () => new PhoenixGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

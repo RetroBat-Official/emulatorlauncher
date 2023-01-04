@@ -70,7 +70,8 @@ namespace emulatorLauncher
             { new Installer("vita3k", "vita3k", "Vita3K.exe") },
             { new Installer("xenia", "xenia", "xenia.exe") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) },
-            { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") }
+            { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
+            { new Installer("phoenix", new string[] { "phoenix", "phoenix-3do" }, "PhoenixEmuProject.exe") }
         };
 
         #region Properties
