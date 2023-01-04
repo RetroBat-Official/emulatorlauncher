@@ -85,6 +85,7 @@
     <Compile Include="Common\FileTools.cs" />
     <Compile Include="Common\IsoFile.cs" />
     <Compile Include="Common\Job.cs" />
+    <Compile Include="Common\MultiDiskImageFile.cs" />
     <Compile Include="Common\OrderedDictionary.cs" />
     <Compile Include="Common\PortableZip.cs" />
     <Compile Include="Common\ProcessExtensions.cs" />
