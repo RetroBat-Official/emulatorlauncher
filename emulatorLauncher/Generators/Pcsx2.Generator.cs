@@ -164,18 +164,11 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    Uri relRoot = new Uri(_path, UriKind.Absolute);
-
                     string biosPath = AppConfig.GetFullPath("bios");
                     if (!string.IsNullOrEmpty(biosPath))
                     {
                         ini.WriteValue("Folders", "UseDefaultBios", "disabled");
-
-                        if (biosList.Any(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b))))
-                            ini.WriteValue("Folders", "Bios", Path.Combine(biosPath, "pcsx2", "bios").Replace("\\", "\\\\"));
-                        else
-                            ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
-                        
+                        ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
                         ini.WriteValue("Folders", "UseDefaultCheats", "disabled");
                         ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "pcsx2", "cheats").Replace("\\", "\\\\"));
                         ini.WriteValue("Folders", "UseDefaultCheatsWS", "disabled");
