@@ -90,7 +90,7 @@ namespace emulatorLauncher
             { "nosgba", () => new NosGbaGenerator() }, { "no$gba", () => new NosGbaGenerator() },
             { "pinballfx3", () => new PinballFX3Generator() },
             { "bigpemu", () => new BigPEmuGenerator() },
-            { "phoenix", () => new PhoenixGenerator() }, { "phoenix-3do", () => new PhoenixGenerator() }
+            { "phoenix", () => new PhoenixGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

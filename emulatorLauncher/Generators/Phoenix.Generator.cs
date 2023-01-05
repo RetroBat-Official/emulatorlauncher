@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using System.Windows.Forms;
 using emulatorLauncher.PadToKeyboard;
 using System.Security.Cryptography;
+using emulatorLauncher;
 
 namespace emulatorLauncher
 {
@@ -14,30 +15,30 @@ namespace emulatorLauncher
     {
         enum DumpType
         {
-            CARTRIDGE,
-            CDROM,
+            CARTRIDGE,  //for jaguar
+            CDROM,      //for 3DO
             BIOS
         }
         
         private const string emuExe = "PhoenixEmuProject.exe";
         
-        //define bios file to use for 3DO
+        //define bios files
         private const string biosName3do = "panafz10.bin";
-        
+        private const string biosNamejaguar = "[BIOS] Atari Jaguar (World).j64";
+
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            //same emulator cannot be used for both jaguar and 3DO, so if in the future we want to add it for jaguar we will create it in "phoenix-jaguar" folder
-            //it is required to click on the jaguar logo to change to jaguar and on the 3DO logo to come back to 3DO, not possible via menu, config-file or shortcut
-            string folderName = "phoenix-3do";
+            string folderName = "phoenix";
             string emuPath = AppConfig.GetFullPath(folderName);
             string biosPath = AppConfig.GetFullPath("bios");
             string biosfile3do = Path.Combine(biosPath, biosName3do);
+            string biosfilejaguar = Path.Combine(biosPath, biosNamejaguar);
             string settingsFile = Path.Combine(emuPath, "phoenix.config.xml");
             string exe = Path.Combine(emuPath, emuExe);
-            
+
             //return error if .exe does not exist
             if (!File.Exists(exe))
             {
@@ -45,61 +46,80 @@ namespace emulatorLauncher
                 return null;
             }
 
-            //generate 3DO part - jaguar part can be added later if needed
-            if (system == "3do")
+            //unzip .zip and .7z and define rom as unzipped file
+            if ((Path.GetExtension(rom).ToLower() == ".zip") || (Path.GetExtension(rom).ToLower() == ".7z"))
             {
-                try
+                string romunzipped = TryUnZipGameIfNeeded(system, rom);
+                if (Directory.Exists(romunzipped))
                 {
-                    
-                    //check that :xml settings file exist and write necessary info to it, if file does not exist return error
-                    if (File.Exists(settingsFile))
+                    rom = Path.Combine(romunzipped, Directory.GetFiles(romunzipped, "*.*").FirstOrDefault());
+                    if (!File.Exists(rom))
+                        throw new ApplicationException("Unable to find any game in the provided folder");
+                }
+            }
+            try
+            {    
+                //check that :xml settings file exist and write necessary info to it, if file does not exist return error
+                if (File.Exists(settingsFile))
+                {
+                    XDocument configfile = XDocument.Load(settingsFile);
+                    XElement library = configfile.Root.Element("Library");
+                    XElement platform3do = library != null ? library.Element("Platform-3DO") : null;
+                    XElement platformjaguar = library != null ? library.Element("Platform-Jaguar") : null;
+
+                    //generate settings file for the right platform (jaguar or 3DO)
+                    if ((system == "3do") && (platform3do != null))
                     {
-                        XDocument configfile = XDocument.Load(settingsFile);
-                        XElement library = configfile.Root.Element("Library");
-                        XElement platform3do = library != null ? library.Element("Platform-3DO") : null;
+                        //General configuration
+                        SetupGeneralConfiguration(configfile, system);
 
-                        //check that 3DO platform is initialized in settings file and write necessary info to it, else return error
-                        if (platform3do != null)
-                        {
-                            //write game information
-                            Append3doConfig(platform3do, DumpType.CDROM, rom);
-                            
-                            //write bios information
-                            Append3doConfig(platform3do, DumpType.BIOS, biosfile3do);
+                        //write game information
+                        AppendConfig(platform3do, DumpType.CDROM, rom);
 
-                            //other configuration
-                            SetupGeneralConfiguration(configfile);
+                        //write bios information
+                        AppendConfig(platform3do, DumpType.BIOS, biosfile3do);
 
-                            //save file
-                            configfile.Save(settingsFile);
-                        }
-
-                        else
-                        {
-                            SimpleLogger.Instance.Info("ERROR: settings file does not contain 3DO platform");
-                            return null;
-                        }
+                        //save file
+                        configfile.Save(settingsFile);
                     }
+
+                    else if ((system == "jaguar") && (platformjaguar != null))
+                    {
+                        //other configuration
+                        SetupGeneralConfiguration(configfile, system);
+
+                        //write game information
+                        AppendConfig(platformjaguar, DumpType.CARTRIDGE, rom);
+
+                        //write bios information
+                        AppendConfig(platformjaguar, DumpType.BIOS, biosfilejaguar);
+
+                        //save file
+                        configfile.Save(settingsFile);
+                    }
+
                     else
                     {
-                        SimpleLogger.Instance.Info("ERROR: settings file does not exist");
+                        SimpleLogger.Instance.Info("ERROR: settings file does not contain" + system + "platform");
                         return null;
                     }
                 }
-
-                catch (Exception e)
+                else
                 {
-                    SimpleLogger.Instance.Info(e.Message.ToString());
+                    SimpleLogger.Instance.Info("ERROR: settings file does not exist");
+                    return null;
                 }
             }
 
-            else
+            catch (Exception e)
             {
-                SimpleLogger.Instance.Info("ERROR: system is not supported");
-                return null;
+                SimpleLogger.Instance.Info(e.Message.ToString());
             }
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            //Applying bezels
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, emuPath, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
 
             return new ProcessStartInfo()
@@ -130,7 +150,7 @@ namespace emulatorLauncher
                 var hWnd = User32.FindHwnd(process.Id);
                 if (hWnd == IntPtr.Zero)
                     continue;
-
+                System.Threading.Thread.Sleep(500);
                 SendKeys.SendWait("%");
                 SendKeys.SendWait("{DOWN}");
                 SendKeys.SendWait("{RIGHT}");
@@ -156,8 +176,20 @@ namespace emulatorLauncher
         /// Setup phoenix.config.xml file
         /// </summary>
         /// <param name="xml"></param>
-        private void SetupGeneralConfiguration(XDocument xml)
+        /// <param name="system"></param>
+        private void SetupGeneralConfiguration(XDocument xml, string system)
         {
+            //start by setting the root platform (jaguar or 3do) - this will enable the emulator to be on the correct platform at start
+            if (system == "3do")
+                xml.Root.SetAttributeValue("Platform", "3DO");
+            else if (system == "jaguar")
+                xml.Root.SetAttributeValue("Platform", "Jaguar");
+            else
+            {
+                SimpleLogger.Instance.Info("ERROR: system" + system + "unknown");
+                return;
+            }
+
             XElement settings = xml.Root.Element("Settings");
 
             //Video settings
@@ -167,72 +199,83 @@ namespace emulatorLauncher
         }
 
         /// <summary>
-        /// Setup 3DO part in phoenix.config.xml file
+        /// Setup phoenix.config.xml file
         /// </summary>
         /// <param name="platformConfig"></param>
         /// <param name="type"></param>
         /// <param name="filename"></param>
-        private void Append3doConfig(XElement platformConfig, DumpType type, string filename)
+        private void AppendConfig(XElement platformConfig, DumpType type, string filename)
         {
-            //define strings - phoenix does not accept .cue format, so we also get associated .bin
-            //.bin file needs to be the same name as .cue file
+            //define strings
             string filepath = Path.GetDirectoryName(filename);
             string filenamenoext = Path.GetFileNameWithoutExtension(filename);
-            string binfile = Path.Combine(filepath, string.Concat(filenamenoext, ".bin"));
             string filemd5Hash = getMD5Hash(filename);
-            string binmd5hash = getMD5Hash(binfile);
             string filesha1Hash = GetSha1Hash(filename);
-            string binsha1Hash = GetSha1Hash(binfile);
             string fileSize = GetFileSize(filename);
-            string binSize = GetFileSize(binfile);
 
-            //write platform settings
-            var element = platformConfig.Element(type.ToString());
-            
-            //For 3DO, attribute for rom is CD-ROM
-            if (type == DumpType.CDROM)
-                element = platformConfig.Element("CD-ROM");
-            else
-                element = platformConfig.Element(type.ToString());
-
-            //set attributes for rom and BIOS element
-            element.SetAttributeValue("expanded", "true");
-            if (Path.GetExtension(filename).ToLower() == ".cue")        //if game is in .cue format, change to .bin file
-                element.SetAttributeValue("attach", binfile);
-            else
-                element.SetAttributeValue("attach", filename);
-            
-            element.SetAttributeValue("last-path", filepath);
-
-            //set attributes of DUMP element
-            var dump = new XElement(element);
-
+            //phoenix does not accept .cue format, so we will read cue file to get the actual image in iso, img or bin format
             if (Path.GetExtension(filename).ToLower() == ".cue")
-                dump = element.Descendants("Dump").Where(ele => (string)ele.Attribute("md5") == binmd5hash).FirstOrDefault();       //if game is in .cue look for the bin md5hash to avoid creating duplicate line
-            else
-                dump = element.Descendants("Dump").Where(ele => (string)ele.Attribute("md5") == filemd5Hash).FirstOrDefault();
-
-            if (dump == null)
             {
+                var fromcue = MultiDiskImageFile.FromFile(filename);
+                var cuefile = fromcue.Files[0];
+                string binmd5hash = getMD5Hash(cuefile);
+                string binsha1Hash = GetSha1Hash(cuefile);
+                string binSize = GetFileSize(cuefile);
+
+                //write library settings for cue files
+                var elem = platformConfig.Element(type.ToString());
+                if (type == DumpType.CDROM)
+                    elem = platformConfig.Element("CD-ROM");
+                else
+                    elem = platformConfig.Element(type.ToString());
+                elem.SetAttributeValue("expanded", "true");
+                elem.SetAttributeValue("attach", cuefile);
+                elem.SetAttributeValue("last-path", filepath);
+                
+                //delete existing dump nodes as it slows down emu startup time
+                elem.RemoveNodes();
+                
+                //generate unique dump element
+                var dumpcue = new XElement(elem);
+                dumpcue = new XElement("Dump");
+                elem.Add(dumpcue);
+
+                dumpcue.SetAttributeValue("path", cuefile);
+                dumpcue.SetAttributeValue("size", binSize);
+                dumpcue.SetAttributeValue("fast-md5", binmd5hash);
+                dumpcue.SetAttributeValue("md5", binmd5hash);
+                dumpcue.SetAttributeValue("sh1", binsha1Hash);
+            }
+            
+            else
+            {
+                //write library settings
+                var element = platformConfig.Element(type.ToString());
+
+                if (type == DumpType.CDROM)
+                    element = platformConfig.Element("CD-ROM");
+                else
+                    element = platformConfig.Element(type.ToString());
+
+                //write library settings
+                element.SetAttributeValue("expanded", "true");
+                element.SetAttributeValue("attach", filename);
+                element.SetAttributeValue("last-path", filepath);
+
+                //delete existing dump nodes as it slows down emu startup time
+                element.RemoveNodes();
+
+                //generate unique dump element
+                var dump = new XElement(element);
                 dump = new XElement("Dump");
                 element.Add(dump);
-            }
-            if (Path.GetExtension(filename).ToLower() == ".cue")        //if game is in .cue format, get information of .bin file
-            {
-                dump.SetAttributeValue("path", binfile);
-                dump.SetAttributeValue("size", binSize);
-                dump.SetAttributeValue("fast-md5", binmd5hash);
-                dump.SetAttributeValue("md5", binmd5hash);
-                dump.SetAttributeValue("sh1", binsha1Hash);
-            }  
-            else
-            {
+
                 dump.SetAttributeValue("path", filename);
                 dump.SetAttributeValue("size", fileSize);
                 dump.SetAttributeValue("fast-md5", filemd5Hash);
                 dump.SetAttributeValue("md5", filemd5Hash);
                 dump.SetAttributeValue("sh1", filesha1Hash);
-            }  
+            }
         }
 
         /// <summary>
