@@ -12,7 +12,9 @@
 
 	"atarist":   { "name": "Atari ST", "biosFiles":   [ { "md5": "c1c57ce48e8ee4135885cee9e63a68a2", "file": "bios/tos.img"           } ] },
 
-	"lynx":      { "name": "Lynx", "biosFiles":       [ { "md5": "fcd403db69f54290b51035d82f835e7b", "file": "bios/lynxboot.img"	  } ] },
+  "lynx":      { "name": "Lynx", "biosFiles":       [ { "md5": "fcd403db69f54290b51035d82f835e7b", "file": "bios/lynxboot.img"	  } ] },
+
+  "jaguar":    { "name": "Jaguar", "biosFiles":     [ { "md5": "cb492f093cd9e22a913d158741e8f00a", "file": "bios/[BIOS] Atari Jaguar (World).j64"	  } ] },
 
 	"amiga":  { "name": "Amiga",	"biosFiles":	[ { "md5": "bb72565701b1b6faece07d68ea5da639", "file": "bios/kick40060.CD32.ext"},
                                                 { "md5": "89da1838a24460e4b93f4f0c5d92d48d", "file": "bios/kick34005.CDTV"		},
