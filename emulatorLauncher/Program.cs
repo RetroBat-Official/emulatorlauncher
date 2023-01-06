@@ -670,7 +670,7 @@ namespace emulatorLauncher
         {
             SimpleLogger.Instance.Error("[Error] " + message);
 
-            string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "launch_error.log");
+            string fn = Path.Combine(Installer.GetTempPath(), "launch_error.log");
 
             try
             {
