@@ -164,8 +164,6 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    Uri relRoot = new Uri(_path, UriKind.Absolute);
-
                     string biosPath = AppConfig.GetFullPath("bios");
                     if (!string.IsNullOrEmpty(biosPath))
                     {
@@ -175,7 +173,7 @@ namespace emulatorLauncher
                             ini.WriteValue("Folders", "Bios", Path.Combine(biosPath, "pcsx2", "bios").Replace("\\", "\\\\"));
                         else
                             ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
-                        
+
                         ini.WriteValue("Folders", "UseDefaultCheats", "disabled");
                         ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "pcsx2", "cheats").Replace("\\", "\\\\"));
                         ini.WriteValue("Folders", "UseDefaultCheatsWS", "disabled");
@@ -637,6 +635,10 @@ namespace emulatorLauncher
         /// <param name="path"></param>
         private void SetupConfigurationQT(string path)
         {
+            var biosList = new string[] {
+                            "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC",
+                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
+
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces))
@@ -675,20 +677,31 @@ namespace emulatorLauncher
 
                 //BIOS path
                 string biosPath = AppConfig.GetFullPath("bios");
-                ini.WriteValue("Folders", "Bios", biosPath);
 
-                if (!string.IsNullOrEmpty(biosPath))
-                {
-                    biosPath = Path.Combine(biosPath, "pcsx2");
+                if (biosList.Any(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b))))
+                    ini.WriteValue("Folders", "Bios", Path.Combine(biosPath, "pcsx2", "bios"));
+                else
+                    ini.WriteValue("Folders", "Bios", biosPath);
 
-                    if (!Directory.Exists(biosPath))
-                        try { Directory.CreateDirectory(biosPath); }
-                        catch { }
+                string biosPcsx2Path = Path.Combine(biosPath, "pcsx2");
 
-                    ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "cheats"));
-                    ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPath, "cheats_ws"));
-                    ini.WriteValue("Folders", "CheatsNI", Path.Combine(biosPath, "cheats_ni"));
-                }
+                if (!Directory.Exists(biosPcsx2Path))
+                    try { Directory.CreateDirectory(biosPcsx2Path); }
+                    catch { }
+
+                ini.WriteValue("Folders", "Cheats", Path.Combine(biosPcsx2Path, "cheats"));
+                ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPcsx2Path, "cheats_ws"));
+                ini.WriteValue("Folders", "CheatsNI", Path.Combine(biosPcsx2Path, "cheats_ni"));
+
+                //precise bios to use
+
+                string biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPcsx2Path, "bios", b)));
+                if (string.IsNullOrEmpty(biosFile))
+                    biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
+                else
+                    biosFile = "SCPH30004R.bin";
+
+                ini.WriteValue("Filenames", "BIOS", biosFile);
 
                 //Snapshots path
                 string screenShotsPath = AppConfig.GetFullPath("screenshots");
@@ -697,16 +710,22 @@ namespace emulatorLauncher
 
                 //Savestates path
                 string savesPath = AppConfig.GetFullPath("saves");
+                string memcardsPath = AppConfig.GetFullPath("saves");
                 if (!string.IsNullOrEmpty(savesPath))
                 {
-                    savesPath = Path.Combine(savesPath, Path.GetFileName(_path));
+                    savesPath = Path.Combine(savesPath, "ps2", "pcsx2", "sstates");
+                    memcardsPath = Path.Combine(savesPath, "ps2", "pcsx2", "memcards");
 
                     if (!Directory.Exists(savesPath))
                         try { Directory.CreateDirectory(savesPath); }
                         catch { }
 
-                    ini.WriteValue("Folders", "Savestates", savesPath + "\\" + "sstates");
-                    ini.WriteValue("Folders", "MemoryCards", savesPath + "\\" + "memcards");
+                    if (!Directory.Exists(memcardsPath))
+                        try { Directory.CreateDirectory(memcardsPath); }
+                        catch { }
+
+                    ini.WriteValue("Folders", "Savestates", savesPath);
+                    ini.WriteValue("Folders", "MemoryCards", memcardsPath);
                 }
 
                 //Custom textures path
