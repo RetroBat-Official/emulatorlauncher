@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace emulatorLauncher
 {
@@ -26,15 +27,56 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            var version = FileVersionInfo.GetVersionInfo(exe).ProductVersion;
+            if (!string.IsNullOrEmpty(version))
+                WriteApple2Option("Version", version.Replace(",", ".").Replace(" ", ""));
+
+            var commandArray = new List<string>();
+            commandArray.Add("-f");
+            commandArray.Add("-no-printscreen-dlg");
+            commandArray.Add("-alt-enter=toggle-full-screen");
+
+            if (Features.IsSupported("cputype"))
+            {
+                commandArray.Add("-model");
+                commandArray.Add(SystemConfig.GetValueOrDefault("cputype", "apple2e"));
+            }
+
+            BindAppleWinFeature("Video Emulation", "screentype", "1");
+
+            WriteApple2Option("Full-screen show subunit status", "0");
+            WriteApple2Option("Joystick0 Emu Type v3", Program.Controllers.Any(c => c.WinmmJoystick != null) ? "1" : "2");
+
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
+
+            string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-f -no-printscreen-dlg -d1 \"" + rom + "\"",
+                Arguments = args + " -d1 \"" + rom + "\"",
             };
+        }
+
+        private void BindAppleWinFeature(string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                WriteApple2Option(settingName, SystemConfig.GetValueOrDefault(featureName, defaultValue));
+        }
+
+        private void WriteApple2Option(string name, string value)
+        {
+            RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AppleWin\CurrentVersion\Configuration", true);
+            if (regKeyc == null)
+                regKeyc = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\AppleWin\CurrentVersion\Configuration");
+
+            if (regKeyc != null)
+            {
+                regKeyc.SetValue(name, value);
+                regKeyc.Close();
+            }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
