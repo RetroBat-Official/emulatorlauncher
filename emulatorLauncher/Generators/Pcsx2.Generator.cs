@@ -710,16 +710,22 @@ namespace emulatorLauncher
 
                 //Savestates path
                 string savesPath = AppConfig.GetFullPath("saves");
+                string memcardsPath = AppConfig.GetFullPath("saves");
                 if (!string.IsNullOrEmpty(savesPath))
                 {
-                    savesPath = Path.Combine(savesPath, Path.GetFileName(_path));
+                    savesPath = Path.Combine(savesPath, "ps2", "pcsx2", "sstates");
+                    memcardsPath = Path.Combine(savesPath, "ps2", "pcsx2", "memcards");
 
                     if (!Directory.Exists(savesPath))
                         try { Directory.CreateDirectory(savesPath); }
                         catch { }
 
-                    ini.WriteValue("Folders", "Savestates", savesPath + "\\" + "sstates");
-                    ini.WriteValue("Folders", "MemoryCards", savesPath + "\\" + "memcards");
+                    if (!Directory.Exists(memcardsPath))
+                        try { Directory.CreateDirectory(memcardsPath); }
+                        catch { }
+
+                    ini.WriteValue("Folders", "Savestates", savesPath);
+                    ini.WriteValue("Folders", "MemoryCards", memcardsPath);
                 }
 
                 //Custom textures path
