@@ -174,6 +174,33 @@ namespace emulatorLauncher
             string vita_emulator_path = AppConfig.GetFullPath("vita3k");
             yml["pref-path"] = vita_emulator_path;
 
+            //Add modules if user has set option to manage from RETROBAT
+            if (SystemConfig.isOptSet("modules") && SystemConfig["modules"] == "1")
+            {
+                yml["modules-mode"] = "1";
+                var lleModules = yml.GetOrCreateContainer("lle-modules");
+                
+                //clear existing list of modules and let EL add modules
+                lleModules.Elements.Clear();
+
+                //Start adding modules
+                //libscemp4
+                if (SystemConfig.isOptSet("libscemp4") && SystemConfig.getOptBoolean("libscemp4"))
+                    lleModules.Elements.Add(new YmlElement() { Value = "- libscemp4" });
+
+                //Add more modules in the future based on user feedback, tests and games requiring specific modules
+            }
+
+            // If user has set feature to AUTOMATIC IN VITA, clear list of modules and set mode to auto
+            else if (SystemConfig.isOptSet("modules") && SystemConfig["modules"] == "0")
+            {
+                yml["modules-mode"] = "0";
+                var lleModules = yml.GetOrCreateContainer("lle-modules");
+                lleModules.Elements.Clear();
+            }
+            //else don't touch the modules container
+                
+
             //save config file
             yml.Save();           
         }
