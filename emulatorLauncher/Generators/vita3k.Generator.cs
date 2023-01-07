@@ -184,6 +184,11 @@ namespace emulatorLauncher
                 lleModules.Elements.Clear();
 
                 //Start adding modules
+                
+                //libhttp
+                if (SystemConfig.isOptSet("libhttp") && SystemConfig.getOptBoolean("libhttp"))
+                    lleModules.Elements.Add(new YmlElement() { Value = "- libhttp" });
+                
                 //libscemp4
                 if (SystemConfig.isOptSet("libscemp4") && SystemConfig.getOptBoolean("libscemp4"))
                     lleModules.Elements.Add(new YmlElement() { Value = "- libscemp4" });
