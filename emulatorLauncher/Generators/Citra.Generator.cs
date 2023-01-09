@@ -4,15 +4,18 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    class CitraGenerator : Generator
+    partial class CitraGenerator : Generator
     {
         public CitraGenerator()
         {
             DependsOnDesktopResolution = true;
         }
+
+        private SdlVersion _sdlVersion = SdlVersion.Unknown;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -25,6 +28,10 @@ namespace emulatorLauncher
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
                 File.WriteAllText(portableFile, "");
+
+            string sdl2 = Path.Combine(path, "SDL2.dll");
+            if (File.Exists(sdl2))
+                _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
             if (core == "citra-sdl")
             {
@@ -73,6 +80,8 @@ namespace emulatorLauncher
 
                 ini.WriteValue("UI", "calloutFlags\\default", "false");
                 ini.WriteValue("UI", "calloutFlags", "1");
+
+                CreateControllerConfiguration(ini);
 
                 if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
                 {
