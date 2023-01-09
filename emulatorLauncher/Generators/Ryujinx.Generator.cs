@@ -68,6 +68,7 @@ namespace emulatorLauncher
             //General Settings
             json["check_updates_on_start"] = "false";
             json["show_confirm_exit"] = "false";
+            json["show_console"] = "false";
 
             //Input
             json["docked_mode"] = "true";
