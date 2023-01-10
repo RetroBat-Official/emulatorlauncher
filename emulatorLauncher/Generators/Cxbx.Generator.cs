@@ -131,12 +131,14 @@ namespace emulatorLauncher
                 rom = xbe;
             }
 
+            //Configuration of .ini file
             using (var ini = IniFile.FromFile(Path.Combine(path, "settings.ini"), IniOptions.KeepEmptyValues | IniOptions.AllowDuplicateValues | IniOptions.UseSpaces))
             {
                 var res = resolution;
                 if (res == null)
                     res = ScreenResolution.CurrentResolution;
 
+                //Fulscreen Management
                 if (_isUsingCxBxLoader)
                 {
                     ini.WriteValue("video", "FullScreen", "false");
@@ -148,8 +150,10 @@ namespace emulatorLauncher
                     ini.WriteValue("video", "FullScreen", "true");
                 }
 
+                //Vsync
                 ini.WriteValue("video", "VSync", SystemConfig["VSync"] != "false" ? "true" : "false");
 
+                //Aspect ratio : keep original or stretch
                 if (Features.IsSupported("ratio") && SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "stretch")
                 {
                     ini.WriteValue("video", "MaintainAspect", "false");
@@ -158,10 +162,34 @@ namespace emulatorLauncher
                 else
                     ini.WriteValue("video", "MaintainAspect", "true");
 
+                //Internal resolution
                 if (Features.IsSupported("internalresolution") && SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
                     ini.WriteValue("video", "RenderResolution", SystemConfig["internalresolution"]);
                 else
                     ini.WriteValue("video", "RenderResolution", "3");
+
+                //XBE signature
+                if (SystemConfig.isOptSet("xbeSignature") && SystemConfig.getOptBoolean("xbeSignature"))
+                    ini.WriteValue("gui", "IgnoreInvalidXbeSig", "true");
+                else if (Features.IsSupported("xbeSignature"))
+                    ini.WriteValue("gui", "IgnoreInvalidXbeSig", "false");
+
+                //hacks
+                if (SystemConfig.isOptSet("disablePixelShaders") && SystemConfig.getOptBoolean("disablePixelShaders"))
+                    ini.WriteValue("hack", "DisablePixelShaders", "true");
+                else if (Features.IsSupported("disablePixelShaders"))
+                    ini.WriteValue("hack", "DisablePixelShaders", "false");
+
+                if (SystemConfig.isOptSet("useallcores") && SystemConfig.getOptBoolean("useallcores"))
+                    ini.WriteValue("hack", "UseAllCores", "true");
+                else if (Features.IsSupported("useallcores"))
+                    ini.WriteValue("hack", "UseAllCores", "false");
+
+                if (SystemConfig.isOptSet("rdtscPatching") && SystemConfig.getOptBoolean("rdtscPatching"))
+                    ini.WriteValue("hack", "SkipRdtscPatching", "true");
+                else if (Features.IsSupported("rdtscPatching"))
+                    ini.WriteValue("hack", "SkipRdtscPatching", "false");
+
             }
 
             if (_isUsingCxBxLoader)
