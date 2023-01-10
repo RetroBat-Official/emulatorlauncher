@@ -41,11 +41,11 @@ namespace emulatorLauncher
 
             //Define command-line arguments
             List<string> commandArray = new List<string>();
-            
+
             //-w, -f is used to avoid vita3k regenerating the config file as it is very fussy with it !
             //-c to specify the configfile to use
             //-r for game rom/ID
-            commandArray.Add("--fullscreen");
+            commandArray.Add("-F");
             commandArray.Add("-w");
             commandArray.Add("-f");
             
@@ -64,7 +64,7 @@ namespace emulatorLauncher
             }
 
             if (Directory.Exists(gamepath) || ext == "m3u")
-                commandArray.Add("-r" + gameID);                    //r used to run installed games
+                commandArray.Add("-r " + gameID);                    //r used to run installed games
 
             string args = string.Join(" ", commandArray);
 
