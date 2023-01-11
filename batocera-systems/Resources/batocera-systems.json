@@ -193,7 +193,15 @@
                                                     { "md5": "", "file": "bios/same_cdi/bios/cdimono1.zip"      },
                                                     { "md5": "", "file": "bios/same_cdi/bios/cdimono2.zip"      } ] },
 
-    "bbcmicro": { "name": "BBC", "biosFiles": [ { "md5": "", "file": "bios/bbcb.zip" } ] },
+    "bbcmicro": { "name": "BBC", "biosFiles": [     { "md5": "", "file": "bios/bbcb.zip"                  },
+                                                    { "md5": "", "file": "bios/bbc_acorn8271.zip"         },
+                                                    { "md5": "", "file": "bios/saa5050.zip"               },
+                                                    { "md5": "", "file": "bios/bbc_tube_80186.zip"        },
+                                                    { "md5": "", "file": "bios/bbcm.zip"                  },
+                                                    { "md5": "", "file": "bios/bbcmc.zip"                 },
+                                                    { "md5": "", "file": "bios/bbc_bitstik1.zip"          },
+                                                    { "md5": "", "file": "bios/bbc_bitstik2.zip"          },
+                                                    { "md5": "", "file": "bios/mame/samples/bbc.zip"      } ] },
 
     "crvision": { "name": "Creativision", "biosFiles":	[ { "md5": "", "file": "bios/crvision.zip"						},
                                                         { "md5": "", "file": "bios/mame/hash/crvision.xml"	} ] },
