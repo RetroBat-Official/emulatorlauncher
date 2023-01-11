@@ -315,7 +315,7 @@ namespace emulatorLauncher.libRetro
             }
 
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
-            UseEsPadToKey = false;
+                UseEsPadToKey = false;
 
             // Core, services & bezel configs
             ConfigureRetroachievements(retroarchConfig);
