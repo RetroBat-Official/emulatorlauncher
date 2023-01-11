@@ -273,6 +273,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
             retroarchConfig["input_libretro_device_p2"] = coreToP2Device.ContainsKey(core) ? coreToP2Device[core] : "1";
 
+            //psx specifics
             if (Controllers.Count > 2 && (core == "snes9x_next" || core == "snes9x"))
                 retroarchConfig["input_libretro_device_p2"] = "257";
 
@@ -284,8 +285,37 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
             }
 
+            //fuse specifics
+            if (core == "fuse")
+            {
+                //player 1 controller - sinclair 1 controller used as default as used by most games
+                if (SystemConfig.isOptSet("zx_controller1") && !string.IsNullOrEmpty(SystemConfig["zx_controller1"])) 
+                    retroarchConfig["input_libretro_device_p1"] = SystemConfig["zx_controller1"];
+                else if (Features.IsSupported("zx_controller1"))
+                    retroarchConfig["input_libretro_device_p1"] = "769";
+                
+                //player 2 controller - sinclair 2 as default
+                if (SystemConfig.isOptSet("zx_controller2") && !string.IsNullOrEmpty(SystemConfig["zx_controller2"]))
+                    retroarchConfig["input_libretro_device_p2"] = SystemConfig["zx_controller2"];
+                else if (Features.IsSupported("zx_controller2"))
+                    retroarchConfig["input_libretro_device_p2"] = "1025";
+
+                //if using keyboard only option, disable controllers and use keyboard as device_p3 as stated in libretro core documentation
+                //3 options : keyboard only (disables joysticks), joysticks only (disables keyboard) or keyboard + joysticks (add keyboard as p3)
+                if (SystemConfig.isOptSet("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "2")
+                {
+                    retroarchConfig["input_libretro_device_p1"] = "0";
+                    retroarchConfig["input_libretro_device_p2"] = "0";
+                    retroarchConfig["input_libretro_device_p3"] = "259";
+                }
+                else if (Features.IsSupported("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "3")
+                    retroarchConfig["input_libretro_device_p3"] = "259";
+                else if (Features.IsSupported("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "1")
+                    retroarchConfig["input_libretro_device_p3"] = "0";
+            }
+
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
-                UseEsPadToKey = false;
+            UseEsPadToKey = false;
 
             // Core, services & bezel configs
             ConfigureRetroachievements(retroarchConfig);

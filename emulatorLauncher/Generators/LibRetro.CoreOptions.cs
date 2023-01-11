@@ -328,6 +328,7 @@ namespace emulatorLauncher.libRetro
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             Configurevicex64(retroarchConfig, coreSettings, system, core);
             ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
+            ConfigureFuse(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -1858,6 +1859,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "duckstation_GPU.MSAA", "msaa", "1");
             BindFeature(coreSettings, "duckstation_GPU.ScaledDithering", "scaled_dithering", "true");
             BindFeature(coreSettings, "duckstation_GPU.TrueColor", "truecolor", "false");
+        }
+
+        private void ConfigureFuse(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fuse")
+                return;
+
+            BindFeature(coreSettings, "fuse_machine", "fuse_machine", "Spectrum 128K");
         }
 
         #region Input remaps
