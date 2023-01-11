@@ -177,6 +177,18 @@ namespace emulatorLauncher
                     ini.WriteValue("Renderer", "scaling_filter\\default", "true");
                     ini.WriteValue("Renderer", "scaling_filter", "1");
                 }
+
+                //CPU accuracy (auto except if the user chooses otherwise)
+                if (SystemConfig.isOptSet("cpu_accuracy") && !string.IsNullOrEmpty(SystemConfig["cpu_accuracy"]) && SystemConfig["cpu_accuracy"] != "0")
+                {
+                    ini.WriteValue("Cpu", "cpu_accuracy\\default", "false");
+                    ini.WriteValue("Cpu", "cpu_accuracy", SystemConfig["cpu_accuracy"]);
+                }
+                else
+                {
+                    ini.WriteValue("Cpu", "cpu_accuracy\\default", "true");
+                    ini.WriteValue("Cpu", "cpu_accuracy", "0");
+                }
             }
         }
 
