@@ -1255,7 +1255,7 @@ namespace emulatorLauncher.libRetro
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
                 "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
 
-        static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "mame", "hbmame", "fbneo", "dos" };
+        static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "mame", "hbmame", "fbneo", "dos", "scummvm" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn" };
         
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };

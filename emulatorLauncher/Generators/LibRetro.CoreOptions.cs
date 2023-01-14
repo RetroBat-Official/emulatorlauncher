@@ -329,6 +329,7 @@ namespace emulatorLauncher.libRetro
             Configurevicex64(retroarchConfig, coreSettings, system, core);
             ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
+            ConfigureScummVM(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -370,7 +371,175 @@ namespace emulatorLauncher.libRetro
             else
                 DeleteInputRemap(GetCoreName(core), SystemConfig["rom"]);
         }
-        
+
+        private void ConfigureScummVM(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "scummvm")
+                return;
+
+            BindFeature(coreSettings, "scummvm_analog_response", "scummvm_analog_response", "linear");
+
+            try
+            {
+                // use scummvm.ini for options not available in retroarch-core-options.cfg
+                string iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "scummvm.ini");
+                if (File.Exists(iniPath))
+                {
+                    using (var ini = new IniFile(iniPath))
+                    {
+
+                        ini.WriteValue("scummvm", "extrapath", Path.Combine(AppConfig.GetFullPath("bios"), "scummvm", "extra"));
+                        ini.WriteValue("scummvm", "themepath", Path.Combine(AppConfig.GetFullPath("bios"), "scummvm", "theme"));
+                        ini.WriteValue("scummvm", "savepath", Path.Combine(AppConfig.GetFullPath("saves"), "scummvm"));
+
+                        if (SystemConfig.isOptSet("ratio"))
+                            ini.WriteValue("scummvm", "aspect_ratio", "true");                  
+
+                        // Sound Mode
+                        if (SystemConfig.isOptSet("SoundMode"))
+                        {
+                            if (SystemConfig["SoundMode"] == "fluidsynth")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "fluidsynth");
+                                ini.WriteValue("scummvm", "opl_driver", "auto");
+                                ini.WriteValue("scummvm", "gm_device", "fluidsynth");
+                                ini.WriteValue("scummvm", "mt32_device", "auto");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }
+                            else if (SystemConfig["SoundMode"] == "emulated_mt32")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "mt32");
+                                ini.WriteValue("scummvm", "opl_driver", "auto");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "mt32");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }
+                            else if (SystemConfig["SoundMode"] == "true_mt32")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "mt32");
+                                ini.WriteValue("scummvm", "opl_driver", "auto");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "mt32");
+                                ini.WriteValue("scummvm", "native_mt32", "true");
+                            }
+                            else if (SystemConfig["SoundMode"] == "adlib_mame")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "adlib");
+                                ini.WriteValue("scummvm", "opl_driver", "mame");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "auto");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }
+                            else if (SystemConfig["SoundMode"] == "adlib_dosbox")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "adlib");
+                                ini.WriteValue("scummvm", "opl_driver", "db");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "auto");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }
+                            else if (SystemConfig["SoundMode"] == "adlib_nuked")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "adlib");
+                                ini.WriteValue("scummvm", "opl_driver", "nuked");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "auto");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }
+                            else if (SystemConfig["SoundMode"] == "pcspeaker")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "pcspk");
+                                ini.WriteValue("scummvm", "opl_driver", "auto");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "auto");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }
+                            else if (SystemConfig["SoundMode"] == "pcjr")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "pcjr");
+                                ini.WriteValue("scummvm", "opl_driver", "auto");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "auto");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }
+                            else if (SystemConfig["SoundMode"] == "cms")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "cms");
+                                ini.WriteValue("scummvm", "opl_driver", "auto");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "auto");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }
+                            else if (SystemConfig["SoundMode"] == "disabled")
+                            {
+                                ini.WriteValue("scummvm", "music_driver", "null");
+                                ini.WriteValue("scummvm", "opl_driver", "auto");
+                                ini.WriteValue("scummvm", "gm_device", "auto");
+                                ini.WriteValue("scummvm", "mt32_device", "auto");
+                                ini.WriteValue("scummvm", "native_mt32", "false");
+                            }                          
+                            
+                        }
+                        else
+                        {
+                            ini.WriteValue("scummvm", "music_driver", "auto");
+                            ini.WriteValue("scummvm", "opl_driver", "auto");
+                            ini.WriteValue("scummvm", "gm_device", "auto");
+                            ini.WriteValue("scummvm", "mt32_device", "auto");
+                            ini.WriteValue("scummvm", "native_mt32", "false");
+                        }
+
+                        // Mixed Adlib/Midi
+                        if (SystemConfig.isOptSet("multi_midi"))
+                            ini.WriteValue("scummvm", "multi_midi", SystemConfig["multi_midi"]);
+                        else
+                            ini.WriteValue("scummvm", "multi_midi", "true");
+
+                        // Sound Font
+                        if (SystemConfig.isOptSet("soundfont"))
+                            ini.WriteValue("scummvm", "soundfont", Path.Combine(AppConfig.GetFullPath("bios"), "scummvm", "extra", SystemConfig["soundfont"]));
+
+                        // Text and Speech (enable subtitles, speech or both)
+                        if (SystemConfig.isOptSet("TextSpeech"))
+                        {
+                            if (SystemConfig["TextSpeech"] == "Speech")
+                            {
+                                ini.WriteValue("scummvm", "speech_mute", "false");
+                                ini.WriteValue("scummvm", "subtitles", "false");                            
+                            }
+                            else if (SystemConfig["TextSpeech"] == "Subtitles")
+                            {
+                                ini.WriteValue("scummvm", "speech_mute", "true");
+                                ini.WriteValue("scummvm", "subtitles", "true");
+                            }
+                            else if (SystemConfig["TextSpeech"] == "Both")
+                            {
+                                ini.WriteValue("scummvm", "speech_mute", "false");
+                                ini.WriteValue("scummvm", "subtitles", "true");
+                            }                            
+
+                        }
+                        else
+                        {
+                            ini.WriteValue("scummvm", "speech_mute", "false");
+                            ini.WriteValue("scummvm", "subtitles", "true");
+                        }
+
+                        /* Render mode options through scummvm menu seems having no effects for now.
+                         * May be will be usefull later.
+                         
+                        if (SystemConfig.isOptSet("render_mode"))
+                            ini.WriteValue("scummvm", "render_mode", SystemConfig["render_mode"]);
+                        else
+                            ini.Remove("scummvm", "render_mode");
+                        */
+                    }
+                }
+            }
+            catch { }
+
+        }
+
         private void ConfigureDolphin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "dolphin")
