@@ -27,7 +27,9 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            var version = FileVersionInfo.GetVersionInfo(exe).ProductVersion;
+            var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+            
+            var version = versionInfo.ProductVersion;
             if (!string.IsNullOrEmpty(version))
                 WriteApple2Option("Version", version.Replace(",", ".").Replace(" ", ""));
 
@@ -47,8 +49,30 @@ namespace emulatorLauncher
             WriteApple2Option("Full-screen show subunit status", "0");
             WriteApple2Option("Joystick0 Emu Type v3", Program.Controllers.Any(c => c.WinmmJoystick != null) ? "1" : "2");
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-            _resolution = resolution;
+            bool usingReshader = false;
+
+            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            // Check if it's retrobat version
+            if (!string.IsNullOrEmpty(versionInfo.FileDescription) && versionInfo.FileDescription.Contains("Retrobat"))
+            {
+                // Disable internal effects ( scanlines )
+                WriteApple2Option("Video Style", "0");
+
+                commandArray.Add("-opengl");
+
+                usingReshader = ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, bezels != null);
+                if (usingReshader && bezels != null)
+                    commandArray.Add("-stretch");
+                else
+                    commandArray.Add("-no-stretch");
+            }
+
+            if (!usingReshader)
+            {
+                _bezelFileInfo = bezels;
+                _resolution = resolution;
+            }
 
             string args = string.Join(" ", commandArray);
 
