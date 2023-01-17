@@ -22,7 +22,10 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            var platform = ReshadeManager.GetPlatformFromFile(exe);
+            if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, platform, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
             _resolution = resolution;
             
             List<string> commandArray = new List<string>();

@@ -14,11 +14,10 @@ namespace emulatorLauncher
 {
     class ReshadeManager
     {
-        private const string ReshadeFolder = "reshade-shaders";
+        // Update this version number, if shipped reshader version changes.
+        private static Version ShippedVersion = new Version(4, 5, 4, 115);
 
-        // -system model2 -emulator model2 -core multicpu -rom "H:\[Emulz]\roms\model2\dayton93.zip"
-        // -system model3 -emulator supermodel -core  -rom "H:\[Emulz]\roms\model3\srally2.zip"
-        // -system atomiswave -emulator demul -core atomiswave -rom "H:\[Emulz]\roms\atomiswave\fotns.zip"
+        private const string ReshadeFolder = "reshade-shaders";
 
         public static bool Setup(ReshadeBezelType type, ReshadePlatform platform, string system, string rom, string path, ScreenResolution resolution, bool displayIsStretched = false)
         {
@@ -176,9 +175,48 @@ namespace emulatorLauncher
             }
         }
 
+        public static ReshadePlatform GetPlatformFromFile(string fileName)
+        {
+            try
+            {
+                var type = Kernel32.GetBinaryType(fileName);
+                if (type == BinaryType.SCS_64BIT_BINARY)
+                    return ReshadePlatform.x64;
+            }
+            catch { }
+
+            return ReshadePlatform.x86;
+        }
+
         private static string InstallReshader(ReshadeBezelType type, ReshadePlatform platform, string path)
         {
             string dllName = Path.Combine(path, GetEnumDescription(type));
+
+            if (File.Exists(dllName))
+            {
+                // Reinstall DLL if platform changed
+                var versionInfo = FileVersionInfo.GetVersionInfo(dllName);
+
+                ReshadePlatform dllPlatform = !string.IsNullOrEmpty(versionInfo.FileDescription) && versionInfo.FileDescription.Contains("64") ? ReshadePlatform.x64 : ReshadePlatform.x86;
+                if (platform != dllPlatform)
+                {
+                    try { File.Delete(dllName); }
+                    catch { }
+                }
+                else
+                {
+                    Version version = new Version();
+                    if (Version.TryParse(versionInfo.FileVersion, out version))
+                    {
+                        if (version < ShippedVersion)
+                        {
+                            try { File.Delete(dllName); }
+                            catch { }
+                        }                        
+                    }
+                }
+            }
+
             if (!File.Exists(dllName))
             {
                 UninstallReshader(type, path);
@@ -198,7 +236,7 @@ namespace emulatorLauncher
             return dllName;
         }
 
-        private static void UninstallReshader(ReshadeBezelType type, string path)
+        public static void UninstallReshader(ReshadeBezelType type, string path)
         {
             string dllName = Path.Combine(path, GetEnumDescription(type));
             if (File.Exists(dllName))

@@ -22,6 +22,8 @@ namespace emulatorLauncher
             if (_ymlShadersCache == null)
                 _ymlShadersCache = YmlFile.Parse(yml);
 
+            retryWithDefault:
+
             var container = _ymlShadersCache.GetContainer(system);
             if (container != null)
             {
@@ -44,6 +46,12 @@ namespace emulatorLauncher
                         return si.Value;
 					}
 				}				
+            }
+
+            if (system != "default")
+            {
+                system = "default";
+                goto retryWithDefault;
             }
 
             return GetDefaultShader();

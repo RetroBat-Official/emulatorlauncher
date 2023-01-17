@@ -228,13 +228,7 @@ namespace emulatorLauncher
             if (SystemConfig["ratio"] == "16/9")
                 SystemConfig["bezel"] = "none";
 
-            if (_executableName == "hypseus")
-            {
-                //if (SystemConfig["hypseus_renderer"] != "vulkan")
-                    ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, emulatorPath, resolution);
-            }
-            else
-                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, emulatorPath, resolution);
+            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadeManager.GetPlatformFromFile(exe), system, rom, emulatorPath, resolution);
 
             string args = string.Join(" ", commandArray);
 

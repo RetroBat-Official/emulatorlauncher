@@ -33,7 +33,10 @@ namespace emulatorLauncher
                     throw new ApplicationException("Unable to find scummvm file in the provided folder");
             }
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            var platform = ReshadeManager.GetPlatformFromFile(exe);
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, platform, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            
             _resolution = resolution;
 
             string iniPath = Path.ChangeExtension(exe, ".ini");
