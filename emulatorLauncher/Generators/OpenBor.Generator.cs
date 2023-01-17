@@ -109,6 +109,8 @@ namespace emulatorLauncher
             {
                 UseEsPadToKey = false;
 
+                SetupBezelAndShaders(system, rom, resolution, path);
+
                 return new ProcessStartInfo()
                 {
                     FileName = exe,
@@ -138,11 +140,25 @@ namespace emulatorLauncher
             if (!File.Exists(destFile))
                 File.Copy(rom, destFile);
 
+            SetupBezelAndShaders(system, rom, resolution, path);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path
             };
+        }
+
+        private void SetupBezelAndShaders(string system, string rom, ScreenResolution resolution, string path)
+        {
+            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
+            if (bezels != null && ((SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1") || BorPak.GetVideoMode(rom).IsWideScreen))
+            {
+                SystemConfig["forceNoBezel"] = "1";
+                bezels = null;
+            }
+
+            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, false);
         }
 
         public override void Cleanup()
@@ -863,4 +879,230 @@ namespace emulatorLauncher
 	    int[] glfilter; // Simple or bilinear scaling
     };    
     #endregion
+
+    class BorPak
+    {
+        struct pn_t
+        {
+            public uint pns;
+            public uint off;
+            public uint size;
+            public string name;
+        };
+
+        public class BorVideoMode
+        {
+            public int VideoMode { get; set; }
+            public int Width { get; set; }
+            public int Height { get; set; }
+
+            public float Ratio
+            {
+                get
+                {
+                    if (Height == 0)
+                        return 4 / 3;
+
+                    return (float)Width / (float)Height;
+                }
+            }
+
+            public bool IsWideScreen
+            {
+                get
+                {
+                    return (Ratio > 1.4);
+                }
+            }
+        }
+
+        public static BorVideoMode GetVideoMode(string fileName)
+        {
+            var bytes = BorPak.ReadAllLines(fileName, "DATA\\VIDEO.TXT");
+            if (bytes != null)
+            {
+                int videoMode = 255;
+                int hRes = 0;
+                int vRes = 0;
+
+                var video = bytes.FirstOrDefault(s => s.StartsWith("video"));
+                var args = video.Split(new char[] { '\t' });
+                if (args.Length > 1)
+                {
+                    int pos = args[1].IndexOf("x");
+                    if (pos >= 0)
+                    {
+                        hRes = args[1].Substring(0, pos).ToInteger();
+                        vRes = args[1].Substring(pos + 1).ToInteger();
+                        videoMode = 255;
+                    }
+                    else
+                    {
+                        videoMode = args[1].ToInteger();
+
+                        switch (videoMode)
+                        {
+                            // 320x240 - All Platforms
+                            case 0:
+                                hRes = 320;
+                                vRes = 240;
+                                break;
+
+                            // 480x272 - All Platforms
+                            case 1:
+                                hRes = 480;
+                                vRes = 272;
+                                break;
+
+                            // 640x480 - PC, Dreamcast, Wii
+                            case 2:
+                                hRes = 640;
+                                vRes = 480;
+                                break;
+
+                            // 720x480 - PC, Wii
+                            case 3:
+                                hRes = 720;
+                                vRes = 480;
+                                break;
+
+                            // 800x480 - PC, Wii, Pandora
+                            case 4:
+                                hRes = 800;
+                                vRes = 480;
+                                break;
+
+                            // 800x600 - PC, Dreamcast, Wii
+                            case 5:
+                                hRes = 800;
+                                vRes = 600;
+                                break;
+
+                            // 960x540 - PC, Wii
+                            case 6:
+                                hRes = 960;
+                                vRes = 540;
+                                break;
+                        }
+                    }
+
+                    return new BorVideoMode()
+                    {
+                        VideoMode = videoMode,
+                        Width = hRes,
+                        Height = vRes
+                    };
+                }
+            }
+
+            return new BorVideoMode()
+            {
+                VideoMode = 1,
+                Width = 320,
+                Height = 240
+            };
+        }
+
+        public static string[] ReadDirectory(string filename)
+        {
+            var files = new List<string>();
+            Read(filename, (fd, pn) => files.Add(pn.name));
+            return files.ToArray();
+        }
+
+        public static byte[] ReadFile(string filename, string fileNameAndPath)
+        {
+            byte[] ret = null;
+            Read(filename, (fd, pn) =>
+                {
+                    if (fileNameAndPath.Equals(pn.name, StringComparison.InvariantCultureIgnoreCase))
+                        ret = GetFile(fd, pn.name, pn.off, pn.size);
+                });
+
+            return ret;
+        }
+
+        public static string[] ReadAllLines(string filename, string fileNameAndPath)
+        {
+            byte[] ret = null;
+            Read(filename, (fd, pn) =>
+                {
+                    if (fileNameAndPath.Equals(pn.name, StringComparison.InvariantCultureIgnoreCase))
+                        ret = GetFile(fd, pn.name, pn.off, pn.size);
+                });
+
+            if (ret != null)
+                return Encoding.UTF8.GetString(ret).Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            return null;
+        }
+
+        private static void Read(string filename, Action<BinaryReader, pn_t> action)
+        {
+            using (FileStream fs = new FileStream(filename, FileMode.Open))
+            using (BinaryReader fd = new BinaryReader(fs))
+            {
+                var pack = fd.ReadChars(4);
+                if (new string(pack) != "PACK")
+                    return;
+
+                var packver = fdrinum(fd, 32);
+
+                fs.Seek(-4, SeekOrigin.End);
+
+                var off = fdrinum(fd, 32);
+
+                fs.Seek(off, SeekOrigin.Begin);
+
+                pn_t pn = new pn_t();
+
+                for (; ; )
+                {
+                    pn.pns = fdrinum(fd, 32);
+                    pn.off = fdrinum(fd, 32);
+                    pn.size = fdrinum(fd, 32);
+
+                    int len = (int) pn.pns - 12;
+                    if (len <= 0)
+                        break;
+
+                    pn.name = new string(fd.ReadChars(len - 1)); // remove \0
+
+                    if (action != null)
+                        action(fd, pn);
+                    // Debug.WriteLine(name);
+
+                    if (pn.name.ToLower().Contains("video.txt"))
+                        GetFile(fd, pn.name, pn.off, pn.size);
+
+                    off += pn.pns;
+
+                    if (off > fs.Length)
+                        break;
+
+                    fs.Seek(off, SeekOrigin.Begin);                    
+                }
+            }
+        }
+
+        private static byte[] GetFile(BinaryReader fd, string name, uint off, uint size)
+        {
+            var fs = fd.BaseStream;
+
+           fs.Seek(off, SeekOrigin.Begin);                        
+           return fd.ReadBytes((int) size);
+        }
+
+        static uint fdrinum(BinaryReader fd, int size)
+        {
+            uint num = 0;
+
+            size >>= 3;
+            byte[] tmp = fd.ReadBytes(size);
+            for (int i = 0; i < tmp.Length; i++)
+                num |= (uint) (((int)tmp[i]) << (i << 3));
+
+            return num;
+        }
+    }
 }
