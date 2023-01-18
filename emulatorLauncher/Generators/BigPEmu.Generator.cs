@@ -62,6 +62,9 @@ namespace emulatorLauncher
             if (bezel != null)
                 bezel.Dispose();
 
+            if (ret == 1)
+                return 0;
+
             return ret;
         }
 
