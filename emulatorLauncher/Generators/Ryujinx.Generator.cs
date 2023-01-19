@@ -65,6 +65,9 @@ namespace emulatorLauncher
             //Perform conroller configuration
             CreateControllerConfiguration(json);
 
+            //Set fullscreen
+            json["start_fullscreen"] = "true";
+
             //General Settings
             json["check_updates_on_start"] = "false";
             json["show_confirm_exit"] = "false";
