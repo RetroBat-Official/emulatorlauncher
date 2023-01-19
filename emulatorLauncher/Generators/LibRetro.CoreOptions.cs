@@ -330,6 +330,7 @@ namespace emulatorLauncher.libRetro
             ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
+            ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -2036,6 +2037,15 @@ namespace emulatorLauncher.libRetro
                 return;
 
             BindFeature(coreSettings, "fuse_machine", "fuse_machine", "Spectrum 128K");
+        }
+
+        private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "melonds")
+                return;
+
+            BindFeature(coreSettings, "melonds_boot_directly", "nds_boot", "enabled");
+            BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
         }
 
         #region Input remaps
