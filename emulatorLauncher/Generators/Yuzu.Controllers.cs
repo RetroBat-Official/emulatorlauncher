@@ -61,8 +61,24 @@ namespace emulatorLauncher
 
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 
-            ini.WriteValue("Controls", player + "type" + "\\default", "true");
-            ini.WriteValue("Controls", player + "type", "0");
+            // player_0_type=1 Pro controller
+            // player_0_type=1 Dual joycon
+            // player_0_type=2 Left joycon
+            // player_0_type=3 Right joycon
+            // player_0_type=4 Handheld
+            // player_0_type=5 Gamecube controller
+            
+            string playerTypeId = "0";
+            string playerType = player + "type";
+            if (Features.IsSupported(playerType) && SystemConfig.isOptSet(playerType))
+            {
+                string id = SystemConfig[playerType];
+                if (!string.IsNullOrEmpty(id))
+                    playerTypeId = id;
+            }            
+
+            ini.WriteValue("Controls", player + "type" + "\\default",  playerTypeId == "0" ? "true" : "false");
+            ini.WriteValue("Controls", player + "type", playerTypeId);
             ini.WriteValue("Controls", player + "connected" + "\\default", "false");
             ini.WriteValue("Controls", player + "connected", "true");
 
