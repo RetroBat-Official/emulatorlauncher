@@ -68,17 +68,18 @@ namespace emulatorLauncher
             // player_0_type=4 Handheld
             // player_0_type=5 Gamecube controller
             
-            string playerTypeId = "0";
+            int playerTypeId = 0;
+
             string playerType = player + "type";
             if (Features.IsSupported(playerType) && SystemConfig.isOptSet(playerType))
             {
                 string id = SystemConfig[playerType];
                 if (!string.IsNullOrEmpty(id))
-                    playerTypeId = id;
+                    playerTypeId = id.ToInteger();
             }            
 
-            ini.WriteValue("Controls", player + "type" + "\\default",  playerTypeId == "0" ? "true" : "false");
-            ini.WriteValue("Controls", player + "type", playerTypeId);
+            ini.WriteValue("Controls", player + "type" + "\\default",  playerTypeId == 0 ? "true" : "false");
+            ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
             ini.WriteValue("Controls", player + "connected" + "\\default", "false");
             ini.WriteValue("Controls", player + "connected", "true");
 
@@ -118,7 +119,7 @@ namespace emulatorLauncher
                 ini.WriteValue("Controls", "motion_enabled", "false");
             }
 
-            //XInput controllers do not have motion - disable for XInput players, else use default sdl motion engine from the controller
+            // XInput controllers do not have motion - disable for XInput players, else use default sdl motion engine from the controller
             if (!controller.IsXInputDevice)
             {
                 ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
@@ -132,6 +133,31 @@ namespace emulatorLauncher
                 ini.WriteValue("Controls", player + "motionleft", "[empty]");
                 ini.WriteValue("Controls", player + "motionright" + "\\default", "true");
                 ini.WriteValue("Controls", player + "motionright", "[empty]");
+
+                // If motion is set for XInput devices, and controller type is left/right joycon, inject with R3/L3
+                if (SystemConfig.isOptSet("yuzu_enable_motion") && SystemConfig.getOptBoolean("yuzu_enable_motion") && playerTypeId == 2 || playerTypeId == 3)
+                {
+                    // 2 = Left joycon, 3 = Right joycon -> use R3 or L3
+                    var input = FromInput(controller, playerTypeId == 3 ? cfg[InputKey.l3] : cfg[InputKey.r3], yuzuGuid, index);
+                    if (input != null)
+                    {
+                        ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
+                        ini.WriteValue("Controls", player + "motionright" + "\\default", "false");
+
+                        if (playerTypeId == 2)
+                        {
+                            ini.WriteValue("Controls", player + "motionleft", "\"" + input + "\"");
+                            ini.WriteValue("Controls", player + "motionright", "[empty]");
+                        }
+                        else
+                        {
+                            ini.WriteValue("Controls", player + "motionright", "\"" + input + "\"");
+                            ini.WriteValue("Controls", player + "motionleft", "[empty]");
+                        }
+                    }
+                }
+
+
             }
 
             foreach (var map in Mapping)
@@ -175,7 +201,7 @@ namespace emulatorLauncher
             if (input.Type == "button")
                 value += ",button:" + input.Id;
             else if (input.Type == "hat")
-                value += ",direction:" + input.Name.ToString() + ",hat:" + input.Id;
+                value += ",hat:" + input.Id + ",direction:" + input.Name.ToString();
             else if (input.Type == "axis")
             {
                 //yuzu sdl implementation uses "2" as axis value for left trigger for XInput
@@ -184,7 +210,7 @@ namespace emulatorLauncher
                     long newID = input.Id;
                     if (input.Id == 4)
                         newID = 2;
-                    value = "engine:sdl,port:" + index + ",axis:" + newID + ",guid:" + guid + ",threshold:0.500000" + ",invert:+";
+                    value = "engine:sdl,port:" + index + ",guid:" + guid + ",axis:" + newID + ",threshold:0.500000" + ",invert:+";
                 }
                 else
                     value = "engine:sdl,port:" + index + ",axis:" + input.Id + ",guid:" + guid + ",threshold:0.500000" + ",invert:+";

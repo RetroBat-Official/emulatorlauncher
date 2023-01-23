@@ -225,45 +225,50 @@ namespace emulatorLauncher
 
             int axisValue = 1;
 
+            SdlControllerMapping sdlret = null;
+
             var mapping = ctrl.Mapping;
-            var sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == input.Value);
-
-            if (sdlret == null && input.Type == "axis")
+            if (mapping != null)
             {
-                var invret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == -input.Value);
-                if (invret != null)
-                {
-                    sdlret = invret;
-                    axisValue = -1;
-                }
-            }
+                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == input.Value);
 
-            if (sdlret == null)
-            {
-                if (mapping.All(m => m.Axis == SDL_CONTROLLER_AXIS.INVALID))
+                if (sdlret == null && input.Type == "axis")
                 {
-                    switch (key)
+                    var invret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == -input.Value);
+                    if (invret != null)
                     {
-                        case InputKey.left:
-                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_LEFT);
-                            break;
-                        case InputKey.right:
-                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_RIGHT);
-                            break;
-                        case InputKey.up:
-                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_UP);
-                            break;
-                        case InputKey.down:
-                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_DOWN);
-                            break;
+                        sdlret = invret;
+                        axisValue = -1;
                     }
                 }
 
                 if (sdlret == null)
                 {
-                    SimpleLogger.Instance.Warning("[InputConfig] ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
-                    return input;
+                    if (mapping.All(m => m.Axis == SDL_CONTROLLER_AXIS.INVALID))
+                    {
+                        switch (key)
+                        {
+                            case InputKey.left:
+                                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_LEFT);
+                                break;
+                            case InputKey.right:
+                                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_RIGHT);
+                                break;
+                            case InputKey.up:
+                                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_UP);
+                                break;
+                            case InputKey.down:
+                                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_DOWN);
+                                break;
+                        }
+                    }
                 }
+            }
+
+            if (sdlret == null)
+            {
+                SimpleLogger.Instance.Warning("[InputConfig] ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
+                return input;
             }
 
             Input ret = new Input() { Name = input.Name };

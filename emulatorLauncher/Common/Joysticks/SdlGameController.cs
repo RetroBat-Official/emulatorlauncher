@@ -26,6 +26,9 @@ namespace emulatorLauncher.Tools
                 var guid = SDL.SDL_JoystickGetDeviceGUID(i);
                 var name = SDL.SDL_GameControllerNameForIndex(i);
 
+                if (string.IsNullOrEmpty(name))
+                    continue;
+
                 SdlGameController ctl = new SdlGameController();
                 ctl.Index = i;
                 ctl.Guid = new SdlJoystickGuid(guid);
@@ -62,23 +65,20 @@ namespace emulatorLauncher.Tools
                 }
                 else
                     SimpleLogger.Instance.Info("[SdlGameController] Loading SDL controller mapping : " + i + " => " + ctl.ToString());
-
-                if (_controllersByGuid.ContainsKey(guid))
-                    continue;
-
-                if (string.IsNullOrEmpty(name))
-                    continue;
-
+                
                 var mappingString = SDL.SDL_GameControllerMappingForDeviceIndex(i);
-                if (string.IsNullOrEmpty(mappingString))
-                    continue;
+                if (!string.IsNullOrEmpty(mappingString))
+                {
+                    string[] mapArray = mappingString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (mapArray.Length > 2)
+                    {
+                        ctl.Mapping = ExtractMapping(mapArray.Skip(2));
+                        ctl.SdlBinding = mappingString;
+                    }
+                }
 
-                string[] mapArray = mappingString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                if (mapArray.Length == 0)
+                if (_controllersByGuid.ContainsKey(ctl.Guid))
                     continue;
-
-                ctl.Mapping = ExtractMapping(mapArray.Skip(2));
-                ctl.SdlBinding = mappingString;
 
                 _controllersByGuid[ctl.Guid] = ctl;
 
@@ -121,6 +121,11 @@ namespace emulatorLauncher.Tools
     
             SDL.SDL_QuitSubSystem(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_Quit();
+        }
+
+        public SdlGameController()
+        {
+            Mapping = new SdlControllerMapping[] { };
         }
 
         private static SdlControllerMapping[] ExtractMapping(IEnumerable<string> mapArray)

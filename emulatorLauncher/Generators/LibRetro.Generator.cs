@@ -234,7 +234,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
             BindFeature(retroarchConfig, "crt_switch_resolution_super", "CRTSuperRes", "0"); // CRT Resolution
 
-            BindFeature(retroarchConfig, "input_auto_game_focus", "GameFocus", "2"); // Game Focus
+            BindFeature(retroarchConfig, "input_auto_game_focus", "GameFocus", "0"); // Game Focus
 
             // Stats
             if (SystemConfig.isOptSet("DrawStats"))
