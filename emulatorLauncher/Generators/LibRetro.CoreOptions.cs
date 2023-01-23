@@ -676,11 +676,11 @@ namespace emulatorLauncher.libRetro
             coreSettings["fba2012cps2_frameskip"] = "disabled";
             coreSettings["fba2012cps2_aspect"] = "DAR";
 
-            BindFeature(coreSettings, "fba2012cps2_auto_rotate", "fba2012cps1_auto_rotate", "enabled");
-            BindFeature(coreSettings, "fba2012cps2_cpu_speed_adjust", "fba2012cps1_cpu_speed_adjust", "100");
-            BindFeature(coreSettings, "fba2012cps2_hiscores", "fba2012cps1_hiscores", "enabled");
-            BindFeature(coreSettings, "fba2012cps2_lowpass_filter", "fba2012cps1_lowpass_filter", "disabled");
-            BindFeature(coreSettings, "fba2012cps2_lowpass_range", "fba2012cps1_lowpass_range", "50");
+            BindFeature(coreSettings, "fba2012cps2_auto_rotate", "fba2012cps2_auto_rotate", "enabled");
+            BindFeature(coreSettings, "fba2012cps2_cpu_speed_adjust", "fba2012cps2_cpu_speed_adjust", "100");
+            BindFeature(coreSettings, "fba2012cps2_hiscores", "fba2012cps2_hiscores", "enabled");
+            BindFeature(coreSettings, "fba2012cps2_lowpass_filter", "fba2012cps2_lowpass_filter", "disabled");
+            BindFeature(coreSettings, "fba2012cps2_lowpass_range", "fba2012cps2_lowpass_range", "50");
             BindFeature(coreSettings, "fba2012cps2_controls", "fba2012cps2_controls", "gamepad");
         }
 
