@@ -676,11 +676,11 @@ namespace emulatorLauncher.libRetro
             coreSettings["fba2012cps2_frameskip"] = "disabled";
             coreSettings["fba2012cps2_aspect"] = "DAR";
 
-            BindFeature(coreSettings, "fba2012cps2_auto_rotate", "fba2012cps1_auto_rotate", "enabled");
-            BindFeature(coreSettings, "fba2012cps2_cpu_speed_adjust", "fba2012cps1_cpu_speed_adjust", "100");
-            BindFeature(coreSettings, "fba2012cps2_hiscores", "fba2012cps1_hiscores", "enabled");
-            BindFeature(coreSettings, "fba2012cps2_lowpass_filter", "fba2012cps1_lowpass_filter", "disabled");
-            BindFeature(coreSettings, "fba2012cps2_lowpass_range", "fba2012cps1_lowpass_range", "50");
+            BindFeature(coreSettings, "fba2012cps2_auto_rotate", "fba2012cps2_auto_rotate", "enabled");
+            BindFeature(coreSettings, "fba2012cps2_cpu_speed_adjust", "fba2012cps2_cpu_speed_adjust", "100");
+            BindFeature(coreSettings, "fba2012cps2_hiscores", "fba2012cps2_hiscores", "enabled");
+            BindFeature(coreSettings, "fba2012cps2_lowpass_filter", "fba2012cps2_lowpass_filter", "disabled");
+            BindFeature(coreSettings, "fba2012cps2_lowpass_range", "fba2012cps2_lowpass_range", "50");
             BindFeature(coreSettings, "fba2012cps2_controls", "fba2012cps2_controls", "gamepad");
         }
 
@@ -1036,7 +1036,7 @@ namespace emulatorLauncher.libRetro
             else if (system == "msxturbor")
                 coreSettings["bluemsx_msxtype"] = "MSXturboR";
             else
-                coreSettings["bluemsx_msxtypec"] = "Auto";
+                coreSettings["bluemsx_msxtype"] = "Auto";
 
             var sysDevices = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
 
@@ -1848,8 +1848,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "puae_floppy_speed", "floppy_speed", "100");
             BindFeature(coreSettings, "puae_floppy_sound", "floppy_sound", "75");
             BindFeature(coreSettings, "puae_kickstart", "puae_kickstart", "auto");
-            BindFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "false");
-            BindFeature(coreSettings, "dosbox_pure_bind_unused", "dosbox_pure_bind_unused", "false");
         }
 
         private void ConfigureFlycast(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
