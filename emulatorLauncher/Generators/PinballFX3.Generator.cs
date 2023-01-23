@@ -59,14 +59,15 @@ namespace emulatorLauncher
             }
 
             string _args = string.Join(" ", commandArray);
-            if (_args != null)
-                _args += Path.GetFileNameWithoutExtension(rom);
 
             var ret = new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path
             };
+            
+            if (_args != null)
+                ret.Arguments = _args + Path.GetFileNameWithoutExtension(rom);
 
             string ext = Path.GetExtension(exe).ToLower();
             if (ext == ".bat" || ext == ".cmd")
