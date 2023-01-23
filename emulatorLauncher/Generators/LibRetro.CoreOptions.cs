@@ -1444,8 +1444,8 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["genesis_plus_gx_bram"] = "per game";
-            coreSettings["genesis_plus_gx_ym2413"] = "auto";
 
+            BindFeature(coreSettings, "genesis_plus_gx_ym2413", "ym2413", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_addr_error", "addr_error", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_lock_on", "lock_on", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_ym2612", "ym2612", "mame (ym2612)");
