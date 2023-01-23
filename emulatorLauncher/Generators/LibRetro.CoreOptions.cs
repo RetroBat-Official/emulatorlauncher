@@ -1036,7 +1036,7 @@ namespace emulatorLauncher.libRetro
             else if (system == "msxturbor")
                 coreSettings["bluemsx_msxtype"] = "MSXturboR";
             else
-                coreSettings["bluemsx_msxtypec"] = "Auto";
+                coreSettings["bluemsx_msxtype"] = "Auto";
 
             var sysDevices = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
 
