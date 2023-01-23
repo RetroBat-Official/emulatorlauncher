@@ -1848,8 +1848,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "puae_floppy_speed", "floppy_speed", "100");
             BindFeature(coreSettings, "puae_floppy_sound", "floppy_sound", "75");
             BindFeature(coreSettings, "puae_kickstart", "puae_kickstart", "auto");
-            BindFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "false");
-            BindFeature(coreSettings, "dosbox_pure_bind_unused", "dosbox_pure_bind_unused", "false");
         }
 
         private void ConfigureFlycast(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
