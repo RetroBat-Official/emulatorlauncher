@@ -870,7 +870,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_saturn_multitap_port1", "beetle_saturn_multitap_port1", "disabled");
             BindFeature(coreSettings, "beetle_saturn_multitap_port2", "beetle_saturn_multitap_port2", "disabled");
             BindFeature(coreSettings, "beetle_saturn_region", "beetle_saturn_region", "Auto Detect");
-            BindFeature(coreSettings, "beetle_saturn_midsync", "beetle_saturn_midsync", "disabled");
 
             // NEW
             BindFeature(coreSettings, "beetle_saturn_virtuagun_crosshair", "beetle_saturn_virtuagun_crosshair", "cross", true);
@@ -1444,14 +1443,14 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["genesis_plus_gx_bram"] = "per game";
-            coreSettings["genesis_plus_gx_ym2413"] = "auto";
 
+            BindFeature(coreSettings, "genesis_plus_gx_ym2413", "ym2413", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_addr_error", "addr_error", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_lock_on", "lock_on", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_ym2612", "ym2612", "mame (ym2612)");
             BindFeature(coreSettings, "genesis_plus_gx_audio_filter", "audio_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_blargg_ntsc_filter", "ntsc_filter", "disabled");
-            BindFeature(coreSettings, "genesis_plus_gx_lcd_filter", "lcd_filter", "lcd_filter");
+            BindFeature(coreSettings, "genesis_plus_gx_lcd_filter", "lcd_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_overscan", "overscan", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_render", "render", "single field");
             BindFeature(coreSettings, "genesis_plus_gx_force_dtack", "genesis_plus_gx_force_dtack", "enabled");
@@ -1503,9 +1502,8 @@ namespace emulatorLauncher.libRetro
             }
 
             coreSettings["genesis_plus_gx_wide_bram"] = "per game";
-            coreSettings["genesis_plus_gx_wide_ym2413"] = "auto";
-            coreSettings["genesis_plus_gx_wide_overscan"] = "disabled";
 
+            BindFeature(coreSettings, "genesis_plus_gx_wide_ym2413", "ym2413", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_wide_addr_error", "addr_error", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_lock_on", "lock_on", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_ym2612", "ym2612", "mame (ym2612)");
@@ -1887,7 +1885,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_enable_rttb", "reicast_enable_rttb", "disabled");
             BindFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "disabled");
             BindFeature(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "disabled");
-            BindFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "disabled");
             BindFeature(coreSettings, "reicast_pvr2_filtering", "reicast_pvr2_filtering", "disabled");
 
             // toadd
