@@ -1451,7 +1451,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "genesis_plus_gx_ym2612", "ym2612", "mame (ym2612)");
             BindFeature(coreSettings, "genesis_plus_gx_audio_filter", "audio_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_blargg_ntsc_filter", "ntsc_filter", "disabled");
-            BindFeature(coreSettings, "genesis_plus_gx_lcd_filter", "lcd_filter", "lcd_filter");
+            BindFeature(coreSettings, "genesis_plus_gx_lcd_filter", "lcd_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_overscan", "overscan", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_render", "render", "single field");
             BindFeature(coreSettings, "genesis_plus_gx_force_dtack", "genesis_plus_gx_force_dtack", "enabled");
