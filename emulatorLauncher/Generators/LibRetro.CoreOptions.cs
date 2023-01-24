@@ -870,7 +870,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_saturn_multitap_port1", "beetle_saturn_multitap_port1", "disabled");
             BindFeature(coreSettings, "beetle_saturn_multitap_port2", "beetle_saturn_multitap_port2", "disabled");
             BindFeature(coreSettings, "beetle_saturn_region", "beetle_saturn_region", "Auto Detect");
-            BindFeature(coreSettings, "beetle_saturn_midsync", "beetle_saturn_midsync", "disabled");
 
             // NEW
             BindFeature(coreSettings, "beetle_saturn_virtuagun_crosshair", "beetle_saturn_virtuagun_crosshair", "cross", true);
