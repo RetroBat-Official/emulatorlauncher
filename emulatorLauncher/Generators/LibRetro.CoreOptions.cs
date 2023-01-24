@@ -1887,7 +1887,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_enable_rttb", "reicast_enable_rttb", "disabled");
             BindFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "disabled");
             BindFeature(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "disabled");
-            BindFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "disabled");
             BindFeature(coreSettings, "reicast_pvr2_filtering", "reicast_pvr2_filtering", "disabled");
 
             // toadd
