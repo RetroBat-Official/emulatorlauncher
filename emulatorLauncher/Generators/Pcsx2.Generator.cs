@@ -128,8 +128,8 @@ namespace emulatorLauncher
 
                 if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
                 {
-                    commandArray.Add("-bigpicture");
                     commandArray.Add("-fullscreen");
+                    commandArray.Add("-bigpicture");
                 }
 
                 if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
