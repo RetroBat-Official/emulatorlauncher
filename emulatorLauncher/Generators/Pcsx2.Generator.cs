@@ -124,8 +124,13 @@ namespace emulatorLauncher
             if (_isPcsxqt)
             {
                 commandArray.Add("-batch");
-                commandArray.Add("-fullscreen");
                 commandArray.Add("-nogui");
+
+                if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
+                {
+                    commandArray.Add("-fullscreen");
+                    commandArray.Add("-bigpicture");
+                }
 
                 if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
                     commandArray.Add("-slowboot");
@@ -644,6 +649,9 @@ namespace emulatorLauncher
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces))
             {
                 CreateControllerConfiguration(ini);
+
+                //fullscreen
+                ini.WriteValue("UI", "StartFullscreen", "true");
 
                 //Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))

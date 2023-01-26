@@ -452,17 +452,17 @@ namespace emulatorLauncher
                     switch (pid)
                     {
                         case 0:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS X-";
-                            else return "LS X+";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS X+";
+                            else return "LS X-";
                         case 1:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS Y+";
-                            else return "LS Y-";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS Y-";
+                            else return "LS Y+";
                         case 2:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS X-";
-                            else return "RS X+";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS X+";
+                            else return "RS X-";
                         case 3:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS Y+";
-                            else return "RS Y-";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS Y-";
+                            else return "RS Y+";
                         case 4:return "L2";
                         case 5: return "R2";
                     }
@@ -505,17 +505,17 @@ namespace emulatorLauncher
                     switch (pid)
                     {
                         case 0:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS X-";
-                            else return "LS X+";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS X+";
+                            else return "LS X-";
                         case 1:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS Y+";
-                            else return "LS Y-";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS Y-";
+                            else return "LS Y+";
                         case 2:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS X-";
-                            else return "RS X+";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS X+";
+                            else return "RS X-";
                         case 3:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS Y+";
-                            else return "RS Y-";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS Y-";
+                            else return "RS Y+";
                         case 4: return "LT";
                         case 5: return "RT";
                     }
