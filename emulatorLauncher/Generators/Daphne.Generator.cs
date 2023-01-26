@@ -21,7 +21,7 @@ namespace emulatorLauncher
             _executableName = "daphne";
         }
 
-		protected virtual void UpdateCommandline(List<string> commandArray)
+        protected virtual void UpdateCommandline(List<string> commandArray)
         {
             if (SystemConfig.isOptSet("fastboot") && !SystemConfig.getOptBoolean("fastboot"))
                 commandArray.Remove("-fastboot");
@@ -65,6 +65,7 @@ namespace emulatorLauncher
         protected string _executableName;
         private string _daphneHomedir;
         private string _symLink;
+        private string _actionMaxSymLink;
 
         static string FindFile(string dir, string pattern, Predicate<string> predicate)
         {
@@ -82,9 +83,7 @@ namespace emulatorLauncher
                 }                
             }
             catch
-            {
-                
-            }
+            { }
 
             return null;
         }
@@ -95,9 +94,19 @@ namespace emulatorLauncher
 
             string romName = Path.GetFileNameWithoutExtension(rom);
 
-            string commandsFile = rom + "\\" + romName + ".commands";
+            // Special Treatment for actionmax games = 5 games
+            if (romName == "38ambushalley" || romName == "bluethunder" || romName == "hydrosub2021" || romName == "popsghostly" || romName == "sonicfury")
+            {
+                // Need to correct rom name extension as actionmax roms are identified by ES as <gamename>.actionmax
+                // Cannot name them as <gamename>.daphne or symlink creation will fail
+                rom = Path.GetDirectoryName(rom) + "\\" + romName + ".daphne";
+                
+                ConfigureActionMax(rom, romName); 
+            } 
 
-            string singeFile = rom + "\\" + romName + ".singe";
+            string commandsFile = rom + "\\" + romName + ".commands";
+            
+            string singeFile = rom + "\\" + romName + ".singe"; 
             if (!File.Exists(singeFile))
                 singeFile = FindFile(rom, "*.singe", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
 
@@ -111,7 +120,7 @@ namespace emulatorLauncher
                     if (frameFile == null)
                         frameFile = FindFile(rom, "*.mp4", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
                 }
-            }                        
+            }
 
             string emulatorPath = AppConfig.GetFullPath(_executableName);
             string exe = Path.Combine(emulatorPath, _executableName + ".exe");
@@ -124,7 +133,7 @@ namespace emulatorLauncher
             List<string> commandArray = new List<string>();
 
             // extension used .daphne and the file to start the game is in the folder .daphne with the extension .txt
-        
+
             string daphneDatadir = emulatorPath;
             _daphneHomedir = Path.GetDirectoryName(rom);
 
@@ -132,14 +141,14 @@ namespace emulatorLauncher
             {
                 _daphneHomedir = emulatorPath;
 
-                commandArray.AddRange(new string[]                       
-                   {                        
-                        "singe", 
-                        "vldp", 
+                commandArray.AddRange(new string[]
+                   {
+                        "singe",
+                        "vldp",
                         "-retropath", // Requires the CreateSymbolicLink
-                        "-framefile", frameFile, 
-                        "-script", singeFile, 
-                        "-manymouse", 
+                        "-framefile", frameFile,
+                        "-script", singeFile,
+                        "-manymouse",
                         "-datadir", _daphneHomedir,
                         "-homedir", _daphneHomedir
                     });
@@ -148,7 +157,7 @@ namespace emulatorLauncher
                     commandArray.AddRange(new string[] { "-sinden", "2", "w" });
 
                 string directoryName = Path.GetFileName(rom);
-    
+
                 _symLink = Path.Combine(emulatorPath, directoryName);
 
                 try
@@ -164,19 +173,19 @@ namespace emulatorLauncher
                 {
                     this.SetCustomError("Unable to create symbolic link. Please activate developer mode in Windows settings to allow this.");
                     ExitCode = ExitCodes.CustomError;
-                    return null;                    
+                    return null;
                 }
             }
             else
             {
-                 commandArray.AddRange(new string[]                       
-                   {                                
-                       romName, 
-                       "vldp", 
-                        "-framefile", frameFile, 
-                        "-useoverlaysb", "2",
-                        "-homedir", _daphneHomedir
-                   });
+                commandArray.AddRange(new string[]
+                {
+                    romName,
+                    "vldp",
+                    "-framefile", frameFile,
+                    "-useoverlaysb", "2",
+                    "-homedir", _daphneHomedir
+                });
             }
 
             if (Features.IsSupported("overlay") && SystemConfig.getOptBoolean("overlay"))
@@ -192,11 +201,11 @@ namespace emulatorLauncher
             commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
 
             commandArray.Add("-fullscreen");
-            commandArray.Add("-opengl");            
+            commandArray.Add("-opengl");
             commandArray.Add("-fastboot");
-            
-            UpdateCommandline(commandArray);       
-            
+
+            UpdateCommandline(commandArray);
+
             // The folder may have a file with the game name and .commands with extra arguments to run the game.
             if (_executableName == "daphne" && File.Exists(commandsFile))
             {
@@ -211,7 +220,7 @@ namespace emulatorLauncher
                         continue;
                     }
 
-                    if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" || 
+                    if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" ||
                         s == "-opengl" || s == "-fastboot" || s == "-retropath" || s == "-manymouse")
                         continue;
 
@@ -240,6 +249,52 @@ namespace emulatorLauncher
             };
         }
 
+        // Actionmax
+        // Create symlink to actionmax directory
+        // Replace "emulator.singe" file based on the game
+        private void ConfigureActionMax(string rom, string romName)
+        {
+            // Symlink management
+
+            string actionMaxPath = Path.GetDirectoryName(rom) + "\\actionmax";
+            _actionMaxSymLink = rom;
+
+            if (!Directory.Exists(actionMaxPath))
+            {
+                this.SetCustomError("Path actionmax missing in daphne rom folder.");
+                ExitCode = ExitCodes.CustomError;
+                return;
+            }
+
+            try
+            {
+                if (Directory.Exists(_actionMaxSymLink))
+                    Directory.Delete(_actionMaxSymLink);
+            }
+            catch { }
+
+            FileTools.CreateSymlink(_actionMaxSymLink, actionMaxPath, true);
+
+            if (!Directory.Exists(_actionMaxSymLink))
+            {
+                this.SetCustomError("Unable to create symbolic link. Please activate developer mode in Windows settings to allow this.");
+                ExitCode = ExitCodes.CustomError;
+                return;
+            }
+
+            // emulator.singe file management
+
+            string singeFileTarget = rom + "\\emulator.singe";
+            string singeFileSource = rom + "\\singefiles" + "\\" + romName + ".singe";
+
+            if (File.Exists(singeFileTarget))
+                File.Delete(singeFileTarget);
+
+            if (File.Exists(singeFileSource))
+                File.Copy(singeFileSource, singeFileTarget);
+        }
+
+        // Cleanup symlinks, ram and framefile
         public override void Cleanup()
         {
             base.Cleanup();
@@ -249,13 +304,16 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(_symLink) && Directory.Exists(_symLink))
                     Directory.Delete(_symLink);
 
+                if (!string.IsNullOrEmpty(_actionMaxSymLink) && Directory.Exists(_actionMaxSymLink))
+                    Directory.Delete(_actionMaxSymLink);
+
                 string ram = Path.Combine(_daphneHomedir, "ram");
                 if (Directory.Exists(ram))
                     new DirectoryInfo(ram).Delete(true);
 
                 string frameFile = Path.Combine(_daphneHomedir, "framefile");
                 if (Directory.Exists(frameFile))
-                    new DirectoryInfo(frameFile).Delete(true);     
+                    new DirectoryInfo(frameFile).Delete(true);
             }
             catch { }
         }
