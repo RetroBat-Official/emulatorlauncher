@@ -20,5 +20,7 @@ namespace TeknoParrotUi.Common
         OpenParrotKonami,
         //SegaTools
         SegaTools,
+        //ElfLdr2
+        ElfLdr2
     }
 }

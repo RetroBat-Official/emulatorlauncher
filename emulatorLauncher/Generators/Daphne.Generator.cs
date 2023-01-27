@@ -95,6 +95,17 @@ namespace emulatorLauncher
 
             string romName = Path.GetFileNameWithoutExtension(rom);
 
+            // Special Treatment for actionmax games
+            var ext = Path.GetExtension(rom).Replace(".", "").ToLower();
+            if (ext == "actionmax")
+            {
+                string expectedSingeFile = Path.Combine(Path.GetDirectoryName(rom), ext, romName + ".singe");
+                if (!File.Exists(expectedSingeFile))
+                    return null;
+
+                rom = Path.Combine(Path.GetDirectoryName(rom), ext);
+            }
+
             string commandsFile = rom + "\\" + romName + ".commands";
 
             string singeFile = rom + "\\" + romName + ".singe";
@@ -148,7 +159,10 @@ namespace emulatorLauncher
                     commandArray.AddRange(new string[] { "-sinden", "2", "w" });
 
                 string directoryName = Path.GetFileName(rom);
-    
+
+                if (directoryName == "actionmax")
+                    directoryName = Path.ChangeExtension(directoryName, ".daphne");
+
                 _symLink = Path.Combine(emulatorPath, directoryName);
 
                 try

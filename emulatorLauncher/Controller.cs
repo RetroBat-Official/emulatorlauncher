@@ -404,7 +404,7 @@ namespace emulatorLauncher
         public XInputButtonFlags GetXInputButtonFlags(InputKey key)
         {
             XInputButtonFlags result;
-            if (Enum.TryParse<XInputButtonFlags>(GetXInputInput(key).ToString(), out result))
+            if (Enum.TryParse<XInputButtonFlags>(GetXInputMapping(key).ToString(), out result))
                 return result;
 
             return XInputButtonFlags.NONE;
