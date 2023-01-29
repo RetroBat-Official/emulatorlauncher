@@ -722,7 +722,7 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(savesPath))
                 {
                     savesPath = Path.Combine(savesPath, "ps2", "pcsx2", "sstates");
-                    memcardsPath = Path.Combine(savesPath, "ps2", "pcsx2", "memcards");
+                    memcardsPath = Path.Combine(memcardsPath, "ps2", "pcsx2", "memcards");
 
                     if (!Directory.Exists(savesPath))
                         try { Directory.CreateDirectory(savesPath); }
