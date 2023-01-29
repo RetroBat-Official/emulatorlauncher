@@ -136,7 +136,7 @@ namespace emulatorLauncher
             pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
 
             //Get SDL controller index
-            int index = ctrl.DeviceIndex;
+            int index = ctrl.SdlController.Index;
             string techPadNumber = "SDL-" + index + "/";
 
             //Write button mapping
