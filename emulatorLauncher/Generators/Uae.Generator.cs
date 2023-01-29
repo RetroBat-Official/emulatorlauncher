@@ -103,6 +103,9 @@ namespace emulatorLauncher
             }
 
             sb.AppendLine("cpu_speed=max");
+            
+            if (SystemConfig.isOptSet("cycleexact") && SystemConfig.getOptBoolean("cycleexact"))
+                sb.AppendLine("cycle_exact=true");
 
             string fn = Path.Combine(path, "game.uae");
             File.WriteAllText(fn, sb.ToString());
