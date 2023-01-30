@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Drawing;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -102,6 +103,13 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
+            if (system == "wii")
+            {
+                string sysconf = Path.Combine(path, "User", "Wii", "shared2", "sys", "SYSCONF");
+                if (File.Exists(sysconf))
+                    writeWiiSysconfFile(sysconf);
+            }
+            
             SetupGeneralConfig(path, system);
             SetupGfxConfig(path);
 
@@ -333,10 +341,56 @@ namespace emulatorLauncher
             return "0";
         }
 
+        private int getWiiLangFromEnvironment()
+        {
+            var availableLanguages = new Dictionary<string, int>()
+            {
+                {"jp", 0 }, {"en", 1 }, { "de", 2 }, { "fr", 3 }, { "es", 4 }, { "it", 5 }, { "nl", 6 }
+            };
+
+            var lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                int ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return 1;
+        }
+
+        private void writeWiiSysconfFile(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            int langId = 1;
+
+            if (SystemConfig.isOptSet("wii_language") && !string.IsNullOrEmpty(SystemConfig["wii_language"]))
+                langId = SystemConfig["wii_language"].ToInteger();
+            else
+                langId = getWiiLangFromEnvironment();
+
+            // Read SYSCONF file
+            byte[] bytes = File.ReadAllBytes(path);
+
+            // Search IPL.LNG pattern and get index
+            byte[] pattern = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x4C, 0x4E, 0x47 };
+            int index = bytes.IndexOf(pattern);
+            if (index >= 0 && index + pattern.Length + 1 < bytes.Length)
+            {
+                var toSet = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x4C, 0x4E, 0x47, (byte)langId };
+                for (int i = 0; i < toSet.Length; i++)
+                    bytes[index + i] = toSet[i];
+
+                File.WriteAllBytes(path, bytes);
+            }
+        }
+
         private void SetupGeneralConfig(string path, string system)
         {
             string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
-
+            
             try
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
