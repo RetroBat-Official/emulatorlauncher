@@ -18,6 +18,7 @@ namespace emulatorLauncher
         }
 
         private string destFile;
+        private bool _isCustomOpenBor31; // This Version support harcoded NumButtons / NumAxes values for generic injection
 
         public static int JoystickValue(InputKey key, Controller c, bool invertAxis = false)
         {
@@ -104,6 +105,13 @@ namespace emulatorLauncher
                 path = Path.Combine(path, build);
                 exe = Path.Combine(path, "OpenBOR.exe");
             }
+
+            try
+            {
+                var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+                _isCustomOpenBor31 = (versionInfo.FileMajorPart == 3 && versionInfo.FileMinorPart >= 1);
+            }
+            catch { }
 
             if (setupConfigIni(path))
             {
@@ -272,6 +280,19 @@ namespace emulatorLauncher
                     ini["keys." + idx + ".15"] = "0"; // axis left
                     ini["keys." + idx + ".16"] = "0"; // axis right
                     continue;
+                }
+
+                if (_isCustomOpenBor31)
+                {
+                    c.NbButtons = 16;
+                    c.NbAxes = 6;
+                    c.NbHats = 2;
+                }
+                else if (c.IsXInputDevice)
+                {
+                    c.NbAxes = 6;
+                    c.NbButtons = 11;
+                    c.NbHats = 1;
                 }
 
                 ini["keys." + idx + ".0"] = JoystickValue(InputKey.up, c).ToString();
