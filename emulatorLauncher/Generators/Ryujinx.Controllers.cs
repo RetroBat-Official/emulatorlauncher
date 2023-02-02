@@ -7,10 +7,27 @@ namespace emulatorLauncher
 {
     partial class RyujinxGenerator : Generator
     {
+        /// <summary>
+        /// cf. https://github.com/Ryujinx/Ryujinx/blob/master/Ryujinx.SDL2.Common/SDL2Driver.cs#L61
+        /// </summary>
+        private void UpdateSdlControllersWithHints()
+        {
+            var hints = new List<string>();            
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1");
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         private void CreateControllerConfiguration(DynamicJson json)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            UpdateSdlControllersWithHints();
 
             //clear existing input_config section to avoid the same controller mapped to different players because of past mapping
             json.Remove("input_config");

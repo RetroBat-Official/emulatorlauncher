@@ -84,6 +84,12 @@ namespace emulatorLauncher
                 return _sdlController;
             }
         }
+
+        public void ResetSdlController()
+        {
+            _sdlControllerKnown = false;
+            _sdlController = null;
+        }
         #endregion
 
         #region WinmmJoystick

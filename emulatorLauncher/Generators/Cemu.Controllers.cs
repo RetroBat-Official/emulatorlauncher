@@ -11,6 +11,29 @@ namespace emulatorLauncher
     partial class CemuGenerator
     {
         /// <summary>
+        /// Cf. https://github.com/cemu-project/Cemu/blob/main/src/input/api/SDL/SDLControllerProvider.cpp#L21
+        /// </summary>
+        /// <param name="pcsx2ini"></param>
+        private void UpdateSdlControllersWithHints()
+        {
+            var hints = new List<string>();
+            
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4 = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5 = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_GAMECUBE = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_SWITCH = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_STADIA = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_STEAM = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_LUNA = 1");
+            
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
+        /// <summary>
         /// Create controller configuration
         /// </summary>
         /// <param name="path"></param>
@@ -18,6 +41,8 @@ namespace emulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            UpdateSdlControllersWithHints();
 
             string folder = Path.Combine(path, "controllerProfiles");
 

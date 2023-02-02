@@ -13,11 +13,32 @@ namespace emulatorLauncher
 {
     partial class Pcsx2Generator : Generator
     {
+        /// <summary>
+        /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
+        /// </summary>
+        /// <param name="pcsx2ini"></param>
+        private void UpdateSdlControllersWithHints(IniFile pcsx2ini)
+        {
+            var hints = new List<string>();
+            hints.Add("SDL_JOYSTICK_HIDAPI_WII = 1");
+
+            if (pcsx2ini.GetValue("InputSources", "SDLControllerEnhancedMode") == "true")
+            {
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            }
+         
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         private void CreateControllerConfiguration(IniFile pcsx2ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            UpdateSdlControllersWithHints(pcsx2ini);
+            
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
                 pcsx2ini.ClearSection("Pad" + i.ToString());
@@ -35,11 +56,10 @@ namespace emulatorLauncher
                 pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
                 pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
             }
-
-            //activate only SDL
+          
             pcsx2ini.WriteValue("InputSources", "DInput", "false");
-            pcsx2ini.WriteValue("InputSources", "XInput", "false");
-            pcsx2ini.WriteValue("InputSources", "SDL", "true");
+            pcsx2ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
+            pcsx2ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
             pcsx2ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
 
             // loop controllers                
@@ -133,11 +153,13 @@ namespace emulatorLauncher
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
             //Start writing in ini file
+            pcsx2ini.ClearSection(padNumber);
             pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
 
             //Get SDL controller index
-            int index = ctrl.SdlController.Index;
-            string techPadNumber = "SDL-" + index + "/";
+            string techPadNumber = "SDL-" + ctrl.SdlController.Index + "/";
+            if (ctrl.IsXInputDevice)
+                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
             //Write button mapping
             pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));

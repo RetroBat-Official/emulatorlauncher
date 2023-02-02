@@ -10,10 +10,25 @@ namespace emulatorLauncher
 {
     class DolphinControllers
     {
+        /// <summary>
+        /// Cf. https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp#L191
+        /// </summary>
+        /// <param name="pcsx2ini"></param>
+        private static void UpdateSdlControllersWithHints()
+        {
+            var hints = new List<string>();
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         public static bool WriteControllersConfig(string path, string system, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
+
+            UpdateSdlControllersWithHints();
             
             if (system == "wii")
             {
