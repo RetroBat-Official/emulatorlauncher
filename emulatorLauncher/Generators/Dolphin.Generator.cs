@@ -365,26 +365,40 @@ namespace emulatorLauncher
                 return;
 
             int langId = 1;
+            int barPos = 0;
 
             if (SystemConfig.isOptSet("wii_language") && !string.IsNullOrEmpty(SystemConfig["wii_language"]))
                 langId = SystemConfig["wii_language"].ToInteger();
             else
                 langId = getWiiLangFromEnvironment();
 
+            if (SystemConfig.isOptSet("sensorbar_position") && !string.IsNullOrEmpty(SystemConfig["sensorbar_position"]))
+                barPos = SystemConfig["sensorbar_position"].ToInteger();
+
             // Read SYSCONF file
             byte[] bytes = File.ReadAllBytes(path);
 
-            // Search IPL.LNG pattern and get index
-            byte[] pattern = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x4C, 0x4E, 0x47 };
-            int index = bytes.IndexOf(pattern);
-            if (index >= 0 && index + pattern.Length + 1 < bytes.Length)
+            // Search IPL.LNG pattern and replace with target language
+            byte[] langPattern = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x4C, 0x4E, 0x47 };
+            int index = bytes.IndexOf(langPattern);
+            if (index >= 0 && index + langPattern.Length + 1 < bytes.Length)
             {
                 var toSet = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x4C, 0x4E, 0x47, (byte)langId };
                 for (int i = 0; i < toSet.Length; i++)
                     bytes[index + i] = toSet[i];
-
-                File.WriteAllBytes(path, bytes);
             }
+
+            // Search BT.BAR pattern and replace with target position
+            byte[] barPositionPattern = new byte[] { 0x42, 0x54, 0x2E, 0x42, 0x41, 0x52 };
+            int index2 = bytes.IndexOf(barPositionPattern);
+            if (index >= 0 && index + langPattern.Length + 1 < bytes.Length)
+            {
+                var toSet = new byte[] { 0x42, 0x54, 0x2E, 0x42, 0x41, 0x52, (byte)barPos };
+                for (int i = 0; i < toSet.Length; i++)
+                    bytes[index2 + i] = toSet[i];
+            }
+
+            File.WriteAllBytes(path, bytes);
         }
 
         private void SetupGeneralConfig(string path, string system)

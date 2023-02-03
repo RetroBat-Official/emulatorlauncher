@@ -60,11 +60,11 @@ namespace emulatorLauncher
             //initialize controller index, supermodel uses directinput controller index (+1)
             //only index of player 1 is initialized as there might be only 1 controller at that point
             int j2index = -1;
-            int j1index = c1.DirectInput.DeviceIndex + 1;
+            int j1index = c1.SdlController !=null ? c1.SdlController.Index : c1.DeviceIndex;
 
             //If a secod controller is connected, get controller index of player 2, if there is no 2nd controller, just increment the index
             if (c2 != null && c2.Config != null)
-                j2index = c2.DirectInput.DeviceIndex + 1;
+                j2index = c2.SdlController != null ? c2.SdlController.Index : c2.DeviceIndex;
             else
                 j2index = j1index + 1;
 

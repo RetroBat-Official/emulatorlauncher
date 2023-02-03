@@ -11,6 +11,8 @@
                                                       { "md5": "ce6a86574d0c9de9075705f14e99d090", "file": "bios/ProSystem.dat"     } ] },
 
 	"atarist":   { "name": "Atari ST", "biosFiles":   [ { "md5": "c1c57ce48e8ee4135885cee9e63a68a2", "file": "bios/tos.img"           } ] },
+    
+    "apple2gs":   { "name": "Apple II GS", "biosFiles":   [ { "md5": "20a0334c447cb069a040ae5be1d938df", "file": "bios/APPLE2GS.ROM"           } ] },
 
   "lynx":      { "name": "Lynx", "biosFiles":       [ { "md5": "fcd403db69f54290b51035d82f835e7b", "file": "bios/lynxboot.img"	  } ] },
 
