@@ -110,7 +110,7 @@ namespace emulatorLauncher
                     writeWiiSysconfFile(sysconf);
             }
             
-            SetupGeneralConfig(path, system);
+            SetupGeneralConfig(path, system, emulator);
             SetupGfxConfig(path);
 
             DolphinControllers.WriteControllersConfig(path, system, rom);
@@ -401,7 +401,7 @@ namespace emulatorLauncher
             File.WriteAllBytes(path, bytes);
         }
 
-        private void SetupGeneralConfig(string path, string system)
+        private void SetupGeneralConfig(string path, string system, string emulator)
         {
             string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
             
@@ -509,7 +509,7 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 
-                    if (_triforce)
+                    if (emulator == "dolphin-triforce")
                     {
                         ini.WriteValue("Core", "SerialPort1", "6");                        
                         ini.WriteValue("Core", "SIDevice0", "11");
