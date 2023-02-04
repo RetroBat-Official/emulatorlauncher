@@ -90,7 +90,7 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
             {                
                 exe = Path.Combine(path, "DolphinWX.exe");
-                _triforce = File.Exists(exe);                    
+                _triforce = File.Exists(exe);
             }
 
             if (!File.Exists(exe))
@@ -522,12 +522,10 @@ namespace emulatorLauncher
                         ini.WriteValue("General", "ResourcePackPath", dolphinResourcesPath);
                     }
 
-                    // Triforce specifics AM-baseboard in SID devices
-                    if (emulator == "dolphin-triforce")
-
                     // Add rom path to isopath
                     AddPathToIsoPath(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
-                    
+
+                    // Triforce specifics AM-baseboard in SID devices
                     if (_triforce)
                     {
                         ini.WriteValue("Core", "SerialPort1", "6");                        
