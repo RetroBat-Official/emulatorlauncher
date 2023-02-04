@@ -327,10 +327,12 @@ namespace emulatorLauncher.libRetro
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             Configurevicex64(retroarchConfig, coreSettings, system, core);
+            Configurevicexvic(retroarchConfig, coreSettings, system, core);
             ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            Configurex1(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -1340,6 +1342,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "virtualjaguar_usefastblitter", "usefastblitter", "enabled");
             BindFeature(coreSettings, "virtualjaguar_bios", "bios_vj", "enabled");
             BindFeature(coreSettings, "virtualjaguar_doom_res_hack", "doom_res_hack", "disabled");
+            BindFeature(coreSettings, "virtualjaguar_pal", "vj_pal", "disabled");
         }
 
         private void ConfigureSNes9x(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2013,6 +2016,21 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "vice_warp_boost", "warp_boost", "enabled");
         }
 
+        private void Configurevicexvic(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "vice_xvic")
+                return;
+
+            BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 PAL auto");
+            BindFeature(coreSettings, "vice_vic20_memory_expansions", "vic20_memexpansion", "none");
+            BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto");
+            BindFeature(coreSettings, "vice_zoom_mode", "vice_zoom_mode", "disabled");
+            BindFeature(coreSettings, "vice_zoom_mode_crop", "vice_zoom_mode_crop", "both");
+            BindFeature(coreSettings, "vice_gfx_colors", "vice_gfx_colors", "16bit");
+            BindFeature(coreSettings, "vice_vic20_external_palette", "vic20_palette", "colodore_vic");
+            BindFeature(coreSettings, "vice_retropad_options", "vice_retropad_options", "disabled");
+        }
+
         private void ConfigureSwanStation(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "swanstation")
@@ -2041,6 +2059,14 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "melonds_boot_directly", "nds_boot", "enabled");
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
+        }
+
+        private void Configurex1(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "x1")
+                return;
+
+            BindFeature(coreSettings, "X1_RESOLUTE", "x1_resolute", "LOW");
         }
 
         #region Input remaps
