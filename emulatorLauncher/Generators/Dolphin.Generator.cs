@@ -512,7 +512,7 @@ namespace emulatorLauncher
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 
                     // Write texture paths (not necessary for triforce)
-                    if (emulator != "dolphin-triforce")
+                    if (!_triforce)
                     {
                         string biosPath = AppConfig.GetFullPath("bios");
                         string dolphinLoadPath = Path.Combine(biosPath, "dolphin-emu", "Load");
