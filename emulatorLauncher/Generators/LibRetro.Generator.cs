@@ -35,8 +35,6 @@ namespace emulatorLauncher.libRetro
 
             retroarchConfig["global_core_options"] = "true";
             retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')          
-            retroarchConfig["rgui_extended_ascii"] = "true";
-            retroarchConfig["rgui_show_start_screen"] = "false";           
             retroarchConfig["menu_driver"] = "ozone";
             retroarchConfig["ui_menubar_enable"] = "false";
             retroarchConfig["video_fullscreen"] = "true";
@@ -45,7 +43,11 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["notification_show_remap_load"] = "false";
             retroarchConfig["driver_switch_enable"] = "true";
             retroarchConfig["input_driver"] = "dinput";
-
+            
+            retroarchConfig["rgui_extended_ascii"] = "true";
+            retroarchConfig["rgui_show_start_screen"] = "false";
+            retroarchConfig["rgui_browser_directory"] = AppConfig.GetFullPath("roms") ?? "default";
+            
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
 

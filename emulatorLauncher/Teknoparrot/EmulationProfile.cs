@@ -1,5 +1,6 @@
 ﻿namespace TeknoParrotUi.Common
 {
+    /*
     public enum EmulationProfile
     {
         TaitoTypeXGeneric,
@@ -75,5 +76,5 @@
         FNFDrift,
         GHA,
         WartranTroopers,
-    }
+    }*/
 }
