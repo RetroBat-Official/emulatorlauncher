@@ -97,6 +97,7 @@
     <Compile Include="Common\WebTools.cs" />
     <Compile Include="Common\Joysticks\WinmmJoystick.cs" />
     <Compile Include="Common\XmlExtensions.cs" />
+    <Compile Include="Common\XmlDeserializer.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
@@ -105,10 +106,10 @@
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Eka2l1.Generator.cs" />   
+    <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
-    <Compile Include="Generators\MessSystem.cs" />
+    <Compile Include="Generators\MessSystem.cs" />    
     <Compile Include="Generators\vita3k.Generator.cs" />
     <Compile Include="Imapi\BurnData.cs" />
     <Compile Include="Imapi\Imapi2Interop.cs" />
@@ -132,7 +133,10 @@
     <Compile Include="Generators\Ryujinx.Controllers.cs">
       <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\TeknoParrot.generator.cs" />
+    <Compile Include="Generators\TeknoParrot.Generator.cs" />
+    <Compile Include="Generators\TeknoParrot.Controllers.cs">
+      <DependentUpon>TeknoParrot.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Tsugaru.Generator.cs" />
     <Compile Include="Generators\Yuzu.Generator.cs" />
     <Compile Include="Generators\Yuzu.Controllers.cs">

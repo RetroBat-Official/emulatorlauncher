@@ -75,20 +75,22 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string folderName = (emulator == "dolphin-triforce" || core == "dolphin-triforce" || emulator == "triforce" || core == "triforce") ? "dolphin-triforce" : "dolphin-emu";
+            _triforce = (emulator == "dolphin-triforce" || core == "dolphin-triforce" || emulator == "triforce" || core == "triforce");
+
+            string folderName = _triforce ? "dolphin-triforce" : "dolphin-emu";
 
             string path = AppConfig.GetFullPath(folderName);
-            if (string.IsNullOrEmpty(path))
+            if (!_triforce && string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("dolphin");
 
             if (string.IsNullOrEmpty(path))
-                path = AppConfig.GetFullPath("dolphin-emu");
+                return null;
 
             string exe = Path.Combine(path, "Dolphin.exe");
             if (!File.Exists(exe))
-            {
-                _triforce = true;
+            {                
                 exe = Path.Combine(path, "DolphinWX.exe");
+                _triforce = File.Exists(exe);                    
             }
 
             if (!File.Exists(exe))
@@ -110,7 +112,7 @@ namespace emulatorLauncher
                     writeWiiSysconfFile(sysconf);
             }
             
-            SetupGeneralConfig(path, system, emulator);
+            SetupGeneralConfig(path, system, emulator, rom);
             SetupGfxConfig(path);
 
             DolphinControllers.WriteControllersConfig(path, system, rom);
@@ -401,7 +403,7 @@ namespace emulatorLauncher
             File.WriteAllBytes(path, bytes);
         }
 
-        private void SetupGeneralConfig(string path, string system, string emulator)
+        private void SetupGeneralConfig(string path, string system, string emulator, string rom)
         {
             string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
             
@@ -509,7 +511,10 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 
-                    if (emulator == "dolphin-triforce")
+                    // Add rom path to isopath
+                    AddPathToIsoPath(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
+                    
+                    if (_triforce)
                     {
                         ini.WriteValue("Core", "SerialPort1", "6");                        
                         ini.WriteValue("Core", "SIDevice0", "11");
@@ -545,6 +550,20 @@ namespace emulatorLauncher
             }
 
             catch { }
+        }
+
+        private static void AddPathToIsoPath(string romPath, IniFile ini)
+        {
+            int isoPathsCount = (ini.GetValue("General", "ISOPaths") ?? "0").ToInteger();
+            for (int i = 0; i < isoPathsCount; i++)
+            {
+                var isoPath = ini.GetValue("General", "ISOPath" + i);
+                if (isoPath != null && Path.GetFullPath(isoPath).Equals(romPath, StringComparison.InvariantCultureIgnoreCase))
+                    return;
+            }
+
+            ini.WriteValue("General", "ISOPaths", (isoPathsCount + 1).ToString());
+            ini.WriteValue("General", "ISOPath" + isoPathsCount, romPath);
         }
     }
 }

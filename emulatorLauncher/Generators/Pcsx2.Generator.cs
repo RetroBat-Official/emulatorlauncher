@@ -101,7 +101,7 @@ namespace emulatorLauncher
             // Configuration files
             // QT version has now only 1 ini file versus multiple for wxwidgets version
             if (_isPcsxqt)
-                SetupConfigurationQT(path);
+                SetupConfigurationQT(path, rom);
             else
             {
                 SetupPaths(emulator, core);
@@ -638,7 +638,7 @@ namespace emulatorLauncher
         /// Setup Configuration of PCSX2.ini file for New PCSX2 QT version
         /// </summary>
         /// <param name="path"></param>
-        private void SetupConfigurationQT(string path)
+        private void SetupConfigurationQT(string path, string rom)
         {
             var biosList = new string[] {
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC",
@@ -646,8 +646,11 @@ namespace emulatorLauncher
 
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
-            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces))
+            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
             {
+                // Add rom path to RecursivePaths
+                AddPathToRecursivePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
+
                 CreateControllerConfiguration(ini);
 
                 //fullscreen
@@ -1120,9 +1123,19 @@ namespace emulatorLauncher
                 if (SystemConfig.isOptSet("BlitInternalFPSHack") && !string.IsNullOrEmpty(SystemConfig["BlitInternalFPSHack"]))
                     ini.WriteValue("EmuCore/Gamefixes", "BlitInternalFPSHack", SystemConfig["BlitInternalFPSHack"]);
                 else if (Features.IsSupported("BlitInternalFPSHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "BlitInternalFPSHack", "false");
-
+                    ini.WriteValue("EmuCore/Gamefixes", "BlitInternalFPSHack", "false");                
             }
+        }
+
+        private static void AddPathToRecursivePaths(string romPath, IniFile ini)
+        {
+            var recursivePaths = ini.EnumerateValues("GameList")
+                .Where(e => e.Key == "RecursivePaths")
+                .Select(e => Path.GetFullPath(e.Value))
+                .ToList();
+
+            if (!recursivePaths.Contains(romPath))
+                ini.AppendValue("GameList", "RecursivePaths", romPath);
         }
         #endregion
     }

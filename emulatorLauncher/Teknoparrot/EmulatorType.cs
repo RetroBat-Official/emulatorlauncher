@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace TeknoParrotUi.Common
 {
+    /*
     public enum EmulatorType
     {
         //Open Source
@@ -22,5 +23,5 @@ namespace TeknoParrotUi.Common
         SegaTools,
         //ElfLdr2
         ElfLdr2
-    }
+    }*/
 }
