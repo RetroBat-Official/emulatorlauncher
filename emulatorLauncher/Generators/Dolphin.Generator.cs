@@ -509,6 +509,18 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 
+                    // Write texture paths (not necessary for triforce)
+                    if (emulator != "dolphin-triforce")
+                    {
+                        string biosPath = AppConfig.GetFullPath("bios");
+                        string dolphinLoadPath = Path.Combine(biosPath, "dolphin-emu", "Load");
+                        string dolphinResourcesPath = Path.Combine(dolphinLoadPath, "ResourcePacks");
+
+                        ini.WriteValue("General", "LoadPath", dolphinLoadPath);
+                        ini.WriteValue("General", "ResourcePackPath", dolphinResourcesPath);
+                    }
+
+                    // Triforce specifics AM-baseboard in SID devices
                     if (emulator == "dolphin-triforce")
                     {
                         ini.WriteValue("Core", "SerialPort1", "6");                        
@@ -517,6 +529,8 @@ namespace emulatorLauncher
                         ini.WriteValue("Core", "SIDevice2", "0");
                         ini.WriteValue("Core", "SIDevice3", "0");
                     }
+
+                    // Set SID devices (controllers)
                     else if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
                     {
                         for (int i = 0; i < 4; i++)
@@ -539,7 +553,7 @@ namespace emulatorLauncher
                         }
                     }
 
-                    // disable auto updates
+                    // Disable auto updates
                     ini.WriteValue("AutoUpdate", "UpdateTrack", " ");
                 }
             }

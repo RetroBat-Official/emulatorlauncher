@@ -60,12 +60,12 @@ namespace emulatorLauncher
             ini["keys." + idx + ".1"] = JoystickValue(InputKey.down, c).ToString();  // PADDOWN
             ini["keys." + idx + ".2"] = JoystickValue(InputKey.left, c).ToString();  // PADLEFT
             ini["keys." + idx + ".3"] = JoystickValue(InputKey.right, c).ToString(); // PADRIGHT
-            ini["keys." + idx + ".4"] = JoystickValue(InputKey.b, c).ToString(); // ATTACK
-            ini["keys." + idx + ".5"] = JoystickValue(InputKey.x, c).ToString(); // ATTACK 2
+            ini["keys." + idx + ".4"] = JoystickValue(InputKey.y, c).ToString(); // ATTACK
+            ini["keys." + idx + ".5"] = JoystickValue(InputKey.b, c).ToString(); // ATTACK 2
             ini["keys." + idx + ".6"] = JoystickValue(InputKey.pagedown, c).ToString(); // ATTACK 3
             ini["keys." + idx + ".7"] = JoystickValue(InputKey.pageup, c).ToString(); // ATTACK4
             ini["keys." + idx + ".8"] = JoystickValue(InputKey.a, c).ToString(); // JUMP
-            ini["keys." + idx + ".9"] = JoystickValue(InputKey.y, c).ToString(); // SPECIAL
+            ini["keys." + idx + ".9"] = JoystickValue(InputKey.x, c).ToString(); // SPECIAL
             ini["keys." + idx + ".10"] = JoystickValue(InputKey.start, c).ToString(); // START
             ini["keys." + idx + ".11"] = "0"; // SCREENSHOT
 
