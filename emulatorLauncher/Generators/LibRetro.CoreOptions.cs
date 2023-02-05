@@ -367,30 +367,22 @@ namespace emulatorLauncher.libRetro
             // Inject custom input_libretro_device_pXX values into remap file, as it's no longer supported in retroarch.cfg file
             if (InputRemap != null && InputRemap.Count == 0 && Program.SystemConfig["disableautocontrollers"] != "1")
             {
-                foreach(var controller in Controllers)
+                for (int i = 1 ; i <= 5 ; i++)
                 {
-                    var i = controller.PlayerIndex;
-
                     var dev = retroarchConfig["input_libretro_device_p" + i];
-                    if (!string.IsNullOrEmpty(dev) && dev != "0" && dev != "1")
-                    {
-                        InputRemap["input_libretro_device_p" + i] = dev;
+                    if (string.IsNullOrEmpty(dev))
+                        continue;
+                    
+                    InputRemap["input_libretro_device_p" + i] = dev;
 
-                        var mode = retroarchConfig["input_player" + i + "_analog_dpad_mode"];
-                        if (!string.IsNullOrEmpty(mode))
-                            InputRemap["input_player" + i + "_analog_dpad_mode"] = mode;
+                    var mode = retroarchConfig["input_player" + i + "_analog_dpad_mode"];
+                    if (!string.IsNullOrEmpty(mode))
+                        InputRemap["input_player" + i + "_analog_dpad_mode"] = mode;
 
-                        var index = retroarchConfig["input_player" + i + "_joypad_index"];
-                        if (!string.IsNullOrEmpty(index))
-                            InputRemap["input_remap_port_p" + i] = index;
-                    }
+                    var index = retroarchConfig["input_player" + i + "_joypad_index"];
+                    if (!string.IsNullOrEmpty(index))
+                        InputRemap["input_remap_port_p" + i] = index;                    
                 }
-            }
-
-            if (core == "fuse")
-            {
-                InputRemap["input_libretro_device_p3"] = "259";
-              //  InputRemap["input_remap_port_p3"] = Math.Min(3, Controllers.Count).ToString();
             }
 
             // Injects cores input remaps
@@ -2092,6 +2084,31 @@ namespace emulatorLauncher.libRetro
                 return;
 
             BindFeature(coreSettings, "fuse_machine", "fuse_machine", "Spectrum 128K");
+
+            //player 1 controller - sinclair 1 controller used as default as used by most games
+            if (SystemConfig.isOptSet("zx_controller1") && !string.IsNullOrEmpty(SystemConfig["zx_controller1"]))
+                retroarchConfig["input_libretro_device_p1"] = SystemConfig["zx_controller1"];
+            else if (Features.IsSupported("zx_controller1"))
+                retroarchConfig["input_libretro_device_p1"] = "769";
+
+            //player 2 controller - sinclair 2 as default
+            if (SystemConfig.isOptSet("zx_controller2") && !string.IsNullOrEmpty(SystemConfig["zx_controller2"]))
+                retroarchConfig["input_libretro_device_p2"] = SystemConfig["zx_controller2"];
+            else if (Features.IsSupported("zx_controller2"))
+                retroarchConfig["input_libretro_device_p2"] = "1025";
+
+            //if using keyboard only option, disable controllers and use keyboard as device_p3 as stated in libretro core documentation
+            //3 options : keyboard only (disables joysticks), joysticks only (disables keyboard) or keyboard + joysticks (add keyboard as p3)
+            if (SystemConfig.isOptSet("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "2")
+            {
+                retroarchConfig["input_libretro_device_p1"] = "0";
+                retroarchConfig["input_libretro_device_p2"] = "0";
+                retroarchConfig["input_libretro_device_p3"] = "259";
+            }
+            else if (Features.IsSupported("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "3")
+                retroarchConfig["input_libretro_device_p3"] = "259";
+            else if (Features.IsSupported("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "1")
+                retroarchConfig["input_libretro_device_p3"] = "0";
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2204,10 +2221,13 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = "2";
             retroarchConfig["input_player" + playerIndex + "_gun_start_mbtn"] = "3";
 
+            retroarchConfig["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
+            retroarchConfig["input_player" + playerIndex + "_joypad_index"] = "0";
+            /*
             InputRemap["input_libretro_device_p" + playerIndex] = deviceType;
             InputRemap["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
             InputRemap["input_remap_port_p" + playerIndex] = "0";
-
+            */
             if (playerIndex > 1)
                 return; // If device has to be set as player 2, then exit, there's no multigun support
 
@@ -2236,9 +2256,13 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = "2";
                 retroarchConfig["input_player" + i + "_gun_start_mbtn"] = "3";
 
+                retroarchConfig["input_player" + i + "_analog_dpad_mode"] = "0";
+                retroarchConfig["input_player" + i + "_joypad_index"] = deviceIndex.ToString();
+                /*
                 InputRemap["input_libretro_device_p" + i] = deviceType;
                 InputRemap["input_player" + i + "_analog_dpad_mode"] = "0";
                 InputRemap["input_remap_port_p" + i] = deviceIndex.ToString();
+                */
             }
         }
 
