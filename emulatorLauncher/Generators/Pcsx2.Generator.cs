@@ -791,7 +791,7 @@ namespace emulatorLauncher
                 if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
                     ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
                 else
-                    ini.WriteValue("EmuCore/GS", "VsyncEnable", "0");
+                    ini.WriteValue("EmuCore/GS", "VsyncEnable", "1");
 
                 if (SystemConfig.isOptSet("pcrtc_offsets") && !string.IsNullOrEmpty(SystemConfig["pcrtc_offsets"]))
                     ini.WriteValue("EmuCore/GS", "pcrtc_offsets", SystemConfig["pcrtc_offsets"]);
