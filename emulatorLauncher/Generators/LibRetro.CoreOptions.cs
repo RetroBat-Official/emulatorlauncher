@@ -389,32 +389,8 @@ namespace emulatorLauncher.libRetro
 
             if (core == "fuse")
             {
-                //if using keyboard only option, disable controllers and use keyboard as device_p3 as stated in libretro core documentation
-                //3 options : keyboard only (disables joysticks), joysticks only (disables keyboard) or keyboard + joysticks (add keyboard as p3)
-                if (SystemConfig.isOptSet("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "2")
-                {
-                    retroarchConfig["input_libretro_device_p1"] = "0";
-                    retroarchConfig["input_libretro_device_p2"] = "0";
-                    retroarchConfig["input_libretro_device_p3"] = "259";
-                    InputRemap["input_libretro_device_p1"] = "0";
-                    InputRemap["input_libretro_device_p2"] = "0";
-                    InputRemap["input_libretro_device_p3"] = "259";
-                    InputRemap["input_player1_analog_dpad_mode"] = "0";
-                    InputRemap["input_player2_analog_dpad_mode"] = "0";
-                    InputRemap["input_player3_analog_dpad_mode"] = "0";
-                }
-                else if (Features.IsSupported("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "3")
-                {
-                    retroarchConfig["input_libretro_device_p3"] = "259";
-                    InputRemap["input_libretro_device_p3"] = "259";
-                    InputRemap["input_player3_analog_dpad_mode"] = "0";
-                }
-                else if (Features.IsSupported("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "1")
-                {
-                    retroarchConfig["input_libretro_device_p3"] = "0";
-                    InputRemap["input_libretro_device_p3"] = "0";
-                    InputRemap["input_player2_analog_dpad_mode"] = "0";
-                }
+                InputRemap["input_libretro_device_p3"] = "259";
+              //  InputRemap["input_remap_port_p3"] = Math.Min(3, Controllers.Count).ToString();
             }
 
             // Injects cores input remaps
