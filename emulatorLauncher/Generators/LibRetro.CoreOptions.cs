@@ -302,6 +302,7 @@ namespace emulatorLauncher.libRetro
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
             ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
+            ConfigurebsnesHDBeta(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigurePuae(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
@@ -1441,7 +1442,17 @@ namespace emulatorLauncher.libRetro
             }
         }
 
-        private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void ConfigurebsnesHDBeta(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "bsnes_hd_beta")
+                return;
+
+            BindFeature(coreSettings, "bsnes_mode7_scale", "bsnes_mode7_scale", "2x");
+            BindFeature(coreSettings, "bsnes_mode7_perspective", "bsnes_mode7_perspective", "auto (wide)");
+            BindFeature(coreSettings, "bsnes_mode7_supersample", "bsnes_mode7_supersample", "none");
+        }
+
+            private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "genesis_plus_gx")
                 return;
