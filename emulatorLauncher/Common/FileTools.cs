@@ -61,7 +61,7 @@ namespace emulatorLauncher
             string directoryName = Path.GetFileName(destinationLink);
 
             var psi = new ProcessStartInfo("cmd.exe", directory ?
-                "/C mklink /D \"" + directoryName + "\" \"" + pathToLink + "\"" :
+                "/C mklink /J \"" + directoryName + "\" \"" + pathToLink + "\"" :
                 "/C mklink \"" + directoryName + "\" \"" + pathToLink + "\"");
             psi.WorkingDirectory = workingDirectory;
             psi.CreateNoWindow = true;
