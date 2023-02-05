@@ -387,6 +387,12 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
+            if (core == "fuse")
+            {
+                InputRemap["input_libretro_device_p3"] = "259";
+              //  InputRemap["input_remap_port_p3"] = Math.Min(3, Controllers.Count).ToString();
+            }
+
             // Injects cores input remaps
             if (InputRemap.Count > 0)
             {
