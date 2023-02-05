@@ -307,6 +307,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
+            ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureQuasi88(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
@@ -357,6 +358,29 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["video_aspect_ratio_auto"] = "false";
                     SystemConfig["bezel"] = "none";
 
+                }
+            }
+
+            // Inject custom input_libretro_device_pXX values into remap file, as it's no longer supported in retroarch.cfg file
+            if (InputRemap != null && InputRemap.Count == 0 && Program.SystemConfig["disableautocontrollers"] != "1")
+            {
+                foreach(var controller in Controllers)
+                {
+                    var i = controller.PlayerIndex;
+
+                    var dev = retroarchConfig["input_libretro_device_p" + i];
+                    if (!string.IsNullOrEmpty(dev) && dev != "0" && dev != "1")
+                    {
+                        InputRemap["input_libretro_device_p" + i] = dev;
+
+                        var mode = retroarchConfig["input_player" + i + "_analog_dpad_mode"];
+                        if (!string.IsNullOrEmpty(mode))
+                            InputRemap["input_player" + i + "_analog_dpad_mode"] = mode;
+
+                        var index = retroarchConfig["input_player" + i + "_joypad_index"];
+                        if (!string.IsNullOrEmpty(index))
+                            InputRemap["input_remap_port_p" + i] = index;
+                    }
                 }
             }
 
