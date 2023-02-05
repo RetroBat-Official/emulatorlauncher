@@ -897,6 +897,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "picodrive_drc", "dynamic_recompiler", "disabled");
             BindFeature(coreSettings, "picodrive_input1", "input1", "3 button pad");
             BindFeature(coreSettings, "picodrive_input2", "input2", "3 button pad");
+            BindFeature(coreSettings, "picodrive_smsfm", "picodrive_smsfm", "off");
         }
 
         private void ConfigureKronos(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
