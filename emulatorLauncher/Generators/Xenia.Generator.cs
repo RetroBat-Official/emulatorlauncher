@@ -51,6 +51,28 @@ namespace emulatorLauncher
             };
         }
 
+        private string getXboxLangFromEnvironment()
+        {
+            var availableLanguages = new Dictionary<string, string>()
+            {
+                {"en", "1" }, { "jp", "2" }, { "de", "3" }, { "fr", "4" }, { "es", "5" }, { "it", "6" }, { "ko", "7" }, { "zh", "8" }, { "pt", "9" }, { "pl", "11" }, { "ru", "12" }, { "nl", "16" }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "17";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return "1";
+        }
+
         //Setup toml configuration file (using AppendValue because config file is very sensitive to values that do not exist and both emulators are still under heavy development)
         private void SetupConfiguration(string path)
         {
@@ -127,7 +149,7 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
 
-                    //Memory section
+                    // Memory section
                     if (SystemConfig.isOptSet("scribble_heap") && !string.IsNullOrEmpty(SystemConfig["scribble_heap"]))
                         ini.AppendValue("Memory", "scribble_heap", SystemConfig["scribble_heap"]);
                     else if (Features.IsSupported("scribble_heap"))
@@ -138,17 +160,23 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("protect_zero"))
                         ini.AppendValue("Memory", "protect_zero", "true");
 
-                    //Storage section
+                    // Storage section
                     if (SystemConfig.isOptSet("mount_cache") && !string.IsNullOrEmpty(SystemConfig["mount_cache"]))
                         ini.AppendValue("Storage", "mount_cache", SystemConfig["mount_cache"]);
                     else if (Features.IsSupported("mount_cache"))
                         ini.AppendValue("Storage", "mount_cache", "false");
 
-                    //Controllers section (HID)
+                    // Controllers section (HID)
                     if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
                         ini.AppendValue("HID", "hid", "\"" + SystemConfig["xenia_hid"] + "\"");
                     else if (Features.IsSupported("xenia_hid"))
                         ini.AppendValue("HID", "hid", "\"any\"");
+
+                    // Console language
+                    if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
+                        ini.AppendValue("XConfig", "user_language", SystemConfig["xenia_lang"]);
+                    else if (Features.IsSupported("xenia_lang"))
+                        ini.AppendValue("XConfig", "user_language", getXboxLangFromEnvironment());
                 }
             }
             catch { }
