@@ -225,10 +225,23 @@ namespace emulatorLauncher
             right_joycon["button_zr"] = GetInputKeyName(c, InputKey.r2, tech);
             right_joycon["button_sl"] = "Unbound";
             right_joycon["button_sr"] = "Unbound";
-            right_joycon["button_x"] = GetInputKeyName(c, InputKey.x, tech);
-            right_joycon["button_b"] = GetInputKeyName(c, InputKey.b, tech);
-            right_joycon["button_y"] = GetInputKeyName(c, InputKey.y, tech);
-            right_joycon["button_a"] = GetInputKeyName(c, InputKey.a, tech);
+
+            // Invert button positions for XBOX controllers
+            if (c.IsXInputDevice && Program.SystemConfig.isOptSet("ryujinx_gamepadbuttons") && Program.SystemConfig.getOptBoolean("ryujinx_gamepadbuttons"))
+            {
+                right_joycon["button_x"] = GetInputKeyName(c, InputKey.y, tech);
+                right_joycon["button_b"] = GetInputKeyName(c, InputKey.a, tech);
+                right_joycon["button_y"] = GetInputKeyName(c, InputKey.x, tech);
+                right_joycon["button_a"] = GetInputKeyName(c, InputKey.b, tech);
+            }
+            else
+            {
+                right_joycon["button_x"] = GetInputKeyName(c, InputKey.x, tech);
+                right_joycon["button_b"] = GetInputKeyName(c, InputKey.b, tech);
+                right_joycon["button_y"] = GetInputKeyName(c, InputKey.y, tech);
+                right_joycon["button_a"] = GetInputKeyName(c, InputKey.a, tech);
+            }
+            
             input_config.SetObject("right_joycon", right_joycon);
 
             //player identification part

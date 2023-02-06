@@ -329,8 +329,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
-            Configurevicex64(retroarchConfig, coreSettings, system, core);
-            Configurevicexvic(retroarchConfig, coreSettings, system, core);
+            Configurevice(retroarchConfig, coreSettings, system, core);
             ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
@@ -2065,29 +2064,41 @@ namespace emulatorLauncher.libRetro
             SetupLightGuns(retroarchConfig, "260");
         }
 
-        private void Configurevicex64(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void Configurevice(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "vice_x64")
+            if (core != "vice_x64" && core != "vice_xvic" && core != "vice_xplus4")
                 return;
 
-            BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 PAL auto");
-            BindFeature(coreSettings, "vice_crop", "crop", "disabled");
+            // Common Vice features
             BindFeature(coreSettings, "vice_warp_boost", "warp_boost", "enabled");
-        }
-
-        private void Configurevicexvic(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
-        {
-            if (core != "vice_xvic")
-                return;
-
-            BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 PAL auto");
-            BindFeature(coreSettings, "vice_vic20_memory_expansions", "vic20_memexpansion", "none");
-            BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto");
-            BindFeature(coreSettings, "vice_zoom_mode", "vice_zoom_mode", "disabled");
-            BindFeature(coreSettings, "vice_zoom_mode_crop", "vice_zoom_mode_crop", "both");
+            BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto"); 
+            BindFeature(coreSettings, "vice_crop", "vice_crop", "disabled");
+            BindFeature(coreSettings, "vice_crop_mode", "vice_crop_mode", "both");
             BindFeature(coreSettings, "vice_gfx_colors", "vice_gfx_colors", "16bit");
-            BindFeature(coreSettings, "vice_vic20_external_palette", "vic20_palette", "colodore_vic");
             BindFeature(coreSettings, "vice_retropad_options", "vice_retropad_options", "disabled");
+
+            // vice_x64 specific features
+            if (core == "vice_x64")
+            {
+                BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 PAL auto");
+                BindFeature(coreSettings, "vice_ram_expansion_unit", "vice_ram_expansion_unit", "none");
+                BindFeature(coreSettings, "vice_external_palette", "vice_external_palette", "colodore");
+            }
+
+            // vice_xvic specific features
+            else if (core == "vice_xvic")
+            {
+                BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 PAL auto");
+                BindFeature(coreSettings, "vice_vic20_memory_expansions", "vic20_memexpansion", "none");
+                BindFeature(coreSettings, "vice_vic20_external_palette", "vic20_palette", "colodore_vic");
+            }
+
+            // vice_xplus4 specific features
+            else if (core == "vice_xplus4")
+            {
+                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", "PLUS4 PAL");
+                BindFeature(coreSettings, "vice_plus4_external_palette", "vice_plus4_external_palette", "colodore_ted");
+            }
         }
 
         private void ConfigureSwanStation(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
