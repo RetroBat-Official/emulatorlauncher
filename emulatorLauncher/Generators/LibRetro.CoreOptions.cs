@@ -53,7 +53,7 @@ namespace emulatorLauncher.libRetro
                 { "dinothawr", "Dinothawr" },
                 { "directxbox", "DirectXBox" },
                 { "dolphin_launcher", "Dolphin Launcher" },
-                { "dolphin", "Dolphin" },
+                { "dolphin", "dolphin-emu" },
                 { "dosbox_core", "DOSBox-core" },
                 { "dosbox", "DOSBox" },
                 { "dosbox_pure", "DOSBox" },
@@ -287,6 +287,7 @@ namespace emulatorLauncher.libRetro
 
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
+            ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureDolphin(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
@@ -396,6 +397,17 @@ namespace emulatorLauncher.libRetro
             }
             else
                 DeleteInputRemap(GetCoreName(core), SystemConfig["rom"]);
+        }
+
+        private void ConfigureDesmume(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "desmume" && core != "desmume2015")
+                return;
+
+            BindFeature(coreSettings, "desmume_pointer_device_r", "desmume_rightanalog", "emulated");
+            BindFeature(coreSettings, "desmume_internal_resolution", "desmume_internal_resolution", "256x192");
+            BindFeature(coreSettings, "desmume_screens_layout", "desmume_screens_layout", "top/bottom");
+            BindFeature(coreSettings, "desmume_gfx_multisampling", "desmume_gfx_multisampling", "disabled");
         }
 
         private void ConfigureScummVM(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -600,6 +612,19 @@ namespace emulatorLauncher.libRetro
             // to add
             BindFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "disabled");
             BindFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled");
+
+            // Wii Controllers
+            //player 1 controller type
+            if (SystemConfig.isOptSet("dolphin_p1_controller") && !string.IsNullOrEmpty(SystemConfig["dolphin_p1_controller"]))
+                retroarchConfig["input_libretro_device_p1"] = SystemConfig["dolphin_p1_controller"];
+            else if (Features.IsSupported("dolphin_p1_controller"))
+                retroarchConfig["input_libretro_device_p1"] = "1";
+
+            //player 2 controller type
+            if (SystemConfig.isOptSet("dolphin_p2_controller") && !string.IsNullOrEmpty(SystemConfig["dolphin_p2_controller"]))
+                retroarchConfig["input_libretro_device_p2"] = SystemConfig["dolphin_p2_controller"];
+            else if (Features.IsSupported("dolphin_p2_controller"))
+                retroarchConfig["input_libretro_device_p2"] = "1";
 
             // gamecube
             if (system == "gamecube" || system == "gc")
@@ -2118,6 +2143,8 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "melonds_boot_directly", "nds_boot", "enabled");
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
+            BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
+            BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
         }
 
         private void Configurex1(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
