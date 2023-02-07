@@ -2066,7 +2066,7 @@ namespace emulatorLauncher.libRetro
 
         private void Configurevice(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "vice_x64" && core != "vice_xvic" && core != "vice_xplus4")
+            if (core != "vice_x64" && core != "vice_xvic" && core != "vice_xplus4" && core != "vice_x128" && core != "vice_x64sc" && core != "vice_xpet")
                 return;
 
             // Common Vice features
@@ -2078,7 +2078,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "vice_retropad_options", "vice_retropad_options", "disabled");
 
             // vice_x64 specific features
-            if (core == "vice_x64")
+            if (core == "vice_x64" || core == "vice_x64sc")
             {
                 BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 PAL auto");
                 BindFeature(coreSettings, "vice_ram_expansion_unit", "vice_ram_expansion_unit", "none");
@@ -2098,6 +2098,21 @@ namespace emulatorLauncher.libRetro
             {
                 BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", "PLUS4 PAL");
                 BindFeature(coreSettings, "vice_plus4_external_palette", "vice_plus4_external_palette", "colodore_ted");
+            }
+
+            // vice_x128 specific features
+            else if (core == "vice_x128")
+            {
+                BindFeature(coreSettings, "vice_c128_model", "vice_c128_model", "C128 PAL");
+                BindFeature(coreSettings, "vice_c128_ram_expansion_unit", "vice_c128_ram_expansion_unit", "none");
+                BindFeature(coreSettings, "vice_external_palette", "vice_external_palette", "colodore");
+            }
+
+            // vice_xpet specific features
+            else if (core == "vice_xpet")
+            {
+                BindFeature(coreSettings, "vice_pet_model", "vice_pet_model", "8032");
+                BindFeature(coreSettings, "vice_pet_external_palette", "vice_pet_external_palette", "default");
             }
         }
 
@@ -2125,13 +2140,13 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig.isOptSet("zx_controller1") && !string.IsNullOrEmpty(SystemConfig["zx_controller1"]))
                 retroarchConfig["input_libretro_device_p1"] = SystemConfig["zx_controller1"];
             else if (Features.IsSupported("zx_controller1"))
-                retroarchConfig["input_libretro_device_p1"] = "769";
+                retroarchConfig["input_libretro_device_p1"] = "513";
 
             //player 2 controller - sinclair 2 as default
             if (SystemConfig.isOptSet("zx_controller2") && !string.IsNullOrEmpty(SystemConfig["zx_controller2"]))
                 retroarchConfig["input_libretro_device_p2"] = SystemConfig["zx_controller2"];
             else if (Features.IsSupported("zx_controller2"))
-                retroarchConfig["input_libretro_device_p2"] = "1025";
+                retroarchConfig["input_libretro_device_p2"] = "513";
 
             //if using keyboard only option, disable controllers and use keyboard as device_p3 as stated in libretro core documentation
             //3 options : keyboard only (disables joysticks), joysticks only (disables keyboard) or keyboard + joysticks (add keyboard as p3)
