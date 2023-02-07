@@ -2136,30 +2136,32 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "fuse_machine", "fuse_machine", "Spectrum 128K");
 
-            //player 1 controller - sinclair 1 controller used as default as used by most games
-            if (SystemConfig.isOptSet("zx_controller1") && !string.IsNullOrEmpty(SystemConfig["zx_controller1"]))
-                retroarchConfig["input_libretro_device_p1"] = SystemConfig["zx_controller1"];
-            else if (Features.IsSupported("zx_controller1"))
-                retroarchConfig["input_libretro_device_p1"] = "513";
+            // Player 1 controller - sinclair 1 controller used as default as used by most games
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "zx_controller1", "513");
 
-            //player 2 controller - sinclair 2 as default
-            if (SystemConfig.isOptSet("zx_controller2") && !string.IsNullOrEmpty(SystemConfig["zx_controller2"]))
-                retroarchConfig["input_libretro_device_p2"] = SystemConfig["zx_controller2"];
-            else if (Features.IsSupported("zx_controller2"))
-                retroarchConfig["input_libretro_device_p2"] = "513";
+            // Player 2 controller - sinclair 2 as default
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "zx_controller2", "513");
 
-            //if using keyboard only option, disable controllers and use keyboard as device_p3 as stated in libretro core documentation
-            //3 options : keyboard only (disables joysticks), joysticks only (disables keyboard) or keyboard + joysticks (add keyboard as p3)
-            if (SystemConfig.isOptSet("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "2")
+            // If using keyboard only option, disable controllers and use keyboard as device_p3 as stated in libretro core documentation
+            // 3 options : keyboard only (disables joysticks), joysticks only (disables keyboard) or keyboard + joysticks (add keyboard as p3)
+            if (Features.IsSupported("zx_control_type"))
             {
-                retroarchConfig["input_libretro_device_p1"] = "0";
-                retroarchConfig["input_libretro_device_p2"] = "0";
-                retroarchConfig["input_libretro_device_p3"] = "259";
+                switch (SystemConfig["zx_control_type"])
+                {
+                    case "1": // Joystick only
+                        retroarchConfig["input_libretro_device_p3"] = "0";
+                        break;
+                    case "2": // Keyboard only
+                        retroarchConfig["input_libretro_device_p1"] = "0";
+                        retroarchConfig["input_libretro_device_p2"] = "0";
+                        retroarchConfig["input_libretro_device_p3"] = "259";
+                        break;
+                    default: // Keyboard + joysticks
+                        retroarchConfig["input_libretro_device_p3"] = "259";
+                        break;
+
+                }
             }
-            else if (Features.IsSupported("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "3")
-                retroarchConfig["input_libretro_device_p3"] = "259";
-            else if (Features.IsSupported("zx_control_type") && !string.IsNullOrEmpty(SystemConfig["zx_control_type"]) && SystemConfig["zx_control_type"] == "1")
-                retroarchConfig["input_libretro_device_p3"] = "0";
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
