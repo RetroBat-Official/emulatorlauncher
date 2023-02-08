@@ -334,6 +334,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfigureVecx(retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
@@ -2173,6 +2174,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+        }
+
+        private void ConfigureVecx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "vecx")
+                return;
+
+            BindFeature(coreSettings, "vecx_res_multi", "vecx_res_multi", "1");
         }
 
         private void Configurex1(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
