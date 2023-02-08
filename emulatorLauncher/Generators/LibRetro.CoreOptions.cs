@@ -334,6 +334,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfigureTyrquake(retroarchConfig, coreSettings, system, core);
             ConfigureVecx(retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
 
@@ -2174,6 +2175,18 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+        }
+
+        private void ConfigureTyrquake(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "tyrquake")
+                return;
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "quake_device_type", "1");
+            BindFeature(retroarchConfig, "tyrquake_analog_deadzone", "quake_analog_deadzone", "15");
+            BindFeature(retroarchConfig, "tyrquake_invert_y_axis", "quake_invert_y_axis", "disabled");
+            BindFeature(retroarchConfig, "tyrquake_rumble", "quake_rumble", "disabled");
+            BindFeature(retroarchConfig, "tyrquake_resolution", "quake_resolution", "320x200");
         }
 
         private void ConfigureVecx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
