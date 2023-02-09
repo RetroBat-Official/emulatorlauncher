@@ -334,6 +334,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfigureTGBDual(retroarchConfig, coreSettings, system, core);
             ConfigureTyrquake(retroarchConfig, coreSettings, system, core);
             ConfigureVecx(retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
@@ -2175,6 +2176,20 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+        }
+
+        private void ConfigureTGBDual(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "tgbdual")
+                return;
+
+            if (system == "gb2players" || system == "gbc2players")
+            {
+                coreSettings["tgbdual_gblink_enable"] = "enabled";
+                BindFeature(coreSettings, "tgbdual_screen_placement", "tgbdual_screen_placement", "left-right");
+            }
+            else if (system != "gb2players" && system != "gbc2players")
+                coreSettings["tgbdual_gblink_enable"] = "disabled";
         }
 
         private void ConfigureTyrquake(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
