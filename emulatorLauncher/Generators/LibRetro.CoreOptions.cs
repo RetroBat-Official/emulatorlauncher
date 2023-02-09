@@ -1477,6 +1477,9 @@ namespace emulatorLauncher.libRetro
             coreSettings["snes9x_show_lightgun_settings"] = "enabled";
             BindFeature(coreSettings, "snes9x_lightgun_mode", "snes9x_lightgun_mode", "Lightgun"); // Lightgun mode
 
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 string gunId = "260";
