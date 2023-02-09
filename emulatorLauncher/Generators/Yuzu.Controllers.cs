@@ -189,7 +189,12 @@ namespace emulatorLauncher
 
             foreach (var map in Mapping)
             {
+                bool revertButtons = Program.Features.IsSupported("yuzu_gamepadbuttons") && Program.SystemConfig.isOptSet("yuzu_gamepadbuttons") && Program.SystemConfig.getOptBoolean("yuzu_gamepadbuttons");
+
                 string name = player + map.Value;
+
+                if (revertButtons && reversedButtons.ContainsKey(map.Key))
+                    name = player + reversedButtons[map.Key];
 
                 string cvalue = FromInput(controller, cfg[map.Key], yuzuGuid, index);
 
@@ -403,6 +408,14 @@ namespace emulatorLauncher
 
             { InputKey.l3,              "button_lstick"},
             { InputKey.r3,              "button_rstick"},
+        };
+
+        static InputKeyMapping reversedButtons = new InputKeyMapping()
+        {
+            { InputKey.b,               "button_b" },
+            { InputKey.a,               "button_a" },
+            { InputKey.y,               "button_x" },
+            { InputKey.x,               "button_y" },
         };
     }
 }

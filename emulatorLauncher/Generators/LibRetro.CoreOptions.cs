@@ -334,6 +334,9 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfigureTGBDual(retroarchConfig, coreSettings, system, core);
+            ConfigureTyrquake(retroarchConfig, coreSettings, system, core);
+            ConfigureVecx(retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
@@ -1474,6 +1477,9 @@ namespace emulatorLauncher.libRetro
             coreSettings["snes9x_show_lightgun_settings"] = "enabled";
             BindFeature(coreSettings, "snes9x_lightgun_mode", "snes9x_lightgun_mode", "Lightgun"); // Lightgun mode
 
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 string gunId = "260";
@@ -2173,6 +2179,40 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+        }
+
+        private void ConfigureTGBDual(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "tgbdual")
+                return;
+
+            if (system == "gb2players" || system == "gbc2players")
+            {
+                coreSettings["tgbdual_gblink_enable"] = "enabled";
+                BindFeature(coreSettings, "tgbdual_screen_placement", "tgbdual_screen_placement", "left-right");
+            }
+            else if (system != "gb2players" && system != "gbc2players")
+                coreSettings["tgbdual_gblink_enable"] = "disabled";
+        }
+
+        private void ConfigureTyrquake(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "tyrquake")
+                return;
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "quake_device_type", "1");
+            BindFeature(retroarchConfig, "tyrquake_analog_deadzone", "quake_analog_deadzone", "15");
+            BindFeature(retroarchConfig, "tyrquake_invert_y_axis", "quake_invert_y_axis", "disabled");
+            BindFeature(retroarchConfig, "tyrquake_rumble", "quake_rumble", "disabled");
+            BindFeature(retroarchConfig, "tyrquake_resolution", "quake_resolution", "320x200");
+        }
+
+        private void ConfigureVecx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "vecx")
+                return;
+
+            BindFeature(coreSettings, "vecx_res_multi", "vecx_res_multi", "1");
         }
 
         private void Configurex1(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
