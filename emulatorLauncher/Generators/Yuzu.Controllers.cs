@@ -183,14 +183,12 @@ namespace emulatorLauncher
                         }
                     }
                 }
-
-
             }
+
+            bool revertButtons = Features.IsSupported("yuzu_gamepadbuttons") && SystemConfig.isOptSet("yuzu_gamepadbuttons") && SystemConfig.getOptBoolean("yuzu_gamepadbuttons");
 
             foreach (var map in Mapping)
             {
-                bool revertButtons = Program.Features.IsSupported("yuzu_gamepadbuttons") && Program.SystemConfig.isOptSet("yuzu_gamepadbuttons") && Program.SystemConfig.getOptBoolean("yuzu_gamepadbuttons");
-
                 string name = player + map.Value;
 
                 if (revertButtons && reversedButtons.ContainsKey(map.Key))

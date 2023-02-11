@@ -62,7 +62,10 @@ namespace emulatorLauncher
             pcsx2ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
             pcsx2ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
 
-            // loop controllers                
+            // Reset hotkeys
+            ResetHotkeysToDefault(pcsx2ini);
+
+            // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
                 ConfigureInput(pcsx2ini, controller, "Pad" + controller.PlayerIndex); // ini has one section for each pad (from Pad1 to Pad8)
         }
@@ -157,7 +160,7 @@ namespace emulatorLauncher
             pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
 
             //Get SDL controller index
-            string techPadNumber = "SDL-" + ctrl.SdlController.Index + "/";
+            string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
             if (ctrl.IsXInputDevice)
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
@@ -189,7 +192,42 @@ namespace emulatorLauncher
             pcsx2ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft, tech));
             pcsx2ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
             pcsx2ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
+
+            // Write Hotkeys for player 1
+            if (playerIndex == 1)
+            {
+                var hotKeyName = GetInputKeyName(ctrl, InputKey.hotkey, tech);
+                if (hotKeyName != "None")
+                {
+                    foreach (var hotkey in hotkeys)
+                    {
+                        var inputKeyName = GetInputKeyName(ctrl, hotkey.Key, tech);
+                        if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
+                            continue;
+
+                        pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                    }
+                }
+            }
         }
+
+        private void ResetHotkeysToDefault(IniFile pcsx2ini)
+        {
+            foreach (var hotkey in hotkeys)
+                pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
+        }
+
+        static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
+        {            
+            { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
+            { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
+            { InputKey.x, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
+            { InputKey.y, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
+            { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
+            { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F2") },
+            { InputKey.down, new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },            
+        };
+
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
         {            
