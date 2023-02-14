@@ -113,6 +113,7 @@ namespace emulatorLauncher
 
             var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("content");
 
+            xdoc.SetElementValue("check_update", "false");
             BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());
 
             // Graphic part of settings file
