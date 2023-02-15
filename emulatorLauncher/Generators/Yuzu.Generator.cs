@@ -130,65 +130,60 @@ namespace emulatorLauncher
                     ini.WriteValue("UI", "Screenshots\\screenshot_path", screenshotpath);
                 }
 
-                // backend
-                if (SystemConfig.isOptSet("backend") && !string.IsNullOrEmpty(SystemConfig["backend"]) && SystemConfig["backend"] != "0")
-                {
-                    ini.WriteValue("Renderer", "backend\\default", "false");
+                // Audio output
+                ini.WriteValue("System", "sound_index\\default", "false");
+                if (SystemConfig.isOptSet("sound_index") && !string.IsNullOrEmpty(SystemConfig["sound_index"]))
+                    ini.WriteValue("System", "sound_index", SystemConfig["sound_index"]);
+                else if (Features.IsSupported("sound_index"))
+                    ini.WriteValue("System", "sound_index", "1");
+
+                // Video and Audio drivers
+                ini.WriteValue("Renderer", "backend\\default", "false");
+                if (SystemConfig.isOptSet("backend") && !string.IsNullOrEmpty(SystemConfig["backend"]))
                     ini.WriteValue("Renderer", "backend", SystemConfig["backend"]);
-                }
                 else if (Features.IsSupported("backend"))
-                {
-                    ini.WriteValue("Renderer", "backend\\default", "true");
-                    ini.WriteValue("Renderer", "backend", "0");
-                }
+                    ini.WriteValue("Renderer", "backend", "1");
+
+                ini.WriteValue("Audio", "output_engine\\default", "false");
+                if (SystemConfig.isOptSet("audio_backend") && !string.IsNullOrEmpty(SystemConfig["audio_backend"]))
+                    ini.WriteValue("Audio", "output_engine", SystemConfig["audio_backend"]);
+                else if (Features.IsSupported("audio_backend"))
+                    ini.WriteValue("Audio", "output_engine", "auto");
 
                 // resolution_setup
-                if (SystemConfig.isOptSet("resolution_setup") && !string.IsNullOrEmpty(SystemConfig["resolution_setup"]) && SystemConfig["resolution_setup"] != "2")
-                {
-                    ini.WriteValue("Renderer", "resolution_setup\\default", "false");
+                ini.WriteValue("Renderer", "resolution_setup\\default", "false");
+                if (SystemConfig.isOptSet("resolution_setup") && !string.IsNullOrEmpty(SystemConfig["resolution_setup"]))
                     ini.WriteValue("Renderer", "resolution_setup", SystemConfig["resolution_setup"]);
-                }
                 else if (Features.IsSupported("resolution_setup"))
-                {
-                    ini.WriteValue("Renderer", "resolution_setup\\default", "true");
                     ini.WriteValue("Renderer", "resolution_setup", "2");
-                }
+
+                // Vsync
+                ini.WriteValue("Renderer", "use_vsync\\default", "false");
+                if (SystemConfig.isOptSet("use_vsync") && !string.IsNullOrEmpty(SystemConfig["use_vsync"]))
+                    ini.WriteValue("Renderer", "use_vsync", SystemConfig["use_vsync"]);
+                else if (Features.IsSupported("use_vsync"))
+                    ini.WriteValue("Renderer", "use_vsync", "true");
 
                 // anti_aliasing
-                if (SystemConfig.isOptSet("anti_aliasing") && SystemConfig.getOptBoolean("anti_aliasing"))
-                {
-                    ini.WriteValue("Renderer", "anti_aliasing\\default", "false");
-                    ini.WriteValue("Renderer", "anti_aliasing", "1");
-                }
+                ini.WriteValue("Renderer", "anti_aliasing\\default", "false");
+                if (SystemConfig.isOptSet("anti_aliasing") && !string.IsNullOrEmpty(SystemConfig["anti_aliasing"]))
+                    ini.WriteValue("Renderer", "anti_aliasing", SystemConfig["anti_aliasing"]);
                 else if (Features.IsSupported("anti_aliasing"))
-                {
-                    ini.WriteValue("Renderer", "anti_aliasing\\default", "true");
                     ini.WriteValue("Renderer", "anti_aliasing", "0");
-                }
 
                 // scaling_filter
-                if (SystemConfig.isOptSet("scaling_filter") && !string.IsNullOrEmpty(SystemConfig["scaling_filter"]) && SystemConfig["scaling_filter"] != "1")
-                {
-                    ini.WriteValue("Renderer", "scaling_filter\\default", "false");
+                ini.WriteValue("Renderer", "scaling_filter\\default", "false");
+                if (SystemConfig.isOptSet("scaling_filter") && !string.IsNullOrEmpty(SystemConfig["scaling_filter"]))
                     ini.WriteValue("Renderer", "scaling_filter", SystemConfig["scaling_filter"]);
-                }
                 else if (Features.IsSupported("scaling_filter"))
-                {
-                    ini.WriteValue("Renderer", "scaling_filter\\default", "true");
                     ini.WriteValue("Renderer", "scaling_filter", "1");
-                }
 
                 //CPU accuracy (auto except if the user chooses otherwise)
-                if (SystemConfig.isOptSet("cpu_accuracy") && !string.IsNullOrEmpty(SystemConfig["cpu_accuracy"]) && SystemConfig["cpu_accuracy"] != "0")
-                {
-                    ini.WriteValue("Cpu", "cpu_accuracy\\default", "false");
+                ini.WriteValue("Cpu", "cpu_accuracy\\default", "false");
+                if (SystemConfig.isOptSet("cpu_accuracy") && !string.IsNullOrEmpty(SystemConfig["cpu_accuracy"]))
                     ini.WriteValue("Cpu", "cpu_accuracy", SystemConfig["cpu_accuracy"]);
-                }
                 else
-                {
-                    ini.WriteValue("Cpu", "cpu_accuracy\\default", "true");
                     ini.WriteValue("Cpu", "cpu_accuracy", "0");
-                }
             }
         }
 
