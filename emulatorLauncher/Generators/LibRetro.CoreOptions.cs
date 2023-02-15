@@ -62,6 +62,7 @@ namespace emulatorLauncher.libRetro
                 { "duckstation", "DuckStation" },
                 { "easyrpg", "EasyRPG Player" },
                 { "ecwolf", "ECWolf" },
+                { "emuscv", "Emuscv" },
                 { "emux_chip8", "Emux CHIP-8" },
                 { "emux_gb", "Emux GB" },
                 { "emux_nes", "Emux NES" },
@@ -331,6 +332,7 @@ namespace emulatorLauncher.libRetro
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             Configurevice(retroarchConfig, coreSettings, system, core);
             ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
+            ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
@@ -2135,7 +2137,22 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "duckstation_GPU.TrueColor", "truecolor", "false");
         }
 
-        private void ConfigureFuse(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void ConfigureEmuscv(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "emuscv")
+                return;
+
+            BindFeature(coreSettings, "emuscv_checkbios", "emuscv_checkbios", "AUTO");
+            BindFeature(coreSettings, "emuscv_console", "emuscv_console", "AUTO");
+            BindFeature(coreSettings, "emuscv_display", "emuscv_display", "AUTO");
+            BindFeature(coreSettings, "emuscv_fps", "emuscv_fps", "AUTO");
+            BindFeature(coreSettings, "emuscv_langage", "emuscv_langage", "AUTO");
+            BindFeature(coreSettings, "emuscv_palette", "emuscv_palette", "AUTO");
+            BindFeature(coreSettings, "emuscv_pixelaspect", "emuscv_pixelaspect", "AUTO");
+            BindFeature(coreSettings, "emuscv_resolution", "emuscv_resolution", "AUTO");
+
+        }
+            private void ConfigureFuse(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "fuse")
                 return;
