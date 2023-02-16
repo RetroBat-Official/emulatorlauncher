@@ -290,7 +290,6 @@ namespace emulatorLauncher.libRetro
 
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureDolphin(retroarchConfig, coreSettings, system, core);
-            ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             Configure4Do(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
@@ -338,6 +337,8 @@ namespace emulatorLauncher.libRetro
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
+            ConfigureStella(retroarchConfig, coreSettings, system, core);
+            ConfigureStella2014(retroarchConfig, coreSettings, system, core);
             ConfigureTGBDual(retroarchConfig, coreSettings, system, core);
             ConfigureTyrquake(retroarchConfig, coreSettings, system, core);
             ConfigureVecx(retroarchConfig, coreSettings, system, core);
@@ -1039,8 +1040,24 @@ namespace emulatorLauncher.libRetro
             if (core != "stella")
                 return;
 
+            BindFeature(coreSettings, "stella_console", "stella_console", "auto");
+            BindFeature(coreSettings, "stella_palette", "stella_palette", "standard");
+            BindFeature(coreSettings, "stella_filter", "stella_filter", "disabled");
+            BindFeature(coreSettings, "stella_crop_hoverscan", "stella_crop_hoverscan", "disabled");
+            BindFeature(coreSettings, "stella_phosphor", "stella_phosphor", "auto");
+
             // Lightgun
             SetupLightGuns(retroarchConfig, "4");            
+        }
+
+        private void ConfigureStella2014(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "stella2014")
+                return;
+
+            BindFeature(coreSettings, "stella2014_color_depth", "stella2014_color_depth", "16bit");
+            BindFeature(coreSettings, "stella2014_low_pass_filter", "stella2014_low_pass_filter", "disabled");
+            BindFeature(coreSettings, "stella2014_mix_frames", "stella2014_mix_frames", "disabled");
         }
 
         private void Configure4Do(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
