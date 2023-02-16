@@ -17,7 +17,7 @@ namespace emulatorLauncher.libRetro
                 { "2048", "2048" },
                 { "3dengine", "3DEngine" },
                 { "4do", "4DO" },
-                { "81", "81" },
+                { "81", "EightyOne" },
                 { "a5200", "a5200" },
                 { "advanced_tests", "Advanced Test" },
                 { "arduous", "Arduous" },
@@ -293,7 +293,6 @@ namespace emulatorLauncher.libRetro
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             Configure4Do(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
-            ConfigureTheodore(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureFCEumm(retroarchConfig, coreSettings, system, core);
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
@@ -301,8 +300,6 @@ namespace emulatorLauncher.libRetro
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
-            ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
-            ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
             ConfigurebsnesHDBeta(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigurePuae(retroarchConfig, coreSettings, system, core);
@@ -329,8 +326,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
-            Configurevice(retroarchConfig, coreSettings, system, core);
-            ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
+            Configure81(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
@@ -340,11 +336,16 @@ namespace emulatorLauncher.libRetro
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
+            ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureStella2014(retroarchConfig, coreSettings, system, core);
+            ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
             ConfigureTGBDual(retroarchConfig, coreSettings, system, core);
+            ConfigureTheodore(retroarchConfig, coreSettings, system, core);
             ConfigureTyrquake(retroarchConfig, coreSettings, system, core);
             ConfigureVecx(retroarchConfig, coreSettings, system, core);
+            Configurevice(retroarchConfig, coreSettings, system, core);
+            ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
@@ -2162,6 +2163,23 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "duckstation_GPU.MSAA", "msaa", "1");
             BindFeature(coreSettings, "duckstation_GPU.ScaledDithering", "scaled_dithering", "true");
             BindFeature(coreSettings, "duckstation_GPU.TrueColor", "truecolor", "false");
+        }
+
+        private void Configure81(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "81")
+                return;
+
+            BindFeature(coreSettings, "81_border_size", "81_border_size", "normal");
+            BindFeature(coreSettings, "81_highres", "81_highres", "auto");
+            BindFeature(coreSettings, "81_chroma_81", "81_chroma_81", "auto");
+            BindFeature(coreSettings, "81_video_presets", "81_video_presets", "clean");
+
+            // Player 1 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "zx81_controller1", "257");
+
+            // Player 2 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "zx81_controller2", "259");
         }
 
         private void ConfigureCraft(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
