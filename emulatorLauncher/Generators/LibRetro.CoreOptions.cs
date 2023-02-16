@@ -336,6 +336,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureStella2014(retroarchConfig, coreSettings, system, core);
@@ -2243,6 +2244,15 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mrboom-levelselect", "mrboom_levelselect", "Normal");
             BindFeature(coreSettings, "mrboom-nomonster", "mrboom_nomonster", "ON");
             BindFeature(coreSettings, "mrboom-teammode", "mrboom_teammode", "Selfie");
+        }
+
+        private void ConfigureSameCDI(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "same_cdi")
+                return;
+
+            BindFeature(coreSettings, "same_cdi_altres", "samecdi_resolution", "640x480");
+            BindFeature(coreSettings, "same_cdi_throttle", "samecdi_throttle", "disabled");
         }
 
         private void ConfigureTGBDual(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
