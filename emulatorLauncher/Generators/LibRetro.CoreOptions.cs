@@ -335,8 +335,9 @@ namespace emulatorLauncher.libRetro
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
-            ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureTGBDual(retroarchConfig, coreSettings, system, core);
             ConfigureTyrquake(retroarchConfig, coreSettings, system, core);
             ConfigureVecx(retroarchConfig, coreSettings, system, core);
@@ -2130,6 +2131,11 @@ namespace emulatorLauncher.libRetro
             if (core != "swanstation")
                 return;
 
+            BindFeature(coreSettings, "duckstation_Console.Region", "swanstation_region", "Auto");
+            BindFeature(coreSettings, "duckstation_GPU.Renderer", "swanstation_GPU", "Auto");
+            BindFeature(coreSettings, "duckstation_GPU.TextureFilter", "swanstation_texturefilter", "Nearest");
+            BindFeature(coreSettings, "duckstation_Display.AspectRatio", "swanstation_aspectratio", "Auto");
+            BindFeature(coreSettings, "duckstation_Display.CropMode", "swanstation_cropmode", "Overscan");
             BindFeature(coreSettings, "duckstation_GPU.ResolutionScale", "internal_resolution", "1");
             BindFeature(coreSettings, "duckstation_GPU.ForceNTSCTimings", "force_ntsc_timings", "false");
             BindFeature(coreSettings, "duckstation_GPU.WidescreenHack", "widescreen_hack", "false");
@@ -2209,6 +2215,17 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+        }
+
+        private void ConfigureMrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mrboom")
+                return;
+
+            BindFeature(coreSettings, "mrboom-aspect", "mrboom_aspect", "Native");
+            BindFeature(coreSettings, "mrboom-levelselect", "mrboom_levelselect", "Normal");
+            BindFeature(coreSettings, "mrboom-nomonster", "mrboom_nomonster", "ON");
+            BindFeature(coreSettings, "mrboom-teammode", "mrboom_teammode", "Selfie");
         }
 
         private void ConfigureTGBDual(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
