@@ -164,7 +164,8 @@
                                                     { "md5": "", "file": "bios/mame/hash/astrocde.xml"									} ] },
 
 	"scv": { "name": "Super Cassette Vision", "biosFiles":	[ { "md5": "33df021613fb12abe2ad14b9eb17c7fe", "file": "scv.zip"	},
-                                                            { "md5": "", "file": "bios/mame/hash/scv.xml"										} ] },	
+                                                              { "md5": "635a978fd40db9a18ee44eff449fc126", "file": "upd7801g.s01"	},
+                                                              { "md5": "", "file": "bios/mame/hash/scv.xml"						} ] },	
 
 	"gmaster": { "name": "Game Master", "biosFiles":	[ { "md5": "4239d6f44a0d78d27c69f9b95885f48e", "file": "gmaster.zip"	},
                                                       { "md5": "", "file": "bios/mame/hash/gmaster.xml"										} ] },
@@ -208,7 +209,7 @@
     "crvision": { "name": "Creativision", "biosFiles":	[ { "md5": "", "file": "bios/crvision.zip"						},
                                                         { "md5": "", "file": "bios/mame/hash/crvision.xml"	} ] },
 
-	"vsmile": { "name": "Super Cassette Vision", "biosFiles": [ { "md5": "", "file": "bios/vsmile.zip" } ] },
+	"vsmile": { "name": "V. Smile", "biosFiles": [ { "md5": "", "file": "bios/vsmile.zip" } ] },
 
 	"coco": { "name": "Color Computer", "biosFiles":	[ { "md5": "", "file": "bios/coco.zip"								},
                                                       { "md5": "", "file": "bios/coco2.zip"								},
