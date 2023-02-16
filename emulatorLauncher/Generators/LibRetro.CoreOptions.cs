@@ -336,6 +336,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureRace(retroarchConfig, coreSettings, system, core);
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
@@ -2245,6 +2246,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mrboom-levelselect", "mrboom_levelselect", "Normal");
             BindFeature(coreSettings, "mrboom-nomonster", "mrboom_nomonster", "ON");
             BindFeature(coreSettings, "mrboom-teammode", "mrboom_teammode", "Selfie");
+        }
+
+        private void ConfigureRace(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "race")
+                return;
+
+            BindFeature(coreSettings, "race_language", "race_language", "english");
         }
 
         private void ConfigureSameCDI(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
