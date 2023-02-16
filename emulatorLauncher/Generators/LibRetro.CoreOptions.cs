@@ -337,6 +337,7 @@ namespace emulatorLauncher.libRetro
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
+            ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureStella2014(retroarchConfig, coreSettings, system, core);
@@ -2253,6 +2254,15 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "same_cdi_altres", "samecdi_resolution", "640x480");
             BindFeature(coreSettings, "same_cdi_throttle", "samecdi_throttle", "disabled");
+        }
+
+        private void ConfigureSameDuck(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "sameduck")
+                return;
+
+            BindFeature(coreSettings, "sameduck_color_correction_mode", "sameduck_colorcorrect", "emulate hardware");
+            BindFeature(coreSettings, "sameduck_rumble", "sameduck_rumble", "all games");
         }
 
         private void ConfigureTGBDual(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
