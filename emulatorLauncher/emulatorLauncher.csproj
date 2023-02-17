@@ -109,7 +109,7 @@
     <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
-    <Compile Include="Generators\MessSystem.cs" />    
+    <Compile Include="Generators\MessSystem.cs" />
     <Compile Include="Generators\vita3k.Generator.cs" />
     <Compile Include="Imapi\BurnData.cs" />
     <Compile Include="Imapi\Imapi2Interop.cs" />
