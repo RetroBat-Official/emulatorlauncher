@@ -308,7 +308,6 @@ namespace emulatorLauncher.libRetro
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
             ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
-            ConfigureQuasi88(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(retroarchConfig, coreSettings, system, core);
@@ -332,7 +331,9 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigurePrBoom(retroarchConfig, coreSettings, system, core);
             ConfigurePX68k(retroarchConfig, coreSettings, system, core);
+            ConfigureQuasi88(retroarchConfig, coreSettings, system, core);
             ConfigureRace(retroarchConfig, coreSettings, system, core);
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
@@ -2271,6 +2272,17 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mrboom-teammode", "mrboom_teammode", "Selfie");
         }
 
+        private void ConfigurePrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "prboom")
+                return;
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "DoomControllerP1", "1");
+            BindFeature(coreSettings, "prboom-resolution", "prboom_resolution", "320x200");
+            BindFeature(coreSettings, "prboom-mouse_on", "prboom_mouse", "disabled");
+            BindFeature(coreSettings, "prboom-find_recursive_on", "prboom_recursive", "enabled");
+        }
+
         private void ConfigurePX68k(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "px68k")
@@ -2331,10 +2343,10 @@ namespace emulatorLauncher.libRetro
                 return;
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "quake_device_type", "1");
-            BindFeature(retroarchConfig, "tyrquake_analog_deadzone", "quake_analog_deadzone", "15");
-            BindFeature(retroarchConfig, "tyrquake_invert_y_axis", "quake_invert_y_axis", "disabled");
-            BindFeature(retroarchConfig, "tyrquake_rumble", "quake_rumble", "disabled");
-            BindFeature(retroarchConfig, "tyrquake_resolution", "quake_resolution", "320x200");
+            BindFeature(coreSettings, "tyrquake_analog_deadzone", "quake_analog_deadzone", "15");
+            BindFeature(coreSettings, "tyrquake_invert_y_axis", "quake_invert_y_axis", "disabled");
+            BindFeature(coreSettings, "tyrquake_rumble", "quake_rumble", "disabled");
+            BindFeature(coreSettings, "tyrquake_resolution", "quake_resolution", "320x200");
         }
 
         private void ConfigureVecx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
