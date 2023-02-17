@@ -332,6 +332,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigurePX68k(retroarchConfig, coreSettings, system, core);
             ConfigureRace(retroarchConfig, coreSettings, system, core);
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
@@ -1282,6 +1283,10 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "q88_basic_mode", "q88_basic_mode", "N88 V2");
             BindFeature(coreSettings, "q88_cpu_clock", "q88_cpu_clock", "4");
             BindFeature(coreSettings, "q88_pcg-8100", "q88_pcg-8100", "disabled");
+            BindFeature(coreSettings, "q88_sound_board", "q88_sound_board", "OPNA");
+
+            // Controller type
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "pc88_controller1", "1");
         }
 
         private void ConfigureCap32(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2264,6 +2269,20 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mrboom-levelselect", "mrboom_levelselect", "Normal");
             BindFeature(coreSettings, "mrboom-nomonster", "mrboom_nomonster", "ON");
             BindFeature(coreSettings, "mrboom-teammode", "mrboom_teammode", "Selfie");
+        }
+
+        private void ConfigurePX68k(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "px68k")
+                return;
+
+            BindFeature(coreSettings, "px68k_cpuspeed", "px68k_cpuspeed", "10MHz");
+            BindFeature(coreSettings, "px68k_ramsize", "px68k_ramsize", "2MB");
+            BindFeature(coreSettings, "px68k_frameskip", "px68k_frameskip", "Full Frame");
+            BindFeature(coreSettings, "px68k_joytype1", "px68k_joytype", "Default (2 Buttons)");
+            BindFeature(coreSettings, "px68k_joytype2", "px68k_joytype", "Default (2 Buttons)");
+            BindFeature(coreSettings, "px68k_joy1_select", "px68k_joy1_select", "Full Frame");
+            BindFeature(coreSettings, "px68k_joy_mouse", "px68k_joy_mouse", "Mouse");
         }
 
         private void ConfigureRace(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
