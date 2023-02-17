@@ -17,7 +17,7 @@ namespace emulatorLauncher.libRetro
                 { "2048", "2048" },
                 { "3dengine", "3DEngine" },
                 { "4do", "4DO" },
-                { "81", "81" },
+                { "81", "EightyOne" },
                 { "a5200", "a5200" },
                 { "advanced_tests", "Advanced Test" },
                 { "arduous", "Arduous" },
@@ -62,6 +62,7 @@ namespace emulatorLauncher.libRetro
                 { "duckstation", "DuckStation" },
                 { "easyrpg", "EasyRPG Player" },
                 { "ecwolf", "ECWolf" },
+                { "emuscv", "Emuscv" },
                 { "emux_chip8", "Emux CHIP-8" },
                 { "emux_gb", "Emux GB" },
                 { "emux_nes", "Emux NES" },
@@ -289,11 +290,9 @@ namespace emulatorLauncher.libRetro
 
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureDolphin(retroarchConfig, coreSettings, system, core);
-            ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             Configure4Do(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
-            ConfigureTheodore(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureFCEumm(retroarchConfig, coreSettings, system, core);
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
@@ -301,8 +300,6 @@ namespace emulatorLauncher.libRetro
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
-            ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
-            ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
             ConfigurebsnesHDBeta(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigurePuae(retroarchConfig, coreSettings, system, core);
@@ -329,14 +326,26 @@ namespace emulatorLauncher.libRetro
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
-            Configurevice(retroarchConfig, coreSettings, system, core);
-            ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
+            Configure81(retroarchConfig, coreSettings, system, core);
+            ConfigureCraft(retroarchConfig, coreSettings, system, core);
+            ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
-            ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureRace(retroarchConfig, coreSettings, system, core);
+            ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
+            ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
+            ConfigureScummVM(retroarchConfig, coreSettings, system, core);
+            ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
+            ConfigureStella(retroarchConfig, coreSettings, system, core);
+            ConfigureStella2014(retroarchConfig, coreSettings, system, core);
+            ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
             ConfigureTGBDual(retroarchConfig, coreSettings, system, core);
+            ConfigureTheodore(retroarchConfig, coreSettings, system, core);
             ConfigureTyrquake(retroarchConfig, coreSettings, system, core);
             ConfigureVecx(retroarchConfig, coreSettings, system, core);
+            Configurevice(retroarchConfig, coreSettings, system, core);
+            ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
@@ -1035,8 +1044,24 @@ namespace emulatorLauncher.libRetro
             if (core != "stella")
                 return;
 
+            BindFeature(coreSettings, "stella_console", "stella_console", "auto");
+            BindFeature(coreSettings, "stella_palette", "stella_palette", "standard");
+            BindFeature(coreSettings, "stella_filter", "stella_filter", "disabled");
+            BindFeature(coreSettings, "stella_crop_hoverscan", "stella_crop_hoverscan", "disabled");
+            BindFeature(coreSettings, "stella_phosphor", "stella_phosphor", "auto");
+
             // Lightgun
             SetupLightGuns(retroarchConfig, "4");            
+        }
+
+        private void ConfigureStella2014(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "stella2014")
+                return;
+
+            BindFeature(coreSettings, "stella2014_color_depth", "stella2014_color_depth", "16bit");
+            BindFeature(coreSettings, "stella2014_low_pass_filter", "stella2014_low_pass_filter", "disabled");
+            BindFeature(coreSettings, "stella2014_mix_frames", "stella2014_mix_frames", "disabled");
         }
 
         private void Configure4Do(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2127,12 +2152,61 @@ namespace emulatorLauncher.libRetro
             if (core != "swanstation")
                 return;
 
+            BindFeature(coreSettings, "duckstation_Console.Region", "swanstation_region", "Auto");
+            BindFeature(coreSettings, "duckstation_GPU.Renderer", "swanstation_GPU", "Auto");
+            BindFeature(coreSettings, "duckstation_GPU.TextureFilter", "swanstation_texturefilter", "Nearest");
+            BindFeature(coreSettings, "duckstation_Display.AspectRatio", "swanstation_aspectratio", "Auto");
+            BindFeature(coreSettings, "duckstation_Display.CropMode", "swanstation_cropmode", "Overscan");
             BindFeature(coreSettings, "duckstation_GPU.ResolutionScale", "internal_resolution", "1");
             BindFeature(coreSettings, "duckstation_GPU.ForceNTSCTimings", "force_ntsc_timings", "false");
             BindFeature(coreSettings, "duckstation_GPU.WidescreenHack", "widescreen_hack", "false");
             BindFeature(coreSettings, "duckstation_GPU.MSAA", "msaa", "1");
             BindFeature(coreSettings, "duckstation_GPU.ScaledDithering", "scaled_dithering", "true");
             BindFeature(coreSettings, "duckstation_GPU.TrueColor", "truecolor", "false");
+        }
+
+        private void Configure81(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "81")
+                return;
+
+            BindFeature(coreSettings, "81_border_size", "81_border_size", "normal");
+            BindFeature(coreSettings, "81_highres", "81_highres", "auto");
+            BindFeature(coreSettings, "81_chroma_81", "81_chroma_81", "auto");
+            BindFeature(coreSettings, "81_video_presets", "81_video_presets", "clean");
+
+            // Player 1 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "zx81_controller1", "257");
+
+            // Player 2 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "zx81_controller2", "259");
+        }
+
+        private void ConfigureCraft(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "craft")
+                return;
+
+            BindFeature(coreSettings, "craft_resolution", "craft_resolution", "640x480");
+            BindFeature(coreSettings, "craft_show_info_text", "craft_show_info_text", "disabled");
+            BindFeature(coreSettings, "craft_inverted_aim", "craft_inverted_aim", "disabled");
+            BindFeature(coreSettings, "craft_draw_distance", "craft_draw_distance", "10");
+            BindFeature(coreSettings, "craft_field_of_view", "craft_field_of_view", "65");
+        }
+
+        private void ConfigureEmuscv(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "emuscv")
+                return;
+
+            BindFeature(coreSettings, "emuscv_checkbios", "emuscv_checkbios", "AUTO");
+            BindFeature(coreSettings, "emuscv_console", "emuscv_console", "AUTO");
+            BindFeature(coreSettings, "emuscv_display", "emuscv_display", "AUTO");
+            BindFeature(coreSettings, "emuscv_fps", "emuscv_fps", "AUTO");
+            BindFeature(coreSettings, "emuscv_langage", "emuscv_langage", "AUTO");
+            BindFeature(coreSettings, "emuscv_palette", "emuscv_palette", "AUTO");
+            BindFeature(coreSettings, "emuscv_pixelaspect", "emuscv_pixelaspect", "AUTO");
+            BindFeature(coreSettings, "emuscv_resolution", "emuscv_resolution", "AUTO");
         }
 
         private void ConfigureFuse(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2179,6 +2253,43 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+        }
+
+        private void ConfigureMrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mrboom")
+                return;
+
+            BindFeature(coreSettings, "mrboom-aspect", "mrboom_aspect", "Native");
+            BindFeature(coreSettings, "mrboom-levelselect", "mrboom_levelselect", "Normal");
+            BindFeature(coreSettings, "mrboom-nomonster", "mrboom_nomonster", "ON");
+            BindFeature(coreSettings, "mrboom-teammode", "mrboom_teammode", "Selfie");
+        }
+
+        private void ConfigureRace(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "race")
+                return;
+
+            BindFeature(coreSettings, "race_language", "race_language", "english");
+        }
+
+        private void ConfigureSameCDI(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "same_cdi")
+                return;
+
+            BindFeature(coreSettings, "same_cdi_altres", "samecdi_resolution", "640x480");
+            BindFeature(coreSettings, "same_cdi_throttle", "samecdi_throttle", "disabled");
+        }
+
+        private void ConfigureSameDuck(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "sameduck")
+                return;
+
+            BindFeature(coreSettings, "sameduck_color_correction_mode", "sameduck_colorcorrect", "emulate hardware");
+            BindFeature(coreSettings, "sameduck_rumble", "sameduck_rumble", "all games");
         }
 
         private void ConfigureTGBDual(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
