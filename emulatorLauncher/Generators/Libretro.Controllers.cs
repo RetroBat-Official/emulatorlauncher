@@ -14,7 +14,7 @@ namespace emulatorLauncher.libRetro
         private static string _inputDriver = "sdl2";
         private static HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
 
-        static List<string> systemButtonClockwise = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
+        static List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
 
 
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
@@ -239,7 +239,7 @@ namespace emulatorLauncher.libRetro
             }
 
             // Reverse buttons clockwise option for super nintendo libretro cores
-            if (systemButtonClockwise.Contains(system) && Program.Features.IsSupported("buttonsClockwise") && Program.SystemConfig.getOptBoolean("buttonsClockwise"))
+            if (systemButtonInvert.Contains(system) && Program.Features.IsSupported("buttonsInvert") && Program.SystemConfig.getOptBoolean("buttonsInvert"))
             {
                 retroarchbtns[InputKey.a] = "a";
                 retroarchbtns[InputKey.b] = "b";
