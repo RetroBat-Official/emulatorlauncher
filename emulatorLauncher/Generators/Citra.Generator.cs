@@ -130,7 +130,7 @@ namespace emulatorLauncher
                     }
                 }
 
-                //Define console region
+                // Define console region
                 if (SystemConfig.isOptSet("citra_region_value") && !string.IsNullOrEmpty(SystemConfig["citra_region_value"]) && SystemConfig["citra_region_value"] != "-1")
                 {
                     ini.WriteValue("System", "region_value\\default", "false");
@@ -140,6 +140,29 @@ namespace emulatorLauncher
                 {
                     ini.WriteValue("System", "region_value\\default", "true");
                     ini.WriteValue("System", "region_value", "-1");
+                }
+
+                // Custom textures
+                if (SystemConfig.isOptSet("citra_custom_textures") && SystemConfig.getOptBoolean("citra_custom_textures"))
+                {
+                    ini.WriteValue("Utility", "custom_textures\\default", "false");
+                    ini.WriteValue("Utility", "custom_textures", "true");
+                }
+                else if (Features.IsSupported("citra_custom_textures"))
+                {
+                    ini.WriteValue("Utility", "custom_textures\\default", "true");
+                    ini.WriteValue("Utility", "custom_textures", "false");
+                }
+
+                if (SystemConfig.isOptSet("citra_PreloadTextures") && SystemConfig.getOptBoolean("citra_PreloadTextures"))
+                {
+                    ini.WriteValue("Utility", "preload_textures\\default", "false");
+                    ini.WriteValue("Utility", "preload_textures", "true");
+                }
+                else if (Features.IsSupported("citra_PreloadTextures"))
+                {
+                    ini.WriteValue("Utility", "preload_textures\\default", "true");
+                    ini.WriteValue("Utility", "preload_textures", "false");
                 }
             }
         }

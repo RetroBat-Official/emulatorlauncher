@@ -14,6 +14,9 @@ namespace emulatorLauncher.libRetro
         private static string _inputDriver = "sdl2";
         private static HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
 
+        static List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
+
+
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -233,6 +236,15 @@ namespace emulatorLauncher.libRetro
                     retroarchbtns[InputKey.pageup] = "l2";
                     retroarchbtns[InputKey.l2] = "l";
                 }
+            }
+
+            // Reverse buttons clockwise option for super nintendo libretro cores
+            if (systemButtonInvert.Contains(system) && Program.Features.IsSupported("buttonsInvert") && Program.SystemConfig.getOptBoolean("buttonsInvert"))
+            {
+                retroarchbtns[InputKey.a] = "a";
+                retroarchbtns[InputKey.b] = "b";
+                retroarchbtns[InputKey.x] = "y";
+                retroarchbtns[InputKey.y] = "x";
             }
 
             var conflicts = new List<string>();
