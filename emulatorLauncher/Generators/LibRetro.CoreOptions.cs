@@ -331,6 +331,7 @@ namespace emulatorLauncher.libRetro
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigurePrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureProSystem(retroarchConfig, coreSettings, system, core);
             ConfigurePuae(retroarchConfig, coreSettings, system, core);
             ConfigurePX68k(retroarchConfig, coreSettings, system, core);
             ConfigureQuasi88(retroarchConfig, coreSettings, system, core);
@@ -1923,6 +1924,16 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "dosbox_pure_bootos_forcenormal", "dosbox_pure_bootos_forcenormal", "false");
             BindFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "false");
             BindFeature(coreSettings, "dosbox_pure_bind_unused", "dosbox_pure_bind_unused", "false");
+        }
+
+        private void ConfigureProSystem(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "prosystem")
+                return;
+
+            BindFeature(coreSettings, "prosystem_color_depth", "prosystem_color_depth", "16bit");
+            BindFeature(coreSettings, "prosystem_low_pass_filter", "prosystem_low_pass_filter", "disabled");
+            BindFeature(coreSettings, "prosystem_gamepad_dual_stick_hack", "dual_stick_hack", "disabled");
         }
 
         private void ConfigurePuae(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
