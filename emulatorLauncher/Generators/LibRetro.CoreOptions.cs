@@ -302,7 +302,6 @@ namespace emulatorLauncher.libRetro
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigurebsnesHDBeta(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
-            ConfigurePuae(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
@@ -332,6 +331,7 @@ namespace emulatorLauncher.libRetro
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigurePrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigurePuae(retroarchConfig, coreSettings, system, core);
             ConfigurePX68k(retroarchConfig, coreSettings, system, core);
             ConfigureQuasi88(retroarchConfig, coreSettings, system, core);
             ConfigureRace(retroarchConfig, coreSettings, system, core);
@@ -1931,19 +1931,42 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["puae_video_options_display"] = "enabled";
+            coreSettings["puae_audio_options_display"] = "enabled";
             coreSettings["puae_use_whdload"] = "hdfs";
 
+            // System options
             BindFeature(coreSettings, "puae_model", "model", "auto");
             BindFeature(coreSettings, "puae_cpu_compatibility", "cpu_compatibility", "normal");
             BindFeature(coreSettings, "puae_cpu_multiplier", "cpu_multiplier", "default");
-            BindFeature(coreSettings, "puae_video_resolution", "video_resolution", "auto");
-            BindFeature(coreSettings, "puae_zoom_mode", "zoom_mode", "auto");
-            BindFeature(coreSettings, "puae_video_standard", "video_standard", "PAL auto");
+            BindFeature(coreSettings, "puae_kickstart", "puae_kickstart", "auto");
             BindFeature(coreSettings, "puae_use_whdload_prefs", "whdload", "config");
-            BindFeature(coreSettings, "puae_retropad_options", "pad_options", "jump");
             BindFeature(coreSettings, "puae_floppy_speed", "floppy_speed", "100");
             BindFeature(coreSettings, "puae_floppy_sound", "floppy_sound", "75");
-            BindFeature(coreSettings, "puae_kickstart", "puae_kickstart", "auto");
+            BindFeature(coreSettings, "puae_cd_speed", "puae_cd_speed", "100");
+            BindFeature(coreSettings, "puae_cd_startup_delayed_insert", "puae_cd_delay", "disabled");
+
+            // Video options
+            BindFeature(coreSettings, "puae_video_resolution", "video_resolution", "auto");
+            BindFeature(coreSettings, "puae_video_standard", "video_standard", "PAL auto");
+            BindFeature(coreSettings, "puae_crop", "puae_crop", "auto");
+            BindFeature(coreSettings, "puae_crop_mode", "puae_crop_mode", "both");
+            BindFeature(coreSettings, "puae_gfx_colors", "puae_gfx_colors", "16bit");
+
+            // Control options
+            if (system == "amigacd32")
+                BindFeature(coreSettings, "puae_cd32pad_options", "pad32_options", "disabled");
+            else
+                BindFeature(coreSettings, "puae_retropad_options", "pad_options", "disabled");
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "puae_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "puae_controller2", "1");
+            BindFeature(coreSettings, "puae_analogmouse", "puae_analogmouse", "both");
+            BindFeature(coreSettings, "puae_mouse_speed", "puae_mouse_speed", "100");
+            BindFeature(coreSettings, "puae_physical_keyboard_pass_through", "puae_keyboard_pass_through", "disabled");
+
+            /*Deprecated options
+            BindFeature(coreSettings, "puae_zoom_mode", "zoom_mode", "auto");
+            */
         }
 
         private void ConfigureFlycast(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
