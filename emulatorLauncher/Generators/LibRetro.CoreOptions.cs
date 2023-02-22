@@ -1722,8 +1722,8 @@ namespace emulatorLauncher.libRetro
             if (core != "potator")
                 return;
 
-            BindFeature(coreSettings, "potator_lcd_ghosting", "lcd_ghosting", "0");
-            BindFeature(coreSettings, "potator_palette", "palette", "default");
+            BindFeature(coreSettings, "potator_lcd_ghosting", "potator_ghosting", "0");
+            BindFeature(coreSettings, "potator_palette", "potator_palette", "default");
         }
 
         private void ConfigureMupen64(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
