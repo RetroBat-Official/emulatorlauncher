@@ -363,7 +363,6 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["aspect_ratio_index"] = idx.ToString();
                     retroarchConfig["video_aspect_ratio_auto"] = "false";
                     SystemConfig["bezel"] = "none";
-
                 }
             }
             */
@@ -382,12 +381,12 @@ namespace emulatorLauncher.libRetro
             // Inject custom input_libretro_device_pXX values into remap file, as it's no longer supported in retroarch.cfg file
             if (InputRemap != null && InputRemap.Count == 0 && Program.SystemConfig["disableautocontrollers"] != "1")
             {
-                for (int i = 1 ; i <= 5 ; i++)
+                for (int i = 1; i <= 5; i++)
                 {
                     var dev = retroarchConfig["input_libretro_device_p" + i];
                     if (string.IsNullOrEmpty(dev))
                         continue;
-                    
+
                     InputRemap["input_libretro_device_p" + i] = dev;
 
                     var mode = retroarchConfig["input_player" + i + "_analog_dpad_mode"];
@@ -396,7 +395,7 @@ namespace emulatorLauncher.libRetro
 
                     var index = retroarchConfig["input_player" + i + "_joypad_index"];
                     if (!string.IsNullOrEmpty(index))
-                        InputRemap["input_remap_port_p" + i] = index;                    
+                        InputRemap["input_remap_port_p" + i] = index;
                 }
             }
 
@@ -445,7 +444,7 @@ namespace emulatorLauncher.libRetro
                         ini.WriteValue("scummvm", "savepath", Path.Combine(AppConfig.GetFullPath("saves"), "scummvm"));
 
                         if (SystemConfig.isOptSet("ratio"))
-                            ini.WriteValue("scummvm", "aspect_ratio", "true");                  
+                            ini.WriteValue("scummvm", "aspect_ratio", "true");
 
                         // Sound Mode
                         if (SystemConfig.isOptSet("SoundMode"))
@@ -529,8 +528,8 @@ namespace emulatorLauncher.libRetro
                                 ini.WriteValue("scummvm", "gm_device", "auto");
                                 ini.WriteValue("scummvm", "mt32_device", "auto");
                                 ini.WriteValue("scummvm", "native_mt32", "false");
-                            }                          
-                            
+                            }
+
                         }
                         else
                         {
@@ -557,7 +556,7 @@ namespace emulatorLauncher.libRetro
                             if (SystemConfig["TextSpeech"] == "Speech")
                             {
                                 ini.WriteValue("scummvm", "speech_mute", "false");
-                                ini.WriteValue("scummvm", "subtitles", "false");                            
+                                ini.WriteValue("scummvm", "subtitles", "false");
                             }
                             else if (SystemConfig["TextSpeech"] == "Subtitles")
                             {
@@ -568,7 +567,7 @@ namespace emulatorLauncher.libRetro
                             {
                                 ini.WriteValue("scummvm", "speech_mute", "false");
                                 ini.WriteValue("scummvm", "subtitles", "true");
-                            }                            
+                            }
 
                         }
                         else
@@ -673,7 +672,7 @@ namespace emulatorLauncher.libRetro
                 else
                     coreSettings["dolphin_widescreen"] = "disabled";
 
-                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");               
+                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");
 
             }
 
@@ -1002,7 +1001,7 @@ namespace emulatorLauncher.libRetro
         }
 
 
-        static List<KeyValuePair<string, string>> operaHacks = new List<KeyValuePair<string, string>>() 
+        static List<KeyValuePair<string, string>> operaHacks = new List<KeyValuePair<string, string>>()
             {
                 new KeyValuePair<string, string>("crashnburn", "timing_hack1"),
                 new KeyValuePair<string, string>("dinopark tycoon", "timing_hack3"),
@@ -1054,7 +1053,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "stella_phosphor", "stella_phosphor", "auto");
 
             // Lightgun
-            SetupLightGuns(retroarchConfig, "4");            
+            SetupLightGuns(retroarchConfig, "4");
         }
 
         private void ConfigureStella2014(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1205,7 +1204,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "nestopia_button_shift", "nestopia_button_shift", "disabled");
 
             coreSettings["nestopia_zapper_device"] = "lightgun";
-            SetupLightGuns(retroarchConfig, "262", 2);            
+            SetupLightGuns(retroarchConfig, "262", 2);
         }
 
         private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1536,7 +1535,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "bsnes_mode7_supersample", "bsnes_mode7_supersample", "none");
         }
 
-            private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "genesis_plus_gx")
                 return;
@@ -1634,7 +1633,7 @@ namespace emulatorLauncher.libRetro
                         gunId = "772";
 
                     SetupLightGuns(retroarchConfig, gunId, 2);
-                }                
+                }
             }
         }
 
@@ -1752,7 +1751,7 @@ namespace emulatorLauncher.libRetro
 
                     }
 
-                }            
+                }
 
             }
 
@@ -2142,7 +2141,7 @@ namespace emulatorLauncher.libRetro
 
             // Common Vice features
             BindFeature(coreSettings, "vice_warp_boost", "warp_boost", "enabled");
-            BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto"); 
+            BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto");
             BindFeature(coreSettings, "vice_crop", "vice_crop", "disabled");
             BindFeature(coreSettings, "vice_crop_mode", "vice_crop_mode", "both");
             BindFeature(coreSettings, "vice_gfx_colors", "vice_gfx_colors", "16bit");

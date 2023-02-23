@@ -167,6 +167,9 @@ namespace emulatorLauncher
 
                     ini.WriteValue("sys.files", "dvd_path", "'" + rom + "'");
                 }
+
+                // Write xbox bios settings in eeprom.bin file
+                WriteXboxEEPROM(eepromPath);
             }
             catch { }
 
@@ -181,6 +184,86 @@ namespace emulatorLauncher
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
             return PadToKey.AddOrUpdateKeyMapping(mapping, "xemu", InputKey.hotkey | InputKey.start, "(%{KILL})");
+        }
+
+        private int getXboxLangFromEnvironment()
+        {
+            var availableLanguages = new Dictionary<string, int>()
+            {
+                {"en", 1 }, {"jp", 2 }, { "de", 3 }, { "fr", 4 }, { "es", 5 }, { "it", 6 }, { "ko", 7 }, { "zh", 8 }, { "pt", 9 }
+            };
+
+            var lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                int ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return 1;
+        }
+
+        /// <summary>
+        /// Calculates the EEPROM data checksum of specified offset and size.
+        /// Original code by Ernegien (https://github.com/Ernegien/XboxEepromEditor)
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="offset"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        private static uint ChecksumCalculate(byte[] data, int offset, int size)
+        {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
+            if (size % sizeof(uint) > 0)
+                throw new ArgumentException("Size must be a multiple of four.", nameof(size));
+
+            if (offset + size > data.Length)
+                throw new ArgumentOutOfRangeException();
+
+            // high and low parts of the internal checksum
+            uint high = 0, low = 0;
+
+            for (int i = 0; i < size / sizeof(uint); i++)
+            {
+                uint val = BitConverter.ToUInt32(data, offset + i * sizeof(uint));
+                ulong sum = ((ulong)high << 32) | low;
+
+                high = (uint)((sum + val) >> 32);
+                low += val;
+            }
+
+            return high + low;
+        }
+
+        private void WriteXboxEEPROM(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            int langId = 1;
+
+            if (SystemConfig.isOptSet("xbox_language") && !string.IsNullOrEmpty(SystemConfig["xbox_language"]))
+                langId = SystemConfig["xbox_language"].ToInteger();
+            else
+                langId = getXboxLangFromEnvironment();
+
+            // Read eeprom file
+            byte[] bytes = File.ReadAllBytes(path);
+
+            var toSet = new byte[] { (byte)langId };
+            for (int i = 0; i < toSet.Length; i++)
+                bytes[144] = toSet[i];
+
+            uint UserSectionChecksum = ~ChecksumCalculate(bytes, 0x64, 0x5C);
+
+            byte[] userchecksum = BitConverter.GetBytes(UserSectionChecksum);
+            for (int i = 0; i < userchecksum.Length; i++)
+                bytes[96 + i] = userchecksum[i];
+
+            File.WriteAllBytes(path, bytes);
         }
     }
 }
