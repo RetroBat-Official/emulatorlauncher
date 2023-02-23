@@ -300,7 +300,6 @@ namespace emulatorLauncher.libRetro
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
-            ConfigurebsnesHDBeta(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
@@ -325,6 +324,7 @@ namespace emulatorLauncher.libRetro
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
+            Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
@@ -1525,14 +1525,40 @@ namespace emulatorLauncher.libRetro
             }
         }
 
-        private void ConfigurebsnesHDBeta(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void Configurebsnes(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "bsnes_hd_beta")
+            if (core != "bsnes_hd_beta" && core != "bsnes")
                 return;
 
             BindFeature(coreSettings, "bsnes_mode7_scale", "bsnes_mode7_scale", "2x");
-            BindFeature(coreSettings, "bsnes_mode7_perspective", "bsnes_mode7_perspective", "auto (wide)");
-            BindFeature(coreSettings, "bsnes_mode7_supersample", "bsnes_mode7_supersample", "none");
+            BindFeature(coreSettings, "bsnes_mode7_perspective", "bsnes_mode7_perspective", core == "bsnes" ? "ON" : "auto (wide)");
+            BindFeature(coreSettings, "bsnes_mode7_supersample", "bsnes_mode7_supersample", core == "bsnes" ? "OFF" : "none");
+            BindFeature(coreSettings, "bsnes_ppu_show_overscan", "bsnes_ppu_show_overscan", "OFF");
+            BindFeature(coreSettings, "bsnes_blur_emulation", "bsnes_blur_emulation", "OFF");
+            BindFeature(coreSettings, "bsnes_hotfixes", "bsnes_hotfixes", "OFF");
+            BindFeature(coreSettings, "bsnes_cpu_fastmath", "bsnes_cpu_fastmath", "OFF");
+            BindFeature(coreSettings, "bsnes_run_ahead_frames", "bsnes_run_ahead_frames", "OFF");
+
+            // bsnes only features
+            if (core == "bsnes")
+            {
+                BindFeature(coreSettings, "bsnes_aspect_ratio", "bsnes_aspect_ratio", "Auto");
+            }
+
+            // Gun configuration only for bsnes as bsnes_hd_beta does not have lightgun
+            if (SystemConfig.getOptBoolean("use_guns") && core == "bsnes")
+            {
+                string gunId = "260";
+
+                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                if (gunInfo != null && gunInfo.GunType == "justifier")
+                    gunId = "516";
+
+                coreSettings["bsnes_touchscreen_lightgun_superscope_reverse"] = (gunInfo != null && gunInfo.ReversedButtons ? "ON" : "OFF");
+                coreSettings["bsnes_touchscreen_lightgun"] = "ON";
+
+                SetupLightGuns(retroarchConfig, gunId, 2);
+            }
         }
 
         private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
