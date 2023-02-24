@@ -300,9 +300,7 @@ namespace emulatorLauncher.libRetro
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
-            ConfigurebsnesHDBeta(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
-            ConfigurePuae(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
@@ -310,15 +308,12 @@ namespace emulatorLauncher.libRetro
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
-            ConfigurePotator(retroarchConfig, coreSettings, system, core);
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
             ConfigureKronos(retroarchConfig, coreSettings, system, core);
-            ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSaturn(retroarchConfig, coreSettings, system, core);
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureFbneo(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
-            ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
             ConfigureMame(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS1(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS2(retroarchConfig, coreSettings, system, core);
@@ -326,12 +321,18 @@ namespace emulatorLauncher.libRetro
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
+            Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
+            ConfigurePotator(retroarchConfig, coreSettings, system, core);
+            ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
             ConfigurePrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureProSystem(retroarchConfig, coreSettings, system, core);
+            ConfigurePuae(retroarchConfig, coreSettings, system, core);
             ConfigurePX68k(retroarchConfig, coreSettings, system, core);
             ConfigureQuasi88(retroarchConfig, coreSettings, system, core);
             ConfigureRace(retroarchConfig, coreSettings, system, core);
@@ -362,7 +363,6 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["aspect_ratio_index"] = idx.ToString();
                     retroarchConfig["video_aspect_ratio_auto"] = "false";
                     SystemConfig["bezel"] = "none";
-
                 }
             }
             */
@@ -381,12 +381,12 @@ namespace emulatorLauncher.libRetro
             // Inject custom input_libretro_device_pXX values into remap file, as it's no longer supported in retroarch.cfg file
             if (InputRemap != null && InputRemap.Count == 0 && Program.SystemConfig["disableautocontrollers"] != "1")
             {
-                for (int i = 1 ; i <= 5 ; i++)
+                for (int i = 1; i <= 5; i++)
                 {
                     var dev = retroarchConfig["input_libretro_device_p" + i];
                     if (string.IsNullOrEmpty(dev))
                         continue;
-                    
+
                     InputRemap["input_libretro_device_p" + i] = dev;
 
                     var mode = retroarchConfig["input_player" + i + "_analog_dpad_mode"];
@@ -395,7 +395,7 @@ namespace emulatorLauncher.libRetro
 
                     var index = retroarchConfig["input_player" + i + "_joypad_index"];
                     if (!string.IsNullOrEmpty(index))
-                        InputRemap["input_remap_port_p" + i] = index;                    
+                        InputRemap["input_remap_port_p" + i] = index;
                 }
             }
 
@@ -444,7 +444,7 @@ namespace emulatorLauncher.libRetro
                         ini.WriteValue("scummvm", "savepath", Path.Combine(AppConfig.GetFullPath("saves"), "scummvm"));
 
                         if (SystemConfig.isOptSet("ratio"))
-                            ini.WriteValue("scummvm", "aspect_ratio", "true");                  
+                            ini.WriteValue("scummvm", "aspect_ratio", "true");
 
                         // Sound Mode
                         if (SystemConfig.isOptSet("SoundMode"))
@@ -528,8 +528,8 @@ namespace emulatorLauncher.libRetro
                                 ini.WriteValue("scummvm", "gm_device", "auto");
                                 ini.WriteValue("scummvm", "mt32_device", "auto");
                                 ini.WriteValue("scummvm", "native_mt32", "false");
-                            }                          
-                            
+                            }
+
                         }
                         else
                         {
@@ -556,7 +556,7 @@ namespace emulatorLauncher.libRetro
                             if (SystemConfig["TextSpeech"] == "Speech")
                             {
                                 ini.WriteValue("scummvm", "speech_mute", "false");
-                                ini.WriteValue("scummvm", "subtitles", "false");                            
+                                ini.WriteValue("scummvm", "subtitles", "false");
                             }
                             else if (SystemConfig["TextSpeech"] == "Subtitles")
                             {
@@ -567,7 +567,7 @@ namespace emulatorLauncher.libRetro
                             {
                                 ini.WriteValue("scummvm", "speech_mute", "false");
                                 ini.WriteValue("scummvm", "subtitles", "true");
-                            }                            
+                            }
 
                         }
                         else
@@ -672,7 +672,7 @@ namespace emulatorLauncher.libRetro
                 else
                     coreSettings["dolphin_widescreen"] = "disabled";
 
-                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");               
+                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");
 
             }
 
@@ -773,7 +773,6 @@ namespace emulatorLauncher.libRetro
             coreSettings["ppsspp_frameskiptype"] = "number of frames";
             coreSettings["ppsspp_rendering_mode"] = "buffered";
             coreSettings["ppsspp_locked_cpu_speed"] = "off";
-            coreSettings["ppsspp_button_preference"] = "cross";
 
             if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
                 coreSettings["ppsspp_cheats"] = "disabled";
@@ -821,9 +820,9 @@ namespace emulatorLauncher.libRetro
                 default:
                     coreSettings["ppsspp_block_transfer_gpu"] = "enabled";
                     coreSettings["ppsspp_spline_quality"] = "medium";
-                    coreSettings["ppsspp_software_skinning"] = "disabled";
+                    coreSettings["ppsspp_software_skinning"] = "enabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
-                    coreSettings["ppsspp_vertex_cache"] = "enabled";
+                    coreSettings["ppsspp_vertex_cache"] = "disabled";
                     coreSettings["ppsspp_fast_memory"] = "enabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "disabled";
                     coreSettings["ppsspp_retain_changed_textures"] = "disabled";
@@ -842,6 +841,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "ppsspp_io_timing_method", "ppsspp_io_timing_method", "Fast");
             BindFeature(coreSettings, "ppsspp_ignore_bad_memory_access", "ppsspp_ignore_bad_memory_access", "enabled");
             BindFeature(coreSettings, "ppsspp_texture_replacement", "ppsspp_texture_replacement", "disabled");
+            BindFeature(coreSettings, "ppsspp_button_preference", "ppsspp_button_preference", "cross");
+            BindFeature(coreSettings, "ppsspp_mulitsample_level", "ppsspp_mulitsample_level", "Disabled");
         }
 
         private void ConfigureGambatte(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -959,6 +960,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "picodrive_input1", "input1", "3 button pad");
             BindFeature(coreSettings, "picodrive_input2", "input2", "3 button pad");
             BindFeature(coreSettings, "picodrive_smsfm", "picodrive_smsfm", "off");
+            BindFeature(coreSettings, "picodrive_smsmapper", "picodrive_smsmapper", "Auto");
+
+            if (system == "mastersystem")
+                coreSettings["picodrive_smstype"] = "Master System";
+            else if (system == "gamegear")
+                coreSettings["picodrive_smstype"] = "Game Gear";
+            else
+                coreSettings["picodrive_smstype"] = "Auto";
         }
 
         private void ConfigureKronos(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1001,7 +1010,7 @@ namespace emulatorLauncher.libRetro
         }
 
 
-        static List<KeyValuePair<string, string>> operaHacks = new List<KeyValuePair<string, string>>() 
+        static List<KeyValuePair<string, string>> operaHacks = new List<KeyValuePair<string, string>>()
             {
                 new KeyValuePair<string, string>("crashnburn", "timing_hack1"),
                 new KeyValuePair<string, string>("dinopark tycoon", "timing_hack3"),
@@ -1053,7 +1062,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "stella_phosphor", "stella_phosphor", "auto");
 
             // Lightgun
-            SetupLightGuns(retroarchConfig, "4");            
+            SetupLightGuns(retroarchConfig, "4");
         }
 
         private void ConfigureStella2014(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1204,7 +1213,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "nestopia_button_shift", "nestopia_button_shift", "disabled");
 
             coreSettings["nestopia_zapper_device"] = "lightgun";
-            SetupLightGuns(retroarchConfig, "262", 2);            
+            SetupLightGuns(retroarchConfig, "262", 2);
         }
 
         private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1525,17 +1534,43 @@ namespace emulatorLauncher.libRetro
             }
         }
 
-        private void ConfigurebsnesHDBeta(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void Configurebsnes(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "bsnes_hd_beta")
+            if (core != "bsnes_hd_beta" && core != "bsnes")
                 return;
 
             BindFeature(coreSettings, "bsnes_mode7_scale", "bsnes_mode7_scale", "2x");
-            BindFeature(coreSettings, "bsnes_mode7_perspective", "bsnes_mode7_perspective", "auto (wide)");
-            BindFeature(coreSettings, "bsnes_mode7_supersample", "bsnes_mode7_supersample", "none");
+            BindFeature(coreSettings, "bsnes_mode7_perspective", "bsnes_mode7_perspective", core == "bsnes" ? "ON" : "auto (wide)");
+            BindFeature(coreSettings, "bsnes_mode7_supersample", "bsnes_mode7_supersample", core == "bsnes" ? "OFF" : "none");
+            BindFeature(coreSettings, "bsnes_ppu_show_overscan", "bsnes_ppu_show_overscan", "OFF");
+            BindFeature(coreSettings, "bsnes_blur_emulation", "bsnes_blur_emulation", "OFF");
+            BindFeature(coreSettings, "bsnes_hotfixes", "bsnes_hotfixes", "OFF");
+            BindFeature(coreSettings, "bsnes_cpu_fastmath", "bsnes_cpu_fastmath", "OFF");
+            BindFeature(coreSettings, "bsnes_run_ahead_frames", "bsnes_run_ahead_frames", "OFF");
+
+            // bsnes only features
+            if (core == "bsnes")
+            {
+                BindFeature(coreSettings, "bsnes_aspect_ratio", "bsnes_aspect_ratio", "Auto");
+            }
+
+            // Gun configuration only for bsnes as bsnes_hd_beta does not have lightgun
+            if (SystemConfig.getOptBoolean("use_guns") && core == "bsnes")
+            {
+                string gunId = "260";
+
+                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                if (gunInfo != null && gunInfo.GunType == "justifier")
+                    gunId = "516";
+
+                coreSettings["bsnes_touchscreen_lightgun_superscope_reverse"] = (gunInfo != null && gunInfo.ReversedButtons ? "ON" : "OFF");
+                coreSettings["bsnes_touchscreen_lightgun"] = "ON";
+
+                SetupLightGuns(retroarchConfig, gunId, 2);
+            }
         }
 
-            private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "genesis_plus_gx")
                 return;
@@ -1633,7 +1668,7 @@ namespace emulatorLauncher.libRetro
                         gunId = "772";
 
                     SetupLightGuns(retroarchConfig, gunId, 2);
-                }                
+                }
             }
         }
 
@@ -1721,8 +1756,8 @@ namespace emulatorLauncher.libRetro
             if (core != "potator")
                 return;
 
-            BindFeature(coreSettings, "potator_lcd_ghosting", "lcd_ghosting", "0");
-            BindFeature(coreSettings, "potator_palette", "palette", "default");
+            BindFeature(coreSettings, "potator_lcd_ghosting", "potator_ghosting", "0");
+            BindFeature(coreSettings, "potator_palette", "potator_palette", "default");
         }
 
         private void ConfigureMupen64(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1751,7 +1786,7 @@ namespace emulatorLauncher.libRetro
 
                     }
 
-                }            
+                }
 
             }
 
@@ -1925,25 +1960,58 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "dosbox_pure_bind_unused", "dosbox_pure_bind_unused", "false");
         }
 
+        private void ConfigureProSystem(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "prosystem")
+                return;
+
+            BindFeature(coreSettings, "prosystem_color_depth", "prosystem_color_depth", "16bit");
+            BindFeature(coreSettings, "prosystem_low_pass_filter", "prosystem_low_pass_filter", "disabled");
+            BindFeature(coreSettings, "prosystem_gamepad_dual_stick_hack", "dual_stick_hack", "disabled");
+        }
+
         private void ConfigurePuae(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "puae")
                 return;
 
             coreSettings["puae_video_options_display"] = "enabled";
+            coreSettings["puae_audio_options_display"] = "enabled";
             coreSettings["puae_use_whdload"] = "hdfs";
 
+            // System options
             BindFeature(coreSettings, "puae_model", "model", "auto");
             BindFeature(coreSettings, "puae_cpu_compatibility", "cpu_compatibility", "normal");
             BindFeature(coreSettings, "puae_cpu_multiplier", "cpu_multiplier", "default");
-            BindFeature(coreSettings, "puae_video_resolution", "video_resolution", "auto");
-            BindFeature(coreSettings, "puae_zoom_mode", "zoom_mode", "auto");
-            BindFeature(coreSettings, "puae_video_standard", "video_standard", "PAL auto");
+            BindFeature(coreSettings, "puae_kickstart", "puae_kickstart", "auto");
             BindFeature(coreSettings, "puae_use_whdload_prefs", "whdload", "config");
-            BindFeature(coreSettings, "puae_retropad_options", "pad_options", "jump");
             BindFeature(coreSettings, "puae_floppy_speed", "floppy_speed", "100");
             BindFeature(coreSettings, "puae_floppy_sound", "floppy_sound", "75");
-            BindFeature(coreSettings, "puae_kickstart", "puae_kickstart", "auto");
+            BindFeature(coreSettings, "puae_cd_speed", "puae_cd_speed", "100");
+            BindFeature(coreSettings, "puae_cd_startup_delayed_insert", "puae_cd_delay", "disabled");
+
+            // Video options
+            BindFeature(coreSettings, "puae_video_resolution", "video_resolution", "auto");
+            BindFeature(coreSettings, "puae_video_standard", "video_standard", "PAL auto");
+            BindFeature(coreSettings, "puae_crop", "puae_crop", "auto");
+            BindFeature(coreSettings, "puae_crop_mode", "puae_crop_mode", "both");
+            BindFeature(coreSettings, "puae_gfx_colors", "puae_gfx_colors", "16bit");
+
+            // Control options
+            if (system == "amigacd32")
+                BindFeature(coreSettings, "puae_cd32pad_options", "pad32_options", "disabled");
+            else
+                BindFeature(coreSettings, "puae_retropad_options", "pad_options", "disabled");
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "puae_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "puae_controller2", "1");
+            BindFeature(coreSettings, "puae_analogmouse", "puae_analogmouse", "both");
+            BindFeature(coreSettings, "puae_mouse_speed", "puae_mouse_speed", "100");
+            BindFeature(coreSettings, "puae_physical_keyboard_pass_through", "puae_keyboard_pass_through", "disabled");
+
+            /*Deprecated options
+            BindFeature(coreSettings, "puae_zoom_mode", "zoom_mode", "auto");
+            */
         }
 
         private void ConfigureFlycast(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2108,7 +2176,7 @@ namespace emulatorLauncher.libRetro
 
             // Common Vice features
             BindFeature(coreSettings, "vice_warp_boost", "warp_boost", "enabled");
-            BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto"); 
+            BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto");
             BindFeature(coreSettings, "vice_crop", "vice_crop", "disabled");
             BindFeature(coreSettings, "vice_crop_mode", "vice_crop_mode", "both");
             BindFeature(coreSettings, "vice_gfx_colors", "vice_gfx_colors", "16bit");
