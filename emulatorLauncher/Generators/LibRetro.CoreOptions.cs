@@ -308,10 +308,8 @@ namespace emulatorLauncher.libRetro
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
-            ConfigurePotator(retroarchConfig, coreSettings, system, core);
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
             ConfigureKronos(retroarchConfig, coreSettings, system, core);
-            ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSaturn(retroarchConfig, coreSettings, system, core);
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureFbneo(retroarchConfig, coreSettings, system, core);
@@ -329,6 +327,8 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
+            ConfigurePotator(retroarchConfig, coreSettings, system, core);
             ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
             ConfigurePrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureProSystem(retroarchConfig, coreSettings, system, core);
@@ -960,6 +960,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "picodrive_input1", "input1", "3 button pad");
             BindFeature(coreSettings, "picodrive_input2", "input2", "3 button pad");
             BindFeature(coreSettings, "picodrive_smsfm", "picodrive_smsfm", "off");
+            BindFeature(coreSettings, "picodrive_smsmapper", "picodrive_smsmapper", "Auto");
+
+            if (system == "mastersystem")
+                coreSettings["picodrive_smstype"] = "Master System";
+            else if (system == "gamegear")
+                coreSettings["picodrive_smstype"] = "Game Gear";
+            else
+                coreSettings["picodrive_smstype"] = "Auto";
         }
 
         private void ConfigureKronos(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
