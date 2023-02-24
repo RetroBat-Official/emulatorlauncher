@@ -316,7 +316,6 @@ namespace emulatorLauncher.libRetro
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureFbneo(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
-            ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
             ConfigureMame(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS1(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS2(retroarchConfig, coreSettings, system, core);
@@ -330,6 +329,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
             ConfigurePrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureProSystem(retroarchConfig, coreSettings, system, core);
             ConfigurePuae(retroarchConfig, coreSettings, system, core);
@@ -773,7 +773,6 @@ namespace emulatorLauncher.libRetro
             coreSettings["ppsspp_frameskiptype"] = "number of frames";
             coreSettings["ppsspp_rendering_mode"] = "buffered";
             coreSettings["ppsspp_locked_cpu_speed"] = "off";
-            coreSettings["ppsspp_button_preference"] = "cross";
 
             if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
                 coreSettings["ppsspp_cheats"] = "disabled";
@@ -821,9 +820,9 @@ namespace emulatorLauncher.libRetro
                 default:
                     coreSettings["ppsspp_block_transfer_gpu"] = "enabled";
                     coreSettings["ppsspp_spline_quality"] = "medium";
-                    coreSettings["ppsspp_software_skinning"] = "disabled";
+                    coreSettings["ppsspp_software_skinning"] = "enabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
-                    coreSettings["ppsspp_vertex_cache"] = "enabled";
+                    coreSettings["ppsspp_vertex_cache"] = "disabled";
                     coreSettings["ppsspp_fast_memory"] = "enabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "disabled";
                     coreSettings["ppsspp_retain_changed_textures"] = "disabled";
@@ -842,6 +841,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "ppsspp_io_timing_method", "ppsspp_io_timing_method", "Fast");
             BindFeature(coreSettings, "ppsspp_ignore_bad_memory_access", "ppsspp_ignore_bad_memory_access", "enabled");
             BindFeature(coreSettings, "ppsspp_texture_replacement", "ppsspp_texture_replacement", "disabled");
+            BindFeature(coreSettings, "ppsspp_button_preference", "ppsspp_button_preference", "cross");
+            BindFeature(coreSettings, "ppsspp_mulitsample_level", "ppsspp_mulitsample_level", "Disabled");
         }
 
         private void ConfigureGambatte(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
