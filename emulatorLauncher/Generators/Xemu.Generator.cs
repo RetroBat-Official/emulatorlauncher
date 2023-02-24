@@ -298,10 +298,10 @@ namespace emulatorLauncher
         private static uint ChecksumCalculate(byte[] data, int offset, int size)
         {
             if (data == null)
-                throw new ArgumentNullException(nameof(data));
+                throw new ArgumentNullException("data");
 
             if (size % sizeof(uint) > 0)
-                throw new ArgumentException("Size must be a multiple of four.", nameof(size));
+                throw new ArgumentException("Size must be a multiple of four.", "size");
 
             if (offset + size > data.Length)
                 throw new ArgumentOutOfRangeException();
