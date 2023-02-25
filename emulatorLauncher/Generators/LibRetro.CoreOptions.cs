@@ -328,6 +328,7 @@ namespace emulatorLauncher.libRetro
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
+            ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(retroarchConfig, coreSettings, system, core);
             ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
             ConfigurePrBoom(retroarchConfig, coreSettings, system, core);
@@ -968,6 +969,19 @@ namespace emulatorLauncher.libRetro
                 coreSettings["picodrive_smstype"] = "Game Gear";
             else
                 coreSettings["picodrive_smstype"] = "Auto";
+        }
+
+        private void ConfigurePokeMini(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "pokemini")
+                return;
+
+            BindFeature(coreSettings, "pokemini_video_scale", "pokemini_video_scale", "4x");
+            BindFeature(coreSettings, "pokemini_palette", "pokemini_palette", "Default");
+            BindFeature(coreSettings, "pokemini_lcdcontrast", "pokemini_lcdcontrast", "64");
+            BindFeature(coreSettings, "pokemini_lcdbright", "pokemini_lcdbright", "0");
+            BindFeature(coreSettings, "pokemini_60hz_mode", "pokemini_60hz_mode", "disabled");
+            BindFeature(coreSettings, "pokemini_lowpass_filter", "pokemini_lowpass_filter", "enabled");
         }
 
         private void ConfigureKronos(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
