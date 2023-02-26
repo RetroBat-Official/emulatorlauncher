@@ -982,6 +982,42 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "pokemini_lcdbright", "pokemini_lcdbright", "0");
             BindFeature(coreSettings, "pokemini_60hz_mode", "pokemini_60hz_mode", "disabled");
             BindFeature(coreSettings, "pokemini_lowpass_filter", "pokemini_lowpass_filter", "enabled");
+
+            // Rumble and screen shaking setting
+            if (Features.IsSupported("pokemini_rumble"))
+            {
+                switch (SystemConfig["pokemini_rumble"])
+                {
+                    case "all_off":
+                        coreSettings["pokemini_rumble_lv"] = "0";
+                        coreSettings["pokemini_screen_shake_lv"] = "0";
+                        break;
+                    case "no_rumble_low":
+                        coreSettings["pokemini_rumble_lv"] = "0";
+                        coreSettings["pokemini_screen_shake_lv"] = "1";
+                        break;
+                    case "no_rumble_high":
+                        coreSettings["pokemini_rumble_lv"] = "0";
+                        coreSettings["pokemini_screen_shake_lv"] = "3";
+                        break;
+                    case "rumble_low":
+                        coreSettings["pokemini_rumble_lv"] = "2";
+                        coreSettings["pokemini_screen_shake_lv"] = "0";
+                        break;
+                    case "rumble_medium":
+                        coreSettings["pokemini_rumble_lv"] = "6";
+                        coreSettings["pokemini_screen_shake_lv"] = "0";
+                        break;
+                    case "rumble_high":
+                        coreSettings["pokemini_rumble_lv"] = "10";
+                        coreSettings["pokemini_screen_shake_lv"] = "0";
+                        break;
+                    default:
+                        coreSettings["pokemini_rumble_lv"] = "10";
+                        coreSettings["pokemini_screen_shake_lv"] = "3";
+                        break;
+                }
+            }
         }
 
         private void ConfigureKronos(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
