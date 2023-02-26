@@ -1980,6 +1980,7 @@ namespace emulatorLauncher.libRetro
             coreSettings["dosbox_pure_auto_mapping"] = "true";
             coreSettings["dosbox_pure_bind_unused"] = "true";
             coreSettings["dosbox_pure_savestate"] = "on";
+            retroarchConfig["video_font_enable"] = "false"; // Disable OSD for dosbox_pure
 
             BindFeature(coreSettings, "dosbox_pure_aspect_correction", "ratio", "true");
             BindFeature(coreSettings, "dosbox_pure_cga", "cga", "early_auto");
