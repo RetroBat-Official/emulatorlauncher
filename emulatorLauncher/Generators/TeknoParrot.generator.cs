@@ -230,6 +230,14 @@ namespace emulatorLauncher
                 resolutionHeight.FieldValue = resY.ToString();
             }
 
+            // Option to disable RequiresAdmin tag
+            var requiresadmin = profile.RequiresAdmin;
+            
+            if (SystemConfig.isOptSet("requires_admin") && SystemConfig.getOptBoolean("requires_admin"))
+                userProfile.RequiresAdmin = false;
+            else
+                userProfile.RequiresAdmin = requiresadmin;
+
             ConfigureControllers(userProfile);
 
             JoystickHelper.SerializeGameProfile(userProfile, userProfilePath);

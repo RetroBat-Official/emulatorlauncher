@@ -315,6 +315,8 @@ namespace emulatorLauncher.libRetro
             ConfigureFbneo(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
             ConfigureMame(retroarchConfig, coreSettings, system, core);
+            ConfigureFbalpha(retroarchConfig, coreSettings, system, core);
+            ConfigureFbalpha2012(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS1(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS2(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
@@ -714,6 +716,28 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "pce_adpcmvolume", "pcecdvolume", "100");
             BindFeature(coreSettings, "pce_cddavolume", "pcecdvolume", "100");
             BindFeature(coreSettings, "pce_cdpsgvolume", "pcecdvolume", "100");
+        }
+
+        private void ConfigureFbalpha(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fbalpha")
+                return;
+
+            BindFeature(coreSettings, "fba-vertical-mode", "fba_vertical_mode", "disabled");
+
+            if (SystemConfig["fba_vertical_mode"] == "enabled")
+                SystemConfig["bezel"] = "none";
+        }
+
+        private void ConfigureFbalpha2012(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fbalpha2012")
+                return;
+
+            BindFeature(coreSettings, "fbneo-vertical-mode", "fba2012_vertical_mode", "disabled");
+
+            if (SystemConfig["fba2012_vertical_mode"] == "enabled")
+                SystemConfig["bezel"] = "none";
         }
 
         private void ConfigureFbalphaCPS3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1980,6 +2004,7 @@ namespace emulatorLauncher.libRetro
             coreSettings["dosbox_pure_auto_mapping"] = "true";
             coreSettings["dosbox_pure_bind_unused"] = "true";
             coreSettings["dosbox_pure_savestate"] = "on";
+            retroarchConfig["video_font_enable"] = "false"; // Disable OSD for dosbox_pure
 
             BindFeature(coreSettings, "dosbox_pure_aspect_correction", "ratio", "true");
             BindFeature(coreSettings, "dosbox_pure_cga", "cga", "early_auto");
@@ -2075,6 +2100,10 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "reicast_widescreen_hack", "widescreen_hack", "disabled");
             BindFeature(coreSettings, "reicast_widescreen_cheats", "widescreen_hack", "disabled");
+            BindFeature(coreSettings, "reicast_screen_rotation", "reicast_screen_rotation", "horizontal");
+
+            if (SystemConfig["reicast_screen_rotation"] == "vertical")
+                SystemConfig["bezel"] = "none";
 
             if (SystemConfig["widescreen_hack"] == "enabled")
             {
