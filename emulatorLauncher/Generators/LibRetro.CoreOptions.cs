@@ -322,6 +322,7 @@ namespace emulatorLauncher.libRetro
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             Configure4Do(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
+            Configurea5200(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
@@ -2367,6 +2368,19 @@ namespace emulatorLauncher.libRetro
 
             // Player 2 controller
             BindFeature(retroarchConfig, "input_libretro_device_p2", "zx81_controller2", "259");
+        }
+
+        private void Configurea5200(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "a5200")
+                return;
+
+            BindFeature(coreSettings, "a5200_low_pass_filter", "a5200_low_pass_filter", "disabled");
+            BindFeature(coreSettings, "a5200_mix_frames", "a5200_mix_frames", "disabled");
+
+            // Controls
+            BindFeature(coreSettings, "a5200_input_hack", "a5200_input_hack", "disabled");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "a5200_controller1", "1");
         }
 
         private void ConfigureCraft(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
