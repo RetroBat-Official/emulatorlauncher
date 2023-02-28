@@ -297,7 +297,6 @@ namespace emulatorLauncher.libRetro
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
-            ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
@@ -323,11 +322,13 @@ namespace emulatorLauncher.libRetro
             Configure4Do(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
             Configurea5200(retroarchConfig, coreSettings, system, core);
+            ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
@@ -2461,6 +2462,25 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+        }
+
+        private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mgba")
+                return;
+
+            BindFeature(coreSettings, "mgba_gb_model", "mgba_gb_model", "Autodetect");
+            BindFeature(coreSettings, "mgba_skip_bios", "mgba_skip_bios", "OFF");
+            BindFeature(coreSettings, "mgba_audio_low_pass_filter", "mgba_audio_low_pass_filter", "disabled");
+            BindFeature(coreSettings, "mgba_force_gbp", "mgba_force_gbp", "OFF");
+            BindFeature(coreSettings, "mgba_gb_colors", "mgba_gb_colors", "Grayscale");
+            BindFeature(coreSettings, "mgba_interframe_blending", "mgba_interframe_blending", "OFF");
+
+            if (system == "gba" || system == "gba2players" || system == "gbc" || system == "gbc2players")
+                BindFeature(coreSettings, "mgba_color_correction", "mgba_color_correction", "OFF");
+
+            if (system == "sgb")
+                BindFeature(coreSettings, "mgba_sgb_borders", "mgba_sgb_borders", "ON");
         }
 
         private void ConfigureMrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
