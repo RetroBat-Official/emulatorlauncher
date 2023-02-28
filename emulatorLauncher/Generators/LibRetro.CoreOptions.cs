@@ -289,9 +289,7 @@ namespace emulatorLauncher.libRetro
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
-            ConfigureDolphin(retroarchConfig, coreSettings, system, core);
-            ConfigureOpera(retroarchConfig, coreSettings, system, core);
-            Configure4Do(retroarchConfig, coreSettings, system, core);
+            ConfigureDolphin(retroarchConfig, coreSettings, system, core);            
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureFCEumm(retroarchConfig, coreSettings, system, core);
@@ -322,6 +320,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
+            Configure4Do(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
@@ -329,6 +328,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(retroarchConfig, coreSettings, system, core);
@@ -1120,7 +1120,8 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "opera_high_resolution", "high_resolution", "enabled");
             BindFeature(coreSettings, "opera_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
-            BindFeature(coreSettings, "opera_active_devices", "active_devices", "1");
+            BindFeature(coreSettings, "opera_bios", "opera_bios", "Panasonic FZ-1 (U)");
+            BindFeature(coreSettings, "opera_region", "opera_region", "ntsc");
 
             // Game hacks
             string rom = SystemConfig["rom"].AsIndexedRomName();
@@ -1137,6 +1138,13 @@ namespace emulatorLauncher.libRetro
                 else
                     coreSettings["opera_nvram_storage"] = "per game";
             }
+
+            // Controls
+            BindFeature(coreSettings, "opera_active_devices", "active_devices", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "opera_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "opera_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "opera_controller3", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "opera_controller4", "1");
 
             // Lightgun
             SetupLightGuns(retroarchConfig, "260");
@@ -1174,7 +1182,8 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "4do_high_resolution", "high_resolution", "enabled");
             BindFeature(coreSettings, "4do_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
-            BindFeature(coreSettings, "4do_active_devices", "active_devices", "1");
+            BindFeature(coreSettings, "4do_bios", "4do_bios", "Panasonic FZ-1");
+            BindFeature(coreSettings, "4do_region", "4do_region", "ntsc");
 
             // Game hacks
             string rom = SystemConfig["rom"].AsIndexedRomName();
@@ -1191,6 +1200,13 @@ namespace emulatorLauncher.libRetro
                 else
                     coreSettings["4do_nvram_storage"] = "per game";
             }
+
+            // Controls
+            BindFeature(coreSettings, "4do_active_devices", "active_devices", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "4do_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "4do_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "4do_controller3", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "4do_controller4", "1");
 
             // Lightgun
             SetupLightGuns(retroarchConfig, "260");
