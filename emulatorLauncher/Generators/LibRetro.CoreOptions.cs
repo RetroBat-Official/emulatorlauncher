@@ -1433,6 +1433,10 @@ namespace emulatorLauncher.libRetro
             bool atari800 = (system == "atari800");
             bool atariXE = !atari800 && system.IndexOf("xe", StringComparison.InvariantCultureIgnoreCase) >= 0;
 
+            BindFeature(coreSettings, "atari800_artifacting", "atari800_artifacting", "disabled");
+            BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
+            BindFeature(coreSettings, "atari800_resolution", "atari800_resolution", "336x240");
+
             if (atari800)
             {
                 var romExt = Path.GetExtension(Program.SystemConfig["rom"]).ToLower();
@@ -1442,9 +1446,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["atari800_opt1"] = "disabled"; // detect card type
 
                 BindFeature(coreSettings, "atari800_system", "atari800_system", "800XL (64K)", true);
-                BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
                 BindFeature(coreSettings, "atari800_sioaccel", "atari800_sioaccel", "enabled");
-                BindFeature(coreSettings, "atari800_artifacting", "atari800_artifacting", "disabled");
             }
             else if (atariXE)
             {
@@ -1453,16 +1455,21 @@ namespace emulatorLauncher.libRetro
                 coreSettings["atari800_opt1"] = "enabled";
                 coreSettings["atari800_cassboot"] = "disabled";
 
-                BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
                 BindFeature(coreSettings, "atari800_sioaccel", "atari800_sioaccel", "enabled");
-                BindFeature(coreSettings, "atari800_artifacting", "atari800_artifacting", "disabled");
+                
             }
             else // Atari 5200
             {
                 coreSettings["atari800_system"] = "5200";
                 coreSettings["atari800_opt1"] = "enabled"; // detect card type
                 coreSettings["atari800_cassboot"] = "disabled";
+
+                BindFeature(coreSettings, "atari800_opt2", "atari800_opt2", "disabled");    // Robotron joystick hack
             }
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "a800_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "a800_controller2", "1");
 
             if (string.IsNullOrEmpty(AppConfig["bios"]))
                 return;
