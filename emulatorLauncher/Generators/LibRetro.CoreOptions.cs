@@ -72,7 +72,7 @@ namespace emulatorLauncher.libRetro
                 { "fbalpha2012_cps3", "FB Alpha 2012 CPS-3" },
                 { "fbalpha2012", "FB Alpha 2012" },
                 { "fbalpha2012_neogeo", "FB Alpha 2012 Neo Geo" },
-                { "fbalpha", "FinalBurn Alpha" },
+                { "fbalpha", "FB Alpha" },
                 { "fbneo", "FinalBurn Neo" },
                 { "fceumm", "FCEUmm" },
                 { "ffmpeg", "FFmpeg" },
@@ -727,6 +727,12 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig["fba_vertical_mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
+
+            // Player 1 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "fba_controller1", "1");
+
+            // Player 2 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "fba_controller2", "1");
         }
 
         private void ConfigureFbalpha2012(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -738,6 +744,12 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig["fba2012_vertical_mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
+
+            // Player 1 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "fba2012_controller1", "1");
+
+            // Player 2 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "fba2012_controller2", "1");
         }
 
         private void ConfigureFbalphaCPS3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -905,6 +917,12 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig["fbneo-vertical-mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
+
+            // Player 1 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "fbneo_controller1", "1");
+
+            // Player 2 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "fbneo_controller2", "1");
 
             SetupLightGuns(retroarchConfig, "4");
         }
