@@ -290,7 +290,6 @@ namespace emulatorLauncher.libRetro
 
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureDolphin(retroarchConfig, coreSettings, system, core);            
-            ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureFCEumm(retroarchConfig, coreSettings, system, core);
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
@@ -322,6 +321,7 @@ namespace emulatorLauncher.libRetro
             Configure81(retroarchConfig, coreSettings, system, core);
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
+            ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
@@ -1245,13 +1245,21 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["bluemsx_msxtype"] = "Auto";
 
-            var sysDevices = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
+            BindFeature(coreSettings, "bluemsx_vdp_synctype", "bluemsx_vdp_synctype", "Auto");
+            BindFeature(coreSettings, "bluemsx_nospritelimits", "bluemsx_nospritelimits", "OFF");
+
+            // Controls (257 does not exist for BlueMSX core, it's either Retropad "1" or RetroKeyboard "3"
+            /*var sysDevices = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
 
             if (sysDevices.ContainsKey(system))
                 retroarchConfig["input_libretro_device_p1"] = sysDevices[system];
 
             if (sysDevices.ContainsKey(system))
-                retroarchConfig["input_libretro_device_p2"] = sysDevices[system];
+                retroarchConfig["input_libretro_device_p2"] = sysDevices[system];*/
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "bluemsx_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "bluemsx_controller2", "1");
         }
 
         private void ConfigureFCEumm(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
