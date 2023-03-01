@@ -38,7 +38,7 @@ namespace emulatorLauncher.libRetro
                 { "bsnes_mercury_balanced", "bsnes-mercury Balanced" },
                 { "bsnes_mercury_performance", "bsnes-mercury Performance" },
                 { "cannonball", "Cannonball" },
-                { "cap32", "Caprice32" },
+                { "cap32", "cap32" },
                 { "cdi2015", "Philips CDi 2015" },
                 { "chailove", "ChaiLove" },
                 { "citra2018", "Citra 2018" },
@@ -300,7 +300,6 @@ namespace emulatorLauncher.libRetro
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
-            ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
@@ -323,6 +322,7 @@ namespace emulatorLauncher.libRetro
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
+            ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
@@ -1491,6 +1491,8 @@ namespace emulatorLauncher.libRetro
             if (core != "cap32")
                 return;
 
+            coreSettings["cap32_autorun"] = "autorun";
+
             // Virtual Keyboard by default (select+start) change to (start+Y)
             coreSettings["cap32_combokey"] = "y";
 
@@ -1498,9 +1500,24 @@ namespace emulatorLauncher.libRetro
             if (system == "gx4000")
                 coreSettings["cap32_model"] = "6128+ (experimental)";
             else
-                BindFeature(coreSettings, "cap32_model", "cap32_model", "6128+", true);
+                BindFeature(coreSettings, "cap32_model", "cap32_model", "6128");
 
+            BindFeature(coreSettings, "cap32_lang_layout", "cap32_lang_layout", "english");
             BindFeature(coreSettings, "cap32_ram", "cap32_ram", "128");
+            BindFeature(coreSettings, "cap32_floppy_sound", "cap32_floppy_sound", "enabled");
+            BindFeature(coreSettings, "cap32_gfx_colors", "cap32_gfx_colors", "16bit");
+            BindFeature(coreSettings, "cap32_scr_tube", "cap32_scr_tube", "color");
+            BindFeature(coreSettings, "cap32_scr_intensity", "cap32_scr_intensity", "8");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "cap32_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "cap32_controller2", "1");
+            
+            BindFeature(coreSettings, "cap32_lightgun_input", "cap32_lightgun_input", "disabled");
+            BindFeature(coreSettings, "cap32_lightgun_show", "cap32_lightgun_show", "disabled");
+
+            SetupLightGuns(retroarchConfig, "260", 1);
+
         }
 
         private void ConfigureAtari800(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
