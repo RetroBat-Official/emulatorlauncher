@@ -135,6 +135,25 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
             }
 
+            // Records path
+            string recordconfigpath = Path.Combine(AppConfig.GetFullPath("records"), "config");
+            if (!string.IsNullOrEmpty(recordconfigpath))
+            {
+                if (Directory.Exists(recordconfigpath))
+                    retroarchConfig["recording_config_directory"] = recordconfigpath;
+                else if (retroarchConfig["recording_config_directory"] != @":\records\config" && !Directory.Exists(retroarchConfig["recording_config_directory"]))
+                    retroarchConfig["recording_config_directory"] = @":\records\config";
+            }
+
+            string recordoutputpath = Path.Combine(AppConfig.GetFullPath("records"), "output");
+            if (!string.IsNullOrEmpty(recordoutputpath))
+            {
+                if (Directory.Exists(recordoutputpath))
+                    retroarchConfig["recording_output_directory"] = recordoutputpath;
+                else if (retroarchConfig["recording_output_directory"] != @":\records\output" && !Directory.Exists(retroarchConfig["recording_output_directory"]))
+                    retroarchConfig["recording_output_directory"] = @":\records\output";
+            }
+
             try 
             {
                 string cacheDirectory = Path.Combine(Path.GetTempPath(), "retroarch");
