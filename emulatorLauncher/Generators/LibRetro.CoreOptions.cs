@@ -118,7 +118,7 @@ namespace emulatorLauncher.libRetro
                 { "mame2015", "MAME 2015 (0.160)" },
                 { "mame2016", "MAME 2016 (0.174)" },
                 { "mamearcade", "MAME (Git)" },
-                { "mame", "MAME (Git)" },
+                { "mame", "MAME" },
                 { "mednafen_gba", "Beetle GBA" },
                 { "mednafen_lynx", "Beetle Lynx" },
                 { "mednafen_ngp", "Beetle NeoPop" },
