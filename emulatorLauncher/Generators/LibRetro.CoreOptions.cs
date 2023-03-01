@@ -325,6 +325,7 @@ namespace emulatorLauncher.libRetro
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
+            ConfigureCrocoDS(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
@@ -1528,6 +1529,16 @@ namespace emulatorLauncher.libRetro
 
             SetupLightGuns(retroarchConfig, "260", 1);
 
+        }
+
+        private void ConfigureCrocoDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "crocods")
+                return;
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "crocods_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "crocods_controller2", "1");
         }
 
         private void ConfigureAtari800(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
