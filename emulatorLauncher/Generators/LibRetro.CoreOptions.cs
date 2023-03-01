@@ -1021,7 +1021,67 @@ namespace emulatorLauncher.libRetro
             if (core != "parallel_n64")
                 return;
 
+            BindFeature(coreSettings, "parallel-n64-screensize", "parallel_resolution", "640x480");
+            BindFeature(coreSettings, "parallel-n64-aspectratiohint", "parallel_aspect", "normal");
+            BindFeature(coreSettings, "parallel-n64-framerate", "parallel_framerate", "original");
             BindFeature(coreSettings, "parallel-n64-cpucore", "parallel_cpucore", "dynamic_recompiler");
+            BindFeature(coreSettings, "parallel-n64-gfxplugin-accuracy", "parallel_gfx_accuracy", "veryhigh");
+            BindFeature(coreSettings, "parallel-n64-gfxplugin", "parallel_gfx_plugin", "auto");
+            coreSettings["parallel-n64-rspplugin"] = "auto";
+
+            // Set RSP plugin: HLE for Glide, LLE for Parallel and cxd4 for angrylion
+            if (SystemConfig.isOptSet("parallel_gfx_plugin") && SystemConfig["parallel_gfx_plugin"] == "parallel")
+                coreSettings["parallel-n64-rspplugin"] = "parallel";
+            else if (SystemConfig.isOptSet("parallel_gfx_plugin") && SystemConfig["parallel_gfx_plugin"] == "angrylion")
+                coreSettings["parallel-n64-rspplugin"] = "cxd4";
+            else if (SystemConfig.isOptSet("parallel_gfx_plugin"))
+                coreSettings["parallel-n64-rspplugin"] = "hle";
+            else
+                coreSettings["parallel-n64-rspplugin"] = "auto";
+
+            // Parallel options
+            BindFeature(coreSettings, "parallel-n64-parallel-rdp-downscaling", "parallel_downsampling", "disabled");
+            BindFeature(coreSettings, "parallel-n64-parallel-rdp-upscaling", "parallel_upscaling", "1x");
+            BindFeature(coreSettings, "parallel-n64-parallel-rdp-gamma-dither", "parallel_gamma_dither", "enabled");
+            BindFeature(coreSettings, "parallel-n64-parallel-rdp-divot-filter", "parallel_divot_filter", "enabled");
+            BindFeature(coreSettings, "parallel-n64-parallel-rdp-vi-aa", "parallel_vi_aa", "enabled");
+            BindFeature(coreSettings, "parallel-n64-parallel-rdp-vi-bilinear", "parallel_vi_bilinear", "enabled");
+            BindFeature(coreSettings, "parallel-n64-parallel-rdp-dither-filter", "parallel_rdp_dither", "enabled");
+
+            if (SystemConfig["parallel_gfx_plugin"] != "parallel")
+            {
+                coreSettings["parallel-n64-parallel-rdp-downscaling"] = "disabled";
+                coreSettings["parallel-n64-parallel-rdp-upscaling"] = "1x";
+                coreSettings["parallel-n64-parallel-rdp-gamma-dither"] = "enabled";
+                coreSettings["parallel-n64-parallel-rdp-divot-filter"] = "enabled";
+                coreSettings["parallel-n64-parallel-rdp-vi-aa"] = "enabled";
+                coreSettings["parallel-n64-parallel-rdp-vi-bilinear"] = "enabled";
+                coreSettings["parallel-n64-parallel-rdp-dither-filter"] = "enabled";
+            }
+
+            // Glide64 options
+            BindFeature(coreSettings, "parallel-n64-filtering", "parallel_filtering", "automatic");
+
+            if (SystemConfig["parallel_gfx_plugin"] != "glide64")
+            {
+                coreSettings["parallel-n64-filtering"] = "automatic";
+            }
+
+            // Angrylion options
+            BindFeature(coreSettings, "parallel-n64-dithering", "parallel_dithering", "enabled");
+
+            if (SystemConfig["parallel_gfx_plugin"] != "angrylion")
+            {
+                coreSettings["parallel-n64-dithering"] = "enabled";
+            }
+
+            // Controls
+            BindFeature(coreSettings, "parallel-n64-astick-deadzone", "parallel_stick_deadzone", "15");
+            BindFeature(coreSettings, "parallel-n64-astick-sensitivity", "parallel_stick_sensitivity", "100");
+            BindFeature(coreSettings, "parallel-n64-pak1", "parallel_pak1", "none");
+            BindFeature(coreSettings, "parallel-n64-pak2", "parallel_pak2", "none");
+            BindFeature(coreSettings, "parallel-n64-pak3", "parallel_pak3", "none");
+            BindFeature(coreSettings, "parallel-n64-pak4", "parallel_pak4", "none");
         }
 
         private void ConfigurePokeMini(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
