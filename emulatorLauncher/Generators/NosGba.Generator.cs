@@ -47,7 +47,7 @@ namespace emulatorLauncher
             {
                 // Link cable setup for gba2players
                 if (system == "gba2players")
-                    ini.WriteValue("", "Link Cable Type", "= -Normal (Two Players)");
+                    ini.WriteValue("", "Link Cable Type", "= -Automatic");
                 else
                     ini.WriteValue("", "Link Cable Type", "= None");
 
