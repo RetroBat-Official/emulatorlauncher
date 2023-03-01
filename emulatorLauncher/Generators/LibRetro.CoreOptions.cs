@@ -1040,7 +1040,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["parallel-n64-rspplugin"] = "auto";
 
             // Parallel options
-            BindFeature(coreSettings, "parallel-n64-parallel-rdp-downscaling", "parallel_downsampling", "disabled");
+            BindFeature(coreSettings, "parallel-n64-parallel-rdp-downscaling", "parallel_downsampling", "disable");
             BindFeature(coreSettings, "parallel-n64-parallel-rdp-upscaling", "parallel_upscaling", "1x");
             BindFeature(coreSettings, "parallel-n64-parallel-rdp-gamma-dither", "parallel_gamma_dither", "enabled");
             BindFeature(coreSettings, "parallel-n64-parallel-rdp-divot-filter", "parallel_divot_filter", "enabled");
@@ -1050,7 +1050,7 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig["parallel_gfx_plugin"] != "parallel")
             {
-                coreSettings["parallel-n64-parallel-rdp-downscaling"] = "disabled";
+                coreSettings["parallel-n64-parallel-rdp-downscaling"] = "disable";
                 coreSettings["parallel-n64-parallel-rdp-upscaling"] = "1x";
                 coreSettings["parallel-n64-parallel-rdp-gamma-dither"] = "enabled";
                 coreSettings["parallel-n64-parallel-rdp-divot-filter"] = "enabled";
