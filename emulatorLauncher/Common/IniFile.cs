@@ -14,7 +14,8 @@ namespace emulatorLauncher
         UseSpaces = 1,
         KeepEmptyValues = 2,
         AllowDuplicateValues = 4,
-        KeepEmptyLines = 8
+        KeepEmptyLines = 8,
+        UseSpaceLeft = 16,  // nosgba inifile uses space only on the left of the =
     }
 
     public class IniFile : IDisposable
@@ -252,7 +253,7 @@ namespace emulatorLauncher
 
                     sb.Append(entry.Name);
 
-                    if (_options.HasFlag(IniOptions.UseSpaces))
+                    if (_options.HasFlag(IniOptions.UseSpaces) || _options.HasFlag(IniOptions.UseSpaceLeft))
                         sb.Append(" ");
 
                     sb.Append("=");

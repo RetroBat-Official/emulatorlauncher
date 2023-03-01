@@ -301,7 +301,6 @@ namespace emulatorLauncher.libRetro
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
-            ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
@@ -331,6 +330,8 @@ namespace emulatorLauncher.libRetro
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
+            ConfigureParallelN64(retroarchConfig, coreSettings, system, core);
+            ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(retroarchConfig, coreSettings, system, core);
@@ -1013,6 +1014,14 @@ namespace emulatorLauncher.libRetro
                 coreSettings["picodrive_smstype"] = "Game Gear";
             else
                 coreSettings["picodrive_smstype"] = "Auto";
+        }
+
+        private void ConfigureParallelN64(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "parallel_n64")
+                return;
+
+            BindFeature(coreSettings, "parallel-n64-cpucore", "parallel_cpucore", "dynamic_recompiler");
         }
 
         private void ConfigurePokeMini(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2221,6 +2230,30 @@ namespace emulatorLauncher.libRetro
                         break;
                 }
             }
+
+            BindFeature(coreSettings, "pcsx_rearmed_display_internal_fps", "display_internal_fps", "disabled");
+            BindFeature(coreSettings, "pcsx_rearmed_dithering", "pcsx_rearmed_dithering", "enabled");
+            BindFeature(coreSettings, "pcsx_rearmed_psxclock", "pcsx_rearmed_psxclock", "57");
+            BindFeature(coreSettings, "pcsx_rearmed_region", "pcsx_rearmed_region", "auto");
+            BindFeature(coreSettings, "pcsx_rearmed_show_bios_bootlogo", "pcsx_rearmed_show_bios_bootlogo", "disabled");
+            BindFeature(coreSettings, "pcsx_rearmed_spu_interpolation", "pcsx_rearmed_spu_interpolation", "simple");
+            BindFeature(coreSettings, "pcsx_rearmed_icache_emulation", "pcsx_rearmed_icache_emulation", "disabled");
+
+            // Controls
+            BindFeature(coreSettings, "pcsx_rearmed_vibration", "pcsx_rearmed_vibration", "disabled");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "psx_controller1", "259");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "psx_controller2", "259");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "psx_controller3", "259");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "psx_controller4", "259");
+
+            if (Controllers.Count > 5)
+                coreSettings["pcsx_rearmed_multitap"] = "both";
+            else if (Controllers.Count > 2)
+                coreSettings["pcsx_rearmed_multitap"] = "port 1 only";
+            else
+                coreSettings["pcsx_rearmed_multitap"] = "disabled";
+
+            SetupLightGuns(retroarchConfig, "260");
         }
 
         private void ConfigureMednafenPsxHW(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
