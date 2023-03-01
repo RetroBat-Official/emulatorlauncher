@@ -72,7 +72,7 @@ namespace emulatorLauncher.libRetro
                 { "fbalpha2012_cps3", "FB Alpha 2012 CPS-3" },
                 { "fbalpha2012", "FB Alpha 2012" },
                 { "fbalpha2012_neogeo", "FB Alpha 2012 Neo Geo" },
-                { "fbalpha", "FinalBurn Alpha" },
+                { "fbalpha", "FB Alpha" },
                 { "fbneo", "FinalBurn Neo" },
                 { "fceumm", "FCEUmm" },
                 { "ffmpeg", "FFmpeg" },
@@ -289,9 +289,7 @@ namespace emulatorLauncher.libRetro
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
-            ConfigureDolphin(retroarchConfig, coreSettings, system, core);
-            ConfigureOpera(retroarchConfig, coreSettings, system, core);
-            Configure4Do(retroarchConfig, coreSettings, system, core);
+            ConfigureDolphin(retroarchConfig, coreSettings, system, core);            
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureFCEumm(retroarchConfig, coreSettings, system, core);
@@ -299,7 +297,6 @@ namespace emulatorLauncher.libRetro
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
-            ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
@@ -322,13 +319,18 @@ namespace emulatorLauncher.libRetro
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
+            Configure4Do(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
+            Configurea5200(retroarchConfig, coreSettings, system, core);
+            ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(retroarchConfig, coreSettings, system, core);
@@ -727,6 +729,12 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig["fba_vertical_mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
+
+            // Player 1 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "fba_controller1", "1");
+
+            // Player 2 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "fba_controller2", "1");
         }
 
         private void ConfigureFbalpha2012(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -738,6 +746,12 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig["fba2012_vertical_mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
+
+            // Player 1 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "fba2012_controller1", "1");
+
+            // Player 2 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "fba2012_controller2", "1");
         }
 
         private void ConfigureFbalphaCPS3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -905,6 +919,12 @@ namespace emulatorLauncher.libRetro
 
             if (SystemConfig["fbneo-vertical-mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
+
+            // Player 1 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "fbneo_controller1", "1");
+
+            // Player 2 controller
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "fbneo_controller2", "1");
 
             SetupLightGuns(retroarchConfig, "4");
         }
@@ -1102,7 +1122,8 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "opera_high_resolution", "high_resolution", "enabled");
             BindFeature(coreSettings, "opera_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
-            BindFeature(coreSettings, "opera_active_devices", "active_devices", "1");
+            BindFeature(coreSettings, "opera_bios", "opera_bios", "Panasonic FZ-1 (U)");
+            BindFeature(coreSettings, "opera_region", "opera_region", "ntsc");
 
             // Game hacks
             string rom = SystemConfig["rom"].AsIndexedRomName();
@@ -1119,6 +1140,13 @@ namespace emulatorLauncher.libRetro
                 else
                     coreSettings["opera_nvram_storage"] = "per game";
             }
+
+            // Controls
+            BindFeature(coreSettings, "opera_active_devices", "active_devices", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "opera_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "opera_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "opera_controller3", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "opera_controller4", "1");
 
             // Lightgun
             SetupLightGuns(retroarchConfig, "260");
@@ -1156,7 +1184,8 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "4do_high_resolution", "high_resolution", "enabled");
             BindFeature(coreSettings, "4do_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
-            BindFeature(coreSettings, "4do_active_devices", "active_devices", "1");
+            BindFeature(coreSettings, "4do_bios", "4do_bios", "Panasonic FZ-1");
+            BindFeature(coreSettings, "4do_region", "4do_region", "ntsc");
 
             // Game hacks
             string rom = SystemConfig["rom"].AsIndexedRomName();
@@ -1173,6 +1202,13 @@ namespace emulatorLauncher.libRetro
                 else
                     coreSettings["4do_nvram_storage"] = "per game";
             }
+
+            // Controls
+            BindFeature(coreSettings, "4do_active_devices", "active_devices", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "4do_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "4do_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "4do_controller3", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "4do_controller4", "1");
 
             // Lightgun
             SetupLightGuns(retroarchConfig, "260");
@@ -1398,6 +1434,10 @@ namespace emulatorLauncher.libRetro
             bool atari800 = (system == "atari800");
             bool atariXE = !atari800 && system.IndexOf("xe", StringComparison.InvariantCultureIgnoreCase) >= 0;
 
+            BindFeature(coreSettings, "atari800_artifacting", "atari800_artifacting", "disabled");
+            BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
+            BindFeature(coreSettings, "atari800_resolution", "atari800_resolution", "336x240");
+
             if (atari800)
             {
                 var romExt = Path.GetExtension(Program.SystemConfig["rom"]).ToLower();
@@ -1407,9 +1447,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["atari800_opt1"] = "disabled"; // detect card type
 
                 BindFeature(coreSettings, "atari800_system", "atari800_system", "800XL (64K)", true);
-                BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
                 BindFeature(coreSettings, "atari800_sioaccel", "atari800_sioaccel", "enabled");
-                BindFeature(coreSettings, "atari800_artifacting", "atari800_artifacting", "disabled");
             }
             else if (atariXE)
             {
@@ -1418,16 +1456,21 @@ namespace emulatorLauncher.libRetro
                 coreSettings["atari800_opt1"] = "enabled";
                 coreSettings["atari800_cassboot"] = "disabled";
 
-                BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
                 BindFeature(coreSettings, "atari800_sioaccel", "atari800_sioaccel", "enabled");
-                BindFeature(coreSettings, "atari800_artifacting", "atari800_artifacting", "disabled");
+                
             }
             else // Atari 5200
             {
                 coreSettings["atari800_system"] = "5200";
                 coreSettings["atari800_opt1"] = "enabled"; // detect card type
                 coreSettings["atari800_cassboot"] = "disabled";
+
+                BindFeature(coreSettings, "atari800_opt2", "atari800_opt2", "disabled");    // Robotron joystick hack
             }
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "a800_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "a800_controller2", "1");
 
             if (string.IsNullOrEmpty(AppConfig["bios"]))
                 return;
@@ -2335,6 +2378,19 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "zx81_controller2", "259");
         }
 
+        private void Configurea5200(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "a5200")
+                return;
+
+            BindFeature(coreSettings, "a5200_low_pass_filter", "a5200_low_pass_filter", "disabled");
+            BindFeature(coreSettings, "a5200_mix_frames", "a5200_mix_frames", "disabled");
+
+            // Controls
+            BindFeature(coreSettings, "a5200_input_hack", "a5200_input_hack", "disabled");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "a5200_controller1", "1");
+        }
+
         private void ConfigureCraft(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "craft")
@@ -2406,6 +2462,25 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+        }
+
+        private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mgba")
+                return;
+
+            BindFeature(coreSettings, "mgba_gb_model", "mgba_gb_model", "Autodetect");
+            BindFeature(coreSettings, "mgba_skip_bios", "mgba_skip_bios", "OFF");
+            BindFeature(coreSettings, "mgba_audio_low_pass_filter", "mgba_audio_low_pass_filter", "disabled");
+            BindFeature(coreSettings, "mgba_force_gbp", "mgba_force_gbp", "OFF");
+            BindFeature(coreSettings, "mgba_gb_colors", "mgba_gb_colors", "Grayscale");
+            BindFeature(coreSettings, "mgba_interframe_blending", "mgba_interframe_blending", "OFF");
+
+            if (system == "gba" || system == "gba2players" || system == "gbc" || system == "gbc2players")
+                BindFeature(coreSettings, "mgba_color_correction", "mgba_color_correction", "OFF");
+
+            if (system == "sgb")
+                BindFeature(coreSettings, "mgba_sgb_borders", "mgba_sgb_borders", "ON");
         }
 
         private void ConfigureMrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
