@@ -305,7 +305,6 @@ namespace emulatorLauncher.libRetro
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
             ConfigureKronos(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSaturn(retroarchConfig, coreSettings, system, core);
-            ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureFbneo(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
             ConfigureMame(retroarchConfig, coreSettings, system, core);
@@ -323,6 +322,7 @@ namespace emulatorLauncher.libRetro
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
+            ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
@@ -951,17 +951,26 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["aspect_ratio_index"] = "2";
                     SystemConfig["bezel"] = "none";
                 }
+                else if ((SystemConfig["citra_layout_option"] == "Side by Side") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
+                {
+                    retroarchConfig["aspect_ratio_index"] = "4";
+                    SystemConfig["bezel"] = "none";
+                }
                 else
                     SystemConfig["bezel"] = SystemConfig["bezel"];
             }
             else
                 coreSettings["citra_layout_option"] = "Default Top-Bottom Screen";
 
-            BindFeature(coreSettings, "citra_mouse_show_pointer", "citra_mouse_show_pointer", "enabled");
             BindFeature(coreSettings, "citra_region_value", "citra_region_value", "Auto");
+            BindFeature(coreSettings, "citra_language", "citra_language", "English");
             BindFeature(coreSettings, "citra_resolution_factor", "citra_resolution_factor", "1x (Native)");
             BindFeature(coreSettings, "citra_swap_screen", "citra_swap_screen", "Top");
+            BindFeature(coreSettings, "citra_custom_textures", "citra_custom_textures", "disabled");
+
+            BindFeature(coreSettings, "citra_analog_function", "citra_analog_function", "C-Stick and Touchscreen Pointer");
             BindFeature(coreSettings, "citra_mouse_touchscreen", "citra_mouse_touchscreen", "enabled");
+            BindFeature(coreSettings, "citra_mouse_show_pointer", "citra_mouse_show_pointer", "enabled");
         }
 
         private void ConfigureMednafenSaturn(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
