@@ -47,9 +47,16 @@ namespace emulatorLauncher
             {
                 // Link cable setup for gba2players
                 if (system == "gba2players")
+                {
                     ini.WriteValue("", "Link Cable Type", "= -Automatic");
+                    ini.WriteValue("", "Number of Emulated Gameboys", "= -Two Machines");
+                }
+                    
                 else
+                {
                     ini.WriteValue("", "Link Cable Type", "= None");
+                    ini.WriteValue("", "Number of Emulated Gameboys", "= -Single Machine");
+                }
 
                 if (SystemConfig.isOptSet("gba_colors") && !string.IsNullOrEmpty(SystemConfig["gba_colors"]))
                     ini.WriteValue("", "GBA Mode/Colors", SystemConfig["gba_colors"]);
