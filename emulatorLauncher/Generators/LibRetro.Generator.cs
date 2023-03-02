@@ -135,6 +135,25 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
             }
 
+            // Records path
+            string recordconfigpath = Path.Combine(AppConfig.GetFullPath("records"), "config");
+            if (!string.IsNullOrEmpty(recordconfigpath))
+            {
+                if (Directory.Exists(recordconfigpath))
+                    retroarchConfig["recording_config_directory"] = recordconfigpath;
+                else if (retroarchConfig["recording_config_directory"] != @":\records\config" && !Directory.Exists(retroarchConfig["recording_config_directory"]))
+                    retroarchConfig["recording_config_directory"] = @":\records\config";
+            }
+
+            string recordoutputpath = Path.Combine(AppConfig.GetFullPath("records"), "output");
+            if (!string.IsNullOrEmpty(recordoutputpath))
+            {
+                if (Directory.Exists(recordoutputpath))
+                    retroarchConfig["recording_output_directory"] = recordoutputpath;
+                else if (retroarchConfig["recording_output_directory"] != @":\records\output" && !Directory.Exists(retroarchConfig["recording_output_directory"]))
+                    retroarchConfig["recording_output_directory"] = @":\records\output";
+            }
+
             try 
             {
                 string cacheDirectory = Path.Combine(Path.GetTempPath(), "retroarch");
@@ -278,18 +297,6 @@ namespace emulatorLauncher.libRetro
 
             retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
             retroarchConfig["input_libretro_device_p2"] = coreToP2Device.ContainsKey(core) ? coreToP2Device[core] : "1";
-
-            //psx specifics
-            if (Controllers.Count > 2 && (core == "snes9x_next" || core == "snes9x"))
-                retroarchConfig["input_libretro_device_p2"] = "257";
-
-            if (core == "mednafen_psx" || core == "mednafen_psx_hw" || core == "pcsx_rearmed" || core == "duckstation" || core == "swanstation")
-            {
-                if (Features.IsSupported("psxcontroller1") && SystemConfig.isOptSet("psxcontroller1"))
-                    retroarchConfig["input_libretro_device_p1"] = SystemConfig["psxcontroller1"];
-                if (Features.IsSupported("psxcontroller2") && SystemConfig.isOptSet("psxcontroller2"))
-                    retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
-            }
 
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
                 UseEsPadToKey = false;

@@ -150,7 +150,7 @@
                                           { "md5": "44552702b05697a14ccbe2ca22ee7139", "file": "bios/rom1.bin" 				},
                                           { "md5": "b406d05922dac2eaf3c2e68157b1b468", "file": "bios/ROM2.BIN" 				} ] },
 										   
-	"ps3": { "name": "PS3", "biosFiles":  [ { "md5": "95307e1b51d3bcc33a274db91488d29f", "file": "bios/PS3UPDAT.PUP" } ] },
+	"ps3": { "name": "PS3", "biosFiles":  [ { "md5": "05fe32f5dc8c78acbcd84d36ee7fdc5b", "file": "bios/PS3UPDAT.PUP" } ] },
 	
 	"psvita": { "name": "PS Vita", "biosFiles":  [ { "md5": "8b5f60b56c3da8365b973dba570c53a5", "file": "bios/PSP2UPDAT.PUP" },
 	                                               { "md5": "f2c7b12fe85496ec88a0391b514d6e3b", "file": "bios/PSVUPDAT.PUP" } ] },

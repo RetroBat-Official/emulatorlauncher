@@ -14,7 +14,8 @@ namespace emulatorLauncher
         UseSpaces = 1,
         KeepEmptyValues = 2,
         AllowDuplicateValues = 4,
-        KeepEmptyLines = 8
+        KeepEmptyLines = 8,
+        UseDoubleEqual = 16,  // nosgba inifile uses double equals as separator !
     }
 
     public class IniFile : IDisposable
@@ -59,7 +60,7 @@ namespace emulatorLauncher
                             }
                             else
                             {
-                                string[] keyPair = strLine.Split(new char[] { '=' }, 2);
+                                string[] keyPair = _options.HasFlag(IniOptions.UseDoubleEqual) ? strLine.Split(new string[] { "==" }, 2, StringSplitOptions.None) : strLine.Split(new char[] { '=' }, 2);
 
                                 if (currentSection == null)
                                 {
@@ -255,7 +256,10 @@ namespace emulatorLauncher
                     if (_options.HasFlag(IniOptions.UseSpaces))
                         sb.Append(" ");
 
-                    sb.Append("=");
+                    if (_options.HasFlag(IniOptions.UseDoubleEqual))
+                        sb.Append("==");
+                    else
+                        sb.Append("=");
 
                     if (_options.HasFlag(IniOptions.UseSpaces))
                         sb.Append(" ");
