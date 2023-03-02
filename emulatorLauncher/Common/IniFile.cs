@@ -15,7 +15,7 @@ namespace emulatorLauncher
         KeepEmptyValues = 2,
         AllowDuplicateValues = 4,
         KeepEmptyLines = 8,
-        UseDoubleEqual = 16,  // nosgba inifile uses space only on the left of the =
+        UseDoubleEqual = 16,  // nosgba inifile uses double equals as separator !
     }
 
     public class IniFile : IDisposable

@@ -298,18 +298,6 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
             retroarchConfig["input_libretro_device_p2"] = coreToP2Device.ContainsKey(core) ? coreToP2Device[core] : "1";
 
-            //psx specifics
-            if (Controllers.Count > 2 && (core == "snes9x_next" || core == "snes9x"))
-                retroarchConfig["input_libretro_device_p2"] = "257";
-
-            if (core == "mednafen_psx" || core == "mednafen_psx_hw" || core == "duckstation" || core == "swanstation")
-            {
-                if (Features.IsSupported("psxcontroller1") && SystemConfig.isOptSet("psxcontroller1"))
-                    retroarchConfig["input_libretro_device_p1"] = SystemConfig["psxcontroller1"];
-                if (Features.IsSupported("psxcontroller2") && SystemConfig.isOptSet("psxcontroller2"))
-                    retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
-            }
-
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
                 UseEsPadToKey = false;
 

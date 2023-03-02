@@ -156,7 +156,7 @@ namespace emulatorLauncher
                         foreach (var file in Directory.GetFiles(dir, Path.GetFileName(result)))
                         {
                             if (Path.GetFileNameWithoutExtension(file).AsIndexedRomName() == indexedRomName)
-                                return Path.GetFullPath(result);
+                                return Path.GetFullPath(file);
                         }
                     }
 

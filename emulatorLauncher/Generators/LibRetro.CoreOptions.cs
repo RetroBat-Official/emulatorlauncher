@@ -1746,11 +1746,19 @@ namespace emulatorLauncher.libRetro
                 coreSettings["snes9x_sndchan_8"] = "enabled";
             }
 
-            coreSettings["snes9x_show_lightgun_settings"] = "enabled";
-            BindFeature(coreSettings, "snes9x_lightgun_mode", "snes9x_lightgun_mode", "Lightgun"); // Lightgun mode
-
             BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+
+            if (Controllers.Count > 2)
+            {
+                retroarchConfig["input_libretro_device_p2"] = "257";
+                retroarchConfig["input_libretro_device_p3"] = "1";
+                retroarchConfig["input_libretro_device_p4"] = "1";
+                retroarchConfig["input_libretro_device_p5"] = "1";
+            }
+
+            coreSettings["snes9x_show_lightgun_settings"] = "enabled";
+            BindFeature(coreSettings, "snes9x_lightgun_mode", "snes9x_lightgun_mode", "Lightgun"); // Lightgun mode
 
             if (SystemConfig.getOptBoolean("use_guns"))
             {
@@ -2427,6 +2435,10 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun", true);
             BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross", true);
 
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "psxcontroller2", "1");
+
             SetupLightGuns(retroarchConfig, "260");
         }
 
@@ -2498,6 +2510,12 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "duckstation_GPU.MSAA", "msaa", "1");
             BindFeature(coreSettings, "duckstation_GPU.ScaledDithering", "scaled_dithering", "true");
             BindFeature(coreSettings, "duckstation_GPU.TrueColor", "truecolor", "false");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "psxcontroller2", "1");
+
+            SetupLightGuns(retroarchConfig, "260");
         }
 
         private void Configure81(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2510,10 +2528,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "81_chroma_81", "81_chroma_81", "auto");
             BindFeature(coreSettings, "81_video_presets", "81_video_presets", "clean");
 
-            // Player 1 controller
+            // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "zx81_controller1", "257");
-
-            // Player 2 controller
             BindFeature(retroarchConfig, "input_libretro_device_p2", "zx81_controller2", "259");
         }
 
