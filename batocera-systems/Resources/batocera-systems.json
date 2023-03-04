@@ -211,10 +211,13 @@
 
 	"vsmile": { "name": "V. Smile", "biosFiles": [ { "md5": "", "file": "bios/vsmile.zip" } ] },
 
-	"coco": { "name": "Color Computer", "biosFiles":	[ { "md5": "", "file": "bios/coco.zip"								},
-                                                      { "md5": "", "file": "bios/coco2.zip"								},
-                                                      { "md5": "", "file": "bios/mame/hash/coco_cart.xml" },
-                                                      { "md5": "", "file": "bios/mame/hash/coco_flop.xml" } ] },
+	"coco": { "name": "Color Computer", "biosFiles":   [ { "md5": "", "file": "bios/coco.zip"                },
+                                                         { "md5": "", "file": "bios/coco2.zip"               },
+                                                         { "md5": "", "file": "bios/coco2b.zip"              },
+                                                         { "md5": "", "file": "bios/coco3.zip"               },
+                                                         { "md5": "", "file": "bios/coco3p.zip"              },
+                                                         { "md5": "", "file": "bios/mame/hash/coco_cart.xml" },
+                                                         { "md5": "", "file": "bios/mame/hash/coco_flop.xml" } ] },
 
 	"fmtowns": { "name": "FMTowns", "biosFiles":	[ { "md5": "", "file": "bios/fmtowns.zip"		},
                                                   { "md5": "", "file": "bios/fmtownsux.zip" } ] },               

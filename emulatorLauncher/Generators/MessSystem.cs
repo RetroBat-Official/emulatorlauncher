@@ -498,6 +498,11 @@ namespace emulatorLauncher
                     commandArray.Add("-" + romType);
             }
 
+            // Specific Managements to enable or disable softlist
+            // When using softlist, the rom name must match exactly the hash file and be passed to command line without path or extension
+            if (system == "ti99" && rom.EndsWith(".rpk"))       // Disabling softlist for .rpk extension
+                UseFileNameWithoutExtension = false;
+
             if (MachineName != "%romname%")
                 commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
 

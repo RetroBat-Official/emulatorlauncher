@@ -425,10 +425,30 @@ namespace emulatorLauncher.libRetro
             if (core != "desmume" && core != "desmume2015")
                 return;
 
+            coreSettings["desmume_pointer_mouse"] = "enabled";
+            coreSettings["desmume_pointer_type"] = "mouse";
+
+            BindFeature(coreSettings, "desmume_cpu_mode", "desmume_cpu_mode", "interpreter");
             BindFeature(coreSettings, "desmume_pointer_device_r", "desmume_rightanalog", "emulated");
             BindFeature(coreSettings, "desmume_internal_resolution", "desmume_internal_resolution", "256x192");
             BindFeature(coreSettings, "desmume_screens_layout", "desmume_screens_layout", "top/bottom");
-            BindFeature(coreSettings, "desmume_gfx_multisampling", "desmume_gfx_multisampling", "disabled");
+            BindFeature(coreSettings, "desmume_firmware_language", "desmume_firmware_language", "Auto");
+
+            if (core == "desmume")
+            {
+                BindFeature(coreSettings, "desmume_use_external_bios", "desmume_use_external_bios", "disabled");
+                BindFeature(coreSettings, "desmume_boot_into_bios", "desmume_boot_into_bios", "disabled");
+                
+                // Force interpreter if boot to bios is active
+                if (SystemConfig.isOptSet("desmume_boot_into_bios") && SystemConfig["desmume_boot_into_bios"] == "enabled")
+                    coreSettings["desmume_cpu_mode"] = "interpreter";
+
+                // OpenGL options
+                BindFeature(coreSettings, "desmume_opengl_mode", "desmume_opengl_mode", "disabled");
+                BindFeature(coreSettings, "desmume_color_depth", "desmume_color_depth", "16-bit");
+                BindFeature(coreSettings, "desmume_gfx_multisampling", "desmume_gfx_multisampling", "disabled");
+                BindFeature(coreSettings, "desmume_gfx_texture_smoothing", "desmume_gfx_texture_smoothing", "disabled");
+            }
         }
 
         private void ConfigureScummVM(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
