@@ -67,6 +67,8 @@ namespace emulatorLauncher
             if (!File.Exists(file))
                 return ret;
 
+            bool keepComments = options != null && options.KeepComments;
+
             foreach (var line in File.ReadAllLines(file))
             {
                 bool skip = false;
@@ -81,15 +83,17 @@ namespace emulatorLauncher
 
                     if (chr != ' ' && chr != '\t')
                         break;
-                }                    
+                }
 
-                if (skip)
+                if (skip && !keepComments)
                     continue;
 
-                int idx = line.IndexOf("=", StringComparison.Ordinal);
+                bool doubleEquals = options != null && options.UseDoubleEqual;
+
+                int idx = doubleEquals ? line.IndexOf("==", StringComparison.Ordinal) : line.IndexOf("=", StringComparison.Ordinal);
                 if (idx >= 0)
                 {
-                    string value = line.Substring(idx + 1).Trim();
+                    string value = line.Substring(idx + (doubleEquals ? 2 : 1)).Trim();
                     if (value.StartsWith("\""))
                         value = value.Substring(1);
 
@@ -238,9 +242,13 @@ namespace emulatorLauncher
 
         public virtual bool IsDirty { get; protected set; }
 
-        public void Save(string fileName, bool retroarchformat)
+        public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
+
+            string equalSign = this.Options != null && this.Options.UseDoubleEqual ? "==" : "=";
+            bool useSpaces = this.Options != null && this.Options.UseSpaces;
+            bool useQuotes = this.Options != null && this.Options.UseQuotes;
 
             foreach (var item in _data.Values)
             {
@@ -252,23 +260,44 @@ namespace emulatorLauncher
                     continue;
                 }
 
-                if (retroarchformat)
+                if (useSpaces)
                 {
-                    sb.Append(" = ");
-                    sb.Append("\"");
+                    sb.Append(" ");
+                    sb.Append(equalSign);
+                    sb.Append(" ");
                 }
                 else
-                    sb.Append("=");
+                    sb.Append(equalSign);
 
+                if (useQuotes)
+                    sb.Append("\"");
+                    
                 sb.Append(item.Value);
 
-                if (retroarchformat)
+                if (useQuotes)
                     sb.Append("\"");
 
                 sb.AppendLine();
             }
 
-            File.WriteAllText(fileName, sb.ToString());
+            return sb.ToString();
+        }
+
+        public void Save(string fileName, bool retroarchformat = false)
+        {
+            if (retroarchformat)
+            {
+                if (this.Options == null)
+                    this.Options = new ConfigFileOptions();
+
+                this.Options.UseDoubleEqual = false;
+                this.Options.UseQuotes = true;
+                this.Options.UseSpaces = true;
+
+            }
+
+            string text = ToString();
+            File.WriteAllText(fileName, text);
         }
 
         public ConfigFile LoadAll(string key)
@@ -470,6 +499,11 @@ namespace emulatorLauncher
 
         public bool KeepEmptyLines { get; set; }
         public bool KeepEmptyValues { get; set; }
+        public bool KeepComments { get; set; }
         public bool CaseSensitive { get; set; }
+        public bool UseDoubleEqual { get; set; }
+        public bool UseSpaces { get; set; }
+        public bool UseQuotes { get; set; }
+
     }
 }

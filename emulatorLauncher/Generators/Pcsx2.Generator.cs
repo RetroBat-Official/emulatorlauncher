@@ -18,21 +18,6 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            return ret;
-        }
-      
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -653,8 +638,11 @@ namespace emulatorLauncher
 
                 CreateControllerConfiguration(ini);
 
-                //fullscreen
+                // fullscreen
                 ini.WriteValue("UI", "StartFullscreen", "true");
+                ini.Remove("UI", "MainWindowGeometry");
+                ini.Remove("UI", "MainWindowState");
+                ini.Remove("UI", "DisplayWindowGeometry");
 
                 //Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
@@ -1138,5 +1126,87 @@ namespace emulatorLauncher
                 ini.AppendValue("GameList", "RecursivePaths", romPath);
         }
         #endregion
+        
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int ret = 0;
+            int monitorIndex = SystemConfig["MonitorIndex"].ToInteger() - 1;
+            
+            if (_bezelFileInfo != null)
+            {               
+                var bezel = _bezelFileInfo.ShowFakeBezel(_resolution, true, monitorIndex);
+                if (bezel != null)
+                {
+                    RECT rc = bezel.ViewPort;
+
+                    if (rc.bottom - rc.top == (_resolution ?? ScreenResolution.CurrentResolution).Height)
+                        rc.bottom--;
+
+                    var process = StartProcessAndMoveItsWindowTo(path, rc);
+                    if (process != null)
+                    {
+                        while (!process.WaitForExit(50))
+                            Application.DoEvents();
+
+                        try { ret = process.ExitCode; }
+                        catch { }
+                    }
+
+                    if (bezel != null)
+                        bezel.Dispose();
+
+                    return ret;
+                }
+            }
+            
+            if (monitorIndex > 0 && monitorIndex < Screen.AllScreens.Length)
+            {
+                var process = StartProcessAndMoveItsWindowTo(path, Screen.AllScreens[monitorIndex].Bounds);
+                if (process != null)
+                {
+                    process.WaitForExit();
+
+                    try { ret = process.ExitCode; }
+                    catch { }
+                }
+
+                return ret;
+            }
+
+            return base.RunAndWait(path);
+        }
+
+        private Process StartProcessAndMoveItsWindowTo(ProcessStartInfo path, RECT rc)
+        {
+            int retryCount = 0;
+            var process = Process.Start(path);
+
+            while (process != null)
+            {
+                if (process.WaitForExit(50))
+                {
+                    process = null;
+                    break;
+                }
+
+                retryCount++;
+
+                // If it's longer than 10 seconds, then exit loop
+                if (retryCount > 10000 / 50)
+                    break;
+
+                var hWnd = User32.FindHwnd(process.Id);
+                if (hWnd == IntPtr.Zero)
+                    continue;
+
+                if (!User32.IsWindowVisible(hWnd))
+                    continue;
+
+                User32.SetWindowPos(hWnd, IntPtr.Zero, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP.ASYNCWINDOWPOS);
+                break;
+            }
+            return process;
+        }
+      
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Drawing;
 
 namespace emulatorLauncher
 {
@@ -214,6 +215,27 @@ namespace emulatorLauncher
         public int top;
         public int right;
         public int bottom;
+
+        public RECT(int left, int top, int right, int bottom)
+        {
+            this.top = top;
+            this.left = left;
+            this.right = right;
+            this.bottom = bottom;
+        }
+
+        public static implicit operator RECT(Rectangle f)
+        {
+            return new RECT(f.Left, f.Top, f.Right, f.Bottom);
+        }
+
+        public void Inflate(int x, int y)
+        {
+            left -= x;
+            right += x;
+            top -= y;
+            bottom += y;
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -61,12 +61,26 @@ namespace emulatorLauncher
                 return img.Size;
         }
 
-        public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution)
+        public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution, bool useFakeBackground = false, int monitorIndex = -1)
         {
-            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+            var screen = Screen.PrimaryScreen;
+
+            if (monitorIndex > 0 && monitorIndex < Screen.AllScreens.Length)
+                screen = Screen.AllScreens[monitorIndex];
+
+            int resX = (resolution == null ? screen.Bounds.Width : resolution.Width);
+            int resY = (resolution == null ? screen.Bounds.Height : resolution.Height);
+
+            FakeBezelBackgroundFrm fakeBackground = null;
+            if (useFakeBackground)
+            {
+                fakeBackground = new FakeBezelBackgroundFrm();
+                fakeBackground.Bounds = screen.Bounds;
+                fakeBackground.Show();
+            }
 
             var bezel = new FakeBezelFrm();
+            bezel.Bounds = screen.Bounds;
             bezel.TopMost = true;
 
             bool stretchImage = false;
@@ -87,7 +101,39 @@ namespace emulatorLauncher
                     stretchImage = true;
                 else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
                     stretchImage = true;
+
+                var infos = BezelInfos;
+                float wratio = resX / (float)infos.width;
+                float hratio = resY / (float)infos.height;
+                int xoffset = resX - infos.width.Value;
+                int yoffset = resY - infos.height.Value;
+
+                if (stretchImage)
+                {
+                    int custom_viewport_x = (int)(infos.left * wratio);
+                    int custom_viewport_y = (int)(infos.top * hratio);
+                    int custom_viewport_width = (int)((infos.width - infos.left - infos.right) * wratio);
+                    int custom_viewport_height = (int)((infos.height - infos.top - infos.bottom) * hratio);
+
+
+                    bezel.ViewPort = new Rectangle(
+                        screen.Bounds.Left + custom_viewport_x,
+                        screen.Bounds.Top + custom_viewport_y, custom_viewport_width, custom_viewport_height);
+                }
+                else
+                {
+                    int custom_viewport_x = (int)(infos.left + xoffset / 2);
+                    int custom_viewport_y = (int)(infos.top + yoffset / 2);
+                    int custom_viewport_width = (int)((infos.width - infos.left - infos.right));
+                    int custom_viewport_height = (int)((infos.height - infos.top - infos.bottom));
+
+                    bezel.ViewPort = new Rectangle(
+                        screen.Bounds.Left + custom_viewport_x,
+                        screen.Bounds.Top + custom_viewport_y, custom_viewport_width, custom_viewport_height);
+                }
             }
+            else
+                bezel.ViewPort = new Rectangle(0, 0, resX, resY);
 
             var file = stretchImage ? PngFile : GetStretchedBezel(PngFile, resX, resY);
             if (!bezel.SelectBezel(file, resX, resY))
@@ -96,6 +142,7 @@ namespace emulatorLauncher
                 return null;
             }
 
+            bezel.FakeBackground = fakeBackground;
             bezel.Show();
             return bezel;
         }
