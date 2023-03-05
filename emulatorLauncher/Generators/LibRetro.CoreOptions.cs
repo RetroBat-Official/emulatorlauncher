@@ -713,9 +713,9 @@ namespace emulatorLauncher.libRetro
 
             coreSettings["neocd_per_content_saves"] = "On";
 
-            BindFeature(coreSettings, "neocd_bios", "neocd_bios", "uni-bioscd.rom (CDZ, Universe 3.3)");
+            BindFeature(coreSettings, "neocd_bios", "neocd_bios", "neocd_z.rom (CDZ)");
             BindFeature(coreSettings, "neocd_cdspeedhack", "neocd_cdspeedhack", "Off");
-            BindFeature(coreSettings, "neocd_loadskip", "neocd_loadskip", "Off");
+            BindFeature(coreSettings, "neocd_loadskip", "neocd_loadskip", "On");
             BindFeature(coreSettings, "neocd_region", "neocd_region", "USA");
         }
 
