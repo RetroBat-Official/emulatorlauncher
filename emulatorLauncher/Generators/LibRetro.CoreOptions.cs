@@ -655,17 +655,10 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled");
 
             // Wii Controllers
-            //player 1 controller type
-            if (SystemConfig.isOptSet("dolphin_p1_controller") && !string.IsNullOrEmpty(SystemConfig["dolphin_p1_controller"]))
-                retroarchConfig["input_libretro_device_p1"] = SystemConfig["dolphin_p1_controller"];
-            else if (Features.IsSupported("dolphin_p1_controller"))
-                retroarchConfig["input_libretro_device_p1"] = "1";
-
-            //player 2 controller type
-            if (SystemConfig.isOptSet("dolphin_p2_controller") && !string.IsNullOrEmpty(SystemConfig["dolphin_p2_controller"]))
-                retroarchConfig["input_libretro_device_p2"] = SystemConfig["dolphin_p2_controller"];
-            else if (Features.IsSupported("dolphin_p2_controller"))
-                retroarchConfig["input_libretro_device_p2"] = "1";
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "dolphin_p1_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "dolphin_p2_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "dolphin_p3_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "dolphin_p4_controller", "1");
 
             // gamecube
             if (system == "gamecube" || system == "gc")
@@ -753,10 +746,8 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig["fba_vertical_mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
 
-            // Player 1 controller
+            // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "fba_controller1", "1");
-
-            // Player 2 controller
             BindFeature(retroarchConfig, "input_libretro_device_p2", "fba_controller2", "1");
         }
 
@@ -969,10 +960,8 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig["fbneo-vertical-mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
 
-            // Player 1 controller
+            // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "fbneo_controller1", "1");
-
-            // Player 2 controller
             BindFeature(retroarchConfig, "input_libretro_device_p2", "fbneo_controller2", "1");
 
             SetupLightGuns(retroarchConfig, "4");
@@ -1042,6 +1031,10 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_saturn_virtuagun_crosshair", "beetle_saturn_virtuagun_crosshair", "cross", true);
             BindFeature(coreSettings, "beetle_saturn_mouse_sensitivity", "beetle_saturn_mouse_sensitivity", "100%");
             BindFeature(coreSettings, "beetle_saturn_virtuagun_input", "beetle_saturn_virtuagun_input", "lightgun", true);
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "saturn_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "saturn_controller2", "1");
 
             SetupLightGuns(retroarchConfig, "260");
         }
@@ -1237,6 +1230,12 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "kronos_use_cs", "use_cs", "disabled");
             BindFeature(coreSettings, "kronos_videocoretype", "videocoretype", "opengl");
             BindFeature(coreSettings, "kronos_videoformattype", "videoformattype", "auto");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "kronos_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "kronos_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "kronos_controller3", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "kronos_controller4", "1");
 
             SetupLightGuns(retroarchConfig, "260");
         }
@@ -1456,6 +1455,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fceumm_overclocking", "fceumm_overclocking", "disabled");
             BindFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "enabled");
             BindFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled");
+
+            // MULTI-TAP for 4 players
+            if (SystemConfig.isOptSet("fceumm_multitap") && SystemConfig.getOptBoolean("fceumm_multitap"))
+            {
+                retroarchConfig["input_libretro_device_p3"] = "513";
+                retroarchConfig["input_libretro_device_p4"] = "513";
+                retroarchConfig["input_libretro_device_p5"] = "769";
+            }
 
             SetupLightGuns(retroarchConfig, "258", 2);
         }
@@ -1934,6 +1941,10 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "genesis_plus_gx_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "genesis_plus_gx_controller2", "1");
+
             BindFeature(coreSettings, "genesis_plus_gx_gun_cursor", "gun_cursor", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_gun_input", "gun_input", "lightgun");
 
@@ -2007,6 +2018,10 @@ namespace emulatorLauncher.libRetro
                     coreSettings["genesis_plus_gx_wide_lowpass_range"] = "0";
                 }
             }
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "genesis_plus_gx_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "genesis_plus_gx_controller2", "1");
 
             BindFeature(coreSettings, "genesis_plus_gx_wide_gun_cursor", "gun_cursor", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_gun_input", "gun_input", "lightgun");
@@ -2432,6 +2447,12 @@ namespace emulatorLauncher.libRetro
             // toadd
             BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");
             BindFeature(coreSettings, "reicast_frame_skipping", "reicast_frame_skipping", "disabled");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "flycast_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "flycast_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "flycast_controller3", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "flycast_controller4", "1");
 
             SetupLightGuns(retroarchConfig, "4");
         }
