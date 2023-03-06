@@ -289,12 +289,11 @@ namespace emulatorLauncher.libRetro
 
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
-            ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureDolphin(retroarchConfig, coreSettings, system, core);            
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureFCEumm(retroarchConfig, coreSettings, system, core);
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
-            ConfigureO2em(retroarchConfig, coreSettings, system, core);
+            ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003Plus(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
@@ -326,11 +325,13 @@ namespace emulatorLauncher.libRetro
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureCrocoDS(retroarchConfig, coreSettings, system, core);
+            ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
+            ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigureParallelN64(retroarchConfig, coreSettings, system, core);
             ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
@@ -346,7 +347,6 @@ namespace emulatorLauncher.libRetro
             ConfigureRace(retroarchConfig, coreSettings, system, core);
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
-            ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureStella2014(retroarchConfig, coreSettings, system, core);
@@ -655,17 +655,10 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled");
 
             // Wii Controllers
-            //player 1 controller type
-            if (SystemConfig.isOptSet("dolphin_p1_controller") && !string.IsNullOrEmpty(SystemConfig["dolphin_p1_controller"]))
-                retroarchConfig["input_libretro_device_p1"] = SystemConfig["dolphin_p1_controller"];
-            else if (Features.IsSupported("dolphin_p1_controller"))
-                retroarchConfig["input_libretro_device_p1"] = "1";
-
-            //player 2 controller type
-            if (SystemConfig.isOptSet("dolphin_p2_controller") && !string.IsNullOrEmpty(SystemConfig["dolphin_p2_controller"]))
-                retroarchConfig["input_libretro_device_p2"] = SystemConfig["dolphin_p2_controller"];
-            else if (Features.IsSupported("dolphin_p2_controller"))
-                retroarchConfig["input_libretro_device_p2"] = "1";
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "dolphin_p1_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "dolphin_p2_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "dolphin_p3_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "dolphin_p4_controller", "1");
 
             // gamecube
             if (system == "gamecube" || system == "gc")
@@ -713,9 +706,9 @@ namespace emulatorLauncher.libRetro
 
             coreSettings["neocd_per_content_saves"] = "On";
 
-            BindFeature(coreSettings, "neocd_bios", "neocd_bios", "uni-bioscd.rom (CDZ, Universe 3.3)");
+            BindFeature(coreSettings, "neocd_bios", "neocd_bios", "neocd_z.rom (CDZ)");
             BindFeature(coreSettings, "neocd_cdspeedhack", "neocd_cdspeedhack", "Off");
-            BindFeature(coreSettings, "neocd_loadskip", "neocd_loadskip", "Off");
+            BindFeature(coreSettings, "neocd_loadskip", "neocd_loadskip", "On");
             BindFeature(coreSettings, "neocd_region", "neocd_region", "USA");
         }
 
@@ -753,10 +746,8 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig["fba_vertical_mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
 
-            // Player 1 controller
+            // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "fba_controller1", "1");
-
-            // Player 2 controller
             BindFeature(retroarchConfig, "input_libretro_device_p2", "fba_controller2", "1");
         }
 
@@ -804,8 +795,22 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fba2012cps2_auto_rotate", "fba2012cps2_auto_rotate", "enabled");
             BindFeature(coreSettings, "fba2012cps2_cpu_speed_adjust", "fba2012cps2_cpu_speed_adjust", "100");
             BindFeature(coreSettings, "fba2012cps2_hiscores", "fba2012cps2_hiscores", "enabled");
-            BindFeature(coreSettings, "fba2012cps2_lowpass_filter", "fba2012cps2_lowpass_filter", "disabled");
-            BindFeature(coreSettings, "fba2012cps2_lowpass_range", "fba2012cps2_lowpass_range", "50");
+
+            // Audio Filter
+            if (Features.IsSupported("fba2012cps2_lowpass_range"))
+            {
+                if (SystemConfig.isOptSet("fba2012cps2_lowpass_range") && SystemConfig["fba2012cps2_lowpass_range"] != "0")
+                {
+                    coreSettings["fba2012cps2_lowpass_filter"] = "enabled";
+                    coreSettings["fba2012cps2_lowpass_range"] = SystemConfig["fba2012cps2_lowpass_range"];
+                }
+                else
+                {
+                    coreSettings["fba2012cps2_lowpass_filter"] = "disabled";
+                    coreSettings["fba2012cps2_lowpass_range"] = "0";
+                }
+            }
+
             BindFeature(coreSettings, "fba2012cps2_controls", "fba2012cps2_controls", "gamepad");
         }
 
@@ -820,8 +825,20 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fba2012cps1_auto_rotate", "fba2012cps1_auto_rotate", "enabled");
             BindFeature(coreSettings, "fba2012cps1_cpu_speed_adjust", "fba2012cps1_cpu_speed_adjust", "100");
             BindFeature(coreSettings, "fba2012cps1_hiscores", "fba2012cps1_hiscores", "enabled");
-            BindFeature(coreSettings, "fba2012cps1_lowpass_filter", "fba2012cps1_lowpass_filter", "disabled");
-            BindFeature(coreSettings, "fba2012cps1_lowpass_range", "fba2012cps1_lowpass_range", "50");
+
+            if (Features.IsSupported("fba2012cps1_lowpass_range"))
+            {
+                if (SystemConfig.isOptSet("fba2012cps1_lowpass_range") && SystemConfig["fba2012cps1_lowpass_range"] != "0")
+                {
+                    coreSettings["fba2012cps1_lowpass_filter"] = "enabled";
+                    coreSettings["fba2012cps1_lowpass_range"] = SystemConfig["fba2012cps1_lowpass_range"];
+                }
+                else
+                {
+                    coreSettings["fba2012cps1_lowpass_filter"] = "disabled";
+                    coreSettings["fba2012cps1_lowpass_range"] = "0";
+                }
+            }
         }
 
         private void ConfigurePpsspp(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -943,10 +960,8 @@ namespace emulatorLauncher.libRetro
             if (SystemConfig["fbneo-vertical-mode"] == "enabled")
                 SystemConfig["bezel"] = "none";
 
-            // Player 1 controller
+            // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "fbneo_controller1", "1");
-
-            // Player 2 controller
             BindFeature(retroarchConfig, "input_libretro_device_p2", "fbneo_controller2", "1");
 
             SetupLightGuns(retroarchConfig, "4");
@@ -1017,6 +1032,10 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_saturn_mouse_sensitivity", "beetle_saturn_mouse_sensitivity", "100%");
             BindFeature(coreSettings, "beetle_saturn_virtuagun_input", "beetle_saturn_virtuagun_input", "lightgun", true);
 
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "saturn_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "saturn_controller2", "1");
+
             SetupLightGuns(retroarchConfig, "260");
         }
 
@@ -1032,7 +1051,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "picodrive_overscan", "overscan", "disabled");
             BindFeature(coreSettings, "picodrive_region", "region", "Auto");
             BindFeature(coreSettings, "picodrive_renderer", "renderer", "accurate");
-            BindFeature(coreSettings, "picodrive_audio_filter", "audio_filter", "disabled");
             BindFeature(coreSettings, "picodrive_drc", "dynamic_recompiler", "disabled");
             BindFeature(coreSettings, "picodrive_input1", "input1", "3 button pad");
             BindFeature(coreSettings, "picodrive_input2", "input2", "3 button pad");
@@ -1045,6 +1063,21 @@ namespace emulatorLauncher.libRetro
                 coreSettings["picodrive_smstype"] = "Game Gear";
             else
                 coreSettings["picodrive_smstype"] = "Auto";
+
+            // Audio Filter
+            if (Features.IsSupported("audio_filter"))
+            {
+                if (SystemConfig.isOptSet("audio_filter") && SystemConfig["audio_filter"] != "0")
+                {
+                    coreSettings["picodrive_audio_filter"] = "low-pass";
+                    coreSettings["picodrive_lowpass_range"] = SystemConfig["audio_filter"];
+                }
+                else
+                {
+                    coreSettings["picodrive_audio_filter"] = "disabled";
+                    coreSettings["picodrive_lowpass_range"] = "0";
+                }
+            }
         }
 
         private void ConfigureParallelN64(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1125,7 +1158,21 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "pokemini_lcdcontrast", "pokemini_lcdcontrast", "64");
             BindFeature(coreSettings, "pokemini_lcdbright", "pokemini_lcdbright", "0");
             BindFeature(coreSettings, "pokemini_60hz_mode", "pokemini_60hz_mode", "disabled");
-            BindFeature(coreSettings, "pokemini_lowpass_filter", "pokemini_lowpass_filter", "enabled");
+            
+            // Audio Filter
+            if (Features.IsSupported("pokemini_lowpass_filter"))
+            {
+                if (SystemConfig.isOptSet("pokemini_lowpass_filter") && SystemConfig["pokemini_lowpass_filter"] != "0")
+                {
+                    coreSettings["pokemini_lowpass_filter"] = "enabled";
+                    coreSettings["pokemini_lowpass_range"] = SystemConfig["pokemini_lowpass_filter"];
+                }
+                else
+                {
+                    coreSettings["pokemini_lowpass_filter"] = "disabled";
+                    coreSettings["pokemini_lowpass_range"] = "0";
+                }
+            }
 
             // Rumble and screen shaking setting
             if (Features.IsSupported("pokemini_rumble"))
@@ -1183,6 +1230,12 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "kronos_use_cs", "use_cs", "disabled");
             BindFeature(coreSettings, "kronos_videocoretype", "videocoretype", "opengl");
             BindFeature(coreSettings, "kronos_videoformattype", "videoformattype", "auto");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "kronos_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "kronos_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "kronos_controller3", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "kronos_controller4", "1");
 
             SetupLightGuns(retroarchConfig, "260");
         }
@@ -1273,8 +1326,22 @@ namespace emulatorLauncher.libRetro
                 return;
 
             BindFeature(coreSettings, "stella2014_color_depth", "stella2014_color_depth", "16bit");
-            BindFeature(coreSettings, "stella2014_low_pass_filter", "stella2014_low_pass_filter", "disabled");
             BindFeature(coreSettings, "stella2014_mix_frames", "stella2014_mix_frames", "disabled");
+
+            // Audio Filter
+            if (Features.IsSupported("stella2014_low_pass_filter"))
+            {
+                if (SystemConfig.isOptSet("stella2014_low_pass_filter") && SystemConfig["stella2014_low_pass_filter"] != "0")
+                {
+                    coreSettings["stella2014_low_pass_filter"] = "enabled";
+                    coreSettings["stella2014_low_pass_range"] = SystemConfig["stella2014_low_pass_filter"];
+                }
+                else
+                {
+                    coreSettings["stella2014_low_pass_filter"] = "disabled";
+                    coreSettings["stella2014_low_pass_range"] = "0";
+                }
+            }
         }
 
         private void Configure4Do(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1388,6 +1455,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fceumm_overclocking", "fceumm_overclocking", "disabled");
             BindFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "enabled");
             BindFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled");
+
+            // MULTI-TAP for 4 players
+            if (SystemConfig.isOptSet("fceumm_multitap") && SystemConfig.getOptBoolean("fceumm_multitap"))
+            {
+                retroarchConfig["input_libretro_device_p3"] = "513";
+                retroarchConfig["input_libretro_device_p4"] = "513";
+                retroarchConfig["input_libretro_device_p5"] = "769";
+            }
 
             SetupLightGuns(retroarchConfig, "258", 2);
         }
@@ -1841,7 +1916,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "genesis_plus_gx_addr_error", "addr_error", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_lock_on", "lock_on", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_ym2612", "ym2612", "mame (ym2612)");
-            BindFeature(coreSettings, "genesis_plus_gx_audio_filter", "audio_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_blargg_ntsc_filter", "ntsc_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_lcd_filter", "lcd_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_overscan", "overscan", "disabled");
@@ -1851,6 +1925,25 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "genesis_plus_gx_no_sprite_limit", "genesis_plus_gx_no_sprite_limit", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_add_on", "genesis_plus_gx_add_on", "auto");
+
+            // Audio Filter
+            if (Features.IsSupported("audio_filter"))
+            {
+                if (SystemConfig.isOptSet("audio_filter") && SystemConfig["audio_filter"] != "0")
+                {
+                    coreSettings["genesis_plus_gx_audio_filter"] = "low-pass";
+                    coreSettings["genesis_plus_gx_lowpass_range"] = SystemConfig["audio_filter"];
+                }
+                else
+                {
+                    coreSettings["genesis_plus_gx_audio_filter"] = "disabled";
+                    coreSettings["genesis_plus_gx_lowpass_range"] = "0";
+                }
+            }
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "genesis_plus_gx_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "genesis_plus_gx_controller2", "1");
 
             BindFeature(coreSettings, "genesis_plus_gx_gun_cursor", "gun_cursor", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_gun_input", "gun_input", "lightgun");
@@ -1900,7 +1993,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "genesis_plus_gx_wide_addr_error", "addr_error", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_lock_on", "lock_on", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_ym2612", "ym2612", "mame (ym2612)");
-            BindFeature(coreSettings, "genesis_plus_gx_wide_audio_filter", "audio_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_blargg_ntsc_filter", "ntsc_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_lcd_filter", "lcd_filter", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_overscan", "overscan", "disabled");
@@ -1911,6 +2003,25 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "genesis_plus_gx_wide_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_add_on", "genesis_plus_gx_add_on", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_wide_h40_extra_columns", "h40_extra_columns", "10");
+
+            // Audio Filter
+            if (Features.IsSupported("audio_filter"))
+            {
+                if (SystemConfig.isOptSet("audio_filter") && SystemConfig["audio_filter"] != "0")
+                {
+                    coreSettings["genesis_plus_gx_wide_audio_filter"] = "low-pass";
+                    coreSettings["genesis_plus_gx_wide_lowpass_range"] = SystemConfig["audio_filter"];
+                }
+                else
+                {
+                    coreSettings["genesis_plus_gx_wide_audio_filter"] = "disabled";
+                    coreSettings["genesis_plus_gx_wide_lowpass_range"] = "0";
+                }
+            }
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "genesis_plus_gx_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "genesis_plus_gx_controller2", "1");
 
             BindFeature(coreSettings, "genesis_plus_gx_wide_gun_cursor", "gun_cursor", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_gun_input", "gun_input", "lightgun");
@@ -2227,7 +2338,22 @@ namespace emulatorLauncher.libRetro
                 return;
 
             BindFeature(coreSettings, "prosystem_color_depth", "prosystem_color_depth", "16bit");
-            BindFeature(coreSettings, "prosystem_low_pass_filter", "prosystem_low_pass_filter", "disabled");
+
+            // Audio Filter
+            if (Features.IsSupported("prosystem_low_pass_filter"))
+            {
+                if (SystemConfig.isOptSet("prosystem_low_pass_filter") && SystemConfig["prosystem_low_pass_filter"] != "0")
+                {
+                    coreSettings["prosystem_low_pass_filter"] = "enabled";
+                    coreSettings["prosystem_low_pass_range"] = SystemConfig["prosystem_low_pass_filter"];
+                }
+                else
+                {
+                    coreSettings["prosystem_low_pass_filter"] = "disabled";
+                    coreSettings["prosystem_low_pass_range"] = "0";
+                }
+            }
+
             BindFeature(coreSettings, "prosystem_gamepad_dual_stick_hack", "dual_stick_hack", "disabled");
         }
 
@@ -2321,6 +2447,12 @@ namespace emulatorLauncher.libRetro
             // toadd
             BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");
             BindFeature(coreSettings, "reicast_frame_skipping", "reicast_frame_skipping", "disabled");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "flycast_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "flycast_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "flycast_controller3", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "flycast_controller4", "1");
 
             SetupLightGuns(retroarchConfig, "4");
         }
@@ -2558,8 +2690,22 @@ namespace emulatorLauncher.libRetro
             if (core != "a5200")
                 return;
 
-            BindFeature(coreSettings, "a5200_low_pass_filter", "a5200_low_pass_filter", "disabled");
             BindFeature(coreSettings, "a5200_mix_frames", "a5200_mix_frames", "disabled");
+
+            // Audio Filter
+            if (Features.IsSupported("a5200_low_pass_filter"))
+            {
+                if (SystemConfig.isOptSet("a5200_low_pass_filter") && SystemConfig["a5200_low_pass_filter"] != "0")
+                {
+                    coreSettings["a5200_low_pass_filter"] = "enabled";
+                    coreSettings["a5200_low_pass_range"] = SystemConfig["a5200_low_pass_filter"];
+                }
+                else
+                {
+                    coreSettings["a5200_low_pass_filter"] = "disabled";
+                    coreSettings["a5200_low_pass_range"] = "0";
+                }
+            }
 
             // Controls
             BindFeature(coreSettings, "a5200_input_hack", "a5200_input_hack", "disabled");
@@ -2646,7 +2792,6 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "mgba_gb_model", "mgba_gb_model", "Autodetect");
             BindFeature(coreSettings, "mgba_skip_bios", "mgba_skip_bios", "OFF");
-            BindFeature(coreSettings, "mgba_audio_low_pass_filter", "mgba_audio_low_pass_filter", "disabled");
             BindFeature(coreSettings, "mgba_force_gbp", "mgba_force_gbp", "OFF");
             BindFeature(coreSettings, "mgba_gb_colors", "mgba_gb_colors", "Grayscale");
             BindFeature(coreSettings, "mgba_interframe_blending", "mgba_interframe_blending", "OFF");
@@ -2656,6 +2801,21 @@ namespace emulatorLauncher.libRetro
 
             if (system == "sgb")
                 BindFeature(coreSettings, "mgba_sgb_borders", "mgba_sgb_borders", "ON");
+
+            // Audio Filter
+            if (Features.IsSupported("mgba_audio_low_pass_filter"))
+            {
+                if (SystemConfig.isOptSet("mgba_audio_low_pass_filter") && SystemConfig["mgba_audio_low_pass_filter"] != "0")
+                {
+                    coreSettings["mgba_audio_low_pass_filter"] = "enabled";
+                    coreSettings["mgba_audio_low_pass_range"] = SystemConfig["mgba_audio_low_pass_filter"];
+                }
+                else
+                {
+                    coreSettings["mgba_audio_low_pass_filter"] = "disabled";
+                    coreSettings["mgba_audio_low_pass_range"] = "0";
+                }
+            }
         }
 
         private void ConfigureMrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
