@@ -491,13 +491,26 @@ namespace emulatorLauncher
 
             commandArray.Add("-skip_gameinfo");
 
-            
+            // Cleanup previous ini file
+            // This is required, else there might be multiple image devices listed and MAME might autoload the wrong one
+            string iniFileName = "";
+            if (SystemConfig.isOptSet("altmodel"))
+                iniFileName = SystemConfig["altmodel"];
+            else if (MachineName == "%romname%")
+                iniFileName = Path.GetFileNameWithoutExtension(rom);
+            else if (!string.IsNullOrEmpty(this.MachineName) && this.MachineName != "%romname%")
+                iniFileName = MachineName;
+
+            var bios = AppConfig.GetFullPath("bios");
+
+            string inipath = Path.Combine(bios, "mame", "ini", iniFileName + ".ini");
+            if (File.Exists(inipath))
+                File.Delete(inipath);
+
             // rompath
             commandArray.Add("-rompath");
             if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig.GetFullPath("bios")))
             {
-                var bios = AppConfig.GetFullPath("bios");
-
                 if (Directory.Exists(Path.Combine(bios, "mess")))
                     commandArray.Add(Path.Combine(bios, "mess") + ";" + bios + ";" + Path.GetDirectoryName(rom));
                 else
