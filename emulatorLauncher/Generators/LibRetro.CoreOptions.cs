@@ -129,7 +129,7 @@ namespace emulatorLauncher.libRetro
                 { "mednafen_psx_hw", "Beetle PSX HW" },
                 { "mednafen_psx", "Beetle PSX" },
                 { "mednafen_saturn", "Beetle Saturn" },
-                { "mednafen_snes", "Beetle bsnes" },
+                { "mednafen_snes", "Mednafen bSNES" },
                 { "mednafen_supafaust", "Beetle Supafaust" },
                 { "mednafen_supergrafx", "Beetle SuperGrafx" },
                 { "mednafen_vb", "Beetle VB" },
@@ -299,7 +299,10 @@ namespace emulatorLauncher.libRetro
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
+            ConfigureMesenS(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenSuperGrafx(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenPCFX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
@@ -314,6 +317,7 @@ namespace emulatorLauncher.libRetro
             ConfigureFbalphaCPS2(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenPceFast(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             Configure4Do(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
@@ -734,6 +738,20 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "pce_adpcmvolume", "pcecdvolume", "100");
             BindFeature(coreSettings, "pce_cddavolume", "pcecdvolume", "100");
             BindFeature(coreSettings, "pce_cdpsgvolume", "pcecdvolume", "100");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
+        }
+
+        private void ConfigureMednafenPceFast(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_pce_fast")
+                return;
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
         }
 
         private void ConfigureFbalpha(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1237,7 +1255,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p3", "kronos_controller3", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p4", "kronos_controller4", "1");
 
-            SetupLightGuns(retroarchConfig, "260");
+            SetupLightGuns(retroarchConfig, "2");     // Kronos does not have device 260, only mouse "2"
         }
 
         private void ConfigureHandy(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1504,6 +1522,10 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "nestopia_show_crosshair", "nestopia_show_crosshair", "disabled");
             BindFeature(coreSettings, "nestopia_favored_system", "nestopia_favored_system", "auto");
             BindFeature(coreSettings, "nestopia_button_shift", "nestopia_button_shift", "disabled");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "nestopia_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "nestopia_controller2", "1");
 
             coreSettings["nestopia_zapper_device"] = "lightgun";
             SetupLightGuns(retroarchConfig, "262", 2);
@@ -2470,6 +2492,22 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mesen_shift_buttons_clockwise", "shift_buttons", "disabled");
             BindFeature(coreSettings, "mesen_fake_stereo", "fake_stereo", "disabled");
 
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "mesen_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "mesen_controller2", "1");
+
+            SetupLightGuns(retroarchConfig, "262", 2);
+        }
+
+        private void ConfigureMesenS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mesen-s")
+                return;
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "mesen_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "mesen_controller2", "1");
+
             SetupLightGuns(retroarchConfig, "262", 2);
         }
 
@@ -2921,6 +2959,25 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "X1_RESOLUTE", "x1_resolute", "LOW");
         }
+
+        private void ConfigureMednafenSuperGrafx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_supergrafx")
+                return;
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "supergrafx_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "supergrafx_controller2", "1");
+        }
+
+        private void ConfigureMednafenPCFX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_pcfx")
+                return;
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "pcfx_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "pcfx_controller2", "1");
+        }
+
 
         #region Input remaps
         private Dictionary<string, string> InputRemap = new Dictionary<string, string>();
