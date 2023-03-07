@@ -825,7 +825,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["fba2012cps2_lowpass_filter"] = "disabled";
-                    coreSettings["fba2012cps2_lowpass_range"] = "0";
+                    coreSettings["fba2012cps2_lowpass_range"] = "60";
                 }
             }
 
@@ -854,7 +854,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["fba2012cps1_lowpass_filter"] = "disabled";
-                    coreSettings["fba2012cps1_lowpass_range"] = "0";
+                    coreSettings["fba2012cps1_lowpass_range"] = "60";
                 }
             }
         }
@@ -866,9 +866,9 @@ namespace emulatorLauncher.libRetro
 
             coreSettings["ppsspp_cpu_core"] = "jit";
             coreSettings["ppsspp_auto_frameskip"] = "disabled";
-            coreSettings["ppsspp_frameskip"] = "0";
+            coreSettings["ppsspp_frameskip"] = "Off";
             coreSettings["ppsspp_frameskiptype"] = "number of frames";
-            coreSettings["ppsspp_rendering_mode"] = "buffered";
+            coreSettings["ppsspp_rendering_mode"] = "Buffered";
             coreSettings["ppsspp_locked_cpu_speed"] = "off";
 
             if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
@@ -880,7 +880,7 @@ namespace emulatorLauncher.libRetro
             {
                 case "Fast":
                     coreSettings["ppsspp_block_transfer_gpu"] = "disabled";
-                    coreSettings["ppsspp_spline_quality"] = "low";
+                    coreSettings["ppsspp_spline_quality"] = "Low";
                     coreSettings["ppsspp_software_skinning"] = "enabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
                     coreSettings["ppsspp_vertex_cache"] = "enabled";
@@ -892,7 +892,7 @@ namespace emulatorLauncher.libRetro
                     break;
                 case "Balanced":
                     coreSettings["ppsspp_block_transfer_gpu"] = "enabled";
-                    coreSettings["ppsspp_spline_quality"] = "medium";
+                    coreSettings["ppsspp_spline_quality"] = "Medium";
                     coreSettings["ppsspp_software_skinning"] = "disabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
                     coreSettings["ppsspp_vertex_cache"] = "enabled";
@@ -904,7 +904,7 @@ namespace emulatorLauncher.libRetro
                     break;
                 case "Accurate":
                     coreSettings["ppsspp_block_transfer_gpu"] = "enabled";
-                    coreSettings["ppsspp_spline_quality"] = "high";
+                    coreSettings["ppsspp_spline_quality"] = "High";
                     coreSettings["ppsspp_software_skinning"] = "disabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "disabled";
                     coreSettings["ppsspp_vertex_cache"] = "disabled";
@@ -916,7 +916,7 @@ namespace emulatorLauncher.libRetro
                     break;
                 default:
                     coreSettings["ppsspp_block_transfer_gpu"] = "enabled";
-                    coreSettings["ppsspp_spline_quality"] = "medium";
+                    coreSettings["ppsspp_spline_quality"] = "Medium";
                     coreSettings["ppsspp_software_skinning"] = "enabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
                     coreSettings["ppsspp_vertex_cache"] = "disabled";
@@ -930,15 +930,15 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "ppsspp_internal_resolution", "ppsspp_internal_resolution", "1440x816");
             BindFeature(coreSettings, "ppsspp_texture_anisotropic_filtering", "ppsspp_texture_anisotropic_filtering", "off");
-            BindFeature(coreSettings, "ppsspp_texture_filtering", "ppsspp_texture_filtering", "auto");
+            BindFeature(coreSettings, "ppsspp_texture_filtering", "ppsspp_texture_filtering", "Auto");
             BindFeature(coreSettings, "ppsspp_texture_scaling_type", "ppsspp_texture_scaling_type", "xbrz");
-            BindFeature(coreSettings, "ppsspp_texture_scaling_level", "ppsspp_texture_scaling_level", "auto");
+            BindFeature(coreSettings, "ppsspp_texture_scaling_level", "ppsspp_texture_scaling_level", "Off");
             BindFeature(coreSettings, "ppsspp_texture_deposterize", "ppsspp_texture_deposterize", "disabled");
-            BindFeature(coreSettings, "ppsspp_language", "ppsspp_language", "automatic");
+            BindFeature(coreSettings, "ppsspp_language", "ppsspp_language", "Automatic");
             BindFeature(coreSettings, "ppsspp_io_timing_method", "ppsspp_io_timing_method", "Fast");
             BindFeature(coreSettings, "ppsspp_ignore_bad_memory_access", "ppsspp_ignore_bad_memory_access", "enabled");
             BindFeature(coreSettings, "ppsspp_texture_replacement", "ppsspp_texture_replacement", "disabled");
-            BindFeature(coreSettings, "ppsspp_button_preference", "ppsspp_button_preference", "cross");
+            BindFeature(coreSettings, "ppsspp_button_preference", "ppsspp_button_preference", "Cross");
             BindFeature(coreSettings, "ppsspp_mulitsample_level", "ppsspp_mulitsample_level", "Disabled");
         }
 
@@ -1025,7 +1025,6 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "citra_analog_function", "citra_analog_function", "C-Stick and Touchscreen Pointer");
             BindFeature(coreSettings, "citra_mouse_touchscreen", "citra_mouse_touchscreen", "enabled");
-            BindFeature(coreSettings, "citra_mouse_show_pointer", "citra_mouse_show_pointer", "enabled");
         }
 
         private void ConfigureMednafenSaturn(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1046,14 +1045,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_saturn_region", "beetle_saturn_region", "Auto Detect");
 
             // NEW
-            BindFeature(coreSettings, "beetle_saturn_virtuagun_crosshair", "beetle_saturn_virtuagun_crosshair", "cross", true);
+            BindFeature(coreSettings, "beetle_saturn_virtuagun_crosshair", "beetle_saturn_virtuagun_crosshair", "Cross", true);
             BindFeature(coreSettings, "beetle_saturn_mouse_sensitivity", "beetle_saturn_mouse_sensitivity", "100%");
-            BindFeature(coreSettings, "beetle_saturn_virtuagun_input", "beetle_saturn_virtuagun_input", "lightgun", true);
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "saturn_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "saturn_controller2", "1");
-
+            
+            coreSettings["beetle_saturn_virtuagun_input"] = "Lightgun";
             SetupLightGuns(retroarchConfig, "260");
         }
 
@@ -1093,7 +1092,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["picodrive_audio_filter"] = "disabled";
-                    coreSettings["picodrive_lowpass_range"] = "0";
+                    coreSettings["picodrive_lowpass_range"] = "60";
                 }
             }
         }
@@ -1188,7 +1187,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["pokemini_lowpass_filter"] = "disabled";
-                    coreSettings["pokemini_lowpass_range"] = "0";
+                    coreSettings["pokemini_lowpass_range"] = "60";
                 }
             }
 
@@ -1277,10 +1276,10 @@ namespace emulatorLauncher.libRetro
 
         static List<KeyValuePair<string, string>> operaHacks = new List<KeyValuePair<string, string>>()
             {
-                new KeyValuePair<string, string>("crashnburn", "timing_hack1"),
-                new KeyValuePair<string, string>("dinopark tycoon", "timing_hack3"),
-                new KeyValuePair<string, string>("microcosm", "timing_hack5"),
-                new KeyValuePair<string, string>("aloneinthedark", "timing_hack6"),
+                new KeyValuePair<string, string>("crashnburn", "hack_timing_1"),
+                new KeyValuePair<string, string>("dinopark tycoon", "hack_timing_3"),
+                new KeyValuePair<string, string>("microcosm", "hack_timing_5"),
+                new KeyValuePair<string, string>("aloneinthedark", "hack_timing_6"),
                 new KeyValuePair<string, string>("samuraishowdown", "hack_graphics_step_y")
             };
 
@@ -1357,7 +1356,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["stella2014_low_pass_filter"] = "disabled";
-                    coreSettings["stella2014_low_pass_range"] = "0";
+                    coreSettings["stella2014_low_pass_range"] = "60";
                 }
             }
         }
@@ -1565,7 +1564,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["o2em_low_pass_filter"] = "disabled";
-                    coreSettings["o2em_low_pass_range"] = "0";
+                    coreSettings["o2em_low_pass_range"] = "60";
                 }
             }
         }
@@ -1591,7 +1590,7 @@ namespace emulatorLauncher.libRetro
             coreSettings["mame2003-plus_xy_device"] = "lightgun";
 
             BindFeature(coreSettings, "mame2003-plus_analog", "mame2003-plus_analog", "digital");
-            BindFeature(coreSettings, "mame2003-plus_frameskip", "mame2003-plus_frameskip", "0");
+            BindFeature(coreSettings, "mame2003-plus_frameskip", "mame2003-plus_frameskip", "disabled");
             BindFeature(coreSettings, "mame2003-plus_input_interface", "mame2003-plus_input_interface", "retropad");
             BindFeature(coreSettings, "mame2003-plus_neogeo_bios", "mame2003-plus_neogeo_bios", "unibios33");
             BindFeature(coreSettings, "mame2003-plus_tate_mode", "mame2003-plus_tate_mode", "disabled");
@@ -1619,7 +1618,7 @@ namespace emulatorLauncher.libRetro
             if (core != "cap32")
                 return;
 
-            coreSettings["cap32_autorun"] = "autorun";
+            coreSettings["cap32_autorun"] = "enabled";
 
             // Virtual Keyboard by default (select+start) change to (start+Y)
             coreSettings["cap32_combokey"] = "y";
@@ -1795,7 +1794,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "snes9x_blargg", "snes9x_blargg", "disabled"); // Emulated video signal
             BindFeature(coreSettings, "snes9x_overscan", "snes9x_overscan", "auto"); // Overscan
             BindFeature(coreSettings, "snes9x_region", "snes9x_region", "auto"); // Region
-            BindFeature(coreSettings, "snes9x_gfx_hires", "snes9x_gfx_hires", "disabled"); // Internal resolution
             BindFeature(coreSettings, "snes9x_hires_blend", "snes9x_hires_blend", "disabled"); // Pixel blending
             BindFeature(coreSettings, "snes9x_audio_interpolation", "snes9x_audio_interpolation", "none"); // Audio interpolation
             BindFeature(coreSettings, "snes9x_overclock_superfx", "snes9x_overclock_superfx", "100%"); // SuperFX overclock
@@ -1959,7 +1957,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["genesis_plus_gx_audio_filter"] = "disabled";
-                    coreSettings["genesis_plus_gx_lowpass_range"] = "0";
+                    coreSettings["genesis_plus_gx_lowpass_range"] = "60";
                 }
             }
 
@@ -2037,7 +2035,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["genesis_plus_gx_wide_audio_filter"] = "disabled";
-                    coreSettings["genesis_plus_gx_wide_lowpass_range"] = "0";
+                    coreSettings["genesis_plus_gx_wide_lowpass_range"] = "60";
                 }
             }
 
@@ -2093,7 +2091,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mame_alternate_renderer", "alternate_renderer", "disabled");
             BindFeature(coreSettings, "mame_altres", "internal_resolution", "640x480");
             BindFeature(coreSettings, "mame_cheats_enable", "cheats_enable", "disabled");
-            BindFeature(coreSettings, "mame_mame_4way_enable", "4way_enable", "enabled");
+            BindFeature(coreSettings, "mame_mame_4way_enable", "4way_enable", "disabled");
             BindFeature(coreSettings, "mame_lightgun_mode", "lightgun_mode", "lightgun");
 
             BindFeature(coreSettings, "mame_boot_from_cli", "boot_from_cli", "enabled", true);
@@ -2183,7 +2181,6 @@ namespace emulatorLauncher.libRetro
 
             }
 
-            //coreSettings["mupen64plus-cpucore"] = "pure_interpreter";
             coreSettings["mupen64plus-rsp-plugin"] = "hle";
             coreSettings["mupen64plus-EnableLODEmulation"] = "True";
             coreSettings["mupen64plus-EnableCopyAuxToRDRAM"] = "True";
@@ -2300,11 +2297,11 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mupen64plus-txFilterMode", "Texture_filter", "None");
 
             // Parallel
-            BindFeature(coreSettings, "mupen64plus-parallel-rdp-deinterlace-method", "mupen64plus-parallel-rdp-deinterlace-method", "none");
+            BindFeature(coreSettings, "mupen64plus-parallel-rdp-deinterlace-method", "mupen64plus-parallel-rdp-deinterlace-method", "Bob");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-dither-filter", "mupen64plus-parallel-rdp-dither-filter", "True");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-divot-filter", "mupen64plus-parallel-rdp-divot-filter", "True");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-downscaling", "mupen64plus-parallel-rdp-downscaling", "disable");
-            BindFeature(coreSettings, "mupen64plus-parallel-rdp-gamma-dither", "mupen64plus-parallel-rdp-gamma-dither", "disable");
+            BindFeature(coreSettings, "mupen64plus-parallel-rdp-gamma-dither", "mupen64plus-parallel-rdp-gamma-dither", "False");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-native-texture-lod", "mupen64plus-parallel-rdp-native-texture-lod", "False");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-overscan", "mupen64plus-parallel-rdp-overscan", "16");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-super-sampled-read-back", "mupen64plus-parallel-rdp-super-sampled-read-back", "False");
@@ -2320,8 +2317,6 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["dosbox_pure_advanced"] = "true";
-            coreSettings["dosbox_pure_auto_mapping"] = "true";
-            coreSettings["dosbox_pure_bind_unused"] = "true";
             coreSettings["dosbox_pure_savestate"] = "on";
             retroarchConfig["video_font_enable"] = "false"; // Disable OSD for dosbox_pure
 
