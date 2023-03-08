@@ -2367,7 +2367,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["prosystem_low_pass_filter"] = "disabled";
-                    coreSettings["prosystem_low_pass_range"] = "0";
+                    coreSettings["prosystem_low_pass_range"] = "60";
                 }
             }
 
@@ -2386,7 +2386,7 @@ namespace emulatorLauncher.libRetro
             // System options
             BindFeature(coreSettings, "puae_model", "model", "auto");
             BindFeature(coreSettings, "puae_cpu_compatibility", "cpu_compatibility", "normal");
-            BindFeature(coreSettings, "puae_cpu_multiplier", "cpu_multiplier", "default");
+            BindFeature(coreSettings, "puae_cpu_multiplier", "cpu_multiplier", "0");
             BindFeature(coreSettings, "puae_kickstart", "puae_kickstart", "auto");
             BindFeature(coreSettings, "puae_use_whdload_prefs", "whdload", "config");
             BindFeature(coreSettings, "puae_floppy_speed", "floppy_speed", "100");
@@ -2441,10 +2441,10 @@ namespace emulatorLauncher.libRetro
             }
 
             BindFeature(coreSettings, "reicast_anisotropic_filtering", "anisotropic_filtering", "off");
-            BindFeature(coreSettings, "reicast_texupscale", "texture_upscaling", "off");
+            BindFeature(coreSettings, "reicast_texupscale", "texture_upscaling", "1");
             BindFeature(coreSettings, "reicast_render_to_texture_upscaling", "render_to_texture_upscaling", "1x");
             BindFeature(coreSettings, "reicast_force_wince", "force_wince", "disabled");
-            BindFeature(coreSettings, "reicast_cable_type", "cable_type", "VGA (RGB)");
+            BindFeature(coreSettings, "reicast_cable_type", "cable_type", "TV (RGB)");
             BindFeature(coreSettings, "reicast_internal_resolution", "internal_resolution", "640x480");
             BindFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "disabled");
             BindFeature(coreSettings, "reicast_allow_service_buttons", "reicast_allow_service_buttons", "disabled");
@@ -2462,8 +2462,15 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_pvr2_filtering", "reicast_pvr2_filtering", "disabled");
 
             // toadd
-            BindFeature(coreSettings, "reicast_synchronous_rendering", "reicast_synchronous_rendering", "enabled");
-            BindFeature(coreSettings, "reicast_frame_skipping", "reicast_frame_skipping", "disabled");
+            BindFeature(coreSettings, "reicast_threaded_rendering", "reicast_threaded_rendering", "enabled");
+
+            if (SystemConfig.isOptSet("reicast_frame_skipping") && SystemConfig["reicast_frame_skipping"] != "disabled")
+            {
+                coreSettings["reicast_frame_skipping"] = SystemConfig["reicast_frame_skipping"];
+                coreSettings["reicast_threaded_rendering"] = "enabled";
+            }
+            else
+                coreSettings["reicast_frame_skipping"] = "disabled";
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "flycast_controller1", "1");
@@ -2708,7 +2715,7 @@ namespace emulatorLauncher.libRetro
             if (core != "81")
                 return;
 
-            BindFeature(coreSettings, "81_border_size", "81_border_size", "normal");
+            BindFeature(coreSettings, "81_hide_border", "81_hide_border", "disabled");
             BindFeature(coreSettings, "81_highres", "81_highres", "auto");
             BindFeature(coreSettings, "81_chroma_81", "81_chroma_81", "auto");
             BindFeature(coreSettings, "81_video_presets", "81_video_presets", "clean");
@@ -2736,7 +2743,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["a5200_low_pass_filter"] = "disabled";
-                    coreSettings["a5200_low_pass_range"] = "0";
+                    coreSettings["a5200_low_pass_range"] = "60";
                 }
             }
 
@@ -2846,7 +2853,7 @@ namespace emulatorLauncher.libRetro
                 else
                 {
                     coreSettings["mgba_audio_low_pass_filter"] = "disabled";
-                    coreSettings["mgba_audio_low_pass_range"] = "0";
+                    coreSettings["mgba_audio_low_pass_range"] = "60";
                 }
             }
         }
@@ -2883,7 +2890,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "px68k_frameskip", "px68k_frameskip", "Full Frame");
             BindFeature(coreSettings, "px68k_joytype1", "px68k_joytype", "Default (2 Buttons)");
             BindFeature(coreSettings, "px68k_joytype2", "px68k_joytype", "Default (2 Buttons)");
-            BindFeature(coreSettings, "px68k_joy1_select", "px68k_joy1_select", "Full Frame");
+            BindFeature(coreSettings, "px68k_joy1_select", "px68k_joy1_select", "Default");
             BindFeature(coreSettings, "px68k_joy_mouse", "px68k_joy_mouse", "Mouse");
         }
 
