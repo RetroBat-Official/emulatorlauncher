@@ -154,6 +154,8 @@
 	
 	"psvita": { "name": "PS Vita", "biosFiles":  [ { "md5": "8b5f60b56c3da8365b973dba570c53a5", "file": "bios/PSP2UPDAT.PUP" },
 	                                               { "md5": "f2c7b12fe85496ec88a0391b514d6e3b", "file": "bios/PSVUPDAT.PUP" } ] },
+                                                   
+	"colecovision": { "name": "ColecoVision", "biosFiles":  [ { "md5": "2c66f5911e5b42b8ebe113403548eee7", "file": "bios/colecovision.rom" } ] },
 
 	"lynx48k": { "name": "Camputers Lynx", "biosFiles": [ { "md5": "85ae78a20ffaff388dd09c75d9e1ec0e", "file": "lynx48k.zip" } ] },
 
