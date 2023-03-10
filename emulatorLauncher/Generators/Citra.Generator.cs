@@ -111,9 +111,15 @@ namespace emulatorLauncher
                 if (Features.IsSupported("citra_layout_option"))
                 {
                     if (SystemConfig.isOptSet("citra_layout_option"))
+                    {
+                        ini.WriteValue("Layout", "layout_option\\default", "false");
                         ini.WriteValue("Layout", "layout_option", SystemConfig["citra_layout_option"]);
+                    }
                     else
+                    {
+                        ini.WriteValue("Layout", "layout_option\\default", "true");
                         ini.WriteValue("Layout", "layout_option", "0");
+                    }
                 }
 
                 if (Features.IsSupported("citra_swap_screen"))

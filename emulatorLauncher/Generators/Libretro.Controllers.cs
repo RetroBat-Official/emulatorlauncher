@@ -352,26 +352,6 @@ namespace emulatorLauncher.libRetro
             foreach (var key in generatedConfig)
                 retroconfig[key.Key] = key.Value;
 
-            if (controller.Name == "Keyboard")
-                return;
-
-            // Seul sdl2 reconnait le bouton Guide
-            retroconfig["input_joypad_driver"] = _inputDriver;
-
-            int index = controller.DeviceIndex;
-            if (index < 0)
-                index = controller.PlayerIndex - 1;
-
-            if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath) && controller.SdlController != null)
-                index = controller.SdlController.Index;
-            else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex >= 0)
-                index = controller.DirectInput.DeviceIndex;
-            else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex >= 0)
-                index = controller.XInput.DeviceIndex;
-
-            retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = index.ToString();
-            retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.PlayerIndex)] = GetAnalogMode(controller, system);
-
             /// Turbo button (if shared feature is set)
             /// input_player{0}_turbo_{1} = turbo activation button (turbokey)
             /// input_turbo_default_button = button that is turbo'ed (turbo_default_button)
@@ -383,7 +363,7 @@ namespace emulatorLauncher.libRetro
             {
                 // Define turbo mode
                 retroconfig["input_turbo_mode"] = Program.SystemConfig["enable_turbo"];
-                
+
                 // Set up a default turbo button if selected (this is the target button to be turbo'd and is necessary in HOLD mode)
                 if (Program.SystemConfig.isOptSet("turbo_default_button") && !string.IsNullOrEmpty(Program.SystemConfig["turbo_default_button"]))
                     retroconfig["input_turbo_default_button"] = Program.SystemConfig["turbo_default_button"];
@@ -399,9 +379,14 @@ namespace emulatorLauncher.libRetro
                     {
                         turbokey = turbobuttons[turbobutton];
                         var input = GetInputCode(controller, turbokey);
-                        retroconfig[string.Format("input_player{0}_turbo_{1}", controller.PlayerIndex, typetoname[input.Type])] = GetConfigValue(input);
+                        if (controller.Name == "Keyboard")
+                        {
+                            retroconfig[string.Format("input_player{0}_turbo", controller.PlayerIndex)] = GetConfigValue(input);
+                        }
+                        else
+                            retroconfig[string.Format("input_player{0}_turbo_{1}", controller.PlayerIndex, typetoname[input.Type])] = GetConfigValue(input);
                     }
-                    
+
                     else
                     {
                         retroconfig[string.Format("input_player{0}_turbo_btn", controller.PlayerIndex)] = "nul";
@@ -421,6 +406,26 @@ namespace emulatorLauncher.libRetro
                 retroconfig[string.Format("input_player{0}_turbo_btn", controller.PlayerIndex)] = "nul";
                 retroconfig[string.Format("input_player{0}_turbo_axis", controller.PlayerIndex)] = "nul";
             }
+
+            if (controller.Name == "Keyboard")
+                return;
+
+            // Seul sdl2 reconnait le bouton Guide
+            retroconfig["input_joypad_driver"] = _inputDriver;
+
+            int index = controller.DeviceIndex;
+            if (index < 0)
+                index = controller.PlayerIndex - 1;
+
+            if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath) && controller.SdlController != null)
+                index = controller.SdlController.Index;
+            else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex >= 0)
+                index = controller.DirectInput.DeviceIndex;
+            else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex >= 0)
+                index = controller.XInput.DeviceIndex;
+
+            retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = index.ToString();
+            retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.PlayerIndex)] = GetAnalogMode(controller, system);
         }
 
         public static string GetConfigValue(Input input)
