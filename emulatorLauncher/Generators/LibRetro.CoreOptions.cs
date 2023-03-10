@@ -1909,6 +1909,10 @@ namespace emulatorLauncher.libRetro
                 BindFeature(coreSettings, "bsnes_aspect_ratio", "bsnes_aspect_ratio", "Auto");
             }
 
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+
             // Gun configuration only for bsnes as bsnes_hd_beta does not have lightgun
             if (SystemConfig.getOptBoolean("use_guns") && core == "bsnes")
             {
