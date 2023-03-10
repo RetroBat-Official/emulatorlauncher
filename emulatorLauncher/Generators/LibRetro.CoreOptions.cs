@@ -1700,8 +1700,8 @@ namespace emulatorLauncher.libRetro
             }
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "a800_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "a800_controller2", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "a800_controller1", "513");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "a800_controller2", "513");
 
             if (string.IsNullOrEmpty(AppConfig["bios"]))
                 return;
