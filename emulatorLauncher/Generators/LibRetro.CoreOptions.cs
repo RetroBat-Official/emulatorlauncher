@@ -2428,7 +2428,7 @@ namespace emulatorLauncher.libRetro
             coreSettings["reicast_enable_purupuru"] = "enabled"; // Enable controller force feedback
 
             BindFeature(coreSettings, "reicast_widescreen_hack", "widescreen_hack", "disabled");
-            BindFeature(coreSettings, "reicast_widescreen_cheats", "widescreen_hack", "disabled");
+            BindFeature(coreSettings, "reicast_widescreen_cheats", "widescreen_cheats", "disabled");
             BindFeature(coreSettings, "reicast_screen_rotation", "reicast_screen_rotation", "horizontal");
 
             if (SystemConfig["reicast_screen_rotation"] == "vertical")
