@@ -156,10 +156,11 @@ namespace emulatorLauncher
                             new MessRomType("cart", new string[] { "rpk" } )
                         }) { UseFileNameWithoutExtension = true },
 
-                new MessSystem("archimedes"         ,"aa4401"     , new MessRomType[]
-                        {
-                            new MessRomType("flop" ),
-                        }),
+                // Archimedes
+                new MessSystem("archimedes"         ,"aa4401"     , "flop"),
+                new MessSystem("aa310"        ,"aa310"    ,"flop"  ),
+                new MessSystem("aa3000"        ,"aa3000"    ,"flop"  ),
+                new MessSystem("aa540"        ,"aa540"    ,"flop"  ),
 
                 // TUTOR
                 new MessSystem("tutor"        ,"tutor"    ,new MessRomType[]
@@ -167,6 +168,13 @@ namespace emulatorLauncher
                             new MessRomType("cass", new string[] { "wav" }),
                             new MessRomType("cart", new string[] { "bin" })
                         }),
+
+                // Atari XEGS
+                new MessSystem("xegs"         ,"xegs", new MessRomType[]
+                        {
+                            new MessRomType("flop1", new string[] { "atr", "dsk", "xfd" } ),
+                            new MessRomType("cart")
+                        }){ UseFileNameWithoutExtension = true },
                 
                 //atom;atom;flop1;'*DOS\n*DIR\n*CAT\n*RUN"'
                 new MessSystem("atom"         ,"atom"     , new MessRomType[] 
@@ -218,12 +226,6 @@ namespace emulatorLauncher
                             new MessRomType("quik", new string[] { "p00", "prg", "t64" } ), 
                             new MessRomType("flop")
                         }),
-                          
-                new MessSystem("xegs"         ,"xegs", new MessRomType[] 
-                        { 
-                            new MessRomType("flop1", new string[] { "atr", "dsk", "xfd" } ), 
-                            new MessRomType("cart")
-                        }){ UseFileNameWithoutExtension = true },
 
                 new MessSystem("alice32"      ,"alice32", new MessRomType[] 
                         { 
@@ -407,7 +409,6 @@ namespace emulatorLauncher
                 new MessSystem("megaduck"     ,"megaduck" ,"cart"  ),
                 new MessSystem("gamate"       ,"gamate"   ,"cart"  ),              
                 new MessSystem("gamepock"     ,"gamepock" ,"cart"  ),
-                new MessSystem("aarch"        ,"aa310"    ,"flop"  ),
                 new MessSystem("apfm1000"     ,"apfm1000" ,"cart"  ),                
                 new MessSystem("arcadia"      ,"arcadia"  ,"cart"  ),
                 new MessSystem("supracan"     ,"supracan" ,"cart"  ),
