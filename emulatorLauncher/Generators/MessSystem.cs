@@ -176,15 +176,83 @@ namespace emulatorLauncher
                             new MessRomType("cart")
                         }){ UseFileNameWithoutExtension = true },
                 
-                //atom;atom;flop1;'*DOS\n*DIR\n*CAT\n*RUN"'
+                // VSMILE
+                new MessSystem("vsmile"       ,"vsmile"   ,"cart"  ),
+                new MessSystem("vsmilem"       ,"vsmilem"   ,"cart"  ),
+                new MessSystem("vsmilpro"       ,"vsmilpro"   ,"cdrm"  ),
+
+                // Supracan
+                new MessSystem("supracan"     ,"supracan" ,"cart"  ),
+
+                // Megaduck
+                new MessSystem("megaduck"     ,"megaduck" ,"cart"  ),
+                
+                // Gamate
+                new MessSystem("gamate"       ,"gamate"   ,"cart"  ),
+                
+                // Game Pocket
+                new MessSystem("gamepock"     ,"gamepock" ,"cart"  ),
+
+                // APF M-1000
+                new MessSystem("apfm1000"     ,"apfm1000" ,"cart"  ),
+
+                // Arcadia 2001
+                new MessSystem("arcadia"      ,"arcadia"  ,"cart"  ),
+
+                // Game Master
+                new MessSystem("gmaster"      ,"gmaster"  ,"cart"  ),
+
+                // Tangerine Oric
+                new MessSystem("oric"         ,"orica"     , new MessRomType[]
+                        {
+                            new MessRomType("cass", null, "CLOAD\\\"\\\"\\n" ),
+                        }),
+                
+                // Atom;atom;flop1;'*DOS\n*DIR\n*CAT\n*RUN"'
                 new MessSystem("atom"         ,"atom"     , new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "tap", "cdw", "uef" } ), 
                             new MessRomType("cart", new string[] { "bin", "rom" } ),  
                             new MessRomType("quik", new string[] { "atm" } ),  
-                            new MessRomType("flop1", null, "*DOS\\n*DIR\\n*RUN\\\"runme\\\"\\n" ),  // *CAT\\n
+                            new MessRomType("flop1", null, "*DOS\\n*DIR\\n*CAT\\n" ),  // *CAT\\n - "*DOS\\n*DIR\\n*CAT\\n*RUN\\\"runme\\\"\\n"
                         }),
 
+                // Apple II
+                new MessSystem("apple2"       ,"apple2ee"      , new MessRomType[]
+                        {
+                            new MessRomType("cass", new string[] { "wav" } ),
+                            new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
+                        }),
+
+                new MessSystem("apple2e"       ,"apple2e"      , new MessRomType[]
+                        {
+                            new MessRomType("cass", new string[] { "wav" } ),
+                            new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
+                        }),
+
+                new MessSystem("apple2p"       ,"apple2p"      , new MessRomType[]
+                        {
+                            new MessRomType("cass", new string[] { "wav" } ),
+                            new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
+                        }),
+
+                // Adventure Vision
+                new MessSystem("advision"     ,"advision" ,"cart"  ),
+
+                // Super Cassette Vision
+                new MessSystem("scv"          ,"scv"      ,"cart"  ),
+
+                // Bally Astrocade
+                new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),
+                new MessSystem("astrocade"    ,"astrocde" ,"cart"  ),
+
+                // Casio PV-1000
+                new MessSystem("pv1000"       ,"pv1000"   ,"cart"  ),
+
+                // GameCom
+                new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),
+
+                // NOT IN RETROBAT
                 new MessSystem("x1"           ,"x1" , new MessRomType[] 
                         { 
                             new MessRomType("cart", new string[] { "bin", "rom" } ), 
@@ -264,8 +332,7 @@ namespace emulatorLauncher
                             new MessRomType("hard", new string[] { "hd", "hdv", "2mg", "hdi" }), 
                             new MessRomType("flop")
                         }),
-
-                        
+    
                 new MessSystem("einstein"     ,"einstein"      , "flop1"  ), // Tatung Einstein TC-01
                 new MessSystem("pmd85"        ,"pmd85"         , "cass"  ), // Tesla PMD 85
                 new MessSystem("laser200"     ,"laser200"      , "dump" ), // VTech Laser 200
@@ -276,14 +343,12 @@ namespace emulatorLauncher
                 new MessSystem("pegasus"      ,"pegasus"       , "rom1"  ),  // Amber Pegasus
                 new MessSystem("cpc6128p"     ,"cpc6128p"      , "flop1"  ), // Amstrad CPC Plus
                 new MessSystem("apogee"       ,"apogee"        , "cass"  ),  // Apogee BK-01
-                new MessSystem("apple2"       ,"apple2ee"      , "flop1"  ), // Apple II
                 new MessSystem("apple2gs"     ,"apple2gsr1"    , "flop3"  ), // Apple II GS
                 new MessSystem("sv8000"       ,"sv8000"        , "cart"  ),  // Bandai Super Vision 8000
                 new MessSystem("pv2000"       ,"pv2000"        , "cart"  ),  // Casio PV-2000
                 new MessSystem("vic10"        ,"vic10"         , "cart"  ),  // Commodore MAX Machine
                 new MessSystem("cgenie"       ,"cgenie"        , "cass"  ), // EACA EG2000 Colour Genie                
-                new MessSystem("bk001001"     ,"bk001001"      , "cass"  ), // Electronika BK
-                           
+                new MessSystem("bk001001"     ,"bk001001"      , "cass"  ), // Electronika BK       
                 new MessSystem("gp32"         ,"gp32"          , "memc"  ), // GamePark 32
                 new MessSystem("spc4000"      ,"vc4000"        , "cart"  ), // Grundig Super Play Computer 4000
                 new MessSystem("hmg2650"      ,"arcadia"       , "cart"  ), // Hanimex HMG 2650
@@ -295,10 +360,8 @@ namespace emulatorLauncher
                 new MessSystem("pc6001"       ,"pc6001mk2"     , "cart2"  ), // NEC PC-6001
                 new MessSystem("p2000t"       ,"p2000t"     , "cass"  ), // Philips P2000T
                 new MessSystem("vg5k"         ,"vg5k"     , "cass"  ), // Philips VG 5000
-
                 new MessSystem("radio86"      ,"radio86"     , "cass"  ), // Radio-86RK Partner-01.01
                 new MessSystem("studio2"      ,"studio2"     , "cart"  ), // RCA Studio II
-
                 new MessSystem("svmu"         ,"svmu"     , "quik"  ), // Sega Visual Memory Unit
                 new MessSystem("mz2500"       ,"mz2500"     , "flop1"  ), // Sharp MZ-2500
                 new MessSystem("mz700"        ,"mz700"     , "cass"  ), // Sharp MZ-700
@@ -306,11 +369,6 @@ namespace emulatorLauncher
                 new MessSystem("m5"           ,"m5"     , "cart1"  ), // Sord M5
                 new MessSystem("sf7000"       ,"sf7000"     , "flop"  ), // Super Control Station SF-7000                
                 new MessSystem("supervision"  ,"svision"     , "cart"  ), // Supervision
-
-                new MessSystem("oric"         ,"orica"     , new MessRomType[]   // Tangerine Oric
-                        {                            
-                            new MessRomType("cass", null, "CLOAD\\\"\\\"\\n" ), 
-                        }),
 
                 new MessSystem("pecom64"      ,"pecom64"     , new MessRomType[]   // Pecom 64
                         {                            
@@ -388,17 +446,10 @@ namespace emulatorLauncher
                             new MessRomType("cart")
                         }),
 
-                new MessSystem("scv"          ,"scv"      ,"cart"  ),
                 new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ) { InGameMouse = true },        
-                new MessSystem("advision"     ,"advision" ,"cart"  ),
                 new MessSystem("attache"      ,"attache"  ,"flop1"  ),
                 new MessSystem("ampro"        ,"ampro"    ,"flop1"  ),
                 new MessSystem("apc"          ,"apc"      ,"flop1"  ),
-                new MessSystem("pv1000"       ,"pv1000"   ,"cart"  ),
-                new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),
-                new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),
-                new MessSystem("astrocade"    ,"astrocde" ,"cart"  ),
-                new MessSystem("vsmile"       ,"vsmile"   ,"cart"  ),
                 new MessSystem("gw"           ,""         ,""      ),
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,"%romname%",""      ),
@@ -406,13 +457,6 @@ namespace emulatorLauncher
                 new MessSystem("hbmame"       ,"%romname%",""      ),
                 new MessSystem("cave"         ,"%romname%",""      ),
                 new MessSystem("tvgames"      ,""         ,""      ),
-                new MessSystem("megaduck"     ,"megaduck" ,"cart"  ),
-                new MessSystem("gamate"       ,"gamate"   ,"cart"  ),              
-                new MessSystem("gamepock"     ,"gamepock" ,"cart"  ),
-                new MessSystem("apfm1000"     ,"apfm1000" ,"cart"  ),                
-                new MessSystem("arcadia"      ,"arcadia"  ,"cart"  ),
-                new MessSystem("supracan"     ,"supracan" ,"cart"  ),
-                new MessSystem("gmaster"      ,"gmaster"  ,"cart"  ),
                 new MessSystem("socrates"     ,"socrates" ,"cart"  ),
                 new MessSystem("a2600"        ,"a2600"    ,"cart"  ),
                 new MessSystem("nes"          ,"nes"      ,"cart"  ),
