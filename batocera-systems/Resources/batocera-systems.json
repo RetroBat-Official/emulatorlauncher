@@ -212,6 +212,8 @@
                                                         { "md5": "", "file": "bios/mame/hash/crvision.xml"	} ] },
 
 	"vsmile": { "name": "V. Smile", "biosFiles": [ { "md5": "", "file": "bios/vsmile.zip" } ] },
+    
+	"xegs": { "name": "Atari XEGS", "biosFiles": [ { "md5": "", "file": "bios/xegs.zip" } ] },
 
 	"coco": { "name": "Color Computer", "biosFiles":   [ { "md5": "", "file": "bios/coco.zip"                },
                                                          { "md5": "", "file": "bios/coco2.zip"               },

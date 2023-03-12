@@ -223,7 +223,7 @@ namespace emulatorLauncher
                         { 
                             new MessRomType("flop1", new string[] { "atr", "dsk", "xfd" } ), 
                             new MessRomType("cart")
-                        }),
+                        }){ UseFileNameWithoutExtension = true },
 
                 new MessSystem("alice32"      ,"alice32", new MessRomType[] 
                         { 
@@ -234,12 +234,6 @@ namespace emulatorLauncher
                 new MessSystem("alice90"      ,"alice90", new MessRomType[] 
                         { 
                             new MessRomType("cass", new string[] { "wav", "cas", "c10", "k7" } ), 
-                            new MessRomType("cart")
-                        }),
-
-                new MessSystem("xegs"         ,"xegs", new MessRomType[] 
-                        { 
-                            new MessRomType("flop1", new string[] { "atr", "dsk", "xfd" } ), 
                             new MessRomType("cart")
                         }),
 
