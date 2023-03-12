@@ -749,6 +749,17 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("enable_cheats"))
                     ini.WriteValue("EmuCore", "EnableCheats", "false");
 
+                // Graphics - Emucore (display) - widescreen patch and no-interlacing patch
+                if (SystemConfig.isOptSet("widescreen_patch") && SystemConfig.getOptBoolean("widescreen_patch"))
+                    ini.WriteValue("EmuCore", "EnableWideScreenPatches", "true");
+                else if (Features.IsSupported("widescreen_patch"))
+                    ini.WriteValue("EmuCore", "EnableWideScreenPatches", "false");
+
+                if (SystemConfig.isOptSet("interlacing_patch") && SystemConfig.getOptBoolean("interlacing_patch"))
+                    ini.WriteValue("EmuCore", "EnableNoInterlacingPatches", "true");
+                else if (Features.IsSupported("interlacing_patch"))
+                    ini.WriteValue("EmuCore", "EnableNoInterlacingPatches", "false");
+
                 //Graphics - EmuCore/GS
                 if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                     ini.WriteValue("EmuCore/GS", "AspectRatio", SystemConfig["ratio"]);
