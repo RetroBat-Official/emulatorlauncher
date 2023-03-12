@@ -1102,6 +1102,33 @@ namespace emulatorLauncher.libRetro
             if (core != "parallel_n64")
                 return;
 
+            if (system == "n64dd")
+            {
+                coreSettings["parallel-n64-64dd-hardware"] = "enabled";
+            
+                // Nintendo 64DD IPL bios selection workaround
+                // Parallel core doesn't allow multiple bios selection and looks only for a 64DD_IPL.bin file in \bios folder
+                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus");
+                if (!string.IsNullOrEmpty(biosPath))
+                {
+                    string biosFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "64DD_IPL.bin");
+                    string biosFileSource = Path.Combine(biosPath, SystemConfig["ipl_bios"]);
+
+                    if (Features.IsSupported("ipl_bios") && SystemConfig.isOptSet("ipl_bios"))
+                    {
+                        if (File.Exists(biosFileTarget))
+                            File.Delete(biosFileTarget);
+
+                        if (File.Exists(biosFileSource))
+                            File.Copy(biosFileSource, biosFileTarget);
+
+                    }
+
+                }
+            }
+            else
+                coreSettings["parallel-n64-64dd-hardware"] = "disabled";
+
             BindFeature(coreSettings, "parallel-n64-screensize", "parallel_resolution", "640x480");
             BindFeature(coreSettings, "parallel-n64-aspectratiohint", "parallel_aspect", "normal");
             BindFeature(coreSettings, "parallel-n64-framerate", "parallel_framerate", "original");
