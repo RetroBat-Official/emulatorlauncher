@@ -1289,7 +1289,9 @@ namespace emulatorLauncher.libRetro
             if (core != "handy")
                 return;
 
-            coreSettings["handy_rot"] = "None";
+            BindFeature(coreSettings, "handy_rot", "handy_rot", "None");
+            BindFeature(coreSettings, "handy_gfx_colors", "handy_gfx_colors", "16bit");
+            BindFeature(coreSettings, "handy_lcd_ghosting", "handy_lcd_ghosting", "disabled");
         }
 
         private void ConfigureTheodore(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1604,6 +1606,7 @@ namespace emulatorLauncher.libRetro
             coreSettings["mame2003_skip_disclaimer"] = "enabled";
             coreSettings["mame2003_skip_warnings"] = "enabled";
             coreSettings["mame2003_mouse_device"] = "mouse";
+            BindFeature(coreSettings, "mame2003_tate_mode", "mame2003_tate_mode", "disabled");
         }
 
         private void ConfigureMame2003Plus(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
