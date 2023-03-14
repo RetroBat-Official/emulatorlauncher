@@ -2671,12 +2671,12 @@ namespace emulatorLauncher.libRetro
                 return;
 
             // Common Vice features
+            coreSettings["vice_audio_options_display"] = "enabled";
             BindFeature(coreSettings, "vice_warp_boost", "warp_boost", "enabled");
             BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto");
             BindFeature(coreSettings, "vice_crop", "vice_crop", "disabled");
             BindFeature(coreSettings, "vice_crop_mode", "vice_crop_mode", "both");
             BindFeature(coreSettings, "vice_gfx_colors", "vice_gfx_colors", "16bit");
-            BindFeature(coreSettings, "vice_retropad_options", "vice_retropad_options", "disabled");
 
             // vice_x64 specific features
             if (core == "vice_x64" || core == "vice_x64sc")
@@ -2715,6 +2715,12 @@ namespace emulatorLauncher.libRetro
                 BindFeature(coreSettings, "vice_pet_model", "vice_pet_model", "8032");
                 BindFeature(coreSettings, "vice_pet_external_palette", "vice_pet_external_palette", "default");
             }
+
+            // Controls
+            BindFeature(coreSettings, "vice_retropad_options", "vice_retropad_options", "disabled");
+            BindFeature(coreSettings, "vice_joyport", "vice_joyport", "2");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "vice_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "vice_controller2", "1");
         }
 
         private void ConfigureSwanStation(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
