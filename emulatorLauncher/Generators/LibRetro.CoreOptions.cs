@@ -405,9 +405,8 @@ namespace emulatorLauncher.libRetro
                     if (!string.IsNullOrEmpty(mode))
                         InputRemap["input_player" + i + "_analog_dpad_mode"] = mode;
 
-                    var index = retroarchConfig["input_player" + i + "_joypad_index"];
-                    if (!string.IsNullOrEmpty(index))
-                        InputRemap["input_remap_port_p" + i] = index;
+                    var index = i - 1;
+                        InputRemap["input_remap_port_p" + i] = index.ToString();
                 }
             }
 
