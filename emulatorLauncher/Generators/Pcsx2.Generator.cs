@@ -961,10 +961,15 @@ namespace emulatorLauncher
                     ini.WriteValue("EmuCore/GS", "UserHacks_WildHack", "false");
 
                 //Custom textures
-                if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
+                if (SystemConfig.isOptSet("hires_textures") && SystemConfig["hires_textures"] == "1")
                 {
                     ini.WriteValue("EmuCore/GS", "LoadTextureReplacements", "true");
                     ini.WriteValue("EmuCore/GS", "PrecacheTextureReplacements", "true");
+                }
+                else if (SystemConfig.isOptSet("hires_textures") && SystemConfig["hires_textures"] == "2")
+                {
+                    ini.WriteValue("EmuCore/GS", "LoadTextureReplacements", "true");
+                    ini.WriteValue("EmuCore/GS", "PrecacheTextureReplacements", "false");
                 }
                 else
                 {
