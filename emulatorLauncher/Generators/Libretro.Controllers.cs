@@ -168,10 +168,10 @@ namespace emulatorLauncher.libRetro
             foreach (var dirkey in retroarchdirs)
             {
                 var k = GetInputCode(controller, dirkey);
-                if (k != null && k.Type == "button" || k.Type == "hat")
+                if (k != null && (k.Type == "button" || k.Type == "hat"))
                     return "1";
             }
-
+            
             return "0";
         }
 
