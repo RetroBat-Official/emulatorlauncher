@@ -56,7 +56,7 @@ namespace emulatorLauncher.libRetro
                 { "dolphin", "dolphin-emu" },
                 { "dosbox_core", "DOSBox-core" },
                 { "dosbox", "DOSBox" },
-                { "dosbox_pure", "DOSBox" },
+                { "dosbox_pure", "DOSBox-pure" },
                 { "dosbox_svn_ce", "DOSBox-SVN CE" },
                 { "dosbox_svn", "DOSBox-SVN" },
                 { "duckstation", "DuckStation" },
@@ -2381,6 +2381,10 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "dosbox_pure_bootos_forcenormal", "dosbox_pure_bootos_forcenormal", "false");
             BindFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "false");
             BindFeature(coreSettings, "dosbox_pure_bind_unused", "dosbox_pure_bind_unused", "false");
+
+            // Controller type
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "dos_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "dos_controller2", "1");
         }
 
         private void ConfigureProSystem(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
