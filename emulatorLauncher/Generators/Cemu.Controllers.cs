@@ -195,10 +195,22 @@ namespace emulatorLauncher
 
             string uuid = index + "_" + ctrl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
-            //WiiU and cemu only allow 2 Gamepads, players 1&2 will be set as Gamepads, following players as Pro Controller(s)
+            // Define type of controller
+            // Players 1 & 2 defaults to WIIU Gamepad but can be changed to pro controller in features for some multiplayer games compatibility
+            // Players 3 and 4 default to pro controllers
             bool procontroller = false;
             if (playerIndex == 0 || playerIndex == 1)
-                type = "Wii U GamePad";
+            {
+                string cemuController = "cemu_controllerp" + playerIndex;
+                if (Program.SystemConfig.isOptSet(cemuController) && (Program.SystemConfig[cemuController] == "procontroller"))
+                {
+                    type = "Wii U Pro Controller";
+                    procontroller = true;
+                }
+                else
+                    type = "Wii U GamePad";
+            }
+
             else
             {
                 type = "Wii U Pro Controller";
