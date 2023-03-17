@@ -180,10 +180,9 @@ namespace emulatorLauncher
         }
 
         /// <summary>
-        /// Joysticks configuration
+        /// Wiimote configuration
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="ctrl"></param>
         /// <param name="playerIndex"></param>
         private static void ConfigureWiimotes(XmlWriter writer, int playerIndex)
         {
