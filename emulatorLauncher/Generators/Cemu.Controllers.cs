@@ -49,21 +49,39 @@ namespace emulatorLauncher
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 
-            // Create a single controllerprofile file for each controller
-            foreach (var controller in this.Controllers)
+            // If Wiimotes is set, do not use ES controllers but force wiimotes
+            if (Program.SystemConfig.isOptSet("use_wiimotes") && (Program.SystemConfig["use_wiimotes"] != "0"))
             {
-                if (controller.Config == null)
-                    continue;
-
-                string controllerXml = Path.Combine(folder, "controller" + (controller.PlayerIndex - 1) + ".xml");
-
-                // Create xml file with correct settings
-                var settings = new XmlWriterSettings() { Encoding = Encoding.UTF8, Indent = true, IndentChars = ("\t"), OmitXmlDeclaration = false };
-
-                // Go to input configuration
-                using (XmlWriter writer = XmlWriter.Create(controllerXml, settings))
-                    ConfigureInputXml(writer, controller);
+                int nbWiimotes = SystemConfig["use_wiimotes"].ToInteger();
+                
+                for (int i = 0; i <= nbWiimotes - 1; i++)
+                {
+                    string controllerXml = Path.Combine(folder, "controller" + i + ".xml");
+                    var settings = new XmlWriterSettings() { Encoding = Encoding.UTF8, Indent = true, IndentChars = ("\t"), OmitXmlDeclaration = false };
+                    using (XmlWriter writer = XmlWriter.Create(controllerXml, settings))
+                        ConfigureWiimotes(writer, i);
+                }
             }
+
+            else
+            {
+                // Create a single controllerprofile file for each controller
+                foreach (var controller in this.Controllers)
+                {
+                    if (controller.Config == null)
+                        continue;
+
+                    string controllerXml = Path.Combine(folder, "controller" + (controller.PlayerIndex - 1) + ".xml");
+
+                    // Create xml file with correct settings
+                    var settings = new XmlWriterSettings() { Encoding = Encoding.UTF8, Indent = true, IndentChars = ("\t"), OmitXmlDeclaration = false };
+
+                    // Go to input configuration
+                    using (XmlWriter writer = XmlWriter.Create(controllerXml, settings))
+                        ConfigureInputXml(writer, controller);
+                }
+            }
+
         }
 
         /// <summary>
@@ -162,6 +180,76 @@ namespace emulatorLauncher
         }
 
         /// <summary>
+        /// Wiimote configuration
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="playerIndex"></param>
+        private static void ConfigureWiimotes(XmlWriter writer, int playerIndex)
+        {
+            //Create start of the xml document until mappings part
+            writer.WriteStartDocument();
+            writer.WriteStartElement("emulated_controller");
+            writer.WriteElementString("type", "Wiimote");
+            writer.WriteStartElement("controller");
+            writer.WriteElementString("api", "Wiimote");
+            writer.WriteElementString("uuid", playerIndex.ToString());
+            writer.WriteElementString("display_name", "Controller" + (playerIndex + 1).ToString());
+            writer.WriteElementString("motion", "true");
+
+            //set rumble if option is set
+            if (Program.SystemConfig.isOptSet("cemu_enable_rumble") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_enable_rumble"]))
+                writer.WriteElementString("rumble", Program.SystemConfig["cemu_enable_rumble"]);
+
+            //Default deadzones and ranges for axis, rotation and trigger
+            writer.WriteStartElement("axis");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of axis
+            writer.WriteStartElement("rotation");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of rotation
+            writer.WriteStartElement("trigger");
+            writer.WriteElementString("deadzone", "0.25");
+            writer.WriteElementString("range", "1");
+            writer.WriteEndElement();//end of trigger
+            writer.WriteElementString("packet_delay", "25");
+            writer.WriteStartElement("mappings");
+
+            //Define action to generate key bindings
+            Action<string, string> WriteWiimoteMapping = (m, b) =>
+            {
+                writer.WriteStartElement("entry");
+                writer.WriteElementString("mapping", m);
+                writer.WriteElementString("button", b);
+                writer.WriteEndElement();
+            };
+
+            WriteWiimoteMapping("9", "3");
+            WriteWiimoteMapping("17", "15");
+            WriteWiimoteMapping("1", "11");
+            WriteWiimoteMapping("2", "10");
+            WriteWiimoteMapping("3", "9");
+            WriteWiimoteMapping("4", "8");
+            WriteWiimoteMapping("7", "4");
+            WriteWiimoteMapping("8", "12");
+            WriteWiimoteMapping("10", "2");
+            WriteWiimoteMapping("11", "0");
+            WriteWiimoteMapping("12", "1");
+            WriteWiimoteMapping("5", "17");
+            WriteWiimoteMapping("6", "16");
+            WriteWiimoteMapping("13", "39");
+            WriteWiimoteMapping("14", "45");
+            WriteWiimoteMapping("15", "44");
+            WriteWiimoteMapping("16", "38");
+
+            writer.WriteEndElement();//end of mappings
+            writer.WriteEndElement();//end of controller
+            writer.WriteEndElement();//end of emulated_controller
+            writer.WriteEndDocument();
+        }
+
+        /// <summary>
         /// Joysticks configuration
         /// </summary>
         /// <param name="writer"></param>
@@ -195,10 +283,22 @@ namespace emulatorLauncher
 
             string uuid = index + "_" + ctrl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
-            //WiiU and cemu only allow 2 Gamepads, players 1&2 will be set as Gamepads, following players as Pro Controller(s)
+            // Define type of controller
+            // Players 1 & 2 defaults to WIIU Gamepad but can be changed to pro controller in features for some multiplayer games compatibility
+            // Players 3 and 4 default to pro controllers
             bool procontroller = false;
             if (playerIndex == 0 || playerIndex == 1)
-                type = "Wii U GamePad";
+            {
+                string cemuController = "cemu_controllerp" + playerIndex;
+                if (Program.SystemConfig.isOptSet(cemuController) && (Program.SystemConfig[cemuController] == "procontroller"))
+                {
+                    type = "Wii U Pro Controller";
+                    procontroller = true;
+                }
+                else
+                    type = "Wii U GamePad";
+            }
+
             else
             {
                 type = "Wii U Pro Controller";
