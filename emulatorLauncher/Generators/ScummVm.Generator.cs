@@ -41,6 +41,8 @@ namespace emulatorLauncher
 
             string iniPath = Path.ChangeExtension(exe, ".ini");
 
+            string gameName = File.ReadAllText(rom);
+
             using (IniFile ini = new IniFile(iniPath))
             {
                 if (Features.IsSupported("gfx_mode") && SystemConfig.isOptSet("gfx_mode"))
@@ -62,11 +64,8 @@ namespace emulatorLauncher
                 else
                     ini.WriteValue("scummvm", "fullscreen", "true");
 
-                if (Features.IsSupported("ratio") && SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "stretch")
-                {
-                    ini.WriteValue("scummvm", "aspect_ratio", "false");                        
-                    _bezelFileInfo = null;
-                }
+                if (Features.IsSupported("ratio") && SystemConfig.getOptBoolean("ratio"))
+                    ini.WriteValue("scummvm", "aspect_ratio", "false");
                 else
                     ini.WriteValue("scummvm", "aspect_ratio", "true");
 
@@ -197,8 +196,6 @@ namespace emulatorLauncher
             commandArray.Add("--config=\"" + iniPath + "\"");
             commandArray.Add("--logfile=\"" + Path.ChangeExtension(iniPath, ".log") + "\"");            
             commandArray.Add("-p\"" + Path.GetDirectoryName(rom)+"\"");
-
-            string gameName = File.ReadAllText(rom);
 
             if (string.IsNullOrEmpty(gameName))
                 gameName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
