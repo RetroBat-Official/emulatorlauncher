@@ -8,6 +8,7 @@ using DokanNet;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using emulatorLauncher;
+using System.Threading;
 
 namespace Mount
 {
@@ -32,13 +33,13 @@ namespace Mount
 
             OverlayPath = overlayPath;
 
-            _entries = new Dictionary<string, FileEntry>();
+            _entries = new Dictionary<string, FileEntry>(StringComparer.OrdinalIgnoreCase);
             _entries["\\"] = new MountedFileEntry(new ZipEntry() { Filename = "\\", Length = 0, IsDirectory = true }, this);
 
             var entries = Zip.ListEntries(FileName);
             foreach (var z in entries)
             {
-                var entryName = "\\" + z.Filename.Replace("/", "\\").ToLowerInvariant();
+                var entryName = "\\" + z.Filename.Replace("/", "\\");
                 if (IsEntryNameValid(entryName))
                     _entries[entryName] = new MountedFileEntry(z, this);
             }
@@ -69,13 +70,7 @@ namespace Mount
 
         private bool IsEntryNameValid(string fileName)
         {
-            return !hiddenEntries.Contains(fileName);
-        }
-
-        public static void OutputDebug(string line)
-        {
-            if (DebugOutput)
-                Console.WriteLine(line);
+            return !hiddenEntries.Contains(fileName.ToLowerInvariant());
         }
 
         public static bool DebugOutput { get; set; }
@@ -105,7 +100,8 @@ namespace Mount
                 return DokanResult.Success;
             }
 
-            OutputDebug("Open: " + fileName + " : " + mode.ToString() + " ( " + access.ToString() + " ) ");
+            if (DebugOutput)
+                Console.WriteLine("Open: " + fileName + " : " + mode.ToString() + " ( " + access.ToString() + " ) ");
 
             var item = GetFile(fileName);
 
@@ -148,11 +144,13 @@ namespace Mount
                 
                     info.Context = item.GetPhysicalFileStream(fileAccess);
 
-                    OutputDebug("CreateFile (" + fileAccess.ToString() + "): " + fileName);
+                    if (DebugOutput)
+                        Console.WriteLine("CreateFile (" + fileAccess.ToString() + "): " + fileName);
                 }
                 else if (isWrite)
                 {
-                    OutputDebug("CreateFile (FileAccess.Write): " + fileName);
+                    if (DebugOutput)
+                        Console.WriteLine("CreateFile (FileAccess.Write): " + fileName);
                 }
             }
                         
@@ -179,31 +177,35 @@ namespace Mount
             if (parent == null || !parent.IsDirectory)
                 return;
 
-            int take = Environment.ProcessorCount;
-
-            string ext = Extension(fileName);
-            if (ext == ".exe" || ext == ".dll")
-                take = 2 * Environment.ProcessorCount;
-
-            var children = parent.Children.OfType<MountedFileEntry>()
-                .Where(p => !p.Queryed && !p.IsDirectory && !File.Exists(p.PhysicalPath))  // (Extension(p.Filename) == ext || IsPreloadable(p.Filename)) && 
-                .OrderByDescending(p => Extension(p.Filename) == ext)
-                .ThenByDescending(p => IsPreloadable(p.Filename))
-                .Take(take)
-                .ToArray();
-                
-            foreach(var child in children)
-                child.Queryed = true;
-
             Task.Factory.StartNew(() =>
+            {
+                int take = Environment.ProcessorCount;
+
+                string ext = Extension(fileName);
+                if (ext == ".exe" || ext == ".dll")
+                    take = 2 * Environment.ProcessorCount;
+
+                var children = parent.Children.OfType<MountedFileEntry>()
+                    .Where(p => !p.Queryed && !p.IsDirectory && !File.Exists(p.PhysicalPath))  // (Extension(p.Filename) == ext || IsPreloadable(p.Filename)) && 
+                    .OrderByDescending(p => Extension(p.Filename) == ext)
+                    .ThenByDescending(p => IsPreloadable(p.Filename))
+                    .Take(take)
+                    .ToArray();
+
+                foreach (var child in children)
+                    child.Queryed = true;
+
+                Parallel.ForEach(children, new ParallelOptions { MaxDegreeOfParallelism = take }, child =>
                 {
-                    Parallel.ForEach(children, new ParallelOptions { MaxDegreeOfParallelism = take }, child =>
-                    {
-                        OutputDebug("Preloading: " + child.Filename);
-                        child.GetPhysicalFileStream((System.IO.FileAccess)0);
-                        OutputDebug("Preloaded: " + child.Filename);
-                    });
+                    if (DebugOutput)
+                        Console.WriteLine("Preloading: " + child.Filename);
+
+                    child.GetPhysicalFileStream((System.IO.FileAccess)0);
+
+                    if (DebugOutput)
+                        Console.WriteLine("Preloaded: " + child.Filename);
                 });
+            });
         }
 
         public void Cleanup(string fileName, IDokanFileInfo info)
@@ -211,14 +213,19 @@ namespace Mount
             if (info.IsDirectory)
                 return;
 
-            OutputDebug("Cleanup: " + fileName);
+            if (DebugOutput)
+                Console.WriteLine("Cleanup: " + fileName);
 
             Stream stream = info.Context as Stream;
             if (stream != null)
             {
-                stream.Close();
-                stream.Dispose();
                 info.Context = null;
+
+                ThreadPool.QueueUserWorkItem((a) =>
+                    {
+                        stream.Close();
+                        stream.Dispose();
+                    });
             }
 
             if (info.DeleteOnClose)
@@ -235,26 +242,33 @@ namespace Mount
             if (info.IsDirectory)
                 return;
 
-            OutputDebug("CloseFile: " + fileName);
+            if (DebugOutput)
+                Console.WriteLine("CloseFile: " + fileName);
 
             Stream stream = info.Context as Stream;
             if (stream != null)
             {
-                stream.Close();
-                stream.Dispose();
                 info.Context = null;
+
+                ThreadPool.QueueUserWorkItem((a) =>
+                    {
+                        stream.Close();
+                        stream.Dispose();
+                    });
             }
         }
 
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, IDokanFileInfo info)
         {
-            OutputDebug("ReadFile: " + fileName + " @ " + offset + " => " + buffer.Length);
+            if (DebugOutput)
+                Console.WriteLine("ReadFile: " + fileName + " @ " + offset + " => " + buffer.Length);
             
             Stream stream = info.Context as Stream;
 
             if (stream == null)
             {
-                OutputDebug("ReadFile: NULL CONTEXT");
+                if (DebugOutput)
+                    Console.WriteLine("ReadFile: NULL CONTEXT");
 
                 //called when file is read as memory memory mapeded file usualy notepad and stuff
                 var item = GetFile(fileName);
@@ -276,7 +290,9 @@ namespace Mount
             
             lock (stream)
             {
-                stream.Position = offset;
+                if (stream.Position != offset)
+                    stream.Position = offset;
+
                 bytesRead = stream.Read(buffer, 0, buffer.Length);
             }
 
@@ -312,8 +328,8 @@ namespace Mount
                 item.Filename = newName.Substring(1);
                 ((OverlayFileEntry)item).SetPhysicalPath(fullPath);
 
-                _entries.Remove(oldName.Replace("/", "\\").ToLowerInvariant());
-                _entries[newName.Replace("/", "\\").ToLowerInvariant()] = item;
+                _entries.Remove(oldName.Replace("/", "\\"));
+                _entries[newName.Replace("/", "\\")] = item;
                 _overlay.RestoreFile(item.Filename);
             }
             else
@@ -339,7 +355,7 @@ namespace Mount
                 DeleteFile(oldName, info);
 
                 var ret = new OverlayFileEntry(newName, fullPath);
-                _entries[newName.Replace("/", "\\").ToLowerInvariant()] = ret;
+                _entries[newName.Replace("/", "\\")] = ret;
                 _overlay.RestoreFile(ret.Filename);
             }
 
@@ -369,7 +385,8 @@ namespace Mount
 
             if (stream == null && item is OverlayFileEntry)
             {
-                OutputDebug("WriteFile: NULL CONTEXT");
+                if (DebugOutput)
+                    Console.WriteLine("WriteFile: NULL CONTEXT");
 
                 if (offset == 0)
                 {
@@ -451,7 +468,7 @@ namespace Mount
             if (item == null)
                 return DokanResult.Success;
            
-            _entries.Remove(fileName.ToLowerInvariant());
+            _entries.Remove(fileName);
 
             foreach (var entry in _entries)
                 entry.Value.Children.Remove(item);
@@ -581,7 +598,7 @@ namespace Mount
                 if (file.Filename == "\\")
                     continue;
 
-                var dir = "\\" + Path.GetDirectoryName(file.Filename).ToLowerInvariant();
+                var dir = "\\" + Path.GetDirectoryName(file.Filename);
 
                 FileEntry entry;
                 if (_entries.TryGetValue(dir, out entry))
@@ -603,7 +620,7 @@ namespace Mount
             // Overlay of deleted files
             _overlay = new OverlayDeletionRepository(Path.Combine(OverlayPath, ".deletions"));
             foreach (var removed in _overlay.DeletedFiles)
-                _entries.Remove(removed.Replace("/", "\\").ToLowerInvariant());
+                _entries.Remove(removed.Replace("/", "\\"));
         }
 
         private void AddPathToOverlay(string path)
@@ -617,7 +634,7 @@ namespace Mount
                     continue;
 
                 var relative = file.Substring(OverlayPath.Length);
-                var relativeLower = relative.ToLowerInvariant();
+                var relativeLower = relative;
 
                 if (relativeLower == "\\.deletions")
                     continue;
@@ -630,7 +647,7 @@ namespace Mount
         private FileEntry GetFile(string fileName)
         {
             FileEntry value;
-            if (_entries.TryGetValue(fileName.ToLowerInvariant(), out value))
+            if (_entries.TryGetValue(fileName, out value))
                 return value;
 
             return null;
@@ -684,7 +701,7 @@ namespace Mount
 
                 var ret = new OverlayFileEntry(fileName, fullPath);
                 ret.IsDirectory = directory;
-                _entries[fileName.Replace("/", "\\").ToLowerInvariant()] = ret;
+                _entries[fileName.Replace("/", "\\")] = ret;
                 _overlay.RestoreFile(ret.Filename);
                 RebuildTreeChildren();
 
@@ -713,7 +730,7 @@ namespace Mount
 
                 var ret = new OverlayFileEntry(fileName, fullPath);
                 ret.IsDirectory = directory;
-                _entries[fileName.Replace("/", "\\").ToLowerInvariant()] = ret;
+                _entries[fileName.Replace("/", "\\")] = ret;
                 _overlay.RestoreFile(ret.Filename);
                 RebuildTreeChildren();
 
@@ -737,5 +754,11 @@ namespace Mount
         }
 
         #endregion
+
+
+        public NtStatus Mounted(string mountPoint, IDokanFileInfo info)
+        {
+            return NtStatus.Success;
+        }
     }
 }

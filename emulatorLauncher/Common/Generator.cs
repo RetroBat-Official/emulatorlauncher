@@ -58,6 +58,9 @@ namespace emulatorLauncher
                     // Decompression for mounting is generally faster in temp path as it's generally a SSD Drive...
                     extractionPath = Path.Combine(Path.GetTempPath(), ".uncompressed", Path.GetFileName(fileName));
                 }
+                else
+                    extractionPath = Path.Combine(extractionPath, Path.GetFileName(fileName));
+
 
                 if (string.IsNullOrEmpty(extractionPath))
                     return fileName;
@@ -137,15 +140,29 @@ namespace emulatorLauncher
 
                     try { Directory.Delete(extractionPath, true); }
                     catch(Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
+                    
+                    try 
+                    {
+                        string parent = Path.GetDirectoryName(extractionPath);
+                        if (Directory.Exists(parent))
+                        {
+                            SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + parent + ", false)");
+                            Directory.Delete(parent);
+                        }
+                    }
+                    catch (Exception ex) 
+                    { 
+                        SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); 
+                    }
 
-                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + Path.GetDirectoryName(extractionPath) + ", false)");
-
-                    try { Directory.Delete(Path.GetDirectoryName(extractionPath)); }
-                    catch (Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
-
-                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + uncompressedFolderPath + ", false)");
-
-                    try { Directory.Delete(uncompressedFolderPath); }
+                    try
+                    {
+                        if (Directory.Exists(uncompressedFolderPath))
+                        {
+                            SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + uncompressedFolderPath + ", false)");
+                            Directory.Delete(uncompressedFolderPath);
+                        }
+                    }
                     catch { }                
                 }
             }

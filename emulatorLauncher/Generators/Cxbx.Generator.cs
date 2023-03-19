@@ -24,18 +24,18 @@ namespace emulatorLauncher
                 throw new ApplicationException("xbox-iso-vfs is required and is not installed");
 
             // Check dokan is installed
-            string dokan = Environment.GetEnvironmentVariable("DokanLibrary1");
+            string dokan = Environment.GetEnvironmentVariable("DokanLibrary2");
             if (!Directory.Exists(dokan))
             {
                 MountFile.ShowDownloadDokanPage();
-                throw new ApplicationException("Dokan 1.4.0.1000 is required and is not installed");
+                throw new ApplicationException("Dokan 2 is required and is not installed");
             }
 
-            dokan = Path.Combine(dokan, "dokan1.dll");
+            dokan = Path.Combine(dokan, "dokan2.dll");
             if (!File.Exists(dokan))
             {
                 MountFile.ShowDownloadDokanPage();
-                throw new ApplicationException("Dokan 1.4.0.1000 is required and is not installed");
+                throw new ApplicationException("Dokan 2 is required and is not installed");
             }
 
             var drive = FileTools.FindFreeDriveLetter();

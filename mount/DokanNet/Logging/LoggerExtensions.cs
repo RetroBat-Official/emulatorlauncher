@@ -51,7 +51,7 @@ namespace DokanNet.Logging
 
             if (!string.IsNullOrEmpty(category))
             {
-                stringBuilder.Append(category + " ");
+                stringBuilder.Append(category+" ");
             }
 
             stringBuilder.Append(message);

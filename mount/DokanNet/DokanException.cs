@@ -35,25 +35,25 @@ namespace DokanNet
         }
 
         private static string GetStatusErrorMessage(DokanStatus status)
-        {            
+        {
             switch (status)
             {
                 case DokanStatus.Error:
-                    return Resources.ErrorDokan;
+                    return "Dokan error	";
                 case DokanStatus.DriveLetterError:
-                    return Resources.ErrorBadDriveLetter;
+                    return "Bad drive letter";
                 case DokanStatus.DriverInstallError:
-                    return Resources.ErrorDriverInstall;
+                    return "Can't install the Dokan driver";
                 case DokanStatus.MountError:
-                    return Resources.ErrorAssignDriveLetter;
+                    return "Can't assign a drive letter or mount point";
                 case DokanStatus.StartError:
-                    return Resources.ErrorStart;
+                    return "Something's wrong with the Dokan driver";
                 case DokanStatus.MountPointError:
-                    return Resources.ErrorMountPointInvalid;
+                    return "Mount point is invalid";
                 case DokanStatus.VersionError:
-                    return Resources.ErrorVersion;
+                    return "Version error";
                 default:
-                    return Resources.ErrorUnknown;
+                    return "Unknown error";
             }
         }
 

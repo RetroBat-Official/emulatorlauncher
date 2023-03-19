@@ -8,79 +8,41 @@ using emulatorLauncher;
 using System.Threading;
 using System.Collections.Generic;
 using DokanNet;
+using DokanNet.Logging;
 
 namespace Mount
 {
     class DokanMount
     {
-        static void Test()
-        {
-            /*
-            string archive = @"H:\[Emulz]\roms\windows\Monster Bash HD.wsquashfs";
-            string destination = @"C:\Users\Fab\AppData\Local\Temp\.mountfs\Monster Bash HD.wsquashfs";
-            string file = @"C:\Users\Fab\AppData\Local\Temp\.mountfs\Monster Bash HD.wsquashfs\drive_c/game/UnityPlayer.dll";
-         
-            string fileNameToExtract = @"drive_c/game/UnityPlayer.dll";
-
-            try { File.Delete(file); }
-            catch { }
-
-            new Thread(() =>
-            {
-                 Zip.Extract(
-                           archive,
-                           destination,
-                           fileNameToExtract, null, true);
-             }).Start();
-
-            while (!File.Exists(file))
-                Thread.Sleep(1);
-
-            var fs = new FileStream(file,
-                System.IO.FileMode.Open,
-                System.IO.FileAccess.Read,
-                System.IO.FileShare.ReadWrite);*/
-        }
-
         static int Main(string[] args)
         {
             // Check dokan is installed
-            string dokan = Environment.GetEnvironmentVariable("DokanLibrary1");
-            if (!Directory.Exists(dokan))
+            string dokanPath = Environment.GetEnvironmentVariable("DokanLibrary2");
+            if (!Directory.Exists(dokanPath))
             {
-                Console.WriteLine("Dokan 1.4.0 is required and is not installed");
-                Process.Start("https://github.com/dokan-dev/dokany/releases/tag/v1.4.0.1000");
+                Console.WriteLine("Dokan 2 is required and is not installed");
+                Process.Start("https://github.com/dokan-dev/dokany/releases");
                 return 1;
             }
 
-            dokan = Path.Combine(dokan, "dokan1.dll");
-            if (!File.Exists(dokan))
+            dokanPath = Path.Combine(dokanPath, "dokan2.dll");
+            if (!File.Exists(dokanPath))
             {
-                Console.WriteLine("Dokan 1.4.0 is required and is not installed");
-                Process.Start("https://github.com/dokan-dev/dokany/releases/tag/v1.4.0.1000");
+                Console.WriteLine("Dokan 2 is required and is not installed");
+                Process.Start("https://github.com/dokan-dev/dokany/releases");
                 return 1;
             }
-            
+
             string driveLetter = null;
             string archiveFile = null;
             string overlayPath = null;
             string extractionPath = null;
-            /*
-#if DEBUG
-            // -drive W -overlay . "H:\[Emulz]\roms\windows\Toki.wsquashfs" 
-            driveLetter = "W";
-            archiveFile = @"h:\xmoto.wsquashfs";
-            archiveFile = @"H:\[Emulz]\roms\windows\Toki.wsquashfs";
-            //archiveFile = @"h:\Pinball FX3.pc.zip";      
-            //archiveFile = @"h:\scv.zip";                  
-            overlayPath = @"."; // @".\.overlay";
-#endif
-            */
+
             var arguments = ParseArguments(args);
 
             if (arguments.ContainsKey("--help"))
             {
-                Console.WriteLine("Usage : mount <filename> [-drive <drive letter>] [-overlay <overlay directory>] [-extractionpath <extraction directory>]");                
+                Console.WriteLine("Usage : mount <filename> [-drive <drive letter>] [-overlay <overlay directory>] [-extractionpath <extraction directory>]");
                 return 1;
             }
 
@@ -142,20 +104,6 @@ namespace Mount
 
             MountDrive(driveLetter, archiveFile, extractionPath, overlayPath);
             return 0;
-            
-            Task.Factory.StartNew(() => { MountDrive(driveLetter, archiveFile, extractionPath, overlayPath); });
-
-            Thread.Sleep(500);
-            Console.WriteLine(archiveFile + " mounted as " + driveLetter);
-
-            var files = Directory.GetFiles(driveLetter, "*.exe");
-
-            Console.WriteLine("Hit enter to unmount");
-            Console.ReadLine();
-
-            Dokan.Unmount(driveLetter[0]);
-                      
-            return 0;
         }
 
         private static void MountDrive(string driveLetter, string archiveFile, string extractionDirectory, string overlayPath)
@@ -164,14 +112,36 @@ namespace Mount
             {
                 var zip = new DokanOperations(archiveFile, extractionDirectory, overlayPath);
 
-                DokanOptions options = DokanOptions.RemovableDrive;
-                if (string.IsNullOrEmpty(overlayPath))
-                    options |= DokanOptions.WriteProtection;
-                /*
-                if (DokanOperations.DebugOutput)
-                    zip.Mount(driveLetter, options, Environment.ProcessorCount, 130, TimeSpan.FromMinutes(2), null);
-                else*/
-                    zip.Mount(driveLetter, options, Environment.ProcessorCount, 130, TimeSpan.FromMinutes(2), new DokanNet.Logging.NullLogger());
+                //using (var dokanLogger = new ConsoleLogger("[Dokan] "))
+                using (var dokan = new Dokan(new DokanNet.Logging.NullLogger()))
+                using (var mre = new System.Threading.ManualResetEvent(false))
+                {
+                    Console.WriteLine("Dokan version : " + dokan.Version);
+                    Console.WriteLine("Mounting drive " + driveLetter);
+                    Console.WriteLine("");
+                    Console.WriteLine("Press 'Ctrl + C' to stop");
+
+                    Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
+                    {
+                        e.Cancel = true;
+                        mre.Set();
+                    };
+
+                    var dokanBuilder = new DokanInstanceBuilder(dokan)
+                            .ConfigureOptions(options =>
+                            {
+                                options.Options = DokanOptions.RemovableDrive;
+                                
+                                if (string.IsNullOrEmpty(overlayPath))
+                                    options.Options |= DokanOptions.WriteProtection;
+
+                                options.MountPoint = driveLetter;
+                                options.TimeOut = TimeSpan.FromMinutes(2);                                
+                            });
+
+                    using (var dokanInstance = dokanBuilder.Build(zip))
+                        mre.WaitOne();
+                }                
             }
             catch (DokanException ex)
             {
@@ -200,6 +170,35 @@ namespace Mount
             }
 
             return arguments;
+        }
+
+        static void Test()
+        {
+            /*
+            string archive = @"H:\[Emulz]\roms\windows\Monster Bash HD.wsquashfs";
+            string destination = @"C:\Users\Fab\AppData\Local\Temp\.mountfs\Monster Bash HD.wsquashfs";
+            string file = @"C:\Users\Fab\AppData\Local\Temp\.mountfs\Monster Bash HD.wsquashfs\drive_c/game/UnityPlayer.dll";
+         
+            string fileNameToExtract = @"drive_c/game/UnityPlayer.dll";
+
+            try { File.Delete(file); }
+            catch { }
+
+            new Thread(() =>
+            {
+                 Zip.Extract(
+                           archive,
+                           destination,
+                           fileNameToExtract, null, true);
+             }).Start();
+
+            while (!File.Exists(file))
+                Thread.Sleep(1);
+
+            var fs = new FileStream(file,
+                System.IO.FileMode.Open,
+                System.IO.FileAccess.Read,
+                System.IO.FileShare.ReadWrite);*/
         }
     }
 }

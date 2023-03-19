@@ -23,11 +23,11 @@ namespace emulatorLauncher.Tools
             if (!File.Exists(mountPath))
                 return null;
 
-            string dokan = Environment.GetEnvironmentVariable("DokanLibrary1");
+            string dokan = Environment.GetEnvironmentVariable("DokanLibrary2");
             if (!Directory.Exists(dokan))
                 return null;
 
-            dokan = Path.Combine(dokan, "dokan1.dll");
+            dokan = Path.Combine(dokan, "dokan2.dll");
             if (!File.Exists(dokan))
                 return null;
 
@@ -54,6 +54,8 @@ namespace emulatorLauncher.Tools
 
             if (!string.IsNullOrEmpty(extractionpath))
             {
+             //   extractionpath = Path.Combine(extractionpath, Path.GetFileName(filename));
+
                 args.Add("-extractionpath");
                 args.Add("\"" + extractionpath + "\"");
 

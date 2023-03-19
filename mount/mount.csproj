@@ -70,17 +70,19 @@
     <Compile Include="..\emulatorLauncher\Common\ZipFile.cs">
       <Link>Common\ZipFile.cs</Link>
     </Compile>
-    <Compile Include="MountedFileEntry.cs" />
-    <Compile Include="OverlayDeletionRepository.cs" />
     <Compile Include="DokanNet\BufferPool.cs" />
     <Compile Include="DokanNet\Dokan.cs" />
     <Compile Include="DokanNet\DokanException.cs" />
     <Compile Include="DokanNet\DokanFileInfo.cs" />
+    <Compile Include="DokanNet\DokanHandle.cs" />
     <Compile Include="DokanNet\DokanHelper.cs" />
+    <Compile Include="DokanNet\DokanInstance.cs" />
+    <Compile Include="DokanNet\DokanInstanceBuilder.cs" />
     <Compile Include="DokanNet\DokanOperationProxy.cs" />
     <Compile Include="DokanNet\DokanOptions.cs" />
     <Compile Include="DokanNet\DokanResult.cs" />
     <Compile Include="DokanNet\DokanStatus.cs" />
+    <Compile Include="DokanNet\Extensions.cs" />
     <Compile Include="DokanNet\FileAccess.cs" />
     <Compile Include="DokanNet\FileInformation.cs" />
     <Compile Include="DokanNet\FileSystemFeatures.cs" />
@@ -95,6 +97,7 @@
     <Compile Include="DokanNet\Logging\NullLogger.cs" />
     <Compile Include="DokanNet\Logging\TraceLogger.cs" />
     <Compile Include="DokanNet\MockDokanFileInfo.cs" />
+    <Compile Include="DokanNet\NativeStructWrapper.cs" />
     <Compile Include="DokanNet\Native\BY_HANDLE_FILE_INFORMATION.cs" />
     <Compile Include="DokanNet\Native\DOKAN_OPERATIONS.cs" />
     <Compile Include="DokanNet\Native\DOKAN_OPTIONS.cs" />
@@ -104,6 +107,8 @@
     <Compile Include="DokanNet\Native\WIN32_FIND_STREAM_DATA.cs" />
     <Compile Include="DokanNet\NtStatus.cs" />
     <Compile Include="DokanNet\NullFormatProvider.cs" />
+    <Compile Include="MountedFileEntry.cs" />
+    <Compile Include="OverlayDeletionRepository.cs" />
     <Compile Include="FileEntry.cs" />
     <Compile Include="OverlayFileEntry.cs" />
     <Compile Include="Properties\Resources.Designer.cs" />

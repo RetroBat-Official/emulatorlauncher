@@ -105,7 +105,7 @@ namespace DokanNet
         /// -or- <c>null</c> if the operation was not successful.</returns>
         /// <remarks>This Mock implementation returns <see cref="WhatGetRequestorShouldReturn"/>.
         /// </remarks>
-        public WindowsIdentity GetRequestor() { return  WhatGetRequestorShouldReturn; }
+        public WindowsIdentity GetRequestor() { return WhatGetRequestorShouldReturn; }
 
         /// <summary>
         /// Set this to false if you want to test against TryResetTimeout failure
@@ -126,9 +126,7 @@ namespace DokanNet
         /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
-            return
-                string.Format("mock: {{{0}, {1}, {2}, {2}, {4}, #{5}, {6}, {7}}}",
-                Context, DeleteOnClose, IsDirectory, NoCache, PagingIo, ProcessId, SynchronousIo, WriteToEndOfFile);
+            return "mock: " + Context + ", " + DeleteOnClose + ", " + IsDirectory + ", " + NoCache + ", " + PagingIo + ", #" + ProcessId + ", " + SynchronousIo + ", " + WriteToEndOfFile;
         }
     }
 }
