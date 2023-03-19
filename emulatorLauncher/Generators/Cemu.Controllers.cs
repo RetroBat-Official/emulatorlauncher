@@ -186,14 +186,19 @@ namespace emulatorLauncher
         /// <param name="playerIndex"></param>
         private static void ConfigureWiimotes(XmlWriter writer, int playerIndex)
         {
+            string wiimoteType = "5";
+            if (Program.SystemConfig.isOptSet("cemu_wiimotep" + playerIndex) && !string.IsNullOrEmpty(Program.SystemConfig["cemu_wiimotep" + playerIndex]))
+                wiimoteType = Program.SystemConfig["cemu_wiimotep" + playerIndex];
+
             //Create start of the xml document until mappings part
             writer.WriteStartDocument();
             writer.WriteStartElement("emulated_controller");
             writer.WriteElementString("type", "Wiimote");
+            writer.WriteElementString("device_type", wiimoteType);
             writer.WriteStartElement("controller");
             writer.WriteElementString("api", "Wiimote");
             writer.WriteElementString("uuid", playerIndex.ToString());
-            writer.WriteElementString("display_name", "Controller" + (playerIndex + 1).ToString());
+            writer.WriteElementString("display_name", "Controller " + (playerIndex + 1).ToString());
             writer.WriteElementString("motion", "true");
 
             //set rumble if option is set
