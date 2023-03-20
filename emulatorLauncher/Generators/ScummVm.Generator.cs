@@ -185,6 +185,11 @@ namespace emulatorLauncher
 
                     ini.WriteValue("scummvm", "savepath", savePath);
                 }
+
+                if (Features.IsSupported("unsupported_games") && SystemConfig.getOptBoolean("unsupported_games"))
+                    ini.WriteValue("scummvm", "enable_unsupported_game_warning", "false");
+                else
+                    ini.Remove("scummvm", "enable_unsupported_game_warning");
             }
 
             List<string> commandArray = new List<string>();
