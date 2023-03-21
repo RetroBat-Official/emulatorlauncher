@@ -31,7 +31,7 @@ namespace emulatorLauncher
             string args = null;
 
             MessSystem messMode = MessSystem.GetMessSystem(system, core);
-            if (messMode.Name == "mame")
+            if (messMode == null || messMode.Name == "mame")
             {
                 List<string> commandArray = new List<string>();
 

@@ -410,7 +410,7 @@ namespace emulatorLauncher.libRetro
                         InputRemap["input_player" + i + "_analog_dpad_mode"] = mode;
 
                     var index = i - 1;
-                        InputRemap["input_remap_port_p" + i] = index.ToString();
+                    InputRemap["input_remap_port_p" + i] = index.ToString();
                 }
             }
 
