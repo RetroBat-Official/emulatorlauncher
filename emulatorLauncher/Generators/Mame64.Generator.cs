@@ -11,35 +11,8 @@ namespace emulatorLauncher
 {
     class Mame64Generator : Generator
     {
-
-        public Mame64Generator()
-        {
-            DependsOnDesktopResolution = true;
-        }
-
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            return ret;
-        }
-
-        private BezelFiles _bezelFileInfo;
-        private ScreenResolution _resolution;
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            _resolution = resolution;
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-
             string path = AppConfig.GetFullPath("mame");
             if (string.IsNullOrEmpty(path) && Environment.Is64BitOperatingSystem)
                 path = AppConfig.GetFullPath("mame64");
@@ -192,10 +165,6 @@ namespace emulatorLauncher
 
                 if (SystemConfig.isOptSet("vsync") && SystemConfig.getOptBoolean("vsync") && SystemConfig["mame_video_driver"] != "gdi")
                     commandArray.Add("-waitvsync");
-
-                // Start in maximized window instead of exclusive fullscreen
-                commandArray.Add("-window");    
-                commandArray.Add("-maximize");
 
                 if (SystemConfig.isOptSet("mame_rotate") && SystemConfig["mame_rotate"] != "off")
                     commandArray.Add("-" + SystemConfig["mame_rotate"]);
