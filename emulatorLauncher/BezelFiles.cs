@@ -176,6 +176,26 @@ namespace emulatorLauncher
             "{systempath}\\default\\systems\\{system}.png"
         };
 
+        private static bool IsPng(string filename)
+        {
+            try
+            {
+                // Open the file in binary mode and read the first 8 bytes
+                using (FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] header = new byte[8];
+                    fileStream.Read(header, 0, 8);
+
+                    // Check if the bytes match the PNG file signature
+                    if (header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47 && header[4] == 0x0D && header[5] == 0x0A && header[6] == 0x1A && header[7] == 0x0A)
+                        return true;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
         private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName)
         {
             string indexedRomName = romName.AsIndexedRomName();
@@ -209,9 +229,32 @@ namespace emulatorLauncher
 
                     continue;
                 }
-                
+
                 if (File.Exists(result))
+                {
+                    // Check if it's a real PNG file, or a file containing the relative path to another png
+                    if (!IsPng(result) && new FileInfo(result).Length < 1024)
+                    {
+                        try
+                        {
+                            string link = File.ReadAllText(result);
+                            if (link[0] == '.')
+                            {
+                                string relative = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(result)), link));
+                                if (!File.Exists(relative) || !IsPng(relative))
+                                    continue;
+
+                                result = relative;
+                            }
+                        }
+                        catch 
+                        {
+                            continue;
+                        }
+                    }
+
                     return Path.GetFullPath(result);
+                }
             }
 
             return null;
