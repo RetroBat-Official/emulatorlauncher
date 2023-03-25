@@ -85,7 +85,7 @@ namespace emulatorLauncher
 
             bool stretchImage = false;
 
-            if (BezelInfos != null)
+            if (BezelInfos != null && BezelInfos.IsValid())
             {
                 Size imageSize = new Size(resX, resY);
 
