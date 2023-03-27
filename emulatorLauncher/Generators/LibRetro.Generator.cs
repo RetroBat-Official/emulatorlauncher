@@ -136,6 +136,15 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
             }
 
+            // Cheats folder
+            if (!string.IsNullOrEmpty(AppConfig["cheats"]))
+            {
+                if (Directory.Exists(AppConfig["cheats"]))
+                    retroarchConfig["cheat_database_path"] = AppConfig.GetFullPath("cheats");
+                else if (retroarchConfig["cheat_database_path"] != @":\cheats" && !Directory.Exists(retroarchConfig["cheat_database_path"]))
+                    retroarchConfig["cheat_database_path"] = @":\cheats";
+            }
+
             // Records path
             string recordconfigpath = Path.Combine(AppConfig.GetFullPath("records"), "config");
             if (!string.IsNullOrEmpty(recordconfigpath))
