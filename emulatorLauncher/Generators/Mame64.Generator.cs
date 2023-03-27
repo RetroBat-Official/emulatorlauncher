@@ -154,6 +154,7 @@ namespace emulatorLauncher
                 /// -crosshairpath
                 /// -swpath
 
+                // Video settings
                 commandArray.Add("-video");
                 if (SystemConfig.isOptSet("mame_video_driver") && SystemConfig.isOptSet("mame_video_driver"))
                     commandArray.Add(SystemConfig["mame_video_driver"]);
@@ -168,6 +169,30 @@ namespace emulatorLauncher
 
                 if (SystemConfig.isOptSet("mame_rotate") && SystemConfig["mame_rotate"] != "off")
                     commandArray.Add("-" + SystemConfig["mame_rotate"]);
+
+                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                {
+                    string mameMonitor = "\\" + "\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
+                    commandArray.Add("-screen");
+                    commandArray.Add(mameMonitor);
+                }
+
+                if (SystemConfig.isOptSet("bgfxbackend") && (SystemConfig["mame_video_driver"] == "bgfx") && !string.IsNullOrEmpty(SystemConfig["bgfxbackend"]))
+                {
+                    commandArray.Add("-bgfx_backend");
+                    commandArray.Add(SystemConfig["bgfxbackend"]);
+
+                    if (SystemConfig.isOptSet("bgfxshaders") && !string.IsNullOrEmpty(SystemConfig["bgfxshaders"]))
+                    {
+                        commandArray.Add("-bgfx_screen_chains");
+                        commandArray.Add(SystemConfig["bgfxshaders"]);
+                    }
+                    else if (Features.IsSupported("bgfxshaders"))
+                    {
+                        commandArray.Add("-bgfx_screen_chains");
+                        commandArray.Add("default");
+                    }
+                }
 
                 // Add plugins
                 List<string> pluginList = new List<string>();

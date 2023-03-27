@@ -586,7 +586,7 @@ namespace emulatorLauncher
                 commandArray.Add("-snapshot_directory");
                 commandArray.Add(AppConfig.GetFullPath("screenshots"));
             }
-             
+
             // Autostart computer games where applicable
             // Generic boot if only one type is available
             var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
