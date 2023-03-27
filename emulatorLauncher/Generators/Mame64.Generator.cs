@@ -74,7 +74,7 @@ namespace emulatorLauncher
                 // Cheats
                 if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
                 {
-                    string cheatPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame");
+                    string cheatPath = Path.Combine(AppConfig.GetFullPath("cheats"), "mame");
                     if (!string.IsNullOrEmpty(cheatPath) && Directory.Exists(cheatPath))
                     {
                         commandArray.Add("-cheat");
