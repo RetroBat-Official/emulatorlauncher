@@ -61,7 +61,7 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(artPath) && Directory.Exists(artPath))
                 {
                     commandArray.Add("-artpath");
-                    commandArray.Add(artPath);
+                    commandArray.Add(artPath + ";" + Path.Combine(path, "artwork"));
                 }
 
                 // Snapshots
@@ -182,21 +182,53 @@ namespace emulatorLauncher
         {
             var retList = new List<string>();
 
+            // Autosave and rewind
+            if (Program.SystemConfig.isOptSet("autosave") && Program.SystemConfig.getOptBoolean("autosave"))
+                retList.Add("-autosave");
+
+            if (Program.SystemConfig.isOptSet("rewind") && Program.SystemConfig.getOptBoolean("rewind"))
+                retList.Add("-rewind");
+
+            // Audio driver
+            retList.Add("-sound");
+            if (Program.SystemConfig.isOptSet("mame_audio_driver") && !string.IsNullOrEmpty(Program.SystemConfig["mame_audio_driver"]))
+                retList.Add(Program.SystemConfig["mame_audio_driver"]);
+            else
+                retList.Add("dsound");
+
+            // Video driver
             retList.Add("-video");
-            if (Program.SystemConfig.isOptSet("mame_video_driver") && Program.SystemConfig.isOptSet("mame_video_driver"))
+            if (Program.SystemConfig.isOptSet("mame_video_driver") && !string.IsNullOrEmpty(Program.SystemConfig["mame_video_driver"]))
                 retList.Add(Program.SystemConfig["mame_video_driver"]);
             else
                 retList.Add("d3d");
 
-            if (Program.SystemConfig.isOptSet("triplebuffer") && Program.SystemConfig.getOptBoolean("triplebuffer") && Program.SystemConfig["mame_video_driver"] != "gdi")
-                retList.Add("-triplebuffer");
+            // Resolution
+            if (Program.SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(Program.SystemConfig["internal_resolution"]) && Program.SystemConfig["mame_video_driver"] != "gdi" && Program.SystemConfig["mame_video_driver"] != "bgfx")
+            {
+                retList.Add("-switchres");
+                retList.Add("-resolution");
+                retList.Add(Program.SystemConfig["internal_resolution"]);
+            }
+            else if (Program.SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(Program.SystemConfig["internal_resolution"]))
+            {
+                retList.Add("-resolution");
+                retList.Add(Program.SystemConfig["internal_resolution"]);
+            }
+            else
+            {
+                retList.Add("-resolution");
+                retList.Add("auto");
+            }
 
-            if (Program.SystemConfig.isOptSet("vsync") && Program.SystemConfig.getOptBoolean("vsync") && Program.SystemConfig["mame_video_driver"] != "gdi")
-                retList.Add("-waitvsync");
-
-            if (Program.SystemConfig.isOptSet("mame_rotate") && Program.SystemConfig["mame_rotate"] != "off")
-                retList.Add("-" + Program.SystemConfig["mame_rotate"]);
-
+            // Aspect ratio
+            retList.Add("-aspect");
+            if (Program.SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(Program.SystemConfig["ratio"]))
+                retList.Add(Program.SystemConfig["ratio"]);
+            else
+                retList.Add("auto");
+            
+            // Monitor index
             if (Program.SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(Program.SystemConfig["MonitorIndex"]))
             {
                 string mameMonitor = "\\" + "\\" + ".\\" + "DISPLAY" + Program.SystemConfig["MonitorIndex"];
@@ -204,6 +236,18 @@ namespace emulatorLauncher
                 retList.Add(mameMonitor);
             }
 
+            // Screen rotation
+            if (Program.SystemConfig.isOptSet("mame_rotate") && Program.SystemConfig["mame_rotate"] != "off")
+                retList.Add("-" + Program.SystemConfig["mame_rotate"]);
+
+            // Other video options
+            if (Program.SystemConfig.isOptSet("triplebuffer") && Program.SystemConfig.getOptBoolean("triplebuffer") && Program.SystemConfig["mame_video_driver"] != "gdi")
+                retList.Add("-triplebuffer");
+
+            if (Program.SystemConfig.isOptSet("vsync") && Program.SystemConfig.getOptBoolean("vsync") && Program.SystemConfig["mame_video_driver"] != "gdi")
+                retList.Add("-waitvsync");
+
+            // Shaders (only for bgfx driver)
             if (Program.SystemConfig.isOptSet("bgfxbackend") && (Program.SystemConfig["mame_video_driver"] == "bgfx") && !string.IsNullOrEmpty(Program.SystemConfig["bgfxbackend"]))
             {
                 retList.Add("-bgfx_backend");
@@ -219,6 +263,12 @@ namespace emulatorLauncher
                     retList.Add("-bgfx_screen_chains");
                     retList.Add("default");
                 }
+            }
+            
+            if (Program.SystemConfig.isOptSet("effect") && !string.IsNullOrEmpty(Program.SystemConfig["effect"]))
+            {
+                retList.Add("-effect");
+                retList.Add(Program.SystemConfig["effect"]);
             }
 
             // Add plugins
