@@ -137,10 +137,11 @@ namespace emulatorLauncher.libRetro
             }
 
             // Cheats folder
-            if (!string.IsNullOrEmpty(AppConfig["cheats"]))
+            string cheatspath = Path.Combine(AppConfig.GetFullPath("cheats"), "retroarch");
+            if (!string.IsNullOrEmpty(cheatspath))
             {
-                if (Directory.Exists(AppConfig["cheats"]))
-                    retroarchConfig["cheat_database_path"] = AppConfig.GetFullPath("cheats");
+                if (Directory.Exists(cheatspath))
+                    retroarchConfig["cheat_database_path"] = cheatspath;
                 else if (retroarchConfig["cheat_database_path"] != @":\cheats" && !Directory.Exists(retroarchConfig["cheat_database_path"]))
                     retroarchConfig["cheat_database_path"] = @":\cheats";
             }
