@@ -144,8 +144,13 @@ namespace emulatorLauncher
             {
                 // Force settings
                 ini.WriteValue("general", "show_welcome", "false");
-                ini.WriteValue("general", "skip_boot_anim", "true");
                 ini.WriteValue("general.updates", "check", "false");
+
+                // Skip Boot anim
+                if (SystemConfig.isOptSet("show_boot") && SystemConfig.getOptBoolean("show_boot"))
+                    ini.WriteValue("general", "skip_boot_anim", "false");
+                else if (Features.IsSupported("show_boot"))
+                    ini.WriteValue("general", "skip_boot_anim", "true");
 
                 // Controllers
                 if (!SystemConfig.getOptBoolean("disableautocontrollers"))
