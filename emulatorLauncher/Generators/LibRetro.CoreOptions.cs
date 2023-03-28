@@ -2627,6 +2627,23 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "pcsx_rearmed_spu_interpolation", "pcsx_rearmed_spu_interpolation", "simple");
             BindFeature(coreSettings, "pcsx_rearmed_icache_emulation", "pcsx_rearmed_icache_emulation", "disabled");
 
+            // Game fixes
+
+            coreSettings["pcsx_rearmed_idiablofix"] = "disabled";
+            coreSettings["pcsx_rearmed_pe2_fix"] = "disabled";
+            coreSettings["pcsx_rearmed_inuyasha_fix"] = "disabled";
+            coreSettings["pcsx_rearmed_gpu_peops_odd_even_bit"] = "disabled";
+            coreSettings["pcsx_rearmed_gpu_peops_expand_screen_width"] = "disabled";
+            coreSettings["pcsx_rearmed_gpu_peops_ignore_brightness"] = "disabled";
+            coreSettings["pcsx_rearmed_gpu_peops_lazy_screen_update"] = "disabled";
+            coreSettings["pcsx_rearmed_gpu_peops_repeated_triangles"] = "disabled";
+            
+            if (SystemConfig.isOptSet("pcsx_game_fixes") && SystemConfig["pcsx_game_fixes"] != "disabled")
+            {
+                var patchValue = SystemConfig["pcsx_game_fixes"];
+                coreSettings[patchValue] = "enabled";
+            }
+
             // Controls
             BindFeature(coreSettings, "pcsx_rearmed_vibration", "pcsx_rearmed_vibration", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "psx_controller1", "259");

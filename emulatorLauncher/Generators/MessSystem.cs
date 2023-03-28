@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using emulatorLauncher;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -516,7 +518,7 @@ namespace emulatorLauncher
             return path;
         }
 
-        public string GetMameCommandLineArguments(string system, string rom, bool injectCfgDirectory = true)
+        public string GetMameCommandLineArguments(string system, string rom, string emulator, bool injectCfgDirectory = true)
         {
             List<string> commandArray = new List<string>();
 
@@ -586,7 +588,33 @@ namespace emulatorLauncher
                 commandArray.Add("-snapshot_directory");
                 commandArray.Add(AppConfig.GetFullPath("screenshots"));
             }
-             
+
+            // Additional paths for mame standalone
+            if (emulator == "mame64")
+            {
+                string sstatePath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "states");
+                if (!Directory.Exists(sstatePath)) try { Directory.CreateDirectory(sstatePath); }
+                    catch { }
+                if (!string.IsNullOrEmpty(sstatePath) && Directory.Exists(sstatePath))
+                {
+                    commandArray.Add("-state_directory");
+                    commandArray.Add(sstatePath);
+                }
+
+                string ctrlrPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr");
+                if (!Directory.Exists(ctrlrPath)) try { Directory.CreateDirectory(ctrlrPath); }
+                    catch { }
+                if (!string.IsNullOrEmpty(ctrlrPath) && Directory.Exists(ctrlrPath))
+                {
+                    commandArray.Add("-ctrlrpath");
+                    commandArray.Add(ctrlrPath);
+                }
+
+                List<string> arguments = Mame64Generator.mameArguments();
+                if (arguments.Count != 0)
+                    commandArray.AddRange(arguments);
+            }
+
             // Autostart computer games where applicable
             // Generic boot if only one type is available
             var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);

@@ -150,7 +150,7 @@ namespace emulatorLauncher
             if (!controller.IsXInputDevice)
             {
                 ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
-                ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:" + index + ", guid:" + yuzuGuid + "\"");
+                ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + yuzuGuid + "\"");
                 ini.WriteValue("Controls", player + "motionright" + "\\default", "false");
                 ini.WriteValue("Controls", player + "motionright", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + yuzuGuid + "\"");
             }

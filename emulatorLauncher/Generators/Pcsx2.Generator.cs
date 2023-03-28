@@ -155,6 +155,7 @@ namespace emulatorLauncher
                 using (var ini = new IniFile(iniFile))
                 {
                     string biosPath = AppConfig.GetFullPath("bios");
+                    string cheatsPath = AppConfig.GetFullPath("cheats");
                     if (!string.IsNullOrEmpty(biosPath))
                     {
                         ini.WriteValue("Folders", "UseDefaultBios", "disabled");
@@ -165,9 +166,9 @@ namespace emulatorLauncher
                             ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
 
                         ini.WriteValue("Folders", "UseDefaultCheats", "disabled");
-                        ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "pcsx2", "cheats").Replace("\\", "\\\\"));
+                        ini.WriteValue("Folders", "Cheats", Path.Combine(cheatsPath, "pcsx2", "cheats").Replace("\\", "\\\\"));
                         ini.WriteValue("Folders", "UseDefaultCheatsWS", "disabled");
-                        ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPath, "pcsx2", "cheats_ws").Replace("\\", "\\\\"));
+                        ini.WriteValue("Folders", "CheatsWS", Path.Combine(cheatsPath, "pcsx2", "cheats_ws").Replace("\\", "\\\\"));
                     }
 
                     string savesPath = AppConfig.GetFullPath("saves");
@@ -688,9 +689,29 @@ namespace emulatorLauncher
                     try { Directory.CreateDirectory(biosPcsx2Path); }
                     catch { }
 
-                ini.WriteValue("Folders", "Cheats", Path.Combine(biosPcsx2Path, "cheats"));
-                ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPcsx2Path, "cheats_ws"));
-                ini.WriteValue("Folders", "CheatsNI", Path.Combine(biosPcsx2Path, "cheats_ni"));
+                // Cheats Path
+                string cheatsPath = AppConfig.GetFullPath("cheats");
+
+                if (string.IsNullOrEmpty(cheatsPath))
+                {
+                    cheatsPath = Path.GetFullPath(Path.Combine("home", "..", "..", "cheats"));
+                    if (!Directory.Exists(cheatsPath))
+                        try { Directory.CreateDirectory(cheatsPath); }
+                        catch { }
+                }
+
+                if (!string.IsNullOrEmpty(cheatsPath))
+                {
+                    string cheatsPcsx2Path = Path.Combine(cheatsPath, "pcsx2");
+
+                    if (!Directory.Exists(cheatsPcsx2Path))
+                        try { Directory.CreateDirectory(cheatsPcsx2Path); }
+                        catch { }
+
+                    ini.WriteValue("Folders", "Cheats", Path.Combine(cheatsPcsx2Path, "cheats"));
+                    ini.WriteValue("Folders", "CheatsWS", Path.Combine(cheatsPcsx2Path, "cheats_ws"));
+                    ini.WriteValue("Folders", "CheatsNI", Path.Combine(cheatsPcsx2Path, "cheats_ni"));
+                }
 
                 //precise bios to use
 

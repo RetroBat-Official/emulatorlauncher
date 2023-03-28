@@ -136,6 +136,16 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
             }
 
+            // Cheats folder
+            string cheatspath = Path.Combine(AppConfig.GetFullPath("cheats"), "retroarch");
+            if (!string.IsNullOrEmpty(cheatspath))
+            {
+                if (Directory.Exists(cheatspath))
+                    retroarchConfig["cheat_database_path"] = cheatspath;
+                else if (retroarchConfig["cheat_database_path"] != @":\cheats" && !Directory.Exists(retroarchConfig["cheat_database_path"]))
+                    retroarchConfig["cheat_database_path"] = @":\cheats";
+            }
+
             // Records path
             string recordconfigpath = Path.Combine(AppConfig.GetFullPath("records"), "config");
             if (!string.IsNullOrEmpty(recordconfigpath))
@@ -1143,7 +1153,7 @@ namespace emulatorLauncher.libRetro
             MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
             if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
             {
-                var messArgs = messSystem.GetMameCommandLineArguments(system, rom);
+                var messArgs = messSystem.GetMameCommandLineArguments(system, rom, emulator);
                 messArgs = messArgs.Replace("\\\"", "\"");
                 messArgs = "\"" + messArgs.Replace("\"", "\\\"") + "\"";
                 messArgs = (messArgs + " " + args).Trim();
