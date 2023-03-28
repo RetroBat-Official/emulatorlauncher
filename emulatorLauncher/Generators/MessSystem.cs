@@ -610,7 +610,7 @@ namespace emulatorLauncher
                     commandArray.Add(ctrlrPath);
                 }
 
-                List<string> arguments = Mame64Generator.mameArguments();
+                List<string> arguments = Mame64Generator.mameArguments(rom);
                 if (arguments.Count != 0)
                     commandArray.AddRange(arguments);
             }
