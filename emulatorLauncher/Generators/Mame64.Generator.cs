@@ -9,7 +9,7 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    class Mame64Generator : Generator
+    partial class Mame64Generator : Generator
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -27,6 +27,8 @@ namespace emulatorLauncher
                 return null;
 
             _exeName = Path.GetFileNameWithoutExtension(exe);
+
+            ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution);
 
             string args = null;
 
@@ -58,6 +60,7 @@ namespace emulatorLauncher
                 string artPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork");
                 if (!Directory.Exists(artPath)) try { Directory.CreateDirectory(artPath); }
                     catch { }
+
                 if (!string.IsNullOrEmpty(artPath) && Directory.Exists(artPath))
                 {
                     commandArray.Add("-artpath");
@@ -103,16 +106,6 @@ namespace emulatorLauncher
                     commandArray.Add(cfgPath);
                 }
 
-                // Save States
-                string sstatePath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "states");
-                if (!Directory.Exists(sstatePath)) try { Directory.CreateDirectory(sstatePath); }
-                    catch { }
-                if (!string.IsNullOrEmpty(sstatePath) && Directory.Exists(sstatePath))
-                {
-                    commandArray.Add("-state_directory");
-                    commandArray.Add(sstatePath);
-                }
-
                 // Ini path
                 string iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini");
                 if (!Directory.Exists(iniPath)) try { Directory.CreateDirectory(iniPath); }
@@ -133,16 +126,6 @@ namespace emulatorLauncher
                     commandArray.Add(hashPath);
                 }
 
-                // ctrl directory
-                string ctrlrPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr");
-                if (!Directory.Exists(ctrlrPath)) try { Directory.CreateDirectory(ctrlrPath); }
-                    catch { }
-                if (!string.IsNullOrEmpty(ctrlrPath) && Directory.Exists(ctrlrPath))
-                {
-                    commandArray.Add("-ctrlrpath");
-                    commandArray.Add(ctrlrPath);
-                }
-
                 /// other available paths:
                 /// -input_directory
                 /// -diff_directory
@@ -151,17 +134,20 @@ namespace emulatorLauncher
                 /// -crosshairpath
                 /// -swpath
 
-                List<string> arguments = mameArguments();
-                if (arguments.Count != 0)
-                    commandArray.AddRange(arguments);
+                commandArray.AddRange(GetCommonMame64Arguments(resolution));
 
                 // Unknown system, try to run with rom name only
                 commandArray.Add(Path.GetFileName(rom));
 
-                args = string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
+                args = commandArray.JoinArguments();
             }
             else
-                args = messMode.GetMameCommandLineArguments(system, rom, emulator, true);
+            {
+                var commandArray = messMode.GetMameCommandLineArguments(system, rom, true);
+                commandArray.AddRange(GetCommonMame64Arguments(resolution));
+
+                args = commandArray.JoinArguments();
+            }
 
             return new ProcessStartInfo()
             {
@@ -178,9 +164,27 @@ namespace emulatorLauncher
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
-        public static List<string> mameArguments()
+        private List<string> GetCommonMame64Arguments(ScreenResolution resolution = null)
         {
             var retList = new List<string>();
+
+            string sstatePath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "states");
+            if (!Directory.Exists(sstatePath)) try { Directory.CreateDirectory(sstatePath); }
+                catch { }
+            if (!string.IsNullOrEmpty(sstatePath) && Directory.Exists(sstatePath))
+            {
+                retList.Add("-state_directory");
+                retList.Add(sstatePath);
+            }
+
+            string ctrlrPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr");
+            if (!Directory.Exists(ctrlrPath)) try { Directory.CreateDirectory(ctrlrPath); }
+                catch { }
+            if (!string.IsNullOrEmpty(ctrlrPath) && Directory.Exists(ctrlrPath))
+            {
+                retList.Add("-ctrlrpath");
+                retList.Add(ctrlrPath);
+            }
 
             retList.Add("-verbose");
 
@@ -212,19 +216,16 @@ namespace emulatorLauncher
                 retList.Add("d3d");
 
             // Resolution
-            if (Program.SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(Program.SystemConfig["internal_resolution"]) && Program.SystemConfig["mame_video_driver"] != "gdi" && Program.SystemConfig["mame_video_driver"] != "bgfx")
+            if (resolution != null)
             {
-                retList.Add("-switchres");
+                if (Program.SystemConfig["mame_video_driver"] != "gdi" && Program.SystemConfig["mame_video_driver"] != "bgfx")
+                    retList.Add("-switchres");
+
                 retList.Add("-resolution");
-                retList.Add(Program.SystemConfig["internal_resolution"]);
+                retList.Add(resolution.Width+"x"+resolution.Height);
             }
-            else if (Program.SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(Program.SystemConfig["internal_resolution"]))
-            {
-                retList.Add("-resolution");
-                retList.Add(Program.SystemConfig["internal_resolution"]);
-            }
-            else
-            {
+            else 
+            {                
                 retList.Add("-resolution");
                 retList.Add("auto");
             }
@@ -252,7 +253,7 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("triplebuffer") && Program.SystemConfig.getOptBoolean("triplebuffer") && Program.SystemConfig["mame_video_driver"] != "gdi")
                 retList.Add("-triplebuffer");
 
-            if (Program.SystemConfig.isOptSet("vsync") && Program.SystemConfig.getOptBoolean("vsync") && Program.SystemConfig["mame_video_driver"] != "gdi")
+            if ((!Program.SystemConfig.isOptSet("vsync") || Program.SystemConfig.getOptBoolean("vsync")) && Program.SystemConfig["mame_video_driver"] != "gdi")
                 retList.Add("-waitvsync");
 
             // Shaders (only for bgfx driver)
@@ -374,6 +375,7 @@ namespace emulatorLauncher
                     retList.Add(Program.SystemConfig["mame_ctrlr_profile"]);
                 }
             }
+
             return retList;
         }
 

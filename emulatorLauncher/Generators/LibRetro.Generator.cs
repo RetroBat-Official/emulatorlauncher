@@ -958,7 +958,7 @@ namespace emulatorLauncher.libRetro
             // Detect best core for MAME games ( If not overridden by the user )
             if (system == "mame" && subCore == null && core != null && core.StartsWith("mame"))
             {
-                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && !"missing".Equals(Program.CurrentGame.Tag) && string.IsNullOrEmpty(Program.CurrentGame.Core))
+                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && string.IsNullOrEmpty(Program.CurrentGame.Core))
                 {
                     string[] supportedCores = null;
 
@@ -1153,7 +1153,7 @@ namespace emulatorLauncher.libRetro
             MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
             if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
             {
-                var messArgs = messSystem.GetMameCommandLineArguments(system, rom, emulator);
+                var messArgs = messSystem.GetMameCommandLineArguments(system, rom).JoinArguments();
                 messArgs = messArgs.Replace("\\\"", "\"");
                 messArgs = "\"" + messArgs.Replace("\"", "\\\"") + "\"";
                 messArgs = (messArgs + " " + args).Trim();
