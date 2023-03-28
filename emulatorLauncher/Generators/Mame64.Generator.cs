@@ -365,6 +365,15 @@ namespace emulatorLauncher
             else
                 retList.Add("winhybrid");
 
+            if (Program.SystemConfig.isOptSet("mame_ctrlr_profile") && Program.SystemConfig["mame_ctrlr_profile"] != "none")
+            {
+                string ctrlrProfile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "ctrlr", Program.SystemConfig["mame_ctrlr_profile"] + ".cfg");
+                if (File.Exists(ctrlrProfile))
+                {
+                    retList.Add("-ctrlr");
+                    retList.Add(Program.SystemConfig["mame_ctrlr_profile"]);
+                }
+            }
             return retList;
         }
 
