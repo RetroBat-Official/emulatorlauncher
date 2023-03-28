@@ -134,7 +134,7 @@ namespace emulatorLauncher
                 /// -crosshairpath
                 /// -swpath
 
-                commandArray.AddRange(GetCommonMame64Arguments(resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
 
                 // Unknown system, try to run with rom name only
                 commandArray.Add(Path.GetFileName(rom));
@@ -144,7 +144,7 @@ namespace emulatorLauncher
             else
             {
                 var commandArray = messMode.GetMameCommandLineArguments(system, rom, true);
-                commandArray.AddRange(GetCommonMame64Arguments(resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
 
                 args = commandArray.JoinArguments();
             }
@@ -164,7 +164,7 @@ namespace emulatorLauncher
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
-        private List<string> GetCommonMame64Arguments(ScreenResolution resolution = null)
+        private List<string> GetCommonMame64Arguments(string rom, ScreenResolution resolution = null)
         {
             var retList = new List<string>();
 
