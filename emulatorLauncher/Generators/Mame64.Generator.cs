@@ -182,6 +182,12 @@ namespace emulatorLauncher
         {
             var retList = new List<string>();
 
+            // Throttle
+            if (Program.SystemConfig.isOptSet("mame_throttle") && Program.SystemConfig.getOptBoolean("mame_throttle"))
+                retList.Add("-nothrottle");
+            else
+                retList.Add("-throttle");
+
             // Autosave and rewind
             if (Program.SystemConfig.isOptSet("autosave") && Program.SystemConfig.getOptBoolean("autosave"))
                 retList.Add("-autosave");
