@@ -64,7 +64,7 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(artPath) && Directory.Exists(artPath))
                 {
                     commandArray.Add("-artpath");
-                    commandArray.Add(artPath + ";" + Path.Combine(path, "artwork"));
+                    commandArray.Add(artPath + ";" + Path.Combine(path, "artwork") + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "game_artwork"));
                 }
 
                 // Snapshots
