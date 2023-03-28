@@ -100,6 +100,32 @@ namespace emulatorLauncher
 
     class ZipArchive : IDisposable
     {
+        private static System.Reflection.MethodInfo _zipCreateFromDirectory;
+
+        public static void CreateFromDirectory(string sourceDirectoryName, string destinationArchiveFileName)
+        {
+            if (_zipCreateFromDirectory == null)
+            {
+                var afs = System.Reflection.Assembly.Load("System.IO.Compression.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+                if (afs == null)
+                    throw new Exception("Framework not supported");
+
+                var ass = System.Reflection.Assembly.Load("System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+                if (ass == null)
+                    throw new Exception("Framework not supported");
+
+                var zipFile = afs.GetTypes().FirstOrDefault(t => t.Name == "ZipFile");
+                if (zipFile == null)
+                    throw new Exception("Framework not supported");
+
+                _zipCreateFromDirectory = zipFile.GetMember("CreateFromDirectory", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).FirstOrDefault() as System.Reflection.MethodInfo;
+                if (_zipCreateFromDirectory == null)
+                    throw new Exception("Framework not supported");
+            }
+
+            _zipCreateFromDirectory.Invoke(null, new object[] { sourceDirectoryName, destinationArchiveFileName });            
+        }
+
         private static System.Reflection.MethodInfo _zipOpenRead;
 
         private IDisposable _zipArchive;

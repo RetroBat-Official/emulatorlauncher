@@ -106,7 +106,7 @@
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Eka2l1.Generator.cs" />
+    <Compile Include="Generators\Eka2l1.Generator.cs" />    
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
@@ -146,6 +146,9 @@
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Mame64.Generator.cs" />
+    <Compile Include="Generators\Mame64.Bezels.cs">
+      <DependentUpon>Mame64.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Daphne.Generator.cs" />
     <Compile Include="Generators\Oricutron.Generator.cs" />
     <Compile Include="Generators\Solarus.Generator.cs" />
