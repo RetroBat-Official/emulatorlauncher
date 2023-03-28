@@ -186,6 +186,9 @@ namespace emulatorLauncher
                 retList.Add(ctrlrPath);
             }
 
+            if (!SystemConfig.isOptSet("smooth") || !Program.SystemConfig.getOptBoolean("smooth"))
+                retList.Add("-nofilter");
+
             retList.Add("-verbose");
 
             // Throttle
