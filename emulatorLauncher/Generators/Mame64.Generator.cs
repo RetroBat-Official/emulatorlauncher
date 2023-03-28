@@ -182,6 +182,8 @@ namespace emulatorLauncher
         {
             var retList = new List<string>();
 
+            retList.Add("-verbose");
+
             // Throttle
             if (Program.SystemConfig.isOptSet("mame_throttle") && Program.SystemConfig.getOptBoolean("mame_throttle"))
                 retList.Add("-nothrottle");
@@ -294,21 +296,63 @@ namespace emulatorLauncher
             // Enable inputs
             if (Program.SystemConfig.isOptSet("mame_lightgun") && !string.IsNullOrEmpty(Program.SystemConfig["mame_lightgun"]))
             {
-                if (Program.SystemConfig["mame_lightgun"] == "none")
+                if (Program.SystemConfig["mame_lightgun"] == "mouse")
                 {
                     retList.Add("-lightgun_device");
-                    retList.Add("none");
+                    retList.Add("mouse");
+                    retList.Add("-adstick_device");
+                    retList.Add("mouse");
                 }
                 else if (Program.SystemConfig["mame_lightgun"] == "lightgun")
                 {
                     retList.Add("-lightgun_device");
                     retList.Add("lightgun");
+                    retList.Add("-adstick_device");
+                    retList.Add("lightgun");
+                }
+                else if (Program.SystemConfig["mame_lightgun"] == "none")
+                {
+                    retList.Add("-lightgun_device");
+                    retList.Add("none");
+                    retList.Add("-adstick_device");
+                    retList.Add("none");
                 }
                 else
                 {
                     retList.Add("-lightgun_device");
-                    retList.Add("mouse");
+                    retList.Add("joystick");
+                    retList.Add("-adstick_device");
+                    retList.Add("joystick");
                 }
+            }
+
+            // Other devices
+            if (Program.SystemConfig.isOptSet("mame_mouse") && Program.SystemConfig.getOptBoolean("mame_mouse"))
+            {
+                retList.Add("-dial_device");
+                retList.Add("mouse");
+                retList.Add("-trackball_device");
+                retList.Add("mouse");
+                retList.Add("-paddle_device");
+                retList.Add("mouse");
+                retList.Add("-positional_device");
+                retList.Add("mouse");
+                retList.Add("-mouse_device");
+                retList.Add("mouse");
+                retList.Add("-ui_mouse");
+            }
+            else
+            {
+                retList.Add("-dial_device");
+                retList.Add("joystick");
+                retList.Add("-trackball_device");
+                retList.Add("joystick");
+                retList.Add("-paddle_device");
+                retList.Add("joystick");
+                retList.Add("-positional_device");
+                retList.Add("joystick");
+                retList.Add("-mouse_device");
+                retList.Add("joystick");
             }
 
             if (Program.SystemConfig.isOptSet("mame_offscreen_reload") && Program.SystemConfig.getOptBoolean("mame_offscreen_reload") && Program.SystemConfig["mame_lightgun"] != "none")
