@@ -225,7 +225,7 @@ namespace emulatorLauncher
                     retList.Add("-switchres");
 
                 retList.Add("-resolution");
-                retList.Add(resolution.Width+"x"+resolution.Height);
+                retList.Add(resolution.Width+"x"+resolution.Height+"@"+resolution.DisplayFrequency);
             }
             else 
             {                
