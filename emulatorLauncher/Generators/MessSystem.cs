@@ -570,7 +570,7 @@ namespace emulatorLauncher
                 commandArray.Add("-hashpath");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
 
-                if (!Program.SystemConfig.isOptSet("bezel") || Program.SystemConfig["bezel"] == "none")
+                if (Program.SystemConfig.isOptSet("bezel") && Program.SystemConfig["bezel"] == "none")
                 {
                     commandArray.Add("-artpath");
 
