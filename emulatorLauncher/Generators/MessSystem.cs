@@ -543,6 +543,7 @@ namespace emulatorLauncher
                 iniFileName = MachineName;
 
             var bios = AppConfig.GetFullPath("bios");
+            var saves = AppConfig.GetFullPath("saves");
 
             string inipath = Path.Combine(bios, "mame", "ini", iniFileName + ".ini");
             if (File.Exists(inipath))
@@ -576,9 +577,9 @@ namespace emulatorLauncher
                     artwork = Path.Combine(Path.GetDirectoryName(rom), ".artwork");
 
                 if (Directory.Exists(artwork))
-                    commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(bios, "mame", "artwork")));
+                    commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
                 else
-                    commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "artwork")));
+                    commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
             }
             else
                 commandArray.Add(Path.GetDirectoryName(rom));
