@@ -28,7 +28,7 @@ namespace emulatorLauncher
             { new Installer("model3", "supermodel") }, 
             { new Installer("supermodel") }, 
             { new Installer("rpcs3") }, { new Installer("ps3", "rpcs3") }, 
-            { new Installer("pcsx2", new string[] { "pcsx2" }, new string[] { "pcsx2-qtx64.exe", "pcsx2x64.exe" }) },
+            { new Installer("pcsx2", new string[] { "pcsx2" }, new string[] { "pcsx2-qt.exe", "pcsx2-qtx64.exe", "pcsx2x64.exe" }) },
             { new Installer("pcsx2-16", "pcsx2-16", "pcsx2.exe") },
             { new Installer("fpinball", "fpinball", "Future Pinball.exe") }, { new Installer("bam", "fpinball", "Future Pinball.exe") }, 
             { new Installer("cemu") }, { new Installer("wiiu", "cemu") },

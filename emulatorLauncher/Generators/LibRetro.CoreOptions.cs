@@ -654,6 +654,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "dolphin_enable_rumble", "dolphin_enable_rumble", "enabled");
             BindFeature(coreSettings, "dolphin_osd_enabled", "dolphin_osd_enabled", "disabled");
             BindFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "disabled");
+            BindFeature(coreSettings, "dolphin_force_texture_filtering", "dolphin_force_texture_filtering", "disabled");
 
             BindFeature(coreSettings, "dolphin_language", "dolphin_language", "English");
 

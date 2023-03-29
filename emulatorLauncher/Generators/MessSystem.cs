@@ -543,6 +543,7 @@ namespace emulatorLauncher
                 iniFileName = MachineName;
 
             var bios = AppConfig.GetFullPath("bios");
+            var saves = AppConfig.GetFullPath("saves");
 
             string inipath = Path.Combine(bios, "mame", "ini", iniFileName + ".ini");
             if (File.Exists(inipath))
@@ -569,16 +570,19 @@ namespace emulatorLauncher
                 commandArray.Add("-hashpath");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
 
-                commandArray.Add("-artpath");
+                if (Program.SystemConfig.isOptSet("bezel") && Program.SystemConfig["bezel"] == "none")
+                {
+                    commandArray.Add("-artpath");
 
-                string artwork = Path.Combine(Path.GetDirectoryName(rom), "artwork");
-                if (Directory.Exists(artwork))
-                    artwork = Path.Combine(Path.GetDirectoryName(rom), ".artwork");
+                    string artwork = Path.Combine(Path.GetDirectoryName(rom), "artwork");
+                    if (Directory.Exists(artwork))
+                        artwork = Path.Combine(Path.GetDirectoryName(rom), ".artwork");
 
-                if (Directory.Exists(artwork))
-                    commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(bios, "mame", "artwork")));
-                else
-                    commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "artwork")));
+                    if (Directory.Exists(artwork))
+                        commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
+                    else
+                        commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
+                }
             }
             else
                 commandArray.Add(Path.GetDirectoryName(rom));

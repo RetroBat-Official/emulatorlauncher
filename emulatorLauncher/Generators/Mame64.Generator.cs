@@ -64,7 +64,7 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(artPath) && Directory.Exists(artPath))
                 {
                     commandArray.Add("-artpath");
-                    commandArray.Add(artPath + ";" + Path.Combine(path, "artwork"));
+                    commandArray.Add(artPath + ";" + Path.Combine(path, "artwork") + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
                 }
 
                 // Snapshots
@@ -134,7 +134,7 @@ namespace emulatorLauncher
                 /// -crosshairpath
                 /// -swpath
 
-                commandArray.AddRange(GetCommonMame64Arguments(resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
 
                 // Unknown system, try to run with rom name only
                 commandArray.Add(Path.GetFileName(rom));
@@ -144,7 +144,7 @@ namespace emulatorLauncher
             else
             {
                 var commandArray = messMode.GetMameCommandLineArguments(system, rom, true);
-                commandArray.AddRange(GetCommonMame64Arguments(resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
 
                 args = commandArray.JoinArguments();
             }
@@ -164,7 +164,7 @@ namespace emulatorLauncher
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
-        private List<string> GetCommonMame64Arguments(ScreenResolution resolution = null)
+        private List<string> GetCommonMame64Arguments(string rom, ScreenResolution resolution = null)
         {
             var retList = new List<string>();
 
@@ -186,46 +186,46 @@ namespace emulatorLauncher
                 retList.Add(ctrlrPath);
             }
 
-            if (!SystemConfig.isOptSet("smooth") || !Program.SystemConfig.getOptBoolean("smooth"))
+            if (!SystemConfig.isOptSet("smooth") || !SystemConfig.getOptBoolean("smooth"))
                 retList.Add("-nofilter");
 
             retList.Add("-verbose");
 
             // Throttle
-            if (Program.SystemConfig.isOptSet("mame_throttle") && Program.SystemConfig.getOptBoolean("mame_throttle"))
+            if (SystemConfig.isOptSet("mame_throttle") && SystemConfig.getOptBoolean("mame_throttle"))
                 retList.Add("-nothrottle");
             else
                 retList.Add("-throttle");
 
             // Autosave and rewind
-            if (Program.SystemConfig.isOptSet("autosave") && Program.SystemConfig.getOptBoolean("autosave"))
+            if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
                 retList.Add("-autosave");
 
-            if (Program.SystemConfig.isOptSet("rewind") && Program.SystemConfig.getOptBoolean("rewind"))
+            if (SystemConfig.isOptSet("rewind") && SystemConfig.getOptBoolean("rewind"))
                 retList.Add("-rewind");
 
             // Audio driver
             retList.Add("-sound");
-            if (Program.SystemConfig.isOptSet("mame_audio_driver") && !string.IsNullOrEmpty(Program.SystemConfig["mame_audio_driver"]))
-                retList.Add(Program.SystemConfig["mame_audio_driver"]);
+            if (SystemConfig.isOptSet("mame_audio_driver") && !string.IsNullOrEmpty(SystemConfig["mame_audio_driver"]))
+                retList.Add(SystemConfig["mame_audio_driver"]);
             else
                 retList.Add("dsound");
 
             // Video driver
             retList.Add("-video");
-            if (Program.SystemConfig.isOptSet("mame_video_driver") && !string.IsNullOrEmpty(Program.SystemConfig["mame_video_driver"]))
-                retList.Add(Program.SystemConfig["mame_video_driver"]);
+            if (SystemConfig.isOptSet("mame_video_driver") && !string.IsNullOrEmpty(SystemConfig["mame_video_driver"]))
+                retList.Add(SystemConfig["mame_video_driver"]);
             else
                 retList.Add("d3d");
 
             // Resolution
             if (resolution != null)
             {
-                if (Program.SystemConfig["mame_video_driver"] != "gdi" && Program.SystemConfig["mame_video_driver"] != "bgfx")
+                if (SystemConfig["mame_video_driver"] != "gdi" && SystemConfig["mame_video_driver"] != "bgfx")
                     retList.Add("-switchres");
 
                 retList.Add("-resolution");
-                retList.Add(resolution.Width+"x"+resolution.Height);
+                retList.Add(resolution.Width+"x"+resolution.Height+"@"+resolution.DisplayFrequency);
             }
             else 
             {                
@@ -235,59 +235,59 @@ namespace emulatorLauncher
 
             // Aspect ratio
             retList.Add("-aspect");
-            if (Program.SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(Program.SystemConfig["ratio"]))
-                retList.Add(Program.SystemConfig["ratio"]);
+            if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
+                retList.Add(SystemConfig["ratio"]);
             else
                 retList.Add("auto");
             
             // Monitor index
-            if (Program.SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(Program.SystemConfig["MonitorIndex"]))
+            if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
             {
-                string mameMonitor = "\\" + "\\" + ".\\" + "DISPLAY" + Program.SystemConfig["MonitorIndex"];
+                string mameMonitor = "\\" + "\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
                 retList.Add("-screen");
                 retList.Add(mameMonitor);
             }
 
             // Screen rotation
-            if (Program.SystemConfig.isOptSet("mame_rotate") && Program.SystemConfig["mame_rotate"] != "off")
-                retList.Add("-" + Program.SystemConfig["mame_rotate"]);
+            if (SystemConfig.isOptSet("mame_rotate") && SystemConfig["mame_rotate"] != "off")
+                retList.Add("-" + SystemConfig["mame_rotate"]);
 
             // Other video options
-            if (Program.SystemConfig.isOptSet("triplebuffer") && Program.SystemConfig.getOptBoolean("triplebuffer") && Program.SystemConfig["mame_video_driver"] != "gdi")
+            if (SystemConfig.isOptSet("triplebuffer") && SystemConfig.getOptBoolean("triplebuffer") && SystemConfig["mame_video_driver"] != "gdi")
                 retList.Add("-triplebuffer");
 
-            if ((!Program.SystemConfig.isOptSet("vsync") || Program.SystemConfig.getOptBoolean("vsync")) && Program.SystemConfig["mame_video_driver"] != "gdi")
+            if ((!SystemConfig.isOptSet("vsync") || SystemConfig.getOptBoolean("vsync")) && SystemConfig["mame_video_driver"] != "gdi")
                 retList.Add("-waitvsync");
 
             // Shaders (only for bgfx driver)
-            if (Program.SystemConfig.isOptSet("bgfxbackend") && (Program.SystemConfig["mame_video_driver"] == "bgfx") && !string.IsNullOrEmpty(Program.SystemConfig["bgfxbackend"]))
+            if (SystemConfig.isOptSet("bgfxbackend") && (SystemConfig["mame_video_driver"] == "bgfx") && !string.IsNullOrEmpty(SystemConfig["bgfxbackend"]))
             {
                 retList.Add("-bgfx_backend");
-                retList.Add(Program.SystemConfig["bgfxbackend"]);
+                retList.Add(SystemConfig["bgfxbackend"]);
 
-                if (Program.SystemConfig.isOptSet("bgfxshaders") && !string.IsNullOrEmpty(Program.SystemConfig["bgfxshaders"]))
+                if (SystemConfig.isOptSet("bgfxshaders") && !string.IsNullOrEmpty(SystemConfig["bgfxshaders"]))
                 {
                     retList.Add("-bgfx_screen_chains");
-                    retList.Add(Program.SystemConfig["bgfxshaders"]);
+                    retList.Add(SystemConfig["bgfxshaders"]);
                 }
-                else if (Program.Features.IsSupported("bgfxshaders"))
+                else if (Features.IsSupported("bgfxshaders"))
                 {
                     retList.Add("-bgfx_screen_chains");
                     retList.Add("default");
                 }
             }
             
-            if (Program.SystemConfig.isOptSet("effect") && !string.IsNullOrEmpty(Program.SystemConfig["effect"]))
+            if (SystemConfig.isOptSet("effect") && !string.IsNullOrEmpty(SystemConfig["effect"]))
             {
                 retList.Add("-effect");
-                retList.Add(Program.SystemConfig["effect"]);
+                retList.Add(SystemConfig["effect"]);
             }
 
             // Add plugins
             List<string> pluginList = new List<string>();
-            if (Program.SystemConfig.isOptSet("mame_cheats") && Program.SystemConfig.getOptBoolean("mame_cheats"))
+            if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
                 pluginList.Add("cheat");
-            if (Program.SystemConfig.isOptSet("mame_hiscore") && Program.SystemConfig.getOptBoolean("mame_hiscore"))
+            if (SystemConfig.isOptSet("mame_hiscore") && SystemConfig.getOptBoolean("mame_hiscore"))
                 pluginList.Add("hiscore");
 
             if (pluginList.Count > 0)
@@ -298,23 +298,23 @@ namespace emulatorLauncher
             }
 
             // Enable inputs
-            if (Program.SystemConfig.isOptSet("mame_lightgun") && !string.IsNullOrEmpty(Program.SystemConfig["mame_lightgun"]))
+            if (SystemConfig.isOptSet("mame_lightgun") && !string.IsNullOrEmpty(SystemConfig["mame_lightgun"]))
             {
-                if (Program.SystemConfig["mame_lightgun"] == "mouse")
+                if (SystemConfig["mame_lightgun"] == "mouse")
                 {
                     retList.Add("-lightgun_device");
                     retList.Add("mouse");
                     retList.Add("-adstick_device");
                     retList.Add("mouse");
                 }
-                else if (Program.SystemConfig["mame_lightgun"] == "lightgun")
+                else if (SystemConfig["mame_lightgun"] == "lightgun")
                 {
                     retList.Add("-lightgun_device");
                     retList.Add("lightgun");
                     retList.Add("-adstick_device");
                     retList.Add("lightgun");
                 }
-                else if (Program.SystemConfig["mame_lightgun"] == "none")
+                else if (SystemConfig["mame_lightgun"] == "none")
                 {
                     retList.Add("-lightgun_device");
                     retList.Add("none");
@@ -331,7 +331,7 @@ namespace emulatorLauncher
             }
 
             // Other devices
-            if (Program.SystemConfig.isOptSet("mame_mouse") && Program.SystemConfig.getOptBoolean("mame_mouse"))
+            if (SystemConfig.isOptSet("mame_mouse") && SystemConfig.getOptBoolean("mame_mouse"))
             {
                 retList.Add("-dial_device");
                 retList.Add("mouse");
@@ -359,23 +359,33 @@ namespace emulatorLauncher
                 retList.Add("joystick");
             }
 
-            if (Program.SystemConfig.isOptSet("mame_offscreen_reload") && Program.SystemConfig.getOptBoolean("mame_offscreen_reload") && Program.SystemConfig["mame_lightgun"] != "none")
+            if (SystemConfig.isOptSet("mame_offscreen_reload") && SystemConfig.getOptBoolean("mame_offscreen_reload") && SystemConfig["mame_lightgun"] != "none")
                 retList.Add("-offscreen_reload");
 
             // Gamepad driver
             retList.Add("-joystickprovider");
-            if (Program.SystemConfig.isOptSet("mame_joystick_driver") && !string.IsNullOrEmpty(Program.SystemConfig["mame_joystick_driver"]))
-                retList.Add(Program.SystemConfig["mame_joystick_driver"]);
+            if (SystemConfig.isOptSet("mame_joystick_driver") && !string.IsNullOrEmpty(SystemConfig["mame_joystick_driver"]))
+                retList.Add(SystemConfig["mame_joystick_driver"]);
             else
                 retList.Add("winhybrid");
 
-            if (Program.SystemConfig.isOptSet("mame_ctrlr_profile") && Program.SystemConfig["mame_ctrlr_profile"] != "none")
+            if (SystemConfig.isOptSet("mame_ctrlr_profile") && SystemConfig["mame_ctrlr_profile"] != "none")
             {
-                string ctrlrProfile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "ctrlr", Program.SystemConfig["mame_ctrlr_profile"] + ".cfg");
-                if (File.Exists(ctrlrProfile))
+                string ctrlrProfile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg");
+                if (File.Exists(ctrlrProfile) && SystemConfig["mame_ctrlr_profile"] != "per_game")
                 {
                     retList.Add("-ctrlr");
-                    retList.Add(Program.SystemConfig["mame_ctrlr_profile"]);
+                    retList.Add(SystemConfig["mame_ctrlr_profile"]);
+                }
+                else if (SystemConfig["mame_ctrlr_profile"] == "per_game")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    ctrlrProfile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", romName + ".cfg");
+                    if (File.Exists(ctrlrProfile))
+                    {
+                        retList.Add("-ctrlr");
+                        retList.Add(romName);
+                    }
                 }
             }
 

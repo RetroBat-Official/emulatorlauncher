@@ -37,18 +37,31 @@ namespace emulatorLauncher
                 _path = AppConfig.GetFullPath("pcsx2-16");
 
             //search first for qt version .exe, if found also set bool _isPcsxqt to true for later steps
-            string exe = Path.Combine(_path, "pcsx2-qtx64.exe"); // v1.7qt filename
-            if (File.Exists(exe))
+            string sse4exe = Path.Combine(_path, "pcsx2-qtx64.exe"); // v1.7 SSE4-QT filename
+            string avx2exe = Path.Combine(_path, "pcsx2-qtx64-avx2.exe"); // v1.7 AVX2-QT filename
+            string exe = Path.Combine(_path, "pcsx2-qt.exe"); // v1.7 new-QT filename
+            
+            // Define QT executable file to use (default is the new pcsx2-QT executable, but not everybody might have upgraded
+            if (File.Exists(exe) || File.Exists(sse4exe) || File.Exists(avx2exe))
             {
                 _isPcsxqt = true;
 
+                // If new pcsx2-QT.exe does not exist, default to SSE4
+                if (!File.Exists(exe) || core == "pcsx2-sse4" || core == "sse4")
+                {
+                    if (File.Exists(sse4exe))
+                        exe = sse4exe;
+                }
+
+                // AVX2 version when AVX2 core is forced
                 if (core == "pcsx2-avx2" || core == "avx2")
                 {
-                    string avx2 = Path.Combine(_path, "pcsx2-qtx64-avx2.exe");
-                    if (File.Exists(avx2))
-                        exe = avx2;
+                    if (File.Exists(avx2exe))
+                        exe = avx2exe;
                 }
             }
+
+            // For these still with wxwidgets version
             else if (!File.Exists(exe))
             {
                 exe = Path.Combine(_path, "pcsx2x64.exe"); // v1.7 filename 
@@ -56,12 +69,12 @@ namespace emulatorLauncher
                     exe = Path.Combine(_path, "pcsx2.exe"); // v1.6 filename            
             }
 
-            // v1.7.0 ???
+            // v1.7.0 wxwidgets ?
             Version version = new Version();
             if (!_isPcsxqt && Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion, out version))
                 _isPcsx17 = version >= new Version(1, 7, 0, 0);
 
-            // Select avx2 build for 1.7 non-qt version
+            // Select avx2 build for 1.7 wxwidgets version
             if (!_isPcsxqt && _isPcsx17 && (core == "pcsx2-avx2" || core == "avx2"))
             {
                 string avx2 = Path.Combine(_path, "pcsx2x64-avx2.exe");
@@ -802,10 +815,21 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("interlace"))
                     ini.WriteValue("EmuCore/GS", "deinterlace", "7");
 
-                if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
-                    ini.WriteValue("EmuCore/GS", "linear_present", SystemConfig["bilinear_filtering"]);
-                else if (Features.IsSupported("bilinear_filtering"))
+                if (SystemConfig.isOptSet("bilinear_filtering") && SystemConfig["bilinear_filtering"] == "0")
+                {
+                    ini.WriteValue("EmuCore/GS", "linear_present", "false");
+                    ini.WriteValue("EmuCore/GS", "linear_present_mode", "0");
+                } 
+                else if (SystemConfig.isOptSet("bilinear_filtering") && SystemConfig["bilinear_filtering"] == "2")
+                {
                     ini.WriteValue("EmuCore/GS", "linear_present", "true");
+                    ini.WriteValue("EmuCore/GS", "linear_present_mode", "2");
+                }
+                else if (Features.IsSupported("bilinear_filtering"))
+                {
+                    ini.WriteValue("EmuCore/GS", "linear_present", "true");
+                    ini.WriteValue("EmuCore/GS", "linear_present_mode", "1");
+                }
 
                 //Vsync
                 if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
