@@ -66,6 +66,9 @@ namespace emulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
+                ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
+                ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");
+
                 ini.WriteValue("UI", "fullscreen\\default", "false");
                 ini.WriteValue("UI", "fullscreen", "true");
 
