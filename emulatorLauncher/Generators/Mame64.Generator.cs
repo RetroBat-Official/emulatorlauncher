@@ -283,6 +283,28 @@ namespace emulatorLauncher
                 retList.Add(SystemConfig["effect"]);
             }
 
+            // Adjust gamma, brightness and contrast
+            if (SystemConfig["mame_video_driver"] != "gdi")
+            {
+                if (SystemConfig.isOptSet("brightness") && !string.IsNullOrEmpty(SystemConfig["brightness"]))
+                {
+                    retList.Add("-full_screen_brightness");
+                    retList.Add(SystemConfig["brightness"]);
+                }
+
+                if (SystemConfig.isOptSet("gamma") && !string.IsNullOrEmpty(SystemConfig["gamma"]))
+                {
+                    retList.Add("-full_screen_gamma");
+                    retList.Add(SystemConfig["gamma"]);
+                }
+
+                if (SystemConfig.isOptSet("contrast") && !string.IsNullOrEmpty(SystemConfig["contrast"]))
+                {
+                    retList.Add("-full_screen_contrast");
+                    retList.Add(SystemConfig["contrast"]);
+                }
+            }
+
             // Add plugins
             List<string> pluginList = new List<string>();
             if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
