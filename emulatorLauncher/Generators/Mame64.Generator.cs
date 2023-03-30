@@ -259,6 +259,7 @@ namespace emulatorLauncher
             if ((!SystemConfig.isOptSet("vsync") || SystemConfig.getOptBoolean("vsync")) && SystemConfig["mame_video_driver"] != "gdi")
                 retList.Add("-waitvsync");
 
+            bool useCoreBrightness = false;
             // Shaders (only for bgfx driver)
             if (SystemConfig.isOptSet("bgfxbackend") && (SystemConfig["mame_video_driver"] == "bgfx") && !string.IsNullOrEmpty(SystemConfig["bgfxbackend"]))
             {
@@ -267,6 +268,7 @@ namespace emulatorLauncher
 
                 if (SystemConfig.isOptSet("bgfxshaders") && !string.IsNullOrEmpty(SystemConfig["bgfxshaders"]))
                 {
+                    useCoreBrightness = true;
                     retList.Add("-bgfx_screen_chains");
                     retList.Add(SystemConfig["bgfxshaders"]);
                 }
@@ -286,23 +288,48 @@ namespace emulatorLauncher
             // Adjust gamma, brightness and contrast
             if (SystemConfig["mame_video_driver"] != "gdi")
             {
-                if (SystemConfig.isOptSet("brightness") && !string.IsNullOrEmpty(SystemConfig["brightness"]))
+                if (useCoreBrightness)
                 {
-                    retList.Add("-full_screen_brightness");
-                    retList.Add(SystemConfig["brightness"]);
+                    if (SystemConfig.isOptSet("brightness") && !string.IsNullOrEmpty(SystemConfig["brightness"]))
+                    {
+                        retList.Add("-brightness");
+                        retList.Add(SystemConfig["brightness"]);
+                    }
+
+                    if (SystemConfig.isOptSet("gamma") && !string.IsNullOrEmpty(SystemConfig["gamma"]))
+                    {
+                        retList.Add("-gamma");
+                        retList.Add(SystemConfig["gamma"]);
+                    }
+
+                    if (SystemConfig.isOptSet("contrast") && !string.IsNullOrEmpty(SystemConfig["contrast"]))
+                    {
+                        retList.Add("-contrast");
+                        retList.Add(SystemConfig["contrast"]);
+                    }
                 }
 
-                if (SystemConfig.isOptSet("gamma") && !string.IsNullOrEmpty(SystemConfig["gamma"]))
+                else
                 {
-                    retList.Add("-full_screen_gamma");
-                    retList.Add(SystemConfig["gamma"]);
+                    if (SystemConfig.isOptSet("brightness") && !string.IsNullOrEmpty(SystemConfig["brightness"]))
+                    {
+                        retList.Add("-full_screen_brightness");
+                        retList.Add(SystemConfig["brightness"]);
+                    }
+
+                    if (SystemConfig.isOptSet("gamma") && !string.IsNullOrEmpty(SystemConfig["gamma"]))
+                    {
+                        retList.Add("-full_screen_gamma");
+                        retList.Add(SystemConfig["gamma"]);
+                    }
+
+                    if (SystemConfig.isOptSet("contrast") && !string.IsNullOrEmpty(SystemConfig["contrast"]))
+                    {
+                        retList.Add("-full_screen_contrast");
+                        retList.Add(SystemConfig["contrast"]);
+                    }
                 }
 
-                if (SystemConfig.isOptSet("contrast") && !string.IsNullOrEmpty(SystemConfig["contrast"]))
-                {
-                    retList.Add("-full_screen_contrast");
-                    retList.Add(SystemConfig["contrast"]);
-                }
             }
 
             // Add plugins
