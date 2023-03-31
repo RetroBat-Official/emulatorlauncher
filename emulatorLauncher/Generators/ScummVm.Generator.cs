@@ -186,6 +186,20 @@ namespace emulatorLauncher
                     ini.WriteValue("scummvm", "savepath", savePath);
                 }
 
+                // Write themepath and extrapath (same location as libretro scummvm core)
+                string biosPath = AppConfig.GetFullPath("bios");
+                string themePath = Path.Combine(biosPath, "scummvm", "theme");
+                string extraPath = Path.Combine(biosPath, "scummvm", "extra");
+
+                if (Directory.Exists(themePath))
+                {
+                    ini.WriteValue("scummvm", "themepath", themePath);
+                }
+                if (Directory.Exists(extraPath))
+                {
+                    ini.WriteValue("scummvm", "extrapath", extraPath);
+                }
+
                 if (Features.IsSupported("unsupported_games") && SystemConfig.getOptBoolean("unsupported_games"))
                     ini.WriteValue("scummvm", "enable_unsupported_game_warning", "false");
                 else
