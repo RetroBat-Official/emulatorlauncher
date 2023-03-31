@@ -174,6 +174,55 @@ namespace emulatorLauncher
                     ini.WriteValue("Utility", "preload_textures", "false");
                 }
             }
+
+            // Write nand settings (language)
+            string nandPath = Path.Combine(path, "user", "nand", "data", "00000000000000000000000000000000", "sysdata", "00010017", "00000000", "config");
+            if (File.Exists(nandPath))
+                Write3DSnand(nandPath);
+        }
+
+        private void Write3DSnand(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            int langId = 1;
+
+            if (SystemConfig.isOptSet("n3ds_language") && !string.IsNullOrEmpty(SystemConfig["n3ds_language"]))
+                langId = SystemConfig["n3ds_language"].ToInteger();
+            else
+                langId = get3DSLangFromEnvironment();
+
+            // Read nand file
+            byte[] bytes = File.ReadAllBytes(path);
+
+            var toSet = new byte[] { (byte)langId };
+            for (int i = 0; i < toSet.Length; i++)
+                bytes[104] = toSet[i];
+
+            File.WriteAllBytes(path, bytes);
+        }
+
+        private int get3DSLangFromEnvironment()
+        {
+            var availableLanguages = new Dictionary<string, int>()  //OA = 10, OB = 11 (traditional chinese)
+            {
+                {"jp", 0 }, {"en", 1 }, { "fr", 2 }, { "de", 3 }, { "it", 4 }, { "es", 5 }, { "zh", 6 }, { "ko", 7 }, { "nl", 8 }, { "pt", 9 }, { "ru", 10 }, { "tw", 11 }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return 11;
+
+            var lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                int ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return 1;
         }
     }
 }
