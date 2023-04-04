@@ -577,6 +577,32 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["cheevos_challenge_indicators"] = SystemConfig["retroachievements.challenge_indicators"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_start_active"] = SystemConfig["retroachievements.encore"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_richpresence_enable"] = SystemConfig["retroachievements.richpresence"] == "true" ? "true" : "false";
+
+                // Unlock sound
+                if (AppConfig.isOptSet("retroachievementsounds") && SystemConfig.isOptSet("retroachievements.sound") && !string.IsNullOrEmpty(SystemConfig["retroachievements.sound"]))
+                {
+                    if (SystemConfig["retroachievements.sound"] != "none")
+                    {
+                        retroarchConfig["cheevos_unlock_sound_enable"] = "true";
+                        string targetSoundPath = Path.Combine(RetroarchPath, "assets", "sounds");
+                        if (!string.IsNullOrEmpty(targetSoundPath))
+                        {
+                            string targetSoundFile = Path.Combine(targetSoundPath, "unlock.ogg");
+                            string sourceSoundFile = Path.Combine(AppConfig.GetFullPath("retroachievementsounds"), SystemConfig["retroachievements.sound"] + ".ogg");
+
+                            if (File.Exists(targetSoundFile))
+                                File.Delete(targetSoundFile);
+
+                            if (File.Exists(sourceSoundFile))
+                                File.Copy(sourceSoundFile, targetSoundFile);
+                        }
+                    }
+                    else
+                        retroarchConfig["cheevos_unlock_sound_enable"] = "false";
+                }
+
+                else
+                    retroarchConfig["cheevos_unlock_sound_enable"] = "false";
             }
             else
                 retroarchConfig["cheevos_enable"] = "false";
