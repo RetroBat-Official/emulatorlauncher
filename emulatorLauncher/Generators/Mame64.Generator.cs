@@ -260,26 +260,32 @@ namespace emulatorLauncher
                 retList.Add("-waitvsync");
 
             bool useCoreBrightness = false;
-            // Shaders (only for bgfx driver)
-            if (SystemConfig.isOptSet("bgfxbackend") && (SystemConfig["mame_video_driver"] == "bgfx") && !string.IsNullOrEmpty(SystemConfig["bgfxbackend"]))
-            {
-                retList.Add("-bgfx_backend");
-                retList.Add(SystemConfig["bgfxbackend"]);
-
-                if (SystemConfig.isOptSet("bgfxshaders") && !string.IsNullOrEmpty(SystemConfig["bgfxshaders"]))
-                {
-                    useCoreBrightness = true;
-                    retList.Add("-bgfx_screen_chains");
-                    retList.Add(SystemConfig["bgfxshaders"]);
-                }
-                else if (Features.IsSupported("bgfxshaders"))
-                {
-                    retList.Add("-bgfx_screen_chains");
-                    retList.Add("default");
-                }
-            }
             
-            if (SystemConfig.isOptSet("effect") && !string.IsNullOrEmpty(SystemConfig["effect"]))
+            /// Effects and shaders
+            /// Currently support: BGFX, OpenGL (GLSL) or simple effects
+            
+            // BGFX Shaders (only for bgfx driver)
+            if (SystemConfig.isOptSet("bgfxshaders") && !string.IsNullOrEmpty(SystemConfig["bgfxshaders"]) && (SystemConfig["mame_video_driver"] == "bgfx"))
+            {
+                if (SystemConfig.isOptSet("bgfxbackend")  && !string.IsNullOrEmpty(SystemConfig["bgfxbackend"]))
+                { 
+                    retList.Add("-bgfx_backend");
+                    retList.Add(SystemConfig["bgfxbackend"]);
+                }
+
+                useCoreBrightness = true;
+                retList.Add("-bgfx_screen_chains");
+                retList.Add(SystemConfig["bgfxshaders"]);
+            }
+
+            else if (SystemConfig.isOptSet("glslshaders") && !string.IsNullOrEmpty(SystemConfig["glslshaders"]) && (SystemConfig["mame_video_driver"] == "opengl"))
+            {
+                useCoreBrightness = true;
+                retList.Add("-gl_glsl");
+                retList.AddRange(Getglslshaderchain());
+            }
+
+            else if (SystemConfig.isOptSet("effect") && !string.IsNullOrEmpty(SystemConfig["effect"]))
             {
                 retList.Add("-effect");
                 retList.Add(SystemConfig["effect"]);
@@ -439,6 +445,44 @@ namespace emulatorLauncher
             }
 
             return retList;
+        }
+
+        private List<string> Getglslshaderchain()
+        {
+            var shaderlist = new List<string>();
+            var ext = new List<string> { "vsh" };
+
+            string path = AppConfig.GetFullPath("mame");
+            if (string.IsNullOrEmpty(path) && Environment.Is64BitOperatingSystem)
+                path = AppConfig.GetFullPath("mame64");
+
+            string glslPath = Path.Combine(path, "glsl");
+
+            if (Directory.Exists(glslPath))
+            {
+                string shaderPath = Path.Combine(glslPath, SystemConfig["glslshaders"]);
+                if (Directory.Exists(shaderPath))
+                {
+                    List<string> shaderFiles = Directory.GetFiles(shaderPath, "*.*", SearchOption.AllDirectories)
+                      .Where(file => new string[] { ".vsh" }
+                      .Contains(Path.GetExtension(file)))
+                      .ToList();
+
+                    if (shaderFiles.Count != 0)
+                    {
+                        int shadernb = 0;
+                        foreach (var shader in shaderFiles)
+                        {
+                            string shaderName = "." + "\\" + "glsl\\" + SystemConfig["glslshaders"] + "\\" + Path.GetFileNameWithoutExtension(shader);
+                            shaderlist.Add("-glsl_shader_mame" + shadernb);
+                            shaderlist.Add(shaderName);
+                            shadernb += 1;
+                        }
+                    }
+                }
+            }
+
+            return shaderlist;
         }
 
     }
