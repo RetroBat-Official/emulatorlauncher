@@ -102,6 +102,12 @@ namespace emulatorLauncher
                 return ret;
             else
             {
+                if (typeof(IXmlSerializable).IsAssignableFrom(t))
+                {
+                    ((IXmlSerializable)ret).ReadXml(reader);
+                    return ret;
+                }
+
                 reader.ReadStartElement();
                 reader.SkipWhitespaces();
             }

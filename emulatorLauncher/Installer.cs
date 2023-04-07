@@ -81,11 +81,15 @@ namespace emulatorLauncher
 
         public string DefaultFolderName { get { return Folders[0]; } }
         public string ServerVersion { get; private set; }
+        public string ServerFileName { get; set; }
 
         public string PackageUrl
         {
             get
             {
+                if (!string.IsNullOrEmpty(ServerFileName))
+                    return GetUpdateUrl(ServerFileName);
+
                 return GetUpdateUrl(DefaultFolderName + ".7z");
             }
         }
@@ -367,11 +371,11 @@ namespace emulatorLauncher
                 var settings = XDocument.Parse(xml);
                 if (settings == null)
                     return false;
-                
-                string serverVersion = settings
+
+                var serverVersion = settings
                     .Descendants()
                     .Where(d => d.Name == "system" && d.Attribute("name") != null && d.Attribute("version") != null && d.Attribute("name").Value == DefaultFolderName)
-                    .Select(d => d.Attribute("version").Value)
+                    .Select(d => new { Version = d.Attribute("version").Value, Path = d.Attribute("file") == null ? null : d.Attribute("file").Value })
                     .FirstOrDefault();
 
                 if (serverVersion == null)
@@ -379,10 +383,11 @@ namespace emulatorLauncher
 
                 Version local = new Version();
                 Version server = new Version();
-                if (Version.TryParse(GetInstalledVersion(), out local) && Version.TryParse(serverVersion, out server))
+                if (Version.TryParse(GetInstalledVersion(), out local) && Version.TryParse(serverVersion.Version, out server))
                 {
                     if (local < server)
                     {
+                        ServerFileName = serverVersion.Path;
                         ServerVersion = server.ToString();
                         return true;
                     }
