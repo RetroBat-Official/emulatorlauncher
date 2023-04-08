@@ -12,6 +12,8 @@ namespace emulatorLauncher
 {
     class XEmuGenerator : Generator
     {
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("xemu");
@@ -24,6 +26,9 @@ namespace emulatorLauncher
             
             if (!File.Exists(exe))
                 return null;
+
+            // Extract SDL2 version info
+            _sdlVersion = SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe, SdlVersion.SDL2_0_X);
 
             try
             {
@@ -164,7 +169,7 @@ namespace emulatorLauncher
                         if (ctl.Name == "Keyboard")
                             ini.WriteValue("input.bindings", "port" + port, "'keyboard'");
                         else if (ctl.Config != null && ctl.XInput != null)
-                            ini.WriteValue("input.bindings", "port" + port, "'" + ctl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant() + "'");
+                            ini.WriteValue("input.bindings", "port" + port, "'" + ctl.GetSdlGuid(_sdlVersion).ToLowerInvariant() + "'");
 
                         port++;
                     }

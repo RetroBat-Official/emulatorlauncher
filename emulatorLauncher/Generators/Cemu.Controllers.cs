@@ -89,7 +89,7 @@ namespace emulatorLauncher
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="controller"></param>
-        private static void ConfigureInputXml(XmlWriter writer, Controller controller)
+        private void ConfigureInputXml(XmlWriter writer, Controller controller)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -260,7 +260,7 @@ namespace emulatorLauncher
         /// <param name="writer"></param>
         /// <param name="ctrl"></param>
         /// <param name="playerIndex"></param>
-        private static void ConfigureJoystickXml(XmlWriter writer, Controller ctrl, int playerIndex)
+        private void ConfigureJoystickXml(XmlWriter writer, Controller ctrl, int playerIndex)
         {
             if (ctrl == null)
                 return;
@@ -286,7 +286,7 @@ namespace emulatorLauncher
                 .ToList()
                 .IndexOf(ctrl);
 
-            string uuid = index + "_" + ctrl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
+            string uuid = index + "_" + ctrl.GetSdlGuid(_sdlVersion).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
             // Define type of controller
             // Players 1 & 2 defaults to WIIU Gamepad but can be changed to pro controller in features for some multiplayer games compatibility
