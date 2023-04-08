@@ -17,6 +17,8 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("cemu");
@@ -38,6 +40,17 @@ namespace emulatorLauncher
                 else if (rom.StartsWith("\\") || rom.StartsWith("/"))
                     rom = Path.Combine(path, rom.Substring(1));
             }
+
+            // Extract SDL2 version info
+            try
+            {
+                string sdl2 = Path.Combine(path, "SDL2.dll");
+                if (FileVersionInfo.GetVersionInfo(exe).ProductMajorPart <= 1 && File.Exists(sdl2))
+                    _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
+                else
+                    _sdlVersion = SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe);
+            }
+            catch { }            
 
             //settings
             SetupConfiguration(path, rom);

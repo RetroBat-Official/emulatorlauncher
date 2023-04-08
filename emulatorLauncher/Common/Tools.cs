@@ -268,12 +268,12 @@ namespace emulatorLauncher.Tools
         }
 
 
-        public static int IndexOf(this byte[] arrayToSearchThrough, byte[] patternToFind)
+        public static int IndexOf(this byte[] arrayToSearchThrough, byte[] patternToFind, int startIndex = 0)
         {
             if (patternToFind.Length > arrayToSearchThrough.Length)
                 return -1;
 
-            for (int i = 0; i < arrayToSearchThrough.Length - patternToFind.Length + 1; ++i)
+            for (int i = startIndex; i < arrayToSearchThrough.Length - patternToFind.Length + 1; ++i)
             {
                 bool found = true;
                 for (int j = 0; j < patternToFind.Length; j++)
