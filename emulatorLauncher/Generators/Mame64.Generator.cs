@@ -235,8 +235,8 @@ namespace emulatorLauncher
 
             // Aspect ratio
             retList.Add("-aspect");
-            if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
-                retList.Add(SystemConfig["ratio"]);
+            if (SystemConfig.isOptSet("mame_ratio") && !string.IsNullOrEmpty(SystemConfig["mame_ratio"]))
+                retList.Add(SystemConfig["mame_ratio"]);
             else
                 retList.Add("auto");
             
