@@ -236,7 +236,10 @@ namespace emulatorLauncher
             // Aspect ratio
             retList.Add("-aspect");
             if (SystemConfig.isOptSet("mame_ratio") && !string.IsNullOrEmpty(SystemConfig["mame_ratio"]))
+            { 
                 retList.Add(SystemConfig["mame_ratio"]);
+                retList.Add("-nokeepaspect");
+            }
             else
                 retList.Add("auto");
             
@@ -416,6 +419,9 @@ namespace emulatorLauncher
 
             if (SystemConfig.isOptSet("mame_offscreen_reload") && SystemConfig.getOptBoolean("mame_offscreen_reload") && SystemConfig["mame_lightgun"] != "none")
                 retList.Add("-offscreen_reload");
+
+            if (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse"))
+                retList.Add("-multimouse");
 
             // Gamepad driver
             retList.Add("-joystickprovider");
