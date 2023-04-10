@@ -557,35 +557,33 @@ namespace emulatorLauncher
                     commandArray.Add(Path.Combine(bios, "mess") + ";" + bios + ";" + Path.GetDirectoryName(rom));
                 else
                     commandArray.Add(bios + ";" + Path.GetDirectoryName(rom));
-
-                if (injectCfgDirectory)
-                {
-                    commandArray.Add("-cfg_directory");
-                    commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "cfg")));
-
-                    commandArray.Add("-inipath");
-                    commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "ini")));
-                }
-
-                commandArray.Add("-hashpath");
-                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
-
-                if (Program.SystemConfig.isOptSet("bezel") && Program.SystemConfig["bezel"] == "none")
-                {
-                    commandArray.Add("-artpath");
-
-                    string artwork = Path.Combine(Path.GetDirectoryName(rom), "artwork");
-                    if (Directory.Exists(artwork))
-                        artwork = Path.Combine(Path.GetDirectoryName(rom), ".artwork");
-
-                    if (Directory.Exists(artwork))
-                        commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
-                    else
-                        commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
-                }
             }
+
             else
                 commandArray.Add(Path.GetDirectoryName(rom));
+
+            if (injectCfgDirectory)
+            {
+                commandArray.Add("-cfg_directory");
+                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "cfg")));
+
+                commandArray.Add("-inipath");
+                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "ini")));
+            }
+
+            commandArray.Add("-hashpath");
+            commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
+
+            commandArray.Add("-artpath");
+
+            string artwork = Path.Combine(Path.GetDirectoryName(rom), "artwork");
+            if (Directory.Exists(artwork))
+                artwork = Path.Combine(Path.GetDirectoryName(rom), ".artwork");
+
+            if (Directory.Exists(artwork))
+                commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
+            else
+                commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
             
             if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
             {
