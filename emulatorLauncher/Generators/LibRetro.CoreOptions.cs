@@ -696,7 +696,7 @@ namespace emulatorLauncher.libRetro
             // wii
             if (system == "wii")
             {
-                if (_isWidescreen)
+                if (_isWidescreen || !SystemConfig.isOptSet("ratio"))
                     coreSettings["dolphin_widescreen"] = "enabled";
                 else
                     coreSettings["dolphin_widescreen"] = "disabled";
@@ -968,7 +968,12 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["fbneo-allow-depth-32"] = "enabled";
-            coreSettings["fbneo-allow-patched-romsets"] = "enabled";
+
+            if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
+                coreSettings["fbneo-allow-patched-romsets"] = "disabled";
+            else
+                coreSettings["fbneo-allow-patched-romsets"] = "enabled";
+
             coreSettings["fbneo-memcard-mode"] = "per-game";
             coreSettings["fbneo-hiscores"] = "enabled";
             coreSettings["fbneo-load-subsystem-from-parent"] = "enabled";

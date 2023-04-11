@@ -157,37 +157,41 @@
                                                    
 	"colecovision": { "name": "ColecoVision", "biosFiles":  [ { "md5": "2c66f5911e5b42b8ebe113403548eee7", "file": "bios/colecovision.rom" } ] },
 
-	"lynx48k": { "name": "Camputers Lynx", "biosFiles": [ { "md5": "85ae78a20ffaff388dd09c75d9e1ec0e", "file": "lynx48k.zip" } ] },
+	"lynx48k": { "name": "Camputers Lynx", "biosFiles": [ { "md5": "85ae78a20ffaff388dd09c75d9e1ec0e", "file": "bios/lynx48k.zip" } ] },
 
-	"advision": { "name": "Adventure Vision", "biosFiles": [ { "md5": "1c08606408029751fd30ac91d2bf30d5", "file": "advision.zip"	},
+	"advision": { "name": "Adventure Vision", "biosFiles": [ { "md5": "1c08606408029751fd30ac91d2bf30d5", "file": "bios/advision.zip"	},
                                                            { "md5": "", "file": "bios/mame/hash/advision.xml"										} ] },
 
-	"astrocde": { "name": "Astrocade", "biosFiles": [ { "md5": "f58a3823ab308ef0a02b498d126e5d96", "file": "astrocde.zip" },
+	"astrocde": { "name": "Astrocade", "biosFiles": [ { "md5": "f58a3823ab308ef0a02b498d126e5d96", "file": "bios/astrocde.zip" },
                                                     { "md5": "", "file": "bios/mame/hash/astrocde.xml"									} ] },
 
-	"scv": { "name": "Super Cassette Vision", "biosFiles":	[ { "md5": "33df021613fb12abe2ad14b9eb17c7fe", "file": "scv.zip"	},
-                                                              { "md5": "635a978fd40db9a18ee44eff449fc126", "file": "upd7801g.s01"	},
+	"scv": { "name": "Super Cassette Vision", "biosFiles":	[ { "md5": "33df021613fb12abe2ad14b9eb17c7fe", "file": "bios/scv.zip"	},
+                                                              { "md5": "635a978fd40db9a18ee44eff449fc126", "file": "bios/upd7801g.s01"	},
                                                               { "md5": "", "file": "bios/mame/hash/scv.xml"						} ] },	
 
-	"gmaster": { "name": "Game Master", "biosFiles":	[ { "md5": "4239d6f44a0d78d27c69f9b95885f48e", "file": "gmaster.zip"	},
+	"gmaster": { "name": "Game Master", "biosFiles":	[ { "md5": "4239d6f44a0d78d27c69f9b95885f48e", "file": "bios/gmaster.zip"	},
                                                       { "md5": "", "file": "bios/mame/hash/gmaster.xml"										} ] },
 
-	"gamecom": { "name": "Game.com", "biosFiles": [ { "md5": "f2087ed09f7fa8d8856cfafb20dd00dc", "file": "gamecom.zip"	},
+	"gamecom": { "name": "Game.com", "biosFiles": [ { "md5": "f2087ed09f7fa8d8856cfafb20dd00dc", "file": "bios/gamecom.zip"	},
                                                   { "md5": "", "file": "bios/mame/hash/gamecom.xml"										} ] },
 
-	"gamepock": { "name": "Game Pocket", "biosFiles": [ { "md5": "887479fe3c69a0b935c57a7a738e26c4", "file": "gamepock.zip" },
+	"gamepock": { "name": "Game Pocket", "biosFiles": [ { "md5": "887479fe3c69a0b935c57a7a738e26c4", "file": "bios/gamepock.zip" },
                                                       { "md5": "", "file": "bios/mame/hash/gamepock.xml"									} ] },
 
-	"gamate": { "name": "Gamate", "biosFiles":	[ { "md5": "320bf3d4142fa1043255db7ff87d17c7", "file": "gamate.zip" },
+	"gamate": { "name": "Gamate", "biosFiles":	[ { "md5": "320bf3d4142fa1043255db7ff87d17c7", "file": "bios/gamate.zip" },
                                                 { "md5": "", "file": "bios/mame/hash/gamate.xml"									} ] },
 
-	"arcadia": { "name": "Arcadia 2001", "biosFiles": [ { "md5": "37e9746f4491aa2df9a83729d1a93620", "file": "ar_bios.zip"	},
+	"arcadia": { "name": "Arcadia 2001", "biosFiles": [ { "md5": "37e9746f4491aa2df9a83729d1a93620", "file": "bios/ar_bios.zip"	},
                                                       { "md5": "", "file": "bios/mame/hash/arcadia.xml"										} ] },
 
-	"apfm1000": { "name": "APF M-1000", "biosFiles":	[ { "md5": "b197db12f7a13827717bbeb7cfd9542a", "file": "apfm1000.zip" },
+	"archimedes": { "name": "Acorn Archimedes", "biosFiles": [ { "md5": "", "file": "bios/aa310.zip"	},
+															   { "md5": "", "file": "bios/archimedes_keyboard.zip"				},
+															   { "md5": "", "file": "bios/mame/hash/archimedes.xml"				} ] },
+
+	"apfm1000": { "name": "APF M-1000", "biosFiles":	[ { "md5": "b197db12f7a13827717bbeb7cfd9542a", "file": "bios/apfm1000.zip" },
                                                       { "md5": "", "file": "bios/mame/hash/apfm1000.xml"									} ] },
 
-	"tutor": { "name": "APF M-1000", "biosFiles": [ { "md5": "", "file": "tutor.zip"								},
+	"tutor": { "name": "APF M-1000", "biosFiles": [ { "md5": "", "file": "bios/tutor.zip"								},
                                                     { "md5": "", "file": "bios/mame/hash/tutor.xml"                 } ] },
 
     "cdi": { "name": "Philips CD-I", "biosFiles": [ { "md5": "", "file": "bios/cdibios.zip"                     },
