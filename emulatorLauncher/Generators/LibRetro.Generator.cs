@@ -781,7 +781,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["video_message_pos_x"] = "0.05";
             retroarchConfig["video_message_pos_y"] = "0.05";
 
-            if (systemName == "wii")
+            if (systemName == "wii" && (!SystemConfig.isOptSet("ratio")))
                 return;
 
             var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution);
