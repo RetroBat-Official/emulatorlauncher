@@ -696,7 +696,7 @@ namespace emulatorLauncher.libRetro
             // wii
             if (system == "wii")
             {
-                if (_isWidescreen)
+                if (_isWidescreen || !SystemConfig.isOptSet("ratio"))
                     coreSettings["dolphin_widescreen"] = "enabled";
                 else
                     coreSettings["dolphin_widescreen"] = "disabled";
