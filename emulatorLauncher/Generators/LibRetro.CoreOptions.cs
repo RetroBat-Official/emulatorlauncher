@@ -191,7 +191,7 @@ namespace emulatorLauncher.libRetro
                 { "rustation", "Rustation" },
                 { "sameboy", "SameBoy" },
                 { "sameduck", "SameDuck" },
-                { "same_cdi", "SAME CDi (Git)" },
+                { "same_cdi", "SAME_CDI" },
                 { "scummvm", "ScummVM" },
                 { "simcp", "SimCoupe" },
                 { "smsplus", "SMS Plus GX" },
