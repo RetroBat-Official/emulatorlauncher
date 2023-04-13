@@ -523,12 +523,23 @@ namespace emulatorLauncher
             List<string> commandArray = new List<string>();
 
             // Alternate system for machines that have different configs (ie computers with different hardware)
+            string messModel = "";
+
             if (SystemConfig.isOptSet("altmodel"))
+            {
                 commandArray.Add(SystemConfig["altmodel"]);
+                messModel = SystemConfig["altmodel"];
+            }
             else if (MachineName == "%romname%")
+            {
                 commandArray.Add(Path.GetFileNameWithoutExtension(rom));
+                messModel = Path.GetFileNameWithoutExtension(rom);
+            }
             else if (!string.IsNullOrEmpty(this.MachineName) && this.MachineName != "%romname%")
+            {
                 commandArray.Add(MachineName);
+                messModel = MachineName;
+            }
 
             commandArray.Add("-skip_gameinfo");
 
@@ -591,12 +602,85 @@ namespace emulatorLauncher
                 commandArray.Add(AppConfig.GetFullPath("screenshots"));
             }
 
+            // Specific modules for some systems
+            //BBC Micro Joystick
+            if (system == "bbcmicro")
+            {
+                if (SystemConfig.isOptSet("bbc_sticktype") && SystemConfig["bbc_sticktype"] != "none")
+                {
+                    commandArray.Add("-analogue");
+                    commandArray.Add(SystemConfig["bbc_sticktype"]);
+                }
+            }
+
+            // TI99
+            if (system == "ti99")
+            {
+                commandArray.Add("-ioport");
+                commandArray.Add("peb");
+                if (!SystemConfig.isOptSet("ti99_32kram") || SystemConfig.getOptBoolean("ti99_32kram"))
+                { 
+                    commandArray.Add("-ioport:peb:slot2");
+                    commandArray.Add("32kmem");
+                }
+                if (!SystemConfig.isOptSet("ti99_speech") || SystemConfig.getOptBoolean("ti99_speech"))
+                {
+                    commandArray.Add("-ioport:peb:slot3");
+                    commandArray.Add("speech");
+                }
+            }
+
+            // Ram size
+            if (SystemConfig.isOptSet("ramsize") && !string.IsNullOrEmpty(SystemConfig["ramsize"]))
+            {
+                commandArray.Add("-ramsize");
+                commandArray.Add(SystemConfig["ramsize"]);
+            }
+
             // Autostart computer games where applicable
             // Generic boot if only one type is available
             var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
             if (autoRunCommand != null)
                 commandArray.AddRange(autoRunCommand.Arguments);
-            
+
+            // Additional disks if required
+            if (SystemConfig.isOptSet("addblankdisk") && !string.IsNullOrEmpty(SystemConfig["addblankdisk"]))
+            {
+                // FMTOWNS (blankdisk or system disk to mount with cdrom - system disk must be placed in saves folder and have the same name as the cd rom game name, extension is .hdm)
+                if (system == "fmtowns")
+                {
+                    {
+                        bool blank = SystemConfig["addblankdisk"] == "blank";
+                        string MessRomType = this.GetRomType(rom);
+                        string diskPath = Path.Combine(EnsureDirectoryExists(Path.Combine(saves, "mame", system)));
+                        string blankDisk = Path.Combine(diskPath, "blank.fmtowns");
+                        string targetdisk = blank? Path.Combine(diskPath, Path.GetFileNameWithoutExtension(rom) + ".fmtowns") : Path.Combine(diskPath, Path.GetFileNameWithoutExtension(rom) + ".hdm");
+                        
+                        if (!File.Exists(targetdisk) && File.Exists(blankDisk))
+                            File.Copy(blankDisk, targetdisk);
+
+                        if (File.Exists(targetdisk))
+                        {
+                            if (messModel == "fmtmarty")
+                            {
+                                commandArray.Add("-flop");
+                                commandArray.Add(targetdisk);
+                            }
+                            else if ((SystemConfig.isOptSet("altromtype") && SystemConfig["altromtype"] == "flop1") || MessRomType == "flop1")
+                            {
+                                commandArray.Add("-flop2");
+                                commandArray.Add(targetdisk);
+                            }
+                            else
+                            {
+                                commandArray.Add("-flop1");
+                                commandArray.Add(targetdisk);
+                            }
+                        }
+                    }
+                }
+            }
+
             // Alternate ROM type for systems with mutiple media (ie cassette & floppy)
             if (SystemConfig.isOptSet("altromtype"))
                 commandArray.Add("-" + SystemConfig["altromtype"]);
