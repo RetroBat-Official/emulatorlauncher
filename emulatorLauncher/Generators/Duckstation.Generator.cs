@@ -45,24 +45,7 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
-            string exe = Path.Combine(_path, "duckstation-nogui-x64-ReleaseLTCG.exe");
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-nogui-x64-Release.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-nogui.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-qt-x64-ReleaseLTCG.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-qt-x64-Release.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-qt-x64.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-qt.exe");
+            string exe = Path.Combine(_path, "duckstation-qt-x64-ReleaseLTCG.exe");
 
             if (!File.Exists(exe))
                 return null;
@@ -74,12 +57,26 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
+            //setting up command line parameters
+            var commandArray = new List<string>();
+
+            if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
+                commandArray.Add("-slowboot");
+            else
+                commandArray.Add("-fastboot");
+
+            commandArray.Add("-batch");
+            commandArray.Add("-fullscreen");
+            commandArray.Add("--");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
                 {
                     FileName = exe,
                     WorkingDirectory = _path,
-                    Arguments = "\"" + rom + "\"",
-                };
+                    Arguments = args + " \"" + rom + "\"",
+            };
         }
 
         private void SetupSettings()
@@ -96,9 +93,12 @@ namespace emulatorLauncher
                     if (!string.IsNullOrEmpty(biosPath))
                         ini.WriteValue("BIOS", "SearchDirectory", biosPath.Replace("\\", "\\\\"));
 
+                    ini.WriteValue("MemoryCards", "Card1Type", "PerGameTitle");
                     string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "memcards");
                     if (!string.IsNullOrEmpty(savesPath))
                         ini.WriteValue("MemoryCards", "Directory", savesPath.Replace("\\", "\\\\"));
+                    
+                    ini.WriteValue("MemoryCards", "Card1Path", "shared_card_1.mcd");
 
                     //Enable cheevos is needed
                     if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
@@ -107,8 +107,12 @@ namespace emulatorLauncher
                         ini.WriteValue("Cheevos", "TestMode", "false");
                         ini.WriteValue("Cheevos", "UnofficialTestMode", "false");
                         ini.WriteValue("Cheevos", "UseFirstDiscFromPlaylist", "true");
+                        ini.WriteValue("Cheevos", "SoundEffects", "true");
+                        ini.WriteValue("Cheevos", "Notifications", "true");
                         ini.WriteValue("Cheevos", "RichPresence", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false");
                         ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "Leaderboards", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "PrimedIndicators", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
 
                         // Inject credentials
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
@@ -116,8 +120,8 @@ namespace emulatorLauncher
                             ini.WriteValue("Cheevos", "Username", SystemConfig["retroachievements.username"]);
                             ini.WriteValue("Cheevos", "Token", SystemConfig["retroachievements.token"]);
 
-                            if (string.IsNullOrEmpty(ini.GetValue("Achievements", "Token")))
-                                ini.WriteValue("Achievements", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
+                            if (string.IsNullOrEmpty(ini.GetValue("Cheevos", "Token")))
+                                ini.WriteValue("Cheevos", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
                         }
                     }
                     else
@@ -134,7 +138,7 @@ namespace emulatorLauncher
                     if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
                         ini.WriteValue("GPU", "ResolutionScale", SystemConfig["internal_resolution"]);
                     else if (Features.IsSupported("internal_resolution"))
-                        ini.WriteValue("GPU", "ResolutionScale", "5");
+                        ini.WriteValue("GPU", "ResolutionScale", "1");
 
                     if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                         ini.WriteValue("GPU", "Renderer", SystemConfig["gfxbackend"]);
@@ -186,18 +190,11 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Integer_Scaling"))
                         ini.WriteValue("Display", "IntegerScaling", "false");
 
-                    if (SystemConfig.isOptSet("ControllerBackend") && !string.IsNullOrEmpty(SystemConfig["ControllerBackend"]))
-                        ini.WriteValue("Main", "ControllerBackend", SystemConfig["ControllerBackend"]);
-                    else if (Features.IsSupported("ControllerBackend"))
-                        ini.WriteValue("Main", "ControllerBackend", "SDL");
-
                     ini.WriteValue("Main", "ConfirmPowerOff", "false");
                     ini.WriteValue("Main", "StartFullscreen", "true");
                     ini.WriteValue("Main", "ApplyGameSettings", "true");
-                    ini.WriteValue("Main", "RenderToMainWindow", "true");
                     ini.WriteValue("Main", "EnableDiscordPresence", "false");
                     ini.WriteValue("Main", "PauseOnFocusLoss", "true");
-                    ini.WriteValue("Display", "Fullscreen", "true");
                 }
             }
             catch { }
