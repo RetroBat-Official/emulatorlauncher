@@ -100,6 +100,32 @@ namespace emulatorLauncher
                     if (!string.IsNullOrEmpty(savesPath))
                         ini.WriteValue("MemoryCards", "Directory", savesPath.Replace("\\", "\\\\"));
 
+                    //Enable cheevos is needed
+                    if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
+                    {
+                        ini.WriteValue("Cheevos", "Enabled", "true");
+                        ini.WriteValue("Cheevos", "TestMode", "false");
+                        ini.WriteValue("Cheevos", "UnofficialTestMode", "false");
+                        ini.WriteValue("Cheevos", "UseFirstDiscFromPlaylist", "true");
+                        ini.WriteValue("Cheevos", "RichPresence", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
+
+                        // Inject credentials
+                        if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
+                        {
+                            ini.WriteValue("Cheevos", "Username", SystemConfig["retroachievements.username"]);
+                            ini.WriteValue("Cheevos", "Token", SystemConfig["retroachievements.token"]);
+
+                            if (string.IsNullOrEmpty(ini.GetValue("Achievements", "Token")))
+                                ini.WriteValue("Achievements", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
+                        }
+                    }
+                    else
+                    {
+                        ini.WriteValue("Cheevos", "Enabled", "false");
+                        ini.WriteValue("Cheevos", "ChallengeMode", "false");
+                    }
+
                     if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                         ini.WriteValue("Display", "AspectRatio", SystemConfig["ratio"]);
                     else if (Features.IsSupported("ratio"))
