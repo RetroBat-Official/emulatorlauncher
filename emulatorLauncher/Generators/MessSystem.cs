@@ -254,6 +254,9 @@ namespace emulatorLauncher
                 // GameCom
                 new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),
 
+                // GamePark 32
+                new MessSystem("gp32"         ,"gp32"          , "memc"  ),
+
                 // NOT IN RETROBAT
                 new MessSystem("x1"           ,"x1" , new MessRomType[] 
                         { 
@@ -351,7 +354,6 @@ namespace emulatorLauncher
                 new MessSystem("vic10"        ,"vic10"         , "cart"  ),  // Commodore MAX Machine
                 new MessSystem("cgenie"       ,"cgenie"        , "cass"  ), // EACA EG2000 Colour Genie                
                 new MessSystem("bk001001"     ,"bk001001"      , "cass"  ), // Electronika BK       
-                new MessSystem("gp32"         ,"gp32"          , "memc"  ), // GamePark 32
                 new MessSystem("spc4000"      ,"vc4000"        , "cart"  ), // Grundig Super Play Computer 4000
                 new MessSystem("hmg2650"      ,"arcadia"       , "cart"  ), // Hanimex HMG 2650
                 new MessSystem("interact"     ,"interact"      , "cass"  ), // Interact Home Computer
