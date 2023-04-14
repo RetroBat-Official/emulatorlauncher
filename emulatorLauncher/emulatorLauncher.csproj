@@ -19,7 +19,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\..\..\..\..\RetroBat5.2\emulationstation\</OutputPath>
+    <OutputPath>..\..\EmulationStation\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -106,7 +106,7 @@
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Eka2l1.Generator.cs" />    
+    <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
@@ -127,7 +127,7 @@
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
-	<Compile Include="Generators\Duckstation.Controllers.cs">
+    <Compile Include="Generators\Duckstation.Controllers.cs">
       <DependentUpon>Duckstation.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\KegaFusion.Generator.cs" />
