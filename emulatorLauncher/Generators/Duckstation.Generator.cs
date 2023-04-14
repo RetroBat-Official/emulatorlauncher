@@ -72,10 +72,10 @@ namespace emulatorLauncher
             string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
-                {
-                    FileName = exe,
-                    WorkingDirectory = _path,
-                    Arguments = args + " \"" + rom + "\"",
+            {
+                FileName = exe,
+                WorkingDirectory = _path,
+                Arguments = args + " \"" + rom + "\"",
             };
         }
 
@@ -97,8 +97,19 @@ namespace emulatorLauncher
                     string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "memcards");
                     if (!string.IsNullOrEmpty(savesPath))
                         ini.WriteValue("MemoryCards", "Directory", savesPath.Replace("\\", "\\\\"));
-                    
                     ini.WriteValue("MemoryCards", "Card1Path", "shared_card_1.mcd");
+
+                    string saveStatesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "sstates");
+                    if (!string.IsNullOrEmpty(saveStatesPath))
+                        ini.WriteValue("Folders", "SaveStates", saveStatesPath.Replace("\\", "\\\\"));
+
+                    string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "duckstation");
+                    if (!string.IsNullOrEmpty(cheatsPath))
+                        ini.WriteValue("Folders", "Cheats", cheatsPath.Replace("\\", "\\\\"));
+
+                    string screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "duckstation");
+                    if (!string.IsNullOrEmpty(screenshotsPath))
+                        ini.WriteValue("Folders", "Screenshots", screenshotsPath.Replace("\\", "\\\\"));
 
                     //Enable cheevos is needed
                     if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
@@ -113,22 +124,24 @@ namespace emulatorLauncher
                         ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
                         ini.WriteValue("Cheevos", "Leaderboards", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
                         ini.WriteValue("Cheevos", "PrimedIndicators", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
-
+                        
                         // Inject credentials
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
                         {
                             ini.WriteValue("Cheevos", "Username", SystemConfig["retroachievements.username"]);
                             ini.WriteValue("Cheevos", "Token", SystemConfig["retroachievements.token"]);
 
+                            if (string.IsNullOrEmpty(ini.GetValue("Achievements", "Token")))
+                                ini.WriteValue("Achievements", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
                             if (string.IsNullOrEmpty(ini.GetValue("Cheevos", "Token")))
                                 ini.WriteValue("Cheevos", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
                         }
-                    }
-                    else
-                    {
-                        ini.WriteValue("Cheevos", "Enabled", "false");
-                        ini.WriteValue("Cheevos", "ChallengeMode", "false");
-                    }
+                        else
+                        {
+                            ini.WriteValue("Cheevos", "Enabled", "false");
+                            ini.WriteValue("Cheevos", "ChallengeMode", "false");
+                        }
+
 
                     if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                         ini.WriteValue("Display", "AspectRatio", SystemConfig["ratio"]);
@@ -190,11 +203,68 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Integer_Scaling"))
                         ini.WriteValue("Display", "IntegerScaling", "false");
 
+                    if (SystemConfig.isOptSet("psx_region") && !string.IsNullOrEmpty(SystemConfig["psx_region"]))
+                        ini.WriteValue("Console", "Region", SystemConfig["psx_region"]);
+                    else if (Features.IsSupported("psx_region"))
+                        ini.WriteValue("Console", "Region", "Auto");
+
+                    if (SystemConfig.isOptSet("ExecutionMode") && !string.IsNullOrEmpty(SystemConfig["ExecutionMode"]))
+                        ini.WriteValue("CPU", "ExecutionMode", SystemConfig["ExecutionMode"]);
+                    else if (Features.IsSupported("ExecutionMode"))
+                        ini.WriteValue("CPU", "ExecutionMode", "Recompiler");
+
+                    // Performance statistics
+                    if (SystemConfig.isOptSet("performance_overlay") && SystemConfig["performance_overlay"] == "detailed")
+                    {
+                        ini.WriteValue("Display", "ShowFPS", "true");
+                        ini.WriteValue("Display", "ShowSpeed", "true");
+                        ini.WriteValue("Display", "ShowResolution", "true");
+                        ini.WriteValue("Display", "ShowCPU", "true");
+                        ini.WriteValue("Display", "ShowGPU", "true");
+                    }
+                    else if (SystemConfig.isOptSet("performance_overlay") && SystemConfig["performance_overlay"] == "simple")
+                    {
+                        ini.WriteValue("Display", "ShowFPS", "true");
+                        ini.WriteValue("Display", "ShowSpeed", "false");
+                        ini.WriteValue("Display", "ShowResolution", "false");
+                        ini.WriteValue("Display", "ShowCPU", "false");
+                        ini.WriteValue("Display", "ShowGPU", "false");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Display", "ShowFPS", "false");
+                        ini.WriteValue("Display", "ShowSpeed", "false");
+                        ini.WriteValue("Display", "ShowResolution", "false");
+                        ini.WriteValue("Display", "ShowCPU", "false");
+                        ini.WriteValue("Display", "ShowGPU", "false");
+                    }
+
+                    ini.WriteValue("Display", "PostProcessing", "true");
+                    ini.WriteValue("Display", "PostProcessChain", "dolphinfx/scanlines");
+
+                    if (SystemConfig.isOptSet("rewind") && SystemConfig.getOptBoolean("rewind"))
+                        ini.WriteValue("Main", "RewindEnable", "true");
+                    else
+                        ini.WriteValue("Main", "RewindEnable", "false");
+
+                    if (SystemConfig.isOptSet("runahead") && !string.IsNullOrEmpty(SystemConfig["runahead"]))
+                    {
+                        ini.WriteValue("Main", "RunaheadFrameCount", SystemConfig["runahead"]);
+                        ini.WriteValue("Main", "RewindEnable", "false");
+                    }
+                    else
+                        ini.WriteValue("Main", "RunaheadFrameCount", "0");
+
                     ini.WriteValue("Main", "ConfirmPowerOff", "false");
                     ini.WriteValue("Main", "StartFullscreen", "true");
                     ini.WriteValue("Main", "ApplyGameSettings", "true");
                     ini.WriteValue("Main", "EnableDiscordPresence", "false");
                     ini.WriteValue("Main", "PauseOnFocusLoss", "true");
+                    ini.WriteValue("Main", "DoubleClickTogglesFullscreen", "false");
+                    ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
+
+                    // Controller configuration
+                    CreateControllerConfiguration(ini);
                 }
             }
             catch { }

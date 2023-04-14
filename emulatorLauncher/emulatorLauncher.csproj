@@ -19,7 +19,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\EmulationStation\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\RetroBat5.2\emulationstation\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -127,6 +127,9 @@
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
+	<Compile Include="Generators\Duckstation.Controllers.cs">
+      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\Mesen.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Generator.cs" />
