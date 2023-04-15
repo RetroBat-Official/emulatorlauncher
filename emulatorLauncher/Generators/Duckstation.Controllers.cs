@@ -144,6 +144,7 @@ namespace emulatorLauncher
                 ini.WriteValue(padNumber, "A", "Keyboard/K");
                 ini.WriteValue(padNumber, "B", "Keyboard/L");
                 ini.WriteValue(padNumber, "CrosshairScale", "0.500000");
+                ini.WriteValue(padNumber, "XScale", "0.930000");
             }
         }
 
@@ -247,6 +248,7 @@ namespace emulatorLauncher
                 ini.WriteValue(padNumber, "A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));    // Guncon front button - map to a controller button
                 ini.WriteValue(padNumber, "B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));    // Guncon front button - map to b controller button
                 ini.WriteValue(padNumber, "CrosshairScale", "0.500000");                                    // Default crosshair is just HUGE, reduce size
+                ini.WriteValue(padNumber, "XScale", "0.930000");                                            // Adjust Xscale for mouse calibration
             }
 
             // Write Hotkeys for player 1
