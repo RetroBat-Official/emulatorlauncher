@@ -191,7 +191,11 @@ namespace emulatorLauncher
             ini.WriteValue(padNumber, "VibrationBias", "8");
             ini.WriteValue(padNumber, "ButtonDeadzone", "0.250000");
             ini.WriteValue(padNumber, "AnalogSensitivity", "1.330000");
-            ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
+
+            if (SystemConfig.isOptSet("stick_deadzone") && !string.IsNullOrEmpty(SystemConfig["stick_deadzone"]))
+                ini.WriteValue(padNumber, "AnalogDeadzone", SystemConfig["stick_deadzone"]);
+            else
+                ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
 
             // Write Hotkeys for player 1
             if (playerIndex == 1)
