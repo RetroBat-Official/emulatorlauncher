@@ -236,6 +236,11 @@ namespace emulatorLauncher
                         ini.WriteValue("Display", "ShowGPU", "false");
                     }
 
+                    if (SystemConfig.isOptSet("audiobackend") && !string.IsNullOrEmpty(SystemConfig["audiobackend"]))
+                        ini.WriteValue("Audio", "Backend", SystemConfig["audiobackend"]);
+                    else if (Features.IsSupported("audiobackend"))
+                        ini.WriteValue("Audio", "Backend", "Cubeb");
+
                     if (SystemConfig.isOptSet("rewind") && SystemConfig.getOptBoolean("rewind"))
                         ini.WriteValue("Main", "RewindEnable", "true");
                     else

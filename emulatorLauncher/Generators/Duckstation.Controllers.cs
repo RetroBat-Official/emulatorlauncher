@@ -186,6 +186,13 @@ namespace emulatorLauncher
             ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
             ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
 
+            ini.WriteValue(padNumber, "InvertLeftStick", "0");
+            ini.WriteValue(padNumber, "InvertRightStick", "0");
+            ini.WriteValue(padNumber, "VibrationBias", "8");
+            ini.WriteValue(padNumber, "ButtonDeadzone", "0.250000");
+            ini.WriteValue(padNumber, "AnalogSensitivity", "1.330000");
+            ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
+
             // Write Hotkeys for player 1
             if (playerIndex == 1)
             {
@@ -214,11 +221,14 @@ namespace emulatorLauncher
         {            
             { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
-            { InputKey.x, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
-            { InputKey.y, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
+            { InputKey.x, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F3") },
+            { InputKey.y, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F1") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
-            { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F2") },
-            { InputKey.down, new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },            
+            { InputKey.up, new KeyValuePair<string, string>("SelectNextSaveStateSlot", "Keyboard/F2") },
+            { InputKey.down, new KeyValuePair<string, string>("SelectPreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },
+            { InputKey.pageup, new KeyValuePair<string, string>("ChangeDisc", "") },
+            { InputKey.left, new KeyValuePair<string, string>("Rewind", "") },
+            { InputKey.right, new KeyValuePair<string, string>("FastForward", "") },
         };
 
 
