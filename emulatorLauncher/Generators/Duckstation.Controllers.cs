@@ -93,13 +93,29 @@ namespace emulatorLauncher
                     ini.WriteValue(v, w, "Keyboard/" + SdlToKeyCode(a.Id));
             };
 
-            ini.WriteValue(padNumber, "Type", "AnalogController");
+            string controllerType = "AnalogController";
+            if (SystemConfig.isOptSet("duck_controller1") && !string.IsNullOrEmpty(SystemConfig["duck_controller1"]))
+                controllerType = SystemConfig["duck_controller1"];
+
+            ini.WriteValue(padNumber, "Type", controllerType);
 
             //Perform mappings based on es_input
             WriteKeyboardMapping(padNumber, "Up", InputKey.up);
-            WriteKeyboardMapping(padNumber, "Right", InputKey.right);
+
+            // if mouse right = mouse right button
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Right", "Pointer-0/RightButton");
+            else
+                WriteKeyboardMapping(padNumber, "Right", InputKey.right);
+
             WriteKeyboardMapping(padNumber, "Down", InputKey.down);
-            WriteKeyboardMapping(padNumber, "Left", InputKey.left);
+
+            // if mouse left = mouse left button
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Left", "Pointer-0/LeftButton");
+            else
+                WriteKeyboardMapping(padNumber, "Left", InputKey.left);
+
             WriteKeyboardMapping(padNumber, "Triangle", InputKey.x);
             WriteKeyboardMapping(padNumber, "Circle", InputKey.a);
             WriteKeyboardMapping(padNumber, "Cross", InputKey.b);
@@ -120,13 +136,15 @@ namespace emulatorLauncher
             WriteKeyboardMapping(padNumber, "RRight", InputKey.rightanalogright);
             WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
             WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
-            
-            ini.WriteValue(padNumber, "InvertLeftStick", "0");
-            ini.WriteValue(padNumber, "InvertRightStick", "0");
-            ini.WriteValue(padNumber, "VibrationBias", "8");
-            ini.WriteValue(padNumber, "ButtonDeadzone", "0.250000");
-            ini.WriteValue(padNumber, "AnalogSensitivity", "1.330000");
-            ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
+
+            if (controllerType == "GunCon")
+            {
+                ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
+                ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
+                ini.WriteValue(padNumber, "A", "Keyboard/K");
+                ini.WriteValue(padNumber, "B", "Keyboard/L");
+                ini.WriteValue(padNumber, "CrosshairScale", "0.500000");
+            }
         }
 
         /// <summary>
@@ -148,9 +166,14 @@ namespace emulatorLauncher
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
+            string controllerType = "AnalogController";
+            string controllerPlayerNr = "duck_controller" + playerIndex;
+            if (SystemConfig.isOptSet(controllerPlayerNr) && !string.IsNullOrEmpty(SystemConfig[controllerPlayerNr]))
+                controllerType = SystemConfig[controllerPlayerNr];
+
             //Start writing in ini file
             ini.ClearSection(padNumber);
-            ini.WriteValue(padNumber, "Type", "AnalogController");
+            ini.WriteValue(padNumber, "Type", controllerType);
 
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
@@ -159,9 +182,19 @@ namespace emulatorLauncher
 
             //Write button mapping
             ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
-            ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
+
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Right", "Pointer-0/RightButton");                                        // Right when mouse is selected
+            else
+                ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
+
             ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
-            ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Left", "Pointer-0/LeftButton");                                          // Left when mouse is selected
+            else
+                ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+
             ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
             ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
             ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
@@ -183,19 +216,38 @@ namespace emulatorLauncher
             ini.WriteValue(padNumber, "RRight", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogright, tech));
             ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown, tech));
             ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft, tech));
-            ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
-            ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
 
-            ini.WriteValue(padNumber, "InvertLeftStick", "0");
-            ini.WriteValue(padNumber, "InvertRightStick", "0");
-            ini.WriteValue(padNumber, "VibrationBias", "8");
-            ini.WriteValue(padNumber, "ButtonDeadzone", "0.250000");
-            ini.WriteValue(padNumber, "AnalogSensitivity", "1.330000");
+            // Rumble only for analog controllers
+            if (controllerType == "AnalogController")
+            {
+                ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
+                ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
+                ini.WriteValue(padNumber, "VibrationBias", "8");
+            }
 
-            if (SystemConfig.isOptSet("stick_deadzone") && !string.IsNullOrEmpty(SystemConfig["stick_deadzone"]))
-                ini.WriteValue(padNumber, "AnalogDeadzone", SystemConfig["stick_deadzone"]);
-            else
-                ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
+            // Analog stick configuration for analog controllers
+            if (controllerType == "AnalogController" || controllerType == "AnalogJoystick")
+            {
+                ini.WriteValue(padNumber, "InvertLeftStick", "0");
+                ini.WriteValue(padNumber, "InvertRightStick", "0");
+                ini.WriteValue(padNumber, "ButtonDeadzone", "0.250000");
+                ini.WriteValue(padNumber, "AnalogSensitivity", "1.330000");
+
+                if (SystemConfig.isOptSet("stick_deadzone") && !string.IsNullOrEmpty(SystemConfig["stick_deadzone"]))
+                    ini.WriteValue(padNumber, "AnalogDeadzone", SystemConfig["stick_deadzone"]);
+                else
+                    ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
+            }
+
+            // Guncon configuration (mapping to mouse buttons and A & B to cross and circle of connected player gamepad (this is used in TIME CRISIS to hide for example))
+            if (controllerType == "GunCon")
+            {
+                ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
+                ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
+                ini.WriteValue(padNumber, "A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
+                ini.WriteValue(padNumber, "B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
+                ini.WriteValue(padNumber, "CrosshairScale", "0.500000");                                    // Default crosshair is just HUGE, reduce size
+            }
 
             // Write Hotkeys for player 1
             if (playerIndex == 1)

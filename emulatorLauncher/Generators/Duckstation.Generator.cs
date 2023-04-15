@@ -52,7 +52,7 @@ namespace emulatorLauncher
 
             SetupSettings();
 
-            if (SystemConfig["psx_ratio"] == "4:3")
+            if (!SystemConfig.isOptSet("psx_ratio") || SystemConfig["psx_ratio"] == "4:3")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
@@ -77,6 +77,33 @@ namespace emulatorLauncher
                 WorkingDirectory = _path,
                 Arguments = args + " \"" + rom + "\"",
             };
+        }
+
+        private string GetDefaultpsxLanguage()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "ja" },
+                { "en", "en" },
+                { "fr", "fr" },
+                { "de", "de" },
+                { "it", "it" },
+                { "es", "es-es" },
+                { "zh", "zh-cn" },
+                { "nl", "nl" },
+                { "pl", "pl" },
+                { "pt", "pt-pt" },
+                { "ru", "ru" },
+            };
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+            return "en";
         }
 
         private void SetupSettings()
@@ -185,6 +212,23 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Scaled_Dithering"))
                         ini.WriteValue("GPU", "ScaledDithering", "false");
 
+                    if (SystemConfig.isOptSet("pgxp") && SystemConfig.getOptBoolean("pgxp"))
+                    {
+                        ini.WriteValue("GPU", "PGXPEnable", "true");
+                        ini.WriteValue("GPU", "PGXPCulling", "true");
+                        ini.WriteValue("GPU", "PGXPTextureCorrection", "true");
+                        ini.WriteValue("GPU", "PGXPColorCorrection", "true");
+                        ini.WriteValue("GPU", "PGXPPreserveProjFP", "true");
+                    }
+                    else
+                    {
+                        ini.WriteValue("GPU", "PGXPEnable", "false");
+                        ini.WriteValue("GPU", "PGXPCulling", "false");
+                        ini.WriteValue("GPU", "PGXPTextureCorrection", "false");
+                        ini.WriteValue("GPU", "PGXPColorCorrection", "false");
+                        ini.WriteValue("GPU", "PGXPPreserveProjFP", "false");
+                    }
+
                     if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
                         ini.WriteValue("Display", "VSync", SystemConfig["VSync"]);
                     else if (Features.IsSupported("VSync"))
@@ -236,8 +280,24 @@ namespace emulatorLauncher
                         ini.WriteValue("Display", "ShowGPU", "false");
                     }
 
+                    if (SystemConfig.isOptSet("duck_shaders") && !string.IsNullOrEmpty(SystemConfig["duck_shaders"]))
+                    {
+                        ini.WriteValue("Display", "PostProcessing", "true");
+                        ini.WriteValue("Display", "PostProcessChain", SystemConfig["duck_shaders"].Replace("_", "/"));
+                    }
+                    else
+                    {
+                        ini.WriteValue("Display", "PostProcessing", "false");
+                        ini.WriteValue("Display", "PostProcessChain", "");
+                    }
+
+                    if (SystemConfig.isOptSet("duckstation_osd_enabled") && !SystemConfig.getOptBoolean("duckstation_osd_enabled"))
+                        ini.WriteValue("Display", "ShowOSDMessages", "false");
+                    else
+                        ini.WriteValue("Display", "ShowOSDMessages", "true");
+
                     if (SystemConfig.isOptSet("audiobackend") && !string.IsNullOrEmpty(SystemConfig["audiobackend"]))
-                        ini.WriteValue("Audio", "Backend", SystemConfig["audiobackend"]);
+                    ini.WriteValue("Audio", "Backend", SystemConfig["audiobackend"]);
                     else if (Features.IsSupported("audiobackend"))
                         ini.WriteValue("Audio", "Backend", "Cubeb");
 
@@ -260,6 +320,8 @@ namespace emulatorLauncher
                     ini.WriteValue("Main", "EnableDiscordPresence", "false");
                     ini.WriteValue("Main", "PauseOnFocusLoss", "true");
                     ini.WriteValue("Main", "DoubleClickTogglesFullscreen", "false");
+                    ini.WriteValue("Main", "Language", GetDefaultpsxLanguage());
+                    
                     ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
 
                     // Controller configuration
