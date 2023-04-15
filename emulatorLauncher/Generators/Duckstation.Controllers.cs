@@ -244,8 +244,8 @@ namespace emulatorLauncher
             {
                 ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
                 ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
-                ini.WriteValue(padNumber, "A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
-                ini.WriteValue(padNumber, "B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
+                ini.WriteValue(padNumber, "A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));    // Guncon front button - map to a controller button
+                ini.WriteValue(padNumber, "B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));    // Guncon front button - map to b controller button
                 ini.WriteValue(padNumber, "CrosshairScale", "0.500000");                                    // Default crosshair is just HUGE, reduce size
             }
 
