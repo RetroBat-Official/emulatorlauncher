@@ -315,6 +315,7 @@ namespace emulatorLauncher
                 new MessSystem("pmd85"        ,"pmd85"         , "cass"  ), // Tesla PMD 85
                 new MessSystem("laser200"     ,"laser200"      , "dump" ), // VTech Laser 200
                 new MessSystem("vc4000"       ,"vc4000"        , "cart"  ),  // Interton VC 4000
+                new MessSystem("casloopy"       ,"casloopy"        , "cart"  ),  // casio Loopy
                 new MessSystem("mpu2000"      ,"vc4000"        , "cart"  ),  // Acetronic MPU 2000
                 new MessSystem("mpt05"        ,"vc4000"        , "cart"  ),  // ITMC MPT-05
                 new MessSystem("tcs"          ,"vc4000"        , "cart"  ),  // Rowtron Television Computer System
