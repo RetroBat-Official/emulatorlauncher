@@ -11,18 +11,18 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    partial class Pcsx2Generator : Generator
+    partial class DuckstationGenerator : Generator
     {
         /// <summary>
-        /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
+        /// Cf. https://github.com/stenzek/duckstation/blob/master/src/frontend-common/sdl_input_source.cpp
         /// </summary>
-        /// <param name="pcsx2ini"></param>
-        private void UpdateSdlControllersWithHints(IniFile pcsx2ini)
+        /// <param name="settings.ini"></param>
+        private void UpdateSdlControllersWithHints(IniFile ini)
         {
             var hints = new List<string>();
             hints.Add("SDL_JOYSTICK_HIDAPI_WII = 1");
 
-            if (pcsx2ini.GetValue("InputSources", "SDLControllerEnhancedMode") == "true")
+            if (ini.GetValue("InputSources", "SDLControllerEnhancedMode") == "true")
             {
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
@@ -32,62 +32,56 @@ namespace emulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        private void CreateControllerConfiguration(IniFile pcsx2ini)
+        private void CreateControllerConfiguration(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            UpdateSdlControllersWithHints(pcsx2ini);
+            UpdateSdlControllersWithHints(ini);
             
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
-                pcsx2ini.ClearSection("Pad" + i.ToString());
+                ini.ClearSection("Pad" + i.ToString());
 
-            // If more than 2 controllers plugged, PCSX2 must be set to use multitap, if more than 5, both multitaps must be activated
+            // If more than 2 controllers plugged, Duckstation must be set to use multitap, if more than 5, both multitaps must be activated
             if (Controllers.Count > 5)
-            {
-                pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
-                pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
-            }
+                ini.WriteValue("ControllerPorts", "MultitapMode", "BothPorts");
             else if (Controllers.Count > 2)
-                pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
+                ini.WriteValue("ControllerPorts", "MultitapMode", "Port1Only");
             else
-            {
-                pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
-                pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
-            }
-          
-            pcsx2ini.WriteValue("InputSources", "DInput", "false");
-            pcsx2ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
-            pcsx2ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
-            pcsx2ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
+                ini.WriteValue("ControllerPorts", "MultitapMode", "Disabled");
+
+            ini.WriteValue("InputSources", "DInput", "false");
+            ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
+            ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
+            ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
 
             // Reset hotkeys
-            ResetHotkeysToDefault(pcsx2ini);
+            ResetHotkeysToDefault(ini);
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-                ConfigureInput(pcsx2ini, controller, "Pad" + controller.PlayerIndex); // ini has one section for each pad (from Pad1 to Pad8)
+                ConfigureInput(ini, controller, "Pad" + controller.PlayerIndex); // ini has one section for each pad (from Pad1 to Pad8)
         }
 
-        private void ConfigureInput(IniFile pcsx2ini, Controller controller, string padNumber)
+        private void ConfigureInput(IniFile ini, Controller controller, string padNumber)
         {
             if (controller == null || controller.Config == null)
                 return;
 
             if (controller.IsKeyboard)
-                ConfigureKeyboard(pcsx2ini, controller.Config, padNumber);
+                ConfigureKeyboard(ini, controller.Config, padNumber);
             else
-                ConfigureJoystick(pcsx2ini, controller, controller.PlayerIndex, padNumber);
+                ConfigureJoystick(ini, controller, controller.PlayerIndex, padNumber);
         }
 
         /// <summary>
         /// Keyboard
         /// </summary>
-        /// <param name="pcsx2ini"></param>
+        /// <param name="ini"></param>
         /// <param name="keyboard"></param>
         /// <param name="padNumber"></param>
-        private void ConfigureKeyboard(IniFile pcsx2ini, InputConfig keyboard, string padNumber)
+        private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, string padNumber)
         {
             if (keyboard == null)
                 return;
@@ -96,24 +90,32 @@ namespace emulatorLauncher
             {
                 var a = keyboard[k];
                 if (a != null)
-                    pcsx2ini.WriteValue(v, w, "Keyboard/" + SdlToKeyCode(a.Id));
+                    ini.WriteValue(v, w, "Keyboard/" + SdlToKeyCode(a.Id));
             };
 
-            pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
-            pcsx2ini.WriteValue(padNumber, "InvertL", "0");
-            pcsx2ini.WriteValue(padNumber, "InvertR", "0");
-            pcsx2ini.WriteValue(padNumber, "Deadzone", "0");
-            pcsx2ini.WriteValue(padNumber, "AxisScale", "1.33");
-            pcsx2ini.WriteValue(padNumber, "LargeMotorScale", "1");
-            pcsx2ini.WriteValue(padNumber, "SmallMotorScale", "1");
-            pcsx2ini.WriteValue(padNumber, "ButtonDeadzone", "0");
-            pcsx2ini.WriteValue(padNumber, "PressureModifier", "0.5");
+            string controllerType = "AnalogController";
+            if (SystemConfig.isOptSet("duck_controller1") && !string.IsNullOrEmpty(SystemConfig["duck_controller1"]))
+                controllerType = SystemConfig["duck_controller1"];
+
+            ini.WriteValue(padNumber, "Type", controllerType);
 
             //Perform mappings based on es_input
             WriteKeyboardMapping(padNumber, "Up", InputKey.up);
-            WriteKeyboardMapping(padNumber, "Right", InputKey.right);
+
+            // if mouse right = mouse right button
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Right", "Pointer-0/RightButton");
+            else
+                WriteKeyboardMapping(padNumber, "Right", InputKey.right);
+
             WriteKeyboardMapping(padNumber, "Down", InputKey.down);
-            WriteKeyboardMapping(padNumber, "Left", InputKey.left);
+
+            // if mouse left = mouse left button
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Left", "Pointer-0/LeftButton");
+            else
+                WriteKeyboardMapping(padNumber, "Left", InputKey.left);
+
             WriteKeyboardMapping(padNumber, "Triangle", InputKey.x);
             WriteKeyboardMapping(padNumber, "Circle", InputKey.a);
             WriteKeyboardMapping(padNumber, "Cross", InputKey.b);
@@ -135,32 +137,25 @@ namespace emulatorLauncher
             WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
             WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
 
-            if (SystemConfig.isOptSet("pcsx2_gun") && SystemConfig.getOptBoolean("pcsx2_gun"))
+            if (controllerType == "GunCon")
             {
-                pcsx2ini.WriteValue("USB1", "Type", "guncon2");
-                WriteKeyboardMapping("USB1", "guncon2_Up", InputKey.up);
-                WriteKeyboardMapping("USB1", "guncon2_Down", InputKey.down);
-                WriteKeyboardMapping("USB1", "guncon2_Left", InputKey.left);
-                WriteKeyboardMapping("USB1", "guncon2_Right", InputKey.right);
-                pcsx2ini.WriteValue("USB1", "guncon2_Trigger", "Pointer-0/LeftButton");
-                pcsx2ini.WriteValue("USB1", "guncon2_ShootOffscreen", "Pointer-0/RightButton");
-                WriteKeyboardMapping("USB1", "guncon2_A", InputKey.a);
-                WriteKeyboardMapping("USB1", "guncon2_B", InputKey.b);
-                WriteKeyboardMapping("USB1", "guncon2_C", InputKey.y);
-                WriteKeyboardMapping("USB1", "guncon2_Select", InputKey.select);
-                WriteKeyboardMapping("USB1", "guncon2_Start", InputKey.start);
-                pcsx2ini.WriteValue("USB1", "guncon2_Recalibrate", "Pointer-0/LeftButton");
+                ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
+                ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
+                ini.WriteValue(padNumber, "A", "Keyboard/K");
+                ini.WriteValue(padNumber, "B", "Keyboard/L");
+                ini.WriteValue(padNumber, "CrosshairScale", "0.500000");
+                ini.WriteValue(padNumber, "XScale", "0.930000");
             }
         }
 
         /// <summary>
         /// Gamepad configuration
         /// </summary>
-        /// <param name="pcsx2ini"></param>
+        /// <param name="ini"></param>
         /// <param name="ctrl"></param>
         /// <param name="playerIndex"></param>
         /// <param name="padNumber"></param>
-        private void ConfigureJoystick(IniFile pcsx2ini, Controller ctrl, int playerIndex, string padNumber)
+        private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex, string padNumber)
         {
             if (ctrl == null)
                 return;
@@ -172,9 +167,14 @@ namespace emulatorLauncher
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
+            string controllerType = "AnalogController";
+            string controllerPlayerNr = "duck_controller" + playerIndex;
+            if (SystemConfig.isOptSet(controllerPlayerNr) && !string.IsNullOrEmpty(SystemConfig[controllerPlayerNr]))
+                controllerType = SystemConfig[controllerPlayerNr];
+
             //Start writing in ini file
-            pcsx2ini.ClearSection(padNumber);
-            pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
+            ini.ClearSection(padNumber);
+            ini.WriteValue(padNumber, "Type", controllerType);
 
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
@@ -182,33 +182,75 @@ namespace emulatorLauncher
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
             //Write button mapping
-            pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
-            pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
-            pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
-            pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
-            pcsx2ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
-            pcsx2ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
-            pcsx2ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
-            pcsx2ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
-            pcsx2ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
-            pcsx2ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
-            pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
-            pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
-            pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
-            pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
-            pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
-            pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
-            pcsx2ini.WriteValue(padNumber, "Analog", techPadNumber + "Guide");
-            pcsx2ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
-            pcsx2ini.WriteValue(padNumber, "LRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
-            pcsx2ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
-            pcsx2ini.WriteValue(padNumber, "LLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
-            pcsx2ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogup, tech));
-            pcsx2ini.WriteValue(padNumber, "RRight", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogright, tech));
-            pcsx2ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown, tech));
-            pcsx2ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft, tech));
-            pcsx2ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
-            pcsx2ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
+            ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
+
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Right", "Pointer-0/RightButton");                                        // Right when mouse is selected
+            else
+                ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
+
+            ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
+
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Left", "Pointer-0/LeftButton");                                          // Left when mouse is selected
+            else
+                ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+
+            ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
+            ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
+            ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
+            ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
+            ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
+            ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
+            ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
+            ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
+            ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
+            ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
+            ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
+            ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
+            ini.WriteValue(padNumber, "Analog", techPadNumber + "Guide");
+            ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
+            ini.WriteValue(padNumber, "LRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
+            ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
+            ini.WriteValue(padNumber, "LLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
+            ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogup, tech));
+            ini.WriteValue(padNumber, "RRight", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogright, tech));
+            ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown, tech));
+            ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft, tech));
+
+            // Rumble only for analog controllers
+            if (controllerType == "AnalogController")
+            {
+                ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
+                ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
+                ini.WriteValue(padNumber, "VibrationBias", "8");
+            }
+
+            // Analog stick configuration for analog controllers
+            if (controllerType == "AnalogController" || controllerType == "AnalogJoystick")
+            {
+                ini.WriteValue(padNumber, "InvertLeftStick", "0");
+                ini.WriteValue(padNumber, "InvertRightStick", "0");
+                ini.WriteValue(padNumber, "ButtonDeadzone", "0.250000");
+                ini.WriteValue(padNumber, "AnalogSensitivity", "1.330000");
+
+                if (SystemConfig.isOptSet("stick_deadzone") && !string.IsNullOrEmpty(SystemConfig["stick_deadzone"]))
+                    ini.WriteValue(padNumber, "AnalogDeadzone", SystemConfig["stick_deadzone"]);
+                else
+                    ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
+            }
+
+            // Guncon configuration (mapping to mouse buttons and A & B to cross and circle of connected player gamepad (this is used in TIME CRISIS to hide for example))
+            // Only one mouse is supported so far in duckstation, for player 1
+            if (controllerType == "GunCon" && playerIndex == 1)
+            {
+                ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
+                ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
+                ini.WriteValue(padNumber, "A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));    // Guncon front button - map to a controller button
+                ini.WriteValue(padNumber, "B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));    // Guncon front button - map to b controller button
+                ini.WriteValue(padNumber, "CrosshairScale", "0.500000");                                    // Default crosshair is just HUGE, reduce size
+                ini.WriteValue(padNumber, "XScale", "0.930000");                                            // Adjust Xscale for mouse calibration
+            }
 
             // Write Hotkeys for player 1
             if (playerIndex == 1)
@@ -222,46 +264,30 @@ namespace emulatorLauncher
                         if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
                             continue;
 
-                        pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                        ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
                     }
                 }
             }
-
-            // Configure gun for player 1 if option is set in es_features
-            // Trigger & Reload assigned to mouse 1 (Pointer-0), all other buttons assigned to controller
-            if (SystemConfig.isOptSet("pcsx2_gun") && SystemConfig.getOptBoolean("pcsx2_gun") && playerIndex == 1)
-            {
-                pcsx2ini.WriteValue("USB1", "Type", "guncon2");
-                pcsx2ini.WriteValue("USB1", "guncon2_Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Trigger", "Pointer-0/LeftButton");
-                pcsx2ini.WriteValue("USB1", "guncon2_ShootOffscreen", "Pointer-0/RightButton");
-                pcsx2ini.WriteValue("USB1", "guncon2_A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));  // Cross
-                pcsx2ini.WriteValue("USB1", "guncon2_B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));  // Circle
-                pcsx2ini.WriteValue("USB1", "guncon2_C", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));  // Square
-                pcsx2ini.WriteValue("USB1", "guncon2_Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Recalibrate", "Pointer-0/LeftButton");
-            }
         }
 
-        private void ResetHotkeysToDefault(IniFile pcsx2ini)
+        private void ResetHotkeysToDefault(IniFile ini)
         {
             foreach (var hotkey in hotkeys)
-                pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
+                ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
         {            
             { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
-            { InputKey.x, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
-            { InputKey.y, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
+            { InputKey.x, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F3") },
+            { InputKey.y, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F1") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
-            { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F2") },
-            { InputKey.down, new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },            
+            { InputKey.up, new KeyValuePair<string, string>("SelectNextSaveStateSlot", "Keyboard/F2") },
+            { InputKey.down, new KeyValuePair<string, string>("SelectPreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },
+            { InputKey.pageup, new KeyValuePair<string, string>("ChangeDisc", "") },
+            { InputKey.left, new KeyValuePair<string, string>("Rewind", "") },
+            { InputKey.right, new KeyValuePair<string, string>("FastForward", "") },
         };
 
 

@@ -99,7 +99,9 @@ namespace emulatorLauncher
         static InputKeyMapping reversedButtons = new InputKeyMapping()
         {
             { InputKey.b,               "Buttons/A" },
-            { InputKey.a,               "Buttons/B" }
+            { InputKey.a,               "Buttons/B" },
+            { InputKey.x,               "Buttons/Y" },
+            { InputKey.y,               "Buttons/X" }
         };
 
         static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string,string>()

@@ -106,7 +106,7 @@
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Eka2l1.Generator.cs" />    
+    <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
@@ -118,6 +118,7 @@
     <Compile Include="Generators\Nes3d.Generator.cs" />
     <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
+    <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
     <Compile Include="Generators\AppleWin.Generator.cs" />
@@ -127,6 +128,9 @@
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
+    <Compile Include="Generators\Duckstation.Controllers.cs">
+      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\Mesen.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Generator.cs" />

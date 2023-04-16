@@ -22,7 +22,7 @@ namespace emulatorLauncher
 
             { new Installer("arcadeflashweb") },           
             { new Installer("libretro", "retroarch" ) }, { new Installer("angle", "retroarch" ) }, // "libretro_cores.7z" ???
-            { new Installer("duckstation", new string[] { "duckstation"}, new string[] { "duckstation-nogui-x64-ReleaseLTCG.exe", "duckstation-nogui-x64-Release.exe", "duckstation-nogui.exe" }) },
+            { new Installer("duckstation", new string[] { "duckstation"}, new string[] { "duckstation-qt-x64-ReleaseLTCG.exe" }) },
             { new Installer("kega-fusion", "kega-fusion", "Fusion.exe") }, 
             { new Installer("mesen") }, 
             { new Installer("model3", "supermodel") }, 

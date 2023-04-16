@@ -181,6 +181,9 @@
 	"gamate": { "name": "Gamate", "biosFiles":	[ { "md5": "320bf3d4142fa1043255db7ff87d17c7", "file": "bios/gamate.zip" },
                                                 { "md5": "", "file": "bios/mame/hash/gamate.xml"									} ] },
 
+	"gp32": { "name": "Game Park 32", "biosFiles":	[ { "md5": "8c392f475834218d88533150d36cc84c", "file": "bios/gp32.zip" },
+													  { "md5": "", "file": "bios/mame/hash/gp32.xml"									} ] },
+
 	"arcadia": { "name": "Arcadia 2001", "biosFiles": [ { "md5": "37e9746f4491aa2df9a83729d1a93620", "file": "bios/ar_bios.zip"	},
                                                       { "md5": "", "file": "bios/mame/hash/arcadia.xml"										} ] },
 
