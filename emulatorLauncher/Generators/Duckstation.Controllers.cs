@@ -241,7 +241,8 @@ namespace emulatorLauncher
             }
 
             // Guncon configuration (mapping to mouse buttons and A & B to cross and circle of connected player gamepad (this is used in TIME CRISIS to hide for example))
-            if (controllerType == "GunCon")
+            // Only one mouse is supported so far in duckstation, for player 1
+            if (controllerType == "GunCon" && playerIndex == 1)
             {
                 ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
                 ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
