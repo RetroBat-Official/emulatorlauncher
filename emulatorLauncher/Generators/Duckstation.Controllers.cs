@@ -146,6 +146,18 @@ namespace emulatorLauncher
                 ini.WriteValue(padNumber, "CrosshairScale", "0.500000");
                 ini.WriteValue(padNumber, "XScale", "0.930000");
             }
+
+            // Restore default keyboard hotkeys
+            ini.WriteValue("Hotkeys", "FastForward", "Keyboard/Tab");
+            ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/Space");
+            ini.WriteValue("Hotkeys", "Screenshot", "Keyboard/F10");
+            ini.WriteValue("Hotkeys", "ToggleFullscreen", "Keyboard/F11");
+            ini.WriteValue("Hotkeys", "OpenPauseMenu", "Keyboard/Escape");
+            ini.WriteValue("Hotkeys", "LoadSelectedSaveState", "Keyboard/F1");
+            ini.WriteValue("Hotkeys", "SaveSelectedSaveState", "Keyboard/F2");
+            ini.WriteValue("Hotkeys", "SelectPreviousSaveStateSlot", "Keyboard/F3");
+            ini.WriteValue("Hotkeys", "SelectNextSaveStateSlot", "Keyboard/F4");
+
         }
 
         /// <summary>
@@ -267,6 +279,8 @@ namespace emulatorLauncher
                         ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
                     }
                 }
+                if (SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
+                    ini.WriteValue("Hotkeys", "ToggleFullscreen", techPadNumber + hotKeyName + " & " + techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
             }
         }
 

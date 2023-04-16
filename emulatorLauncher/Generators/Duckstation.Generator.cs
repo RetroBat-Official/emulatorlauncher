@@ -66,7 +66,11 @@ namespace emulatorLauncher
                 commandArray.Add("-fastboot");
 
             commandArray.Add("-batch");
-            commandArray.Add("-fullscreen");
+            commandArray.Add("-portable");
+
+            if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+                commandArray.Add("-fullscreen");
+
             commandArray.Add("--");
 
             string args = string.Join(" ", commandArray);
@@ -315,7 +319,13 @@ namespace emulatorLauncher
                         ini.WriteValue("Main", "RunaheadFrameCount", "0");
 
                     ini.WriteValue("Main", "ConfirmPowerOff", "false");
-                    ini.WriteValue("Main", "StartFullscreen", "true");
+
+                    // fullscreen (disable fullscreen start option, workaround for people with multi-screen that cannot get emulator to start fullscreen on the correct monitor)
+                    if (SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
+                        ini.WriteValue("Main", "StartFullscreen", "false");
+                    else
+                        ini.WriteValue("Main", "StartFullscreen", "true");
+
                     ini.WriteValue("Main", "ApplyGameSettings", "true");
                     ini.WriteValue("Main", "EnableDiscordPresence", "false");
                     ini.WriteValue("Main", "PauseOnFocusLoss", "true");

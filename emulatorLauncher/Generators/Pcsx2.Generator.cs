@@ -126,7 +126,8 @@ namespace emulatorLauncher
 
                 if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
                 {
-                    commandArray.Add("-fullscreen");
+                    if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+                        commandArray.Add("-fullscreen");
                     commandArray.Add("-bigpicture");
                 }
 
@@ -652,8 +653,12 @@ namespace emulatorLauncher
 
                 CreateControllerConfiguration(ini);
 
-                // fullscreen
-                ini.WriteValue("UI", "StartFullscreen", "true");
+                // fullscreen (disable fullscreen start option, workaround for people with multi-screen that cannot get emulator to start fullscreen on the correct monitor)
+                if ( SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
+                    ini.WriteValue("UI", "StartFullscreen", "false");
+                else
+                    ini.WriteValue("UI", "StartFullscreen", "true");
+                
                 ini.Remove("UI", "MainWindowGeometry");
                 ini.Remove("UI", "MainWindowState");
                 ini.Remove("UI", "DisplayWindowGeometry");
