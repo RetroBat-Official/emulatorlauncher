@@ -135,7 +135,7 @@ namespace emulatorLauncher.Tools
 
         public static void ShowDownloadDokanPage()
         {
-            Process.Start("https://github.com/dokan-dev/dokany/releases/tag/v1.4.0.1000");
+            Process.Start("https://github.com/dokan-dev/dokany/releases");
         }
     }
 }

@@ -561,14 +561,15 @@ namespace emulatorLauncher
             commandArray.Add("-hashpath");
             commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
 
+            // Artwork path
             commandArray.Add("-artpath");
 
             string artwork = Path.Combine(Path.GetDirectoryName(rom), "artwork");
             if (Directory.Exists(artwork))
+            { 
                 artwork = Path.Combine(Path.GetDirectoryName(rom), ".artwork");
-
-            if (Directory.Exists(artwork))
                 commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
+            }   
             else
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
             

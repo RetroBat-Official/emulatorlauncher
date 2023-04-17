@@ -151,6 +151,29 @@ namespace emulatorLauncher
                 WriteKeyboardMapping("USB1", "guncon2_Start", InputKey.start);
                 pcsx2ini.WriteValue("USB1", "guncon2_Recalibrate", "Pointer-0/LeftButton");
             }
+
+            // Restore keyboard hotkeys
+            pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", "Keyboard/Alt & Keyboard/Return");
+            pcsx2ini.WriteValue("Hotkeys", "CycleAspectRatio", "Keyboard/F6");
+            pcsx2ini.WriteValue("Hotkeys", "CycleInterlaceMode", "Keyboard/F5");
+            pcsx2ini.WriteValue("Hotkeys", "CycleMipmapMode", "Keyboard/Insert");
+            pcsx2ini.WriteValue("Hotkeys", "GSDumpMultiFrame", "Keyboard/Control & Keyboard/Shift & Keyboard/F8");
+            pcsx2ini.WriteValue("Hotkeys", "Screenshot", "Keyboard/F8");
+            pcsx2ini.WriteValue("Hotkeys", "GSDumpSingleFrame", "Keyboard/Shift & Keyboard/F8");
+            pcsx2ini.WriteValue("Hotkeys", "ToggleSoftwareRendering", "Keyboard/F9");
+            pcsx2ini.WriteValue("Hotkeys", "ZoomIn", "Keyboard/Control & Keyboard/Plus");
+            pcsx2ini.WriteValue("Hotkeys", "ZoomOut", "Keyboard/Control & Keyboard/Minus");
+            pcsx2ini.WriteValue("Hotkeys", "InputRecToggleMode", "Keyboard/Shift & Keyboard/R");
+            pcsx2ini.WriteValue("Hotkeys", "LoadStateFromSlot", "Keyboard/F3");
+            pcsx2ini.WriteValue("Hotkeys", "SaveStateToSlot", "Keyboard/F1");
+            pcsx2ini.WriteValue("Hotkeys", "NextSaveStateSlot", "Keyboard/F2");
+            pcsx2ini.WriteValue("Hotkeys", "PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2");
+            pcsx2ini.WriteValue("Hotkeys", "OpenPauseMenu", "Keyboard/Escape");
+            pcsx2ini.WriteValue("Hotkeys", "ToggleFrameLimit", "Keyboard/F4");
+            pcsx2ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/Space");
+            pcsx2ini.WriteValue("Hotkeys", "ToggleSlowMotion", "Keyboard/Shift & Keyboard/Backtab");
+            pcsx2ini.WriteValue("Hotkeys", "ToggleTurbo", "Keyboard/Tab");
+            pcsx2ini.WriteValue("Hotkeys", "HoldTurbo", "Keyboard/Period");
         }
 
         /// <summary>
@@ -225,6 +248,8 @@ namespace emulatorLauncher
                         pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
                     }
                 }
+                if (SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
+                    pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", techPadNumber + hotKeyName + " & " + techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
             }
 
             // Configure gun for player 1 if option is set in es_features

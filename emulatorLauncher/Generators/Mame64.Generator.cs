@@ -64,7 +64,10 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(artPath) && Directory.Exists(artPath))
                 {
                     commandArray.Add("-artpath");
-                    commandArray.Add(artPath + ";" + Path.Combine(path, "artwork") + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
+                    if (SystemConfig.isOptSet("disable_artwork") && SystemConfig.getOptBoolean("disable_artwork"))
+                        commandArray.Add(artPath);
+                    else
+                        commandArray.Add(artPath + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
                 }
 
                 // Snapshots
@@ -133,6 +136,9 @@ namespace emulatorLauncher
                 /// -homepath
                 /// -crosshairpath
                 /// -swpath
+
+                if (!SystemConfig.isOptSet("read_ini") || !SystemConfig.getOptBoolean("read_ini"))
+                    commandArray.Add("-noreadconfig");
 
                 commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
 
@@ -234,14 +240,21 @@ namespace emulatorLauncher
             }
 
             // Aspect ratio
-            retList.Add("-aspect");
             if (SystemConfig.isOptSet("mame_ratio") && !string.IsNullOrEmpty(SystemConfig["mame_ratio"]))
-            { 
-                retList.Add(SystemConfig["mame_ratio"]);
-                retList.Add("-nokeepaspect");
+            {
+                if (SystemConfig["mame_ratio"] != "stretch")
+                {
+                    retList.Add("-aspect");
+                    retList.Add(SystemConfig["mame_ratio"]);
+                }
+                if (SystemConfig["mame_ratio"] == "stretch")
+                    retList.Add("-nokeepaspect");
             }
             else
+            {
+                retList.Add("-aspect");
                 retList.Add("auto");
+            }
             
             // Monitor index
             if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
