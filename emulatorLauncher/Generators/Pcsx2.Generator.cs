@@ -1196,7 +1196,7 @@ namespace emulatorLauncher
         public override int RunAndWait(ProcessStartInfo path)
         {
             int ret = 0;
-            int monitorIndex = SystemConfig["MonitorIndex"].ToInteger() - 1;
+            int monitorIndex = Math.Max(0, SystemConfig["MonitorIndex"].ToInteger() - 1);
             
             if (_bezelFileInfo != null)
             {               
@@ -1224,8 +1224,8 @@ namespace emulatorLauncher
                     return ret;
                 }
             }
-            
-            if (monitorIndex > 0 && monitorIndex < Screen.AllScreens.Length)
+
+            if (monitorIndex >= 0 && Screen.AllScreens.Length > 1 && monitorIndex < Screen.AllScreens.Length)
             {
                 var process = StartProcessAndMoveItsWindowTo(path, Screen.AllScreens[monitorIndex].Bounds);
                 if (process != null)
