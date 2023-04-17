@@ -64,7 +64,7 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(artPath) && Directory.Exists(artPath))
                 {
                     commandArray.Add("-artpath");
-                    commandArray.Add(artPath + ";" + Path.Combine(path, "artwork") + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
+                    commandArray.Add(artPath + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
                 }
 
                 // Snapshots
@@ -234,14 +234,21 @@ namespace emulatorLauncher
             }
 
             // Aspect ratio
-            retList.Add("-aspect");
             if (SystemConfig.isOptSet("mame_ratio") && !string.IsNullOrEmpty(SystemConfig["mame_ratio"]))
-            { 
-                retList.Add(SystemConfig["mame_ratio"]);
-                retList.Add("-nokeepaspect");
+            {
+                if (SystemConfig["mame_ratio"] != "stretch")
+                {
+                    retList.Add("-aspect");
+                    retList.Add(SystemConfig["mame_ratio"]);
+                }
+                if (SystemConfig["mame_ratio"] == "stretch")
+                    retList.Add("-nokeepaspect");
             }
             else
+            {
+                retList.Add("-aspect");
                 retList.Add("auto");
+            }
             
             // Monitor index
             if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
