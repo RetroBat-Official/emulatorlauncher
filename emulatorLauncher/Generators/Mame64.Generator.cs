@@ -64,7 +64,10 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(artPath) && Directory.Exists(artPath))
                 {
                     commandArray.Add("-artpath");
-                    commandArray.Add(artPath + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
+                    if (SystemConfig.isOptSet("disable_artwork") && SystemConfig.getOptBoolean("disable_artwork"))
+                        commandArray.Add(artPath);
+                    else
+                        commandArray.Add(artPath + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
                 }
 
                 // Snapshots
@@ -133,6 +136,9 @@ namespace emulatorLauncher
                 /// -homepath
                 /// -crosshairpath
                 /// -swpath
+
+                if (!SystemConfig.isOptSet("read_ini") || !SystemConfig.getOptBoolean("read_ini"))
+                    commandArray.Add("-noreadconfig");
 
                 commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
 
