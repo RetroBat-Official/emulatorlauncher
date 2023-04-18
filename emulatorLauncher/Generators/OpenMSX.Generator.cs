@@ -20,6 +20,14 @@ namespace emulatorLauncher
             { "-cassetteplayer", new string[] { ".cas", ".wav" } }
         };
 
+        static List<string> machineWithDiskDrive = new List<string>() { "Panasonic_FS-A1GT", "Panasonic_FS-A1WSX", "National_FS-5500F2", "Philips_NMS_8245", "National_CF-3300" };
+        static List<string> machineWithCassette = new List<string>() { "Panasonic_FS-A1WSX", "National_FS-5500F2", "Pioneer_PX-7", "Philips_NMS_8245", "National_CF-3300" };
+        static List<string> machineWithLaserdisc = new List<string>() { "Pioneer_PX-7" };
+
+        static string defaultDiskMachine = "Panasonic_FS-A1GT";
+        static string defaultMachineCassette = "Panasonic_FS-A1WSX";
+        static string defaultLaserdiscMachine = "Pioneer_PX-7";
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             bool result = false;
@@ -52,12 +60,52 @@ namespace emulatorLauncher
             //setting up command line parameters
             var commandArray = new List<string>();
 
-            // Machine
+            // Define type of rom
+            var romExtension = Path.GetExtension(rom);
+            string romtype = msxMedias.FirstOrDefault(x => x.Value.Contains(romExtension)).Key;
+            if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]))
+                romtype = "-" + SystemConfig["altromtype"];
+
+            // Define Machine
+            string machine = "Panasonic_FS-A1GT";
             commandArray.Add("-machine");
             if (SystemConfig.isOptSet("msx_machine") && !string.IsNullOrEmpty(SystemConfig["msx_machine"]))
-                commandArray.Add(SystemConfig["msx_machine"]);
-            else
-                commandArray.Add("Panasonic_FS-A1GT");
+                machine = SystemConfig["msx_machine"];
+
+            if (romtype != null)
+            {
+                switch (romtype)
+                {
+                    case "-cart":
+                        break;
+                    case "-diska":
+                        if (machineWithDiskDrive.Contains(machine))
+                            break;
+                        else
+                        { 
+                            machine = defaultDiskMachine;
+                            break;
+                        }
+                    case "-laserdisc":
+                        if (machineWithLaserdisc.Contains(machine))
+                            break;
+                        else
+                        {
+                            machine = defaultLaserdiscMachine;
+                            break;
+                        }
+                    case "-cassetteplayer":
+                        if (machineWithCassette.Contains(machine))
+                            break;
+                        else
+                        {
+                            machine = defaultDiskMachine;
+                            break;
+                        }
+                }
+            }
+                
+            commandArray.Add(machine);
 
             // I/O slot Extensions .Where(c => c.Name != null && c.Name.StartWith(...))
             List<string> extensionlist = SystemConfig
@@ -81,12 +129,6 @@ namespace emulatorLauncher
                 
                 commandArray.Add(SystemConfig["cart_extension"]);
             }
-
-            // Define type of rom to add argument
-            var romExtension = Path.GetExtension(rom);
-            string romtype = msxMedias.FirstOrDefault(x => x.Value.Contains(romExtension)).Key;
-            if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]))
-                romtype = "-" + SystemConfig["altromtype"];
 
             // Run scripts
             string scriptspath = Path.Combine(path, "share", "scripts");
@@ -190,6 +232,40 @@ namespace emulatorLauncher
             }
             else
                 scalealgo.SetValue(algorythm);
+
+            // Audio Resampler
+            string audioresampler = "blip";
+            if (SystemConfig.isOptSet("msx_resampler") && !string.IsNullOrEmpty(SystemConfig["msx_resampler"]))
+                audioresampler = SystemConfig["msx_resampler"];
+
+            XElement resampler = xdoc.Descendants()
+            .Where(x => (string)x.Attribute("id") == "resampler").FirstOrDefault();
+
+            if (resampler == null)
+            {
+                resampler = new XElement("setting", new XAttribute("id", "resampler"));
+                resampler.SetValue(audioresampler);
+                settings.Add(resampler);
+            }
+            else
+                resampler.SetValue(audioresampler);
+
+            // OSD icon set
+            string iconset = "set1";
+            if (SystemConfig.isOptSet("msx_osdset") && !string.IsNullOrEmpty(SystemConfig["msx_osdset"]))
+                iconset = SystemConfig["msx_osdset"];
+
+            XElement osdiconset = xdoc.Descendants()
+            .Where(x => (string)x.Attribute("id") == "osd_leds_set").FirstOrDefault();
+
+            if (osdiconset == null)
+            {
+                osdiconset = new XElement("setting", new XAttribute("id", "osd_leds_set"));
+                osdiconset.SetValue(iconset);
+                settings.Add(osdiconset);
+            }
+            else
+                osdiconset.SetValue(iconset);
 
             // Save xml file
             xdoc.Save(settingsFile);
