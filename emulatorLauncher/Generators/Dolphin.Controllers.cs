@@ -609,13 +609,13 @@ namespace emulatorLauncher
                 {
                     ini.WriteValue("Hotkeys", "Device", "DInput/0/Keyboard Mouse");
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", "`F10`");
-                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "@(Alt+RETURN)");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Alt&RETURN");
                     ini.WriteValue("Hotkeys", "General/Exit", "ESCAPE");
                     ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "`F1`");
-                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "@(Alt+`F1`)");
+                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Alt&`F1");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "`F9`");
-                    ini.WriteValue("Hotkeys", "General/Eject Disc", "@(Alt+E)");
-                    ini.WriteValue("Hotkeys", "General/Change Disc", "@(Alt+S)");
+                    ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt&E");
+                    ini.WriteValue("Hotkeys", "General/Change Disc", "Alt&S");
                 }
             }
         }
