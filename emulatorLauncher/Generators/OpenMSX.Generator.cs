@@ -62,13 +62,17 @@ namespace emulatorLauncher
 
             // Define type of rom
             var romExtension = Path.GetExtension(rom);
+            
             string romtype = msxMedias.FirstOrDefault(x => x.Value.Contains(romExtension)).Key;
-            if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]))
+            if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]) && system != "colecovision")
                 romtype = "-" + SystemConfig["altromtype"];
+
+            if (system == "colecovision")
+                romtype = "-cart";
 
             // Define Machine
             string machine = "Panasonic_FS-A1GT";
-            commandArray.Add("-machine");
+            
             if (SystemConfig.isOptSet("msx_machine") && !string.IsNullOrEmpty(SystemConfig["msx_machine"]))
                 machine = SystemConfig["msx_machine"];
 
@@ -104,23 +108,30 @@ namespace emulatorLauncher
                         }
                 }
             }
-                
+
+            if (system == "colecovision")
+                machine = "ColecoVision_SGM";
+
+            commandArray.Add("-machine");
             commandArray.Add(machine);
 
             // I/O slot Extensions .Where(c => c.Name != null && c.Name.StartWith(...))
-            List<string> extensionlist = SystemConfig
-                .Where(c => c.Name != null && c.Name.StartsWith(system + ".ext_") && c.Value == "1")
-                .Select(c => c.Name.Replace(system + ".ext_", ""))
-                .ToList();
-
-            for (int i = 0; i < extensionlist.Count; i++)
+            if (system != "colecovision")
             {
-                commandArray.Add("-ext");
-                commandArray.Add(extensionlist[i]);
+                List<string> extensionlist = SystemConfig
+                    .Where(c => c.Name != null && c.Name.StartsWith(system + ".ext_") && c.Value == "1")
+                    .Select(c => c.Name.Replace(system + ".ext_", ""))
+                    .ToList();
+
+                for (int i = 0; i < extensionlist.Count; i++)
+                {
+                    commandArray.Add("-ext");
+                    commandArray.Add(extensionlist[i]);
+                }
             }
 
             // Cartridge slot extension (MSX machines only have 2 cartridge slots, one is taken by the game so it leaves place for one extension
-            if (SystemConfig.isOptSet("cart_extension") && !string.IsNullOrEmpty(SystemConfig["cart_extension"]))
+            if (SystemConfig.isOptSet("cart_extension") && !string.IsNullOrEmpty(SystemConfig["cart_extension"]) && system != "colecovision")
             {
                 if (SystemConfig.isOptSet("altromtype") && SystemConfig["altromtype"] == "carta")
                     commandArray.Add("-extb");
