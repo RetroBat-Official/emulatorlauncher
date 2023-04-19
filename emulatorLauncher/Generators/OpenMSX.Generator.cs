@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace emulatorLauncher
 {
-    class openMSXGenerator : Generator
+    partial class OpenMSXGenerator : Generator
     {
 
         static Dictionary<string, string[]> msxMedias = new Dictionary<string, string[]>()
@@ -27,6 +27,14 @@ namespace emulatorLauncher
         static string defaultDiskMachine = "Panasonic_FS-A1GT";
         static string defaultMachineCassette = "Panasonic_FS-A1WSX";
         static string defaultLaserdiscMachine = "Pioneer_PX-7";
+
+        static Dictionary<string, string[]> scriptFiles = new Dictionary<string, string[]>()
+        {
+            { "autoruncassettes", new string[] {"set autoruncassettes on" } },
+            { "autorunlaserdisc", new string[] {"set autorunlaserdisc on" } },
+            { "removealljoysticks", new string[] {"unplug joyporta", "unplug joyportb" } },
+            { "plugmouse", new string[] { "plug joyporta mouse", "unplug joyportb" } }
+        };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -103,7 +111,7 @@ namespace emulatorLauncher
                             break;
                         else
                         {
-                            machine = defaultDiskMachine;
+                            machine = defaultMachineCassette;
                             break;
                         }
                 }
@@ -143,20 +151,31 @@ namespace emulatorLauncher
 
             // Run scripts
             string scriptspath = Path.Combine(path, "share", "scripts");
+            if (!Directory.Exists(scriptspath)) try { Directory.CreateDirectory(scriptspath); }
+                catch { }
+
+            checkOrCreateScripts(scriptspath);
+
             if (romtype != null && romtype == "-cassetteplayer")
             {
                 commandArray.Add("-script");
-                commandArray.Add(Path.Combine(scriptspath, "autoruncassettes.tcl"));
+                commandArray.Add("\"" + Path.Combine(scriptspath, "autoruncassettes.tcl") + "\"");
             }
             else if (romtype != null && romtype == "-laserdisc")
             {
                 commandArray.Add("-script");
-                commandArray.Add(Path.Combine(scriptspath, "autorunlaserdisc.tcl"));
+                commandArray.Add("\"" + Path.Combine(scriptspath, "autorunlaserdisc.tcl") + "\"");
             }
+
 
             // Add media type
             if (romtype != null)
                commandArray.Add(romtype);
+            
+            commandArray.Add("\"" + rom + "\"");
+
+            // Setup controllers (using tcl scripts)
+            commandArray.AddRange(configureControllers(scriptspath));
 
             string args = string.Join(" ", commandArray);
 
@@ -164,7 +183,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args + " \"" + rom + "\"",
+                Arguments = args,
             };
         }
 
@@ -172,6 +191,7 @@ namespace emulatorLauncher
         /// Configure emulator features (settings.xml)
         /// </summary>
         /// <param name="path"></param>
+        /// <param name="rom"></param>
         private void SetupConfiguration(string path, string rom)
         {
             string settingsFile = Path.Combine(path, "share", "settings.xml");
@@ -278,8 +298,34 @@ namespace emulatorLauncher
             else
                 osdiconset.SetValue(iconset);
 
+            // Clean existing bindings
+            var bindings = topnode.GetOrCreateElement("bindings");
+            bindings.RemoveAll();
+
             // Save xml file
             xdoc.Save(settingsFile);
         }
+
+        /// <summary>
+        /// Configure emulator features (settings.xml)
+        /// </summary>
+        /// <param name="path"></param>
+        private void checkOrCreateScripts(string path)
+        {
+            foreach (var script in scriptFiles)
+            {
+                string scriptFile = Path.Combine(path, script.Key + ".tcl");
+                if (!File.Exists(scriptFile))
+                {
+                    string[] scriptValue = script.Value;
+                    using (StreamWriter sw = File.CreateText(scriptFile))
+                    {
+                        foreach (string text in scriptValue)
+                            sw.WriteLine(text);
+                    }
+                }
+            }
+        }
+
     }
 }
