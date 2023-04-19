@@ -64,7 +64,7 @@ namespace emulatorLauncher
 
             else
             {
-                // UpdateSdlControllersWithHints();                     No hints found in openMSX code
+                // UpdateSdlControllersWithHints();                     No hints in openMSX code
 
                 // Inject controllers                
                 
@@ -122,6 +122,10 @@ namespace emulatorLauncher
                     sw.WriteLine("plug joyporta joystick" + index1);
                     sw.WriteLine("plug joyportb joystick" + index2);
                 }
+
+                // Add hotkeys bind for joystick 1
+                string shortJoy = "joy" + index1;
+                //TODO
                 sw.Close();
                 return;
             }
