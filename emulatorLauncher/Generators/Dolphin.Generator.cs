@@ -538,23 +538,20 @@ namespace emulatorLauncher
                     // Set SID devices (controllers)
                     else if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
                     {
+                        bool wiiGCPad = system == "wii" && SystemConfig.isOptSet("wii_gamecube") && SystemConfig.getOptBoolean("wii_gamecube");
                         for (int i = 0; i < 4; i++)
                         {
                             var ctl = Controllers.FirstOrDefault(c => c.PlayerIndex == i + 1);
+                            bool gcPad = (system == "gamecube" && SystemConfig.isOptSet("gamecubepad" + i) && SystemConfig.getOptBoolean("gamecubepad" + i));
 
-                            if (ctl != null && ctl.Config != null && !emulatedWiiMote)
-                            {
-                                /*if (ctl.Input.Type == "keyboard")
-                                    ini.WriteValue("Core", "SIDevice" + i, "7");
-                                else*/
-                                ini.WriteValue("Core", "SIDevice" + i, "6");
-                            }
-                            else
-                                ini.WriteValue("Core", "SIDevice" + i, "0");
-
-                            if ((Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] == "2"))
+                            if (wiiGCPad || gcPad)
                                 ini.WriteValue("Core", "SIDevice" + i, "12");
 
+                            else if (ctl != null && ctl.Config != null)
+                                ini.WriteValue("Core", "SIDevice" + i, "6");
+                            
+                            else
+                                ini.WriteValue("Core", "SIDevice" + i, "0");
                         }
                     }
 
