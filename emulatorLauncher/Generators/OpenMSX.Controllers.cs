@@ -125,7 +125,18 @@ namespace emulatorLauncher
 
                 // Add hotkeys bind for joystick 1
                 string shortJoy = "joy" + index1;
-                //TODO
+                string tech = c1.IsXInputDevice ? "XInput" : "SDL";
+
+                if (tech == "XInput")
+                {
+                    sw.WriteLine("bind \"" + shortJoy + " button6 down\" \"main_menu_toggle\"");
+                }
+
+                else if (tech == "SDL")
+                {
+                    sw.WriteLine("bind \"" + shortJoy + " button4 down\" \"main_menu_toggle\"");
+                }
+
                 sw.Close();
                 return;
             }
