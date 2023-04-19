@@ -200,6 +200,10 @@
     <Compile Include="Generators\Project64.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
     <Compile Include="Generators\NosGba.Generator.cs" />
+    <Compile Include="Generators\OpenMSX.Generator.cs" />
+    <Compile Include="Generators\OpenMSX.Controllers.cs">
+      <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
