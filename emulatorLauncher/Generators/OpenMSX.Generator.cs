@@ -33,7 +33,7 @@ namespace emulatorLauncher
             { "autoruncassettes", new string[] {"set autoruncassettes on" } },
             { "autorunlaserdisc", new string[] {"set autorunlaserdisc on" } },
             { "removealljoysticks", new string[] {"unplug joyporta", "unplug joyportb" } },
-            { "plugmouse", new string[] { "plug joyporta mouse", "unplug joyportb" } }
+            { "plugmouse", new string[] { "unplug joyporta", "unplug joyportb", "plug joyporta mouse" } }
         };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -315,17 +315,16 @@ namespace emulatorLauncher
             foreach (var script in scriptFiles)
             {
                 string scriptFile = Path.Combine(path, script.Key + ".tcl");
-                if (!File.Exists(scriptFile))
+                string[] scriptValue = script.Value;
+
+                using (StreamWriter sw = new StreamWriter(scriptFile, false))
                 {
-                    string[] scriptValue = script.Value;
-                    using (StreamWriter sw = File.CreateText(scriptFile))
-                    {
-                        foreach (string text in scriptValue)
-                            sw.WriteLine(text);
-                    }
+                    foreach (string text in scriptValue)
+                        sw.WriteLine(text);
+
+                    sw.Close();
                 }
             }
         }
-
     }
 }

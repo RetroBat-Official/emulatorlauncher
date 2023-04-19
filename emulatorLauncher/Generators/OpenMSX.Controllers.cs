@@ -6,11 +6,20 @@ using System.IO;
 using System.Diagnostics;
 using System.Xml.Linq;
 using System.Xml;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
     partial class OpenMSXGenerator : Generator
     {
+        private void UpdateSdlControllersWithHints()
+        {
+            var hints = new List<string>();
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         private List<string> configureControllers(string path)
         {
             var retList = new List<string>();
@@ -54,21 +63,81 @@ namespace emulatorLauncher
             }
 
             else
+            {
+                // UpdateSdlControllersWithHints();                     No hints found in openMSX code
+
+                // Inject controllers                
+                
+                string retrobatJoyScipt = Path.Combine(path, "retrobatJoystick.tcl");
+
+                if (Program.Controllers.Count == 1)
+                {
+                    var c1 = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+                    using (StreamWriter joyScript = new StreamWriter(retrobatJoyScipt, false))
+                        ConfigureJoystick(joyScript, c1);
+                }
+
+                else if (Program.Controllers.Count > 1)
+                {
+                    var c1 = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+                    var c2 = Controllers.FirstOrDefault(c => c.PlayerIndex == 2);
+                    using (StreamWriter joyScript = new StreamWriter(retrobatJoyScipt, false))
+                        ConfigureJoystick(joyScript, c1, c2);
+                }
+
+                retList.Add("-script");
+                retList.Add("\"" + retrobatJoyScipt + "\"");
                 return retList;
+            } 
+        }
+
+        private void ConfigureJoystick(StreamWriter sw, Controller c1, Controller c2 = null)
+        {
+            var retList = new List<string>();
+
+            if (c1 == null || c1.Config == null)
+                return;
+
+            if (c1.IsKeyboard)
+                return;
+            
+            else
+            {
+                int index1 = c1.SdlController == null ? c1.DeviceIndex + 1 : c1.SdlController.Index + 1;
+                int index2 = -1;
+                
+                if (c2 != null)
+                    index2 = c2.SdlController == null ? c2.DeviceIndex + 1 : c2.SdlController.Index + 1;
+
+                if (c2 == null)
+                {
+                    sw.WriteLine("unplug joyporta");
+                    sw.WriteLine("plug joyporta joystick" + index1);
+                }
+                    
+                else
+                {
+                    sw.WriteLine("unplug joyporta");
+                    sw.WriteLine("unplug joyportb");
+                    sw.WriteLine("plug joyporta joystick" + index1);
+                    sw.WriteLine("plug joyportb joystick" + index2);
+                }
+                sw.Close();
+                return;
+            }
         }
 
         private List<string> ConfigureKeyboardHotkeys(string path)
         {
             var retList = new List<string>();
             
-            string kbHotkeyScript = Path.Combine(path, "kb hotkeys.tcl");
-            if (!File.Exists(kbHotkeyScript)) try { File.CreateText(kbHotkeyScript); }
-                catch { }
+            string kbHotkeyScript = Path.Combine(path, "kbhotkeys.tcl");
 
             using (StreamWriter kbhotkeys = new StreamWriter(kbHotkeyScript, false))
             {
                 kbhotkeys.WriteLine(@"bind ALT+F8 {savestate [guess_title]}");
                 kbhotkeys.WriteLine(@"bind ALT+F7 {loadstate [guess_title]}");
+                kbhotkeys.Close();
             }
 
             retList.Add("-script");
