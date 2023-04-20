@@ -11,6 +11,8 @@ namespace emulatorLauncher
 {
     partial class OpenMSXGenerator : Generator
     {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
 
         static Dictionary<string, string[]> msxMedias = new Dictionary<string, string[]>()
         {
@@ -38,10 +40,19 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+
+            string path = AppConfig.GetFullPath("openmsx");
+
+            // Bezels with reshade
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
+
             bool result = false;
             string environmentVariable;
             environmentVariable = Environment.GetEnvironmentVariable("OPENMSX_HOME", EnvironmentVariableTarget.User);
-            string path = AppConfig.GetFullPath("openmsx");
+            
             if (!Directory.Exists(path))
                 return null;
             
@@ -288,7 +299,7 @@ namespace emulatorLauncher
                 resampler.SetValue(audioresampler);
 
             // OSD icon set
-            string iconset = "set1";
+            string iconset = "none";
             if (SystemConfig.isOptSet("msx_osdset") && !string.IsNullOrEmpty(SystemConfig["msx_osdset"]))
                 iconset = SystemConfig["msx_osdset"];
 
@@ -315,6 +326,24 @@ namespace emulatorLauncher
                 writer.Indentation = 4;
                 xdoc.Save(writer);
             }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
 
         /// <summary>
