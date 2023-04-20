@@ -205,7 +205,11 @@ namespace emulatorLauncher
         /// <param name="rom"></param>
         private void SetupConfiguration(string path, string rom)
         {
-            string settingsFile = Path.Combine(path, "share", "settings.xml");
+            string sharepath = Path.Combine(path, "share");
+            if (!Directory.Exists(sharepath)) try { Directory.CreateDirectory(sharepath); }
+                catch { }
+
+            string settingsFile = Path.Combine(sharepath, "settings.xml");
 
             var xdoc = File.Exists(settingsFile) ? XDocument.Load(settingsFile) : new XDocument(new XDeclaration("1.0", "utf-8", null));
             if (!File.Exists(settingsFile))
