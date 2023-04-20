@@ -73,6 +73,10 @@ namespace emulatorLauncher
                 if (Program.Controllers.Count == 1)
                 {
                     var c1 = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+
+                    if (c1.IsKeyboard)
+                        return retList;
+
                     using (StreamWriter joyScript = new StreamWriter(retrobatJoyScipt, false))
                         ConfigureJoystick(joyScript, c1);
                 }
