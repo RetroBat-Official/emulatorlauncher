@@ -90,10 +90,19 @@ namespace emulatorLauncher
                 romtype = "-cart";
 
             // Define Machine
-            string machine = "Panasonic_FS-A1GT";
-            
+            string machine = "C-BIOS_MSX2";
+
             if (SystemConfig.isOptSet("msx_machine") && !string.IsNullOrEmpty(SystemConfig["msx_machine"]))
                 machine = SystemConfig["msx_machine"];
+
+            else if (system == "msx1")
+                machine = "Philips_NMS_8245";
+            else if (system == "msx2")
+                machine = "National_FS-5500F2";
+            else if (system == "msx2+")
+                machine = "Panasonic_FS-A1WSX";
+            else if (system == "msxturbor")
+                machine = "Panasonic_FS-A1GT";
 
             if (romtype != null)
             {
