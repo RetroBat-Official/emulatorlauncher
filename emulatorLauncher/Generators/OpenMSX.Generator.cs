@@ -196,7 +196,13 @@ namespace emulatorLauncher
         {
             string settingsFile = Path.Combine(path, "share", "settings.xml");
 
-            var xdoc = File.Exists(settingsFile) ? XDocument.Load(settingsFile) : new XDocument();
+            var xdoc = File.Exists(settingsFile) ? XDocument.Load(settingsFile) : new XDocument(new XDeclaration("1.0", "utf-8", null));
+            if (!File.Exists(settingsFile))
+            {
+                XDocumentType documentType = new XDocumentType("settings", null, "settings.dtd", null);
+                xdoc.AddFirst(documentType);
+            }
+
             var topnode = xdoc.GetOrCreateElement("settings");
             var settings = topnode.GetOrCreateElement("settings");
 
@@ -303,7 +309,12 @@ namespace emulatorLauncher
             bindings.RemoveAll();
 
             // Save xml file
-            xdoc.Save(settingsFile);
+            using (var writer = new XmlTextWriter(settingsFile, new UTF8Encoding(false)))
+            {
+                writer.Formatting = Formatting.Indented;
+                writer.Indentation = 4;
+                xdoc.Save(writer);
+            }
         }
 
         /// <summary>
