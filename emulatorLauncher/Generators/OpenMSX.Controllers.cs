@@ -23,10 +23,11 @@ namespace emulatorLauncher
         private List<string> configureControllers(string path)
         {
             var retList = new List<string>();
+            bool useMouse = SystemConfig.isOptSet("msx_mouse") && SystemConfig.getOptBoolean("msx_mouse");
 
             retList.AddRange(ConfigureKeyboardHotkeys(path));
 
-            if (SystemConfig.isOptSet("msx_mouse") && SystemConfig.getOptBoolean("msx_mouse"))
+            if (useMouse && Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 string userScript = Path.Combine(path, "plugmouse.tcl");
                 if (File.Exists(userScript))
@@ -97,6 +98,7 @@ namespace emulatorLauncher
 
         private void ConfigureJoystick(StreamWriter sw, Controller c1, Controller c2 = null)
         {
+            bool useMouse = SystemConfig.isOptSet("msx_mouse") && SystemConfig.getOptBoolean("msx_mouse");
             var retList = new List<string>();
 
             if (c1 == null || c1.Config == null)
@@ -104,7 +106,7 @@ namespace emulatorLauncher
 
             if (c1.IsKeyboard)
                 return;
-            
+
             else
             {
                 int index1 = c1.SdlController == null ? c1.DeviceIndex + 1 : c1.SdlController.Index + 1;
@@ -116,7 +118,17 @@ namespace emulatorLauncher
                 if (c2 == null)
                 {
                     sw.WriteLine("unplug joyporta");
+                    sw.WriteLine("unplug joyportb");
                     sw.WriteLine("plug joyporta joystick" + index1);
+                    if (useMouse)
+                    {
+                        sw.WriteLine("plug joyportb mouse");
+                        sw.WriteLine("set grabinput on");
+                    }
+                    else
+                    {
+                        sw.WriteLine("set grabinput off");
+                    }
                 }
                     
                 else
@@ -125,20 +137,29 @@ namespace emulatorLauncher
                     sw.WriteLine("unplug joyportb");
                     sw.WriteLine("plug joyporta joystick" + index1);
                     sw.WriteLine("plug joyportb joystick" + index2);
+                    sw.WriteLine("set grabinput off");
                 }
 
                 // Add hotkeys bind for joystick 1
+
+                /// SELECT + R1 = Fast forward
+                // unbind F9
+                // bind F9 "set fastforward off"
+                // bind F9, release "set fastforward on"
+
                 string shortJoy = "joy" + index1;
                 string tech = c1.IsXInputDevice ? "XInput" : "SDL";
 
                 if (tech == "XInput")
                 {
-                    sw.WriteLine("bind \"" + shortJoy + " button6 down\" \"main_menu_toggle\"");
+                    sw.WriteLine("bind \"" + shortJoy + " button6 down\" \"bind \\\"" + shortJoy + " button0 down\\\" main_menu_toggle ; bind \\\"" + shortJoy + " button1 down\\\" \\\"toggle pause\\\" ; bind \\\"" + shortJoy + " button4 down\\\" \\\"reverse goback 2\\\"  ; bind \\\"" + shortJoy + " button5 down\\\" \\\"toggle fastforward\\\"\"");
+                    sw.WriteLine("bind \"" + shortJoy + " button6 up\" \"unbind \\\"" + shortJoy + " button0 down\\\" ; unbind \\\"" + shortJoy + " button1 down\\\" ; unbind \\\"" + shortJoy + " button4 down\\\"  ; bind \\\"" + shortJoy + " button5 down\\\" \\\"toggle fastforward\\\"\"");
                 }
 
                 else if (tech == "SDL")
                 {
-                    sw.WriteLine("bind \"" + shortJoy + " button4 down\" \"main_menu_toggle\"");
+                    sw.WriteLine("bind \"" + shortJoy + " button4 down\" \"bind \\\"" + shortJoy + " button0 down\\\" main_menu_toggle ; bind \\\"" + shortJoy + " button1 down\\\" \\\"toggle pause\\\" ; bind \\\"" + shortJoy + " button9 down\\\" \\\"reverse goback 2\\\"  ; bind \\\"" + shortJoy + " button10 down\\\" \\\"toggle fastforward\\\"\"");
+                    sw.WriteLine("bind \"" + shortJoy + " button4 up\" \"unbind \\\"" + shortJoy + " button0 down\\\" ; unbind \\\"" + shortJoy + " button1 down\\\" ; unbind \\\"" + shortJoy + " button9 down\\\"  ; bind \\\"" + shortJoy + " button10 down\\\" \\\"toggle fastforward\\\"\"");
                 }
 
                 sw.Close();

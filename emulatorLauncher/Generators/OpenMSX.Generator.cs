@@ -35,7 +35,7 @@ namespace emulatorLauncher
             { "autoruncassettes", new string[] {"set autoruncassettes on" } },
             { "autorunlaserdisc", new string[] {"set autorunlaserdisc on" } },
             { "removealljoysticks", new string[] {"unplug joyporta", "unplug joyportb" } },
-            { "plugmouse", new string[] { "unplug joyporta", "unplug joyportb", "plug joyporta mouse" } }
+            { "plugmouse", new string[] { "unplug joyporta", "unplug joyportb", "plug joyporta mouse", "set grabinput on" } }
         };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
