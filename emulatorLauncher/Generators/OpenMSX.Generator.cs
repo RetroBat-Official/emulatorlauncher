@@ -11,6 +11,8 @@ namespace emulatorLauncher
 {
     partial class OpenMSXGenerator : Generator
     {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
 
         static Dictionary<string, string[]> msxMedias = new Dictionary<string, string[]>()
         {
@@ -33,15 +35,24 @@ namespace emulatorLauncher
             { "autoruncassettes", new string[] {"set autoruncassettes on" } },
             { "autorunlaserdisc", new string[] {"set autorunlaserdisc on" } },
             { "removealljoysticks", new string[] {"unplug joyporta", "unplug joyportb" } },
-            { "plugmouse", new string[] { "plug joyporta mouse", "unplug joyportb" } }
+            { "plugmouse", new string[] { "unplug joyporta", "unplug joyportb", "plug joyporta mouse", "set grabinput on" } }
         };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+
+            string path = AppConfig.GetFullPath("openmsx");
+
+            // Bezels with reshade
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
+
             bool result = false;
             string environmentVariable;
             environmentVariable = Environment.GetEnvironmentVariable("OPENMSX_HOME", EnvironmentVariableTarget.User);
-            string path = AppConfig.GetFullPath("openmsx");
+            
             if (!Directory.Exists(path))
                 return null;
             
@@ -79,10 +90,19 @@ namespace emulatorLauncher
                 romtype = "-cart";
 
             // Define Machine
-            string machine = "Panasonic_FS-A1GT";
-            
+            string machine = "C-BIOS_MSX2";
+
             if (SystemConfig.isOptSet("msx_machine") && !string.IsNullOrEmpty(SystemConfig["msx_machine"]))
                 machine = SystemConfig["msx_machine"];
+
+            else if (system == "msx1")
+                machine = "Philips_NMS_8245";
+            else if (system == "msx2")
+                machine = "National_FS-5500F2";
+            else if (system == "msx2+")
+                machine = "Panasonic_FS-A1WSX";
+            else if (system == "msxturbor")
+                machine = "Panasonic_FS-A1GT";
 
             if (romtype != null)
             {
@@ -194,9 +214,19 @@ namespace emulatorLauncher
         /// <param name="rom"></param>
         private void SetupConfiguration(string path, string rom)
         {
-            string settingsFile = Path.Combine(path, "share", "settings.xml");
+            string sharepath = Path.Combine(path, "share");
+            if (!Directory.Exists(sharepath)) try { Directory.CreateDirectory(sharepath); }
+                catch { }
 
-            var xdoc = File.Exists(settingsFile) ? XDocument.Load(settingsFile) : new XDocument();
+            string settingsFile = Path.Combine(sharepath, "settings.xml");
+
+            var xdoc = File.Exists(settingsFile) ? XDocument.Load(settingsFile) : new XDocument(new XDeclaration("1.0", "utf-8", null));
+            if (!File.Exists(settingsFile))
+            {
+                XDocumentType documentType = new XDocumentType("settings", null, "settings.dtd", null);
+                xdoc.AddFirst(documentType);
+            }
+
             var topnode = xdoc.GetOrCreateElement("settings");
             var settings = topnode.GetOrCreateElement("settings");
 
@@ -282,7 +312,7 @@ namespace emulatorLauncher
                 resampler.SetValue(audioresampler);
 
             // OSD icon set
-            string iconset = "set1";
+            string iconset = "none";
             if (SystemConfig.isOptSet("msx_osdset") && !string.IsNullOrEmpty(SystemConfig["msx_osdset"]))
                 iconset = SystemConfig["msx_osdset"];
 
@@ -303,7 +333,30 @@ namespace emulatorLauncher
             bindings.RemoveAll();
 
             // Save xml file
-            xdoc.Save(settingsFile);
+            using (var writer = new XmlTextWriter(settingsFile, new UTF8Encoding(false)))
+            {
+                writer.Formatting = Formatting.Indented;
+                writer.Indentation = 4;
+                xdoc.Save(writer);
+            }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
 
         /// <summary>
@@ -315,17 +368,16 @@ namespace emulatorLauncher
             foreach (var script in scriptFiles)
             {
                 string scriptFile = Path.Combine(path, script.Key + ".tcl");
-                if (!File.Exists(scriptFile))
+                string[] scriptValue = script.Value;
+
+                using (StreamWriter sw = new StreamWriter(scriptFile, false))
                 {
-                    string[] scriptValue = script.Value;
-                    using (StreamWriter sw = File.CreateText(scriptFile))
-                    {
-                        foreach (string text in scriptValue)
-                            sw.WriteLine(text);
-                    }
+                    foreach (string text in scriptValue)
+                        sw.WriteLine(text);
+
+                    sw.Close();
                 }
             }
         }
-
     }
 }
