@@ -155,6 +155,7 @@ namespace emulatorLauncher
                 // bind F9, release "set fastforward on"
 
                 string shortJoy = "joy" + index1;
+                string longJoy = "joystick" + index1;
                 string tech = c1.IsXInputDevice ? "XInput" : "SDL";
 
                 if (tech == "XInput")
@@ -167,6 +168,12 @@ namespace emulatorLauncher
                 {
                     sw.WriteLine("bind \"" + shortJoy + " button4 down\" \"bind \\\"" + shortJoy + " button0 down\\\" main_menu_toggle ; bind \\\"" + shortJoy + " button1 down\\\" \\\"toggle pause\\\" ; bind \\\"" + shortJoy + " button9 down\\\" \\\"reverse goback 2\\\"  ; bind \\\"" + shortJoy + " button10 down\\\" \\\"toggle fastforward\\\"\"");
                     sw.WriteLine("bind \"" + shortJoy + " button4 up\" \"unbind \\\"" + shortJoy + " button0 down\\\" ; unbind \\\"" + shortJoy + " button1 down\\\" ; unbind \\\"" + shortJoy + " button9 down\\\"  ; bind \\\"" + shortJoy + " button10 down\\\" \\\"toggle fastforward\\\"\"");
+                    sw.WriteLine("dict set "+ longJoy + "_config A button0");
+                    sw.WriteLine("dict set " + longJoy + "_config B button1");
+                    sw.WriteLine("dict set " + longJoy + "_config LEFT {-axis0 button13}");
+                    sw.WriteLine("dict set " + longJoy + "_config RIGHT {+axis0 button14}");
+                    sw.WriteLine("dict set " + longJoy + "_config UP {-axis1 button11}");
+                    sw.WriteLine("dict set " + longJoy + "_config DOWN {+axis1 button12}");
                 }
 
                 sw.Close();
