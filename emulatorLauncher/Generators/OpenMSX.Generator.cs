@@ -38,6 +38,17 @@ namespace emulatorLauncher
             { "plugmouse", new string[] { "unplug joyporta", "unplug joyportb", "plug joyporta mouse", "set grabinput on" } }
         };
 
+        static Dictionary<string, string[]> biosFiles = new Dictionary<string, string[]>()
+        {
+            { "National_CF-3300", new string[] { "cf-3300_basic-bios1.rom", "cf-3300_disk.rom" } },
+            { "National_FS-5500F2", new string[] { "fs-5500_basic-bios2.rom", "fs-5500_disk.rom", "fs-5500_kanjibasic.rom", "fs-5500_kanjifont.rom", "fs-5500_msx2sub.rom", "fs-5500_superimp.rom" } },
+            { "Panasonic_FS-A1GT", new string[] { "fs-a1gt_firmware.rom", "fs-a1gt_kanjifont.rom" } },
+            { "Panasonic_FS-A1WSX", new string[] { "fs-a1wsx_basic-bios2p.rom", "fs-a1wsx_disk.rom" , "fs-a1wsx_firmware.rom", "fs-a1wsx_fmbasic.rom", "fs-a1wsx_kanjibasic.rom", "fs-a1wsx_kanjifont.rom", "fs-a1wsx_msx2psub.rom" } },
+            { "Philips_NMS_8245", new string[] { "nms8245_basic-bios2.rom", "nms8245_disk.rom", "nms8245_disk_1.06.rom", "nms8245_msx2sub.rom" } },
+            { "Pioneer_PX-7", new string[] { "px-7_basic-bios1.rom", "px-7_pbasic.rom" } },
+            { "ColecoVision_SGM", new string[] { "coleco.rom" } }
+        };
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
 
@@ -139,6 +150,28 @@ namespace emulatorLauncher
 
             if (system == "colecovision")
                 machine = "ColecoVision_SGM";
+
+            // Perform check of BIOS files for the machine
+            string systemRomsPath = Path.Combine(sharePath, "share", "systemroms");
+            bool keyExists = biosFiles.ContainsKey(machine);
+
+            if (keyExists && Directory.Exists(systemRomsPath))
+            {
+                string[] systemRomsContent = Directory.GetFiles(systemRomsPath, "*.*")
+                                     .Select(Path.GetFileName)
+                                     .ToArray();
+
+                string[] biosFileRequired = biosFiles.Single(s => s.Key == machine).Value;
+
+                foreach (var c in biosFileRequired)
+                {
+                    if (!systemRomsContent.Contains(c))
+                        throw new ApplicationException(machine + " machine has missing BIOS file " + "'" + c + "'" + " in 'bios\\openmsx\\share\\systemroms' folder.");
+                }
+            }
+            
+            else if (keyExists && !Directory.Exists(systemRomsPath))
+                throw new ApplicationException(machine + " machine has all BIOS files missing in 'bios\\openmsx\\share\\systemroms' folder.");
 
             commandArray.Add("-machine");
             commandArray.Add(machine);
