@@ -180,7 +180,7 @@ namespace emulatorLauncher
                 {
                     string tech2 = c2.IsXInputDevice ? "XInput" : "SDL";
                     string longJoy2 = "joystick" + index2;
-                    if (tech1 == "SDL")
+                    if (tech2 == "SDL")
                     {
                         sw.WriteLine("dict set " + longJoy2 + "_config A button0");
                         sw.WriteLine("dict set " + longJoy2 + "_config B button1");
