@@ -23,7 +23,7 @@ namespace emulatorLauncher
         };
 
         static List<string> machineWithDiskDrive = new List<string>() { "Panasonic_FS-A1GT", "Panasonic_FS-A1WSX", "National_FS-5500F2", "Philips_NMS_8245", "National_CF-3300" };
-        static List<string> machineWithCassette = new List<string>() { "Panasonic_FS-A1WSX", "National_FS-5500F2", "Pioneer_PX-7", "Philips_NMS_8245", "National_CF-3300" };
+        static List<string> machineWithCassette = new List<string>() { "Panasonic_FS-A1WSX", "National_FS-5500F2", "Pioneer_PX-7", "Philips_NMS_8245", "National_CF-3300", "Philips_VG_8020" };
         static List<string> machineWithLaserdisc = new List<string>() { "Pioneer_PX-7" };
 
         static string defaultDiskMachine = "Panasonic_FS-A1GT";
@@ -45,6 +45,7 @@ namespace emulatorLauncher
             { "Panasonic_FS-A1GT", new string[] { "fs-a1gt_firmware.rom", "fs-a1gt_kanjifont.rom" } },
             { "Panasonic_FS-A1WSX", new string[] { "fs-a1wsx_basic-bios2p.rom", "fs-a1wsx_disk.rom" , "fs-a1wsx_firmware.rom", "fs-a1wsx_fmbasic.rom", "fs-a1wsx_kanjibasic.rom", "fs-a1wsx_kanjifont.rom", "fs-a1wsx_msx2psub.rom" } },
             { "Philips_NMS_8245", new string[] { "nms8245_basic-bios2.rom", "nms8245_disk.rom", "nms8245_disk_1.06.rom", "nms8245_msx2sub.rom" } },
+            { "Philips_VG_8020", new string[] { "vg8020_basic-bios1.rom" } },
             { "Pioneer_PX-7", new string[] { "px-7_basic-bios1.rom", "px-7_pbasic.rom" } },
             { "ColecoVision_SGM", new string[] { "coleco.rom" } }
         };
@@ -107,9 +108,9 @@ namespace emulatorLauncher
                 machine = SystemConfig["msx_machine"];
 
             else if (system == "msx1")
-                machine = "Philips_NMS_8245";
+                machine = "Philips_VG_8020";
             else if (system == "msx2")
-                machine = "National_FS-5500F2";
+                machine = "Philips_NMS_8245";
             else if (system == "msx2+")
                 machine = "Panasonic_FS-A1WSX";
             else if (system == "msxturbor")
