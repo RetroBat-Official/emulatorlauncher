@@ -24,8 +24,9 @@ namespace emulatorLauncher
             var commandArray = new List<string>();
             commandArray.Add("/f");
 
-            if (system == "gba2players")
-                commandArray.Add("/2");
+            if (system == "gba2players" && (!SystemConfig.isOptSet("gba_nbplayers") || SystemConfig["gba_nbplayers"] == "-Two Machines"))
+                    commandArray.Add("/2");
+
 
             string args = string.Join(" ", commandArray);
 
@@ -48,10 +49,20 @@ namespace emulatorLauncher
                 // Link cable setup for gba2players
                 if (system == "gba2players")
                 {
+                    if (SystemConfig.isOptSet("gba_nbplayers") && !string.IsNullOrEmpty(SystemConfig["gba_nbplayers"]))
+                        ini.WriteValue("", "Number of Emulated Gameboys", SystemConfig["gba_nbplayers"]);
+                    else
+                        ini.WriteValue("", "Number of Emulated Gameboys", "-Two Machines");
+
                     ini.WriteValue("", "Link Cable Type", "-Automatic");
-                    ini.WriteValue("", "Number of Emulated Gameboys", "-Two Machines");
                 }
                     
+                else if (SystemConfig.isOptSet("gba_nbplayers") && !string.IsNullOrEmpty(SystemConfig["gba_nbplayers"]))
+                {
+                    ini.WriteValue("", "Number of Emulated Gameboys", SystemConfig["gba_nbplayers"]);
+                    ini.WriteValue("", "Link Cable Type", "-Automatic");
+                }
+                
                 else
                 {
                     ini.WriteValue("", "Link Cable Type", "= None");
