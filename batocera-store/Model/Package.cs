@@ -50,6 +50,8 @@ namespace batocera_store
         [XmlElement("arch")]        
         public string Arch { get; set; }
 
+        [XmlElement("preview_url")]
+        public string PreviewUrl { get; set; }
 
         // Online packages
         [XmlElement("game")]
