@@ -335,6 +335,7 @@ namespace emulatorLauncher.libRetro
             ConfigureCrocoDS(retroarchConfig, coreSettings, system, core);
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
+            ConfigureFrodo(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
@@ -2890,10 +2891,21 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "emuscv_resolution", "emuscv_resolution", "AUTO");
         }
 
+        private void ConfigureFrodo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "frodo")
+                return;
+
+            BindFeature(coreSettings, "frodo_resolution", "frodo_resolution", "384x288");
+        }
+
         private void ConfigureFuse(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "fuse")
                 return;
+
+            coreSettings["fuse_auto_load"] = "enabled";
+            coreSettings["fuse_fast_load"] = "enabled";
 
             BindFeature(coreSettings, "fuse_machine", "fuse_machine", "Spectrum 128K");
 
