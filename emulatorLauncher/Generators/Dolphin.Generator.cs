@@ -514,9 +514,9 @@ namespace emulatorLauncher
                     // Write texture paths (not necessary for triforce)
                     if (!_triforce)
                     {
-                        string biosPath = AppConfig.GetFullPath("bios");
-                        string dolphinLoadPath = Path.Combine(biosPath, "dolphin-emu", "Load");
-                        string dolphinResourcesPath = Path.Combine(dolphinLoadPath, "ResourcePacks");
+                        string savesPath = AppConfig.GetFullPath("saves");
+                        string dolphinLoadPath = Path.Combine(savesPath, "gamecube", "User", "Load");
+                        string dolphinResourcesPath = Path.Combine(savesPath, "gamecube", "User", "ResourcePacks");
 
                         ini.WriteValue("General", "LoadPath", dolphinLoadPath);
                         ini.WriteValue("General", "ResourcePackPath", dolphinResourcesPath);
