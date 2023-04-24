@@ -47,7 +47,9 @@ namespace emulatorLauncher
             { "Philips_NMS_8245", new string[] { "nms8245_basic-bios2.rom", "nms8245_disk.rom", "nms8245_disk_1.06.rom", "nms8245_msx2sub.rom" } },
             { "Philips_VG_8020", new string[] { "vg8020_basic-bios1.rom" } },
             { "Pioneer_PX-7", new string[] { "px-7_basic-bios1.rom", "px-7_pbasic.rom" } },
-            { "ColecoVision_SGM", new string[] { "coleco.rom" } }
+            { "ColecoVision_SGM", new string[] { "coleco.rom" } },
+            { "Spectravideo_SVI-738_SE", new string[] { "svi-738_disk.rom", "svi-738_rs232.rom", "svi-738_se_basic-bios1.rom" } }
+
         };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -151,6 +153,9 @@ namespace emulatorLauncher
 
             if (system == "colecovision")
                 machine = "ColecoVision_SGM";
+
+            if (system == "spectravideo")
+                machine = "Spectravideo_SVI-738_SE";
 
             // Perform check of BIOS files for the machine
             string systemRomsPath = Path.Combine(sharePath, "share", "systemroms");
