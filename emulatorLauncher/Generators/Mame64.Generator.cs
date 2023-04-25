@@ -160,7 +160,8 @@ namespace emulatorLauncher
                 FileName = exe,
                 WorkingDirectory = path,
                 Arguments = args,
-            };
+                WindowStyle = ProcessWindowStyle.Minimized,
+        };
         }
 
         private string _exeName;
