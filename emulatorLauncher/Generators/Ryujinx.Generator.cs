@@ -22,6 +22,7 @@ namespace emulatorLauncher
                 FileName = exe,
                 WorkingDirectory = path,
                 Arguments = "\"" + rom + "\"",
+                WindowStyle = ProcessWindowStyle.Minimized,
             };
         }
 
