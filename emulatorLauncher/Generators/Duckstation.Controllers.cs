@@ -299,9 +299,10 @@ namespace emulatorLauncher
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
             { InputKey.up, new KeyValuePair<string, string>("SelectNextSaveStateSlot", "Keyboard/F2") },
             { InputKey.down, new KeyValuePair<string, string>("SelectPreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },
-            { InputKey.pageup, new KeyValuePair<string, string>("ChangeDisc", "") },
+            { InputKey.pagedown, new KeyValuePair<string, string>("ChangeDisc", "") },
             { InputKey.left, new KeyValuePair<string, string>("Rewind", "") },
             { InputKey.right, new KeyValuePair<string, string>("FastForward", "") },
+            { InputKey.start, new KeyValuePair<string, string>("PowerOff", "") }
         };
 
 
