@@ -418,14 +418,14 @@ namespace emulatorLauncher.libRetro
             // Injects cores input remaps
             if (InputRemap.Count > 0)
             {
-                CreateInputRemap(GetCoreName(core), SystemConfig["rom"], cfg =>
+                CreateInputRemap(GetCoreName(core), cfg =>
                 {
                     foreach (var remap in InputRemap)
                         cfg[remap.Key] = remap.Value;
                 });
             }
             else
-                DeleteInputRemap(GetCoreName(core), SystemConfig["rom"]);
+                DeleteInputRemap(GetCoreName(core));
         }
 
         private void ConfigureDesmume(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -3107,22 +3107,20 @@ namespace emulatorLauncher.libRetro
         #region Input remaps
         private Dictionary<string, string> InputRemap = new Dictionary<string, string>();
 
-        private void CreateInputRemap(string cleanSystemName, string romName, Action<ConfigFile> createRemap)
+        private void CreateInputRemap(string cleanSystemName, Action<ConfigFile> createRemap)
         {
             if (string.IsNullOrEmpty(cleanSystemName))
                 return;
 
-            DeleteInputRemap(cleanSystemName, romName);
+            DeleteInputRemap(cleanSystemName);
             if (createRemap == null)
                 return;
-
-            string remapName = Path.GetFileName(Path.GetDirectoryName(romName));
 
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            string path = Path.Combine(dir, remapName + ".rmp");
+            string path = Path.Combine(dir, cleanSystemName + ".rmp");
 
             this.AddFileForRestoration(path);
 
@@ -3131,15 +3129,13 @@ namespace emulatorLauncher.libRetro
             cfg.Save(path, true);
         }
 
-        private void DeleteInputRemap(string cleanSystemName, string romName)
+        private void DeleteInputRemap(string cleanSystemName)
         {
             if (string.IsNullOrEmpty(cleanSystemName))
                 return;
 
-            string remapName = Path.GetFileName(Path.GetDirectoryName(romName));
-
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
-            string path = Path.Combine(dir, remapName + ".rmp");
+            string path = Path.Combine(dir, cleanSystemName + ".rmp");
 
             try
             {

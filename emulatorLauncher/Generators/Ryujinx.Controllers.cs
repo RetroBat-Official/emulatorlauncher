@@ -323,7 +323,7 @@ namespace emulatorLauncher
             switch (sdlCode)
             {
                 case 0x0D: return "Enter";
-                case 0x08: return "Backspace";
+                case 0x08: return "BackSpace";
                 case 0x09: return "Tab";
                 case 0x20: return "Space";
                 case 0x2B: return "Plus";

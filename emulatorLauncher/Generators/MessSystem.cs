@@ -431,7 +431,7 @@ namespace emulatorLauncher
                 new MessSystem("gw"           ,""         ,""      ),
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,"%romname%",""      ),
-                new MessSystem("mame"         ,"%romname%",""      ),
+                new MessSystem("mame"         ,"mame"     ,""      ),
                 new MessSystem("hbmame"       ,"%romname%",""      ),
                 new MessSystem("cave"         ,"%romname%",""      ),
                 new MessSystem("tvgames"      ,""         ,""      ),
