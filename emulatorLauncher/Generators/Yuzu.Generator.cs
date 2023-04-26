@@ -80,6 +80,51 @@ namespace emulatorLauncher
 
             using (var ini = new IniFile(conf))
             {
+                // Set up paths
+                string switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
+                if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
+                    catch { }
+
+                string sdmcPath = Path.Combine(switchSavesPath, "sdmc");
+                if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
+                    catch { }
+
+                if (Directory.Exists(sdmcPath))
+                {
+                    ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
+                }
+
+                string nandPath = Path.Combine(switchSavesPath, "nand");
+                if (!Directory.Exists(nandPath)) try { Directory.CreateDirectory(nandPath); }
+                    catch { }
+
+                if (Directory.Exists(nandPath))
+                {
+                    ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "nand_directory", nandPath.Replace("\\", "/"));
+                }
+
+                string dumpPath = Path.Combine(switchSavesPath, "dump");
+                if (!Directory.Exists(dumpPath)) try { Directory.CreateDirectory(dumpPath); }
+                    catch { }
+
+                if (Directory.Exists(dumpPath))
+                {
+                    ini.WriteValue("Data%20Storage", "dump_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "dump_directory", dumpPath.Replace("\\", "/"));
+                }
+
+                string loadPath = Path.Combine(switchSavesPath, "load");
+                if (!Directory.Exists(loadPath)) try { Directory.CreateDirectory(loadPath); }
+                    catch { }
+
+                if (Directory.Exists(loadPath))
+                {
+                    ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
+                }
+
                 //language
                 if (SystemConfig["Language"] == "en")
                     ini.WriteValue("System", "language_index\\default", "true");
