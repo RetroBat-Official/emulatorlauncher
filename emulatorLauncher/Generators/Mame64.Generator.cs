@@ -67,7 +67,7 @@ namespace emulatorLauncher
                     if (SystemConfig.isOptSet("disable_artwork") && SystemConfig.getOptBoolean("disable_artwork"))
                         commandArray.Add(artPath);
                     else
-                        commandArray.Add(artPath + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
+                        commandArray.Add(artPath + ";" + Path.Combine(path, "artwork") + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
                 }
 
                 // Snapshots

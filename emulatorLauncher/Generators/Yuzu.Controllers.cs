@@ -219,6 +219,9 @@ namespace emulatorLauncher
 
             ProcessStick(controller, player, "lstick", ini, yuzuGuid, index);
             ProcessStick(controller, player, "rstick", ini, yuzuGuid, index);
+
+            //Write exit shortcut
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq", "Home+Minus");
         }
 
         private string FromInput(Controller controller, Input input, string guid, int index)

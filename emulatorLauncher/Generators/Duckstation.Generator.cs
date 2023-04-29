@@ -75,12 +75,26 @@ namespace emulatorLauncher
 
             string args = string.Join(" ", commandArray);
 
-            return new ProcessStartInfo()
+            if (!SystemConfig.getOptBoolean("disable_fullscreen"))
             {
-                FileName = exe,
-                WorkingDirectory = _path,
-                Arguments = args + " \"" + rom + "\"",
-            };
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = _path,
+                    Arguments = args + " \"" + rom + "\"",
+                    WindowStyle = ProcessWindowStyle.Minimized,
+                };
+            }
+
+            else
+            {
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = _path,
+                    Arguments = args + " \"" + rom + "\"",
+                };
+            }
         }
 
         private string GetDefaultpsxLanguage()

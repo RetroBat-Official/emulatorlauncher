@@ -18,6 +18,15 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            if (Path.GetExtension(rom).ToLower() == ".uae")
+            {
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    Arguments = "\"" + rom + "\"",
+                    WorkingDirectory = path,
+                };
+            }
 
             var disks = DetectDiscs(rom);
             if (disks.Count == 0)
