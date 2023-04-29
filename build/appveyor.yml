@@ -17,8 +17,6 @@ after_build:
 - 7z a batocera-ports.zip batocera-retroachievements-info.exe
 - copy batocera-systems\bin\Release\batocera-systems.exe .
 - 7z a batocera-ports.zip batocera-systems.exe
-- copy batocera-padsinfo\bin\Release\batocera-padsinfo.exe .
-- 7z a batocera-ports.zip batocera-padsinfo.exe
 - copy batocera-store\bin\Release\batocera-store.exe .
 - 7z a batocera-ports.zip batocera-store.exe
 - copy es-checkversion\bin\Release\es-checkversion.exe .\es-checkversion-test.exe

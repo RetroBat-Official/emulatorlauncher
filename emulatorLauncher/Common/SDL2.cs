@@ -4266,6 +4266,7 @@ namespace emulatorLauncher
             SDL_JOYBUTTONUP,
             SDL_JOYDEVICEADDED,
             SDL_JOYDEVICEREMOVED,
+            SDL_JOYBATTERYUPDATED, // 1543
 
             /* Game controller events */
             SDL_CONTROLLERAXISMOTION = 0x650,
