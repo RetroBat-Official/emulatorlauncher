@@ -2533,6 +2533,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_render_to_texture_upscaling", "render_to_texture_upscaling", "1x");
             BindFeature(coreSettings, "reicast_force_wince", "force_wince", "disabled");
             BindFeature(coreSettings, "reicast_cable_type", "cable_type", "TV (RGB)");
+            BindFeature(coreSettings, "reicast_broadcast", "reicast_broadcast", "Default");
             BindFeature(coreSettings, "reicast_internal_resolution", "internal_resolution", "640x480");
             BindFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "disabled");
             BindFeature(coreSettings, "reicast_allow_service_buttons", "reicast_allow_service_buttons", "disabled");
@@ -2548,6 +2549,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "disabled");
             BindFeature(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "disabled");
             BindFeature(coreSettings, "reicast_pvr2_filtering", "reicast_pvr2_filtering", "disabled");
+            BindFeature(coreSettings, "reicast_fog", "reicast_fog", "enabled");
 
             // toadd
             BindFeature(coreSettings, "reicast_threaded_rendering", "reicast_threaded_rendering", "enabled");
@@ -2565,6 +2567,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "flycast_controller2", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p3", "flycast_controller3", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p4", "flycast_controller4", "1");
+            BindFeature(retroarchConfig, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
+            BindFeature(retroarchConfig, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
 
             SetupLightGuns(retroarchConfig, "4");
         }
