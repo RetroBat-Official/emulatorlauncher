@@ -68,22 +68,6 @@ namespace emulatorLauncher
 
             sb.AppendLine("sound_auto=true");
 
-            // Comp. options
-            sb.AppendLine("comp_trustbyte=direct");
-            sb.AppendLine("comp_trustword=direct");
-            sb.AppendLine("comp_trustlong=direct");
-            sb.AppendLine("comp_trustnaddr=direct");
-            sb.AppendLine("comp_nf=true");
-            sb.AppendLine("comp_constjump=true");
-            sb.AppendLine("comp_flushmode=soft");
-            sb.AppendLine("compfpu=true");
-            sb.AppendLine("comp_catchfault=true");
-
-            if (system == "amiga4000")
-                sb.AppendLine("cachesize=16384");
-            else
-                sb.AppendLine("cachesize=0");
-
             // GFX options
             sb.AppendLine("gfx_fullscreen_amiga=fullwindow");
             sb.AppendLine("gfx_width_fullscreen=1920");
@@ -159,7 +143,6 @@ namespace emulatorLauncher
             sb.AppendLine("resetwarning=false");
 
             sb.AppendLine("cpu_data_cache=false");
-            sb.AppendLine("fpu_strict=false");
             sb.AppendLine("rtg_nocustom=true");
             sb.AppendLine("rtg_modes=0x212");
             sb.AppendLine("debug_mem=false");
@@ -222,12 +205,61 @@ namespace emulatorLauncher
                 sb.AppendLine("a3000mem_size=0");
                 sb.AppendLine("bogomem_size=0");
                 sb.AppendLine("chipmem_size=4");
-                sb.AppendLine("cpu_type=68ec020");
                 sb.AppendLine("cpu_model=68020");
                 sb.AppendLine("cpu_compatible=true");
-                sb.AppendLine("cpu_24bit_addressing=true");
                 sb.AppendLine("cpu_data_cache=false");
                 sb.AppendLine("cpu_multiplier=4");
+                
+                if (SystemConfig.isOptSet("amiga_jit") && SystemConfig.getOptBoolean("amiga_jit"))
+                {
+                    sb.AppendLine("cpu_24bit_addressing=false");
+
+                    if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
+                    {
+                        sb.AppendLine("cpu_type=68020/68881");
+                        sb.AppendLine("fpu_model=68882");
+                        sb.AppendLine("fpu_strict=true");
+                    }
+                    else
+                    {
+                        sb.AppendLine("cpu_type=68020");
+                        sb.AppendLine("fpu_strict=false");
+                    }
+
+                    sb.AppendLine("cachesize=16384");
+                    sb.AppendLine("cpu_speed=max");
+                    sb.AppendLine("cpu_cycle_exact=false");
+                    sb.AppendLine("cpu_memory_cycle_exact=false");
+                    sb.AppendLine("blitter_cycle_exact=false");
+                    sb.AppendLine("cycle_exact=false");
+                    sb.AppendLine("comp_trustbyte=indirect");
+                    sb.AppendLine("comp_trustword=indirect");
+                    sb.AppendLine("comp_trustlong=indirect");
+                    sb.AppendLine("comp_trustnaddr=indirect");
+                    sb.AppendLine("comp_nf=true");
+                    sb.AppendLine("comp_constjump=true");
+                    sb.AppendLine("comp_flushmode=soft");
+                    sb.AppendLine("compfpu=true");
+                    sb.AppendLine("comp_catchfault=true");
+                }
+                else
+                {
+                    sb.AppendLine("cpu_24bit_addressing=true");
+
+                    if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
+                    {
+                        sb.AppendLine("cpu_type=68ec020/68881");
+                        sb.AppendLine("fpu_model=68882");
+                        sb.AppendLine("fpu_strict=true");
+                    }
+                    else
+                    {
+                        sb.AppendLine("cpu_type=68ec020");
+                        sb.AppendLine("fpu_strict=false");
+                    }
+
+                    sb.AppendLine("cachesize=0");
+                }
 
                 sb.AppendLine("floppy0type=-1");
                 sb.AppendLine("floppy1type=-1");
@@ -273,6 +305,7 @@ namespace emulatorLauncher
                 sb.AppendLine("cpu_compatible=true");
                 sb.AppendLine("cpu_24bit_addressing=true");
                 sb.AppendLine("cpu_multiplier=2");
+                sb.AppendLine("cachesize=0");
 
                 sb.AppendLine("floppy0type=-1");
                 sb.AppendLine("floppy1type=-1");
@@ -340,6 +373,7 @@ namespace emulatorLauncher
                 sb.AppendLine("cpu_compatible=true");
                 sb.AppendLine("cpu_24bit_addressing=true");
                 sb.AppendLine("cpu_multiplier=2");
+                sb.AppendLine("cachesize=0");
             }
 
             else if (system == "amiga1200")
@@ -372,10 +406,61 @@ namespace emulatorLauncher
                 sb.AppendLine("a3000mem_size=0");
                 sb.AppendLine("bogomem_size=0");
                 sb.AppendLine("chipmem_size=4");
-                sb.AppendLine("cpu_type=68ec020");
+
+                if (SystemConfig.isOptSet("amiga_jit") && SystemConfig.getOptBoolean("amiga_jit"))
+                {
+                    sb.AppendLine("cpu_24bit_addressing=false");
+
+                    if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
+                    {
+                        sb.AppendLine("cpu_type=68020/68881");
+                        sb.AppendLine("fpu_model=68882");
+                        sb.AppendLine("fpu_strict=true");
+                    }
+                    else
+                    {
+                        sb.AppendLine("cpu_type=68020");
+                        sb.AppendLine("fpu_strict=false");
+                    }
+
+                    sb.AppendLine("cachesize=16384");
+                    sb.AppendLine("cpu_speed=max");
+                    sb.AppendLine("cpu_cycle_exact=false");
+                    sb.AppendLine("cpu_memory_cycle_exact=false");
+                    sb.AppendLine("blitter_cycle_exact=false");
+                    sb.AppendLine("cycle_exact=false");
+                    sb.AppendLine("comp_trustbyte=indirect");
+                    sb.AppendLine("comp_trustword=indirect");
+                    sb.AppendLine("comp_trustlong=indirect");
+                    sb.AppendLine("comp_trustnaddr=indirect");
+                    sb.AppendLine("comp_nf=true");
+                    sb.AppendLine("comp_constjump=true");
+                    sb.AppendLine("comp_flushmode=soft");
+                    sb.AppendLine("compfpu=true");
+                    sb.AppendLine("comp_catchfault=true");
+                }
+                else
+                {
+                    sb.AppendLine("cpu_24bit_addressing=true");
+                    
+                    if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
+                    {
+                        sb.AppendLine("cpu_type=68ec020/68881");
+                        sb.AppendLine("fpu_model=68882");
+                        sb.AppendLine("fpu_strict=true");
+                    }
+                    else
+                    {
+                        sb.AppendLine("cpu_type=68ec020");
+                        sb.AppendLine("fpu_strict=false");
+                    }
+                    
+                    sb.AppendLine("cachesize=0");
+                }
+
                 sb.AppendLine("cpu_model=68020");
                 sb.AppendLine("cpu_compatible=true");
-                sb.AppendLine("cpu_24bit_addressing=true");
+
                 sb.AppendLine("cpu_multiplier=4");
             }
 
@@ -411,9 +496,41 @@ namespace emulatorLauncher
                 sb.AppendLine("chipmem_size=4");
                 sb.AppendLine("cpu_type=68040");
                 sb.AppendLine("cpu_model=68040");
-                sb.AppendLine("fpu_model=68040");
+                
+                if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
+                {
+                    sb.AppendLine("fpu_model=68040");
+                    sb.AppendLine("fpu_strict=true");
+                }
+                else
+                    sb.AppendLine("fpu_strict=false");
+
                 sb.AppendLine("cpu_compatible=false");
-                sb.AppendLine("cpu_24bit_addressing=false");
+
+                if (SystemConfig.isOptSet("amiga_jit") && SystemConfig.getOptBoolean("amiga_jit"))
+                {
+                    sb.AppendLine("cpu_24bit_addressing=false");
+                    sb.AppendLine("cachesize=16384");
+                    sb.AppendLine("cpu_speed=max");
+                    sb.AppendLine("cpu_cycle_exact=false");
+                    sb.AppendLine("cpu_memory_cycle_exact=false");
+                    sb.AppendLine("blitter_cycle_exact=false");
+                    sb.AppendLine("cycle_exact=false");
+                    sb.AppendLine("comp_trustbyte=indirect");
+                    sb.AppendLine("comp_trustword=indirect");
+                    sb.AppendLine("comp_trustlong=indirect");
+                    sb.AppendLine("comp_trustnaddr=indirect");
+                    sb.AppendLine("comp_nf=true");
+                    sb.AppendLine("comp_constjump=true");
+                    sb.AppendLine("comp_flushmode=soft");
+                    sb.AppendLine("compfpu=true");
+                    sb.AppendLine("comp_catchfault=true");
+                }
+                else
+                {
+                    sb.AppendLine("cpu_24bit_addressing=true");
+                    sb.AppendLine("cachesize=0");
+                }
             }
 
             string fn = Path.Combine(path, "game.uae");
