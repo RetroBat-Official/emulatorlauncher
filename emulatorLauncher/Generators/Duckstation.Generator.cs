@@ -341,7 +341,12 @@ namespace emulatorLauncher
                         ini.WriteValue("Main", "StartFullscreen", "true");
 
                     ini.WriteValue("Main", "ApplyGameSettings", "true");
-                    ini.WriteValue("Main", "EnableDiscordPresence", "false");
+
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.WriteValue("Main", "EnableDiscordPresence", "true");
+                    else
+                        ini.WriteValue("Main", "EnableDiscordPresence", "false");
+
                     ini.WriteValue("Main", "PauseOnFocusLoss", "true");
                     ini.WriteValue("Main", "DoubleClickTogglesFullscreen", "false");
                     ini.WriteValue("Main", "Language", GetDefaultpsxLanguage());

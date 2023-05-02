@@ -781,7 +781,13 @@ namespace emulatorLauncher
 
                 //UI section
                 ini.WriteValue("UI", "ConfirmShutdown", "false");
-                
+
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                    ini.WriteValue("UI", "EnableDiscordPresence", "true");
+                else
+                    ini.WriteValue("UI", "EnableDiscordPresence", "false");
+
+
                 //Enable cheats automatically on load if Retroachievements is not set only
                 if (SystemConfig.isOptSet("enable_cheats") && !SystemConfig.getOptBoolean("retroachievements") && !string.IsNullOrEmpty(SystemConfig["enable_cheats"]))
                     ini.WriteValue("EmuCore", "EnableCheats", SystemConfig["enable_cheats"]);

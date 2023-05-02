@@ -434,6 +434,12 @@ namespace emulatorLauncher
                     }
                     */
 
+                    // Discord
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.WriteValue("General", "UseDiscordPresence", "True");
+                    else
+                        ini.WriteValue("General", "UseDiscordPresence", "False");
+
                     // Skip BIOS
                     if (SystemConfig.isOptSet("skip_bios") && !SystemConfig.getOptBoolean("skip_bios"))
                         ini.WriteValue("Core", "SkipIPL", "False");

@@ -268,6 +268,12 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(retroarchConfig, "input_auto_game_focus", "GameFocus", systemGameFocus.Contains(system) ? "1" : "0"); // Game Focus (activate per default for some computers)
 
+            // Discord presence
+            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                retroarchConfig["discord_allow"] = "true";
+            else
+                retroarchConfig["discord_allow"] = "false";
+
             // Stats
             if (SystemConfig.isOptSet("DrawStats"))
             {

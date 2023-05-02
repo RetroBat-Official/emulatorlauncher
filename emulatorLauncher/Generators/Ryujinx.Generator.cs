@@ -77,6 +77,12 @@ namespace emulatorLauncher
             //Input
             json["docked_mode"] = "true";
 
+            // Discord
+            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                json["enable_discord_integration"] = "true";
+            else
+                json["enable_discord_integration"] = "false";
+
             //System
             json["system_language"] = GetDefaultswitchLanguage();
             BindFeature(json, "enable_vsync", "vsync", "true");

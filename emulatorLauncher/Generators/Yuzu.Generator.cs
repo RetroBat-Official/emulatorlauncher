@@ -145,6 +145,18 @@ namespace emulatorLauncher
                     ini.WriteValue("System", "region_index", "1");
                 }
 
+                //Discord
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                {
+                    ini.WriteValue("UI", "enable_discord_presence\\default", "true");
+                    ini.WriteValue("UI", "enable_discord_presence", "true");
+                }
+                else
+                {
+                    ini.WriteValue("UI", "enable_discord_presence\\default", "false");
+                    ini.WriteValue("UI", "enable_discord_presence", "false");
+                }
+
                 //launch in fullscreen
                 ini.WriteValue("UI", "fullscreen\\default", "false");
                 ini.WriteValue("UI", "fullscreen", "true");

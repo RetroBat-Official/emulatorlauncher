@@ -44,6 +44,11 @@ namespace emulatorLauncher
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("Graphics", "FullScreen", "True");
+                    // Discord
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.WriteValue("General", "DiscordPresence", "True");
+                    else
+                        ini.WriteValue("General", "DiscordPresence", "False");
 
                     //if (SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS"))
                     if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
