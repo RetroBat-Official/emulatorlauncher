@@ -9,6 +9,9 @@ namespace emulatorLauncher
 {
     class mGBAGenerator : Generator
     {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("mgba");
@@ -17,7 +20,13 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupConfiguration(path, rom);
+            //Applying bezels
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
+
+            SetupConfiguration(path, rom, system);
 
             return new ProcessStartInfo()
             {
@@ -27,14 +36,32 @@ namespace emulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path, string rom)
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
+        }
+
+        private void SetupConfiguration(string path, string rom, string system)
         {
             string conf = Path.Combine(path, "config.ini");
 
             using (var ini = IniFile.FromFile(conf))
             {
                 // Write Paths
-                string savestatePath = Path.Combine(AppConfig.GetFullPath("saves"), "gba", "mgba", "sstates");
+                string savestatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mgba", "sstates");
                 if (!Directory.Exists(savestatePath)) try { Directory.CreateDirectory(savestatePath); }
                     catch { }
                 if (!string.IsNullOrEmpty(savestatePath) && Directory.Exists(savestatePath))
@@ -52,7 +79,7 @@ namespace emulatorLauncher
                 if (!string.IsNullOrEmpty(screenshotPath) && Directory.Exists(screenshotPath))
                     ini.WriteValue("ports.qt", "screenshotPath", screenshotPath);
 
-                string savegamePath = Path.Combine(AppConfig.GetFullPath("saves"), "gba","mgba");
+                string savegamePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mgba");
                 if (!Directory.Exists(savegamePath)) try { Directory.CreateDirectory(savegamePath); }
                     catch { }
                 if (!string.IsNullOrEmpty(savegamePath) && Directory.Exists(savegamePath))
