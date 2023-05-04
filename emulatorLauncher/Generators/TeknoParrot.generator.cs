@@ -283,6 +283,11 @@ namespace emulatorLauncher
                 data.UseSto0ZDrivingHack = false;
                 data.StoozPercent = 0;
             }
+            
+            if (Program.SystemConfig.isOptSet("discord") && Program.SystemConfig.getOptBoolean("discord"))
+                data.UseDiscordRPC = true;
+            else
+                data.UseDiscordRPC = false;
 
             File.WriteAllText(parrotData, data.ToXml());
         }

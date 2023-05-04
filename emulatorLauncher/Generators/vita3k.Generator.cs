@@ -141,6 +141,12 @@ namespace emulatorLauncher
             yml["user-auto-connect"] = "true";
             yml["show-welcome"] = "false";
 
+            // Discord
+            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                yml["discord-rich-presence"] = "true";
+            else
+                yml["discord-rich-presence"] = "false";
+
             //System language
             BindFeature(yml, "sys-lang", "psvita_language", GetDefaultvitaLanguage());
 

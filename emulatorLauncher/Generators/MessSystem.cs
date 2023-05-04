@@ -208,10 +208,33 @@ namespace emulatorLauncher
                             new MessRomType("cart")
                         }){ UseFileNameWithoutExtension = true },
 
-                new MessSystem("archimedes"         ,"aa4401"     , "flop"),    // Archimedes
-                new MessSystem("aa310"        ,"aa310"    ,"flop"  ),           // Archimedes
-                new MessSystem("aa3000"        ,"aa3000"    ,"flop"  ),         // Archimedes
-                new MessSystem("aa540"        ,"aa540"    ,"flop"  ),           // Archimedes
+                // Archimedes
+                new MessSystem("archimedes"         ,"aa4401"     , "flop"),
+                new MessSystem("aa305"        ,"aa305"    ,"flop"  ),
+                new MessSystem("aa440"        ,"aa440"    ,"flop"  ),
+                new MessSystem("aa310"        ,"aa310"    ,"flop"  ),
+                new MessSystem("aa4101"        ,"aa4101"    ,"flop"  ),
+                new MessSystem("aa4201"        ,"aa4201"    ,"flop"  ),
+                new MessSystem("aa3000"        ,"aa3000"    ,"flop"  ),
+                new MessSystem("aa540"        ,"aa540"    ,"flop"  ),
+                new MessSystem("aa5000"        ,"aa5000"    ,new MessRomType[]
+                        {
+                            new MessRomType("rom", new string[] { "bin", "rom" }),
+                            new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
+                            new MessRomType("flop")
+                        }),
+                new MessSystem("aa3010"        ,"aa3010"    ,"flop"  ),
+                new MessSystem("aa3020"        ,"aa3020"    ,new MessRomType[]
+                        {
+                            new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
+                            new MessRomType("flop")
+                        }),
+                new MessSystem("aa4000"        ,"aa4000"    ,new MessRomType[]
+                        {
+                            new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
+                            new MessRomType("flop")
+                        }),
+
                 new MessSystem("advision"     ,"advision" ,"cart"  ),           // Adventure Vision
                 new MessSystem("scv"          ,"scv"      ,"cart"  ),           // Super Cassette Vision
                 new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),           // Bally Astrocade

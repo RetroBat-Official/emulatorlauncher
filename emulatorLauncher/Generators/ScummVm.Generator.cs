@@ -59,6 +59,12 @@ namespace emulatorLauncher
                 ini.WriteValue("scummvm", "gui_return_to_launcher_at_exit", "false");
                 ini.WriteValue("scummvm", "window_maximized", "false");
 
+                // Discord
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                    ini.WriteValue("scummvm", "discord_rpc", "true");
+                else
+                    ini.WriteValue("scummvm", "discord_rpc", "false");
+
                 if (_bezelFileInfo != null)
                     ini.WriteValue("scummvm", "fullscreen", "false");
                 else

@@ -93,6 +93,12 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("license_mask"))
                         ini.AppendValue("Content", "license_mask", "0");
 
+                    //General section
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.AppendValue("General", "discord", "true");
+                    else
+                        ini.AppendValue("General", "discord", "false");
+
                     //D3D12 section
                     if (SystemConfig.isOptSet("d3d12_clear_memory_page_state") && !string.IsNullOrEmpty(SystemConfig["d3d12_clear_memory_page_state"]))
                         ini.AppendValue("D3D12", "d3d12_clear_memory_page_state", SystemConfig["d3d12_clear_memory_page_state"]);

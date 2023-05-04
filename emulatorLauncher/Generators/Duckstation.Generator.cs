@@ -31,27 +31,23 @@ namespace emulatorLauncher
             return ret;
         }
 
-        private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string folderName = emulator;
-
-            _path = AppConfig.GetFullPath(folderName);
-            if (string.IsNullOrEmpty(_path))
-                _path = AppConfig.GetFullPath("duckstation");
+            string path = AppConfig.GetFullPath("duckstation");
 
             _resolution = resolution;
 
-            string exe = Path.Combine(_path, "duckstation-qt-x64-ReleaseLTCG.exe");
+            string exe = Path.Combine(path, "duckstation-qt-x64-ReleaseLTCG.exe");
 
             if (!File.Exists(exe))
                 return null;
 
-            SetupSettings();
+            SetupSettings(path);
 
+            //Applying bezels
             if (!SystemConfig.isOptSet("psx_ratio") || SystemConfig["psx_ratio"] == "4:3")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
@@ -80,7 +76,7 @@ namespace emulatorLauncher
                 return new ProcessStartInfo()
                 {
                     FileName = exe,
-                    WorkingDirectory = _path,
+                    WorkingDirectory = path,
                     Arguments = args + " \"" + rom + "\"",
                     WindowStyle = ProcessWindowStyle.Minimized,
                 };
@@ -91,7 +87,7 @@ namespace emulatorLauncher
                 return new ProcessStartInfo()
                 {
                     FileName = exe,
-                    WorkingDirectory = _path,
+                    WorkingDirectory = path,
                     Arguments = args + " \"" + rom + "\"",
                 };
             }
@@ -124,9 +120,9 @@ namespace emulatorLauncher
             return "en";
         }
 
-        private void SetupSettings()
+        private void SetupSettings(string path)
         {
-            string iniFile = Path.Combine(_path, "settings.ini");
+            string iniFile = Path.Combine(path, "settings.ini");
 
             try
             {
@@ -341,7 +337,12 @@ namespace emulatorLauncher
                         ini.WriteValue("Main", "StartFullscreen", "true");
 
                     ini.WriteValue("Main", "ApplyGameSettings", "true");
-                    ini.WriteValue("Main", "EnableDiscordPresence", "false");
+
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.WriteValue("Main", "EnableDiscordPresence", "true");
+                    else
+                        ini.WriteValue("Main", "EnableDiscordPresence", "false");
+
                     ini.WriteValue("Main", "PauseOnFocusLoss", "true");
                     ini.WriteValue("Main", "DoubleClickTogglesFullscreen", "false");
                     ini.WriteValue("Main", "Language", GetDefaultpsxLanguage());

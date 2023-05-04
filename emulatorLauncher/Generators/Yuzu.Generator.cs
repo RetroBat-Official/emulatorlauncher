@@ -145,13 +145,42 @@ namespace emulatorLauncher
                     ini.WriteValue("System", "region_index", "1");
                 }
 
+                //Discord
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                {
+                    ini.WriteValue("UI", "enable_discord_presence\\default", "true");
+                    ini.WriteValue("UI", "enable_discord_presence", "true");
+                }
+                else
+                {
+                    ini.WriteValue("UI", "enable_discord_presence\\default", "false");
+                    ini.WriteValue("UI", "enable_discord_presence", "false");
+                }
+
                 //launch in fullscreen
                 ini.WriteValue("UI", "fullscreen\\default", "false");
                 ini.WriteValue("UI", "fullscreen", "true");
 
+                //Hide mouse when inactive
+                ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
+                ini.WriteValue("UI", "hideInactiveMouse", "true");
+
                 //docked mode
-                ini.WriteValue("UI", "use_docked_mode\\default", "true");
-                ini.WriteValue("UI", "use_docked_mode", "true");
+                if (SystemConfig.isOptSet("yuzu_undock") && SystemConfig.getOptBoolean("yuzu_undock"))
+                {
+                    ini.WriteValue("UI", "use_docked_mode\\default", "false");
+                    ini.WriteValue("UI", "use_docked_mode", "false");
+                    ini.WriteValue("Controls", "use_docked_mode\\default", "false");
+                    ini.WriteValue("Controls", "use_docked_mode", "false");
+                }
+                else
+                {
+                    ini.WriteValue("UI", "use_docked_mode\\default", "true");
+                    ini.WriteValue("UI", "use_docked_mode", "true");
+                    ini.WriteValue("Controls", "use_docked_mode\\default", "true");
+                    ini.WriteValue("Controls", "use_docked_mode", "true");
+                }
+
 
                 //disable telemetry
                 ini.WriteValue("WebService", "enable_telemetry\\default", "false");
@@ -222,6 +251,20 @@ namespace emulatorLauncher
                     ini.WriteValue("Renderer", "scaling_filter", SystemConfig["scaling_filter"]);
                 else if (Features.IsSupported("scaling_filter"))
                     ini.WriteValue("Renderer", "scaling_filter", "1");
+
+                // GPU accuracy
+                ini.WriteValue("Renderer", "gpu_accuracy\\default", "false");
+                if (SystemConfig.isOptSet("gpu_accuracy") && !string.IsNullOrEmpty(SystemConfig["gpu_accuracy"]))
+                    ini.WriteValue("Renderer", "gpu_accuracy", SystemConfig["gpu_accuracy"]);
+                else if (Features.IsSupported("gpu_accuracy"))
+                    ini.WriteValue("Renderer", "gpu_accuracy", "1");
+
+                // Asynchronous shaders compilation (hack)
+                ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "false");
+                if (SystemConfig.isOptSet("use_asynchronous_shaders") && SystemConfig.getOptBoolean("use_asynchronous_shaders"))
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders", "true");
+                else if (Features.IsSupported("use_asynchronous_shaders"))
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders", "false");
 
                 //CPU accuracy (auto except if the user chooses otherwise)
                 ini.WriteValue("Cpu", "cpu_accuracy\\default", "false");

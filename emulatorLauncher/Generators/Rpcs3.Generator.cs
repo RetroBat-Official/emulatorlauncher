@@ -99,6 +99,11 @@ namespace emulatorLauncher
                 ini.WriteValue("main_window", "confirmationBoxBootGame", "false");
                 ini.WriteValue("main_window", "infoBoxEnabledInstallPKG", "false");
                 ini.WriteValue("Meta", "checkUpdateStart", "false");
+
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                    ini.WriteValue("Meta", "useRichPresence", "true");
+                else
+                    ini.WriteValue("Meta", "useRichPresence", "false");
             }
         }
 

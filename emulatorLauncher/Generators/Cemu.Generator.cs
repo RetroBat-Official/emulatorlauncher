@@ -126,6 +126,11 @@ namespace emulatorLauncher
 
             var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("content");
 
+            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                xdoc.SetElementValue("use_discord_presence", "true");
+            else
+                xdoc.SetElementValue("use_discord_presence", "false");
+
             xdoc.SetElementValue("check_update", "false");
             BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());
 
