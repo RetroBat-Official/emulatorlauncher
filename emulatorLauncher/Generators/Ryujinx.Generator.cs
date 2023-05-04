@@ -75,7 +75,8 @@ namespace emulatorLauncher
             json["show_console"] = "false";
 
             //Input
-            json["docked_mode"] = "true";
+            BindFeature(json, "docked_mode", "ryujinx_undock", "true");
+            json["hide_cursor_on_idle"] = "true";
 
             // Discord
             if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
