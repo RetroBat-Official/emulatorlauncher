@@ -137,6 +137,19 @@ namespace emulatorLauncher
                     ini.WriteValue("ports.qt", "videoScale", SystemConfig["internal_resolution"]);
                 else
                     ini.WriteValue("ports.qt", "videoScale", "4");
+
+                // Shaders
+                if (SystemConfig.isOptSet("mgba_shader") && !string.IsNullOrEmpty(SystemConfig["mgba_shader"]))
+                {
+                    string shaderpath = Path.Combine(path, "shaders", SystemConfig["mgba_shader"]);
+                    if (Directory.Exists(shaderpath))
+                        ini.WriteValue("ports.qt", "shader", shaderpath);
+                    else
+                        ini.WriteValue("ports.qt", "shader", "");
+                }
+                else
+                    ini.WriteValue("ports.qt", "shader", "");
+
             }
 
         }
