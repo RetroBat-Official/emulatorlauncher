@@ -126,12 +126,11 @@ namespace emulatorLauncher
                 }
 
                 //language
-                if (SystemConfig["Language"] == "en")
-                    ini.WriteValue("System", "language_index\\default", "true");
+                ini.WriteValue("System", "language_index\\default", "false");
+                if (SystemConfig.isOptSet("yuzu_language") && !string.IsNullOrEmpty(SystemConfig["yuzu_language"]))
+                    ini.WriteValue("System", "language_index", SystemConfig["yuzu_language"]);
                 else
-                    ini.WriteValue("System", "language_index\\default", "false");
-                
-                ini.WriteValue("System", "language_index", GetDefaultswitchLanguage());
+                    ini.WriteValue("System", "language_index", GetDefaultswitchLanguage());
 
                 //region
                 if (SystemConfig.isOptSet("yuzu_region_value") && !string.IsNullOrEmpty(SystemConfig["yuzu_region_value"]) && SystemConfig["yuzu_region_value"] != "1")
@@ -230,6 +229,13 @@ namespace emulatorLauncher
                     ini.WriteValue("Renderer", "resolution_setup", SystemConfig["resolution_setup"]);
                 else if (Features.IsSupported("resolution_setup"))
                     ini.WriteValue("Renderer", "resolution_setup", "2");
+
+                // Anisotropic filtering
+                ini.WriteValue("Renderer", "max_anisotropy\\default", "false");
+                if (SystemConfig.isOptSet("yuzu_anisotropy") && !string.IsNullOrEmpty(SystemConfig["yuzu_anisotropy"]))
+                    ini.WriteValue("Renderer", "max_anisotropy", SystemConfig["yuzu_anisotropy"]);
+                else if (Features.IsSupported("yuzu_anisotropy"))
+                    ini.WriteValue("Renderer", "max_anisotropy", "0");
 
                 // Vsync
                 ini.WriteValue("Renderer", "use_vsync\\default", "false");
