@@ -74,6 +74,24 @@ namespace emulatorLauncher
             return "1";
         }
 
+        private string _gamedirsIniPath;
+        private string _gamedirsSize;
+
+        public override void Cleanup()
+        {
+            base.Cleanup();
+
+            // Restore value for Paths\\gamedirs\\size
+            // As it's faster to launch a yuzu game when there's no folder set            
+
+            if (string.IsNullOrEmpty(_gamedirsIniPath) || string.IsNullOrEmpty(_gamedirsSize))
+                return;
+
+            using (var ini = new IniFile(_gamedirsIniPath))                
+                ini.WriteValue("UI", "Paths\\gamedirs\\size", _gamedirsSize);
+        }
+
+
         private void SetupConfiguration(string path, string rom)
         {
             string conf = Path.Combine(path, "user", "config", "qt-config.ini");
@@ -192,6 +210,16 @@ namespace emulatorLauncher
                 //get path for roms
                 string romPath = Path.GetDirectoryName(rom);
                 ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\","/"));
+                
+                // Limit to 3 as it's faster to launch a yuzu game when there's no folder set
+                // The value will be restored when exiting game
+                var gameDirsSize = ini.GetValue("UI", "Paths\\gamedirs\\size");
+                if (gameDirsSize.ToInteger() > 3)
+                {
+                    _gamedirsIniPath = conf;
+                    _gamedirsSize = gameDirsSize;
+                    ini.WriteValue("UI", "Paths\\gamedirs\\size", "3");
+                }
 
                 CreateControllerConfiguration(ini);
 
