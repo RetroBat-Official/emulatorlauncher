@@ -161,9 +161,14 @@ namespace emulatorLauncher
                         ini.WriteValue("General", "DiscordPresence", "True");
                     else
                         ini.WriteValue("General", "DiscordPresence", "False");
+
+                    // Shader Set
+                    if (SystemConfig.isOptSet("ppsspp_shader") && !string.IsNullOrEmpty(SystemConfig["ppsspp_shader"]))
+                        ini.WriteValue("PostShaderList", "PostShader1", SystemConfig["ppsspp_shader"]);
+                    else if (Features.IsSupported("ppsspp_shader"))
+                        ini.ClearSection("PostShaderList");
                 }
             }
-
             catch { }
         }
     }
