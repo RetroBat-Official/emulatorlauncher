@@ -51,6 +51,22 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Graphics", "InternalResolution", "0");
 
+                    if (SystemConfig.isOptSet("ppsspp_ratio") && !string.IsNullOrEmpty(SystemConfig["ppsspp_ratio"]) && SystemConfig["ppsspp_ratio"] == "stretch")
+                    {
+                        ini.WriteValue("Graphics", "DisplayStretch", "True");
+                        ini.WriteValue("Graphics", "DisplayAspectRatio", "1.000000");
+                    }
+                    else if (SystemConfig.isOptSet("ppsspp_ratio") && !string.IsNullOrEmpty(SystemConfig["ppsspp_ratio"]))
+                    {
+                        ini.WriteValue("Graphics", "DisplayStretch", "False");
+                        ini.WriteValue("Graphics", "DisplayAspectRatio", SystemConfig["ppsspp_ratio"]);
+                    }
+                    else
+                    {
+                        ini.WriteValue("Graphics", "DisplayStretch", "False");
+                        ini.WriteValue("Graphics", "DisplayAspectRatio", "1.000000");
+                    }
+
                     if (SystemConfig.isOptSet("ppsspp_backend") && !string.IsNullOrEmpty(SystemConfig["ppsspp_backend"]))
                         ini.WriteValue("Graphics", "GraphicsBackend", SystemConfig["ppsspp_backend"]);
                     else
@@ -114,6 +130,14 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Graphics", "TextureFiltering", "1");
 
+                    if (SystemConfig.isOptSet("Integer_Scaling") && SystemConfig.getOptBoolean("Integer_Scaling"))
+                    { 
+                        ini.WriteValue("Graphics", "DisplayIntegerScale", "True");
+                        ini.WriteValue("Graphics", "DisplayAspectRatio", "1.000000");
+                    }
+                    else
+                        ini.WriteValue("Graphics", "DisplayIntegerScale", "False");
+
                     // Controls
                     if (SystemConfig.isOptSet("ppsspp_mouse") && SystemConfig.getOptBoolean("ppsspp_mouse"))
                         ini.WriteValue("Control", "UseMouse", "True");
@@ -137,7 +161,6 @@ namespace emulatorLauncher
                         ini.WriteValue("General", "DiscordPresence", "True");
                     else
                         ini.WriteValue("General", "DiscordPresence", "False");
-
                 }
             }
 
