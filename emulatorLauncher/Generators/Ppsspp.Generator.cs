@@ -30,7 +30,7 @@ namespace emulatorLauncher
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-escapeexitsemu -fullscreen \"" + rom + "\"",
+                Arguments = "--escape-exit -fullscreen \"" + rom + "\"",
                 WorkingDirectory = path,
             };
         }
@@ -43,38 +43,101 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
+                    // Graphics
                     ini.WriteValue("Graphics", "FullScreen", "True");
+
+                    if (SystemConfig.isOptSet("ppsspp_resolution") && !string.IsNullOrEmpty(SystemConfig["ppsspp_resolution"]))
+                        ini.WriteValue("Graphics", "InternalResolution", SystemConfig["ppsspp_resolution"]);
+                    else
+                        ini.WriteValue("Graphics", "InternalResolution", "0");
+
+                    if (SystemConfig.isOptSet("ppsspp_backend") && !string.IsNullOrEmpty(SystemConfig["ppsspp_backend"]))
+                        ini.WriteValue("Graphics", "GraphicsBackend", SystemConfig["ppsspp_backend"]);
+                    else
+                        ini.WriteValue("Graphics", "GraphicsBackend", "0 (OPENGL)");
+
+                    if (SystemConfig.isOptSet("ppsspp_msaa") && !string.IsNullOrEmpty(SystemConfig["ppsspp_msaa"]))
+                        ini.WriteValue("Graphics", "MultiSampleLevel", SystemConfig["ppsspp_msaa"]);
+                    else
+                        ini.WriteValue("Graphics", "MultiSampleLevel", "0");
+
+                    if (SystemConfig.isOptSet("ppsspp_vsync") && !SystemConfig.getOptBoolean("ppsspp_vsync"))
+                        ini.WriteValue("Graphics", "VSyncInterval", "False");
+                    else
+                        ini.WriteValue("Graphics", "VSyncInterval", "True");
+
+                    if (SystemConfig.isOptSet("ppsspp_frame_skipping") && !string.IsNullOrEmpty(SystemConfig["ppsspp_frame_skipping"]))
+                        ini.WriteValue("Graphics", "FrameSkip", SystemConfig["ppsspp_frame_skipping"]);
+                    else
+                        ini.WriteValue("Graphics", "FrameSkip", "0");
+
+                    if (SystemConfig.isOptSet("ppsspp_frameskip_type") && !string.IsNullOrEmpty(SystemConfig["ppsspp_frameskip_type"]))
+                        ini.WriteValue("Graphics", "FrameSkipType", SystemConfig["ppsspp_frameskip_type"]);
+                    else
+                        ini.WriteValue("Graphics", "FrameSkipType", "0");
+
+                    if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]) && SystemConfig["ppsspp_textureenhancement"].Contains("Tex"))
+                    {
+                        ini.WriteValue("Graphics", "TexHardwareScaling", "True");
+                        ini.WriteValue("Graphics", "TextureShader", SystemConfig["ppsspp_textureenhancement"]);
+                        ini.WriteValue("Graphics", "TexScalingLevel", "1");
+                        ini.WriteValue("Graphics", "TexScalingType", "0");
+                    }
+                    else if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]))
+                    {
+                        ini.WriteValue("Graphics", "TexScalingType", SystemConfig["ppsspp_textureenhancement"]);
+                        ini.WriteValue("Graphics", "TexHardwareScaling", "False");
+                        ini.WriteValue("Graphics", "TextureShader", "Off");
+                        
+                        if (SystemConfig.isOptSet("ppsspp_textureenhancement_level") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement_level"]) && SystemConfig["ppsspp_textureenhancement_level"] != "1")
+                        {
+                            ini.WriteValue("Graphics", "TexScalingLevel", SystemConfig["ppsspp_textureenhancement_level"]);
+                            ini.WriteValue("Graphics", "TexDeposterize", "True");
+                        }
+                    }
+                    else
+                    {
+                        ini.WriteValue("Graphics", "TexHardwareScaling", "False");
+                        ini.WriteValue("Graphics", "TextureShader", "Off");
+                        ini.WriteValue("Graphics", "TexScalingLevel", "1");
+                        ini.WriteValue("Graphics", "TexScalingType", "0");
+                        ini.WriteValue("Graphics", "TexDeposterize", "False");
+                    }
+
+                    if (SystemConfig.isOptSet("ppsspp_anisotropicfilter") && !string.IsNullOrEmpty(SystemConfig["ppsspp_anisotropicfilter"]))
+                        ini.WriteValue("Graphics", "AnisotropyLevel", SystemConfig["ppsspp_anisotropicfilter"]);
+                    else
+                        ini.WriteValue("Graphics", "AnisotropyLevel", "0");
+
+                    if (SystemConfig.isOptSet("ppsspp_texture_filtering") && !string.IsNullOrEmpty(SystemConfig["ppsspp_texture_filtering"]))
+                        ini.WriteValue("Graphics", "TextureFiltering", SystemConfig["ppsspp_texture_filtering"]);
+                    else
+                        ini.WriteValue("Graphics", "TextureFiltering", "1");
+
+                    // Controls
+                    if (SystemConfig.isOptSet("ppsspp_mouse") && SystemConfig.getOptBoolean("ppsspp_mouse"))
+                        ini.WriteValue("Control", "UseMouse", "True");
+                    else
+                        ini.WriteValue("Control", "UseMouse", "False");
+
+                    // Audio
+                    if (SystemConfig.isOptSet("ppsspp_audiobackend") && !string.IsNullOrEmpty(SystemConfig["ppsspp_audiobackend"]))
+                        ini.WriteValue("Sound", "AudioBackend", SystemConfig["ppsspp_audiobackend"]);
+                    else
+                        ini.WriteValue("Sound", "AudioBackend", "0");
+
+                    // System Param
+                    if (SystemConfig.isOptSet("ppsspp_confirmbutton") && SystemConfig.getOptBoolean("ppsspp_confirmbutton"))
+                        ini.WriteValue("SystemParam", "ButtonPreference", "0");
+                    else
+                        ini.WriteValue("SystemParam", "ButtonPreference", "1");
+
                     // Discord
                     if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                         ini.WriteValue("General", "DiscordPresence", "True");
                     else
                         ini.WriteValue("General", "DiscordPresence", "False");
 
-                    //if (SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS"))
-                    if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
-                        ini.WriteValue("Graphics", "ShowFPSCounter", "3");
-                    else
-                        ini.WriteValue("Graphics", "ShowFPSCounter", "0");
-
-                    if (SystemConfig.isOptSet("frameskip") && SystemConfig.getOptBoolean("frameskip"))
-                        ini.WriteValue("Graphics", "FrameSkip", SystemConfig["frameskip"]);
-                    else
-                        ini.WriteValue("Graphics", "FrameSkip", "0");
-
-                    if (SystemConfig.isOptSet("frameskiptype") && !string.IsNullOrEmpty(SystemConfig["frameskiptype"]))
-                        ini.WriteValue("Graphics", "FrameSkipType", SystemConfig["frameskiptype"]);
-                    else
-                        ini.WriteValue("Graphics", "FrameSkipType", "0");
-
-                    if (SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
-                        ini.WriteValue("Graphics", "InternalResolution", SystemConfig["internalresolution"]);
-                    else
-                        ini.WriteValue("Graphics", "InternalResolution", "0");
-
-                    if (SystemConfig.isOptSet("rewind") && SystemConfig.getOptBoolean("rewind"))
-                        ini.WriteValue("General", "RewindFlipFrequency", "300");
-                    else
-                        ini.WriteValue("General", "RewindFlipFrequency", "0");
                 }
             }
 
