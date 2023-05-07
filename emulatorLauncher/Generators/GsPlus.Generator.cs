@@ -10,6 +10,11 @@ namespace emulatorLauncher
 {
     class GsPlusGenerator : Generator
     {
+        public GsPlusGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
@@ -38,7 +43,9 @@ namespace emulatorLauncher
                     conf.WriteValue(null, "s7d1", rom);
             }
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
             _resolution = resolution;
 
             List<string> commandArray = new List<string>();

@@ -54,7 +54,12 @@ namespace emulatorLauncher
                     
         private BezelInfo _infos;
 
-          
+
+        private static Size GetImageSize(string file)
+        {
+            using (Image img = Image.FromFile(file))
+                return img.Size;
+        }
 
         public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution)
         {
@@ -64,7 +69,27 @@ namespace emulatorLauncher
             var bezel = new FakeBezelFrm();
             bezel.TopMost = true;
 
-            var file = GetStretchedBezel(PngFile, resX, resY);
+            bool stretchImage = false;
+
+            if (BezelInfos != null)
+            {
+                Size imageSize = new Size(resX, resY);
+
+                try { imageSize = GetImageSize(PngFile); }
+                catch { }
+
+                float screenRatio = (float)resX / (float)resY;
+                float bezelRatio = (float)imageSize.Width / (float)imageSize.Height;
+
+                if (!BezelInfos.IsValid())
+                    stretchImage = true;
+                else if (resX < BezelInfos.width || resY < BezelInfos.height) // If width or height < original, can't add black borders. Just stretch
+                    stretchImage = true;
+                else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
+                    stretchImage = true;
+            }
+
+            var file = stretchImage ? PngFile : GetStretchedBezel(PngFile, resX, resY);
             if (!bezel.SelectBezel(file, resX, resY))
             {
                 bezel.Dispose();

@@ -4,15 +4,18 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    class CitraGenerator : Generator
+    partial class CitraGenerator : Generator
     {
         public CitraGenerator()
         {
             DependsOnDesktopResolution = true;
         }
+
+        private SdlVersion _sdlVersion = SdlVersion.Unknown;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -25,6 +28,10 @@ namespace emulatorLauncher
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
                 File.WriteAllText(portableFile, "");
+
+            string sdl2 = Path.Combine(path, "SDL2.dll");
+            if (File.Exists(sdl2))
+                _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
             if (core == "citra-sdl")
             {
@@ -74,6 +81,8 @@ namespace emulatorLauncher
                 ini.WriteValue("UI", "calloutFlags\\default", "false");
                 ini.WriteValue("UI", "calloutFlags", "1");
 
+                CreateControllerConfiguration(ini);
+
                 if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
                 {
                     ini.WriteValue("Layout", "filter_mode\\default", "true");
@@ -119,6 +128,41 @@ namespace emulatorLauncher
                         ini.WriteValue("Layout", "swap_screen\\default", "true");
                         ini.WriteValue("Layout", "swap_screen", "false");
                     }
+                }
+
+                // Define console region
+                if (SystemConfig.isOptSet("citra_region_value") && !string.IsNullOrEmpty(SystemConfig["citra_region_value"]) && SystemConfig["citra_region_value"] != "-1")
+                {
+                    ini.WriteValue("System", "region_value\\default", "false");
+                    ini.WriteValue("System", "region_value", SystemConfig["citra_region_value"]);
+                }
+                else if (Features.IsSupported("citra_region_value"))
+                {
+                    ini.WriteValue("System", "region_value\\default", "true");
+                    ini.WriteValue("System", "region_value", "-1");
+                }
+
+                // Custom textures
+                if (SystemConfig.isOptSet("citra_custom_textures") && SystemConfig.getOptBoolean("citra_custom_textures"))
+                {
+                    ini.WriteValue("Utility", "custom_textures\\default", "false");
+                    ini.WriteValue("Utility", "custom_textures", "true");
+                }
+                else if (Features.IsSupported("citra_custom_textures"))
+                {
+                    ini.WriteValue("Utility", "custom_textures\\default", "true");
+                    ini.WriteValue("Utility", "custom_textures", "false");
+                }
+
+                if (SystemConfig.isOptSet("citra_PreloadTextures") && SystemConfig.getOptBoolean("citra_PreloadTextures"))
+                {
+                    ini.WriteValue("Utility", "preload_textures\\default", "false");
+                    ini.WriteValue("Utility", "preload_textures", "true");
+                }
+                else if (Features.IsSupported("citra_PreloadTextures"))
+                {
+                    ini.WriteValue("Utility", "preload_textures\\default", "true");
+                    ini.WriteValue("Utility", "preload_textures", "false");
                 }
             }
         }

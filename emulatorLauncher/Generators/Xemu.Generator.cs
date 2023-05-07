@@ -88,7 +88,7 @@ namespace emulatorLauncher
                     if (!string.IsNullOrEmpty(hddPath))
                         ini.WriteValue("system", "hdd_path", hddPath);
 
-                    if (!string.IsNullOrEmpty(eepromPath))
+                    if (!string.IsNullOrEmpty(flashPath))
                         ini.WriteValue("system", "flash_path", flashPath);
 
                     if (!string.IsNullOrEmpty(bootRom))
@@ -118,9 +118,8 @@ namespace emulatorLauncher
                 using (IniFile ini = new IniFile(Path.Combine(path, "xemu.toml"), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
                     ini.WriteValue("general", "show_welcome", "false");
+                    ini.WriteValue("general", "skip_boot_anim", "true");
                     ini.WriteValue("general.updates", "check", "false");
-
-                    ini.WriteValue("general.misc", "skip_boot_anim", "true");
 
                     if (!SystemConfig.getOptBoolean("disableautocontrollers"))
                     {
@@ -132,8 +131,8 @@ namespace emulatorLauncher
                         {
                             if (ctl.Name == "Keyboard")
                                 ini.WriteValue("input.bindings", "port" + port, "'keyboard'");
-                            else if (ctl.Config != null && ctl.Config.IsXInputDevice())
-                                ini.WriteValue("input.bindings", "port" + port, "'" + ctl.Guid.ToLowerInvariant() + "'");
+                            else if (ctl.Config != null && ctl.XInput != null)
+                                ini.WriteValue("input.bindings", "port" + port, "'" + ctl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant() + "'");
 
                             port++;
                         }
@@ -160,7 +159,7 @@ namespace emulatorLauncher
                     if (!string.IsNullOrEmpty(hddPath))
                         ini.WriteValue("sys.files", "hdd_path", "'" + hddPath + "'");
 
-                    if (!string.IsNullOrEmpty(eepromPath))
+                    if (!string.IsNullOrEmpty(flashPath))
                         ini.WriteValue("sys.files", "flashrom_path", "'" + flashPath + "'");
 
                     if (!string.IsNullOrEmpty(bootRom))

@@ -10,6 +10,17 @@ namespace emulatorLauncher
 {
     static class XmlExtensions
     {
+        public static System.Xml.Linq.XElement GetOrCreateElement(this System.Xml.Linq.XContainer container, string name)
+        {
+            var element = container.Element(name);
+            if (element == null)
+            {
+                element = new System.Xml.Linq.XElement(name);
+                container.Add(element);
+            }
+            return element;
+        }
+
         public static T FromXml<T>(this string xmlPathName) where T : class
         {
             if (string.IsNullOrEmpty(xmlPathName))
@@ -40,7 +51,7 @@ namespace emulatorLauncher
             foreach (var toFix in xml.ExtractStrings("\"", "\"", true).Distinct().Where(s => s.Contains("& ")))
                 xml = xml.Replace(toFix, toFix.Replace("& ", "&amp; "));
 
-            using (var reader = new StringReader(xml))
+            using (var reader = new StringReader(xml.TrimStart('\uFEFF')))
             using (var xmlReader = XmlReader.Create(reader, settings))
             {
                 var obj = serializer.Deserialize(xmlReader);
@@ -79,6 +90,37 @@ namespace emulatorLauncher
                 var xml = xmlWriterSettings.Encoding.GetString(memoryStream.ToArray());
                 return xml;
             }
+        }
+
+
+        public static string StripInvalidXMLCharacters(string textIn)
+        {
+            if (textIn == null || textIn == string.Empty)
+                return string.Empty;
+            
+            if (textIn.All(c => XmlConvert.IsXmlChar(c)))
+                return textIn;
+
+            var textOut = new StringBuilder();
+
+            for (int i = 0; i < textIn.Length; i++)
+            {
+                char c = textIn[i];
+                if (XmlConvert.IsXmlChar(c))
+                    textOut.Append(c);
+            }
+
+            return textOut.ToString();
+        }
+
+        public static void SkipWhitespaces(this XmlReader reader)
+        {
+            if (reader == null)
+                return;
+
+            while (!reader.EOF && reader.NodeType == XmlNodeType.Whitespace)
+                if (!reader.Read())
+                    break;
         }
     }
 }

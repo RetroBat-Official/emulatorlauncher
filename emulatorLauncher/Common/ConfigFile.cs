@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Xml.Linq;
+using System.Dynamic;
 
 namespace emulatorLauncher
 {
-    class ConfigFile : IEnumerable<ConfigItem>
+    class ConfigFile : DynamicObject, IEnumerable<ConfigItem>
     {
         public ConfigFileOptions Options { get; set; }
 
@@ -235,7 +236,7 @@ namespace emulatorLauncher
             return defaultValue;
         }
 
-        public bool IsDirty { get; private set; }
+        public virtual bool IsDirty { get; protected set; }
 
         public void Save(string fileName, bool retroarchformat)
         {
@@ -370,6 +371,83 @@ namespace emulatorLauncher
         }
 
         private static string _localPath;
+
+        #region DynamicObject
+        public override IEnumerable<string> GetDynamicMemberNames()
+        {
+            PartialConfigFile me = this as PartialConfigFile;
+            if (me != null)
+            {
+                return _data
+                    .Where(d => !string.IsNullOrEmpty(d.Value.Name) && d.Value != null && d.Value.Name.StartsWith(me.Root))
+                    .Select(d => d.Value.Name);
+            }             
+
+            return _data.Where(d => !string.IsNullOrEmpty(d.Value.Name) && d.Value != null).Select(d => d.Value.Name);
+        }
+
+        class PartialConfigFile : ConfigFile
+        {           
+            public PartialConfigFile(ConfigFile parent, string root)
+            {
+                _parent = parent;
+                Root = root;
+            }
+
+            private ConfigFile _parent;
+            public string Root { get; set; }
+
+            public override bool IsDirty
+            {
+                get { return _parent.IsDirty; }
+                protected set { _parent.IsDirty = value; }
+            }
+        }
+
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string propertyPath = binder.Name;
+
+            PartialConfigFile me = this as PartialConfigFile;
+            if (me != null)
+                propertyPath = me.Root + propertyPath;
+
+            ConfigItem item;
+            if (_data.TryGetValue(FormatKey(propertyPath), out item))
+            {
+                result = item.Value;
+                return true;
+            }
+
+            var root = propertyPath + ".";
+
+            if (_data.Values.Any(v => v.Name != null && v.Name.StartsWith(root)))
+            {
+                result = new PartialConfigFile(this, root) { _data = this._data };
+                return true;
+            }
+
+            result = null;
+            return true;
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            string propertyPath = binder.Name;
+
+            PartialConfigFile me = this as PartialConfigFile;
+            if (me != null)
+                propertyPath = me.Root + propertyPath;
+
+            if (value == null)
+                this.DisableAll(propertyPath);
+            else
+                this[propertyPath] = value.ToString();
+
+            return true;
+        }
+        #endregion
+
     }
 
     class ConfigItem

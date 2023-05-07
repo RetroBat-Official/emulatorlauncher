@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
+using emulatorLauncher;
 
 namespace TeknoParrotUi.Common
 {
@@ -35,22 +36,22 @@ namespace TeknoParrotUi.Common
             try
             {
                 var serializer = new XmlSerializer(typeof(GameProfile));
+                
                 GameProfile profile;
-
                 using (var reader = XmlReader.Create(fileName))
-                {
                     profile = (GameProfile)serializer.Deserialize(reader);
-                }
+                                
 #if !DEBUG
                 if (profile.DevOnly)
                 {
-                    Debug.WriteLine("Skipping loading dev profile " + fileName);
+                    SimpleLogger.Instance.Warning("Skipping loading dev profile " + fileName);
                     return null;
                 }
 #endif
+
                 if (profile.Is64Bit && !Environment.Is64BitOperatingSystem)
                 {
-                    Debug.WriteLine("Skipping loading profile (64 bit profile on 32 bit OS)");
+                    SimpleLogger.Instance.Warning("Skipping loading profile (64 bit profile on 32 bit OS)");
                     return null;
                 }
 
@@ -63,48 +64,52 @@ namespace TeknoParrotUi.Common
                         SerializeGameProfile(profile, fileName);
                     }
 
-                    List<FieldInformation> list = profile.ConfigValues.FindAll(x => x.FieldName.Contains("Sensitivity"));
-                    List<string> oldVars = new List<string>{ "Low", "Medium Low", "Medium", "Medium High", "High", "Instant" };
-                    if (list.Count > 0)
+                    if (profile.ConfigValues != null)
                     {
-                        foreach (FieldInformation f in list)
+                        var list = profile.ConfigValues.FindAll(x => x.FieldName != null && x.FieldName.Contains("Sensitivity"));
+                        if (list.Count > 0)
                         {
-                            if (f.FieldType != FieldType.Slider || oldVars.Contains(f.FieldValue))
+                            var oldVars = new HashSet<string> { "Low", "Medium Low", "Medium", "Medium High", "High", "Instant" };
+
+                            foreach (FieldInformation f in list)
                             {
-                                f.FieldType = FieldType.Slider;
-                                switch (f.FieldValue)
+                                if (f.FieldType != "Slider" || oldVars.Contains(f.FieldValue))
                                 {
-                                    case "Low":
-                                        f.FieldValue = "10";
-                                        break;
-                                    case "Medium Low":
-                                        f.FieldValue = "32";
-                                        break;
-                                    case "Medium":
-                                        f.FieldValue = "63";
-                                        break;
-                                    case "Medium High":
-                                        f.FieldValue = "95";
-                                        break;
-                                    case "High":
-                                        f.FieldValue = "111";
-                                        break;
-                                    case "Instant":
-                                        f.FieldValue = "127";
-                                        break;
+                                    f.FieldType = "Slider";
+
+                                    switch (f.FieldValue)
+                                    {
+                                        case "Low":
+                                            f.FieldValue = "10";
+                                            break;
+                                        case "Medium Low":
+                                            f.FieldValue = "32";
+                                            break;
+                                        case "Medium":
+                                            f.FieldValue = "63";
+                                            break;
+                                        case "Medium High":
+                                            f.FieldValue = "95";
+                                            break;
+                                        case "High":
+                                            f.FieldValue = "111";
+                                            break;
+                                        case "Instant":
+                                            f.FieldValue = "127";
+                                            break;
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                continue;
+                                else
+                                    continue;
+
+                                int index = profile.ConfigValues.FindIndex(x => x.FieldName == f.FieldName);
+                                if (index >= 0)
+                                    profile.ConfigValues[index] = f;
                             }
 
-                            int index = profile.ConfigValues.FindIndex(x => x.FieldName == f.FieldName);
-                            profile.ConfigValues[index] = f;
+                            SerializeGameProfile(profile, fileName);
                         }
-                        SerializeGameProfile(profile, fileName);
                     }
-
                 }
 
                 // Add filename to profile
@@ -114,6 +119,7 @@ namespace TeknoParrotUi.Common
             }
             catch (Exception e)
             {
+                SimpleLogger.Instance.Error("[TeknoParrotUi] " + e.Message, e);
                 return null;
             }
         }

@@ -10,10 +10,24 @@ namespace emulatorLauncher
 {
     class DolphinControllers
     {
+        /// <summary>
+        /// Cf. https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp#L191
+        /// </summary>
+        private static void UpdateSdlControllersWithHints()
+        {
+            var hints = new List<string>();
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         public static bool WriteControllersConfig(string path, string system, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
+
+            UpdateSdlControllersWithHints();
             
             if (system == "wii")
             {
@@ -33,8 +47,6 @@ namespace emulatorLauncher
             return true;            
         }
 
-
-
         static InputKeyMapping gamecubeMapping = new InputKeyMapping()
         { 
             { InputKey.l3,              "Main Stick/Modifier"},
@@ -47,8 +59,8 @@ namespace emulatorLauncher
             { InputKey.a,               "Buttons/A" },
             { InputKey.start,           "Buttons/Start" },
             { InputKey.pagedown,        "Buttons/Z" },  
-                { InputKey.l2,              "Triggers/L" }, 
-                { InputKey.r2,              "Triggers/R" },
+            { InputKey.l2,              "Triggers/L" }, 
+            { InputKey.r2,              "Triggers/R" },
             { InputKey.up,              "D-Pad/Up" }, 
             { InputKey.down,            "D-Pad/Down" }, 
             { InputKey.left,            "D-Pad/Left" }, 
@@ -83,15 +95,7 @@ namespace emulatorLauncher
             { InputKey.joystick2up,     "C-Stick/Up" },    
             { InputKey.joystick2left,   "C-Stick/Left"}          
         };
-        /*
-        static InputKeyMapping reversedButtons = new InputKeyMapping()
-        { 
-            { InputKey.y,               "Buttons/X" },  
-            { InputKey.b,               "Buttons/A" },
-            { InputKey.x,               "Buttons/Y" },  
-            { InputKey.a,               "Buttons/B" }
-        };
-        */
+
         static InputKeyMapping reversedButtons = new InputKeyMapping()
         {
             { InputKey.b,               "Buttons/A" },
@@ -157,82 +161,84 @@ namespace emulatorLauncher
 
             var wiiMapping = new InputKeyMapping(_wiiMapping);
 
-            if (rom.Contains(".side.") && Program.SystemConfig["controller_mode"] != "disabled" && Program.SystemConfig["controller_mode"] != "cc")
+            if (Program.SystemConfig["controller_mode"] != "cc")
             {
-                extraOptions["Options/Sideways Wiimote"] = "1";
-                wiiMapping[InputKey.x] = "Buttons/B";
-                wiiMapping[InputKey.y] = "Buttons/A";
-                wiiMapping[InputKey.a] = "Buttons/2";
-                wiiMapping[InputKey.b] = "Buttons/1";
-                //wiiMapping[InputKey.l2] = "Shake/X";
-                //wiiMapping[InputKey.l2] = "Shake/Y";
-                wiiMapping[InputKey.l2] = "Shake/Z";
-            }
+                if (rom.Contains(".side.") || Program.SystemConfig["controller_mode"] == "side")
+                {
+                    extraOptions["Options/Sideways Wiimote"] = "1";
+                    wiiMapping[InputKey.x] = "Buttons/B";
+                    wiiMapping[InputKey.y] = "Buttons/A";
+                    wiiMapping[InputKey.a] = "Buttons/2";
+                    wiiMapping[InputKey.b] = "Buttons/1";
+                    wiiMapping[InputKey.l2] = "Shake/X";
+                    wiiMapping[InputKey.l2] = "Shake/Y";
+                    wiiMapping[InputKey.l2] = "Shake/Z";
+                }
 
-            // i: infrared, s: swing, t: tilt, n: nunchuk
-            // 12 possible combinations : is si / it ti / in ni / st ts / sn ns / tn nt
+                // i: infrared, s: swing, t: tilt, n: nunchuk
+                // 12 possible combinations : is si / it ti / in ni / st ts / sn ns / tn nt
 
-            // i
-            if (rom.Contains(".is.") || rom.Contains(".it.") || rom.Contains(".in.") ||
-                (Program.SystemConfig.isOptSet("controller_mode") && Program.SystemConfig["controller_mode"] != "disabled" && Program.SystemConfig["controller_mode"] != "in" && Program.SystemConfig["controller_mode"] != "cc"))
-            {
-                wiiMapping[InputKey.joystick1up] = "IR/Up";
-                wiiMapping[InputKey.joystick1left] = "IR/Left";
-            }
+                // i
+                if ((rom.Contains(".is.") || rom.Contains(".it.") || rom.Contains(".in.")) || (Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "in"))
+                {
+                    wiiMapping[InputKey.joystick1up] = "IR/Up";
+                    wiiMapping[InputKey.joystick1left] = "IR/Left";
+                }
 
-            if (rom.Contains(".si.") || rom.Contains(".ti.") || rom.Contains(".ni.") || Program.SystemConfig["controller_mode"] == "in")
-            {
-                wiiMapping[InputKey.joystick2up] = "IR/Up";
-                wiiMapping[InputKey.joystick2left] = "IR/Left";
-            }
+                if ((rom.Contains(".si.") || rom.Contains(".ti.") || rom.Contains(".ni.")) || (Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ni"))
+                {
+                    wiiMapping[InputKey.joystick2up] = "IR/Up";
+                    wiiMapping[InputKey.joystick2left] = "IR/Left";
+                }
 
-            // s
-            if (rom.Contains(".si.") || rom.Contains(".st.") || rom.Contains(".sn."))
-            {
-                wiiMapping[InputKey.joystick1up]   = "Swing/Up";
-                wiiMapping[InputKey.joystick1left] = "Swing/Left";
-            }
+                // s
+                if ((rom.Contains(".si.") || rom.Contains(".st.") || rom.Contains(".sn.")) || (Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "sn"))
+                {
+                    wiiMapping[InputKey.joystick1up]   = "Swing/Up";
+                    wiiMapping[InputKey.joystick1left] = "Swing/Left";
+                }
 
-            if (rom.Contains(".is.") || rom.Contains(".ts.") || rom.Contains(".ns.") || Program.SystemConfig["controller_mode"] == "is")
-            {
-                wiiMapping[InputKey.joystick2up]   = "Swing/Up";
-                wiiMapping[InputKey.joystick2left] = "Swing/Left";
-            }
+                if ((rom.Contains(".is.") || rom.Contains(".ts.") || rom.Contains(".ns.")) || (Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "ns"))
+                {
+                    wiiMapping[InputKey.joystick2up]   = "Swing/Up";
+                    wiiMapping[InputKey.joystick2left] = "Swing/Left";
+                }
 
-            // t
-            if (rom.Contains(".ti.") || rom.Contains(".ts.") || rom.Contains(".tn."))
-            {
-                wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
-                wiiMapping[InputKey.joystick2left] = "Tilt/Left";
-            }
+                // t
+                if ((rom.Contains(".ti.") || rom.Contains(".ts.") || rom.Contains(".tn.")) || (Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "tn"))
+                {
+                    wiiMapping[InputKey.joystick1up] = "Tilt/Forward";
+                    wiiMapping[InputKey.joystick1left] = "Tilt/Left";
+                }
 
-            if (rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt.") || Program.SystemConfig["controller_mode"] == "it")
-            {
-                wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
-                wiiMapping[InputKey.joystick2left] = "Tilt/Left";
-            }
+                if ((rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt.")) || (Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "nt"))
+                {
+                    wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
+                    wiiMapping[InputKey.joystick2left] = "Tilt/Left";
+                }
 
-            // n
-            if (rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt.") || Program.SystemConfig["controller_mode"] == "in")
-            {
-                extraOptions["Extension"] = "Nunchuk";
-                wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
-                wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
-                wiiMapping[InputKey.joystick1up] = "Nunchuk/Stick/Up";
-                wiiMapping[InputKey.joystick1left] = "Nunchuk/Stick/Left";
-            }
+                // n
+                if ((rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt.")) || (Program.SystemConfig["controller_mode"] == "ni" || Program.SystemConfig["controller_mode"] == "ns" || Program.SystemConfig["controller_mode"] == "nt"))
+                {
+                    extraOptions["Extension"] = "Nunchuk";
+                    wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
+                    wiiMapping[InputKey.joystick1up] = "Nunchuk/Stick/Up";
+                    wiiMapping[InputKey.joystick1left] = "Nunchuk/Stick/Left";
+                }
 
-            if (rom.Contains(".in.") || rom.Contains(".sn.") || rom.Contains(".tn."))
-            {
-                extraOptions["Extension"] = "Nunchuk";
-                wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
-                wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
-                wiiMapping[InputKey.joystick2up] = "Nunchuk/Stick/Up";
-                wiiMapping[InputKey.joystick2left] = "Nunchuk/Stick/Left";
+                if ((rom.Contains(".in.") || rom.Contains(".sn.") || rom.Contains(".tn.")) || (Program.SystemConfig["controller_mode"] == "in" || Program.SystemConfig["controller_mode"] == "sn" || Program.SystemConfig["controller_mode"] == "tn"))
+                {
+                    extraOptions["Extension"] = "Nunchuk";
+                    wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
+                    wiiMapping[InputKey.joystick2up] = "Nunchuk/Stick/Up";
+                    wiiMapping[InputKey.joystick2left] = "Nunchuk/Stick/Left";
+                }
             }
 
             // cc : Classic Controller Settings
-            if (rom.Contains(".cc.") || Program.SystemConfig["controller_mode"] == "cc")
+            else if (rom.Contains(".cc.") || Program.SystemConfig["controller_mode"] == "cc")
             {
                 extraOptions["Extension"] = "Classic";
                 wiiMapping[InputKey.x] = "Classic/Buttons/X";
@@ -290,17 +296,6 @@ namespace emulatorLauncher
             { XINPUTMAPPING.LEFTTRIGGER,        "`Trigger L`" },
             { XINPUTMAPPING.RIGHTTRIGGER,       "`Trigger R`" }
         };
-        /*
-        private static void removeControllerConfig_gamecube()
-        {
-            string path = Program.AppConfig.GetFullPath("dolphin");
-
-            string iniFile = Path.Combine(path, "User", "Config", "GCPadNew.ini");
-            if (!File.Exists(iniFile))
-                return;
-
-            File.Delete(iniFile);
-        }*/
 
         private static void generateControllerConfig_realwiimotes(string path, string filename, string anyDefKey)
         {
@@ -308,10 +303,10 @@ namespace emulatorLauncher
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
-                for (int i = 0; i < 5; i++)
+                for (int i = 1; i < 5; i++)
                 {
-                    ini.ClearSection("[" + anyDefKey + i.ToString() + "]");
-                    ini.WriteValue("[" + anyDefKey + i.ToString() + "]", "Source", "2");
+                    ini.ClearSection(anyDefKey + i.ToString());
+                    ini.WriteValue(anyDefKey + i.ToString(), "Source", "2");
                 }
 
                 ini.Save();
@@ -336,9 +331,12 @@ namespace emulatorLauncher
 
                     if (pad.Config == null)
                         continue;
-                  
+
                     // SIDevice0 = 7 -> Keyb GCKeyNew.ini
                     // SIDevice1 = 6 -> controlleur standard GCPadNew.ini
+
+                    string guid = pad.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
+                    var prod = pad.ProductID;
 
                     string tech = "XInput";
                     string deviceName = "Gamepad";
@@ -348,14 +346,14 @@ namespace emulatorLauncher
                         tech = "DInput";
                         deviceName = "Keyboard Mouse";                        
                     } 
-                    else if (!pad.Config.IsXInputDevice())
+                    else if (!pad.IsXInputDevice)
                     {
-                        var di = pad.Config.GetDirectInputInfo();
-                        if (di == null)
+                        var s = pad.SdlController;
+                        if (s == null)
                             continue;
                         
-                        tech = "DInput";
-                        deviceName = di.Name;
+                        tech = "SDL";
+                        deviceName = s.Name;
                     }
              
                     if (double_pads.ContainsKey(tech + "/" + deviceName))
@@ -386,6 +384,10 @@ namespace emulatorLauncher
                                 value = "Buttons/A";
                             else if (x.Key == InputKey.b)
                                 value = "Buttons/B";
+                            else if (x.Key == InputKey.x)
+                                value = "Buttons/X";
+                            else if (x.Key == InputKey.y)
+                                value = "Buttons/Y";
                             else if (x.Key == InputKey.up)
                                 value = "Main Stick/Up";
                             else if (x.Key == InputKey.down)
@@ -407,69 +409,51 @@ namespace emulatorLauncher
                         }
                         else if (tech == "XInput")
                         {
-                            var mapping = pad.Config.GetXInputMapping(x.Key);
+                            var mapping = pad.GetXInputMapping(x.Key);
                             if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                 ini.WriteValue(gcpad, value, xInputMapping[mapping]);
 
                             string reverseAxis;
                             if (anyReverseAxes.TryGetValue(value, out reverseAxis))
                             {
-                                mapping = pad.Config.GetXInputMapping(x.Key, true);
+                                mapping = pad.GetXInputMapping(x.Key, true);
                                 if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }
                         }
-                        else
+                        else // SDL
                         {
-                            var input = pad.Config[x.Key];
+                            var input = pad.GetSdlMapping(x.Key);
+
                             if (input == null)
                                 continue;
 
                             if (input.Type == "button")
                             {
-                                if (input.Id == 0) // Invert A & B
+                                if (input.Id == 0) // invert A&B
                                     ini.WriteValue(gcpad, value, "`Button 1`");
-                                else if (input.Id == 1) // Invert A & B
+                                else if (input.Id == 1) // invert A&B
                                     ini.WriteValue(gcpad, value, "`Button 0`");
                                 else
                                     ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
                             }
-                            else if (input.Type == "hat")
-                            {
-                                string hat = "`Hat " + input.Id + " N`";
 
-                                if (input.Value == 2) // SDL_HAT_RIGHT
-                                    hat = "`Hat " + input.Id + " E`";
-                                else if (input.Value == 4) // SDL_HAT_DOWN
-                                    hat = "`Hat " + input.Id + " S`";
-                                else if (input.Value == 8) // SDL_HAT_LEFT
-                                    hat = "`Hat " + input.Id + " W`";
-
-                                ini.WriteValue(gcpad, value, hat);
-                            }
                             else if (input.Type == "axis")
                             {
                                 Func<Input, bool, string> axisValue = (inp, revertAxis) =>
                                 {                                     
                                     string axis = "`Axis ";
 
-                                    if (inp.Id == 2 || inp.Id == 5)
-                                        axis += "Z";
-                                    else if (inp.Id == 0 || inp.Id == 3)
-                                        axis += "X";
-                                    else
-                                        axis += "Y";
-
-                                    if (inp.Id == 3 || inp.Id == 4)
-                                        axis += "r";
-
-                                    if (inp.Id == 5)
-                                        revertAxis = !revertAxis;
+                                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
+                                        axis += inp.Id;
 
                                     if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))                                            
                                         axis += "+";
                                     else 
                                         axis += "-";
+
+                                    if (inp.Id == 4 || inp.Id == 5)
+                                        axis = "`Full Axis " + inp.Id + "+";
 
                                     return axis+"`";
                                 };
@@ -483,15 +467,77 @@ namespace emulatorLauncher
                         }
                     }
 
+                    ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.0");
+                    ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.0");
+
                     if (tech == "XInput")
                     {
-//                        ini.WriteValue(gcpad, "Main Stick/Modifier", "`Thumb L`");
-  //                      ini.WriteValue(gcpad, "C-Stick/Modifier" , "`Thumb R`");
+                        //ini.WriteValue(gcpad, "Main Stick/Modifier", "`Thumb L`");
+                        //ini.WriteValue(gcpad, "C-Stick/Modifier" , "`Thumb R`");
                         ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
                         ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
                         ini.WriteValue(gcpad, "Rumble/Motor", "`Motor L`|`Motor R`");
                         ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 108.24 109.27 115.00 109.59 106.10 101.96 100.00 101.96 105.22 107.49 117.34 112.43 108.24 101.96 100.00 101.96 108.24 116.11 116.57 116.72 108.24 101.96 100.00 101.96 108.24 109.75 115.91 109.18 107.47 101.96");
                         ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 108.24 112.26 122.26 118.12 108.24 101.96 100.00 101.96 108.24 114.92 117.37 115.98 108.24 101.96 100.00 101.96 105.40 112.07 114.52 113.89 104.20 99.64 99.97 101.73 106.63 108.27 103.63 104.40 107.15 101.96");
+                    }
+
+                    if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)                      
+                    {
+                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "10.0000000000000000");
+                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "10.0000000000000000");
+                        ini.WriteValue(gcpad, "Main Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
+                        ini.WriteValue(gcpad, "C-Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
+                        ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
+                    }
+
+                    if (prod == USB_PRODUCT.SONY_DS3 ||
+                        prod == USB_PRODUCT.SONY_DS4 ||
+                        prod == USB_PRODUCT.SONY_DS4_DONGLE ||
+                        prod == USB_PRODUCT.SONY_DS4_SLIM ||
+                        prod == USB_PRODUCT.SONY_DS5)
+                    {
+                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
+                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
+                        ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                        ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                        ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
+                    }
+
+                    else
+                    {
+                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
+                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
+                        ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                        ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                    }
+
+                    if (Program.SystemConfig["controller_mode"] == "cc")
+                    {
+                        if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)
+                        {
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "10.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "10.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
+                        }
+                        else if (prod == USB_PRODUCT.SONY_DS3 ||
+                        prod == USB_PRODUCT.SONY_DS4 ||
+                        prod == USB_PRODUCT.SONY_DS4_DONGLE ||
+                        prod == USB_PRODUCT.SONY_DS4_SLIM ||
+                        prod == USB_PRODUCT.SONY_DS5)
+                        {
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "5.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "5.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                        }
+                        else
+                        {
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "5.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "5.0000000000000000");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                        }
                     }
                 }
 

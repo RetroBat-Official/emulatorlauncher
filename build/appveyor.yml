@@ -21,6 +21,10 @@ after_build:
 - 7z a batocera-ports.zip batocera-padsinfo.exe
 - copy batocera-store\bin\Release\batocera-store.exe .
 - 7z a batocera-ports.zip batocera-store.exe
+- copy es-checkversion\bin\Release\es-checkversion.exe .\es-checkversion-test.exe
+- 7z a batocera-ports.zip es-checkversion-test.exe
+- copy es-update\bin\Release\es-update.exe .\es-update-test.exe
+- 7z a batocera-ports.zip es-update-test.exe
 - copy mount\bin\Release\mount.exe .
 - 7z a batocera-ports.zip mount.exe
 - 7z a batocera-ports.zip 7za.exe
@@ -38,6 +42,7 @@ after_build:
 - 7z a batocera-ports.zip xbox-iso-vfs.exe
 - 7z a batocera-ports.zip 7z.exe
 - 7z a batocera-ports.zip 7z.dll
+- 7z a batocera-ports.zip .emulationstation\es_features.cfg
 artifacts:
 - path: batocera-ports.zip
 deploy:

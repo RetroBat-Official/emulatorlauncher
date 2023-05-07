@@ -47,8 +47,9 @@ namespace emulatorLauncher
             { "model2", () => new Model2Generator() }, { "m2emulator", () => new Model2Generator() },
             { "model3", () => new Model3Generator() }, { "supermodel", () => new Model3Generator() },
             { "openbor", () => new OpenBorGenerator() },
-            { "ps3", () => new Rpcs3Generator() },  { "rpcs3", () => new Rpcs3Generator() },  
-            { "ps2", () => new Pcsx2Generator() },  { "pcsx2", () => new Pcsx2Generator() }, { "pcsx2-16", () => new Pcsx2Generator() },
+            { "ps3", () => new Rpcs3Generator() },  { "rpcs3", () => new Rpcs3Generator() },
+            { "psvita", () => new Vita3kGenerator() },  { "vita3k", () => new Vita3kGenerator() },
+            { "ps2", () => new Pcsx2Generator() },  { "pcsx2", () => new Pcsx2Generator() }, { "pcsx2-16", () => new Pcsx2Generator() }, { "pcsx2qt", () => new Pcsx2Generator() },
             { "fpinball", () => new FpinballGenerator() }, { "bam", () => new FpinballGenerator() },
             { "vpinball", () => new VPinballGenerator() },
             { "dosbox", () => new DosBoxGenerator() },
@@ -86,8 +87,10 @@ namespace emulatorLauncher
             { "solarus", () => new SolarusGenerator() },
             { "eka2l1", () => new Eka2l1Generator() }, 
             { "n-gage", () => new Eka2l1Generator() },
-			{ "nosgba", () => new NosGbaGenerator() },		
-			{ "pinballfx3", () => new PinballFX3Generator() }			
+            { "nosgba", () => new NosGbaGenerator() }, { "no$gba", () => new NosGbaGenerator() },
+            { "pinballfx3", () => new PinballFX3Generator() },
+            { "bigpemu", () => new BigPEmuGenerator() },
+            { "phoenix", () => new PhoenixGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
@@ -108,24 +111,6 @@ namespace emulatorLauncher
         [DllImport("user32.dll")]
         public static extern bool SetProcessDPIAware();
 
-        public static string EscapeXml(this string s)
-        {
-            string toxml = s;
-            if (!string.IsNullOrEmpty(toxml))
-            {
-                // replace literal values with entities
-                toxml = toxml.Replace("&", "&amp;");
-                toxml = toxml.Replace("'", "&apos;");
-                toxml = toxml.Replace("\"", "&quot;");
-                toxml = toxml.Replace(">", "&gt;");
-                toxml = toxml.Replace("<", "&lt;");
-            }
-            return toxml;
-        }
-
-
-
-
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -136,6 +121,8 @@ namespace emulatorLauncher
 
             if (args.Length == 0)
                 return;
+
+            AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
 
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
@@ -177,6 +164,27 @@ namespace emulatorLauncher
                     Zip.CleanupUncompressedWSquashFS(source, extractionPath);
                     return;
                 }
+            }
+
+            if (args.Any(a => "-listmame".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                string mamePath = Path.Combine(AppConfig.GetFullPath("roms"), "mame");
+                if (Directory.Exists(mamePath))
+                {
+                    string fn = Path.Combine(Path.GetTempPath(), "mameroms.txt");
+
+                    try
+                    {
+                        if (File.Exists(fn))
+                            File.Delete(fn);
+                    }
+                    catch { }
+
+                    File.WriteAllText(fn, MameVersionDetector.ListAllGames(mamePath));
+                    Process.Start(fn);
+                }
+             
+                return;
             }
 
             if (args.Any(a => "-makeiso".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
@@ -255,7 +263,8 @@ namespace emulatorLauncher
                 CurrentGame = new Game()
                 {
                     path = SystemConfig.GetFullPath("rom"),
-                    Name = Path.GetFileNameWithoutExtension(SystemConfig["rom"])
+                    Name = Path.GetFileNameWithoutExtension(SystemConfig["rom"]),
+                    Tag = "missing"
                 };
             }
 
@@ -364,6 +373,23 @@ namespace emulatorLauncher
                 SimpleLogger.Instance.Error("[Generator] Exit code " + Environment.ExitCode);
         }
 
+        private static void OnCurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = e.ExceptionObject as System.Exception;
+            if (ex == null)
+                SimpleLogger.Instance.Error("[CurrentDomain] Unhandled exception");
+            else
+            {
+                SimpleLogger.Instance.Error("[CurrentDomain] Unhandled exception : " + ex.Message, ex);
+
+                if (e.IsTerminating)
+                {
+                    Program.WriteCustomErrorFile(ex.Message);
+                    Environment.Exit((int)ExitCodes.CustomError);
+                }
+            }
+        }
+
         private static PadToKey LoadGamePadToKeyMapping(ProcessStartInfo path, PadToKey mapping)
         {
             string filePath = SystemConfig["rom"] + (Directory.Exists(SystemConfig["rom"]) ? "\\padto.keys" : ".keys");
@@ -400,15 +426,17 @@ namespace emulatorLauncher
             PadToKeyApp app = new PadToKeyApp();
             app.Name = Path.GetFileNameWithoutExtension(path.FileName).ToLower();
 
-            int controllerIndex = 0;
+            int playerIndex = 0;
 
             foreach (var player in gameMapping)
             {
                 if (player == null)
                 {
-                    controllerIndex++;
+                    playerIndex++;
                     continue;
                 }
+
+                var controller = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == playerIndex + 1);
 
                 foreach (var action in player)
                 {
@@ -420,13 +448,13 @@ namespace emulatorLauncher
                         if (action.Triggers.FirstOrDefault() == "joystick1")
                         {
                             PadToKeyInput mouseInput = new PadToKeyInput();
-                            mouseInput.Name = InputKey.leftanalogleft;
+                            mouseInput.Name = InputKey.joystick1left;
                             mouseInput.Type = PadToKeyType.Mouse;
                             mouseInput.Code = "X";
                             app.Input.Add(mouseInput);
 
                             mouseInput = new PadToKeyInput();
-                            mouseInput.Name = InputKey.leftanalogup;
+                            mouseInput.Name = InputKey.joystick1up;
                             mouseInput.Type = PadToKeyType.Mouse;
                             mouseInput.Code = "Y";
                             app.Input.Add(mouseInput);
@@ -434,13 +462,13 @@ namespace emulatorLauncher
                         else if (action.Triggers.FirstOrDefault() == "joystick2")
                         {
                             PadToKeyInput mouseInput = new PadToKeyInput();
-                            mouseInput.Name = InputKey.rightanalogleft;
+                            mouseInput.Name = InputKey.joystick2left;
                             mouseInput.Type = PadToKeyType.Mouse;
                             mouseInput.Code = "X";
                             app.Input.Add(mouseInput);
 
                             mouseInput = new PadToKeyInput();
-                            mouseInput.Name = InputKey.rightanalogup;
+                            mouseInput.Name = InputKey.joystick2up;
                             mouseInput.Type = PadToKeyType.Mouse;
                             mouseInput.Code = "Y";
                             app.Input.Add(mouseInput);
@@ -458,7 +486,7 @@ namespace emulatorLauncher
 
                     PadToKeyInput input = new PadToKeyInput();
                     input.Name = k;
-                    input.ControllerIndex = controllerIndex;
+                    input.ControllerIndex = controller == null ? playerIndex : controller.DeviceIndex;
 
                     bool custom = false;
 
@@ -496,7 +524,7 @@ namespace emulatorLauncher
                         app.Input.Add(input);
                 }
 
-                controllerIndex++;
+                playerIndex++;
             }
 
             if (app.Input.Count > 0)
@@ -549,7 +577,7 @@ namespace emulatorLauncher
                     switch (var)
                     {
                         case "index": player.DeviceIndex = val.ToInteger(); break;
-                        case "guid": player.Guid = val.ToUpper(); break;
+                        case "guid": player.Guid = new SdlJoystickGuid(val); break;
                         case "path": player.DevicePath = val; break;
                         case "name": player.Name = val; break;
                         case "nbbuttons": player.NbButtons = val.ToInteger(); break;
@@ -568,16 +596,33 @@ namespace emulatorLauncher
                 {
                     foreach (var pi in Controllers)
                     {
-                        pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid && c.DeviceName == pi.Name);
+                        if (pi.IsKeyboard)
+                        {
+                            pi.Config = inputConfig.FirstOrDefault(c => "Keyboard".Equals(c.DeviceName, StringComparison.InvariantCultureIgnoreCase));
+                            if (pi.Config != null)
+                                continue;
+                        }
+
+                        pi.Config = inputConfig.FirstOrDefault(c => pi.CompatibleSdlGuids.Contains(c.DeviceGUID.ToLowerInvariant()) && c.DeviceName == pi.Name);
                         if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
+                            pi.Config = inputConfig.FirstOrDefault(c => pi.CompatibleSdlGuids.Contains(c.DeviceGUID.ToLowerInvariant()));
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
-                        if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
                     }
 
                     Controllers.RemoveAll(c => c.Config == null);
+
+#if DEBUG
+                    /*
+                    foreach (var c in Controllers)
+                    {
+                        var dinput = c.DirectInput;
+                        var xinput = c.XInput;
+                        var winmm = c.WinmmJoystick;
+                        var sdl = c.SdlController;
+                    }
+                    */
+#endif
 
                     if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || Misc.HasWiimoteGun())
                     {
@@ -586,7 +631,7 @@ namespace emulatorLauncher
                         if (keyb.Config != null)
                         {
                             keyb.Name = "Keyboard";
-                            keyb.Guid = keyb.Config.ProductGuid.ToString();
+                            keyb.Guid = new SdlJoystickGuid("00000000000000000000000000000000");
                             Controllers.Add(keyb);
                         }
                     }
@@ -594,7 +639,10 @@ namespace emulatorLauncher
 
                 return inputConfig;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[LoadControllerConfiguration] Failed " + ex.Message, ex);
+            }
 
             return null;
         }
@@ -606,13 +654,12 @@ namespace emulatorLauncher
                 string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
                 if (File.Exists(path))
                 {
-                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"]);
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"]);
                     if (!string.IsNullOrEmpty(renderconfig))
                         SystemConfig["shader"] = renderconfig;
                 }
             }
         }
-
 
         /// <summary>
         /// To use with Environment.ExitCode = (int)ExitCodes.CustomError;
@@ -623,7 +670,7 @@ namespace emulatorLauncher
         {
             SimpleLogger.Instance.Error("[Error] " + message);
 
-            string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "launch_error.log");
+            string fn = Path.Combine(Installer.GetTempPath(), "launch_error.log");
 
             try
             {
@@ -695,27 +742,4 @@ namespace emulatorLauncher
             key.Close();
         }
     }
-
-    class Controller
-    {
-        public Controller()
-        {
-            DeviceIndex = -1;
-        }
-
-        public int PlayerIndex { get; set; }
-        public int DeviceIndex { get; set; }
-        public string Guid { get; set; }
-        public string DevicePath { get; set; }
-        public string Name { get; set; }
-        public int NbButtons { get; set; }
-        public int NbHats { get; set; }
-        public int NbAxes { get; set; }
-
-        public InputConfig Config { get; set; }
-
-        public override string ToString() { return Name + " (" + PlayerIndex.ToString()+")"; }
-    }
-
-
 }

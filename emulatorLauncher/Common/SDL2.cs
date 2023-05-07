@@ -414,7 +414,9 @@ namespace emulatorLauncher
             "SDL_TIMER_RESOLUTION";
         public const string SDL_HINT_RENDER_SCALE_QUALITY =
             "SDL_RENDER_SCALE_QUALITY";
-
+        public const string SDL_HINT_JOYSTICK_RAWINPUT =
+            "SDL_HINT_JOYSTICK_RAWINPUT";
+        
         /* Only available in SDL 2.0.1 or higher. */
         public const string SDL_HINT_VIDEO_HIGHDPI_DISABLED =
             "SDL_VIDEO_HIGHDPI_DISABLED";
@@ -524,6 +526,8 @@ namespace emulatorLauncher
             "SDL_ENABLE_STEAM_CONTROLLERS";
         public const string SDL_HINT_ANDROID_TRAP_BACK_BUTTON =
             "SDL_ANDROID_TRAP_BACK_BUTTON";
+        public const string SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS =
+           "SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS";
 
         /* Only available in 2.0.10 or higher. */
         public const string SDL_HINT_MOUSE_TOUCH_EVENTS =
@@ -7967,5 +7971,42 @@ namespace emulatorLauncher
         };
         #endregion
 
+        #region SDL_crc16
+        static ushort crc16_for_byte(byte r)
+        {
+            ushort crc = 0;
+
+            for (int i = 0; i < 8; ++i) 
+            {
+                if (((crc ^ r) & 1) != 0)
+                    crc = (ushort)(0xA001 ^ crc >> 1);
+                else
+                    crc = (ushort)(0 ^ crc >> 1);
+
+                r >>= 1;
+            }
+            return crc;
+        }
+
+        public static ushort SDL_crc16(byte[] data)
+        {
+            ushort crc = 0;
+
+            // As an optimization we can precalculate a 256 entry table for each byte
+            for (int i = 0; i < data.Length; ++i) 
+            {
+                byte bt = (byte) (((byte)crc) ^ data[i]);
+
+                ushort us = crc16_for_byte(bt);
+                crc = (ushort)(us ^ crc >> 8);
+            }
+            return crc;
+        }
+
+        public static ushort SDL_Swap16(ushort x)
+        {
+            return (ushort)((ushort)((x & 0xff) << 8) | ((x >> 8) & 0xff));
+        }
+        #endregion
     }
 }

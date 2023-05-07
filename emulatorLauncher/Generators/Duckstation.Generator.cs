@@ -53,6 +53,18 @@ namespace emulatorLauncher
                 exe = Path.Combine(_path, "duckstation-nogui.exe");
 
             if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-qt-x64-ReleaseLTCG.exe");
+
+            if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-qt-x64-Release.exe");
+
+            if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-qt-x64.exe");
+
+            if (!File.Exists(exe))
+                exe = Path.Combine(_path, "duckstation-qt.exe");
+
+            if (!File.Exists(exe))
                 return null;
 
             SetupSettings();
@@ -84,17 +96,9 @@ namespace emulatorLauncher
                     if (!string.IsNullOrEmpty(biosPath))
                         ini.WriteValue("BIOS", "SearchDirectory", biosPath.Replace("\\", "\\\\"));
 
-                    string savesPath = AppConfig.GetFullPath("saves");
+                    string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "memcards");
                     if (!string.IsNullOrEmpty(savesPath))
-                    {
-                        savesPath = Path.Combine(savesPath, "psx", Path.GetFileName(_path)) + "\\\\" + "memcards";
-
-                        if (!Directory.Exists(savesPath))
-                            try { Directory.CreateDirectory(savesPath); }
-                            catch { }
-
                         ini.WriteValue("MemoryCards", "Directory", savesPath.Replace("\\", "\\\\"));
-                    }
 
                     if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                         ini.WriteValue("Display", "AspectRatio", SystemConfig["ratio"]);

@@ -6,34 +6,60 @@ using System.Text;
 namespace emulatorLauncher.Tools
 {
     // Controllers known by SDL2 & Retroarch
-    class SdlGameControllers
+    class SdlGameController
     {
-        static SdlGameControllers()
+        static SdlGameController()
         {
-            _controllersByGuid = new Dictionary<Guid, SdlGameControllers>();
-            _controllersByPath = new Dictionary<string, SdlGameControllers>();
+            try
+            {
+                string callerName = new System.Diagnostics.StackTrace().GetFrame(1).GetMethod().Name;
+                if (callerName == "ReloadWithHints")
+                    return;
+            }
+            catch { }
+
+            ReloadWithHints(null);
+        }
+
+        public static void ReloadWithHints(string hints)
+        {
+            _joyInfos = new StringBuilder();
+            _controllersByGuid = new Dictionary<Guid, SdlGameController>();
+            _controllersByPath = new Dictionary<string, SdlGameController>(StringComparer.InvariantCultureIgnoreCase);
+
+            if (hints != null)
+            {
+                foreach (var hint in hints.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var keyValue = hints.Split(new char[] { '=' });
+                    if (keyValue.Length == 2)
+                        SDL.SDL_SetHint(keyValue[0].Trim(), keyValue[1].Trim());
+                }
+            }
 
             SDL.SDL_Init(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_InitSubSystem(SDL.SDL_INIT_JOYSTICK);
             
             int numJoysticks = SDL.SDL_NumJoysticks();
-            SimpleLogger.Instance.Info("[SdlGameControllers] " + numJoysticks + " SDL controller(s) connected");
+            SimpleLogger.Instance.Info("[SdlGameController] " + numJoysticks + " SDL controller(s) connected");
 
             var ver = SDL.Version;
 
             for (int i = 0; i < numJoysticks; i++)
             {
                 var guid = SDL.SDL_JoystickGetDeviceGUID(i);
-                var sdlGuid = InputConfig.ToSdlGuidString(guid);
-
                 var name = SDL.SDL_GameControllerNameForIndex(i);
 
-                SdlGameControllers ctl = new SdlGameControllers();
+                if (string.IsNullOrEmpty(name))
+                    continue;
+
+                SdlGameController ctl = new SdlGameController();
                 ctl.Index = i;
-                ctl.Guid = guid;
-                ctl.VendorId = int.Parse((sdlGuid.Substring(10, 2) + sdlGuid.Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
-                ctl.ProductId = int.Parse((sdlGuid.Substring(18, 2) + sdlGuid.Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
+                ctl.Guid = new SdlJoystickGuid(guid);
                 ctl.Name = name;
+
+                var oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_0_X);
+                var newGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_26);
 
                 string hidpath = SDL.SDL_JoystickPathForIndex(i);
                 if (!string.IsNullOrEmpty(hidpath))
@@ -48,32 +74,45 @@ namespace emulatorLauncher.Tools
                         _controllersByPath[shortenPath] = ctl;
                 }
 
+                _controllersByPath[i.ToString().PadLeft(4, '0') + "@" + ctl.Guid.ToString()] = ctl;
+
+                if (ctl.Guid != oldGuid)
+                    _controllersByPath[i.ToString().PadLeft(4, '0') + "@" + oldGuid.ToString()] = ctl;
+
+                if (ctl.Guid != newGuid)
+                    _controllersByPath[i.ToString().PadLeft(4, '0') + "@" + newGuid.ToString()] = ctl;
+
+                _joyInfos.AppendLine(ctl.Index + " -> " + ctl.ToString());
+
                 if (SDL.SDL_IsGameController(i) != SDL.SDL_bool.SDL_TRUE)
                 {
-                    SimpleLogger.Instance.Info("[SdlGameControllers] Loading Unknown SDL controller mapping : " + i + " => " + ctl.ToString());
+                    SimpleLogger.Instance.Info("[SdlGameController] Loading Unknown SDL controller mapping : " + i + " => " + ctl.ToString());
                     continue;
                 }
                 else
-                    SimpleLogger.Instance.Info("[SdlGameControllers] Loading SDL controller mapping : " + i + " => " + ctl.ToString());
-
-                if (_controllersByGuid.ContainsKey(guid))
-                    continue;
-
-                if (string.IsNullOrEmpty(name))
-                    continue;
-
+                    SimpleLogger.Instance.Info("[SdlGameController] Loading SDL controller mapping : " + i + " => " + ctl.ToString());
+                
                 var mappingString = SDL.SDL_GameControllerMappingForDeviceIndex(i);
-                if (string.IsNullOrEmpty(mappingString))
-                    continue;
+                if (!string.IsNullOrEmpty(mappingString))
+                {
+                    string[] mapArray = mappingString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (mapArray.Length > 2)
+                    {
+                        ctl.Mapping = ExtractMapping(mapArray.Skip(2));
+                        ctl.SdlBinding = mappingString;
+                    }
+                }
 
-                string[] mapArray = mappingString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                if (mapArray.Length == 0)
+                if (_controllersByGuid.ContainsKey(ctl.Guid))
                     continue;
-
-                ctl.Mapping = ExtractMapping(mapArray.Skip(2));
-                ctl.SdlBinding = mappingString;
 
                 _controllersByGuid[ctl.Guid] = ctl;
+
+                if (ctl.Guid != oldGuid)
+                    _controllersByGuid[oldGuid] = ctl;
+                
+                if (ctl.Guid != newGuid)
+                    _controllersByGuid[newGuid] = ctl;
             }
 
             // Add all other mappings ( Debug without physical controller )
@@ -85,24 +124,43 @@ namespace emulatorLauncher.Tools
                 if (mapArray.Length == 0)
                     continue;
 
-                SdlGameControllers ctl = new SdlGameControllers();
-                ctl.Guid = InputConfig.FromSdlGuidString(mapArray[0]);
+                SdlGameController ctl = new SdlGameController();
+                ctl.Guid = new SdlJoystickGuid(mapArray[0].FromSdlGuidString());
                 if (_controllersByGuid.ContainsKey(ctl.Guid))
                     continue;
 
-                ctl.VendorId = int.Parse((mapArray[0].Substring(10, 2) + mapArray[0].Substring(8, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
-                ctl.ProductId = int.Parse((mapArray[0].Substring(18, 2) + mapArray[0].Substring(16, 2)).ToUpper(), System.Globalization.NumberStyles.HexNumber);
                 ctl.Name = mapArray[1];
                 ctl.Mapping = ExtractMapping(mapArray.Skip(2));
                 ctl.SdlBinding = mappingString;
 
                 _controllersByGuid[ctl.Guid] = ctl;
+
+                var oldGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_0_X);
+                var newGuid = ctl.Guid.ConvertSdlGuid(ctl.Name, SdlVersion.SDL2_26);
+
+                if (ctl.Guid != oldGuid)
+                    _controllersByGuid[oldGuid] = ctl;
+
+                if (ctl.Guid != newGuid)
+                    _controllersByGuid[newGuid] = ctl;
             }
-    
+            
             SDL.SDL_QuitSubSystem(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_Quit();
         }
 
+        public static string JoysticksInformation
+        {
+            get
+            {
+                return _joyInfos.ToString();
+            }
+        }
+
+        public SdlGameController()
+        {
+            Mapping = new SdlControllerMapping[] { };
+        }
 
         private static SdlControllerMapping[] ExtractMapping(IEnumerable<string> mapArray)
         {
@@ -220,33 +278,32 @@ namespace emulatorLauncher.Tools
 
             return sdlMapping.ToArray();
         }
-
-        public static bool IsGameController(Guid guid)
+        
+        public static SdlGameController GetGameController(Guid guid)
         {
-            return _controllersByGuid.ContainsKey(guid);
-        }
-
-        public static SdlControllerMapping[] GetGameControllerMapping(Guid guid)
-        {
-            SdlGameControllers ctrl;
-            if (_controllersByGuid.TryGetValue(guid, out ctrl))
-                return ctrl.Mapping;
-
-            return null;
-        }
-
-        public static SdlGameControllers GetGameController(Guid guid)
-        {
-            SdlGameControllers ctrl;
+            SdlGameController ctrl;
             if (_controllersByGuid.TryGetValue(guid, out ctrl))
                 return ctrl;
 
+            var oldGuid = new SdlJoystickGuid(guid).ConvertSdlGuid("", SdlVersion.SDL2_0_X);
+            if (guid != oldGuid.ToGuid())
+            {
+                if (_controllersByGuid.TryGetValue(oldGuid, out ctrl))
+                    return ctrl;
+            }
+
             return null;
         }
 
-        public static SdlGameControllers GetGameControllerByPath(string path)
+        public static int GetControllerIndex(Controller ctrl)
         {
-            SdlGameControllers ctrl;
+            var sdlDev = SdlGameController.GetGameControllerByPath(ctrl.DevicePath);
+            return sdlDev != null ? sdlDev.Index : ctrl.DeviceIndex;
+        }
+
+        public static SdlGameController GetGameControllerByPath(string path)
+        {
+            SdlGameController ctrl;
 
             if (_controllersByPath.TryGetValue(path, out ctrl))
                 return ctrl;
@@ -257,7 +314,7 @@ namespace emulatorLauncher.Tools
             return null;
         }
 
-        public static SdlGameControllers GetGameController(string name)
+        public static SdlGameController GetGameController(string name)
         {
             return _controllersByGuid.Values.Where(c => c.Name == name).FirstOrDefault();
         }
@@ -270,17 +327,15 @@ namespace emulatorLauncher.Tools
             return Guid + ", " + Name;
         }
 
-        static Dictionary<Guid, SdlGameControllers> _controllersByGuid;
-        static Dictionary<string, SdlGameControllers> _controllersByPath;
+        static Dictionary<Guid, SdlGameController> _controllersByGuid;
+        static Dictionary<string, SdlGameController> _controllersByPath;
+        static StringBuilder _joyInfos = new StringBuilder();
 
         public int Index { get; set; }
-        public Guid Guid { get; set; }
+        public SdlJoystickGuid Guid { get; set; }
         public string Name { get; set; }
         public SdlControllerMapping[] Mapping { get; set; }
         public string SdlBinding { get; set; }
-        public int VendorId { get; set; }
-        public int ProductId { get; set; }
-
         public string Path { get; set; }
     }
 
@@ -301,5 +356,38 @@ namespace emulatorLauncher.Tools
 
             return Button.ToString() + "  => " + Input.ToString();
         }
+    }
+
+    enum SDL_CONTROLLER_BUTTON
+    {
+        INVALID = -1,
+
+        A = 0,
+        B = 1,
+        X = 2,
+        Y = 3,
+        BACK = 4,
+        GUIDE = 5,
+        START = 6,
+        LEFTSTICK = 7,
+        RIGHTSTICK = 8,
+        LEFTSHOULDER = 9,
+        RIGHTSHOULDER = 10,
+        DPAD_UP = 11,
+        DPAD_DOWN = 12,
+        DPAD_LEFT = 13,
+        DPAD_RIGHT = 14
+    };
+
+    enum SDL_CONTROLLER_AXIS
+    {
+        INVALID = -1,
+
+        LEFTX = 0,
+        LEFTY = 1,
+        RIGHTX = 2,
+        RIGHTY = 3,
+        TRIGGERLEFT = 4,
+        TRIGGERRIGHT = 5
     }
 }

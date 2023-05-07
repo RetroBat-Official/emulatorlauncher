@@ -22,7 +22,10 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            var platform = ReshadeManager.GetPlatformFromFile(exe);
+            if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, platform, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
             _resolution = resolution;
             
             List<string> commandArray = new List<string>();
@@ -49,7 +52,7 @@ namespace emulatorLauncher
                     continue;
                 }
 
-                var dxInfo = Program.Controllers[i].Config.GetDirectInputInfo();
+                var dxInfo = Program.Controllers[i].DirectInput;
                 if (dxInfo == null || string.IsNullOrEmpty(dxInfo.Name))
                     commandArray.AddRange(new string[] { "-joydev" + (i + 1).ToString(), "None" });
                 else

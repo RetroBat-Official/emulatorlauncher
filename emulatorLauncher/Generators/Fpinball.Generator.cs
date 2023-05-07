@@ -23,7 +23,7 @@ namespace emulatorLauncher
 
         public static int JoystickValue(InputKey key, Controller c)
         {
-            var a = c.Config[key];
+            var a = c.GetDirectInputMapping(key);
             if (a == null)
                 return -1;
 
@@ -41,7 +41,7 @@ namespace emulatorLauncher
             var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
             if (controller != null)
             {
-                var directInput = controller.Config.GetDirectInputInfo();
+                var directInput = controller.DirectInput;
                 if (directInput != null)
                 {
                     string fpinballName = directInput.Name.Length > 47 ? directInput.Name.Substring(0, 47) : directInput.Name;

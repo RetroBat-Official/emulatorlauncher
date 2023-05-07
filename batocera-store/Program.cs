@@ -57,6 +57,7 @@ namespace batocera_store
             {
                 case "clean":
                 case "clean-all":
+                case "cleanall":
                 case "refresh":
                     CleanPackages();
                     break;
@@ -67,6 +68,7 @@ namespace batocera_store
                     break;
 
                 case "list-repositories":
+                case "listrepositories":
                     ListRepositories();
                     break;
 

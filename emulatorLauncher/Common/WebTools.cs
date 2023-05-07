@@ -100,7 +100,7 @@ namespace emulatorLauncher
             return null;
         }
 
-        public static bool DownloadToStream(Stream fileStream, string url, ProgressChangedEventHandler progress = null)
+        public static ResponseStreamInfo DownloadToStream(Stream fileStream, string url, ProgressChangedEventHandler progress = null)
         {
         retry:
             try
@@ -114,12 +114,12 @@ namespace emulatorLauncher
                 {
                     if (resp.StatusCode == HttpStatusCode.OK)
                     {
-                        resp.ReadResponseStream(fileStream, progress);
+                        var ret = resp.ReadResponseStream(fileStream, progress);
 
                         if (progress != null)
                             progress(null, new ProgressChangedEventArgs(100, null));
 
-                        return true;
+                        return ret;
                     }
 
                     resp.Close();
@@ -143,7 +143,7 @@ namespace emulatorLauncher
                 throw ex;
             }
 
-            return false;
+            return null;
         }
 
         public static string ReadResponseString(this WebResponse response)
@@ -155,41 +155,118 @@ namespace emulatorLauncher
             }
         }
 
-        public static void ReadResponseStream(this WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
+        public static ResponseStreamInfo ReadResponseStream(this WebResponse response, Stream destinationStream, ProgressChangedEventHandler progress = null)
         {
             if (destinationStream == null)
                 throw new ArgumentException("Stream null");
 
+            ResponseStreamInfo ret = new ResponseStreamInfo();
+            ret.ContentType = response.ContentType;
+
+            string contentDisposition = response.Headers["Content-Disposition"];
+            if (!string.IsNullOrEmpty(contentDisposition))
+            {
+                int idx = contentDisposition.IndexOf("filename=");
+                if (idx >= 0)
+                    ret.FileName = System.Uri.UnescapeDataString(contentDisposition.Substring(idx + "filename=".Length).Replace("\"", ""));
+                else
+                {
+                    // RFC 5987 - https://greenbytes.de/tech/webdav/rfc5987.html
+
+                    idx = contentDisposition.IndexOf("filename*=UTF-8''");
+                    ret.FileName = System.Uri.UnescapeDataString(contentDisposition.Substring(idx + "filename*=UTF-8''".Length).Replace("\"", ""));
+                }
+            }
+
+            if (string.IsNullOrEmpty(ret.FileName))
+            {
+                try { ret.FileName = System.IO.Path.GetFileName(response.ResponseUri.ToString()); }
+                catch { }
+            }
+
+            if (progress != null)
+                progress(null, new ProgressChangedEventArgs(0, ret.FileName));
+
             long length = (int)response.ContentLength;
             long pos = 0;
 
-            try
+            using (Stream sr = response.GetResponseStream())
             {
-                using (Stream sr = response.GetResponseStream())
+                byte[] buffer = new byte[1024];
+                int bytes = 0;
+
+                while ((bytes = sr.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    byte[] buffer = new byte[1024];
-                    int bytes = 0;
+                    destinationStream.Write(buffer, 0, bytes);
 
-                    while ((bytes = sr.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        destinationStream.Write(buffer, 0, bytes);
+                    pos += bytes;
 
-                        pos += bytes;
-
-                        if (progress != null && length > 0)
-                            progress(null, new ProgressChangedEventArgs((int)((pos * 100) / length), null));
-                    }
-
-                    sr.Close();
+                    if (progress != null && length > 0)
+                        progress(null, new ProgressChangedEventArgs((int)((pos * 100) / length), null));
                 }
+
+                sr.Close();
             }
-            finally
-            {
-                response.Close();
-            }
+
+            response.Close();
 
             if (length > 0 && pos != length)
-                throw new Exception("Incomplete download : " + length);
+                throw new Exception("ConnectionHelper.ReadResponseStream : Le fichier reçu est incomplet. Taille recue : " + pos + ". Taille déclarée (Content-Length) : " + length);
+
+            return ret;
         }
+
+        public static string DownloadFile(string url, string destinationDirectory = null, ProgressChangedEventHandler progress = null)
+        {
+            string fileName = Path.GetTempFileName();
+            if (File.Exists(fileName))
+                File.Delete(fileName);
+
+            if (!string.IsNullOrEmpty(destinationDirectory))
+                fileName = Path.Combine(destinationDirectory, Path.GetFileName(fileName));
+
+            ResponseStreamInfo ret = null;
+
+            try
+            {
+                using (FileStream fileStream = new FileStream(fileName, FileMode.Create))
+                    ret = DownloadToStream(fileStream, url, progress);
+
+                if (File.Exists(fileName))
+                {
+                    if (ret != null && !string.IsNullOrEmpty(ret.FileName))
+                    {
+                        try
+                        {
+                            string newPath = Path.Combine(Path.GetDirectoryName(fileName), ret.FileName);
+
+                            if (File.Exists(newPath))
+                                File.Delete(newPath);
+
+                            File.Move(fileName, newPath);
+                            return newPath;
+                        }
+                        catch { }
+                    }
+
+                    return fileName;
+                }
+
+                throw new FileNotFoundException("File download failed");
+            }
+            catch
+            {
+                if (File.Exists(fileName))
+                    File.Delete(fileName);
+
+                throw;
+            }
+        }
+    }
+
+    public class ResponseStreamInfo
+    {
+        public string ContentType { get; internal set; }
+        public string FileName { get; internal set; }
     }
 }

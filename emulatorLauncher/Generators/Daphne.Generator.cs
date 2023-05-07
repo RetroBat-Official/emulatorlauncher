@@ -47,7 +47,7 @@ namespace emulatorLauncher
                     commandArray.Add("-ignore_aspect_ratio");
                 else
                     commandArray.Add("-force_aspect_ratio");
-
+/*
                 if (SystemConfig.isOptSet("hypseus_scanlines") && SystemConfig["hypseus_scanlines"] == "scanlines")
                     commandArray.Add("-scanlines");
 
@@ -57,7 +57,7 @@ namespace emulatorLauncher
                     commandArray.Add("-vulkan");
 
                 }
-
+                */
                 return;
             }
         }
@@ -94,6 +94,17 @@ namespace emulatorLauncher
             rom = this.TryUnZipGameIfNeeded(system, rom);
 
             string romName = Path.GetFileNameWithoutExtension(rom);
+
+            // Special Treatment for actionmax games
+            var ext = Path.GetExtension(rom).Replace(".", "").ToLower();
+            if (ext == "actionmax")
+            {
+                string expectedSingeFile = Path.Combine(Path.GetDirectoryName(rom), ext, romName + ".singe");
+                if (!File.Exists(expectedSingeFile))
+                    return null;
+
+                rom = Path.Combine(Path.GetDirectoryName(rom), ext);
+            }
 
             string commandsFile = rom + "\\" + romName + ".commands";
 
@@ -148,7 +159,10 @@ namespace emulatorLauncher
                     commandArray.AddRange(new string[] { "-sinden", "2", "w" });
 
                 string directoryName = Path.GetFileName(rom);
-    
+
+                if (directoryName == "actionmax")
+                    directoryName = Path.ChangeExtension(directoryName, ".daphne");
+
                 _symLink = Path.Combine(emulatorPath, directoryName);
 
                 try
@@ -224,6 +238,11 @@ namespace emulatorLauncher
                     commandArray.Add(s);
                 }
             }
+
+            if (SystemConfig["ratio"] == "16/9")
+                SystemConfig["bezel"] = "none";
+
+            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadeManager.GetPlatformFromFile(exe), system, rom, emulatorPath, resolution);
 
             string args = string.Join(" ", commandArray);
 

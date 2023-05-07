@@ -125,13 +125,18 @@ namespace emulatorLauncher
             newMode.dmBitsPerPel = BitsPerPel;
             newMode.dmDisplayFrequency = DisplayFrequency;
 
+            SimpleLogger.Instance.Info("[ScreenResolution] Setting resolution to " + newMode.dmPelsWidth + "x" + newMode.dmPelsHeight + "x" + newMode.dmBitsPerPel + " " + newMode.dmDisplayFrequency + "Hz");
+            
             changed = ChangeDisplaySettings(ref newMode, 0) == DISP_CHANGE_SUCCESSFUL;
         }
 
         public void Dispose()
         {
             if (changed)
+            {
+                SimpleLogger.Instance.Info("[ScreenResolution] Restoring resolution to " + originalMode.dmPelsWidth + "x" + originalMode.dmPelsHeight + "x" + originalMode.dmBitsPerPel + " " + originalMode.dmDisplayFrequency + "Hz");
                 ChangeDisplaySettings(ref originalMode, 0);
+            }
 
             changed = false;
         }

@@ -46,6 +46,7 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="SharpDX, Version=3.0.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SharpDX.dll</HintPath>
@@ -71,35 +72,51 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\Joysticks\HidToDirectInput.cs" />
+    <Compile Include="Common\Joysticks\DirectInputInfo.cs" />
+    <Compile Include="Common\DynamicJson.cs" />
     <Compile Include="Common\GunGames.cs" />
+    <Compile Include="Common\Joysticks\HdiGameDevice.cs" />
     <Compile Include="Common\InputDevices.cs" />
+    <Compile Include="Common\Joysticks\XInputDevice.cs" />
     <Compile Include="Common\MountFile.cs" />
     <Compile Include="Common\EnumerableExtensions.cs" />
     <Compile Include="Common\EsSystems.cs" />
     <Compile Include="Common\FileTools.cs" />
     <Compile Include="Common\IsoFile.cs" />
     <Compile Include="Common\Job.cs" />
+    <Compile Include="Common\MultiDiskImageFile.cs" />
     <Compile Include="Common\OrderedDictionary.cs" />
+    <Compile Include="Common\PortableZip.cs" />
     <Compile Include="Common\ProcessExtensions.cs" />
     <Compile Include="Common\ProgressInformation.cs" />
-    <Compile Include="Common\RawLightGun.cs" />
+    <Compile Include="Common\Joysticks\RawLightGun.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
+    <Compile Include="Common\Joysticks\SdlJoystickGuid.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
+    <Compile Include="Common\Joysticks\WinmmJoystick.cs" />
     <Compile Include="Common\XmlExtensions.cs" />
+    <Compile Include="Common\XmlDeserializer.cs" />
+    <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Generators\Cemu.Controllers.cs">
+      <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
+    <Compile Include="Generators\vita3k.Generator.cs" />
     <Compile Include="Imapi\BurnData.cs" />
     <Compile Include="Imapi\Imapi2Interop.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Common\InputKeyMapping.cs" />
     <Compile Include="Generators\Nes3d.Generator.cs" />
+    <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
@@ -113,9 +130,18 @@
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\Mesen.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Generator.cs" />
-    <Compile Include="Generators\TeknoParrot.generator.cs" />
+    <Compile Include="Generators\Ryujinx.Controllers.cs">
+      <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\TeknoParrot.Generator.cs" />
+    <Compile Include="Generators\TeknoParrot.Controllers.cs">
+      <DependentUpon>TeknoParrot.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Tsugaru.Generator.cs" />
     <Compile Include="Generators\Yuzu.Generator.cs" />
+    <Compile Include="Generators\Yuzu.Controllers.cs">
+      <DependentUpon>Yuzu.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\LibRetro.CoreOptions.cs">
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
@@ -132,6 +158,9 @@
     <Compile Include="Generators\Cxbx.Generator.cs" />
     <Compile Include="Generators\SimCoupe.Generator.cs" />
     <Compile Include="Generators\Model3.Generator.cs" />
+    <Compile Include="Generators\Model3.Controllers.cs">
+      <DependentUpon>Model3.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Dolphin.Generator.cs" />
     <Compile Include="Generators\Dolphin.Controllers.cs">
       <DependentUpon>Dolphin.Generator.cs</DependentUpon>
@@ -140,17 +169,31 @@
     <Compile Include="Generators\DosBox.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Generator.cs" />
+    <Compile Include="Generators\Pcsx2.Controllers.cs">
+      <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Pico8.Generator.cs" />
     <Compile Include="Generators\Rpcs3.Generator.cs" />
+    <Compile Include="Generators\Rpcs3.Controllers.cs">
+      <DependentUpon>Rpcs3.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\OpenBor.Generator.cs" />
+    <Compile Include="Generators\OpenBor.Controllers.cs">
+      <DependentUpon>OpenBor.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Model2.Generator.cs" />
     <Compile Include="Generators\Uae.Generator.cs" />
     <Compile Include="Generators\Snes9x.Generator.cs" />
     <Compile Include="Generators\Citra.Generator.cs" />
+    <Compile Include="Generators\Citra.Controllers.cs">
+      <DependentUpon>Citra.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Xenia.Generator.cs" />
+    <Compile Include="Generators\BigPEmu.Generator.cs" />
     <Compile Include="Generators\Project64.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
     <Compile Include="Generators\NosGba.Generator.cs" />
+    <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
     <Compile Include="PadToKey\JoystickListener.cs" />
@@ -187,7 +230,7 @@
     <Compile Include="Common\ScreenResolution.cs" />
     <Compile Include="Common\IniFile.cs" />
     <Compile Include="Common\SDL2.cs" />
-    <Compile Include="Common\SdlGameControllers.cs" />
+    <Compile Include="Common\Joysticks\SdlGameController.cs" />
     <Compile Include="Common\SimpleLogger.cs" />
     <Compile Include="Common\SimpleYml.cs" />
     <Compile Include="Common\SystemDefaults.cs" />
@@ -225,6 +268,9 @@
     <EmbeddedResource Include="InstallerFrm.resx">
       <DependentUpon>InstallerFrm.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="..\.emulationstation\es_features.cfg">
+      <Link>es_features.cfg</Link>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -237,9 +283,15 @@
     <None Include="Reshader\ReShade.ini" />
     <None Include="Resources\configgen-defaults.yml" />
     <None Include="Resources\eeprom.bin" />
+    <None Include="Resources\hidtodinput.cfg">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />
+    <None Include="Resources\mamecrcs.xml.gz" />
+    <None Include="Resources\reshader.x64.gz" />
+    <None Include="Resources\reshader.x86.gz" />
     <None Include="Resources\xbox_hdd.qcow2.zip" />
   </ItemGroup>
   <ItemGroup>
@@ -250,7 +302,12 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Release (
+    <PostBuildEvent>if $(ConfigurationName) == Debug (
+ECHO Copy es_features.cfg to "$(TargetDir).emulationstation"
+xcopy /Y /Q "$(SolutionDir).emulationstation\es_features.cfg" "$(TargetDir).emulationstation\"
+)
+
+if $(ConfigurationName) == Release (
 "$(SolutionDir)ILMerge.exe" /out:"$(TargetDir)$(TargetFileName)" "$(TargetDir)$(TargetFileName)" /ndebug /wildcards "$(TargetDir)*.dll" /targetplatform:v4,%25systemroot%25\Microsoft.NET\Framework\v4.0.30319
 )</PostBuildEvent>
   </PropertyGroup>

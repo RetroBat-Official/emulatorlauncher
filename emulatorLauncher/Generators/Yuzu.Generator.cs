@@ -8,13 +8,15 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    class YuzuGenerator : Generator
+    partial class YuzuGenerator : Generator
     {
         public YuzuGenerator()
         {
             DependsOnDesktopResolution = true;
         }
 
+        private SdlVersion _sdlVersion = SdlVersion.Unknown;
+        
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath(emulator.Replace("-", " "));
@@ -25,8 +27,12 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupConfiguration(path);
+            string sdl2 = Path.Combine(path, "SDL2.dll");
+            if (File.Exists(sdl2))
+                _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
             
+            SetupConfiguration(path, rom);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
@@ -35,236 +41,151 @@ namespace emulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path)
+        private string GetDefaultswitchLanguage()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "0" },
+                { "en", "1" },
+                { "fr", "2" },
+                { "de", "3" },
+                { "it", "4" },
+                { "es", "5" },
+                { "zh", "6" },
+                { "ko", "7" },
+                { "nl", "8" },
+                { "pt", "9" },
+                { "ru", "10" },
+                { "tw", "11" }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "11";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return "1";
+        }
+
+        private void SetupConfiguration(string path, string rom)
         {
             string conf = Path.Combine(path, "user", "config", "qt-config.ini");
 
             using (var ini = new IniFile(conf))
             {
+                //language
+                if (SystemConfig["Language"] == "en")
+                    ini.WriteValue("System", "language_index\\default", "true");
+                else
+                    ini.WriteValue("System", "language_index\\default", "false");
+                
+                ini.WriteValue("System", "language_index", GetDefaultswitchLanguage());
+
+                //region
+                if (SystemConfig.isOptSet("yuzu_region_value") && !string.IsNullOrEmpty(SystemConfig["yuzu_region_value"]) && SystemConfig["yuzu_region_value"] != "1")
+                {
+                    ini.WriteValue("System", "region_index\\default", "false");
+                    ini.WriteValue("System", "region_index", SystemConfig["yuzu_region_value"]);
+                }
+                else if (Features.IsSupported("yuzu_region_value"))
+                {
+                    ini.WriteValue("System", "region_index\\default", "true");
+                    ini.WriteValue("System", "region_index", "1");
+                }
+
+                //launch in fullscreen
                 ini.WriteValue("UI", "fullscreen\\default", "false");
                 ini.WriteValue("UI", "fullscreen", "true");
 
+                //docked mode
                 ini.WriteValue("UI", "use_docked_mode\\default", "true");
                 ini.WriteValue("UI", "use_docked_mode", "true");
 
-                //      CreateControllerConfiguration(ini);
+                //disable telemetry
+                ini.WriteValue("WebService", "enable_telemetry\\default", "false");
+                ini.WriteValue("WebService", "enable_telemetry", "false");
 
+                //remove exit confirmation
+                ini.WriteValue("UI", "confirmClose\\default", "false");
+                ini.WriteValue("UI", "confirmClose", "false");
+
+                //get path for roms
+                string romPath = Path.GetDirectoryName(rom);
+                ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\","/"));
+
+                CreateControllerConfiguration(ini);
+
+                //screenshots path
+                string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/yuzu";
                 if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
                 {
                     ini.WriteValue("UI", "Screenshots\\enable_screenshot_save_as", "false");
-                    ini.WriteValue("UI", "Screenshots\\screenshot_path", AppConfig.GetFullPath("screenshots"));
+                    ini.WriteValue("UI", "Screenshots\\screenshot_path", screenshotpath);
                 }
 
-                // backend
-                if (SystemConfig.isOptSet("backend") && !string.IsNullOrEmpty(SystemConfig["backend"]) && SystemConfig["backend"] != "0")
-                {
-                    ini.WriteValue("Renderer", "backend\\default", "false");
+                // Audio output
+                ini.WriteValue("System", "sound_index\\default", "false");
+                if (SystemConfig.isOptSet("sound_index") && !string.IsNullOrEmpty(SystemConfig["sound_index"]))
+                    ini.WriteValue("System", "sound_index", SystemConfig["sound_index"]);
+                else if (Features.IsSupported("sound_index"))
+                    ini.WriteValue("System", "sound_index", "1");
+
+                // Video and Audio drivers
+                ini.WriteValue("Renderer", "backend\\default", "false");
+                if (SystemConfig.isOptSet("backend") && !string.IsNullOrEmpty(SystemConfig["backend"]))
                     ini.WriteValue("Renderer", "backend", SystemConfig["backend"]);
-                }
                 else if (Features.IsSupported("backend"))
-                {
-                    ini.WriteValue("Renderer", "backend\\default", "true");
-                    ini.WriteValue("Renderer", "backend", "0");
-                }
+                    ini.WriteValue("Renderer", "backend", "1");
+
+                ini.WriteValue("Audio", "output_engine\\default", "false");
+                if (SystemConfig.isOptSet("audio_backend") && !string.IsNullOrEmpty(SystemConfig["audio_backend"]))
+                    ini.WriteValue("Audio", "output_engine", SystemConfig["audio_backend"]);
+                else if (Features.IsSupported("audio_backend"))
+                    ini.WriteValue("Audio", "output_engine", "auto");
 
                 // resolution_setup
-                if (SystemConfig.isOptSet("resolution_setup") && !string.IsNullOrEmpty(SystemConfig["resolution_setup"]) && SystemConfig["resolution_setup"] != "2")
-                {
-                    ini.WriteValue("Renderer", "resolution_setup\\default", "false");
+                ini.WriteValue("Renderer", "resolution_setup\\default", "false");
+                if (SystemConfig.isOptSet("resolution_setup") && !string.IsNullOrEmpty(SystemConfig["resolution_setup"]))
                     ini.WriteValue("Renderer", "resolution_setup", SystemConfig["resolution_setup"]);
-                }
                 else if (Features.IsSupported("resolution_setup"))
-                {
-                    ini.WriteValue("Renderer", "resolution_setup\\default", "true");
                     ini.WriteValue("Renderer", "resolution_setup", "2");
-                }
+
+                // Vsync
+                ini.WriteValue("Renderer", "use_vsync\\default", "false");
+                if (SystemConfig.isOptSet("use_vsync") && !string.IsNullOrEmpty(SystemConfig["use_vsync"]))
+                    ini.WriteValue("Renderer", "use_vsync", SystemConfig["use_vsync"]);
+                else if (Features.IsSupported("use_vsync"))
+                    ini.WriteValue("Renderer", "use_vsync", "true");
 
                 // anti_aliasing
-                if (SystemConfig.isOptSet("anti_aliasing") && SystemConfig.getOptBoolean("anti_aliasing"))
-                {
-                    ini.WriteValue("Renderer", "anti_aliasing\\default", "false");
-                    ini.WriteValue("Renderer", "anti_aliasing", "1");
-                }
+                ini.WriteValue("Renderer", "anti_aliasing\\default", "false");
+                if (SystemConfig.isOptSet("anti_aliasing") && !string.IsNullOrEmpty(SystemConfig["anti_aliasing"]))
+                    ini.WriteValue("Renderer", "anti_aliasing", SystemConfig["anti_aliasing"]);
                 else if (Features.IsSupported("anti_aliasing"))
-                {
-                    ini.WriteValue("Renderer", "anti_aliasing\\default", "true");
                     ini.WriteValue("Renderer", "anti_aliasing", "0");
-                }
 
                 // scaling_filter
-                if (SystemConfig.isOptSet("scaling_filter") && !string.IsNullOrEmpty(SystemConfig["scaling_filter"]) && SystemConfig["scaling_filter"] != "1")
-                {
-                    ini.WriteValue("Renderer", "scaling_filter\\default", "false");
+                ini.WriteValue("Renderer", "scaling_filter\\default", "false");
+                if (SystemConfig.isOptSet("scaling_filter") && !string.IsNullOrEmpty(SystemConfig["scaling_filter"]))
                     ini.WriteValue("Renderer", "scaling_filter", SystemConfig["scaling_filter"]);
-                }
                 else if (Features.IsSupported("scaling_filter"))
-                {
-                    ini.WriteValue("Renderer", "scaling_filter\\default", "true");
                     ini.WriteValue("Renderer", "scaling_filter", "1");
-                }
+
+                //CPU accuracy (auto except if the user chooses otherwise)
+                ini.WriteValue("Cpu", "cpu_accuracy\\default", "false");
+                if (SystemConfig.isOptSet("cpu_accuracy") && !string.IsNullOrEmpty(SystemConfig["cpu_accuracy"]))
+                    ini.WriteValue("Cpu", "cpu_accuracy", SystemConfig["cpu_accuracy"]);
+                else
+                    ini.WriteValue("Cpu", "cpu_accuracy", "0");
             }
         }
-
-        private string FromInput(Controller controller, Input input)
-        {
-            if (input == null)
-                return null;
-
-            if (input.Type == "key")
-                return "engine:keyboard,code:" + input.Id + ",toggle:0";
-
-            string value = "engine:sdl,port:0,guid:" + controller.Guid.ToLowerInvariant();
-
-            if (input.Type == "button")
-                value += ",button:" + input.Id;
-            else if (input.Type == "hat")
-                value += ",hat:" + input.Id + ",direction:" + input.Name.ToString();
-            else if (input.Type == "axis")
-                value += ",axis:" + input.Id + ",direction:" + (input.Value > 0 ? "+" : "-") + ",threshold:0.500000";
-
-            return value;
-        }
-
-        private void ProcessStick(Controller controller, string player, string stickName, IniFile ini)
-        {
-            var cfg = controller.Config;
-
-            string name = player + stickName;
-
-            var leftVal = cfg[stickName == "lstick" ? InputKey.joystick1up : InputKey.joystick2up];
-            var topVal = cfg[stickName == "lstick" ? InputKey.joystick1left : InputKey.joystick2left];
-
-            if (leftVal != null && topVal != null && leftVal.Type == topVal.Type && leftVal.Type == "axis")
-            {
-                string value = "engine:sdl,port:0,guid:" + controller.Guid.ToLowerInvariant();
-                value += ",axis_x:" + leftVal.Id + ",axis_y:" + topVal.Id + ",deadzone:0.100000,range:1.000000";
-
-                ini.WriteValue("Controls", name + "\\default", "false");
-                ini.WriteValue("Controls", name, "\"" + value + "\"");
-            }
-            else if (stickName == "lstick")
-            {
-                string value = "engine:analog_from_button";
-
-                var left = FromInput(controller, cfg[InputKey.left]);
-                if (left != null) value += ",left:" + left.Replace(":", "$0").Replace(",", "$1");
-
-                var top = FromInput(controller, cfg[InputKey.up]);
-                if (top != null) value += ",up:" + top.Replace(":", "$0").Replace(",", "$1");
-
-                var right = FromInput(controller, cfg[InputKey.right]);
-                if (right != null) value += ",right:" + right.Replace(":", "$0").Replace(",", "$1");
-
-                var down = FromInput(controller, cfg[InputKey.down]);
-                if (down != null) value += ",down:" + down.Replace(":", "$0").Replace(",", "$1");
-
-                var modifier = FromInput(controller, cfg[InputKey.l3]);
-                if (modifier != null) value += ",modifier:" + modifier.Replace(":", "$0").Replace(",", "$1");
-
-                value += ",modifier_scale:0.500000";
-
-                ini.WriteValue("Controls", name + "\\default", "false");
-                ini.WriteValue("Controls", name, "\"" + value + "\"");
-            }
-            else
-            {
-                ini.WriteValue("Controls", name + "\\default", "false");
-                ini.WriteValue("Controls", name, "[empty]");
-            }
-        }
-
-        private void CreateControllerConfiguration(IniFile ini)
-        {
-            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
-                return;
-
-            foreach (var controller in this.Controllers)
-            {
-                var cfg = controller.Config;
-                if (cfg == null)
-                    continue;
-
-                string player = "player_" + (controller.PlayerIndex - 1) + "_";
-
-                foreach (var map in Mapping)
-                {
-                    string name = player + map.Value;
-
-                    string cvalue = FromInput(controller, cfg[map.Key]);
-
-                    if (controller.Name == "Keyboard" && (map.Key == InputKey.up || map.Key == InputKey.down || map.Key == InputKey.left || map.Key == InputKey.right || map.Key == InputKey.l3))
-                        cvalue = null;
-
-                    if (string.IsNullOrEmpty(cvalue))
-                    {
-                        ini.WriteValue("Controls", name + "\\default", "false");
-                        ini.WriteValue("Controls", name, "[empty]");
-                    }
-                    else
-                    {
-                        ini.WriteValue("Controls", name + "\\default", "false");
-                        ini.WriteValue("Controls", name, "\"" + cvalue + "\"");
-                    }
-                }
-
-                ProcessStick(controller, player, "lstick", ini);
-
-                if (controller.Name != "Keyboard")
-                    ProcessStick(controller, player, "rstick", ini);
-            }
-        }
-                
-        static InputKeyMapping Mapping = new InputKeyMapping()
-        { 
-            { InputKey.select,          "button_minus" },  
-            { InputKey.start,           "button_plus" },
-        
-            { InputKey.b,               "button_a" },
-            { InputKey.a,               "button_b" },
-
-            { InputKey.y,               "button_y" },
-            { InputKey.x,               "button_x" },  
-            
-            { InputKey.up,              "button_dup" }, 
-            { InputKey.down,            "button_ddown" }, 
-            { InputKey.left,            "button_dleft" }, 
-            { InputKey.right,           "button_dright" },
-            
-            { InputKey.leftshoulder,    "button_l" },
-            { InputKey.rightshoulder,   "button_r" },          
-
-            { InputKey.l2,              "button_zl" },
-            { InputKey.r2,              "button_zr"},
-
-            { InputKey.l3,              "button_lstick"},
-            { InputKey.r3,              "button_rstick"},
-        };
-
-        static Dictionary<string, string> DefKeys = new Dictionary<string, string>()
-        {
-            { "button_a", "engine:keyboard,code:67,toggle:0" },
-            { "button_b","engine:keyboard,code:88,toggle:0" },
-            { "button_x","engine:keyboard,code:86,toggle:0" },
-            { "button_y","engine:keyboard,code:90,toggle:0" },
-            { "button_lstick","engine:keyboard,code:70,toggle:0" },
-            { "button_rstick","engine:keyboard,code:71,toggle:0" },
-            { "button_l","engine:keyboard,code:81,toggle:0" },
-            { "button_r","engine:keyboard,code:69,toggle:0" },
-            { "button_zl","engine:keyboard,code:82,toggle:0" },
-            { "button_zr","engine:keyboard,code:84,toggle:0" },
-            { "button_plus","engine:keyboard,code:77,toggle:0" },
-            { "button_minus","engine:keyboard,code:78,toggle:0" },
-            { "button_dleft","engine:keyboard,code:16777234,toggle:0" },
-            { "button_dup","engine:keyboard,code:16777235,toggle:0" },
-            { "button_dright","engine:keyboard,code:16777236,toggle:0" },
-            { "button_ddown","engine:keyboard,code:16777237,toggle:0" },
-            { "button_sl","engine:keyboard,code:81,toggle:0" },
-            { "button_sr","engine:keyboard,code:69,toggle:0" },
-            { "button_home","engine:keyboard,code:0,toggle:0" },
-            { "button_screenshot","engine:keyboard,code:0,toggle:0" },
-            { "lstick","engine:analog_from_button,up:engine$0keyboard$1code$087$1toggle$00,left:engine$0keyboard$1code$065$1toggle$00,modifier:engine$0keyboard$1code$016777248$1toggle$00,down:engine$0keyboard$1code$083$1toggle$00,right:engine$0keyboard$1code$068$1toggle$00,modifier_scale:0.500000" },
-            { "rstick","engine:analog_from_button,up:engine$0keyboard$1code$073$1toggle$00,left:engine$0keyboard$1code$074$1toggle$00,modifier:engine$0keyboard$1code$00$1toggle$00,down:engine$0keyboard$1code$075$1toggle$00,right:engine$0keyboard$1code$076$1toggle$00,modifier_scale:0.500000" }
-        };
 
         public override int RunAndWait(ProcessStartInfo path)
         {

@@ -22,13 +22,13 @@ namespace emulatorLauncher
 
             { new Installer("arcadeflashweb") },           
             { new Installer("libretro", "retroarch" ) }, { new Installer("angle", "retroarch" ) }, // "libretro_cores.7z" ???
-            { new Installer("duckstation", "duckstation", "duckstation-nogui-x64-ReleaseLTCG.exe") },  
+            { new Installer("duckstation", new string[] { "duckstation"}, new string[] { "duckstation-nogui-x64-ReleaseLTCG.exe", "duckstation-nogui-x64-Release.exe", "duckstation-nogui.exe" }) },
             { new Installer("kega-fusion", "kega-fusion", "Fusion.exe") }, 
             { new Installer("mesen") }, 
             { new Installer("model3", "supermodel") }, 
             { new Installer("supermodel") }, 
             { new Installer("rpcs3") }, { new Installer("ps3", "rpcs3") }, 
-            { new Installer("pcsx2", "pcsx2", "pcsx2x64.exe") },
+            { new Installer("pcsx2", new string[] { "pcsx2" }, new string[] { "pcsx2-qtx64.exe", "pcsx2x64.exe" }) },
             { new Installer("pcsx2-16", "pcsx2-16", "pcsx2.exe") },
             { new Installer("fpinball", "fpinball", "Future Pinball.exe") }, { new Installer("bam", "fpinball", "Future Pinball.exe") }, 
             { new Installer("cemu") }, { new Installer("wiiu", "cemu") },
@@ -64,10 +64,14 @@ namespace emulatorLauncher
             { new Installer("vpinball", "vpinball", "vpinballx.exe") }, 
             { new Installer("winuae", "winuae", "winuae64.exe") }, 
             { new Installer("xemu", "xemu") },
-			{ new Installer("nosgba", "nosgba", "no$gba.exe") },
+            { new Installer("nosgba", "nosgba", "no$gba.exe") },
             { new Installer("yuzu", "yuzu", "yuzu.exe") },
             { new Installer("ryujinx", "ryujinx", "Ryujinx.exe") },
-            { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) }
+            { new Installer("vita3k", "vita3k", "Vita3K.exe") },
+            { new Installer("xenia", "xenia", "xenia.exe") },
+            { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) },
+            { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
+            { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") }
         };
 
         #region Properties
@@ -237,7 +241,7 @@ namespace emulatorLauncher
                 else
                 {
                     // Fake version number based on last write time
-                    var date = File.GetLastWriteTime(exe).ToString("0.yy.MM.dd");
+                    var date = File.GetLastWriteTime(exe).ToUniversalTime().ToString("0.yy.MM.dd");
                     return date;
                 }
                 
@@ -294,11 +298,18 @@ namespace emulatorLauncher
                     {
                         if (curr.EndsWith("\\"))
                             curr = curr.Substring(0, curr.Length-1);
-
+                        
                         if (Directory.Exists(curr))
                             return Path.Combine(Path.GetDirectoryName(curr), DefaultFolderName);
                     }
                 }
+            }
+
+            if (!checkRootPath && folder == null)
+            {
+                var retroarchDefault = Program.SystemConfig.GetFullPath("retroarch");
+                if (!string.IsNullOrEmpty(retroarchDefault))
+                    folder = Path.Combine(Path.GetDirectoryName(retroarchDefault), DefaultFolderName);
             }
 
             return folder;
@@ -318,7 +329,7 @@ namespace emulatorLauncher
             {               
                 string xml = null;
 
-                string cachedFile = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "versions.xml");
+                string cachedFile = Path.Combine(GetTempPath(), "versions.xml");
 
                 if (File.Exists(cachedFile) && DateTime.Now - File.GetCreationTime(cachedFile) <= new TimeSpan(1, 0, 0, 0))
                 {
@@ -391,10 +402,19 @@ namespace emulatorLauncher
             return WebTools.UrlExists(PackageUrl);
         }
 
-        public static bool DownloadAndInstall(string url, string installFolder, ProgressChangedEventHandler progress = null)
+        public static string GetTempPath()
+        {
+            string ret = Path.Combine(Path.GetTempPath(), "emulationstation.tmp");
+            if (!Directory.Exists(ret))
+                Directory.CreateDirectory(ret);
+
+            return ret;
+        }
+
+        public static void DownloadAndInstall(string url, string installFolder, ProgressChangedEventHandler progress = null)
         {
             string localFile = Path.GetFileName(url);
-            string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", localFile);
+            string fn = Path.Combine(GetTempPath(), localFile);
 
             try { if (File.Exists(fn)) File.Delete(fn); }
             catch { }
@@ -407,21 +427,18 @@ namespace emulatorLauncher
                 if (progress != null)
                     progress(null, new ProgressChangedEventArgs(100, null));
 
-                Zip.Extract(fn, installFolder);
-                return true;
+                Zip.Extract(fn, installFolder);                
             }
             finally
             {
                 try { if (File.Exists(fn)) File.Delete(fn); }
                 catch { }
             }
-
-            return false;
         }
 
-        public bool DownloadAndInstall(ProgressChangedEventHandler progress = null)
+        public void DownloadAndInstall(ProgressChangedEventHandler progress = null)
         {
-            return DownloadAndInstall(PackageUrl, GetInstallFolder(), progress);           
+            DownloadAndInstall(PackageUrl, GetInstallFolder(), progress);           
         }
 
         #region CollectVersions
@@ -467,8 +484,16 @@ namespace emulatorLauncher
                     continue;
 
                 Console.WriteLine(installer.DefaultFolderName);
-                installer.DownloadAndInstall();
-                sys.Add(installer.DefaultFolderName);
+
+                try
+                {
+                    installer.DownloadAndInstall();
+                    sys.Add(installer.DefaultFolderName);
+                }
+                catch(Exception ex) 
+                {
+                    Console.WriteLine("failed " + ex.Message);
+                }
             }
 
             Kernel32.FreeConsole();

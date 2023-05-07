@@ -13,9 +13,6 @@ namespace emulatorLauncher
 {
     class PinballFX3Generator : Generator
     {
-
-        bool _steam = false;
-
         public PinballFX3Generator()
         {
             DependsOnDesktopResolution = true;
@@ -26,38 +23,39 @@ namespace emulatorLauncher
 
             List<string> commandArray = new List<string>();
 
-            string folderName = (emulator == "pinballfx3" || core == "pinballfx3") ? "pinballfx3" : "steam";
-
-            string path = AppConfig.GetFullPath(folderName);
-            if (string.IsNullOrEmpty(path))
+            string path = AppConfig.GetFullPath("steam");
+            if (string.IsNullOrEmpty(path) || (core == "pinballfx-hack" || core == "hack"))
                 path = AppConfig.GetFullPath("pinballfx3");
 
-            if (string.IsNullOrEmpty(path))
-                path = AppConfig.GetFullPath("steam");
-
             string exe = Path.Combine(path, "Pinball FX3.exe");
+            if (!File.Exists(exe) && (core == "pinballfx-steam" || core == "steam"))
+                exe = Path.Combine(path, "pinballfx3.cmd");
+
             if (!File.Exists(exe))
             {
-                _steam = true;
-                exe = Path.Combine(path, "pinballfx3.cmd");
+                string folder = Path.GetDirectoryName(rom);
+                while (folder != null)
+                {
+                    exe = Path.Combine(folder, "Pinball FX3.exe");
+                    if (File.Exists(exe))
+                    {
+                        core = "pinballfx3-nosteam";
+                        path = folder;
+                        break;
+                    }
+
+                    folder = Path.GetDirectoryName(folder);
+                }
             }
 
             if (!File.Exists(exe))
                 return null;
 
-            commandArray.Add("-applaunch 442120");
-            commandArray.Add("-offline");
-            commandArray.Add("-class");
-
-            if (core == "pinballfx3-nosteam" || core == "pinballfx3-hack" || core == "hack" || _steam == false)
+            if (core == "pinballfx3-nosteam" || core == "pinballfx3-hack" || core == "hack")
             {
-                commandArray.Remove("-applaunch 442120");
-            }
-            else if (core == "pinballfx3" || core == "pinballfx3-steam" || core == "steam" || _steam == true)
-            {
-                commandArray.Remove("-applaunch 442120");
-                commandArray.Remove("-offline");
-                //commandArray.Remove("-class");
+                commandArray.Add("-offline");
+                commandArray.Add("-class");
+                commandArray.Add("-table_");
             }
 
             string _args = string.Join(" ", commandArray);
@@ -67,9 +65,9 @@ namespace emulatorLauncher
                 FileName = exe,
                 WorkingDirectory = path
             };
-
+            
             if (_args != null)
-                ret.Arguments = _args + " -table_" + Path.GetFileNameWithoutExtension(rom);
+                ret.Arguments = _args + Path.GetFileNameWithoutExtension(rom);
 
             string ext = Path.GetExtension(exe).ToLower();
             if (ext == ".bat" || ext == ".cmd")
@@ -80,7 +78,7 @@ namespace emulatorLauncher
 
             return ret;
 
-    }
+        }
 
     }
 }

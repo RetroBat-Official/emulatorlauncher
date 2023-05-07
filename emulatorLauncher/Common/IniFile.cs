@@ -111,6 +111,13 @@ namespace emulatorLauncher
             }
         }
 
+        public IniSection GetOrCreateSection(string key)
+        {
+            return new PrivateIniSection(key, this);
+        }
+
+        class PrivateIniSection : IniSection { public PrivateIniSection(string name, IniFile ini) : base(name, ini) { } }
+
         public string[] EnumerateSections()
         {
             return _sections.Select(s => s.Name).Distinct().ToArray();
@@ -123,6 +130,25 @@ namespace emulatorLauncher
                 section.Select(k => k.Name).ToArray();
 
             return new string[] { };
+        }
+
+        public KeyValuePair<string, string>[] EnumerateValues(string sectionName)
+        {
+            var ret = new List<KeyValuePair<string, string>>();
+
+            var section = _sections.Get(sectionName);
+            if (section != null)
+            {
+                foreach (var item in section)
+                {
+                    if (item.IsComment || string.IsNullOrEmpty(item.Name))
+                        continue;
+
+                    ret.Add(new KeyValuePair<string, string>(item.Name, item.Value));
+                }
+            }
+
+            return ret.ToArray();
         }
 
         public void ClearSection(string sectionName)
@@ -273,7 +299,7 @@ namespace emulatorLauncher
             }
             catch (Exception ex)
             {
-
+                SimpleLogger.Instance.Error("[IniFile] Save failed " + ex.Message, ex);
             }
         }
 
@@ -423,7 +449,11 @@ namespace emulatorLauncher
                 if (section == null)
                 {
                     section = new Section() { Name = sectionName };
-                    _sections.Add(section);
+
+                    if ((string.IsNullOrEmpty(sectionName) || sectionName == "ROOT") && _sections.Count > 0)
+                        _sections.Insert(0, section);
+                    else
+                        _sections.Add(section);
                 }
 
                 return section;
@@ -444,5 +474,43 @@ namespace emulatorLauncher
 
         private Sections _sections = new Sections();
         #endregion
+    }
+
+
+    public class IniSection
+    {
+        private IniFile _ini;
+        private string _sectionName;
+
+        protected IniSection(string name, IniFile ini)
+        {
+            _ini = ini;
+            _sectionName = name;
+        }
+
+        public string this[string key]
+        {
+            get
+            {
+                return _ini.GetValue(_sectionName, key);
+            }
+            set
+            {
+                _ini.WriteValue(_sectionName, key, value);
+            }
+        }
+
+        public void Clear()
+        {
+            _ini.ClearSection(_sectionName);            
+        }
+
+        public string[] Keys
+        {
+            get
+            {                
+                return _ini.EnumerateKeys(_sectionName);
+            }
+        }
     }
 }

@@ -14,6 +14,9 @@ namespace emulatorLauncher.libRetro
         private static string _inputDriver = "sdl2";
         private static HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
 
+        static List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
+
+
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -235,6 +238,15 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
+            // Reverse buttons clockwise option for super nintendo libretro cores
+            if (systemButtonInvert.Contains(system) && Program.Features.IsSupported("buttonsInvert") && Program.SystemConfig.getOptBoolean("buttonsInvert"))
+            {
+                retroarchbtns[InputKey.a] = "a";
+                retroarchbtns[InputKey.b] = "b";
+                retroarchbtns[InputKey.x] = "y";
+                retroarchbtns[InputKey.y] = "x";
+            }
+
             var conflicts = new List<string>();
 
             var config = new Dictionary<string, string>();
@@ -310,9 +322,12 @@ namespace emulatorLauncher.libRetro
         private static Input GetInputCode(Controller controller, InputKey btnkey)
         {
             if (_inputDriver == "sdl2")
-                return controller.Config.ToSdlCode(btnkey);
+                return controller.GetSdlMapping(btnkey);
 
-            return controller.Config.ToXInputCodes(btnkey);
+            if (_inputDriver == "dinput")
+                return controller.GetDirectInputMapping(btnkey);
+
+            return controller.GetXInputInput(btnkey);
         }
 
         public static byte[] StringToByteArray(string hex)
@@ -339,18 +354,12 @@ namespace emulatorLauncher.libRetro
             if (index < 0)
                 index = controller.PlayerIndex - 1;
 
-            if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath))
-            {
-                var ctrl = SdlGameControllers.GetGameControllerByPath(controller.DevicePath);
-                if (ctrl != null)
-                    index = ctrl.Index;
-            }
-            else if (_inputDriver != "sdl2")
-            {
-                var dinputIndex = controller.Config.GetDirectInputDeviceIndex();
-                if (dinputIndex >= 0)
-                    index = dinputIndex;
-            }
+            if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath) && controller.SdlController != null)
+                index = controller.SdlController.Index;
+            else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex >= 0)
+                index = controller.DirectInput.DeviceIndex;
+            else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex >= 0)
+                index = controller.XInput.DeviceIndex;
 
             retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = index.ToString();
             retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.PlayerIndex)] = GetAnalogMode(controller, system);

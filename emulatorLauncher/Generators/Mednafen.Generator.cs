@@ -22,6 +22,10 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            var mednafenCore = GetMednafenCoreName(core);
+
+            SetupConfig(path, mednafenCore);
+
             List<string> commandArray = new List<string>();
             
             commandArray.Add("-fps.scale 0");
@@ -30,71 +34,34 @@ namespace emulatorLauncher
             commandArray.Add("-video.fs 1");
 			commandArray.Add("-video.disable_composition 1");
 			commandArray.Add("-video.glvsync 1");
-
-            if (core == "megadrive" || core == "md")
-            {                
-                commandArray.Add("-md.shader.goat.fprog 1");
-                commandArray.Add("-md.special none");
-                commandArray.Add("-md.stretch aspect_int");
-                commandArray.Add("-md.xres 0");
-                commandArray.Add("-md.yres 0");
-                commandArray.Add("-md.videoip 1");
-                commandArray.Add("-md.shader none");
-                commandArray.Add("-md.shader.goat.slen 1");
-                commandArray.Add("-md.shader.goat.tp 0.25");
-                commandArray.Add("-md.shader.goat.hdiv 1");
-                commandArray.Add("-md.shader.goat.vdiv 1");
-                commandArray.Add("-md.scanlines 50");
-            }
-            else if (core == "nes")
-            {
-                commandArray.Add("-nes.shader.goat.fprog 1");
-                commandArray.Add("-nes.special none");
-                commandArray.Add("-nes.stretch aspect_int");
-                commandArray.Add("-nes.xres 0");
-                commandArray.Add("-nes.yres 0");
-                commandArray.Add("-nes.videoip 1");
-                commandArray.Add("-nes.shader none");
-                commandArray.Add("-nes.shader.goat.slen 1");
-                commandArray.Add("-nes.shader.goat.tp 0.25");
-                commandArray.Add("-nes.shader.goat.hdiv 1");
-                commandArray.Add("-nes.shader.goat.vdiv 1");
-                commandArray.Add("-nes.scanlines 50");
-            }
-            else if (core == "snes")
-            {
-                commandArray.Add("-snes.shader.goat.fprog 1");
-                commandArray.Add("-snes.special none");
-                commandArray.Add("-snes.stretch aspect_int");
-                commandArray.Add("-snes.xres 0");
-                commandArray.Add("-snes.yres 0");
-                commandArray.Add("-snes.videoip 1");
-                commandArray.Add("-snes.shader none");
-                commandArray.Add("-snes.shader.goat.slen 1");
-                commandArray.Add("-snes.shader.goat.tp 0.25");
-                commandArray.Add("-snes.shader.goat.hdiv 1");
-                commandArray.Add("-snes.shader.goat.vdiv 1");
-                commandArray.Add("-snes.scanlines 50");
-            }
-            else if (core == "pcengine" || core == "pcenginecd" || core == "supergrafx" || core == "pce")
-            {                
-                if (AppConfig.isOptSet("bios"))
-                    commandArray.Add("-pce.cdbios \""+Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce")+"\"");
-
-                commandArray.Add("-pce.shader.goat.fprog 1");
-                commandArray.Add("-pce.special none");
-                commandArray.Add("-pce.stretch aspect_int");
-                commandArray.Add("-pce.xres 0");
-                commandArray.Add("-pce.yres 0");
-                commandArray.Add("-pce.videoip 1");
-                commandArray.Add("-pce.shader none");
-                commandArray.Add("-pce.shader.goat.slen 1");
-                commandArray.Add("-pce.shader.goat.tp 0.25");
-                commandArray.Add("-pce.shader.goat.hdiv 1");
-                commandArray.Add("-pce.shader.goat.vdiv 1");
-                commandArray.Add("-pce.scanlines 50");
-            }
+            commandArray.Add("-video.driver opengl");
             
+            if (mednafenCore == "pce" && AppConfig.isOptSet("bios"))
+                commandArray.Add("-pce.cdbios \"" + Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce") + "\"");
+
+            commandArray.Add("-" + mednafenCore + ".special none");            
+            commandArray.Add("-" + mednafenCore + ".shader none");
+            commandArray.Add("-" + mednafenCore + ".xres 0");
+            commandArray.Add("-" + mednafenCore + ".yres 0");
+            commandArray.Add("-" + mednafenCore + ".shader.goat.fprog 1");
+            commandArray.Add("-" + mednafenCore + ".shader.goat.slen 1");
+            commandArray.Add("-" + mednafenCore + ".shader.goat.tp 0.25");
+            commandArray.Add("-" + mednafenCore + ".shader.goat.hdiv 1");
+            commandArray.Add("-" + mednafenCore + ".shader.goat.vdiv 1");
+
+            if (Features.IsSupported("smooth") && SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
+                commandArray.Add("-" + mednafenCore + ".videoip 1");
+            else
+                commandArray.Add("-" + mednafenCore + ".videoip 0");
+            
+            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            var platform = ReshadeManager.GetPlatformFromFile(exe);
+            if (ReshadeManager.Setup(ReshadeBezelType.opengl, platform, system, rom, path, resolution, bezels != null) && bezels != null)
+                commandArray.Add("-" + mednafenCore + ".stretch full");
+            else
+                commandArray.Add("-" + mednafenCore + ".stretch aspect"); 
+
             commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
@@ -105,5 +72,106 @@ namespace emulatorLauncher
                 Arguments = args,
             };
         }
+
+        private void SetupConfig(string path, string core)
+        {
+            var cfg = MednafenConfigFile.FromFile(Path.Combine(path, "mednafen.cfg"));
+
+            var biosPath = AppConfig.GetFullPath("bios");
+            if (!string.IsNullOrEmpty(biosPath))
+                cfg["filesys.path_firmware"] = biosPath;
+
+            cfg[core+".enable"] = "1";
+
+            cfg.Save();
+        }
+
+        private string GetMednafenCoreName(string core)
+        {
+            switch (core)
+            {
+                case "megadrive":
+                    return "md";
+                case "pcengine":
+                case "pcenginecd":
+                case "supergrafx":
+                    return "pce";
+            }
+
+            return core;
+        }
     }
+    
+    class MednafenConfigFile
+    {
+        private string _fileName;
+        private List<string> _lines;
+
+        public static MednafenConfigFile FromFile(string file)
+        {
+            var ret = new MednafenConfigFile();
+            ret._fileName = file;
+
+            try
+            {
+                if (File.Exists(file))
+                    ret._lines = File.ReadAllLines(file).ToList();
+            }
+            catch { }
+
+            if (ret._lines == null)
+                ret._lines = new List<string>();
+
+            return ret;
+        }
+
+        public string this[string key]
+        {
+            get
+            {
+                int idx = _lines.FindIndex(l => !string.IsNullOrEmpty(l) && l[0] != ';' && l.StartsWith(key + " "));
+                if (idx >= 0)
+                {
+                    int split = _lines[idx].IndexOf(" ");
+                    if (split >= 0)
+                        return _lines[idx].Substring(split + 1).Trim();
+                }
+
+                return string.Empty;
+            }
+            set
+            {
+                if (this[key] == value)
+                    return;
+
+                int idx = _lines.FindIndex(l => !string.IsNullOrEmpty(l) && l[0] != ';' && l.StartsWith(key + " "));
+                if (idx >= 0)
+                {
+                    _lines.RemoveAt(idx);
+
+                    if (!string.IsNullOrEmpty(value))
+                        _lines.Insert(idx, key + " " + value);
+                }
+                else if (!string.IsNullOrEmpty(value))
+                {
+                    _lines.Add(key + " " + value);
+                    _lines.Add("");
+                }
+
+                IsDirty = true;
+            }
+        }
+
+        public bool IsDirty { get; private set; }
+
+        public void Save()
+        {
+            if (!IsDirty)
+                return;
+
+            File.WriteAllLines(_fileName, _lines);
+            IsDirty = false;
+        }
+    }
+
 }

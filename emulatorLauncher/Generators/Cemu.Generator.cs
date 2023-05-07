@@ -6,10 +6,11 @@ using System.IO;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
 using System.Xml.Linq;
+using System.Xml;
 
 namespace emulatorLauncher
 {
-    class CemuGenerator : Generator
+    partial class CemuGenerator : Generator
     {
         public CemuGenerator()
         {
@@ -26,6 +27,7 @@ namespace emulatorLauncher
 
             rom = TryUnZipGameIfNeeded(system, rom);
 
+            //read m3u if rom is in m3u format
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
@@ -37,27 +39,10 @@ namespace emulatorLauncher
                     rom = Path.Combine(path, rom.Substring(1));
             }
 
-            string settingsFile = Path.Combine(path, "settings.xml");
-            if (File.Exists(settingsFile))
-            {
-                try
-                {
-                    XDocument settings = XDocument.Load(settingsFile);
+            //settings
+            SetupConfiguration(path, rom);
 
-                    var fps = settings.Descendants().FirstOrDefault(d => d.Name == "FPS");
-                    if (fps != null)
-                    {                        
-                        bool showFPS = SystemConfig.isOptSet("showFPS") && SystemConfig.getOptBoolean("showFPS");
-                        if (showFPS.ToString().ToLower() != fps.Value)
-                        {
-                            fps.SetValue(showFPS);
-                            settings.Save(settingsFile);
-                        }
-                    }
-                }
-                catch { }
-            }
-
+            //controller configuration
             CreateControllerConfiguration(path);
 
             string romdir = Path.GetDirectoryName(rom);
@@ -69,397 +54,143 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
             };
         }
-        
-        private void CreateControllerConfiguration(string path)
+
+        /// <summary>
+        /// UI - console language
+        /// Japanese = 0
+        /// English = 1
+        /// French = 2
+        /// German = 3
+        /// Italian = 4
+        /// Spanish = 5
+        /// Chinese = 6
+        /// Korean = 7
+        /// Dutch = 8
+        /// Portuguese = 9
+        /// Russian = 10
+        /// Taiwanese = 11
+        /// </summary>
+        /// <returns></returns>
+        private string GetDefaultWiiULanguage()
         {
-            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
-                return;
-
-            string controllerProfiles = Path.Combine(path, "controllerProfiles");
-
-            foreach (var controller in this.Controllers)
-            {
-                if (controller.Config == null)
-                    continue;
-
-                string controllerTxt = Path.Combine(controllerProfiles, "controller" + (controller.PlayerIndex - 1) + ".txt");
-                using (IniFile ini = new IniFile(controllerTxt, IniOptions.UseSpaces))
-                    ConfigureInput(ini, controller);
-            }
-        }
-
-        private static void ConfigureInput(IniFile ini, Controller controller)
-        {
-            if (controller == null || controller.Config == null)
-                return;
-
-            if (controller.Config.Type == "joystick")
-                ConfigureJoystick(ini, controller.Config, controller.PlayerIndex -1);
-            else
-                ConfigureKeyboard(ini, controller.Config);
-        }
-
-
-        private static void ConfigureKeyboard(IniFile ini, InputConfig keyboard)
-        {
-            if (keyboard == null)
-                return;
-
-            ini.WriteValue("General", "emulate", "Wii U GamePad");
-            ini.WriteValue("General", "api", "Keyboard");
-            ini.WriteValue("General", "controller", null);
-
-            ini.WriteValue("Controller", "rumble", "0");
-            ini.WriteValue("Controller", "leftRange", "1");
-            ini.WriteValue("Controller", "rightRange", "1");
-            ini.WriteValue("Controller", "leftDeadzone", "0.15");
-            ini.WriteValue("Controller", "rightDeadzone", "0.15");
-            ini.WriteValue("Controller", "buttonThreshold", "0.5");
-
-            Action<string, InputKey> writeIni = (v, k) =>
-            {
-                var a = keyboard[k];
-                if (a != null)
-                {
-                    byte value = SdlToKeyCode(a.Id);
-                    ini.WriteValue("Controller", v, "key_" + value.ToString());
-                }
-                else if (ini.GetValue("Controller", v) != null && ini.GetValue("Controller", v).StartsWith("button"))
-                    ini.WriteValue("Controller", v, "");
-            };
-
-            writeIni("1", InputKey.a);
-            writeIni("2", InputKey.b);
-            writeIni("3", InputKey.x);
-            writeIni("4", InputKey.y);
-
-            writeIni("5", InputKey.pageup);
-            writeIni("6", InputKey.pagedown);
-
-            writeIni("7", InputKey.lefttrigger);
-            writeIni("8", InputKey.righttrigger);
-
-            writeIni("9", InputKey.start);
-            writeIni("10", InputKey.select);
-
-            writeIni("11", InputKey.up);
-            writeIni("12", InputKey.down);
-            writeIni("13", InputKey.left);
-            writeIni("14", InputKey.right);
-
-            if (ini.GetValue("Controller", "15") != null && ini.GetValue("Controller", "15").StartsWith("button"))
-                ini.WriteValue("Controller", "15", null);
-
-            if (ini.GetValue("Controller", "16") != null && ini.GetValue("Controller", "16").StartsWith("button"))
-                ini.WriteValue("Controller", "16", null);
-
-            writeIni("17", InputKey.joystick1up);
-            writeIni("18", InputKey.joystick1up);
-            writeIni("19", InputKey.joystick1left);
-            writeIni("20", InputKey.joystick1left);
-
-            writeIni("21", InputKey.joystick2up);
-            writeIni("22", InputKey.joystick2up);
-            writeIni("23", InputKey.joystick2left);
-            writeIni("24", InputKey.joystick2left);
-
-            writeIni("26", InputKey.hotkeyenable);
-        }
-
-        private static void ConfigureJoystick(IniFile ini, InputConfig joy, int playerIndex)
-        {
-            if (joy == null)
-                return;
-
-            string api;
-            string guid = string.Empty;
-
-            if (joy.IsXInputDevice())
-            {
-                api = "XInput";
-                guid = "0";
-            }
-            else
-            {
-                api = "DirectInput";
-                Guid gd = joy.GetJoystickInstanceGuid();
-                if (gd == Guid.Empty)
-                    return;
-
-                guid = gd.ToString().ToUpper();
-            }
-
-            if (playerIndex == 0)
-                ini.WriteValue("General", "emulate", "Wii U GamePad");
-            else
-                ini.WriteValue("General", "emulate", "Wii U Classic Controller");
-            
-            ini.WriteValue("General", "api", api);
-            ini.WriteValue("General", "controller", guid);
-
-            ini.WriteValue("Controller", "rumble", "0");
-            ini.WriteValue("Controller", "leftRange", "1");
-            ini.WriteValue("Controller", "rightRange", "1");
-            ini.WriteValue("Controller", "leftDeadzone", "0.15");
-            ini.WriteValue("Controller", "rightDeadzone", "0.15");
-            ini.WriteValue("Controller", "buttonThreshold", "0.5");
-
-            Action<string, InputKey, bool> writeIni = (v, k, r) =>                
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>() 
             { 
-                var val = GetInputValue(joy, k, api, r); 
-                ini.WriteValue("Controller", v, val); 
+                { "jp", "0" }, 
+                { "en", "1" },                 
+                { "fr", "2" }, 
+                { "de", "3" }, 
+                { "it", "4" }, 
+                { "es", "5" }, 
+                { "zh", "6" }, 
+                { "ko", "7" }, 
+                { "nl", "8" }, 
+                { "pt", "9" }, 
+                { "ru", "10" },
+                { "tw", "11" }
             };
 
-            writeIni("1", InputKey.a, false);
-            writeIni("2", InputKey.b, false);
-            writeIni("3", InputKey.x, false);
-            writeIni("4", InputKey.y, false);
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "11";
 
-            writeIni("5", InputKey.pageup, false);
-            writeIni("6", InputKey.pagedown, false);
-
-            writeIni("7", InputKey.leftthumb, false); 
-            writeIni("8", InputKey.rightthumb, false);
-
-            writeIni("9", InputKey.start, false);
-            writeIni("10", InputKey.select, false);
-
-            writeIni("11", InputKey.up, false);
-            writeIni("12", InputKey.down, false);
-            writeIni("13", InputKey.left, false);
-            writeIni("14", InputKey.right, false);
-
-            writeIni("15", InputKey.lefttrigger, false);
-            writeIni("16", InputKey.righttrigger, false);
-
-            writeIni("17", InputKey.joystick1up, false);
-            writeIni("18", InputKey.joystick1up, true);
-            writeIni("19", InputKey.joystick1left, false);
-            writeIni("20", InputKey.joystick1left, true);
-
-            writeIni("21", InputKey.joystick2up, false);
-            writeIni("22", InputKey.joystick2up, true);
-            writeIni("23", InputKey.joystick2left, false);
-            writeIni("24", InputKey.joystick2left, true);
-            /*
-            if (joy[InputKey.select] != null && !joy[InputKey.select].Equals(joy[InputKey.hotkey]))
-                writeIni("26", InputKey.hotkey, false);
-            else*/
-                ini.WriteValue("Controller", "26", null);
-        }
-
-        private static string GetInputValue(InputConfig joy, InputKey ik, string api, bool invertAxis = false)
-        {
-            var a = joy[ik];
-            if (a == null)
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
             {
-                if (api == "XInput" && GetCEmuInputIndex(ik) == 7)
-                    return "button_1000000";
-                else if (api == "XInput" && GetCEmuInputIndex(ik) == 8)
-                    return "button_2000000";
-
-                return null;
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
             }
 
-            Int64 val = a.Id;
-            Int64 pid = 1;
+            return "1";
+        }
+        /// <summary>
+        /// Configure emulator features (settings.xml)
+        /// </summary>
+        /// <param name="path"></param>
+        private void SetupConfiguration(string path, string rom)
+        {
+            string settingsFile = Path.Combine(path, "settings.xml");
 
-            if (a.Type == "hat")
+            var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("content");
+
+            xdoc.SetElementValue("check_update", "false");
+            BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());
+
+            // Graphic part of settings file
+            var graphic = xdoc.GetOrCreateElement("Graphic");            
+            BindFeature(graphic, "VSync", "vsync", "true"); // VSYNC (true or false)
+            BindFeature(graphic, "api", "video_renderer", "1"); // Graphic driver (0 for OpenGL / 1 for Vulkan)
+            BindFeature(graphic, "AsyncCompile", "async_texture", SystemConfig["video_renderer"] != "0" ? "true" : "false"); // Async shader compilation (only if vulkan - true or false)
+            BindFeature(graphic, "GX2DrawdoneSync", "accurate_sync", "true"); // Full sync at GX2DrawDone (only if opengl - true or false)
+            BindFeature(graphic, "UpscaleFilter", "upscaleFilter", "1"); // Upscale filter (0 to 3)
+            BindFeature(graphic, "DownscaleFilter", "downscaleFilter", "0"); // Downscale filter (0 to 3)
+            BindFeature(graphic, "FullscreenScaling", "stretch", "0"); // Fullscreen scaling (0 = keep aspect ratio / 1 = stretch)
+            
+            // Audio part of settings file
+            var audio = xdoc.GetOrCreateElement("Audio");
+            BindFeature(audio, "api", "audio_renderer", "0"); // Audio driver (0 for DirectSound / 2 for XAudio2 / 3 for Cubeb)
+            BindFeature(audio, "TVChannels", "channels", "1"); // Audio channels (0 for Mono / 1 for Stereo / 2 for Surround)
+
+            //Statistics (3 options : full, fps only or none / full shows FPS, CPU & ram usage)
+            if (Features.IsSupported("overlay"))
             {
-                pid = a.Value;
-                if (val == 0)
-                {
-                    switch (pid)
-                    {
-                        case 1: pid = 0x04000000; break;
-                        case 2: pid = 0x20000000; break;
-                        case 4: pid = 0x08000000; break;
-                        case 8: pid = 0x10000000; break;
-                    }
+                var overlay = graphic.GetOrCreateElement("Overlay");
 
-                    val = 0;
+                if ((SystemConfig.isOptSet("overlay")) && (SystemConfig["overlay"] == "full"))
+                {
+                    overlay.SetElementValue("FPS", "true");
+                    overlay.SetElementValue("CPUUsage", "true");
+                    overlay.SetElementValue("RAMUsage", "true");
+                    overlay.SetElementValue("VRAMUsage", "true");
+                }
+                else if ((SystemConfig.isOptSet("overlay")) && (SystemConfig["overlay"] == "fps"))
+                {
+                    overlay.SetElementValue("FPS", "true");
+                    overlay.SetElementValue("CPUUsage", "false");
+                    overlay.SetElementValue("RAMUsage", "false");
+                    overlay.SetElementValue("VRAMUsage", "false");
                 }
                 else
                 {
-                    pid = 0x2000000 * pid;
-                    val = 0;
+                    overlay.SetElementValue("FPS", "false");
+                    overlay.SetElementValue("CPUUsage", "false");
+                    overlay.SetElementValue("RAMUsage", "false");
+                    overlay.SetElementValue("VRAMUsage", "false");
                 }
             }
 
-            if (a.Type == "axis")
+            // Notifications (2 options : on or off / on shows controller profiles & shader compilation messages)
+            if (Features.IsSupported("notifications"))
             {
-                pid = a.Value;
+                var notification = graphic.GetOrCreateElement("Notification");
 
-                int axisVal = invertAxis ? -1 : 1;
-
-                if (api == "XInput" && val == 1 || val == 4)
-                    axisVal = -axisVal;
-
-                switch (val)
+                if ((SystemConfig.isOptSet("notifications")) && (SystemConfig.getOptBoolean("notifications")))
                 {
-                    case 0: // left analog left/right
-                        if (pid == axisVal)     pid = 0x0040000000;                                
-                        else                    pid = 0x1000000000;
-                        break;
-                    case 1: // left analog up/down
-                        if (pid == axisVal)     pid = 0x0080000000; 
-                        else                    pid = 0x2000000000;
-                        break;
-                    case 2: // Triggers Analogiques L+R
-                        if (pid == axisVal)     pid = 0x0100000000;                                 
-                        else                    pid = 0x4000000000;
-                        break;
-                    case 3: // right analog left/right
-                        if (pid == axisVal)     pid = 0x0200000000; 
-                        else                    pid = 0x8000000000;
-                        break;
-                    case 4: // right analog up/down
-                        if (pid == axisVal)     pid = 0x0400000000; 
-                        else                    pid = 0x10000000000;
-                        break;
-                    case 5: // Triggers Analogiques R
-                        if (pid == axisVal) pid = 0x0800000000;
-                        else                pid = 0x10000000000;
-                        break;
+                    notification.SetElementValue("ControllerProfiles", "true");
+                    notification.SetElementValue("ShaderCompiling", "true");
                 }
-
-                if (pid == axisVal && val == 1)
-                    pid = 0x80000000;
                 else
-                    val = 0;
+                {
+                    notification.SetElementValue("ControllerProfiles", "false");
+                    notification.SetElementValue("ShaderCompiling", "false");
+                }
             }
 
-            // Invert start/select on XInput
-            if (api == "XInput" && val == 7)
-                val = 6;
-            else if (api == "XInput" && val == 6)
-                val = 7;
+            AddPathToGamePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), xdoc);
 
-            //(GetCEmuInputIndex(ik, api == "XInput") + (invertAxis ? 1 : 0)).ToString() + " = 
-            string ret = "button_" + (pid << (int)val).ToString("X");
-            return ret;
+            // Save xml file
+            xdoc.Save(settingsFile);
         }
 
-        public static int GetCEmuInputIndex(InputKey k, bool XInput = false)
+        private static void AddPathToGamePaths(string romPath, XElement xdoc)
         {
-            if (XInput && k == InputKey.start)
-                return 10;
-            else if (XInput && k == InputKey.select)
-                return 9;
+            var gamePaths = xdoc.Element("GamePaths");
+            if (gamePaths == null)
+                xdoc.Add(gamePaths = new XElement("GamePaths"));
 
-            switch (k)
-            {
-                case InputKey.a: return 1;
-                case InputKey.b: return 2;
-                case InputKey.x: return 3;
-                case InputKey.y: return 4;
-
-                case InputKey.leftshoulder: return 5;
-                case InputKey.rightshoulder: return 6;
-
-                case InputKey.lefttrigger: return 7;
-                case InputKey.righttrigger: return 8;
-
-                case InputKey.start: return 9;
-                case InputKey.select: return 10;
-
-                case InputKey.up: return 11;
-                case InputKey.down: return 12;
-                case InputKey.left: return 13;
-                case InputKey.right: return 14;
-
-                case InputKey.leftthumb: return 15;
-                case InputKey.rightthumb: return 16;
-
-                case InputKey.leftanalogup: return 17;
-                case InputKey.leftanalogdown: return 18;
-                case InputKey.leftanalogleft: return 19;
-                case InputKey.leftanalogright: return 20;
-
-
-                case InputKey.rightanalogup: return 21;
-                case InputKey.rightanalogdown: return 22;
-                case InputKey.rightanalogleft: return 23;
-                case InputKey.rightanalogright: return 24;
-
-                case InputKey.hotkeyenable: return 26;
-            }
-            return -1;
-        }
-
-        private static byte SdlToKeyCode(long sdlCode)
-        {
-            switch (sdlCode)
-            {
-                //Select = 0x40000077,
-                //PrintScreen = 0x40000046,
-                //LeftGui = 0x400000e3,
-                //RightGui = 0x400000e7,
-                //Application = 0x40000065,
-                //Kp_ENTER = 0x40000058,
-                //Gui = 0x400000e3,
-                //Pause = 0x40000048,
-                //Capslock = 0x40000039,
-
-                case 0x4000009e: return 13; // Return2
-
-                case 0x400000e1: return 16; // Shift = 
-                case 0x400000e0: return 17; // Ctrl = 
-                case 0x400000e2: return 18; // Alt = 
-
-                case 0x4000004b: return 33; // PageUp = ,
-                case 0x4000004e: return 34; // PageDown = ,
-                case 0x4000004d: return 35; // End = ,
-                case 0x4000004a: return 36; // Home = ,
-                case 0x40000050: return 37; // Left = ,
-                case 0x40000052: return 38; // Up = ,
-                case 0x4000004f: return 39; // Right = ,
-                case 0x40000051: return 40; // Down = 0x40000051,
-
-                case 0x40000049: return 45; // Insert = 0x40000049,
-                case 0x0000007f: return 46; // Delete = 0x0000007f,
-                    
-                case 0x40000059: return 97;  //KP_1 = 0x40000059,
-                case 0X4000005A: return 98;  //KP_2 = 0X4000005A,
-                case 0x4000005b: return 99;  // KP_3 = ,
-                case 0x4000005c: return 100; // KP_4 = ,
-                case 0x4000005d: return 101; // KP_5 = ,
-                case 0x4000005e: return 102; // KP_6 = ,
-                case 0x4000005f: return 103; // KP_7 = ,
-                case 0x40000060: return 104; // KP_8 = ,
-                case 0x40000061: return 105; // KP_9 = ,
-                case 0x40000062: return 96;  // KP_0 = 0x40000062,
-                case 0x40000055: return 106; // KP_Multiply
-                case 0x40000057: return 107; // KP_Plus
-                case 0x40000056: return 109; // KP_Minus
-
-                case 0x4000003a: return 112; // F1
-                case 0x4000003b: return 113; // F2
-                case 0x4000003c: return 114; // F3
-                case 0x4000003d: return 115; // F4
-                case 0x4000003e: return 116; // F5
-                case 0x4000003f: return 117; // F6
-                case 0x40000040: return 118; // F7
-                case 0x40000041: return 119; // F8
-                case 0x40000042: return 120; // F9
-                case 0x40000043: return 121; // F10
-                case 0x40000044: return 122; // F11
-                case 0x40000045: return 123; // F12
-                /*        
-            KP_Period = 0x40000063,
-            KP_Divide = 0x40000054,
-                   
-            NumlockClear = 0x40000053,
-            ScrollLock = 0x40000047,*/
-                //RightShift = 0x400000e5,
-                //LeftCtrl = 0x400000e0,
-                //   RightCtrl = 0x400000e4,
-                //     RightAlt = 0x400000e6,
-            }
-
-            sdlCode = sdlCode & 0xFFFF;
-            byte value = (byte)((char)sdlCode).ToString().ToUpper()[0];
-            return value;
+            var paths = gamePaths.Elements("Entry").Select(e => e.Value).Where(e => !string.IsNullOrEmpty(e)).Select(e => Path.GetFullPath(e)).ToList();
+            if (!paths.Contains(romPath))
+                gamePaths.Add(new XElement("Entry", romPath));
         }
     }
 }

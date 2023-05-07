@@ -455,8 +455,26 @@ namespace emulatorLauncher
 
             return s;
         }
-        
-        protected void BindFeature(ConfigFile cfg, string settingName, string featureName, string defaultValue, bool force = false)
+
+        protected void BindFeature(System.Xml.Linq.XElement cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+           if (force || Features.IsSupported(featureName))
+                cfg.SetElementValue(settingName, SystemConfig.GetValueOrDefault(featureName, defaultValue));
+        }
+
+        protected void BindFeature(YmlContainer cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+        }
+
+        protected void BindFeature(IniSection cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+        }
+
+        protected void BindFeature(DynamicJson cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
@@ -471,6 +489,12 @@ namespace emulatorLauncher
                 else
                     cfg[settingName] = falseValue;
             }
+        }
+
+        protected void BindFeature(ConfigFile cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
         }
 
     }
