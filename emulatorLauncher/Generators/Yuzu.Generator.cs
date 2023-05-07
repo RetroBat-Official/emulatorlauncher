@@ -98,7 +98,7 @@ namespace emulatorLauncher
 
             using (var ini = new IniFile(conf))
             {
-                // Set up paths
+                /* Set up paths
                 string switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
                 if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
                     catch { }
@@ -141,7 +141,7 @@ namespace emulatorLauncher
                 {
                     ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
-                }
+                }*/
 
                 //language
                 ini.WriteValue("System", "language_index\\default", "false");
