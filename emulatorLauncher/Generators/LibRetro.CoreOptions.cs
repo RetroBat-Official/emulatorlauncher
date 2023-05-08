@@ -1035,6 +1035,7 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "citra_analog_function", "citra_analog_function", "C-Stick and Touchscreen Pointer");
             BindFeature(coreSettings, "citra_mouse_touchscreen", "citra_mouse_touchscreen", "enabled");
+            BindFeature(coreSettings, "citra_render_touchscreen", "citra_render_touchscreen", "disabled");
         }
 
         private void ConfigureMednafenSaturn(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

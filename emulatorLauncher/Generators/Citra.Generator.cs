@@ -77,6 +77,26 @@ namespace emulatorLauncher
                     ini.WriteValue("UI", "enable_discord_presence", "false");
                 }
 
+                ini.WriteValue("Data%20Storage", "use_custom_storage\\default", "false");
+                ini.WriteValue("Data%20Storage", "use_custom_storage", "true");
+
+                string citraNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "nand");
+                if (!Directory.Exists(citraNandPath)) try { Directory.CreateDirectory(citraNandPath); }
+                    catch { }
+                ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
+                ini.WriteValue("Data%20Storage", "nand_directory", citraNandPath.Replace("\\", "/"));
+
+                // Write nand settings (language)
+                string nandPath = Path.Combine(citraNandPath, "data", "00000000000000000000000000000000", "sysdata", "00010017", "00000000", "config");
+                if (File.Exists(nandPath))
+                    Write3DSnand(nandPath);
+
+                string sdmcPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "sdmc");
+                if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
+                    catch { }
+                ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
+                ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
+
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");
 
@@ -185,11 +205,6 @@ namespace emulatorLauncher
                     ini.WriteValue("Utility", "preload_textures", "false");
                 }
             }
-
-            // Write nand settings (language)
-            string nandPath = Path.Combine(path, "user", "nand", "data", "00000000000000000000000000000000", "sysdata", "00010017", "00000000", "config");
-            if (File.Exists(nandPath))
-                Write3DSnand(nandPath);
         }
 
         private void Write3DSnand(string path)

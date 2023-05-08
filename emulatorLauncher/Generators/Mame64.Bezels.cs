@@ -87,9 +87,9 @@ namespace emulatorLauncher
             }
 
             // Check if ratio is forced
-            if (Features.IsSupported("ratio") && SystemConfig.isOptSet("ratio"))
+            if (Features.IsSupported("mame_ratio") && SystemConfig.isOptSet("mame_ratio"))
             {
-                var ratio = Program.SystemConfig["ratio"].ToRatio();
+                var ratio = Program.SystemConfig["mame_ratio"].ToRatio();
                 if (ratio != 0)
                 {
                     int height = infos.height.GetValueOrDefault() - infos.top.GetValueOrDefault() - infos.bottom.GetValueOrDefault();

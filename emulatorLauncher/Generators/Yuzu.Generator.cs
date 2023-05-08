@@ -98,7 +98,7 @@ namespace emulatorLauncher
 
             using (var ini = new IniFile(conf))
             {
-                // Set up paths
+                /* Set up paths
                 string switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
                 if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
                     catch { }
@@ -141,7 +141,7 @@ namespace emulatorLauncher
                 {
                     ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
-                }
+                }*/
 
                 //language
                 ini.WriteValue("System", "language_index\\default", "false");
@@ -257,6 +257,13 @@ namespace emulatorLauncher
                     ini.WriteValue("Renderer", "resolution_setup", SystemConfig["resolution_setup"]);
                 else if (Features.IsSupported("resolution_setup"))
                     ini.WriteValue("Renderer", "resolution_setup", "2");
+
+                // Aspect ratio
+                ini.WriteValue("Renderer", "aspect_ratio\\default", "false");
+                if (SystemConfig.isOptSet("yuzu_ratio") && !string.IsNullOrEmpty(SystemConfig["yuzu_ratio"]))
+                    ini.WriteValue("Renderer", "aspect_ratio", SystemConfig["yuzu_ratio"]);
+                else if (Features.IsSupported("yuzu_ratio"))
+                    ini.WriteValue("Renderer", "aspect_ratio", "0");
 
                 // Anisotropic filtering
                 ini.WriteValue("Renderer", "max_anisotropy\\default", "false");

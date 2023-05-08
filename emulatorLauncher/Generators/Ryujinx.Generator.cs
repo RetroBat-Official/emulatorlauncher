@@ -85,7 +85,7 @@ namespace emulatorLauncher
                 json["enable_discord_integration"] = "false";
 
             //System
-            json["system_language"] = GetDefaultswitchLanguage();
+            BindFeature(json, "system_language", "switch_language", GetDefaultswitchLanguage());
             BindFeature(json, "enable_vsync", "vsync", "true");
             BindFeature(json, "enable_ptc", "enable_ptc", "true");
             BindFeature(json, "enable_fs_integrity_checks", "enable_fs_integrity_checks", "true");

@@ -245,6 +245,7 @@ namespace emulatorLauncher
             // Handle System part of yml file
             var system_region = yml.GetOrCreateContainer("System");
             BindFeature(system_region, "License Area", "ps3_region", "SCEE");
+            BindFeature(system_region, "Language", "ps3_language", GetDefaultPS3Language());
 
             // Handle Miscellaneous part of yml file
             var misc = yml.GetOrCreateContainer("Miscellaneous");
@@ -255,6 +256,39 @@ namespace emulatorLauncher
 
             // Save to yml file
             yml.Save();
+        }
+
+        private string GetDefaultPS3Language()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "zh", "Chinese (Simplified)" },
+                { "nl", "Dutch" },
+                { "en", "English (US)" },
+                { "fr", "French" },
+                { "de", "German" },
+                { "it", "Italian" },
+                { "ko", "Korean" },
+                { "jp", "Japanese" },
+                { "pl", "Polish" },
+                { "es", "Spanish" },
+                { "pt", "Portuguese (Portugal)" },
+                { "ru", "Russian" },
+                { "tw", "Chinese (Simplified)" }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "Chinese (Simplified)";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+            return "English (US)";
         }
     }
 }
