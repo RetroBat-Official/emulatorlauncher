@@ -153,14 +153,9 @@ namespace emulatorLauncher
             //Then the emulator options
             BindFeature(yml, "backend-renderer", "backend-renderer", "Vulkan");
             BindFeature(yml, "resolution-multiplier", "resolution-multiplier", "1");
-            
-            //Automatically disable surface sync when upscaling (as per standard emulator beahviour)
-            if (SystemConfig.isOptSet("resolution-multiplier") && SystemConfig["resolution-multiplier"] != "1")
-                yml["disable-surface-sync"] = "true";
-            else
-                yml["disable-surface-sync"] = "false";
+            BindFeature(yml, "disable-surface-sync", "disable_surfacesync", "false");
             BindFeature(yml, "enable-fxaa", "enable-fxaa", "false");
-            BindFeature(yml, "v-sync", "v-sync", "false");
+            BindFeature(yml, "v-sync", "vsync", "false");
             BindFeature(yml, "anisotropic-filtering", "anisotropic-filtering", "1");
             BindFeature(yml, "cpu-opt", "cpu-opt", "true");
             BindFeature(yml, "shader-cache", "shader-cache", "true");
