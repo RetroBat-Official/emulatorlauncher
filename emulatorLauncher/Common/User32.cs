@@ -151,6 +151,9 @@ namespace emulatorLauncher
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        public static extern int ShowWindow(IntPtr hWnd, SW cmdShow);
     }
 
     public static class Kernel32
@@ -170,6 +173,21 @@ namespace emulatorLauncher
         [DllImport("kernel32.dll")]
         public static extern bool FreeConsole();
 
+        public static BinaryType GetBinaryType(string lpAppName)
+        {
+            try
+            {
+                BinaryType ret;
+                if (GetBinaryType(lpAppName, out ret))
+                    return ret;
+            }
+            catch { }
+
+            return (BinaryType) (-1);
+        }
+
+        [DllImport("kernel32.dll")]
+        static extern bool GetBinaryType(string lpApplicationName, out BinaryType lpBinaryType);
     }
 
     public static class Gdi32
@@ -323,4 +341,30 @@ namespace emulatorLauncher
         ASYNCWINDOWPOS = 0x4000
     }
 
+    public enum SW
+    {
+        HIDE = 0,
+        SHOWNORMAL = 1,
+        SHOWMINIMIZED = 2,
+        SHOWMAXIMIZED = 3,
+        SHOWNOACTIVATE = 4,
+        SHOW = 5,
+        MINIMIZE = 6,
+        SHOWMINNOACTIVE = 7,
+        SHOWNA = 8,
+        RESTORE = 9,
+        SHOWDEFAULT = 10,
+        FORCEMINIMIZE = 11
+    }
+
+    public enum BinaryType : int
+    {
+        SCS_32BIT_BINARY = 0, // A 32-bit Windows-based application
+        SCS_64BIT_BINARY = 6, // A 64-bit Windows-based application.
+        SCS_DOS_BINARY = 1, // An MS-DOS – based application
+        SCS_OS216_BINARY = 5, // A 16-bit OS/2-based application
+        SCS_PIF_BINARY = 3, // A PIF file that executes an MS-DOS – based application
+        SCS_POSIX_BINARY = 4, // A POSIX – based application
+        SCS_WOW_BINARY = 2    // A 16-bit Windows-based application
+    }
 }

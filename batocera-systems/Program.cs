@@ -66,7 +66,7 @@ namespace batocera_systems
 
                 foreach (var bios in item.Value.biosFiles)
                 {
-                    string fileName = Path.Combine(root, bios.file.Replace("bios/", ""));
+                    string fileName = Path.Combine(root, bios.file.StartsWith("bios/") ? bios.file.Substring(5) : bios.file);
                     if (bios.file.StartsWith("roms/") && romRoot != null)
                         fileName = Path.Combine(romRoot, bios.file.Replace("roms/", ""));
                     

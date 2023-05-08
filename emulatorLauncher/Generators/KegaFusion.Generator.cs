@@ -71,5 +71,16 @@ namespace emulatorLauncher
                 Arguments = args,
             };
         }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int exitCode = base.RunAndWait(path);
+
+            // Fusion always returns 1....
+            if (exitCode == 1)
+                return 0;
+
+            return exitCode;
+        }
     }
 }

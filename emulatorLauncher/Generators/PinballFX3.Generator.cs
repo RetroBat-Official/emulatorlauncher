@@ -32,6 +32,23 @@ namespace emulatorLauncher
                 exe = Path.Combine(path, "pinballfx3.cmd");
 
             if (!File.Exists(exe))
+            {
+                string folder = Path.GetDirectoryName(rom);
+                while (folder != null)
+                {
+                    exe = Path.Combine(folder, "Pinball FX3.exe");
+                    if (File.Exists(exe))
+                    {
+                        core = "pinballfx3-nosteam";
+                        path = folder;
+                        break;
+                    }
+
+                    folder = Path.GetDirectoryName(folder);
+                }
+            }
+
+            if (!File.Exists(exe))
                 return null;
 
             if (core == "pinballfx3-nosteam" || core == "pinballfx3-hack" || core == "hack")
@@ -48,7 +65,7 @@ namespace emulatorLauncher
                 FileName = exe,
                 WorkingDirectory = path
             };
-
+            
             if (_args != null)
                 ret.Arguments = _args + Path.GetFileNameWithoutExtension(rom);
 

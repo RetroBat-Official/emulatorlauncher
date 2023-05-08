@@ -15,7 +15,7 @@ namespace emulatorLauncher
 
         public int PlayerIndex { get; set; }
         public int DeviceIndex { get; set; }
-        public string Guid { get; set; }
+        public SdlJoystickGuid Guid { get; set; }
         public string DevicePath { get; set; }
         public string Name { get; set; }
         public int NbButtons { get; set; }
@@ -24,50 +24,41 @@ namespace emulatorLauncher
         
         public bool IsKeyboard { get { return "Keyboard".Equals(Name, StringComparison.InvariantCultureIgnoreCase); } }
 
-        public Guid ProductGuid
+        public SdlJoystickGuid GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X)
         {
-            get
-            {
-                return Guid.FromSdlGuidString();
-            }
-        }
-
-        public string GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X)
-        {
-
-            if (version == SdlVersion.Current)
+            if (version == SdlVersion.Unknown)
                 return Guid;
 
-            return ProductGuid.ConvertSdlGuid(Name??"", version).ToSdlGuidString();
+            return Guid.ConvertSdlGuid(Name??"", version);            
         }
 
-        public VendorId VendorID
+        private HashSet<string> _compatibleSdlGuids;
+
+        /// <summary>
+        ///  Get list of all possible guids for a controller, given Sdl Version
+        /// </summary>
+        public HashSet<string> CompatibleSdlGuids
         {
             get
             {
-                return ProductGuid.GetVendorID();
+                if (_compatibleSdlGuids == null)
+                {
+                    _compatibleSdlGuids = new HashSet<string>(typeof(SdlVersion).GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                        .Select(f => f.GetValue(null)).OfType<SdlVersion>()
+                        .Select(f => GetSdlGuid(f).ToLowerInvariant())
+                        .Distinct());
+                }
+
+                return _compatibleSdlGuids;
             }
         }
 
-        public ProductId ProductID
-        {
-            get
-            {
-                return ProductGuid.GetProductID();
-            }
-        }
-
-        public SdlWrappedTechId SdlWrappedTechID
-        {
-            get
-            {
-                return ProductGuid.GetWrappedTechID();
-            }
-        }
+        public USB_VENDOR VendorID { get { return Guid.VendorId; } }
+        public USB_PRODUCT ProductID { get { return Guid.ProductId; } }
+        public SdlWrappedTechId SdlWrappedTechID { get { return Guid.WrappedTechID; } }
 
         public InputConfig Config { get; set; }
-
-
+        
         #region SdlController
         private SdlGameController _sdlController;
         private bool _sdlControllerKnown = false;
@@ -86,12 +77,18 @@ namespace emulatorLauncher
                             _sdlController = SdlGameController.GetGameControllerByPath(DevicePath);
 
                         if (_sdlController == null)
-                            _sdlController = SdlGameController.GetGameController(ProductGuid);
+                            _sdlController = SdlGameController.GetGameController(Guid.ToGuid());
                     }
                 }
 
                 return _sdlController;
             }
+        }
+
+        public void ResetSdlController()
+        {
+            _sdlControllerKnown = false;
+            _sdlController = null;
         }
         #endregion
 
@@ -148,12 +145,13 @@ namespace emulatorLauncher
                 {
                     _xInputDeviceKnown = true;
 
+
                     if (Name == "Keyboard" || !IsXInputDevice)
                         return null;
 
                     var xinputindex = Program.Controllers
                         .OrderBy(c => c.DeviceIndex)
-                        .Where(c => c.IsXInputDevice)
+                        .Where(c => c == this || c.IsXInputDevice)
                         .ToList()
                         .IndexOf(this);
 
@@ -233,45 +231,50 @@ namespace emulatorLauncher
 
             int axisValue = 1;
 
+            SdlControllerMapping sdlret = null;
+
             var mapping = ctrl.Mapping;
-            var sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == input.Value);
-
-            if (sdlret == null && input.Type == "axis")
+            if (mapping != null)
             {
-                var invret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == -input.Value);
-                if (invret != null)
-                {
-                    sdlret = invret;
-                    axisValue = -1;
-                }
-            }
+                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == input.Value);
 
-            if (sdlret == null)
-            {
-                if (mapping.All(m => m.Axis == SDL_CONTROLLER_AXIS.INVALID))
+                if (sdlret == null && input.Type == "axis")
                 {
-                    switch (key)
+                    var invret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Input.Id == input.Id && m.Input.Value == -input.Value);
+                    if (invret != null)
                     {
-                        case InputKey.left:
-                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_LEFT);
-                            break;
-                        case InputKey.right:
-                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_RIGHT);
-                            break;
-                        case InputKey.up:
-                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_UP);
-                            break;
-                        case InputKey.down:
-                            sdlret = mapping.FirstOrDefault(m => m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_DOWN);
-                            break;
+                        sdlret = invret;
+                        axisValue = -1;
                     }
                 }
 
                 if (sdlret == null)
                 {
-                    SimpleLogger.Instance.Warning("[InputConfig] ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
-                    return input;
+                    if (mapping.All(m => m.Axis == SDL_CONTROLLER_AXIS.INVALID))
+                    {
+                        switch (key)
+                        {
+                            case InputKey.left:
+                                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_LEFT);
+                                break;
+                            case InputKey.right:
+                                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_RIGHT);
+                                break;
+                            case InputKey.up:
+                                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_UP);
+                                break;
+                            case InputKey.down:
+                                sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.DPAD_DOWN);
+                                break;
+                        }
+                    }
                 }
+            }
+
+            if (sdlret == null)
+            {
+                SimpleLogger.Instance.Warning("[InputConfig] ToSdlCode error can't find <input name=\"" + key.ToString() + "\" type=\"" + input.Type + "\" id=\"" + input.Id + "\" value=\"" + input.Value + "\" /> in SDL2 mapping :\r\n" + ctrl.SdlBinding);
+                return input;
             }
 
             Input ret = new Input() { Name = input.Name };
@@ -407,7 +410,7 @@ namespace emulatorLauncher
         public XInputButtonFlags GetXInputButtonFlags(InputKey key)
         {
             XInputButtonFlags result;
-            if (Enum.TryParse<XInputButtonFlags>(GetXInputInput(key).ToString(), out result))
+            if (Enum.TryParse<XInputButtonFlags>(GetXInputMapping(key).ToString(), out result))
                 return result;
 
             return XInputButtonFlags.NONE;
@@ -424,7 +427,7 @@ namespace emulatorLauncher
 
             if (SdlWrappedTechID == SdlWrappedTechId.HID)
             {
-                var dinput = HidToDirectInput.Instance.FromInput(ProductGuid, input);
+                var dinput = HidToDirectInput.Instance.FromInput(Guid, input);
                 if (dinput != null)
                     return dinput;
             }

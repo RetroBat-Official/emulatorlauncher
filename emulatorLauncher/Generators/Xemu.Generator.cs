@@ -118,9 +118,8 @@ namespace emulatorLauncher
                 using (IniFile ini = new IniFile(Path.Combine(path, "xemu.toml"), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
                     ini.WriteValue("general", "show_welcome", "false");
+                    ini.WriteValue("general", "skip_boot_anim", "true");
                     ini.WriteValue("general.updates", "check", "false");
-
-                    ini.WriteValue("general.misc", "skip_boot_anim", "true");
 
                     if (!SystemConfig.getOptBoolean("disableautocontrollers"))
                     {

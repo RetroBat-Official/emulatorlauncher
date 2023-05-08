@@ -132,6 +132,25 @@ namespace emulatorLauncher
             return new string[] { };
         }
 
+        public KeyValuePair<string, string>[] EnumerateValues(string sectionName)
+        {
+            var ret = new List<KeyValuePair<string, string>>();
+
+            var section = _sections.Get(sectionName);
+            if (section != null)
+            {
+                foreach (var item in section)
+                {
+                    if (item.IsComment || string.IsNullOrEmpty(item.Name))
+                        continue;
+
+                    ret.Add(new KeyValuePair<string, string>(item.Name, item.Value));
+                }
+            }
+
+            return ret.ToArray();
+        }
+
         public void ClearSection(string sectionName)
         {
             var section = _sections.Get(sectionName);
@@ -430,7 +449,11 @@ namespace emulatorLauncher
                 if (section == null)
                 {
                     section = new Section() { Name = sectionName };
-                    _sections.Add(section);
+
+                    if ((string.IsNullOrEmpty(sectionName) || sectionName == "ROOT") && _sections.Count > 0)
+                        _sections.Insert(0, section);
+                    else
+                        _sections.Add(section);
                 }
 
                 return section;
@@ -454,7 +477,7 @@ namespace emulatorLauncher
     }
 
 
-    public class IniSection 
+    public class IniSection
     {
         private IniFile _ini;
         private string _sectionName;

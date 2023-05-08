@@ -70,7 +70,8 @@ namespace emulatorLauncher
             { new Installer("vita3k", "vita3k", "Vita3K.exe") },
             { new Installer("xenia", "xenia", "xenia.exe") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) },
-            { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") }
+            { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
+            { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") }
         };
 
         #region Properties
@@ -297,11 +298,18 @@ namespace emulatorLauncher
                     {
                         if (curr.EndsWith("\\"))
                             curr = curr.Substring(0, curr.Length-1);
-
+                        
                         if (Directory.Exists(curr))
                             return Path.Combine(Path.GetDirectoryName(curr), DefaultFolderName);
                     }
                 }
+            }
+
+            if (!checkRootPath && folder == null)
+            {
+                var retroarchDefault = Program.SystemConfig.GetFullPath("retroarch");
+                if (!string.IsNullOrEmpty(retroarchDefault))
+                    folder = Path.Combine(Path.GetDirectoryName(retroarchDefault), DefaultFolderName);
             }
 
             return folder;
@@ -321,7 +329,7 @@ namespace emulatorLauncher
             {               
                 string xml = null;
 
-                string cachedFile = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "versions.xml");
+                string cachedFile = Path.Combine(GetTempPath(), "versions.xml");
 
                 if (File.Exists(cachedFile) && DateTime.Now - File.GetCreationTime(cachedFile) <= new TimeSpan(1, 0, 0, 0))
                 {
@@ -394,10 +402,19 @@ namespace emulatorLauncher
             return WebTools.UrlExists(PackageUrl);
         }
 
+        public static string GetTempPath()
+        {
+            string ret = Path.Combine(Path.GetTempPath(), "emulationstation.tmp");
+            if (!Directory.Exists(ret))
+                Directory.CreateDirectory(ret);
+
+            return ret;
+        }
+
         public static void DownloadAndInstall(string url, string installFolder, ProgressChangedEventHandler progress = null)
         {
             string localFile = Path.GetFileName(url);
-            string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", localFile);
+            string fn = Path.Combine(GetTempPath(), localFile);
 
             try { if (File.Exists(fn)) File.Delete(fn); }
             catch { }

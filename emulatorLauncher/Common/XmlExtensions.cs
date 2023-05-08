@@ -91,5 +91,36 @@ namespace emulatorLauncher
                 return xml;
             }
         }
+
+
+        public static string StripInvalidXMLCharacters(string textIn)
+        {
+            if (textIn == null || textIn == string.Empty)
+                return string.Empty;
+            
+            if (textIn.All(c => XmlConvert.IsXmlChar(c)))
+                return textIn;
+
+            var textOut = new StringBuilder();
+
+            for (int i = 0; i < textIn.Length; i++)
+            {
+                char c = textIn[i];
+                if (XmlConvert.IsXmlChar(c))
+                    textOut.Append(c);
+            }
+
+            return textOut.ToString();
+        }
+
+        public static void SkipWhitespaces(this XmlReader reader)
+        {
+            if (reader == null)
+                return;
+
+            while (!reader.EOF && reader.NodeType == XmlNodeType.Whitespace)
+                if (!reader.Read())
+                    break;
+        }
     }
 }

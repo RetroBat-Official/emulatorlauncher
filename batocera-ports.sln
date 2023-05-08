@@ -46,9 +46,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mount", "mount\mount.csproj", "{FE4B5BD2-D1BE-4B31-B9D8-B8060BA2174A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".emulationstation", ".emulationstation", "{2BEB480F-A324-4861-AAFF-C36BE928631B}"
-	ProjectSection(SolutionItems) = preProject
-		.emulationstation\es_features.cfg = .emulationstation\es_features.cfg
-	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "es-checkversion", "es-checkversion\es-checkversion.csproj", "{F7712D7C-5B06-4C9E-B5F1-543A0207444E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "es-update", "es-update\es-update.csproj", "{33BA5195-888A-4615-9AC3-C9A90187AC3A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -92,6 +93,14 @@ Global
 		{FE4B5BD2-D1BE-4B31-B9D8-B8060BA2174A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE4B5BD2-D1BE-4B31-B9D8-B8060BA2174A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE4B5BD2-D1BE-4B31-B9D8-B8060BA2174A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7712D7C-5B06-4C9E-B5F1-543A0207444E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7712D7C-5B06-4C9E-B5F1-543A0207444E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7712D7C-5B06-4C9E-B5F1-543A0207444E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7712D7C-5B06-4C9E-B5F1-543A0207444E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33BA5195-888A-4615-9AC3-C9A90187AC3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33BA5195-888A-4615-9AC3-C9A90187AC3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33BA5195-888A-4615-9AC3-C9A90187AC3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33BA5195-888A-4615-9AC3-C9A90187AC3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

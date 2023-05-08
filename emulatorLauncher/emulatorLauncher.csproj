@@ -85,17 +85,19 @@
     <Compile Include="Common\FileTools.cs" />
     <Compile Include="Common\IsoFile.cs" />
     <Compile Include="Common\Job.cs" />
+    <Compile Include="Common\MultiDiskImageFile.cs" />
     <Compile Include="Common\OrderedDictionary.cs" />
     <Compile Include="Common\PortableZip.cs" />
     <Compile Include="Common\ProcessExtensions.cs" />
     <Compile Include="Common\ProgressInformation.cs" />
     <Compile Include="Common\Joysticks\RawLightGun.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
-    <Compile Include="Common\Joysticks\SdlJoystickGuidManager.cs" />
+    <Compile Include="Common\Joysticks\SdlJoystickGuid.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
     <Compile Include="Common\Joysticks\WinmmJoystick.cs" />
     <Compile Include="Common\XmlExtensions.cs" />
+    <Compile Include="Common\XmlDeserializer.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
@@ -114,6 +116,7 @@
     <Compile Include="Installer.cs" />
     <Compile Include="Common\InputKeyMapping.cs" />
     <Compile Include="Generators\Nes3d.Generator.cs" />
+    <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
@@ -127,7 +130,13 @@
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\Mesen.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Generator.cs" />
-    <Compile Include="Generators\TeknoParrot.generator.cs" />
+    <Compile Include="Generators\Ryujinx.Controllers.cs">
+      <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\TeknoParrot.Generator.cs" />
+    <Compile Include="Generators\TeknoParrot.Controllers.cs">
+      <DependentUpon>TeknoParrot.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Tsugaru.Generator.cs" />
     <Compile Include="Generators\Yuzu.Generator.cs" />
     <Compile Include="Generators\Yuzu.Controllers.cs">
@@ -149,6 +158,9 @@
     <Compile Include="Generators\Cxbx.Generator.cs" />
     <Compile Include="Generators\SimCoupe.Generator.cs" />
     <Compile Include="Generators\Model3.Generator.cs" />
+    <Compile Include="Generators\Model3.Controllers.cs">
+      <DependentUpon>Model3.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Dolphin.Generator.cs" />
     <Compile Include="Generators\Dolphin.Controllers.cs">
       <DependentUpon>Dolphin.Generator.cs</DependentUpon>
@@ -166,10 +178,16 @@
       <DependentUpon>Rpcs3.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\OpenBor.Generator.cs" />
+    <Compile Include="Generators\OpenBor.Controllers.cs">
+      <DependentUpon>OpenBor.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Model2.Generator.cs" />
     <Compile Include="Generators\Uae.Generator.cs" />
     <Compile Include="Generators\Snes9x.Generator.cs" />
     <Compile Include="Generators\Citra.Generator.cs" />
+    <Compile Include="Generators\Citra.Controllers.cs">
+      <DependentUpon>Citra.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\BigPEmu.Generator.cs" />
     <Compile Include="Generators\Project64.Generator.cs" />
@@ -272,6 +290,8 @@
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />
     <None Include="Resources\mamecrcs.xml.gz" />
+    <None Include="Resources\reshader.x64.gz" />
+    <None Include="Resources\reshader.x86.gz" />
     <None Include="Resources\xbox_hdd.qcow2.zip" />
   </ItemGroup>
   <ItemGroup>
@@ -284,7 +304,7 @@
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Debug (
 ECHO Copy es_features.cfg to "$(TargetDir).emulationstation"
-copy "$(SolutionDir).emulationstation\es_features.cfg" "$(TargetDir).emulationstation"
+xcopy /Y /Q "$(SolutionDir).emulationstation\es_features.cfg" "$(TargetDir).emulationstation\"
 )
 
 if $(ConfigurationName) == Release (

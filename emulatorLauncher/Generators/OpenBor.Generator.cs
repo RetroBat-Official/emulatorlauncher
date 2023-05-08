@@ -10,85 +10,15 @@ using System.Runtime.InteropServices;
 
 namespace emulatorLauncher
 {
-    class OpenBorGenerator : Generator
+    partial class OpenBorGenerator : Generator
     {
         public OpenBorGenerator()
         {
             DependsOnDesktopResolution = true;
         }
 
-        private string destFile;
-
-        public static int JoystickValue(InputKey key, Controller c, bool invertAxis = false)
-        {
-            var a = c.Config[key];
-            if (a == null)
-            {
-                if (key == InputKey.hotkey)
-                    a = c.Config[InputKey.hotkey];
-
-                if (a == null)
-                    return 0;
-            }
-
-            int JOY_MAX_INPUTS = 64;
-
-            int value = 0;
-
-            if (a.Type == "button")
-                value = 1 + (c.PlayerIndex - 1) * JOY_MAX_INPUTS + (int)a.Id;
-            else if (a.Type == "hat")
-            {
-                int hatfirst = 1 + (c.PlayerIndex - 1) * JOY_MAX_INPUTS + c.NbButtons + 2 * c.NbAxes + 4 * (int)a.Id;
-                if (a.Value == 2) // SDL_HAT_RIGHT
-                    hatfirst += 1;
-                else if (a.Value == 4) // SDL_HAT_DOWN
-                    hatfirst += 2;
-                else if (a.Value == 8) // SDL_HAT_LEFT
-                    hatfirst += 3;
-
-                value = hatfirst;
-            }
-            else if (a.Type == "axis")
-            {
-                int axisfirst = 1 + (c.PlayerIndex - 1) * JOY_MAX_INPUTS + c.NbButtons + 2 * (int)a.Id;
-                if ((invertAxis && a.Value < 0) || (!invertAxis && a.Value > 0)) axisfirst++;
-                value = axisfirst;
-            }
-
-            if (c.Config.Type != "keyboard")
-                value += 600;
-
-            return value;
-        }
-
-        public int KeyboardValue(InputKey key, Controller c)
-        {
-            var a = c.Config[key];
-            if (a == null)
-                return 0;
-
-            List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
-
-            int id = (int)a.Id;
-            if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId))
-            {
-                if (id == 'a')
-                    id = 'q';
-                else if (id == 'q')
-                    id = 'a';
-                else if (id == 'w')
-                    id = 'z';
-                else if (id == 'z')
-                    id = 'w';
-            }
-
-            var mapped = SDL.SDL_default_keymap.Select(k => Convert.ToInt32(k)).ToList().IndexOf(id);
-            if (mapped >= 0)
-                return mapped;
-
-            return 0;
-        }
+        private string _destFile;
+        private bool _isCustomRetrobatOpenBor; // This Version support harcoded NumButtons / NumAxes values for generic injection
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {            
@@ -105,9 +35,18 @@ namespace emulatorLauncher
                 exe = Path.Combine(path, "OpenBOR.exe");
             }
 
+            try
+            {
+                var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+                _isCustomRetrobatOpenBor = (versionInfo.FilePrivatePart == 5242); // 5242 stands for RB ( 'R' x52, 'B' x42 ) -> RetroBat !
+            }
+            catch { }
+
             if (setupConfigIni(path))
             {
                 UseEsPadToKey = false;
+
+                SetupBezelAndShaders(system, rom, resolution, path);
 
                 return new ProcessStartInfo()
                 {
@@ -115,7 +54,9 @@ namespace emulatorLauncher
                     Arguments = "\"" + rom + "\"",
                     WorkingDirectory = path
                 };
-            }       
+            }
+
+            // Old versions ?
 
             if (build == "4432")
                 setupConfigBor4432Cfg(path);
@@ -134,9 +75,11 @@ namespace emulatorLauncher
                 File.Delete(file);
             }
 
-            destFile = Path.Combine(pakDir, Path.GetFileName(rom));
-            if (!File.Exists(destFile))
-                File.Copy(rom, destFile);
+            _destFile = Path.Combine(pakDir, Path.GetFileName(rom));
+            if (!File.Exists(_destFile))
+                File.Copy(rom, _destFile);
+
+            SetupBezelAndShaders(system, rom, resolution, path);
 
             return new ProcessStartInfo()
             {
@@ -145,15 +88,71 @@ namespace emulatorLauncher
             };
         }
 
+        private void SetupBezelAndShaders(string system, string rom, ScreenResolution resolution, string path)
+        {
+            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
+            if (bezels != null && ((SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1") || BorPak.GetVideoMode(rom).IsWideScreen))
+                SystemConfig["forceNoBezel"] = "1";
+
+            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, false);
+        }
+
         public override void Cleanup()
         {
-            if (destFile != null && File.Exists(destFile))
-                File.Delete(destFile);
+            if (_destFile != null && File.Exists(_destFile))
+                File.Delete(_destFile);
 
             base.Cleanup();
         }
 
-        string GetBuildToUse(string rom)
+        #region Custom Ini file format
+        private bool setupConfigIni(string path)
+        {
+            string ini = Path.Combine(path, "config.ini");
+            if (!File.Exists(ini) && !_isCustomRetrobatOpenBor)
+                return false;
+
+            var conf = ConfigFile.FromFile(ini);
+            conf["fullscreen"] = "1";
+            conf["vsync"] = SystemConfig["VSync"] != "false" ? "1" : "0";
+            conf["usegl"] = "1";
+            conf["stretch"] = SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1" ? "1" : "0";
+
+            if (Features.IsSupported("filter") && SystemConfig.isOptSet("filter"))
+                conf["swfilter"] = SystemConfig["filter"];
+            else
+                conf["swfilter"] = "0";
+
+            if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig["screenshots"]))
+            {
+                string dir = AppConfig.GetFullPath("screenshots");
+
+                Uri relRoot = new Uri(path, UriKind.Absolute);
+                string relPath = relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
+
+                conf["screenShotsDir"] = Path.GetFullPath(dir)+"\\";
+            }
+
+            if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
+            {
+                string dir = Path.Combine(AppConfig.GetFullPath("saves"), "openbor");
+
+                Uri relRoot = new Uri(path, UriKind.Absolute);
+                string relPath = relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
+
+                Directory.CreateDirectory(dir);
+                conf["savesDir"] = Path.GetFullPath(dir) + "\\";
+            }
+
+            SetupControllers(conf);
+
+            conf.Save(ini, false);
+            return true;
+        }
+        #endregion
+
+        #region Old Openbor versions with bor.cfg file format
+        private string GetBuildToUse(string rom)
         {
             /*
             string path = AppConfig.GetFullPath("openbor");
@@ -176,165 +175,8 @@ namespace emulatorLauncher
 
             return null;
         }
-        
-        #region Ini file
-        private void setupControllers(ConfigFile ini)
-        {
-            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
-                return;
 
-            if (!Controllers.Any())
-                return;
 
-            bool hasKeyb = false;
-
-            for (int idx = 0; idx < 4; idx++)
-            {
-                var c = Controllers.FirstOrDefault(j => j.PlayerIndex == idx + 1);
-                if (c == null || c.Config == null)
-                {
-                    if (hasKeyb)
-                    {
-                        ini["keys." + idx + ".0"] = "0";
-                        ini["keys." + idx + ".1"] = "0";
-                        ini["keys." + idx + ".2"] = "0";
-                        ini["keys." + idx + ".3"] = "0";
-                        ini["keys." + idx + ".4"] = "0";
-                        ini["keys." + idx + ".5"] = "0";
-                        ini["keys." + idx + ".6"] = "0";
-                        ini["keys." + idx + ".7"] = "0";
-                        ini["keys." + idx + ".8"] = "0";
-                        ini["keys." + idx + ".9"] = "0";
-                        ini["keys." + idx + ".10"] = "0";
-                        ini["keys." + idx + ".11"] = "0";
-                        ini["keys." + idx + ".12"] = "0";
-                        ini["keys." + idx + ".13"] = "0"; // axis up
-                        ini["keys." + idx + ".14"] = "0"; // axis down
-                        ini["keys." + idx + ".15"] = "0"; // axis left
-                        ini["keys." + idx + ".16"] = "0"; // axis right
-                    }
-                    else
-                    {
-                        ini["keys." + idx + ".0"] = "82";
-                        ini["keys." + idx + ".1"] = "81";
-                        ini["keys." + idx + ".2"] = "80";
-                        ini["keys." + idx + ".3"] = "79";
-                        ini["keys." + idx + ".4"] = "4";
-                        ini["keys." + idx + ".5"] = "22";
-                        ini["keys." + idx + ".6"] = "29";
-                        ini["keys." + idx + ".7"] = "27";
-                        ini["keys." + idx + ".8"] = "7";
-                        ini["keys." + idx + ".9"] = "9";
-                        ini["keys." + idx + ".10"] = "40";
-                        ini["keys." + idx + ".11"] = "69";
-                        ini["keys." + idx + ".12"] = "41"; // Esc
-                        ini["keys." + idx + ".13"] = "0"; // axis up
-                        ini["keys." + idx + ".14"] = "0"; // axis down
-                        ini["keys." + idx + ".15"] = "0"; // axis left
-                        ini["keys." + idx + ".16"] = "0"; // axis right
-                        hasKeyb = true;
-                    }
-
-                    continue;
-                }
-
-                if (c.Config.Type == "keyboard")
-                {
-                    hasKeyb = true;
-                    ini["keys." + idx + ".0"] = KeyboardValue(InputKey.up, c).ToString();
-                    ini["keys." + idx + ".1"] = KeyboardValue(InputKey.down, c).ToString();
-                    ini["keys." + idx + ".2"] = KeyboardValue(InputKey.left, c).ToString();
-                    ini["keys." + idx + ".3"] = KeyboardValue(InputKey.right, c).ToString();
-                    ini["keys." + idx + ".4"] = KeyboardValue(InputKey.a, c).ToString(); // ATTACK
-                    ini["keys." + idx + ".5"] = KeyboardValue(InputKey.x, c).ToString();
-                    ini["keys." + idx + ".6"] = KeyboardValue(InputKey.y, c).ToString();
-                    ini["keys." + idx + ".7"] = KeyboardValue(InputKey.pagedown, c).ToString(); // ATTACK4
-                    ini["keys." + idx + ".8"] = KeyboardValue(InputKey.b, c).ToString(); // JUMP
-                    ini["keys." + idx + ".9"] = KeyboardValue(InputKey.select, c).ToString();
-                    ini["keys." + idx + ".10"] = KeyboardValue(InputKey.start, c).ToString();
-                    ini["keys." + idx + ".11"] = "69"; // F12
-                    ini["keys." + idx + ".12"] = "41"; // Esc
-                    ini["keys." + idx + ".13"] = "0"; // axis up
-                    ini["keys." + idx + ".14"] = "0"; // axis down
-                    ini["keys." + idx + ".15"] = "0"; // axis left
-                    ini["keys." + idx + ".16"] = "0"; // axis right
-                    continue;
-                }
-
-                ini["keys." + idx + ".0"] = JoystickValue(InputKey.up, c).ToString();
-                ini["keys." + idx + ".1"] = JoystickValue(InputKey.down, c).ToString();
-                ini["keys." + idx + ".2"] = JoystickValue(InputKey.left, c).ToString();
-                ini["keys." + idx + ".3"] = JoystickValue(InputKey.right, c).ToString();
-                ini["keys." + idx + ".4"] = JoystickValue(InputKey.a, c).ToString(); // ATTACK
-                ini["keys." + idx + ".5"] = JoystickValue(InputKey.x, c).ToString();
-                ini["keys." + idx + ".6"] = JoystickValue(InputKey.y, c).ToString();
-                ini["keys." + idx + ".7"] = JoystickValue(InputKey.pagedown, c).ToString(); // ATTACK4
-                ini["keys." + idx + ".8"] = JoystickValue(InputKey.b, c).ToString(); // JUMP
-                ini["keys." + idx + ".9"] = JoystickValue(InputKey.select, c).ToString();
-                ini["keys." + idx + ".10"] = JoystickValue(InputKey.start, c).ToString();
-                ini["keys." + idx + ".11"] = "0";
-
-                if (Program.EnableHotKeyStart)
-                    ini["keys." + idx + ".12"] = JoystickValue(InputKey.hotkey, c).ToString(); // esc
-                else
-                    ini["keys." + idx + ".12"] = "0";
-
-                ini["keys." + idx + ".13"] = JoystickValue(InputKey.joystick1up, c).ToString();
-                ini["keys." + idx + ".14"] = JoystickValue(InputKey.joystick1up, c, true).ToString();
-                ini["keys." + idx + ".15"] = JoystickValue(InputKey.joystick1left, c).ToString();
-                ini["keys." + idx + ".16"] = JoystickValue(InputKey.joystick1left, c, true).ToString();
-            }
-        }
-
-        private bool setupConfigIni(string path)
-        {
-            string ini = Path.Combine(path, "config.ini");
-            if (!File.Exists(ini))
-                return false;
-
-            var conf = ConfigFile.FromFile(ini);
-            if (conf == null)
-                return false;
-
-            setupControllers(conf);
-
-            conf["fullscreen"] = "1";
-            conf["vsync"] = SystemConfig["VSync"] != "false" ? "1" : "0";
-            conf["usegl"] = "1";
-            conf["stretch"] = SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1" ? "1" : "0";
-
-            if (SystemConfig.isOptSet("filter"))
-                conf["swfilter"] = SystemConfig["filter"];
-            else
-                conf["swfilter"] = "0";
-
-            if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig["screenshots"]))
-            {
-                string dir = AppConfig.GetFullPath("screenshots");
-
-                Uri relRoot = new Uri(path, UriKind.Absolute);
-                string relPath = relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
-
-                conf["screenShotsDir"] = dir+"//"; // ".\\" + relPath;
-            }
-
-            if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
-            {
-                string dir = Path.Combine(AppConfig.GetFullPath("saves"), "openbor");
-
-                Uri relRoot = new Uri(path, UriKind.Absolute);
-                string relPath = relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
-
-                Directory.CreateDirectory(dir);
-                conf["savesDir"] = dir+"//"; // ".\\" + relPath;
-            }
-
-            conf.Save(ini, false);
-            return true;
-        }
-        #endregion
-
-        #region bor.cfg
         private void setupControllersCfg(savedata conf)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -538,6 +380,7 @@ namespace emulatorLauncher
         #endregion
     }
 
+    #region v6330
     [StructLayoutAttribute(LayoutKind.Sequential, Pack = 4)]
     struct savekey
     {
@@ -658,6 +501,7 @@ namespace emulatorLauncher
         [MarshalAs(UnmanagedType.I4)]
         public int hwfilter; // Simple or bilinear scaling        
     }
+    #endregion
 
     #region v3318
     //  3318-3400 - 3698
@@ -753,8 +597,6 @@ namespace emulatorLauncher
     #endregion
 
     #region v4432
-
-
     // 4432
     [StructLayoutAttribute(LayoutKind.Sequential, Pack = 4)]
     struct savedata4432
@@ -862,5 +704,233 @@ namespace emulatorLauncher
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2, ArraySubType = UnmanagedType.I4)]
 	    int[] glfilter; // Simple or bilinear scaling
     };    
+    #endregion
+
+    #region Pak file Reader
+    class BorPak
+    {
+        struct pn_t
+        {
+            public uint pns;
+            public uint off;
+            public uint size;
+            public string name;
+        };
+
+        public class BorVideoMode
+        {
+            public int VideoMode { get; set; }
+            public int Width { get; set; }
+            public int Height { get; set; }
+
+            public float Ratio
+            {
+                get
+                {
+                    if (Height == 0)
+                        return 4 / 3;
+
+                    return (float)Width / (float)Height;
+                }
+            }
+
+            public bool IsWideScreen
+            {
+                get
+                {
+                    return (Ratio > 1.4);
+                }
+            }
+        }
+
+        public static BorVideoMode GetVideoMode(string fileName)
+        {
+            var bytes = BorPak.ReadAllLines(fileName, "DATA\\VIDEO.TXT");
+            if (bytes != null)
+            {
+                int videoMode = 255;
+                int hRes = 0;
+                int vRes = 0;
+
+                var video = bytes.FirstOrDefault(s => s.StartsWith("video"));
+                var args = video.Split(new char[] { '\t' });
+                if (args.Length > 1)
+                {
+                    int pos = args[1].IndexOf("x");
+                    if (pos >= 0)
+                    {
+                        hRes = args[1].Substring(0, pos).ToInteger();
+                        vRes = args[1].Substring(pos + 1).ToInteger();
+                        videoMode = 255;
+                    }
+                    else
+                    {
+                        videoMode = args[1].ToInteger();
+
+                        switch (videoMode)
+                        {
+                            // 320x240 - All Platforms
+                            case 0:
+                                hRes = 320;
+                                vRes = 240;
+                                break;
+
+                            // 480x272 - All Platforms
+                            case 1:
+                                hRes = 480;
+                                vRes = 272;
+                                break;
+
+                            // 640x480 - PC, Dreamcast, Wii
+                            case 2:
+                                hRes = 640;
+                                vRes = 480;
+                                break;
+
+                            // 720x480 - PC, Wii
+                            case 3:
+                                hRes = 720;
+                                vRes = 480;
+                                break;
+
+                            // 800x480 - PC, Wii, Pandora
+                            case 4:
+                                hRes = 800;
+                                vRes = 480;
+                                break;
+
+                            // 800x600 - PC, Dreamcast, Wii
+                            case 5:
+                                hRes = 800;
+                                vRes = 600;
+                                break;
+
+                            // 960x540 - PC, Wii
+                            case 6:
+                                hRes = 960;
+                                vRes = 540;
+                                break;
+                        }
+                    }
+
+                    return new BorVideoMode()
+                    {
+                        VideoMode = videoMode,
+                        Width = hRes,
+                        Height = vRes
+                    };
+                }
+            }
+
+            return new BorVideoMode()
+            {
+                VideoMode = 1,
+                Width = 320,
+                Height = 240
+            };
+        }
+
+        public static string[] ReadDirectory(string filename)
+        {
+            var files = new List<string>();
+            Read(filename, (fd, pn) => files.Add(pn.name));
+            return files.ToArray();
+        }
+
+        public static byte[] ReadFile(string filename, string fileNameAndPath)
+        {
+            byte[] ret = null;
+            Read(filename, (fd, pn) =>
+                {
+                    if (fileNameAndPath.Equals(pn.name, StringComparison.InvariantCultureIgnoreCase))
+                        ret = GetFile(fd, pn.name, pn.off, pn.size);
+                });
+
+            return ret;
+        }
+
+        public static string[] ReadAllLines(string filename, string fileNameAndPath)
+        {
+            byte[] ret = null;
+            Read(filename, (fd, pn) =>
+                {
+                    if (fileNameAndPath.Equals(pn.name, StringComparison.InvariantCultureIgnoreCase))
+                        ret = GetFile(fd, pn.name, pn.off, pn.size);
+                });
+
+            if (ret != null)
+                return Encoding.UTF8.GetString(ret).Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            return null;
+        }
+
+        private static void Read(string filename, Action<BinaryReader, pn_t> action)
+        {
+            using (FileStream fs = new FileStream(filename, FileMode.Open))
+            using (BinaryReader fd = new BinaryReader(fs))
+            {
+                var pack = fd.ReadChars(4);
+                if (new string(pack) != "PACK")
+                    return;
+
+                var packver = fdrinum(fd, 32);
+
+                fs.Seek(-4, SeekOrigin.End);
+
+                var off = fdrinum(fd, 32);
+
+                fs.Seek(off, SeekOrigin.Begin);
+
+                pn_t pn = new pn_t();
+
+                for (; ; )
+                {
+                    pn.pns = fdrinum(fd, 32);
+                    pn.off = fdrinum(fd, 32);
+                    pn.size = fdrinum(fd, 32);
+
+                    int len = (int) pn.pns - 12;
+                    if (len <= 0)
+                        break;
+
+                    pn.name = new string(fd.ReadChars(len - 1)); // remove \0
+
+                    if (action != null)
+                        action(fd, pn);
+                    // Debug.WriteLine(name);
+
+                    if (pn.name.ToLower().Contains("video.txt"))
+                        GetFile(fd, pn.name, pn.off, pn.size);
+
+                    off += pn.pns;
+
+                    if (off > fs.Length)
+                        break;
+
+                    fs.Seek(off, SeekOrigin.Begin);                    
+                }
+            }
+        }
+
+        private static byte[] GetFile(BinaryReader fd, string name, uint off, uint size)
+        {
+            var fs = fd.BaseStream;
+
+           fs.Seek(off, SeekOrigin.Begin);                        
+           return fd.ReadBytes((int) size);
+        }
+
+        static uint fdrinum(BinaryReader fd, int size)
+        {
+            uint num = 0;
+
+            size >>= 3;
+            byte[] tmp = fd.ReadBytes(size);
+            for (int i = 0; i < tmp.Length; i++)
+                num |= (uint) (((int)tmp[i]) << (i << 3));
+
+            return num;
+        }
+    }
     #endregion
 }

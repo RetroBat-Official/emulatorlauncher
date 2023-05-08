@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<upgradeinfo>
+  <neveroverwrite path="retrobat.ini"/>
+  <!-- emulationstation -->
+  <neveroverwrite path="emulationstation\.emulationstation\es_settings.cfg"/>
+  <neveroverwrite path="emulationstation\.emulationstation\es_input.cfg"/>
+  <neveroverwrite path="emulationstation\.emulationstation\es_last_input.cfg"/>
+  <!-- emulators -->
+  <neveroverwrite path="emulators\citra\user\config\qt-config.ini"/>
+  <neveroverwrite path="emulators\daphne\config.xml"/>
+  <neveroverwrite path="emulators\demul-old\Demul.ini"/>
+  <neveroverwrite path="emulators\demul\Demul.ini"/>
+  <neveroverwrite path="emulators\demul-old\gpuDX11old.ini"/>
+  <neveroverwrite path="emulators\demul\gpuDX11.ini"/>
+  <neveroverwrite path="emulators\dolphin-emu\User\Config\Dolphin.ini"/>
+  <neveroverwrite path="emulators\dolphin-emu\User\Config\GBA.ini"/>
+  <neveroverwrite path="emulators\dolphin-emu\User\Config\GCPadNew.ini"/>
+  <neveroverwrite path="emulators\dolphin-emu\User\Config\GFX.ini"/>
+  <neveroverwrite path="emulators\dolphin-emu\User\Config\WiimoteNew.ini"/>
+  <neveroverwrite path="emulators\dolphin-triforce\User\Config\Dolphin.ini"/>
+  <neveroverwrite path="emulators\dolphin-triforce\User\Config\GCPadNew.ini"/>
+  <neveroverwrite path="emulators\dolphin-triforce\User\Config\GFX.ini"/>
+  <neveroverwrite path="emulators\duckstation\settings.ini"/>
+  <neveroverwrite path="emulators\kega-fusion\Fusion.ini"/>
+  <neveroverwrite path="emulators\m2emulator\Emulator.ini"/>
+  <neveroverwrite path="emulators\mesen\settings.xml"/>
+  <neveroverwrite path="emulators\mgba\config.ini"/>
+  <neveroverwrite path="emulators\oricutron\oricutron.cfg"/>
+  <neveroverwrite path="emulators\pcsx2-16\inis\PCSX2_ui.ini"/>
+  <neveroverwrite path="emulators\pcsx2-16\inis\PCSX2_vm.ini"/>
+  <neveroverwrite path="emulators\pcsx2\inis\LilyPad.ini"/>
+  <neveroverwrite path="emulators\pcsx2\inis\PAD.ini"/>
+  <neveroverwrite path="emulators\pcsx2\inis\PCSX2_ui.ini"/>
+  <neveroverwrite path="emulators\pcsx2\inis\PCSX2_vm.ini"/>
+  <neveroverwrite path="emulators\ppsspp\memstick\PSP\SYSTEM\ppsspp.ini"/>
+  <neveroverwrite path="emulators\project64\Config\Project64.cfg"/>
+  <neveroverwrite path="emulators\raine\config\raine32_sdl.cfg"/>
+  <neveroverwrite path="emulators\redream\redream.cfg"/>
+  <neveroverwrite path="emulators\retroarch\config\override\*.cfg"/>
+  <neveroverwrite path="emulators\retroarch\retroarch-core-options.cfg"/>
+  <neveroverwrite path="emulators\retroarch\retroarch.cfg"/>
+  <neveroverwrite path="emulators\snes9x\snes9x.conf"/>
+  <neveroverwrite path="emulators\supermodel\Supermodel.ini"/>
+  <neveroverwrite path="emulators\winuae\winuae.ini"/>
+  <neveroverwrite path="emulators\xemu\xemu.ini"/>
+  <neveroverwrite path="emulators\xemu\xemu.toml"/>
+  <actions version="4.0.2">
+    <!-- startswith -->
+    <rename path="emulators\pcsx2" to="emulators\pcsx2-16"/>
+    <delete path="system\modules\rb_gui\*.dll"/>
+    <delete path="system\modules\rb_gui\images\*.png"/>
+    <delete path="BatGui.exe"/>
+    <delete path="retrobat.ini"/> 
+  </actions>
+</upgradeinfo>

@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Drawing;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -74,20 +75,22 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string folderName = (emulator == "dolphin-triforce" || core == "dolphin-triforce" || emulator == "triforce" || core == "triforce") ? "dolphin-triforce" : "dolphin-emu";
+            _triforce = (emulator == "dolphin-triforce" || core == "dolphin-triforce" || emulator == "triforce" || core == "triforce");
+
+            string folderName = _triforce ? "dolphin-triforce" : "dolphin-emu";
 
             string path = AppConfig.GetFullPath(folderName);
-            if (string.IsNullOrEmpty(path))
+            if (!_triforce && string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("dolphin");
 
             if (string.IsNullOrEmpty(path))
-                path = AppConfig.GetFullPath("dolphin-emu");
+                return null;
 
             string exe = Path.Combine(path, "Dolphin.exe");
             if (!File.Exists(exe))
-            {
-                _triforce = true;
+            {                
                 exe = Path.Combine(path, "DolphinWX.exe");
+                _triforce = File.Exists(exe);
             }
 
             if (!File.Exists(exe))
@@ -102,10 +105,20 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
-            SetupGeneralConfig(path, system);
+            if (system == "wii")
+            {
+                string sysconf = Path.Combine(path, "User", "Wii", "shared2", "sys", "SYSCONF");
+                if (File.Exists(sysconf))
+                    writeWiiSysconfFile(sysconf);
+            }
+            
+            SetupGeneralConfig(path, system, emulator, rom);
             SetupGfxConfig(path);
 
             DolphinControllers.WriteControllersConfig(path, system, rom);
+
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
+                rom = rom.Replace("\\", "/");
 
             return new ProcessStartInfo()
             {
@@ -330,10 +343,70 @@ namespace emulatorLauncher
             return "0";
         }
 
-        private void SetupGeneralConfig(string path, string system)
+        private int getWiiLangFromEnvironment()
+        {
+            var availableLanguages = new Dictionary<string, int>()
+            {
+                {"jp", 0 }, {"en", 1 }, { "de", 2 }, { "fr", 3 }, { "es", 4 }, { "it", 5 }, { "nl", 6 }
+            };
+
+            var lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                int ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return 1;
+        }
+
+        private void writeWiiSysconfFile(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            int langId = 1;
+            int barPos = 0;
+
+            if (SystemConfig.isOptSet("wii_language") && !string.IsNullOrEmpty(SystemConfig["wii_language"]))
+                langId = SystemConfig["wii_language"].ToInteger();
+            else
+                langId = getWiiLangFromEnvironment();
+
+            if (SystemConfig.isOptSet("sensorbar_position") && !string.IsNullOrEmpty(SystemConfig["sensorbar_position"]))
+                barPos = SystemConfig["sensorbar_position"].ToInteger();
+
+            // Read SYSCONF file
+            byte[] bytes = File.ReadAllBytes(path);
+
+            // Search IPL.LNG pattern and replace with target language
+            byte[] langPattern = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x4C, 0x4E, 0x47 };
+            int index = bytes.IndexOf(langPattern);
+            if (index >= 0 && index + langPattern.Length + 1 < bytes.Length)
+            {
+                var toSet = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x4C, 0x4E, 0x47, (byte)langId };
+                for (int i = 0; i < toSet.Length; i++)
+                    bytes[index + i] = toSet[i];
+            }
+
+            // Search BT.BAR pattern and replace with target position
+            byte[] barPositionPattern = new byte[] { 0x42, 0x54, 0x2E, 0x42, 0x41, 0x52 };
+            int index2 = bytes.IndexOf(barPositionPattern);
+            if (index >= 0 && index + langPattern.Length + 1 < bytes.Length)
+            {
+                var toSet = new byte[] { 0x42, 0x54, 0x2E, 0x42, 0x41, 0x52, (byte)barPos };
+                for (int i = 0; i < toSet.Length; i++)
+                    bytes[index2 + i] = toSet[i];
+            }
+
+            File.WriteAllBytes(path, bytes);
+        }
+
+        private void SetupGeneralConfig(string path, string system, string emulator, string rom)
         {
             string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
-
+            
             try
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
@@ -438,6 +511,21 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 
+                    // Write texture paths (not necessary for triforce)
+                    if (!_triforce)
+                    {
+                        string biosPath = AppConfig.GetFullPath("bios");
+                        string dolphinLoadPath = Path.Combine(biosPath, "dolphin-emu", "Load");
+                        string dolphinResourcesPath = Path.Combine(dolphinLoadPath, "ResourcePacks");
+
+                        ini.WriteValue("General", "LoadPath", dolphinLoadPath);
+                        ini.WriteValue("General", "ResourcePackPath", dolphinResourcesPath);
+                    }
+
+                    // Add rom path to isopath
+                    AddPathToIsoPath(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
+
+                    // Triforce specifics AM-baseboard in SID devices
                     if (_triforce)
                     {
                         ini.WriteValue("Core", "SerialPort1", "6");                        
@@ -446,6 +534,8 @@ namespace emulatorLauncher
                         ini.WriteValue("Core", "SIDevice2", "0");
                         ini.WriteValue("Core", "SIDevice3", "0");
                     }
+
+                    // Set SID devices (controllers)
                     else if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
                     {
                         for (int i = 0; i < 4; i++)
@@ -468,12 +558,26 @@ namespace emulatorLauncher
                         }
                     }
 
-                    // disable auto updates
+                    // Disable auto updates
                     ini.WriteValue("AutoUpdate", "UpdateTrack", " ");
                 }
             }
 
             catch { }
+        }
+
+        private static void AddPathToIsoPath(string romPath, IniFile ini)
+        {
+            int isoPathsCount = (ini.GetValue("General", "ISOPaths") ?? "0").ToInteger();
+            for (int i = 0; i < isoPathsCount; i++)
+            {
+                var isoPath = ini.GetValue("General", "ISOPath" + i);
+                if (isoPath != null && Path.GetFullPath(isoPath).Equals(romPath, StringComparison.InvariantCultureIgnoreCase))
+                    return;
+            }
+
+            ini.WriteValue("General", "ISOPaths", (isoPathsCount + 1).ToString());
+            ini.WriteValue("General", "ISOPath" + isoPathsCount, romPath);
         }
     }
 }

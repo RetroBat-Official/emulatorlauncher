@@ -20,6 +20,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using System.Globalization;
 
 namespace emulatorLauncher.Tools
 {
@@ -77,15 +78,15 @@ namespace emulatorLauncher.Tools
             File.WriteAllText(ymlFile, ToString());
         }
 
-        public DynamicJson GetOrCreateContainer(string key)
+        public DynamicJson GetOrCreateContainer(string key, bool asArray = false)
         {
             DynamicJson result;
 
             var element = xml.Element(key);
             if (element == null)
             {
-                var tempElement = new XElement(key, CreateTypeAttr(JsonType.@object));
-                result = new DynamicJson(tempElement, JsonType.@object) { _temporaryParentObject = this };
+                var tempElement = new XElement(key, CreateTypeAttr(asArray ? JsonType.array : JsonType.@object));
+                result = new DynamicJson(tempElement, asArray ? JsonType.array : JsonType.@object) { _temporaryParentObject = this };
                 return result;
             }
 
@@ -94,6 +95,62 @@ namespace emulatorLauncher.Tools
                 return (DynamicJson)ret;
 
             return null;
+        }
+
+        public DynamicJson GetObject(string key)
+        {
+            var element = xml.Element(key);
+            if (element == null)
+                return null;
+
+            object ret;
+            if (TryGet(element, out ret) && ret is DynamicJson)
+                return ret as DynamicJson;
+
+            return null;
+        }
+
+        public ArrayList GetArray(string key)
+        {
+            var element = xml.Element(key);            
+            if (element == null)
+                return new ArrayList();
+
+            object ret;
+            if (TryGet(element, out ret) && ret is DynamicJson)
+            {
+                DynamicJson dj = ret as DynamicJson;
+                if (dj.IsArray)
+                {
+                    var arr = new ArrayList();
+                    
+                    foreach (var item in dj.xml.Elements().Select(x => ToValue(x)))
+                        arr.Add(item);
+
+                    return arr;
+                }
+            }
+
+            return new ArrayList();
+        }
+
+        public void SetObject(string key, object obj)
+        {
+            if (obj is IEnumerable && !(obj is string))
+                SetArray(key, (IEnumerable) obj);
+            else
+                TrySet(key, obj);
+        }
+
+        private void SetArray(string key, IEnumerable array)
+        {
+            DynamicJson ret = new DynamicJson() { _temporaryParentObject = this };
+            ret.jsonType = JsonType.array;
+
+            foreach (var item in array)
+                ret.xml.Add(new XElement("item", CreateTypeAttr(GetJsonType(item)), CreateJsonNode(item)));
+
+            TrySet(key, ret);
         }
 
         public string this[string key]
@@ -146,7 +203,7 @@ namespace emulatorLauncher.Tools
                     else if (value.ToLowerInvariant() == "true" || value.ToLowerInvariant() == "false")
                         newValue = Convert.ToBoolean(value);
                     else if (value.All(c => char.IsNumber(c) || c == '.' || c == '-'))
-                        newValue = Convert.ToDouble(value);
+                        newValue = Convert.ToDouble(value, CultureInfo.InvariantCulture);
                     else if (value.Length > 1 && value.StartsWith("[") && value.EndsWith("]")) // Array
                         newValue = Parse(value);
                 }
@@ -165,11 +222,6 @@ namespace emulatorLauncher.Tools
 
                 TrySet(key, newValue);                
             }
-        }
-
-        private enum JsonType
-        {
-            @string, number, boolean, @object, array, @null
         }
 
         /// <summary>create JsonSring from primitive or IEnumerable or Object({public property name:property value})</summary>
@@ -223,7 +275,10 @@ namespace emulatorLauncher.Tools
                 case TypeCode.Byte:
                     return JsonType.number;
                 case TypeCode.Object:
-                    return (obj is IEnumerable) ? JsonType.array : JsonType.@object;
+                    if (obj is DynamicJson)
+                        return ((DynamicJson)obj).IsArray ? JsonType.array : JsonType.@object;
+                    else 
+                        return (obj is IEnumerable) ? JsonType.array : JsonType.@object;
                 case TypeCode.DBNull:
                 case TypeCode.Empty:
                 default:
@@ -249,6 +304,9 @@ namespace emulatorLauncher.Tools
                 case JsonType.@object:
                     return CreateXObject(obj);
                 case JsonType.array:
+                    if (obj is DynamicJson)
+                        return CreateXObject(obj);
+
                     return CreateXArray(obj as IEnumerable);
                 case JsonType.@null:
                 default:
@@ -264,6 +322,26 @@ namespace emulatorLauncher.Tools
 
         private static IEnumerable<XStreamingElement> CreateXObject(object obj)
         {
+            DynamicJson dj = obj as DynamicJson;
+            if (dj != null)
+            {
+                if (dj.IsArray)
+                {
+                    var ret = new List<XStreamingElement>();
+
+                    foreach(var item in (dynamic)dj)
+                        ret.Add(new XStreamingElement("item", CreateTypeAttr(GetJsonType(item)), CreateJsonNode(item)));
+
+                    return ret.ToArray();
+                }
+                else
+                {
+                    return dj.GetDynamicMemberNames()
+                        .Select(pi => new { Name = pi, Value = ToValue(dj.xml.Element(pi)) })
+                        .Select(a => new XStreamingElement(a.Name, CreateTypeAttr(GetJsonType(a.Value)), CreateJsonNode(a.Value)));
+                }
+            }
+
             return obj.GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Select(pi => new { Name = pi.Name, Value = pi.GetValue(obj, null) })
@@ -290,8 +368,8 @@ namespace emulatorLauncher.Tools
 
         // dynamic structure represents JavaScript Object/Array
 
-        readonly XElement xml;
-        readonly JsonType jsonType;
+        XElement xml;
+        JsonType jsonType;
 
         /// <summary>create blank JSObject</summary>
         public DynamicJson()
@@ -574,5 +652,12 @@ namespace emulatorLauncher.Tools
             }
             return CreateJsonString(new XStreamingElement("root", CreateTypeAttr(jsonType), xml.Elements()));
         }
+        
+        enum JsonType
+        {
+            @string, number, boolean, @object, array, @null
+        }
     }
+
+
 }

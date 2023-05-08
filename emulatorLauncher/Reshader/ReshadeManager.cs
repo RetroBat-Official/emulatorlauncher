@@ -6,46 +6,53 @@ using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
+using System.IO.Compression;
+using System.ComponentModel;
+using System.Reflection;
 
 namespace emulatorLauncher
 {
     class ReshadeManager
     {
-        // -system model2 -emulator model2 -core multicpu -rom "H:\[Emulz]\roms\model2\dayton93.zip"
-        // -system model3 -emulator supermodel -core  -rom "H:\[Emulz]\roms\model3\srally2.zip"
-        public static bool Setup(ReshadeBezelType type, string system, string rom, string path, ScreenResolution resolution)
+        // Update this version number, if shipped reshader version changes.
+        private static Version ShippedVersion = new Version(4, 5, 4, 115);
+
+        private const string ReshadeFolder = "reshade-shaders";
+
+        public static bool Setup(ReshadeBezelType type, ReshadePlatform platform, string system, string rom, string path, ScreenResolution resolution, bool displayIsStretched = false)
         {
-            FileInfo fileInfo = null;
+            var bezel = BezelFiles.GetBezelFiles(system, rom, resolution);
+            string shaderName = Program.SystemConfig["shader"] ?? "";
 
-            if (type == ReshadeBezelType.d3d9)
-                fileInfo = new FileInfo(Path.Combine(path, "d3d9.dll"));
-            else if (type == ReshadeBezelType.opengl)
-                fileInfo = new FileInfo(Path.Combine(path, "opengl32.dll"));
+            if (bezel == null && (string.IsNullOrEmpty(shaderName) || !shaderName.Contains("@")))
+            {
+                UninstallReshader(type, path);
+                return false;
+            }
 
+            FileInfo fileInfo = new FileInfo(InstallReshader(type, platform, path));
             if (fileInfo == null || !fileInfo.Exists)
                 return false;
 
-            FileVersionInfo version = FileVersionInfo.GetVersionInfo(fileInfo.FullName);
-
+            var version = FileVersionInfo.GetVersionInfo(fileInfo.FullName);
             bool oldVersion = new Version(version.ProductMajorPart, version.ProductMinorPart) <= new Version(4, 6);
 
-            List<string> knownTechniques = LoadKnownTechniques(oldVersion);
+            var knownTechniques = LoadKnownTechniques(oldVersion);
 
-            if (!File.Exists(Path.Combine(path, "ReShade.ini")))
-                File.WriteAllText(Path.Combine(path, "ReShade.ini"), Properties.Resources.ReShadeIni);
-
-
-            var bezel = BezelFiles.GetBezelFiles(system, rom, resolution);
-
-            using (IniFile reShadeIni = new IniFile(Path.Combine(path, "ReShade.ini")))
+            using (var reShadeIni = new IniFile(Path.Combine(path, "ReShade.ini")))
             {
-                var effectSearchPaths = reShadeIni.GetValue("GENERAL", "EffectSearchPaths");
-                if (effectSearchPaths != null)
-                    effectSearchPaths = effectSearchPaths.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                reShadeIni.WriteValue("GENERAL", "EffectSearchPaths", @".\"+ReshadeFolder+@"\Shaders");
+                reShadeIni.WriteValue("GENERAL", "TextureSearchPaths", @".\" + ReshadeFolder  +@"\Textures");
+                reShadeIni.WriteValue("GENERAL", "PresetFiles", @".\" + ReshadeFolder + @"\ReShadePreset.ini");
+                reShadeIni.WriteValue("GENERAL", "PresetPath", @".\" + ReshadeFolder + @"\ReShadePreset.ini");
 
-                if (effectSearchPaths != null && effectSearchPaths.StartsWith(".\\"))
-                    effectSearchPaths = path + effectSearchPaths.Substring(1);
+                if (!string.IsNullOrEmpty(Program.AppConfig["screenshots"]))
+                {
+                    reShadeIni.WriteValue("GENERAL", "ScreenshotPath", Program.AppConfig.GetFullPath("screenshots"));
+                    reShadeIni.WriteValue("SCREENSHOTS", "SavePath", Program.AppConfig.GetFullPath("screenshots"));
+                }
 
+                var effectSearchPaths = Path.Combine(path, ReshadeFolder, "Shaders");
                 Directory.CreateDirectory(effectSearchPaths);
 
                 if (!File.Exists(Path.Combine(effectSearchPaths, "ReShade.fxh")))
@@ -53,23 +60,10 @@ namespace emulatorLauncher
 
                 if (!File.Exists(Path.Combine(effectSearchPaths, "ReShadeUI.fxh")))
                     File.WriteAllBytes(Path.Combine(effectSearchPaths, "ReShadeUI.fxh"), Properties.Resources.ReShadeUI);
-
-                if (!string.IsNullOrEmpty(Program.AppConfig["screenshots"]))
-                    reShadeIni.WriteValue("SCREENSHOTS", "SavePath", Program.AppConfig.GetFullPath("screenshots"));
-
-                var presetPath = oldVersion ? reShadeIni.GetValue("GENERAL", "PresetFiles") : reShadeIni.GetValue("GENERAL", "PresetPath");
-                if (presetPath != null)
-                    presetPath = presetPath.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-
-                if (presetPath != null && presetPath.StartsWith(".\\"))
-                    presetPath = path + presetPath.Substring(1);
-                if (presetPath == null)
-                    presetPath = "ReShadePreset.ini";
-
-                using (IniFile reShadePreset = new IniFile(Path.Combine(path, presetPath)))
+                
+                using (var reShadePreset = new IniFile(Path.Combine(path, ReshadeFolder, "ReShadePreset.ini")))
                 {                 
                     string bezelEffectName = knownTechniques[0];
-                    string shaderName = Program.SystemConfig["shader"]??"";
                     string shaderFileName = null;
 
                     int split = shaderName.IndexOf("@");
@@ -82,12 +76,7 @@ namespace emulatorLauncher
                     }
 
                     // Techniques
-
-                    List<string> techniques = new List<string>();
-
-                    var currentTech = reShadePreset.GetValue(null, "Techniques");
-                    if (currentTech != null)
-                        techniques = currentTech.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(t => !knownTechniques.Contains(t)).ToList();
+                    var techniques = (reShadePreset.GetValue(null, "Techniques") ?? "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(t => !knownTechniques.Contains(t)).ToList();
 
                     if (!string.IsNullOrEmpty(shaderFileName))
                     {
@@ -103,6 +92,8 @@ namespace emulatorLauncher
                         }
                     }
 
+                    float displayH = 1.0f;
+
                     if (bezel != null)
                     {
                         int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
@@ -116,39 +107,154 @@ namespace emulatorLauncher
                         File.WriteAllText(Path.Combine(effectSearchPaths, "Bezel.fx"), bezelFx);
 
                         techniques.Add(bezelEffectName);
+
+                        float displayW = displayIsStretched ? 3f / 4f : 1.0f;
+
+                        var bezelEffect = reShadePreset.GetOrCreateSection("Bezel.fx");
+
+                        BezelInfo infos = bezel.BezelInfos;
+                        if (infos != null && infos.IsValid())
+                        {
+                            displayW = ((float)infos.width.Value - (float)infos.right.Value - (float)infos.left.Value) / (float)infos.width.Value;
+                            displayH = ((float)infos.height.Value - (float)infos.bottom.Value - (float)infos.top.Value) / (float)infos.height.Value;
+
+                            if (!displayIsStretched)
+                            {
+                                float fourtiers = 4f / 3f;
+                                displayW *= fourtiers;
+                            }
+
+                            float currentLeft = ((float)infos.width.Value / 2.0f) - ((float)infos.width.Value - (float)infos.right.Value - (float)infos.left.Value) / 2.0f;
+                            float currentTop = ((float)infos.height.Value / 2.0f) - ((float)infos.height.Value - (float)infos.bottom.Value - (float)infos.top.Value) / 2.0f;
+
+                            float offX = (infos.left.Value - currentLeft) / infos.width.Value / displayW;
+                            float offY = (infos.top.Value - currentTop) / infos.height.Value / displayH;
+
+                            string trans = (offX * 100f).ToString("N6", System.Globalization.CultureInfo.InvariantCulture) + "," + (offY * 100f).ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
+                            bezelEffect["GameScreen_trans"] = trans;                 
+                        }
+                        else                      
+                            bezelEffect["GameScreen_trans"] = "0.000000,0.000000";
+
+                        string sz = (displayW*100f).ToString("N6", System.Globalization.CultureInfo.InvariantCulture) + "," + (displayH*100f).ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
+                        bezelEffect["GameScreen_zoom"] = sz;                        
+                    }
+                    else if (File.Exists(Path.Combine(effectSearchPaths, "Bezel.fx")))
+                        File.Delete(Path.Combine(effectSearchPaths, "Bezel.fx"));
+                    
+                    reShadePreset.WriteValue(null, "Techniques", string.Join(",", techniques.ToArray()));
+
+                    if (techniques.Contains("GeomCRT") || techniques.Contains("CRTGeom.fx"))
+                    {
+                        float resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
+
+                        var CRTGeom = reShadePreset.GetOrCreateSection("CRTGeom.fx");
+                        CRTGeom["texture_sizeX"] = resX.ToString("N6", System.Globalization.CultureInfo.InvariantCulture).Replace(",", "");
+                        CRTGeom["texture_sizeY"] = (240f * displayH).ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
+                        CRTGeom["video_sizeX"] = resX.ToString("N6", System.Globalization.CultureInfo.InvariantCulture).Replace(",", "");
+                        CRTGeom["video_sizeY"] = (240f * displayH).ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
+                        CRTGeom["DOTMASK"] = "0.000000";
                     }
 
-                    reShadePreset.WriteValue(null, "Techniques", string.Join(",", techniques.ToArray()));
-                    
                     // TechniqueSorting
-
-                    techniques = new List<string>();
-                    var techSort = reShadePreset.GetValue(null, "TechniqueSorting");
-                    if (techSort != null)
-                        techniques = techSort.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(t => !knownTechniques.Contains(t)).ToList();
+                    var techniqueSorting = (reShadePreset.GetValue(null, "TechniqueSorting") ?? "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(t => !knownTechniques.Contains(t)).ToList();
 
                     if (!string.IsNullOrEmpty(shaderFileName) && !string.IsNullOrEmpty(shaderName))
-                        techniques.Add(shaderName);
+                        techniqueSorting.Add(shaderName);
 
                     if (bezel != null)
-                        techniques.Add(bezelEffectName);
+                        techniqueSorting.Add(bezelEffectName);
 
                     if (oldVersion)
-                        reShadePreset.WriteValue(null, "TechniqueSorting", string.Join(",", techniques.ToArray()));
+                        reShadePreset.WriteValue(null, "TechniqueSorting", string.Join(",", techniqueSorting.ToArray()));
 
                     reShadePreset.Save();
+
+                    return (bezel != null || techniques.Count > 0);
+                }
+            }
+        }
+
+        public static ReshadePlatform GetPlatformFromFile(string fileName)
+        {
+            try
+            {
+                var type = Kernel32.GetBinaryType(fileName);
+                if (type == BinaryType.SCS_64BIT_BINARY)
+                    return ReshadePlatform.x64;
+            }
+            catch { }
+
+            return ReshadePlatform.x86;
+        }
+
+        private static string InstallReshader(ReshadeBezelType type, ReshadePlatform platform, string path)
+        {
+            string dllName = Path.Combine(path, GetEnumDescription(type));
+
+            if (File.Exists(dllName))
+            {
+                // Reinstall DLL if platform changed
+                var versionInfo = FileVersionInfo.GetVersionInfo(dllName);
+
+                ReshadePlatform dllPlatform = !string.IsNullOrEmpty(versionInfo.FileDescription) && versionInfo.FileDescription.Contains("64") ? ReshadePlatform.x64 : ReshadePlatform.x86;
+                if (platform != dllPlatform)
+                {
+                    try { File.Delete(dllName); }
+                    catch { }
+                }
+                else
+                {
+                    Version version = new Version();
+                    if (Version.TryParse(versionInfo.FileVersion, out version))
+                    {
+                        if (version < ShippedVersion)
+                        {
+                            try { File.Delete(dllName); }
+                            catch { }
+                        }                        
+                    }
                 }
             }
 
-            if (bezel == null)
-                return false;
+            if (!File.Exists(dllName))
+            {
+                UninstallReshader(type, path);
 
-            return true;
+                if (platform == ReshadePlatform.x86)
+                    GZipBytesToFile(Properties.Resources.reshader_x86_gz, Path.Combine(path, dllName));
+                else
+                    GZipBytesToFile(Properties.Resources.reshader_x64_gz, Path.Combine(path, dllName));
+            }
+
+            if (!File.Exists(Path.Combine(path, "ReShade.ini")))
+                File.WriteAllText(Path.Combine(path, "ReShade.ini"), Properties.Resources.ReShadeIni);
+
+            if (File.Exists(Path.Combine(path, "ReShadePreset.ini")))
+                File.Delete(Path.Combine(path, "ReShadePreset.ini"));
+
+            return dllName;
         }
 
-        private static List<string> LoadKnownTechniques(bool oldVersion)
+        public static void UninstallReshader(ReshadeBezelType type, string path)
         {
-            List<string> knownTechniques = new List<string>() { "Bezel@Bezel.fx" };
+            string dllName = Path.Combine(path, GetEnumDescription(type));
+            if (File.Exists(dllName))
+                File.Delete(dllName);
+
+            if (File.Exists(Path.Combine(path, "ReShade.ini")))
+                File.Delete(Path.Combine(path, "ReShade.ini"));
+
+            if (File.Exists(Path.Combine(path, "ReShadePreset.ini")))
+                File.Delete(Path.Combine(path, "ReShadePreset.ini"));
+
+            if (Directory.Exists(Path.Combine(path, ReshadeFolder)))
+                Directory.Delete(Path.Combine(path, ReshadeFolder), true);
+        }
+
+        static List<string> LoadKnownTechniques(bool oldVersion)
+        {
+            var knownTechniques = new List<string>() { "Bezel@Bezel.fx" };
 
             try
             {
@@ -177,16 +283,64 @@ namespace emulatorLauncher
                     if (tsplit >= 0)
                         knownTechniques[i] = tmp.Substring(0, tsplit);
                 }
-            }
+            }            
 
             return knownTechniques;
+        }
+
+        static bool GZipBytesToFile(byte[] bytes, string fileName)
+        {
+            try
+            {
+                using (var reader = new MemoryStream(bytes))
+                {
+                    using (var decompressedStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                    {
+                        using (GZipStream decompressionStream = new GZipStream(reader, CompressionMode.Decompress))
+                        {
+                            decompressionStream.CopyTo(decompressedStream);
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[ReadGZipStream] Failed " + ex.Message, ex);
+            }
+
+            return false;
+        }
+
+        static string GetEnumDescription(Enum value)
+        {
+            FieldInfo fi = value.GetType().GetField(value.ToString());
+            if (fi == null)
+                return value.ToString();
+
+            var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            return (attributes.Length > 0) ? attributes[0].Description : value.ToString();
         }
     }
 
     enum ReshadeBezelType
     {
+        [Description("d3d9.dll")]
         d3d9,
-        opengl
+        [Description("d3d10.dll")]
+        d3d10,
+        [Description("d3d11.dll")]
+        d3d11,
+        [Description("opengl32.dll")]
+        opengl,
+        [Description("dxgi.dll")]
+        dxgi
+    }
+
+    enum ReshadePlatform
+    {
+        x86,
+        x64
     }
 
 }

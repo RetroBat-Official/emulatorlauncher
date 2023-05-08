@@ -10,7 +10,7 @@ namespace emulatorLauncher.Tools
         public XInputDevice(int index)
         {
             DeviceIndex = index;
-            Name = "Input Pad #" + (DeviceIndex + 1).ToString();
+            Name = "Input Pad #" + (DeviceIndex + 1).ToString();                        
         }
 
         public override string ToString()
@@ -18,8 +18,35 @@ namespace emulatorLauncher.Tools
             return Name;
         }
 
-        public int DeviceIndex { get; set; }
-        public string Name { get; set; }
+        public int DeviceIndex { get; private set; }
+        public string Name { get; private set; }
+
+        XINPUT_DEVSUBTYPE? _subType;
+
+        public XINPUT_DEVSUBTYPE SubType
+        {
+            get
+            {
+                if (!_subType.HasValue)
+                {
+                    _subType = XINPUT_DEVSUBTYPE.GAMEPAD;
+
+                    try
+                    {
+                        // Get subtype from SharpDX.XInput
+                        var ctrl = new SharpDX.XInput.Controller((SharpDX.XInput.UserIndex)DeviceIndex);
+                        if (ctrl.IsConnected)
+                        {
+                            var caps = ctrl.GetCapabilities(SharpDX.XInput.DeviceQueryType.Any);
+                            _subType = (XINPUT_DEVSUBTYPE)caps.SubType;
+                        }
+                    }
+                    catch { }
+                }
+
+                return _subType.Value;
+            }
+        }
 
         private static bool IsXInputDevice(string vendorId, string productId)
         {
@@ -151,5 +178,20 @@ namespace emulatorLauncher.Tools
         B = 8192,
         X = 16384,
         Y = 32768
+    }
+
+    public enum XINPUT_DEVSUBTYPE
+    {
+        UNKNOWN = 0x00,
+        GAMEPAD = 0x01,
+        WHEEL = 0x02,
+        ARCADE_STICK = 0x03,
+        FLIGHT_STICK = 0x04,
+        DANCE_PAD = 0x05,
+        GUITAR = 0x06,
+        GUITAR_ALTERNATE = 0x07,
+        DRUM_KIT = 0x08,
+        GUITAR_BASS = 0x0B,
+        ARCADE_PAD = 0x13
     }
 }

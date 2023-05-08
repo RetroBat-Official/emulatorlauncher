@@ -41,11 +41,11 @@ namespace emulatorLauncher
 
             //Define command-line arguments
             List<string> commandArray = new List<string>();
-            
+
             //-w, -f is used to avoid vita3k regenerating the config file as it is very fussy with it !
             //-c to specify the configfile to use
             //-r for game rom/ID
-            commandArray.Add("--fullscreen");
+            commandArray.Add("-F");
             commandArray.Add("-w");
             commandArray.Add("-f");
             
@@ -64,7 +64,7 @@ namespace emulatorLauncher
             }
 
             if (Directory.Exists(gamepath) || ext == "m3u")
-                commandArray.Add("-r" + gameID);                    //r used to run installed games
+                commandArray.Add("-r " + gameID);                    //r used to run installed games
 
             string args = string.Join(" ", commandArray);
 
@@ -79,7 +79,58 @@ namespace emulatorLauncher
                 Arguments = args,                
             };
         }
-        
+
+        /// <summary>
+        /// UI - console language
+        /// Japanese = 0
+        /// English = 1
+        /// French = 2
+        /// Spain = 3
+        /// German = 4
+        /// Italian = 5
+        /// Dutch = 6
+        /// Portuguese = 7
+        /// Russian = 8
+        /// Korean = 9
+        /// Chinese = 10
+        /// Taiwanese = 11
+        /// Polish = 16
+        /// </summary>
+        /// <returns></returns>
+        private string GetDefaultvitaLanguage()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "0" },
+                { "en", "1" },
+                { "fr", "2" },
+                { "es", "3" },
+                { "de", "4" },
+                { "it", "5" },
+                { "nl", "6" },
+                { "pt", "7" },
+                { "ru", "8" },
+                { "ko", "9" },
+                { "zh", "10" },
+                { "tw", "11" },
+                { "pl", "16" }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "11";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return "1";
+        }
+
         //Configure config.yml file
         private void SetupConfiguration(string path)
         {
@@ -89,6 +140,9 @@ namespace emulatorLauncher
             yml["initial-setup"] = "true";
             yml["user-auto-connect"] = "true";
             yml["show-welcome"] = "false";
+
+            //System language
+            BindFeature(yml, "sys-lang", "psvita_language", GetDefaultvitaLanguage());
 
             //Then the emulator options
             BindFeature(yml, "backend-renderer", "backend-renderer", "Vulkan");
@@ -118,8 +172,39 @@ namespace emulatorLauncher
 
             //write pref-path with emulator path
             string vita_emulator_path = AppConfig.GetFullPath("vita3k");
-            string pref_path = (vita_emulator_path + "/");
-            yml["pref-path"] = pref_path;
+            yml["pref-path"] = vita_emulator_path;
+
+            //Add modules if user has set option to manage from RETROBAT
+            if (SystemConfig.isOptSet("modules") && SystemConfig["modules"] == "1")
+            {
+                yml["modules-mode"] = "1";
+                var lleModules = yml.GetOrCreateContainer("lle-modules");
+                
+                //clear existing list of modules and let EL add modules
+                lleModules.Elements.Clear();
+
+                //Start adding modules
+                
+                //libhttp
+                if (SystemConfig.isOptSet("libhttp") && SystemConfig.getOptBoolean("libhttp"))
+                    lleModules.Elements.Add(new YmlElement() { Value = "- libhttp" });
+                
+                //libscemp4
+                if (SystemConfig.isOptSet("libscemp4") && SystemConfig.getOptBoolean("libscemp4"))
+                    lleModules.Elements.Add(new YmlElement() { Value = "- libscemp4" });
+
+                //Add more modules in the future based on user feedback, tests and games requiring specific modules
+            }
+
+            // If user has set feature to AUTOMATIC IN VITA, clear list of modules and set mode to auto
+            else if (SystemConfig.isOptSet("modules") && SystemConfig["modules"] == "0")
+            {
+                yml["modules-mode"] = "0";
+                var lleModules = yml.GetOrCreateContainer("lle-modules");
+                lleModules.Elements.Clear();
+            }
+            //else don't touch the modules container
+                
 
             //save config file
             yml.Save();           

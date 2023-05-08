@@ -22,16 +22,30 @@ namespace emulatorLauncher
 			if (!File.Exists(exe))
 				return null;
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
             _resolution = resolution;
 
+            if (File.Exists(Path.Combine(path, "oricutron.cfg")))
+            {
+                var cfg = ConfigFile.FromFile(Path.Combine(path, "oricutron.cfg"));
+                cfg["machine"] = "atmos";
+                cfg["debug"] = "no";
+                cfg["palghosting"] = "no";
+                cfg["fullscreen"] = "yes";
+                cfg["aratio"] = "no";
+                cfg["rendermode"] = "opengl";
+                cfg.Save(Path.Combine(path, "oricutron.cfg"), true);
+            }
+            
             if (Path.GetExtension(rom).ToLower() == ".dsk")
             {
                 return new ProcessStartInfo()
                 {
                     FileName = exe,
                     WorkingDirectory = path,
-                    Arguments = "--fullscreen --disk \"" + rom + "\"",
+                    Arguments = "--fullscreen --rendermode opengl --disk \"" + rom + "\"",
                 };
             }
 
@@ -39,7 +53,7 @@ namespace emulatorLauncher
 				{
 					FileName = exe,
 					WorkingDirectory = path,
-                    Arguments = "--fullscreen --turbotape on --tape \"" + rom + "\"",
+                    Arguments = "--fullscreen --rendermode opengl --turbotape on --tape \"" + rom + "\"",
 				};
         }
 

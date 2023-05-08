@@ -9,11 +9,38 @@ using emulatorLauncher.Tools;
 namespace emulatorLauncher
 {
     partial class YuzuGenerator : Generator
-    {
+    {        
+        /// <summary>
+        /// Cf. https://github.com/yuzu-emu/yuzu/blob/master/src/input_common/drivers/sdl_driver.cpp
+        /// </summary>
+        /// <param name="pcsx2ini"></param>
+        private static void UpdateSdlControllersWithHints(IniFile ini)
+        {
+            var hints = new List<string>();
+
+            if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
+                hints.Add("SDL_HINT_JOYSTICK_RAWINPUT = 1");
+
+            if (ini.GetValue("Controls", "enable_joycon_driver\\default") == "true" || ini.GetValue("Controls", "enable_joycon_driver") != "false")
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 0");
+            else 
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
+
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_SWITCH = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_XBOX = 0");
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         private void CreateControllerConfiguration(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            UpdateSdlControllersWithHints(ini);
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
                 ConfigureInput(controller, ini);
@@ -39,15 +66,21 @@ namespace emulatorLauncher
             if (cfg == null)
                 return;
 
-            // yuzu uses 7801 at end of guid for XInput while ES has 7200
-            string yuzuGuid = controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
+            var guid = controller.GetSdlGuid(_sdlVersion);
 
-            if (controller.IsXInputDevice && yuzuGuid.EndsWith("7200"))
-                yuzuGuid = yuzuGuid.Substring(0, yuzuGuid.Length - 4) + "7801";
+            // Yuzu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
+            // Convert Guid to XInput
+            if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
+            {
+                if (controller.SdlWrappedTechID == SdlWrappedTechId.RawInput && controller.XInput != null)
+                    guid = guid.ToXInputGuid(controller.XInput.SubType);
+            }
+
+            var yuzuGuid = guid.ToString().ToLowerInvariant();
 
             int index = Program.Controllers
-                    .GroupBy(c => c.Guid)
-                    .Where(c => c.Key == controller.Guid)
+                    .GroupBy(c => c.Guid.ToLowerInvariant())
+                    .Where(c => c.Key == controller.Guid.ToLowerInvariant())
                     .SelectMany(c => c)
                     .OrderBy(c => SdlGameController.GetControllerIndex(c))
                     .ToList()
@@ -55,8 +88,25 @@ namespace emulatorLauncher
 
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 
-            ini.WriteValue("Controls", player + "type" + "\\default", "true");
-            ini.WriteValue("Controls", player + "type", "0");
+            // player_0_type=1 Pro controller
+            // player_0_type=1 Dual joycon
+            // player_0_type=2 Left joycon
+            // player_0_type=3 Right joycon
+            // player_0_type=4 Handheld
+            // player_0_type=5 Gamecube controller
+            
+            int playerTypeId = 0;
+
+            string playerType = player + "type";
+            if (Features.IsSupported(playerType) && SystemConfig.isOptSet(playerType))
+            {
+                string id = SystemConfig[playerType];
+                if (!string.IsNullOrEmpty(id))
+                    playerTypeId = id.ToInteger();
+            }            
+
+            ini.WriteValue("Controls", player + "type" + "\\default",  playerTypeId == 0 ? "true" : "false");
+            ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
             ini.WriteValue("Controls", player + "connected" + "\\default", "false");
             ini.WriteValue("Controls", player + "connected", "true");
 
@@ -96,7 +146,7 @@ namespace emulatorLauncher
                 ini.WriteValue("Controls", "motion_enabled", "false");
             }
 
-            //XInput controllers do not have motion - disable for XInput players, else use default sdl motion engine from the controller
+            // XInput controllers do not have motion - disable for XInput players, else use default sdl motion engine from the controller
             if (!controller.IsXInputDevice)
             {
                 ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
@@ -110,11 +160,39 @@ namespace emulatorLauncher
                 ini.WriteValue("Controls", player + "motionleft", "[empty]");
                 ini.WriteValue("Controls", player + "motionright" + "\\default", "true");
                 ini.WriteValue("Controls", player + "motionright", "[empty]");
+
+                // If motion is set for XInput devices, and controller type is left/right joycon, inject with R3/L3
+                if (SystemConfig.isOptSet("yuzu_enable_motion") && SystemConfig.getOptBoolean("yuzu_enable_motion") && playerTypeId == 2 || playerTypeId == 3)
+                {
+                    // 2 = Left joycon, 3 = Right joycon -> use R3 or L3
+                    var input = FromInput(controller, playerTypeId == 3 ? cfg[InputKey.l3] : cfg[InputKey.r3], yuzuGuid, index);
+                    if (input != null)
+                    {
+                        ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
+                        ini.WriteValue("Controls", player + "motionright" + "\\default", "false");
+
+                        if (playerTypeId == 2)
+                        {
+                            ini.WriteValue("Controls", player + "motionleft", "\"" + input + "\"");
+                            ini.WriteValue("Controls", player + "motionright", "[empty]");
+                        }
+                        else
+                        {
+                            ini.WriteValue("Controls", player + "motionright", "\"" + input + "\"");
+                            ini.WriteValue("Controls", player + "motionleft", "[empty]");
+                        }
+                    }
+                }
             }
+
+            bool revertButtons = Features.IsSupported("yuzu_gamepadbuttons") && SystemConfig.isOptSet("yuzu_gamepadbuttons") && SystemConfig.getOptBoolean("yuzu_gamepadbuttons");
 
             foreach (var map in Mapping)
             {
                 string name = player + map.Value;
+
+                if (revertButtons && reversedButtons.ContainsKey(map.Key))
+                    name = player + reversedButtons[map.Key];
 
                 string cvalue = FromInput(controller, cfg[map.Key], yuzuGuid, index);
 
@@ -153,7 +231,7 @@ namespace emulatorLauncher
             if (input.Type == "button")
                 value += ",button:" + input.Id;
             else if (input.Type == "hat")
-                value += ",direction:" + input.Name.ToString() + ",hat:" + input.Id;
+                value += ",hat:" + input.Id + ",direction:" + input.Name.ToString();
             else if (input.Type == "axis")
             {
                 //yuzu sdl implementation uses "2" as axis value for left trigger for XInput
@@ -162,7 +240,7 @@ namespace emulatorLauncher
                     long newID = input.Id;
                     if (input.Id == 4)
                         newID = 2;
-                    value = "engine:sdl,port:" + index + ",axis:" + newID + ",guid:" + guid + ",threshold:0.500000" + ",invert:+";
+                    value = "engine:sdl,port:" + index + ",guid:" + guid + ",axis:" + newID + ",threshold:0.500000" + ",invert:+";
                 }
                 else
                     value = "engine:sdl,port:" + index + ",axis:" + input.Id + ",guid:" + guid + ",threshold:0.500000" + ",invert:+";
@@ -328,6 +406,14 @@ namespace emulatorLauncher
 
             { InputKey.l3,              "button_lstick"},
             { InputKey.r3,              "button_rstick"},
+        };
+
+        static InputKeyMapping reversedButtons = new InputKeyMapping()
+        {
+            { InputKey.b,               "button_b" },
+            { InputKey.a,               "button_a" },
+            { InputKey.y,               "button_x" },
+            { InputKey.x,               "button_y" },
         };
     }
 }

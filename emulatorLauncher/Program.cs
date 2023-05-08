@@ -89,7 +89,8 @@ namespace emulatorLauncher
             { "n-gage", () => new Eka2l1Generator() },
             { "nosgba", () => new NosGbaGenerator() }, { "no$gba", () => new NosGbaGenerator() },
             { "pinballfx3", () => new PinballFX3Generator() },
-            { "bigpemu", () => new BigPEmuGenerator() }
+            { "bigpemu", () => new BigPEmuGenerator() },
+            { "phoenix", () => new PhoenixGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
@@ -576,7 +577,7 @@ namespace emulatorLauncher
                     switch (var)
                     {
                         case "index": player.DeviceIndex = val.ToInteger(); break;
-                        case "guid": player.Guid = val.ToUpper(); break;
+                        case "guid": player.Guid = new SdlJoystickGuid(val); break;
                         case "path": player.DevicePath = val; break;
                         case "name": player.Name = val; break;
                         case "nbbuttons": player.NbButtons = val.ToInteger(); break;
@@ -595,17 +596,18 @@ namespace emulatorLauncher
                 {
                     foreach (var pi in Controllers)
                     {
-                        pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid && c.DeviceName == pi.Name);
+                        if (pi.IsKeyboard)
+                        {
+                            pi.Config = inputConfig.FirstOrDefault(c => "Keyboard".Equals(c.DeviceName, StringComparison.InvariantCultureIgnoreCase));
+                            if (pi.Config != null)
+                                continue;
+                        }
+
+                        pi.Config = inputConfig.FirstOrDefault(c => pi.CompatibleSdlGuids.Contains(c.DeviceGUID.ToLowerInvariant()) && c.DeviceName == pi.Name);
                         if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.Guid);
-                        if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetSdlGuid() && c.DeviceName == pi.Name);
-                        if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceGUID.ToUpper() == pi.GetSdlGuid());
+                            pi.Config = inputConfig.FirstOrDefault(c => pi.CompatibleSdlGuids.Contains(c.DeviceGUID.ToLowerInvariant()));
                         if (pi.Config == null)
                             pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == pi.Name);
-                        if (pi.Config == null)
-                            pi.Config = inputConfig.FirstOrDefault(c => c.DeviceName == "Keyboard");
                     }
 
                     Controllers.RemoveAll(c => c.Config == null);
@@ -629,7 +631,7 @@ namespace emulatorLauncher
                         if (keyb.Config != null)
                         {
                             keyb.Name = "Keyboard";
-                            keyb.Guid = "00000000000000000000000000000000";
+                            keyb.Guid = new SdlJoystickGuid("00000000000000000000000000000000");
                             Controllers.Add(keyb);
                         }
                     }
@@ -652,13 +654,12 @@ namespace emulatorLauncher
                 string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
                 if (File.Exists(path))
                 {
-                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"]);
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"]);
                     if (!string.IsNullOrEmpty(renderconfig))
                         SystemConfig["shader"] = renderconfig;
                 }
             }
         }
-
 
         /// <summary>
         /// To use with Environment.ExitCode = (int)ExitCodes.CustomError;
@@ -669,7 +670,7 @@ namespace emulatorLauncher
         {
             SimpleLogger.Instance.Error("[Error] " + message);
 
-            string fn = Path.Combine(Path.GetTempPath(), "emulationstation.tmp", "launch_error.log");
+            string fn = Path.Combine(Installer.GetTempPath(), "launch_error.log");
 
             try
             {

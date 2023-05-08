@@ -40,7 +40,7 @@ namespace emulatorLauncher
             }
 
             //settings
-            SetupConfiguration(path);
+            SetupConfiguration(path, rom);
 
             //controller configuration
             CreateControllerConfiguration(path);
@@ -107,12 +107,13 @@ namespace emulatorLauncher
         /// Configure emulator features (settings.xml)
         /// </summary>
         /// <param name="path"></param>
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, string rom)
         {
             string settingsFile = Path.Combine(path, "settings.xml");
 
             var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("content");
 
+            xdoc.SetElementValue("check_update", "false");
             BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());
 
             // Graphic part of settings file
@@ -175,8 +176,21 @@ namespace emulatorLauncher
                 }
             }
 
+            AddPathToGamePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), xdoc);
+
             // Save xml file
             xdoc.Save(settingsFile);
+        }
+
+        private static void AddPathToGamePaths(string romPath, XElement xdoc)
+        {
+            var gamePaths = xdoc.Element("GamePaths");
+            if (gamePaths == null)
+                xdoc.Add(gamePaths = new XElement("GamePaths"));
+
+            var paths = gamePaths.Elements("Entry").Select(e => e.Value).Where(e => !string.IsNullOrEmpty(e)).Select(e => Path.GetFullPath(e)).ToList();
+            if (!paths.Contains(romPath))
+                gamePaths.Add(new XElement("Entry", romPath));
         }
     }
 }

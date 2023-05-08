@@ -15,7 +15,7 @@ namespace emulatorLauncher
         {
             rom = this.TryUnZipGameIfNeeded(system, rom);
 
-            _systemName = system;
+            _systemName = system.ToLowerInvariant();
 
             string path = Path.GetDirectoryName(rom);
             string arguments = null;

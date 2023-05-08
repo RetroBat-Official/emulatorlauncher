@@ -101,7 +101,7 @@ namespace emulatorLauncher
             // Configuration files
             // QT version has now only 1 ini file versus multiple for wxwidgets version
             if (_isPcsxqt)
-                SetupConfigurationQT(path);
+                SetupConfigurationQT(path, rom);
             else
             {
                 SetupPaths(emulator, core);
@@ -124,8 +124,13 @@ namespace emulatorLauncher
             if (_isPcsxqt)
             {
                 commandArray.Add("-batch");
-                commandArray.Add("-fullscreen");
                 commandArray.Add("-nogui");
+
+                if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
+                {
+                    commandArray.Add("-fullscreen");
+                    commandArray.Add("-bigpicture");
+                }
 
                 if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
                     commandArray.Add("-slowboot");
@@ -164,8 +169,6 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    Uri relRoot = new Uri(_path, UriKind.Absolute);
-
                     string biosPath = AppConfig.GetFullPath("bios");
                     if (!string.IsNullOrEmpty(biosPath))
                     {
@@ -175,7 +178,7 @@ namespace emulatorLauncher
                             ini.WriteValue("Folders", "Bios", Path.Combine(biosPath, "pcsx2", "bios").Replace("\\", "\\\\"));
                         else
                             ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
-                        
+
                         ini.WriteValue("Folders", "UseDefaultCheats", "disabled");
                         ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "pcsx2", "cheats").Replace("\\", "\\\\"));
                         ini.WriteValue("Folders", "UseDefaultCheatsWS", "disabled");
@@ -483,42 +486,84 @@ namespace emulatorLauncher
                         ini.WriteValue("Settings", "UserHacks_TCOffsetY", "0");
                     }
 
-                    //Skipdraw Range (both 1.6 & 1.7)
-                    if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                    //Skipdraw Range (ini has different values between 1.6 - gsdx.ini & 1.7 - gs.ini)
+                    if (!_isPcsx17)
                     {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "1");
-                        ini.WriteValue("Settings", "UserHacks", "1");
+                        if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "1");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "2");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "3");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "4");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "5");
+                            ini.WriteValue("Settings", "UserHacks", "1");
+                        }
+                        else if (Features.IsSupported("skipdraw"))
+                        {
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "0");
+                            ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
+                        }
                     }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
+                    else
                     {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "2");
-                        ini.WriteValue("Settings", "UserHacks", "1");
+                        if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "2");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "3");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "4");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "5");
+                            ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                        }
+                        else if (Features.IsSupported("skipdraw"))
+                        {
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "0");
+                            ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "0");
+                        }
                     }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "3");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "4");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "5");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (Features.IsSupported("skipdraw"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Start", "0");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_End", "0");
-                    }
+
                     //CRC Hack Level
                     if (SystemConfig.isOptSet("crc_hack_level") && !string.IsNullOrEmpty(SystemConfig["crc_hack_level"]))
                         ini.WriteValue("Settings", "crc_hack_level", SystemConfig["crc_hack_level"]);
@@ -593,13 +638,23 @@ namespace emulatorLauncher
         /// Setup Configuration of PCSX2.ini file for New PCSX2 QT version
         /// </summary>
         /// <param name="path"></param>
-        private void SetupConfigurationQT(string path)
+        private void SetupConfigurationQT(string path, string rom)
         {
+            var biosList = new string[] {
+                            "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC",
+                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
+
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
-            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces))
+            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
             {
+                // Add rom path to RecursivePaths
+                AddPathToRecursivePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
+
                 CreateControllerConfiguration(ini);
+
+                //fullscreen
+                ini.WriteValue("UI", "StartFullscreen", "true");
 
                 //Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
@@ -633,20 +688,31 @@ namespace emulatorLauncher
 
                 //BIOS path
                 string biosPath = AppConfig.GetFullPath("bios");
-                ini.WriteValue("Folders", "Bios", biosPath);
 
-                if (!string.IsNullOrEmpty(biosPath))
-                {
-                    biosPath = Path.Combine(biosPath, "pcsx2");
+                if (biosList.Any(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b))))
+                    ini.WriteValue("Folders", "Bios", Path.Combine(biosPath, "pcsx2", "bios"));
+                else
+                    ini.WriteValue("Folders", "Bios", biosPath);
 
-                    if (!Directory.Exists(biosPath))
-                        try { Directory.CreateDirectory(biosPath); }
-                        catch { }
+                string biosPcsx2Path = Path.Combine(biosPath, "pcsx2");
 
-                    ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "cheats"));
-                    ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPath, "cheats_ws"));
-                    ini.WriteValue("Folders", "CheatsNI", Path.Combine(biosPath, "cheats_ni"));
-                }
+                if (!Directory.Exists(biosPcsx2Path))
+                    try { Directory.CreateDirectory(biosPcsx2Path); }
+                    catch { }
+
+                ini.WriteValue("Folders", "Cheats", Path.Combine(biosPcsx2Path, "cheats"));
+                ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPcsx2Path, "cheats_ws"));
+                ini.WriteValue("Folders", "CheatsNI", Path.Combine(biosPcsx2Path, "cheats_ni"));
+
+                //precise bios to use
+
+                string biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPcsx2Path, "bios", b)));
+                if (string.IsNullOrEmpty(biosFile))
+                    biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
+                else
+                    biosFile = "SCPH30004R.bin";
+
+                ini.WriteValue("Filenames", "BIOS", biosFile);
 
                 //Snapshots path
                 string screenShotsPath = AppConfig.GetFullPath("screenshots");
@@ -655,16 +721,22 @@ namespace emulatorLauncher
 
                 //Savestates path
                 string savesPath = AppConfig.GetFullPath("saves");
+                string memcardsPath = AppConfig.GetFullPath("saves");
                 if (!string.IsNullOrEmpty(savesPath))
                 {
-                    savesPath = Path.Combine(savesPath, Path.GetFileName(_path));
+                    savesPath = Path.Combine(savesPath, "ps2", "pcsx2", "sstates");
+                    memcardsPath = Path.Combine(memcardsPath, "ps2", "pcsx2", "memcards");
 
                     if (!Directory.Exists(savesPath))
                         try { Directory.CreateDirectory(savesPath); }
                         catch { }
 
-                    ini.WriteValue("Folders", "Savestates", savesPath + "\\" + "sstates");
-                    ini.WriteValue("Folders", "MemoryCards", savesPath + "\\" + "memcards");
+                    if (!Directory.Exists(memcardsPath))
+                        try { Directory.CreateDirectory(memcardsPath); }
+                        catch { }
+
+                    ini.WriteValue("Folders", "Savestates", savesPath);
+                    ini.WriteValue("Folders", "MemoryCards", memcardsPath);
                 }
 
                 //Custom textures path
@@ -719,7 +791,7 @@ namespace emulatorLauncher
                 if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
                     ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
                 else
-                    ini.WriteValue("EmuCore/GS", "VsyncEnable", "0");
+                    ini.WriteValue("EmuCore/GS", "VsyncEnable", "1");
 
                 if (SystemConfig.isOptSet("pcrtc_offsets") && !string.IsNullOrEmpty(SystemConfig["pcrtc_offsets"]))
                     ini.WriteValue("EmuCore/GS", "pcrtc_offsets", SystemConfig["pcrtc_offsets"]);
@@ -821,6 +893,12 @@ namespace emulatorLauncher
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
                     ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "5");
+                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                }
+                else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "bully"))
+                {
+                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "6");
+                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "6");
                     ini.WriteValue("EmuCore/GS", "UserHacks", "true");
                 }
                 else if (Features.IsSupported("skipdraw"))
@@ -1045,9 +1123,19 @@ namespace emulatorLauncher
                 if (SystemConfig.isOptSet("BlitInternalFPSHack") && !string.IsNullOrEmpty(SystemConfig["BlitInternalFPSHack"]))
                     ini.WriteValue("EmuCore/Gamefixes", "BlitInternalFPSHack", SystemConfig["BlitInternalFPSHack"]);
                 else if (Features.IsSupported("BlitInternalFPSHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "BlitInternalFPSHack", "false");
-
+                    ini.WriteValue("EmuCore/Gamefixes", "BlitInternalFPSHack", "false");                
             }
+        }
+
+        private static void AddPathToRecursivePaths(string romPath, IniFile ini)
+        {
+            var recursivePaths = ini.EnumerateValues("GameList")
+                .Where(e => e.Key == "RecursivePaths")
+                .Select(e => Path.GetFullPath(e.Value))
+                .ToList();
+
+            if (!recursivePaths.Contains(romPath))
+                ini.AppendValue("GameList", "RecursivePaths", romPath);
         }
         #endregion
     }

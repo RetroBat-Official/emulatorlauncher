@@ -10,10 +10,24 @@ namespace emulatorLauncher
 {
     class DolphinControllers
     {
+        /// <summary>
+        /// Cf. https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp#L191
+        /// </summary>
+        private static void UpdateSdlControllersWithHints()
+        {
+            var hints = new List<string>();
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         public static bool WriteControllersConfig(string path, string system, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
+
+            UpdateSdlControllersWithHints();
             
             if (system == "wii")
             {
@@ -147,81 +161,84 @@ namespace emulatorLauncher
 
             var wiiMapping = new InputKeyMapping(_wiiMapping);
 
-            if ((rom.Contains(".side.") && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "side")
+            if (Program.SystemConfig["controller_mode"] != "cc")
             {
-                extraOptions["Options/Sideways Wiimote"] = "1";
-                wiiMapping[InputKey.x] = "Buttons/B";
-                wiiMapping[InputKey.y] = "Buttons/A";
-                wiiMapping[InputKey.a] = "Buttons/2";
-                wiiMapping[InputKey.b] = "Buttons/1";
-                //wiiMapping[InputKey.l2] = "Shake/X";
-                //wiiMapping[InputKey.l2] = "Shake/Y";
-                //wiiMapping[InputKey.l2] = "Shake/Z";
-            }
+                if (rom.Contains(".side.") || Program.SystemConfig["controller_mode"] == "side")
+                {
+                    extraOptions["Options/Sideways Wiimote"] = "1";
+                    wiiMapping[InputKey.x] = "Buttons/B";
+                    wiiMapping[InputKey.y] = "Buttons/A";
+                    wiiMapping[InputKey.a] = "Buttons/2";
+                    wiiMapping[InputKey.b] = "Buttons/1";
+                    wiiMapping[InputKey.l2] = "Shake/X";
+                    wiiMapping[InputKey.l2] = "Shake/Y";
+                    wiiMapping[InputKey.l2] = "Shake/Z";
+                }
 
-            // i: infrared, s: swing, t: tilt, n: nunchuk
-            // 12 possible combinations : is si / it ti / in ni / st ts / sn ns / tn nt
+                // i: infrared, s: swing, t: tilt, n: nunchuk
+                // 12 possible combinations : is si / it ti / in ni / st ts / sn ns / tn nt
 
-            // i
-            if (((rom.Contains(".is.") || rom.Contains(".it.") || rom.Contains(".in.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "in")
-            {
-                wiiMapping[InputKey.joystick1up] = "IR/Up";
-                wiiMapping[InputKey.joystick1left] = "IR/Left";
-            }
+                // i
+                if ((rom.Contains(".is.") || rom.Contains(".it.") || rom.Contains(".in.")) || (Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "in"))
+                {
+                    wiiMapping[InputKey.joystick1up] = "IR/Up";
+                    wiiMapping[InputKey.joystick1left] = "IR/Left";
+                }
 
-            if (((rom.Contains(".si.") || rom.Contains(".ti.") || rom.Contains(".ni.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ni")
-            {
-                wiiMapping[InputKey.joystick2up] = "IR/Up";
-                wiiMapping[InputKey.joystick2left] = "IR/Left";
-            }
+                if ((rom.Contains(".si.") || rom.Contains(".ti.") || rom.Contains(".ni.")) || (Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ni"))
+                {
+                    wiiMapping[InputKey.joystick2up] = "IR/Up";
+                    wiiMapping[InputKey.joystick2left] = "IR/Left";
+                }
 
-            // s
-            if (((rom.Contains(".si.") || rom.Contains(".st.") || rom.Contains(".sn.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "sn")
-            {
-                wiiMapping[InputKey.joystick1up]   = "Swing/Up";
-                wiiMapping[InputKey.joystick1left] = "Swing/Left";
-            }
+                // s
+                if ((rom.Contains(".si.") || rom.Contains(".st.") || rom.Contains(".sn.")) || (Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "sn"))
+                {
+                    wiiMapping[InputKey.joystick1up]   = "Swing/Up";
+                    wiiMapping[InputKey.joystick1left] = "Swing/Left";
+                }
 
-            if (((rom.Contains(".is.") || rom.Contains(".ts.") || rom.Contains(".ns.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "ns")
-            {
-                wiiMapping[InputKey.joystick2up]   = "Swing/Up";
-                wiiMapping[InputKey.joystick2left] = "Swing/Left";
-            }
+                if ((rom.Contains(".is.") || rom.Contains(".ts.") || rom.Contains(".ns.")) || (Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "ns"))
+                {
+                    wiiMapping[InputKey.joystick2up]   = "Swing/Up";
+                    wiiMapping[InputKey.joystick2left] = "Swing/Left";
+                }
 
-            // t
-            if (((rom.Contains(".ti.") || rom.Contains(".ts.") || rom.Contains(".tn.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "tn")
-            {
-                wiiMapping[InputKey.joystick1up] = "Tilt/Forward";
-                wiiMapping[InputKey.joystick1left] = "Tilt/Left";
-            }
+                // t
+                if ((rom.Contains(".ti.") || rom.Contains(".ts.") || rom.Contains(".tn.")) || (Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "tn"))
+                {
+                    wiiMapping[InputKey.joystick1up] = "Tilt/Forward";
+                    wiiMapping[InputKey.joystick1left] = "Tilt/Left";
+                }
 
-            if (((rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "nt")
-            {
-                wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
-                wiiMapping[InputKey.joystick2left] = "Tilt/Left";
-            }
+                if ((rom.Contains(".it.") || rom.Contains(".st.") || rom.Contains(".nt.")) || (Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "nt"))
+                {
+                    wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
+                    wiiMapping[InputKey.joystick2left] = "Tilt/Left";
+                }
 
-            // n
-            if (((rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "ni" || Program.SystemConfig["controller_mode"] == "ns" || Program.SystemConfig["controller_mode"] == "nt")
-            {
-                extraOptions["Extension"] = "Nunchuk";
-                wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
-                wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
-                wiiMapping[InputKey.joystick1up] = "Nunchuk/Stick/Up";
-                wiiMapping[InputKey.joystick1left] = "Nunchuk/Stick/Left";
-            }
+                // n
+                if ((rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt.")) || (Program.SystemConfig["controller_mode"] == "ni" || Program.SystemConfig["controller_mode"] == "ns" || Program.SystemConfig["controller_mode"] == "nt"))
+                {
+                    extraOptions["Extension"] = "Nunchuk";
+                    wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
+                    wiiMapping[InputKey.joystick1up] = "Nunchuk/Stick/Up";
+                    wiiMapping[InputKey.joystick1left] = "Nunchuk/Stick/Left";
+                }
 
-            if (((rom.Contains(".in.") || rom.Contains(".sn.") || rom.Contains(".tn.")) && Program.SystemConfig["controller_mode"] != "cc") || Program.SystemConfig["controller_mode"] == "in" || Program.SystemConfig["controller_mode"] == "sn" || Program.SystemConfig["controller_mode"] == "tn")
-            {
-                extraOptions["Extension"] = "Nunchuk";
-                wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
-                wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
-                wiiMapping[InputKey.joystick2up] = "Nunchuk/Stick/Up";
-                wiiMapping[InputKey.joystick2left] = "Nunchuk/Stick/Left";
+                if ((rom.Contains(".in.") || rom.Contains(".sn.") || rom.Contains(".tn.")) || (Program.SystemConfig["controller_mode"] == "in" || Program.SystemConfig["controller_mode"] == "sn" || Program.SystemConfig["controller_mode"] == "tn"))
+                {
+                    extraOptions["Extension"] = "Nunchuk";
+                    wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
+                    wiiMapping[InputKey.joystick2up] = "Nunchuk/Stick/Up";
+                    wiiMapping[InputKey.joystick2left] = "Nunchuk/Stick/Left";
+                }
             }
 
             // cc : Classic Controller Settings
-            if (rom.Contains(".cc.") || Program.SystemConfig["controller_mode"] == "cc")
+            else if (rom.Contains(".cc.") || Program.SystemConfig["controller_mode"] == "cc")
             {
                 extraOptions["Extension"] = "Classic";
                 wiiMapping[InputKey.x] = "Classic/Buttons/X";
@@ -319,7 +336,7 @@ namespace emulatorLauncher
                     // SIDevice1 = 6 -> controlleur standard GCPadNew.ini
 
                     string guid = pad.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
-                    var prod = new Guid(guid).GetProductID();
+                    var prod = pad.ProductID;
 
                     string tech = "XInput";
                     string deviceName = "Gamepad";
@@ -464,7 +481,7 @@ namespace emulatorLauncher
                         ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 108.24 112.26 122.26 118.12 108.24 101.96 100.00 101.96 108.24 114.92 117.37 115.98 108.24 101.96 100.00 101.96 105.40 112.07 114.52 113.89 104.20 99.64 99.97 101.73 106.63 108.27 103.63 104.40 107.15 101.96");
                     }
 
-                    if (prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_PRO)                      
+                    if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)                      
                     {
                         ini.WriteValue(gcpad, "Main Stick/Dead Zone", "10.0000000000000000");
                         ini.WriteValue(gcpad, "C-Stick/Dead Zone", "10.0000000000000000");
@@ -473,11 +490,11 @@ namespace emulatorLauncher
                         ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
                     }
 
-                    if (prod == ProductId.USB_PRODUCT_SONY_DS3 ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4 ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4_DONGLE ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4_SLIM ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS5)
+                    if (prod == USB_PRODUCT.SONY_DS3 ||
+                        prod == USB_PRODUCT.SONY_DS4 ||
+                        prod == USB_PRODUCT.SONY_DS4_DONGLE ||
+                        prod == USB_PRODUCT.SONY_DS4_SLIM ||
+                        prod == USB_PRODUCT.SONY_DS5)
                     {
                         ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
                         ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
@@ -496,18 +513,18 @@ namespace emulatorLauncher
 
                     if (Program.SystemConfig["controller_mode"] == "cc")
                     {
-                        if (prod == ProductId.USB_PRODUCT_NINTENDO_SWITCH_PRO)
+                        if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)
                         {
                             ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "10.0000000000000000");
                             ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "10.0000000000000000");
                             ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
                             ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
                         }
-                        else if (prod == ProductId.USB_PRODUCT_SONY_DS3 ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4 ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4_DONGLE ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS4_SLIM ||
-                        prod == ProductId.USB_PRODUCT_SONY_DS5)
+                        else if (prod == USB_PRODUCT.SONY_DS3 ||
+                        prod == USB_PRODUCT.SONY_DS4 ||
+                        prod == USB_PRODUCT.SONY_DS4_DONGLE ||
+                        prod == USB_PRODUCT.SONY_DS4_SLIM ||
+                        prod == USB_PRODUCT.SONY_DS5)
                         {
                             ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "5.0000000000000000");
                             ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "5.0000000000000000");
