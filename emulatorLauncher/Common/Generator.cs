@@ -479,10 +479,32 @@ namespace emulatorLauncher
                 cfg.SetElementValue(settingName, SystemConfig.GetValueOrDefault(featureName, defaultValue));
         }
 
+        protected void BindBoolFeature(System.Xml.Linq.XElement cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            { 
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg.SetElementValue(settingName, trueValue);
+                else
+                    cfg.SetElementValue(settingName, falseValue);
+            }
+        }
+
         protected void BindFeature(YmlContainer cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+        }
+
+        protected void BindBoolFeature(YmlContainer cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = trueValue;
+                else
+                    cfg[settingName] = falseValue;
+            }   
         }
 
         protected void BindFeature(IniSection cfg, string settingName, string featureName, string defaultValue, bool force = false)
@@ -495,6 +517,17 @@ namespace emulatorLauncher
         {
             if (force || Features.IsSupported(featureName))
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+        }
+
+        protected void BindBoolFeature(DynamicJson cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = trueValue;
+                else
+                    cfg[settingName] = falseValue;
+            } 
         }
 
         protected void BindBoolFeature(ConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
@@ -513,7 +546,6 @@ namespace emulatorLauncher
             if (force || Features.IsSupported(featureName))
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
         }
-
     }
 
     enum ExitCodes : int
