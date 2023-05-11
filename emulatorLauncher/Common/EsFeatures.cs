@@ -191,6 +191,9 @@ namespace emulatorLauncher.Tools
 
         [XmlAttribute("submenu")]
         public string SubMenu { get; set; }
+
+        [XmlAttribute("preset")]
+        public string preset { get; set; }
     }
 
     public class Choice
@@ -232,7 +235,7 @@ namespace emulatorLauncher.Tools
             if (Features != null)
             {
                 foreach (var feat in Features)
-                    if (!string.IsNullOrEmpty(feat.Value) && !string.IsNullOrEmpty(feat.Name) && feat.Choice != null && feat.Choice.Any())
+                    if (!string.IsNullOrEmpty(feat.Value) && !string.IsNullOrEmpty(feat.Name) && ((feat.Choice != null && feat.Choice.Any()) || !string.IsNullOrEmpty(feat.preset)))
                         ret.Add(feat.Value);
             }
 
