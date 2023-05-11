@@ -55,7 +55,7 @@ namespace emulatorLauncher
                 conf.WriteValue(null, "s5d2", "");
                 conf.WriteValue(null, "s6d1", "");
                 conf.WriteValue(null, "s6d2", "");
-                for (int i = 0; i < disks.Count; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     conf.WriteValue(null, "s7d" + (i+1), "");
                 }
