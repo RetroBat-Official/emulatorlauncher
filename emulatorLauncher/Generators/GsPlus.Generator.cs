@@ -104,7 +104,8 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args
+                Arguments = args,
+                WindowStyle = ProcessWindowStyle.Minimized,
             };
         }
 
