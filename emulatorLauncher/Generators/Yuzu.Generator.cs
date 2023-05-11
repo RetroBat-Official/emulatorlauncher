@@ -211,16 +211,15 @@ namespace emulatorLauncher
                 string romPath = Path.GetDirectoryName(rom);
                 ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\","/"));
                 
-                // Limit to 3 as it's faster to launch a yuzu game when there's no folder set
-                // The value will be restored when exiting game
+                // Set gamedirs count to 4
                 var gameDirsSize = ini.GetValue("UI", "Paths\\gamedirs\\size");
-                if (gameDirsSize.ToInteger() > 3)
+                if (gameDirsSize.ToInteger() != 4)
                 {
                     _gamedirsIniPath = conf;
                     _gamedirsSize = gameDirsSize;
-                    ini.WriteValue("UI", "Paths\\gamedirs\\size", "3");
+                    ini.WriteValue("UI", "Paths\\gamedirs\\size", "4");
                 }
-
+                
                 CreateControllerConfiguration(ini);
 
                 //screenshots path
