@@ -190,7 +190,7 @@ namespace emulatorLauncher
                     ini.WriteValue("Controls", "use_docked_mode\\default", "false");
                     ini.WriteValue("Controls", "use_docked_mode", "false");
                 }
-                else
+                else if (Features.IsSupported("yuzu_undock"))
                 {
                     ini.WriteValue("UI", "use_docked_mode\\default", "true");
                     ini.WriteValue("UI", "use_docked_mode", "true");
