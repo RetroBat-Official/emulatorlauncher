@@ -359,7 +359,7 @@ namespace emulatorLauncher
             ini.WriteValue("Controls", player + "motionright", "\"" + "engine:keyboard,code:56,toggle:0" + "\"");
         }
 
-        private static void WriteShortcuts(Controller controller, IniFile ini)
+        private static void WriteShortcuts(IniFile ini)
         {
             // exit yuzu with SELECT+START
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq\\default", "false");
