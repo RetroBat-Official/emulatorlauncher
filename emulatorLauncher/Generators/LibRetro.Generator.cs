@@ -266,7 +266,11 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
             BindFeature(retroarchConfig, "crt_switch_resolution_super", "CRTSuperRes", "0"); // CRT Resolution
 
-            BindFeature(retroarchConfig, "input_auto_game_focus", "GameFocus", systemGameFocus.Contains(system) ? "1" : "0"); // Game Focus (activate per default for some computers)
+
+            if ((systemGameFocus.Contains(system) && !SystemConfig.isOptSet("GameFocus")) || SystemConfig.getOptBoolean("GameFocus"))
+                retroarchConfig["input_auto_game_focus"] = "1";
+            else
+                retroarchConfig["input_auto_game_focus"] = "0";
 
             // Discord presence
             if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
