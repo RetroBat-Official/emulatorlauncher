@@ -517,9 +517,10 @@ namespace emulatorLauncher
         {
             if (force || Features.IsSupported(featureName))
             {
+                bool isCustomValue = SystemConfig.isOptSet(featureName) && !string.IsNullOrEmpty(SystemConfig[featureName]);
                 string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
 
-                ini.WriteValue(section, settingName + "\\default", value == defaultValue ? "true" : "false");                
+                ini.WriteValue(section, settingName + "\\default", isCustomValue ? "false" : "true");                
                 ini.WriteValue(section, settingName, value);                
             }
         }
