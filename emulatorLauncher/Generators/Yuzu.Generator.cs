@@ -238,87 +238,38 @@ namespace emulatorLauncher
                 }
 
                 // Audio output
-                ini.WriteValue("System", "sound_index\\default", "false");
-                if (SystemConfig.isOptSet("sound_index") && !string.IsNullOrEmpty(SystemConfig["sound_index"]))
-                    ini.WriteValue("System", "sound_index", SystemConfig["sound_index"]);
-                else if (Features.IsSupported("sound_index"))
-                    ini.WriteValue("System", "sound_index", "1");
+                BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "auto");
+                BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");
 
-                // Video and Audio drivers
-                ini.WriteValue("Renderer", "backend\\default", "false");
-                if (SystemConfig.isOptSet("backend") && !string.IsNullOrEmpty(SystemConfig["backend"]))
-                    ini.WriteValue("Renderer", "backend", SystemConfig["backend"]);
-                else if (Features.IsSupported("backend"))
-                    ini.WriteValue("Renderer", "backend", "1");
-
-                ini.WriteValue("Audio", "output_engine\\default", "false");
-                if (SystemConfig.isOptSet("audio_backend") && !string.IsNullOrEmpty(SystemConfig["audio_backend"]))
-                    ini.WriteValue("Audio", "output_engine", SystemConfig["audio_backend"]);
-                else if (Features.IsSupported("audio_backend"))
-                    ini.WriteValue("Audio", "output_engine", "auto");
+                // Video drivers                
+                BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
 
                 // resolution_setup
-                ini.WriteValue("Renderer", "resolution_setup\\default", "false");
-                if (SystemConfig.isOptSet("resolution_setup") && !string.IsNullOrEmpty(SystemConfig["resolution_setup"]))
-                    ini.WriteValue("Renderer", "resolution_setup", SystemConfig["resolution_setup"]);
-                else if (Features.IsSupported("resolution_setup"))
-                    ini.WriteValue("Renderer", "resolution_setup", "2");
+                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "2");
 
                 // Aspect ratio
-                ini.WriteValue("Renderer", "aspect_ratio\\default", "false");
-                if (SystemConfig.isOptSet("yuzu_ratio") && !string.IsNullOrEmpty(SystemConfig["yuzu_ratio"]))
-                    ini.WriteValue("Renderer", "aspect_ratio", SystemConfig["yuzu_ratio"]);
-                else if (Features.IsSupported("yuzu_ratio"))
-                    ini.WriteValue("Renderer", "aspect_ratio", "0");
+                BindQtIniFeature(ini, "Renderer", "aspect_ratio", "yuzu_ratio", "0");
 
                 // Anisotropic filtering
-                ini.WriteValue("Renderer", "max_anisotropy\\default", "false");
-                if (SystemConfig.isOptSet("yuzu_anisotropy") && !string.IsNullOrEmpty(SystemConfig["yuzu_anisotropy"]))
-                    ini.WriteValue("Renderer", "max_anisotropy", SystemConfig["yuzu_anisotropy"]);
-                else if (Features.IsSupported("yuzu_anisotropy"))
-                    ini.WriteValue("Renderer", "max_anisotropy", "0");
+                BindQtIniFeature(ini, "Renderer", "max_anisotropy", "yuzu_anisotropy", "0");
 
                 // Vsync
-                ini.WriteValue("Renderer", "use_vsync\\default", "false");
-                if (SystemConfig.isOptSet("use_vsync") && !string.IsNullOrEmpty(SystemConfig["use_vsync"]))
-                    ini.WriteValue("Renderer", "use_vsync", SystemConfig["use_vsync"]);
-                else if (Features.IsSupported("use_vsync"))
-                    ini.WriteValue("Renderer", "use_vsync", "true");
+                BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
 
                 // anti_aliasing
-                ini.WriteValue("Renderer", "anti_aliasing\\default", "false");
-                if (SystemConfig.isOptSet("anti_aliasing") && !string.IsNullOrEmpty(SystemConfig["anti_aliasing"]))
-                    ini.WriteValue("Renderer", "anti_aliasing", SystemConfig["anti_aliasing"]);
-                else if (Features.IsSupported("anti_aliasing"))
-                    ini.WriteValue("Renderer", "anti_aliasing", "0");
+                BindQtIniFeature(ini, "Renderer", "anti_aliasing", "anti_aliasing", "0");
 
                 // scaling_filter
-                ini.WriteValue("Renderer", "scaling_filter\\default", "false");
-                if (SystemConfig.isOptSet("scaling_filter") && !string.IsNullOrEmpty(SystemConfig["scaling_filter"]))
-                    ini.WriteValue("Renderer", "scaling_filter", SystemConfig["scaling_filter"]);
-                else if (Features.IsSupported("scaling_filter"))
-                    ini.WriteValue("Renderer", "scaling_filter", "1");
+                BindQtIniFeature(ini, "Renderer", "scaling_filter", "scaling_filter", "1");
 
                 // GPU accuracy
-                ini.WriteValue("Renderer", "gpu_accuracy\\default", "false");
-                if (SystemConfig.isOptSet("gpu_accuracy") && !string.IsNullOrEmpty(SystemConfig["gpu_accuracy"]))
-                    ini.WriteValue("Renderer", "gpu_accuracy", SystemConfig["gpu_accuracy"]);
-                else if (Features.IsSupported("gpu_accuracy"))
-                    ini.WriteValue("Renderer", "gpu_accuracy", "1");
+                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "1");
 
                 // Asynchronous shaders compilation (hack)
-                ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "false");
-                if (SystemConfig.isOptSet("use_asynchronous_shaders") && SystemConfig.getOptBoolean("use_asynchronous_shaders"))
-                    ini.WriteValue("Renderer", "use_asynchronous_shaders", "true");
-                else if (Features.IsSupported("use_asynchronous_shaders"))
-                    ini.WriteValue("Renderer", "use_asynchronous_shaders", "false");
+                BindQtIniFeature(ini, "Renderer", "use_asynchronous_shaders", "use_asynchronous_shaders", "true");
 
-                //CPU accuracy (auto except if the user chooses otherwise)
-                ini.WriteValue("Cpu", "cpu_accuracy\\default", "false");
-                if (SystemConfig.isOptSet("cpu_accuracy") && !string.IsNullOrEmpty(SystemConfig["cpu_accuracy"]))
-                    ini.WriteValue("Cpu", "cpu_accuracy", SystemConfig["cpu_accuracy"]);
-                else
-                    ini.WriteValue("Cpu", "cpu_accuracy", "0");
+                // CPU accuracy (auto except if the user chooses otherwise)
+                BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
             }
         }
 

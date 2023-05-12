@@ -513,6 +513,17 @@ namespace emulatorLauncher
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
         }
 
+        protected void BindQtIniFeature(IniFile ini, string section, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+
+                ini.WriteValue(section, settingName + "\\default", value == defaultValue ? "true" : "false");                
+                ini.WriteValue(section, settingName, value);                
+            }
+        }
+
         protected void BindFeature(DynamicJson cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
