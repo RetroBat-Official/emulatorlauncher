@@ -22,15 +22,15 @@ namespace emulatorLauncher
 
             if (Directory.Exists(rom))
             {
-                string eboot = Path.Combine(rom, "PS3_GAME\\USRDIR\\EBOOT.BIN");
-                if (!File.Exists(eboot))
-                    eboot = Path.Combine(rom, "USRDIR\\EBOOT.BIN");
+                string[] files = Directory.GetFiles(rom, "EBOOT.BIN", SearchOption.AllDirectories);
 
-                if (!File.Exists(eboot))
+                if (files.Length == 0)
                     throw new ApplicationException("Unable to find any game in the provided folder");
 
-                rom = eboot;
+                if (files.Length > 0)
+                    rom = Path.Combine(rom, files[0]);
             }
+
             else if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
