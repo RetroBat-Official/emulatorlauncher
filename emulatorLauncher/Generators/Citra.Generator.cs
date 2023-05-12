@@ -233,7 +233,18 @@ namespace emulatorLauncher
         {
             var availableLanguages = new Dictionary<string, int>()  //OA = 10, OB = 11 (traditional chinese)
             {
-                {"jp", 0 }, {"en", 1 }, { "fr", 2 }, { "de", 3 }, { "it", 4 }, { "es", 5 }, { "zh", 6 }, { "ko", 7 }, { "nl", 8 }, { "pt", 9 }, { "ru", 10 }, { "tw", 11 }
+                { "jp", 0 },
+                { "ja", 0 },
+                { "en", 1 },
+                { "fr", 2 },
+                { "de", 3 },
+                { "it", 4 },
+                { "es", 5 },
+                { "zh", 6 },
+                { "ko", 7 },
+                { "nl", 8 },
+                { "pt", 9 },
+                { "ru", 10 },
             };
 
             // Special case for Taiwanese which is zh_TW

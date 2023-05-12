@@ -88,7 +88,8 @@ namespace emulatorLauncher
         {
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>() 
             { 
-                { "jp", "0" }, 
+                { "jp", "0" },
+                { "ja", "0" },
                 { "en", "1" },                 
                 { "fr", "2" }, 
                 { "de", "3" }, 
@@ -99,7 +100,6 @@ namespace emulatorLauncher
                 { "nl", "8" }, 
                 { "pt", "9" }, 
                 { "ru", "10" },
-                { "tw", "11" }
             };
 
             // Special case for Taiwanese which is zh_TW
