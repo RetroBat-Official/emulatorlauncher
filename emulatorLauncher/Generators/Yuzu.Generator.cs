@@ -272,11 +272,16 @@ namespace emulatorLauncher
                     ini.WriteValue("Renderer", "max_anisotropy", "0");
 
                 // Vsync
-                ini.WriteValue("Renderer", "use_vsync\\default", "false");
-                if (SystemConfig.isOptSet("use_vsync") && !string.IsNullOrEmpty(SystemConfig["use_vsync"]))
+                if (SystemConfig.isOptSet("use_vsync") && !string.IsNullOrEmpty(SystemConfig["use_vsync"]) && SystemConfig["use_vsync"] != "2")
+                {
+                    ini.WriteValue("Renderer", "use_vsync\\default", "false");
                     ini.WriteValue("Renderer", "use_vsync", SystemConfig["use_vsync"]);
+                }
                 else if (Features.IsSupported("use_vsync"))
-                    ini.WriteValue("Renderer", "use_vsync", "true");
+                {
+                    ini.WriteValue("Renderer", "use_vsync\\default", "true");
+                    ini.WriteValue("Renderer", "use_vsync", "2");
+                }
 
                 // anti_aliasing
                 ini.WriteValue("Renderer", "anti_aliasing\\default", "false");
