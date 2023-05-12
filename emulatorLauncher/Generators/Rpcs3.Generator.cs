@@ -262,24 +262,31 @@ namespace emulatorLauncher
         {
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
             {
-                { "zh", "Chinese (Simplified)" },
-                { "nl", "Dutch" },
+                { "en_gb", "English (UK)" },
                 { "en", "English (US)" },
                 { "fr", "French" },
                 { "de", "German" },
-                { "it", "Italian" },
-                { "ko", "Korean" },
-                { "jp", "Japanese" },
-                { "pl", "Polish" },
+                { "zh", "Chinese (Simplified)" },
+                { "zh_CN", "Chinese (Simplified)" },
+                { "nl", "Dutch" },
                 { "es", "Spanish" },
+                { "fi_FI", "Finnish" },
+                { "it", "Italian" },
+                { "jp", "Japanese" },
+                { "ja_JP", "Japanese" },
+                { "ko", "Korean" },
+                { "pl", "Polish" },
+                { "pt_PT", "Portuguese (Portugal)" },
                 { "pt", "Portuguese (Portugal)" },
+                { "pt_BR", "Portuguese (Brazil)" },
                 { "ru", "Russian" },
-                { "tw", "Chinese (Simplified)" }
+                { "ru_RU", "Russian" },
+                { "zh_TW", "Chinese (Traditional)" },
+                { "sv", "Swedish" },
+                { "tr", "Turkish" },
+                { "nn_NO", "Norwegian" },
+                { "nb_NO", "Norwegian" },
             };
-
-            // Special case for Taiwanese which is zh_TW
-            if (SystemConfig["Language"] == "zh_TW")
-                return "Chinese (Simplified)";
 
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
