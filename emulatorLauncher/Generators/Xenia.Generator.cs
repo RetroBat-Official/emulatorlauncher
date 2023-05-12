@@ -55,7 +55,21 @@ namespace emulatorLauncher
         {
             var availableLanguages = new Dictionary<string, string>()
             {
-                {"en", "1" }, { "jp", "2" }, { "de", "3" }, { "fr", "4" }, { "es", "5" }, { "it", "6" }, { "ko", "7" }, { "zh", "8" }, { "pt", "9" }, { "pl", "11" }, { "ru", "12" }, { "nl", "16" }
+                { "en", "1" },
+                { "jp", "2" },
+                { "ja", "2" },
+                { "de", "3" },
+                { "fr", "4" },
+                { "es", "5" },
+                { "it", "6" },
+                { "ko", "7" },
+                { "zh", "8" },
+                { "pt", "9" },
+                { "pl", "11" },
+                { "ru", "12" },
+                { "sv", "13" },
+                { "tr", "14" },
+                { "nl", "16" }
             };
 
             // Special case for Taiwanese which is zh_TW

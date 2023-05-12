@@ -22,15 +22,15 @@ namespace emulatorLauncher
 
             if (Directory.Exists(rom))
             {
-                string eboot = Path.Combine(rom, "PS3_GAME\\USRDIR\\EBOOT.BIN");
-                if (!File.Exists(eboot))
-                    eboot = Path.Combine(rom, "USRDIR\\EBOOT.BIN");
+                string[] files = Directory.GetFiles(rom, "EBOOT.BIN", SearchOption.AllDirectories);
 
-                if (!File.Exists(eboot))
+                if (files.Length == 0)
                     throw new ApplicationException("Unable to find any game in the provided folder");
 
-                rom = eboot;
+                if (files.Length > 0)
+                    rom = Path.Combine(rom, files[0]);
             }
+
             else if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
@@ -262,24 +262,33 @@ namespace emulatorLauncher
         {
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
             {
-                { "zh", "Chinese (Simplified)" },
-                { "nl", "Dutch" },
                 { "en", "English (US)" },
                 { "fr", "French" },
                 { "de", "German" },
-                { "it", "Italian" },
-                { "ko", "Korean" },
-                { "jp", "Japanese" },
-                { "pl", "Polish" },
+                { "zh", "Chinese (Simplified)" },
+                { "nl", "Dutch" },
                 { "es", "Spanish" },
+                { "fi", "Finnish" },
+                { "it", "Italian" },
+                { "jp", "Japanese" },
+                { "ja", "Japanese" },
+                { "ko", "Korean" },
+                { "pl", "Polish" },
                 { "pt", "Portuguese (Portugal)" },
                 { "ru", "Russian" },
-                { "tw", "Chinese (Simplified)" }
+                { "sv", "Swedish" },
+                { "tr", "Turkish" },
+                { "nn", "Norwegian" },
+                { "nb", "Norwegian" }
             };
 
-            // Special case for Taiwanese which is zh_TW
+            // Special case for some variances
             if (SystemConfig["Language"] == "zh_TW")
-                return "Chinese (Simplified)";
+                return "Chinese (Traditional)";
+            else if (SystemConfig["Language"] == "pt_BR")
+                return "Portuguese (Brazil)";
+            else if (SystemConfig["Language"] == "en_GB")
+                return "English (UK)";
 
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))

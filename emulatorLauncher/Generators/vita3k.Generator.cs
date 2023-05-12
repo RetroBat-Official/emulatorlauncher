@@ -102,6 +102,7 @@ namespace emulatorLauncher
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
             {
                 { "jp", "0" },
+                { "ja", "0" },
                 { "en", "1" },
                 { "fr", "2" },
                 { "es", "3" },
@@ -112,7 +113,6 @@ namespace emulatorLauncher
                 { "ru", "8" },
                 { "ko", "9" },
                 { "zh", "10" },
-                { "tw", "11" },
                 { "pl", "16" }
             };
 

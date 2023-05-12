@@ -31,6 +31,7 @@ namespace emulatorLauncher
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
             {
                 { "jp", "Japanese" },
+                { "ja", "Japanese" },
                 { "en", "AmericanEnglish" },
                 { "fr", "French" },
                 { "de", "German" },
@@ -44,9 +45,13 @@ namespace emulatorLauncher
                 { "tw", "Taiwanese" }
             };
 
-            // Special case for Taiwanese which is zh_TW
+            // Special case for some variances
             if (SystemConfig["Language"] == "zh_TW")
                 return "Taiwanese";
+            else if (SystemConfig["Language"] == "pt_BR")
+                return "BrazilianPortuguese";
+            else if (SystemConfig["Language"] == "en_GB")
+                return "BritishEnglish";
 
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
