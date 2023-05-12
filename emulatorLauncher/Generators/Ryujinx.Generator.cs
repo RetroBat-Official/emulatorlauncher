@@ -7,6 +7,11 @@ namespace emulatorLauncher
 {
     partial class RyujinxGenerator : Generator
     {
+        public RyujinxGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("ryujinx");
