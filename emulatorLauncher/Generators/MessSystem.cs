@@ -47,8 +47,8 @@ namespace emulatorLauncher
                 // Apple 2 GS
                 new MessSystem("apple2gs"     ,"apple2gs" ,new MessRomType[]
                     {
-                        new MessRomType("flop3", new string[] { "hfe", "mfm", "td0", "imd", "d77", "d88", "1dd", "cqm", "cqi", "ima", "img", "ufi", "360", "ipf", "dc42", "moof", "2mg" } ),
-                        new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
+                        new MessRomType("flop3", new string[] { "hfe", "mfm", "td0", "imd", "d77", "d88", "1dd", "cqm", "cqi", "ima", "img", "ufi", "360", "ipf", "dc42", "moof", "2mg", "woz" } ),
+                        new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .nib */ ),
                     }),
 
                 // Atom;atom;flop1;'*DOS\n*DIR\n*CAT\n*RUN"'
