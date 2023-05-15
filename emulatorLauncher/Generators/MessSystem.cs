@@ -44,6 +44,13 @@ namespace emulatorLauncher
                             new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
                         }),
 
+                // Apple 2 GS
+                new MessSystem("apple2gs"     ,"apple2gs" ,new MessRomType[]
+                    {
+                        new MessRomType("flop3", new string[] { "hfe", "mfm", "td0", "imd", "d77", "d88", "1dd", "cqm", "cqi", "ima", "img", "ufi", "360", "ipf", "dc42", "moof", "2mg" } ),
+                        new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
+                    }),
+
                 // Atom;atom;flop1;'*DOS\n*DIR\n*CAT\n*RUN"'
                 new MessSystem("atom"         ,"atom"     , new MessRomType[]
                         {
@@ -464,7 +471,6 @@ namespace emulatorLauncher
                 new MessSystem("snes"         ,"snes"     ,"cart"  ),
                 new MessSystem("gbcolor"      ,"gbcolor"  ,"cart"  ),
                 new MessSystem("gameboy"      ,"gameboy"  ,"cart"  ),
-                new MessSystem("apple2gs"     ,"apple2gs" ,"flop1" ),
                 new MessSystem("bk0010"       ,"bk001001" ,"cass"  ),                
             };
 
