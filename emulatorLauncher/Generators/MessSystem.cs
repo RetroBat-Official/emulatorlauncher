@@ -603,6 +603,21 @@ namespace emulatorLauncher
             }
 
             // Specific modules for some systems
+            // Apple 2
+            if (system == "apple2")
+            {
+                if (SystemConfig.isOptSet("gameio") && SystemConfig["gameio"] != "none")
+                {
+                    if (SystemConfig["gameio"] == "joyport" && messModel != "apple2p")
+                        throw new ApplicationException(" Joyport only compatible with Apple II +");
+                    else
+                    {
+                        commandArray.Add("-gameio");
+                        commandArray.Add(SystemConfig["gameio"]);
+                    }
+                }
+            }
+
             //BBC Micro Joystick
             if (system == "bbcmicro")
             {
