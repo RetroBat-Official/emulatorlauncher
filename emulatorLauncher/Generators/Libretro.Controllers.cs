@@ -83,6 +83,14 @@ namespace emulatorLauncher.libRetro
             { InputKey.right, "hold_fast_forward"}
         };
 
+        static public Dictionary<string, InputKey> turbobuttons = new Dictionary<string, InputKey>()
+        {
+            { "L1", InputKey.pageup},
+            { "R1", InputKey.pagedown},
+            { "L2", InputKey.l2},
+            { "R2", InputKey.r2}
+        };
+
         private static void CleanControllerConfig(ConfigFile retroconfig)
         {
             retroconfig.DisableAll("input_player");
@@ -160,10 +168,10 @@ namespace emulatorLauncher.libRetro
             foreach (var dirkey in retroarchdirs)
             {
                 var k = GetInputCode(controller, dirkey);
-                if (k != null && k.Type == "button" || k.Type == "hat")
+                if (k != null && (k.Type == "button" || k.Type == "hat"))
                     return "1";
             }
-
+            
             return "0";
         }
 
@@ -343,6 +351,61 @@ namespace emulatorLauncher.libRetro
             var generatedConfig = GenerateControllerConfig(retroconfig, controller, system);
             foreach (var key in generatedConfig)
                 retroconfig[key.Key] = key.Value;
+
+            /// Turbo button (if shared feature is set)
+            /// input_player{0}_turbo_{1} = turbo activation button (turbokey)
+            /// input_turbo_default_button = button that is turbo'ed (turbo_default_button)
+            /// 3 turbo modes in RetroArch : 
+            /// classic : Press turbokey & button to become turbo & keep button pressed ==> turbo action will be enabled until you release button
+            /// toggle : Press turbokey & button to become turbo ==> turbo will press automatically until you press button again to stop turbo
+            /// hold : Press and hold turbokey to act as turbo for turbo_default_button
+            if (Program.SystemConfig.isOptSet("enable_turbo") && !string.IsNullOrEmpty(Program.SystemConfig["enable_turbo"]))
+            {
+                // Define turbo mode
+                retroconfig["input_turbo_mode"] = Program.SystemConfig["enable_turbo"];
+
+                // Set up a default turbo button if selected (this is the target button to be turbo'd and is necessary in HOLD mode)
+                if (Program.SystemConfig.isOptSet("turbo_default_button") && !string.IsNullOrEmpty(Program.SystemConfig["turbo_default_button"]))
+                    retroconfig["input_turbo_default_button"] = Program.SystemConfig["turbo_default_button"];
+                else
+                    retroconfig["input_turbo_default_button"] = "0";
+
+                // Define turbo activation button based on joypad input key mapping (4 options available L1, R1, L2, R2)
+                if (Program.SystemConfig.isOptSet("turbo_button") && !string.IsNullOrEmpty(Program.SystemConfig["turbo_button"]))
+                {
+                    string turbobutton = Program.SystemConfig["turbo_button"];
+                    InputKey turbokey;
+                    if (turbobuttons.ContainsKey(turbobutton))
+                    {
+                        turbokey = turbobuttons[turbobutton];
+                        var input = GetInputCode(controller, turbokey);
+                        if (controller.Name == "Keyboard")
+                        {
+                            retroconfig[string.Format("input_player{0}_turbo", controller.PlayerIndex)] = GetConfigValue(input);
+                        }
+                        else
+                            retroconfig[string.Format("input_player{0}_turbo_{1}", controller.PlayerIndex, typetoname[input.Type])] = GetConfigValue(input);
+                    }
+
+                    else
+                    {
+                        retroconfig[string.Format("input_player{0}_turbo_btn", controller.PlayerIndex)] = "nul";
+                        retroconfig[string.Format("input_player{0}_turbo_axis", controller.PlayerIndex)] = "nul";
+                    }
+                }
+                else
+                {
+                    retroconfig[string.Format("input_player{0}_turbo_btn", controller.PlayerIndex)] = "nul";
+                    retroconfig[string.Format("input_player{0}_turbo_axis", controller.PlayerIndex)] = "nul";
+                }
+            }
+            else
+            {
+                retroconfig["input_turbo_mode"] = "0";
+                retroconfig["input_turbo_default_button"] = "0";
+                retroconfig[string.Format("input_player{0}_turbo_btn", controller.PlayerIndex)] = "nul";
+                retroconfig[string.Format("input_player{0}_turbo_axis", controller.PlayerIndex)] = "nul";
+            }
 
             if (controller.Name == "Keyboard")
                 return;

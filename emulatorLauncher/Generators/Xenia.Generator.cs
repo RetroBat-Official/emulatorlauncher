@@ -55,7 +55,21 @@ namespace emulatorLauncher
         {
             var availableLanguages = new Dictionary<string, string>()
             {
-                {"en", "1" }, { "jp", "2" }, { "de", "3" }, { "fr", "4" }, { "es", "5" }, { "it", "6" }, { "ko", "7" }, { "zh", "8" }, { "pt", "9" }, { "pl", "11" }, { "ru", "12" }, { "nl", "16" }
+                { "en", "1" },
+                { "jp", "2" },
+                { "ja", "2" },
+                { "de", "3" },
+                { "fr", "4" },
+                { "es", "5" },
+                { "it", "6" },
+                { "ko", "7" },
+                { "zh", "8" },
+                { "pt", "9" },
+                { "pl", "11" },
+                { "ru", "12" },
+                { "sv", "13" },
+                { "tr", "14" },
+                { "nl", "16" }
             };
 
             // Special case for Taiwanese which is zh_TW
@@ -92,6 +106,12 @@ namespace emulatorLauncher
                         ini.AppendValue("Content", "license_mask", SystemConfig["license_mask"]);
                     else if (Features.IsSupported("license_mask"))
                         ini.AppendValue("Content", "license_mask", "0");
+
+                    //General section
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.AppendValue("General", "discord", "true");
+                    else
+                        ini.AppendValue("General", "discord", "false");
 
                     //D3D12 section
                     if (SystemConfig.isOptSet("d3d12_clear_memory_page_state") && !string.IsNullOrEmpty(SystemConfig["d3d12_clear_memory_page_state"]))

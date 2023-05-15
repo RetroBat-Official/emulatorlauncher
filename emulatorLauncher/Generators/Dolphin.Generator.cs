@@ -434,6 +434,12 @@ namespace emulatorLauncher
                     }
                     */
 
+                    // Discord
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.WriteValue("General", "UseDiscordPresence", "True");
+                    else
+                        ini.WriteValue("General", "UseDiscordPresence", "False");
+
                     // Skip BIOS
                     if (SystemConfig.isOptSet("skip_bios") && !SystemConfig.getOptBoolean("skip_bios"))
                         ini.WriteValue("Core", "SkipIPL", "False");
@@ -514,9 +520,9 @@ namespace emulatorLauncher
                     // Write texture paths (not necessary for triforce)
                     if (!_triforce)
                     {
-                        string biosPath = AppConfig.GetFullPath("bios");
-                        string dolphinLoadPath = Path.Combine(biosPath, "dolphin-emu", "Load");
-                        string dolphinResourcesPath = Path.Combine(dolphinLoadPath, "ResourcePacks");
+                        string savesPath = AppConfig.GetFullPath("saves");
+                        string dolphinLoadPath = Path.Combine(savesPath, "gamecube", "User", "Load");
+                        string dolphinResourcesPath = Path.Combine(savesPath, "gamecube", "User", "ResourcePacks");
 
                         ini.WriteValue("General", "LoadPath", dolphinLoadPath);
                         ini.WriteValue("General", "ResourcePackPath", dolphinResourcesPath);
@@ -538,23 +544,20 @@ namespace emulatorLauncher
                     // Set SID devices (controllers)
                     else if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
                     {
+                        bool wiiGCPad = system == "wii" && SystemConfig.isOptSet("wii_gamecube") && SystemConfig.getOptBoolean("wii_gamecube");
                         for (int i = 0; i < 4; i++)
                         {
                             var ctl = Controllers.FirstOrDefault(c => c.PlayerIndex == i + 1);
+                            bool gcPad = (system == "gamecube" && SystemConfig.isOptSet("gamecubepad" + i) && SystemConfig.getOptBoolean("gamecubepad" + i));
 
-                            if (ctl != null && ctl.Config != null && !emulatedWiiMote)
-                            {
-                                /*if (ctl.Input.Type == "keyboard")
-                                    ini.WriteValue("Core", "SIDevice" + i, "7");
-                                else*/
-                                ini.WriteValue("Core", "SIDevice" + i, "6");
-                            }
-                            else
-                                ini.WriteValue("Core", "SIDevice" + i, "0");
-
-                            if ((Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] == "2"))
+                            if (wiiGCPad || gcPad)
                                 ini.WriteValue("Core", "SIDevice" + i, "12");
 
+                            else if (ctl != null && ctl.Config != null)
+                                ini.WriteValue("Core", "SIDevice" + i, "6");
+                            
+                            else
+                                ini.WriteValue("Core", "SIDevice" + i, "0");
                         }
                     }
 

@@ -260,6 +260,10 @@ namespace emulatorLauncher.PadToKeyboard
                             case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
                                 joysticks.AddJoystick(evt.jdevice.which);
                                 break;
+
+                            //case SDL.SDL_EventType.SDL_JOYBATTERYUPDATED:
+                            default:
+                                continue;
                         }
 
                         foreach (var joy in joysticks)

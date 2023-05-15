@@ -102,6 +102,7 @@ namespace emulatorLauncher
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
             {
                 { "jp", "0" },
+                { "ja", "0" },
                 { "en", "1" },
                 { "fr", "2" },
                 { "es", "3" },
@@ -112,7 +113,6 @@ namespace emulatorLauncher
                 { "ru", "8" },
                 { "ko", "9" },
                 { "zh", "10" },
-                { "tw", "11" },
                 { "pl", "16" }
             };
 
@@ -141,20 +141,21 @@ namespace emulatorLauncher
             yml["user-auto-connect"] = "true";
             yml["show-welcome"] = "false";
 
+            // Discord
+            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                yml["discord-rich-presence"] = "true";
+            else
+                yml["discord-rich-presence"] = "false";
+
             //System language
             BindFeature(yml, "sys-lang", "psvita_language", GetDefaultvitaLanguage());
 
             //Then the emulator options
             BindFeature(yml, "backend-renderer", "backend-renderer", "Vulkan");
             BindFeature(yml, "resolution-multiplier", "resolution-multiplier", "1");
-            
-            //Automatically disable surface sync when upscaling (as per standard emulator beahviour)
-            if (SystemConfig.isOptSet("resolution-multiplier") && SystemConfig["resolution-multiplier"] != "1")
-                yml["disable-surface-sync"] = "true";
-            else
-                yml["disable-surface-sync"] = "false";
+            BindFeature(yml, "disable-surface-sync", "disable_surfacesync", "false");
             BindFeature(yml, "enable-fxaa", "enable-fxaa", "false");
-            BindFeature(yml, "v-sync", "v-sync", "false");
+            BindFeature(yml, "v-sync", "vsync", "false");
             BindFeature(yml, "anisotropic-filtering", "anisotropic-filtering", "1");
             BindFeature(yml, "cpu-opt", "cpu-opt", "true");
             BindFeature(yml, "shader-cache", "shader-cache", "true");

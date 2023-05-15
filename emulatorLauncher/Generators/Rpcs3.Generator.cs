@@ -22,15 +22,15 @@ namespace emulatorLauncher
 
             if (Directory.Exists(rom))
             {
-                string eboot = Path.Combine(rom, "PS3_GAME\\USRDIR\\EBOOT.BIN");
-                if (!File.Exists(eboot))
-                    eboot = Path.Combine(rom, "USRDIR\\EBOOT.BIN");
+                string[] files = Directory.GetFiles(rom, "EBOOT.BIN", SearchOption.AllDirectories);
 
-                if (!File.Exists(eboot))
+                if (files.Length == 0)
                     throw new ApplicationException("Unable to find any game in the provided folder");
 
-                rom = eboot;
+                if (files.Length > 0)
+                    rom = Path.Combine(rom, files[0]);
             }
+
             else if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
@@ -99,6 +99,11 @@ namespace emulatorLauncher
                 ini.WriteValue("main_window", "confirmationBoxBootGame", "false");
                 ini.WriteValue("main_window", "infoBoxEnabledInstallPKG", "false");
                 ini.WriteValue("Meta", "checkUpdateStart", "false");
+
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                    ini.WriteValue("Meta", "useRichPresence", "true");
+                else
+                    ini.WriteValue("Meta", "useRichPresence", "false");
             }
         }
 
@@ -123,7 +128,7 @@ namespace emulatorLauncher
             BindFeature(core, "PPU LLVM Accurate Vector NaN values", "vectornan", "false");
             BindFeature(core, "Full Width AVX-512", "fullavx", "false");
 
-            //xfloat is managed through 3 options now in latest release
+            // xfloat is managed through 3 options now in latest release
             if (SystemConfig.isOptSet("xfloat") && (SystemConfig["xfloat"] == "Accurate"))
             {
                 core["Accurate xfloat"] = "true";
@@ -163,8 +168,9 @@ namespace emulatorLauncher
             BindFeature(video, "Enable 3D", "enable3d", "false");
             BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
             BindFeature(video, "Shader Precision", "shader_quality", "Auto");
+            BindFeature(video, "Driver Wake-Up Delay", "driver_wake", "1");
 
-            //ZCULL Accuracy
+            // ZCULL Accuracy
             if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))
             {
                 core["Relaxed ZCULL Sync"] = "false";
@@ -211,17 +217,87 @@ namespace emulatorLauncher
             var audio = yml.GetOrCreateContainer("Audio");
             BindFeature(audio, "Renderer", "audiobackend", "Cubeb");
             BindFeature(audio, "Audio Format", "audiochannels", "Stereo");
+            BindFeature(audio, "Enable Buffering", "audio_buffering", "true");
+            if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "low"))
+            {
+                audio["Enable Buffering"] = "true";
+                audio["Enable time stretching"] = "true";
+                audio["Time Stretching Threshold"] = "25";
+            }
+            else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "medium"))
+            {
+                audio["Enable Buffering"] = "true";
+                audio["Enable time stretching"] = "true";
+                audio["Time Stretching Threshold"] = "50";
+            }
+            else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "high"))
+            {
+                audio["Enable Buffering"] = "true";
+                audio["Enable time stretching"] = "true";
+                audio["Time Stretching Threshold"] = "75";
+            }
+            else if (Features.IsSupported("time_stretching"))
+            {
+                audio["Enable time stretching"] = "false";
+                audio["Time Stretching Threshold"] = "75";
+            }
 
             // Handle System part of yml file
             var system_region = yml.GetOrCreateContainer("System");
             BindFeature(system_region, "License Area", "ps3_region", "SCEE");
+            BindFeature(system_region, "Language", "ps3_language", GetDefaultPS3Language());
 
             // Handle Miscellaneous part of yml file
             var misc = yml.GetOrCreateContainer("Miscellaneous");
             BindFeature(misc, "Start games in fullscreen mode", "startfullscreen", "true");
+            misc["Automatically start games after boot"] = "true";
+            misc["Exit RPCS3 when process finishes"] = "true";
+            misc["Prevent display sleep while running games"] = "true";
 
             // Save to yml file
             yml.Save();
+        }
+
+        private string GetDefaultPS3Language()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "en", "English (US)" },
+                { "fr", "French" },
+                { "de", "German" },
+                { "zh", "Chinese (Simplified)" },
+                { "nl", "Dutch" },
+                { "es", "Spanish" },
+                { "fi", "Finnish" },
+                { "it", "Italian" },
+                { "jp", "Japanese" },
+                { "ja", "Japanese" },
+                { "ko", "Korean" },
+                { "pl", "Polish" },
+                { "pt", "Portuguese (Portugal)" },
+                { "ru", "Russian" },
+                { "sv", "Swedish" },
+                { "tr", "Turkish" },
+                { "nn", "Norwegian" },
+                { "nb", "Norwegian" }
+            };
+
+            // Special case for some variances
+            if (SystemConfig["Language"] == "zh_TW")
+                return "Chinese (Traditional)";
+            else if (SystemConfig["Language"] == "pt_BR")
+                return "Portuguese (Brazil)";
+            else if (SystemConfig["Language"] == "en_GB")
+                return "English (UK)";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+            return "English (US)";
         }
     }
 }

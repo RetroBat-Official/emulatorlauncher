@@ -53,15 +53,22 @@ namespace Mount
 
         private object _lock = new object();
 
+        private string _physicalPath;
+
         public override string PhysicalPath
         {
             get
             {
-                string source = this.Filename;
-                if (source.StartsWith("\\") || source.StartsWith("/"))
-                    source = source.Substring(1);
+                if (_physicalPath == null)
+                {
+                    string source = this.Filename;
+                    if (source.StartsWith("\\") || source.StartsWith("/"))
+                        source = source.Substring(1);
 
-                return Path.Combine(FileSystem.ExtractionDirectory, source);
+                    _physicalPath = Path.Combine(FileSystem.ExtractionDirectory, source);
+                }
+
+                return _physicalPath;
             }
         }
 
@@ -73,59 +80,47 @@ namespace Mount
 
             lock (_lock)
             {
-                string source = this.Filename;
-                if (source.StartsWith("\\") || source.StartsWith("/"))
-                    source = source.Substring(1);
-
                 string physicalPath = PhysicalPath;
-                if (!File.Exists(physicalPath))
+                if (File.Exists(physicalPath))
                 {
+                    if (access != (System.IO.FileAccess)0)
+                        return new FileStream(physicalPath, FileMode.Open, access, FileShare.ReadWrite);
+
+                    return null;
+                }
+                else
+                {
+                    string source = this.Filename;
+                    if (source.StartsWith("\\") || source.StartsWith("/"))
+                        source = source.Substring(1);
+
                     var parent = Path.GetDirectoryName(physicalPath);
                     if (!Directory.Exists(parent))
                         Directory.CreateDirectory(parent);
 
-                //    Console.WriteLine("Extracting: " + source);
-               //     int time = Environment.TickCount;
-                    
                     string tmpDirectory = Path.Combine(FileSystem.ExtractionDirectory, Guid.NewGuid().ToString());
                     if (!Directory.Exists(tmpDirectory))
                         Directory.CreateDirectory(tmpDirectory);
 
                     string tmpFile = Path.GetFullPath(Path.Combine(tmpDirectory, source));
-                    
+
                     Zip.Extract(FileSystem.FileName, tmpDirectory, source, null, true);
 
-                    if (File.Exists(tmpFile))
+                    bool exists = File.Exists(tmpFile);
+                    if (exists)
                         File.Move(tmpFile, physicalPath);
 
-                    try { Directory.Delete(tmpDirectory, true); }
-                    catch { }
-                    /*
-                    int elapsed = Environment.TickCount - time;
-
-                    if (access != (System.IO.FileAccess)0 && File.Exists(physicalPath))
+                    ThreadPool.QueueUserWorkItem((a) =>
                     {
-                        try
-                        {
-                            // Open as exclusive after extraction or we're not sure file buffers are Ok. Why !?
-                            using (var tmp = new FileStream(physicalPath, FileMode.Open, FileAccess.Read, FileShare.None))
-                            {
-                                tmp.ReadByte();
-                                tmp.Close();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("------------------------------------------------------------------------------ " + ex.Message);
-                        }
-                    }
-                    */
-                 //   Console.WriteLine("Extracted: " + source + " => " + elapsed + "ms");
+                        try { Directory.Delete(tmpDirectory, true); }
+                        catch { }
+                    });
+
+                    if (exists && access != (System.IO.FileAccess)0)
+                        return new FileStream(physicalPath, FileMode.Open, access, FileShare.ReadWrite);
+
                 }
-
-                if (access != (System.IO.FileAccess)0 && File.Exists(physicalPath))
-                    return new FileStream(physicalPath, FileMode.Open, access, FileShare.ReadWrite);
-
+                
                 return null;
             }
         }

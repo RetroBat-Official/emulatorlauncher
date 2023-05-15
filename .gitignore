@@ -3,5 +3,4 @@
 bin/
 obj/
 Debug/
-.vs/batocera-ports/v16/TestStore/0/000.testlog
-.vs/batocera-ports/v16/TestStore/0/testlog.manifest
+.vs/

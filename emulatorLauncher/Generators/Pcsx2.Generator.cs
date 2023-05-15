@@ -18,21 +18,6 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            return ret;
-        }
-      
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -52,18 +37,31 @@ namespace emulatorLauncher
                 _path = AppConfig.GetFullPath("pcsx2-16");
 
             //search first for qt version .exe, if found also set bool _isPcsxqt to true for later steps
-            string exe = Path.Combine(_path, "pcsx2-qtx64.exe"); // v1.7qt filename
-            if (File.Exists(exe))
+            string sse4exe = Path.Combine(_path, "pcsx2-qtx64.exe"); // v1.7 SSE4-QT filename
+            string avx2exe = Path.Combine(_path, "pcsx2-qtx64-avx2.exe"); // v1.7 AVX2-QT filename
+            string exe = Path.Combine(_path, "pcsx2-qt.exe"); // v1.7 new-QT filename
+            
+            // Define QT executable file to use (default is the new pcsx2-QT executable, but not everybody might have upgraded
+            if (File.Exists(exe) || File.Exists(sse4exe) || File.Exists(avx2exe))
             {
                 _isPcsxqt = true;
 
+                // If new pcsx2-QT.exe does not exist, default to SSE4
+                if (!File.Exists(exe) || core == "pcsx2-sse4" || core == "sse4")
+                {
+                    if (File.Exists(sse4exe))
+                        exe = sse4exe;
+                }
+
+                // AVX2 version when AVX2 core is forced
                 if (core == "pcsx2-avx2" || core == "avx2")
                 {
-                    string avx2 = Path.Combine(_path, "pcsx2-qtx64-avx2.exe");
-                    if (File.Exists(avx2))
-                        exe = avx2;
+                    if (File.Exists(avx2exe))
+                        exe = avx2exe;
                 }
             }
+
+            // For these still with wxwidgets version
             else if (!File.Exists(exe))
             {
                 exe = Path.Combine(_path, "pcsx2x64.exe"); // v1.7 filename 
@@ -71,12 +69,12 @@ namespace emulatorLauncher
                     exe = Path.Combine(_path, "pcsx2.exe"); // v1.6 filename            
             }
 
-            // v1.7.0 ???
+            // v1.7.0 wxwidgets ?
             Version version = new Version();
             if (!_isPcsxqt && Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion, out version))
                 _isPcsx17 = version >= new Version(1, 7, 0, 0);
 
-            // Select avx2 build for 1.7 non-qt version
+            // Select avx2 build for 1.7 wxwidgets version
             if (!_isPcsxqt && _isPcsx17 && (core == "pcsx2-avx2" || core == "avx2"))
             {
                 string avx2 = Path.Combine(_path, "pcsx2x64-avx2.exe");
@@ -128,7 +126,8 @@ namespace emulatorLauncher
 
                 if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
                 {
-                    commandArray.Add("-fullscreen");
+                    if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+                        commandArray.Add("-fullscreen");
                     commandArray.Add("-bigpicture");
                 }
 
@@ -170,6 +169,7 @@ namespace emulatorLauncher
                 using (var ini = new IniFile(iniFile))
                 {
                     string biosPath = AppConfig.GetFullPath("bios");
+                    string cheatsPath = AppConfig.GetFullPath("cheats");
                     if (!string.IsNullOrEmpty(biosPath))
                     {
                         ini.WriteValue("Folders", "UseDefaultBios", "disabled");
@@ -180,9 +180,9 @@ namespace emulatorLauncher
                             ini.WriteValue("Folders", "Bios", biosPath.Replace("\\", "\\\\"));
 
                         ini.WriteValue("Folders", "UseDefaultCheats", "disabled");
-                        ini.WriteValue("Folders", "Cheats", Path.Combine(biosPath, "pcsx2", "cheats").Replace("\\", "\\\\"));
+                        ini.WriteValue("Folders", "Cheats", Path.Combine(cheatsPath, "pcsx2", "cheats").Replace("\\", "\\\\"));
                         ini.WriteValue("Folders", "UseDefaultCheatsWS", "disabled");
-                        ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPath, "pcsx2", "cheats_ws").Replace("\\", "\\\\"));
+                        ini.WriteValue("Folders", "CheatsWS", Path.Combine(cheatsPath, "pcsx2", "cheats_ws").Replace("\\", "\\\\"));
                     }
 
                     string savesPath = AppConfig.GetFullPath("saves");
@@ -653,8 +653,15 @@ namespace emulatorLauncher
 
                 CreateControllerConfiguration(ini);
 
-                //fullscreen
-                ini.WriteValue("UI", "StartFullscreen", "true");
+                // fullscreen (disable fullscreen start option, workaround for people with multi-screen that cannot get emulator to start fullscreen on the correct monitor)
+                if ( SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
+                    ini.WriteValue("UI", "StartFullscreen", "false");
+                else
+                    ini.WriteValue("UI", "StartFullscreen", "true");
+                
+                ini.Remove("UI", "MainWindowGeometry");
+                ini.Remove("UI", "MainWindowState");
+                ini.Remove("UI", "DisplayWindowGeometry");
 
                 //Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
@@ -700,9 +707,29 @@ namespace emulatorLauncher
                     try { Directory.CreateDirectory(biosPcsx2Path); }
                     catch { }
 
-                ini.WriteValue("Folders", "Cheats", Path.Combine(biosPcsx2Path, "cheats"));
-                ini.WriteValue("Folders", "CheatsWS", Path.Combine(biosPcsx2Path, "cheats_ws"));
-                ini.WriteValue("Folders", "CheatsNI", Path.Combine(biosPcsx2Path, "cheats_ni"));
+                // Cheats Path
+                string cheatsPath = AppConfig.GetFullPath("cheats");
+
+                if (string.IsNullOrEmpty(cheatsPath))
+                {
+                    cheatsPath = Path.GetFullPath(Path.Combine("home", "..", "..", "cheats"));
+                    if (!Directory.Exists(cheatsPath))
+                        try { Directory.CreateDirectory(cheatsPath); }
+                        catch { }
+                }
+
+                if (!string.IsNullOrEmpty(cheatsPath))
+                {
+                    string cheatsPcsx2Path = Path.Combine(cheatsPath, "pcsx2");
+
+                    if (!Directory.Exists(cheatsPcsx2Path))
+                        try { Directory.CreateDirectory(cheatsPcsx2Path); }
+                        catch { }
+
+                    ini.WriteValue("Folders", "Cheats", Path.Combine(cheatsPcsx2Path, "cheats"));
+                    ini.WriteValue("Folders", "CheatsWS", Path.Combine(cheatsPcsx2Path, "cheats_ws"));
+                    ini.WriteValue("Folders", "CheatsNI", Path.Combine(cheatsPcsx2Path, "cheats_ni"));
+                }
 
                 //precise bios to use
 
@@ -754,12 +781,29 @@ namespace emulatorLauncher
 
                 //UI section
                 ini.WriteValue("UI", "ConfirmShutdown", "false");
-                
+
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                    ini.WriteValue("UI", "EnableDiscordPresence", "true");
+                else
+                    ini.WriteValue("UI", "EnableDiscordPresence", "false");
+
+
                 //Enable cheats automatically on load if Retroachievements is not set only
                 if (SystemConfig.isOptSet("enable_cheats") && !SystemConfig.getOptBoolean("retroachievements") && !string.IsNullOrEmpty(SystemConfig["enable_cheats"]))
                     ini.WriteValue("EmuCore", "EnableCheats", SystemConfig["enable_cheats"]);
                 else if (Features.IsSupported("enable_cheats"))
                     ini.WriteValue("EmuCore", "EnableCheats", "false");
+
+                // Graphics - Emucore (display) - widescreen patch and no-interlacing patch
+                if (SystemConfig.isOptSet("widescreen_patch") && SystemConfig.getOptBoolean("widescreen_patch"))
+                    ini.WriteValue("EmuCore", "EnableWideScreenPatches", "true");
+                else if (Features.IsSupported("widescreen_patch"))
+                    ini.WriteValue("EmuCore", "EnableWideScreenPatches", "false");
+
+                if (SystemConfig.isOptSet("interlacing_patch") && SystemConfig.getOptBoolean("interlacing_patch"))
+                    ini.WriteValue("EmuCore", "EnableNoInterlacingPatches", "true");
+                else if (Features.IsSupported("interlacing_patch"))
+                    ini.WriteValue("EmuCore", "EnableNoInterlacingPatches", "false");
 
                 //Graphics - EmuCore/GS
                 if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
@@ -782,10 +826,21 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("interlace"))
                     ini.WriteValue("EmuCore/GS", "deinterlace", "7");
 
-                if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
-                    ini.WriteValue("EmuCore/GS", "linear_present", SystemConfig["bilinear_filtering"]);
-                else if (Features.IsSupported("bilinear_filtering"))
+                if (SystemConfig.isOptSet("bilinear_filtering") && SystemConfig["bilinear_filtering"] == "0")
+                {
+                    ini.WriteValue("EmuCore/GS", "linear_present", "false");
+                    ini.WriteValue("EmuCore/GS", "linear_present_mode", "0");
+                } 
+                else if (SystemConfig.isOptSet("bilinear_filtering") && SystemConfig["bilinear_filtering"] == "2")
+                {
                     ini.WriteValue("EmuCore/GS", "linear_present", "true");
+                    ini.WriteValue("EmuCore/GS", "linear_present_mode", "2");
+                }
+                else if (Features.IsSupported("bilinear_filtering"))
+                {
+                    ini.WriteValue("EmuCore/GS", "linear_present", "true");
+                    ini.WriteValue("EmuCore/GS", "linear_present_mode", "1");
+                }
 
                 //Vsync
                 if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
@@ -962,10 +1017,15 @@ namespace emulatorLauncher
                     ini.WriteValue("EmuCore/GS", "UserHacks_WildHack", "false");
 
                 //Custom textures
-                if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
+                if (SystemConfig.isOptSet("hires_textures") && SystemConfig["hires_textures"] == "1")
                 {
                     ini.WriteValue("EmuCore/GS", "LoadTextureReplacements", "true");
                     ini.WriteValue("EmuCore/GS", "PrecacheTextureReplacements", "true");
+                }
+                else if (SystemConfig.isOptSet("hires_textures") && SystemConfig["hires_textures"] == "2")
+                {
+                    ini.WriteValue("EmuCore/GS", "LoadTextureReplacements", "true");
+                    ini.WriteValue("EmuCore/GS", "PrecacheTextureReplacements", "false");
                 }
                 else
                 {
@@ -1138,5 +1198,87 @@ namespace emulatorLauncher
                 ini.AppendValue("GameList", "RecursivePaths", romPath);
         }
         #endregion
+        
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int ret = 0;
+            int monitorIndex = Math.Max(0, SystemConfig["MonitorIndex"].ToInteger() - 1);
+            
+            if (_bezelFileInfo != null)
+            {               
+                var bezel = _bezelFileInfo.ShowFakeBezel(_resolution, true, monitorIndex);
+                if (bezel != null)
+                {
+                    RECT rc = bezel.ViewPort;
+
+                    if (rc.bottom - rc.top == (_resolution ?? ScreenResolution.CurrentResolution).Height)
+                        rc.bottom--;
+
+                    var process = StartProcessAndMoveItsWindowTo(path, rc);
+                    if (process != null)
+                    {
+                        while (!process.WaitForExit(50))
+                            Application.DoEvents();
+
+                        try { ret = process.ExitCode; }
+                        catch { }
+                    }
+
+                    if (bezel != null)
+                        bezel.Dispose();
+
+                    return ret;
+                }
+            }
+
+            if (monitorIndex >= 0 && Screen.AllScreens.Length > 1 && monitorIndex < Screen.AllScreens.Length)
+            {
+                var process = StartProcessAndMoveItsWindowTo(path, Screen.AllScreens[monitorIndex].Bounds);
+                if (process != null)
+                {
+                    process.WaitForExit();
+
+                    try { ret = process.ExitCode; }
+                    catch { }
+                }
+
+                return ret;
+            }
+
+            return base.RunAndWait(path);
+        }
+
+        private Process StartProcessAndMoveItsWindowTo(ProcessStartInfo path, RECT rc)
+        {
+            int retryCount = 0;
+            var process = Process.Start(path);
+
+            while (process != null)
+            {
+                if (process.WaitForExit(50))
+                {
+                    process = null;
+                    break;
+                }
+
+                retryCount++;
+
+                // If it's longer than 10 seconds, then exit loop
+                if (retryCount > 10000 / 50)
+                    break;
+
+                var hWnd = User32.FindHwnd(process.Id);
+                if (hWnd == IntPtr.Zero)
+                    continue;
+
+                if (!User32.IsWindowVisible(hWnd))
+                    continue;
+
+                User32.SetWindowPos(hWnd, IntPtr.Zero, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP.ASYNCWINDOWPOS);
+                break;
+            }
+            return process;
+        }
+      
     }
 }

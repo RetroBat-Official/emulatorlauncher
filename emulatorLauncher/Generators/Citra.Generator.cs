@@ -66,6 +66,40 @@ namespace emulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                {
+                    ini.WriteValue("UI", "enable_discord_presence\\default", "true");
+                    ini.WriteValue("UI", "enable_discord_presence", "true");
+                }
+                else
+                {
+                    ini.WriteValue("UI", "enable_discord_presence\\default", "false");
+                    ini.WriteValue("UI", "enable_discord_presence", "false");
+                }
+
+                ini.WriteValue("Data%20Storage", "use_custom_storage\\default", "false");
+                ini.WriteValue("Data%20Storage", "use_custom_storage", "true");
+
+                string citraNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "nand");
+                if (!Directory.Exists(citraNandPath)) try { Directory.CreateDirectory(citraNandPath); }
+                    catch { }
+                ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
+                ini.WriteValue("Data%20Storage", "nand_directory", citraNandPath.Replace("\\", "/"));
+
+                // Write nand settings (language)
+                string nandPath = Path.Combine(citraNandPath, "data", "00000000000000000000000000000000", "sysdata", "00010017", "00000000", "config");
+                if (File.Exists(nandPath))
+                    Write3DSnand(nandPath);
+
+                string sdmcPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "sdmc");
+                if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
+                    catch { }
+                ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
+                ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
+
+                ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
+                ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");
+
                 ini.WriteValue("UI", "fullscreen\\default", "false");
                 ini.WriteValue("UI", "fullscreen", "true");
 
@@ -111,9 +145,15 @@ namespace emulatorLauncher
                 if (Features.IsSupported("citra_layout_option"))
                 {
                     if (SystemConfig.isOptSet("citra_layout_option"))
+                    {
+                        ini.WriteValue("Layout", "layout_option\\default", "false");
                         ini.WriteValue("Layout", "layout_option", SystemConfig["citra_layout_option"]);
+                    }
                     else
+                    {
+                        ini.WriteValue("Layout", "layout_option\\default", "true");
                         ini.WriteValue("Layout", "layout_option", "0");
+                    }
                 }
 
                 if (Features.IsSupported("citra_swap_screen"))
@@ -165,6 +205,61 @@ namespace emulatorLauncher
                     ini.WriteValue("Utility", "preload_textures", "false");
                 }
             }
+        }
+
+        private void Write3DSnand(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            int langId = 1;
+
+            if (SystemConfig.isOptSet("n3ds_language") && !string.IsNullOrEmpty(SystemConfig["n3ds_language"]))
+                langId = SystemConfig["n3ds_language"].ToInteger();
+            else
+                langId = get3DSLangFromEnvironment();
+
+            // Read nand file
+            byte[] bytes = File.ReadAllBytes(path);
+
+            var toSet = new byte[] { (byte)langId };
+            for (int i = 0; i < toSet.Length; i++)
+                bytes[104] = toSet[i];
+
+            File.WriteAllBytes(path, bytes);
+        }
+
+        private int get3DSLangFromEnvironment()
+        {
+            var availableLanguages = new Dictionary<string, int>()  //OA = 10, OB = 11 (traditional chinese)
+            {
+                { "jp", 0 },
+                { "ja", 0 },
+                { "en", 1 },
+                { "fr", 2 },
+                { "de", 3 },
+                { "it", 4 },
+                { "es", 5 },
+                { "zh", 6 },
+                { "ko", 7 },
+                { "nl", 8 },
+                { "pt", 9 },
+                { "ru", 10 },
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return 11;
+
+            var lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                int ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+
+            return 1;
         }
     }
 }

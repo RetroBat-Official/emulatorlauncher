@@ -22,13 +22,13 @@ namespace emulatorLauncher
 
             { new Installer("arcadeflashweb") },           
             { new Installer("libretro", "retroarch" ) }, { new Installer("angle", "retroarch" ) }, // "libretro_cores.7z" ???
-            { new Installer("duckstation", new string[] { "duckstation"}, new string[] { "duckstation-nogui-x64-ReleaseLTCG.exe", "duckstation-nogui-x64-Release.exe", "duckstation-nogui.exe" }) },
+            { new Installer("duckstation", new string[] { "duckstation"}, new string[] { "duckstation-qt-x64-ReleaseLTCG.exe" }) },
             { new Installer("kega-fusion", "kega-fusion", "Fusion.exe") }, 
             { new Installer("mesen") }, 
             { new Installer("model3", "supermodel") }, 
             { new Installer("supermodel") }, 
             { new Installer("rpcs3") }, { new Installer("ps3", "rpcs3") }, 
-            { new Installer("pcsx2", new string[] { "pcsx2" }, new string[] { "pcsx2-qtx64.exe", "pcsx2x64.exe" }) },
+            { new Installer("pcsx2", new string[] { "pcsx2" }, new string[] { "pcsx2-qt.exe", "pcsx2-qtx64.exe", "pcsx2x64.exe" }) },
             { new Installer("pcsx2-16", "pcsx2-16", "pcsx2.exe") },
             { new Installer("fpinball", "fpinball", "Future Pinball.exe") }, { new Installer("bam", "fpinball", "Future Pinball.exe") }, 
             { new Installer("cemu") }, { new Installer("wiiu", "cemu") },
@@ -41,8 +41,8 @@ namespace emulatorLauncher
             { new Installer("daphne") },
             { new Installer("demul") }, 
             { new Installer("demul-old", "demul-old", "demul.exe") }, 
-            { new Installer("dolphin", new string[] { "dolphin-emu", "dolphin" }, "dolphin.exe") }, 
-            { new Installer("triforce", "dolphin-triforce", "dolphinWX.exe") },  
+            { new Installer("dolphin", new string[] { "dolphin-emu", "dolphin" }, "dolphin.exe") },
+            { new Installer("triforce", new string[] { "dolphin-triforce"}, new string[] { "dolphinWX.exe", "dolphin.exe" }) },
             { new Installer("dosbox") },
             { new Installer("hypseus", "hypseus", "hypseus.exe") },
             { new Installer("love") }, 
@@ -71,7 +71,8 @@ namespace emulatorLauncher
             { new Installer("xenia", "xenia", "xenia.exe") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) },
             { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
-            { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") }
+            { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") },
+            { new Installer("openmsx", "openmsx", "openmsx.exe") }
         };
 
         #region Properties
@@ -81,11 +82,15 @@ namespace emulatorLauncher
 
         public string DefaultFolderName { get { return Folders[0]; } }
         public string ServerVersion { get; private set; }
+        public string ServerFileName { get; set; }
 
         public string PackageUrl
         {
             get
             {
+                if (!string.IsNullOrEmpty(ServerFileName))
+                    return GetUpdateUrl(ServerFileName);
+
                 return GetUpdateUrl(DefaultFolderName + ".7z");
             }
         }
@@ -367,11 +372,11 @@ namespace emulatorLauncher
                 var settings = XDocument.Parse(xml);
                 if (settings == null)
                     return false;
-                
-                string serverVersion = settings
+
+                var serverVersion = settings
                     .Descendants()
                     .Where(d => d.Name == "system" && d.Attribute("name") != null && d.Attribute("version") != null && d.Attribute("name").Value == DefaultFolderName)
-                    .Select(d => d.Attribute("version").Value)
+                    .Select(d => new { Version = d.Attribute("version").Value, Path = d.Attribute("file") == null ? null : d.Attribute("file").Value })
                     .FirstOrDefault();
 
                 if (serverVersion == null)
@@ -379,10 +384,11 @@ namespace emulatorLauncher
 
                 Version local = new Version();
                 Version server = new Version();
-                if (Version.TryParse(GetInstalledVersion(), out local) && Version.TryParse(serverVersion, out server))
+                if (Version.TryParse(GetInstalledVersion(), out local) && Version.TryParse(serverVersion.Version, out server))
                 {
                     if (local < server)
                     {
+                        ServerFileName = serverVersion.Path;
                         ServerVersion = server.ToString();
                         return true;
                     }

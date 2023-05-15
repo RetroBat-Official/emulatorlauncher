@@ -89,8 +89,10 @@ namespace emulatorLauncher
             { "n-gage", () => new Eka2l1Generator() },
             { "nosgba", () => new NosGbaGenerator() }, { "no$gba", () => new NosGbaGenerator() },
             { "pinballfx3", () => new PinballFX3Generator() },
+            { "zaccariapinball", () => new ZaccariaPinballGenerator() },
             { "bigpemu", () => new BigPEmuGenerator() },
-            { "phoenix", () => new PhoenixGenerator() }
+            { "phoenix", () => new PhoenixGenerator() },
+            { "openmsx", () => new OpenMSXGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

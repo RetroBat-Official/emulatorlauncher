@@ -7,6 +7,11 @@ namespace emulatorLauncher
 {
     partial class RyujinxGenerator : Generator
     {
+        public RyujinxGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("ryujinx");
@@ -22,6 +27,7 @@ namespace emulatorLauncher
                 FileName = exe,
                 WorkingDirectory = path,
                 Arguments = "\"" + rom + "\"",
+                WindowStyle = ProcessWindowStyle.Minimized,
             };
         }
 
@@ -30,6 +36,7 @@ namespace emulatorLauncher
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
             {
                 { "jp", "Japanese" },
+                { "ja", "Japanese" },
                 { "en", "AmericanEnglish" },
                 { "fr", "French" },
                 { "de", "German" },
@@ -43,9 +50,13 @@ namespace emulatorLauncher
                 { "tw", "Taiwanese" }
             };
 
-            // Special case for Taiwanese which is zh_TW
+            // Special case for some variances
             if (SystemConfig["Language"] == "zh_TW")
                 return "Taiwanese";
+            else if (SystemConfig["Language"] == "pt_BR")
+                return "BrazilianPortuguese";
+            else if (SystemConfig["Language"] == "en_GB")
+                return "BritishEnglish";
 
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
@@ -74,10 +85,17 @@ namespace emulatorLauncher
             json["show_console"] = "false";
 
             //Input
-            json["docked_mode"] = "true";
+            BindFeature(json, "docked_mode", "ryujinx_undock", "true");
+            json["hide_cursor_on_idle"] = "true";
+
+            // Discord
+            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                json["enable_discord_integration"] = "true";
+            else
+                json["enable_discord_integration"] = "false";
 
             //System
-            json["system_language"] = GetDefaultswitchLanguage();
+            BindFeature(json, "system_language", "switch_language", GetDefaultswitchLanguage());
             BindFeature(json, "enable_vsync", "vsync", "true");
             BindFeature(json, "enable_ptc", "enable_ptc", "true");
             BindFeature(json, "enable_fs_integrity_checks", "enable_fs_integrity_checks", "true");

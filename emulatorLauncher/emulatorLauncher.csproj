@@ -118,6 +118,7 @@
     <Compile Include="Generators\Nes3d.Generator.cs" />
     <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
+    <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
     <Compile Include="Generators\AppleWin.Generator.cs" />
@@ -127,6 +128,9 @@
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
+    <Compile Include="Generators\Duckstation.Controllers.cs">
+      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\Mesen.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Generator.cs" />
@@ -146,6 +150,9 @@
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Mame64.Generator.cs" />
+    <Compile Include="Generators\Mame64.Bezels.cs">
+      <DependentUpon>Mame64.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Daphne.Generator.cs" />
     <Compile Include="Generators\Oricutron.Generator.cs" />
     <Compile Include="Generators\Solarus.Generator.cs" />
@@ -193,6 +200,10 @@
     <Compile Include="Generators\Project64.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
     <Compile Include="Generators\NosGba.Generator.cs" />
+    <Compile Include="Generators\OpenMSX.Generator.cs" />
+    <Compile Include="Generators\OpenMSX.Controllers.cs">
+      <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
@@ -202,6 +213,11 @@
     <Compile Include="PadToKey\SendKeys.cs" />
     <Compile Include="Properties\Resources.fr.Designer.cs">
       <DependentUpon>Resources.fr.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Properties\Resources.ru.Designer.cs">
+      <DependentUpon>Resources.ru.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
@@ -258,6 +274,11 @@
     <EmbeddedResource Include="Properties\Resources.fr.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.fr.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.ru.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.ru.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">

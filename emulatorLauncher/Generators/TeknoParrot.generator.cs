@@ -210,7 +210,9 @@ namespace emulatorLauncher
             }
 
             var windowed = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Windowed");
-            if (windowed != null)
+            if (windowed != null && SystemConfig.isOptSet("tp_nofs") && SystemConfig.getOptBoolean("tp_nofs"))
+                windowed.FieldValue = "1";
+            else if (windowed != null)
                 windowed.FieldValue = "0";
 
             var hideCursor = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "HideCursor");
@@ -229,6 +231,14 @@ namespace emulatorLauncher
                 resolutionWidth.FieldValue = resX.ToString();
                 resolutionHeight.FieldValue = resY.ToString();
             }
+
+            // Option to disable RequiresAdmin tag
+            var requiresadmin = profile.RequiresAdmin;
+            
+            if (SystemConfig.isOptSet("requires_admin") && SystemConfig.getOptBoolean("requires_admin"))
+                userProfile.RequiresAdmin = false;
+            else
+                userProfile.RequiresAdmin = requiresadmin;
 
             ConfigureControllers(userProfile);
 
@@ -260,10 +270,26 @@ namespace emulatorLauncher
             if (!data.SilentMode || data.ConfirmExit)
             {
                 data.SilentMode = true;
-                data.ConfirmExit = false;
-
-                File.WriteAllText(parrotData, data.ToXml());
+                data.ConfirmExit = false; 
             }
+
+            if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
+            {
+                data.UseSto0ZDrivingHack = true;
+                data.StoozPercent = Program.SystemConfig["tp_stooz"].ToInteger();
+            }
+            else
+            {
+                data.UseSto0ZDrivingHack = false;
+                data.StoozPercent = 0;
+            }
+            
+            if (Program.SystemConfig.isOptSet("discord") && Program.SystemConfig.getOptBoolean("discord"))
+                data.UseDiscordRPC = true;
+            else
+                data.UseDiscordRPC = false;
+
+            File.WriteAllText(parrotData, data.ToXml());
         }
 
         private static void ExtractUserProfiles(string path)

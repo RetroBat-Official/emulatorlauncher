@@ -234,9 +234,9 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("cpumode"))
                         ini.WriteValue("main", "cpumode", "1");
 
-                    if (SystemConfig.isOptSet("videomode") && !string.IsNullOrEmpty(SystemConfig["videomode"]))
-                        ini.WriteValue("main", "videomode", SystemConfig["videomode"]);
-                    else if (Features.IsSupported("videomode"))
+                    if (SystemConfig.isOptSet("demul_videomode") && !string.IsNullOrEmpty(SystemConfig["demul_videomode"]))
+                        ini.WriteValue("main", "videomode", SystemConfig["demul_videomode"]);
+                    else if (Features.IsSupported("demul_videomode"))
                         ini.WriteValue("main", "videomode", "1024");
 
                     if (SystemConfig.isOptSet("dc_region") && !string.IsNullOrEmpty(SystemConfig["dc_region"]))
@@ -278,9 +278,9 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("internal_resolution"))
                         ini.WriteValue("main", "scaling", "1");
 
-                    if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
-                        ini.WriteValue("main", "aspect", SystemConfig["ratio"]);
-                    else if (Features.IsSupported("ratio"))
+                    if (SystemConfig.isOptSet("demul_ratio") && !string.IsNullOrEmpty(SystemConfig["demul_ratio"]))
+                        ini.WriteValue("main", "aspect", SystemConfig["demul_ratio"]);
+                    else if (Features.IsSupported("demul_ratio"))
                         ini.WriteValue("main", "aspect", "1");
 
                     if (SystemConfig.isOptSet("smooth"))

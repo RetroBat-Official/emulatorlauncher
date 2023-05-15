@@ -56,8 +56,8 @@ namespace DokanNet
         /// <summary>
         /// Default, process-wide buffer pool instance.
         /// </summary>
-        public static BufferPool Default { get { return _bufferPool; } }
-        private static BufferPool _bufferPool = new BufferPool();
+        public static BufferPool Default { get { return _default; } }
+        private static BufferPool _default = new BufferPool();
 
         /// <summary>
         /// Clears the buffer pool by releasing all buffers.
@@ -96,7 +96,7 @@ namespace DokanNet
             int poolIndex = GetPoolIndex(bufferSize);
             if (poolIndex == -1 || poolIndex >= _pools.Length)
             {
-                logger.Debug("Buffer size {0} not power of 2 or too large, returning unpooled buffer.", bufferSize);
+                if (logger.DebugEnabled) logger.Debug("Buffer size "+bufferSize+" not power of 2 or too large, returning unpooled buffer.");
                 return new byte[bufferSize];
             }
 
@@ -105,11 +105,11 @@ namespace DokanNet
             byte[] buffer;
             if (pool.TryTake(out buffer))
             {
-                logger.Debug("Using pooled buffer from pool {0}.", poolIndex);
+                if (logger.DebugEnabled) logger.Debug("Using pooled buffer from pool "+poolIndex);
             }
             else
             {
-                logger.Debug("Pool {0} empty, creating new buffer.", poolIndex);
+                if (logger.DebugEnabled) logger.Debug("Pool "+poolIndex+" empty, creating new buffer.");
                 buffer = new byte[bufferSize];
             }
 
@@ -140,16 +140,16 @@ namespace DokanNet
                 {
                     Array.Clear(buffer, 0, buffer.Length);
                     pool.Add(buffer);
-                    logger.Debug("Returned buffer to pool {0}.", poolIndex);
+                    if (logger.DebugEnabled) logger.Debug("Returned buffer to pool " +poolIndex);
                 }
                 else
                 {
-                    logger.Debug("Pool {0} is full, discarding buffer.", poolIndex);
+                    if (logger.DebugEnabled) logger.Debug("Pool " + poolIndex + " is full, discarding buffer.");
                 }
             }
             else
             {
-                logger.Debug("{0} (size {1}) outside pool range, discarding buffer.", poolIndex, buffer.Length);
+                if (logger.DebugEnabled) logger.Debug(poolIndex + " size "+ buffer.Length + ") outside pool range, discarding buffer.");
             }
         }
 

@@ -9,7 +9,7 @@ using System.Drawing;
 
 namespace emulatorLauncher
 {
-    class DuckstationGenerator : Generator
+    partial class DuckstationGenerator : Generator
     {
         public DuckstationGenerator()
         {
@@ -31,84 +31,165 @@ namespace emulatorLauncher
             return ret;
         }
 
-        private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string folderName = emulator;
-
-            _path = AppConfig.GetFullPath(folderName);
-            if (string.IsNullOrEmpty(_path))
-                _path = AppConfig.GetFullPath("duckstation");
+            string path = AppConfig.GetFullPath("duckstation");
 
             _resolution = resolution;
 
-            string exe = Path.Combine(_path, "duckstation-nogui-x64-ReleaseLTCG.exe");
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-nogui-x64-Release.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-nogui.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-qt-x64-ReleaseLTCG.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-qt-x64-Release.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-qt-x64.exe");
-
-            if (!File.Exists(exe))
-                exe = Path.Combine(_path, "duckstation-qt.exe");
+            string exe = Path.Combine(path, "duckstation-qt-x64-ReleaseLTCG.exe");
 
             if (!File.Exists(exe))
                 return null;
 
-            SetupSettings();
+            SetupSettings(path);
 
-            if (SystemConfig["ratio"] == "4:3")
+            //Applying bezels
+            if (!SystemConfig.isOptSet("psx_ratio") || SystemConfig["psx_ratio"] == "4:3")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
 
-            return new ProcessStartInfo()
+            //setting up command line parameters
+            var commandArray = new List<string>();
+
+            if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
+                commandArray.Add("-slowboot");
+            else
+                commandArray.Add("-fastboot");
+
+            commandArray.Add("-batch");
+            commandArray.Add("-portable");
+
+            if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+                commandArray.Add("-fullscreen");
+
+            commandArray.Add("--");
+
+            string args = string.Join(" ", commandArray);
+
+            if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+            {
+                return new ProcessStartInfo()
                 {
                     FileName = exe,
-                    WorkingDirectory = _path,
-                    Arguments = "\"" + rom + "\"",
+                    WorkingDirectory = path,
+                    Arguments = args + " \"" + rom + "\"",
+                    WindowStyle = ProcessWindowStyle.Minimized,
                 };
+            }
+
+            else
+            {
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = path,
+                    Arguments = args + " \"" + rom + "\"",
+                };
+            }
         }
 
-        private void SetupSettings()
+        private string GetDefaultpsxLanguage()
         {
-            string iniFile = Path.Combine(_path, "settings.ini");
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "ja" },
+                { "en", "en" },
+                { "fr", "fr" },
+                { "de", "de" },
+                { "it", "it" },
+                { "es", "es-es" },
+                { "zh", "zh-cn" },
+                { "nl", "nl" },
+                { "pl", "pl" },
+                { "pt", "pt-pt" },
+                { "ru", "ru" },
+            };
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                string ret;
+                if (availableLanguages.TryGetValue(lang, out ret))
+                    return ret;
+            }
+            return "en";
+        }
+
+        private void SetupSettings(string path)
+        {
+            string iniFile = Path.Combine(path, "settings.ini");
 
             try
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    Uri relRoot = new Uri(_path, UriKind.Absolute);
-
                     string biosPath = AppConfig.GetFullPath("bios");
                     if (!string.IsNullOrEmpty(biosPath))
                         ini.WriteValue("BIOS", "SearchDirectory", biosPath.Replace("\\", "\\\\"));
 
+                    ini.WriteValue("MemoryCards", "Card1Type", "PerGameTitle");
                     string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "memcards");
                     if (!string.IsNullOrEmpty(savesPath))
                         ini.WriteValue("MemoryCards", "Directory", savesPath.Replace("\\", "\\\\"));
+                    ini.WriteValue("MemoryCards", "Card1Path", "shared_card_1.mcd");
 
-                    if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
-                        ini.WriteValue("Display", "AspectRatio", SystemConfig["ratio"]);
-                    else if (Features.IsSupported("ratio"))
+                    string saveStatesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "sstates");
+                    if (!string.IsNullOrEmpty(saveStatesPath))
+                        ini.WriteValue("Folders", "SaveStates", saveStatesPath.Replace("\\", "\\\\"));
+
+                    string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "duckstation");
+                    if (!string.IsNullOrEmpty(cheatsPath))
+                        ini.WriteValue("Folders", "Cheats", cheatsPath.Replace("\\", "\\\\"));
+
+                    string screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "duckstation");
+                    if (!string.IsNullOrEmpty(screenshotsPath))
+                        ini.WriteValue("Folders", "Screenshots", screenshotsPath.Replace("\\", "\\\\"));
+
+                    //Enable cheevos is needed
+                    if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
+                    {
+                        ini.WriteValue("Cheevos", "Enabled", "true");
+                        ini.WriteValue("Cheevos", "TestMode", "false");
+                        ini.WriteValue("Cheevos", "UnofficialTestMode", "false");
+                        ini.WriteValue("Cheevos", "UseFirstDiscFromPlaylist", "true");
+                        ini.WriteValue("Cheevos", "SoundEffects", "true");
+                        ini.WriteValue("Cheevos", "Notifications", "true");
+                        ini.WriteValue("Cheevos", "RichPresence", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "Leaderboards", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "PrimedIndicators", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
+
+                        // Inject credentials
+                        if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
+                        {
+                            ini.WriteValue("Cheevos", "Username", SystemConfig["retroachievements.username"]);
+                            ini.WriteValue("Cheevos", "Token", SystemConfig["retroachievements.token"]);
+
+                            if (string.IsNullOrEmpty(ini.GetValue("Cheevos", "Token")))
+                                ini.WriteValue("Cheevos", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
+                        }
+                    }
+                    else
+                    {
+                        ini.WriteValue("Cheevos", "Enabled", "false");
+                        ini.WriteValue("Cheevos", "ChallengeMode", "false");
+                    }
+
+
+                    if (SystemConfig.isOptSet("psx_ratio") && !string.IsNullOrEmpty(SystemConfig["psx_ratio"]))
+                        ini.WriteValue("Display", "AspectRatio", SystemConfig["psx_ratio"]);
+                    else if (Features.IsSupported("psx_ratio"))
                         ini.WriteValue("Display", "AspectRatio", "Auto (Game Native)");
 
                     if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
                         ini.WriteValue("GPU", "ResolutionScale", SystemConfig["internal_resolution"]);
                     else if (Features.IsSupported("internal_resolution"))
-                        ini.WriteValue("GPU", "ResolutionScale", "5");
+                        ini.WriteValue("GPU", "ResolutionScale", "1");
 
                     if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                         ini.WriteValue("GPU", "Renderer", SystemConfig["gfxbackend"]);
@@ -145,6 +226,23 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Scaled_Dithering"))
                         ini.WriteValue("GPU", "ScaledDithering", "false");
 
+                    if (SystemConfig.isOptSet("pgxp") && SystemConfig.getOptBoolean("pgxp"))
+                    {
+                        ini.WriteValue("GPU", "PGXPEnable", "true");
+                        ini.WriteValue("GPU", "PGXPCulling", "true");
+                        ini.WriteValue("GPU", "PGXPTextureCorrection", "true");
+                        ini.WriteValue("GPU", "PGXPColorCorrection", "true");
+                        ini.WriteValue("GPU", "PGXPPreserveProjFP", "true");
+                    }
+                    else
+                    {
+                        ini.WriteValue("GPU", "PGXPEnable", "false");
+                        ini.WriteValue("GPU", "PGXPCulling", "false");
+                        ini.WriteValue("GPU", "PGXPTextureCorrection", "false");
+                        ini.WriteValue("GPU", "PGXPColorCorrection", "false");
+                        ini.WriteValue("GPU", "PGXPPreserveProjFP", "false");
+                    }
+
                     if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
                         ini.WriteValue("Display", "VSync", SystemConfig["VSync"]);
                     else if (Features.IsSupported("VSync"))
@@ -160,19 +258,101 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("Integer_Scaling"))
                         ini.WriteValue("Display", "IntegerScaling", "false");
 
-                    if (SystemConfig.isOptSet("ControllerBackend") && !string.IsNullOrEmpty(SystemConfig["ControllerBackend"]))
-                        ini.WriteValue("Main", "ControllerBackend", SystemConfig["ControllerBackend"]);
-                    else if (Features.IsSupported("ControllerBackend"))
-                        ini.WriteValue("Main", "ControllerBackend", "SDL");
+                    if (SystemConfig.isOptSet("psx_region") && !string.IsNullOrEmpty(SystemConfig["psx_region"]))
+                        ini.WriteValue("Console", "Region", SystemConfig["psx_region"]);
+                    else if (Features.IsSupported("psx_region"))
+                        ini.WriteValue("Console", "Region", "Auto");
+
+                    if (SystemConfig.isOptSet("ExecutionMode") && !string.IsNullOrEmpty(SystemConfig["ExecutionMode"]))
+                        ini.WriteValue("CPU", "ExecutionMode", SystemConfig["ExecutionMode"]);
+                    else if (Features.IsSupported("ExecutionMode"))
+                        ini.WriteValue("CPU", "ExecutionMode", "Recompiler");
+
+                    // Performance statistics
+                    if (SystemConfig.isOptSet("performance_overlay") && SystemConfig["performance_overlay"] == "detailed")
+                    {
+                        ini.WriteValue("Display", "ShowFPS", "true");
+                        ini.WriteValue("Display", "ShowSpeed", "true");
+                        ini.WriteValue("Display", "ShowResolution", "true");
+                        ini.WriteValue("Display", "ShowCPU", "true");
+                        ini.WriteValue("Display", "ShowGPU", "true");
+                    }
+                    else if (SystemConfig.isOptSet("performance_overlay") && SystemConfig["performance_overlay"] == "simple")
+                    {
+                        ini.WriteValue("Display", "ShowFPS", "true");
+                        ini.WriteValue("Display", "ShowSpeed", "false");
+                        ini.WriteValue("Display", "ShowResolution", "false");
+                        ini.WriteValue("Display", "ShowCPU", "false");
+                        ini.WriteValue("Display", "ShowGPU", "false");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Display", "ShowFPS", "false");
+                        ini.WriteValue("Display", "ShowSpeed", "false");
+                        ini.WriteValue("Display", "ShowResolution", "false");
+                        ini.WriteValue("Display", "ShowCPU", "false");
+                        ini.WriteValue("Display", "ShowGPU", "false");
+                    }
+
+                    if (SystemConfig.isOptSet("duck_shaders") && !string.IsNullOrEmpty(SystemConfig["duck_shaders"]))
+                    {
+                        ini.WriteValue("Display", "PostProcessing", "true");
+                        ini.WriteValue("Display", "PostProcessChain", SystemConfig["duck_shaders"].Replace("_", "/"));
+                    }
+                    else
+                    {
+                        ini.WriteValue("Display", "PostProcessing", "false");
+                        ini.WriteValue("Display", "PostProcessChain", "");
+                    }
+
+                    if (SystemConfig.isOptSet("duckstation_osd_enabled") && !SystemConfig.getOptBoolean("duckstation_osd_enabled"))
+                        ini.WriteValue("Display", "ShowOSDMessages", "false");
+                    else
+                        ini.WriteValue("Display", "ShowOSDMessages", "true");
+
+                    if (SystemConfig.isOptSet("audiobackend") && !string.IsNullOrEmpty(SystemConfig["audiobackend"]))
+                    ini.WriteValue("Audio", "Backend", SystemConfig["audiobackend"]);
+                    else if (Features.IsSupported("audiobackend"))
+                        ini.WriteValue("Audio", "Backend", "Cubeb");
+
+                    if (SystemConfig.isOptSet("rewind") && SystemConfig.getOptBoolean("rewind"))
+                        ini.WriteValue("Main", "RewindEnable", "true");
+                    else
+                        ini.WriteValue("Main", "RewindEnable", "false");
+
+                    if (SystemConfig.isOptSet("runahead") && !string.IsNullOrEmpty(SystemConfig["runahead"]))
+                    {
+                        ini.WriteValue("Main", "RunaheadFrameCount", SystemConfig["runahead"]);
+                        ini.WriteValue("Main", "RewindEnable", "false");
+                    }
+                    else
+                        ini.WriteValue("Main", "RunaheadFrameCount", "0");
 
                     ini.WriteValue("Main", "ConfirmPowerOff", "false");
-                    ini.WriteValue("Main", "StartFullscreen", "true");
+
+                    // fullscreen (disable fullscreen start option, workaround for people with multi-screen that cannot get emulator to start fullscreen on the correct monitor)
+                    if (SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
+                        ini.WriteValue("Main", "StartFullscreen", "false");
+                    else
+                        ini.WriteValue("Main", "StartFullscreen", "true");
+
                     ini.WriteValue("Main", "ApplyGameSettings", "true");
-                    ini.WriteValue("Main", "RenderToMainWindow", "true");
-                    ini.WriteValue("Main", "EnableDiscordPresence", "false");
+
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.WriteValue("Main", "EnableDiscordPresence", "true");
+                    else
+                        ini.WriteValue("Main", "EnableDiscordPresence", "false");
+
                     ini.WriteValue("Main", "PauseOnFocusLoss", "true");
-                    ini.WriteValue("Display", "Fullscreen", "true");
+                    ini.WriteValue("Main", "DoubleClickTogglesFullscreen", "false");
+                    ini.WriteValue("Main", "Language", GetDefaultpsxLanguage());
+                    
+                    ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
+
+                    // Controller configuration
+                    CreateControllerConfiguration(ini);
                 }
+                
             }
             catch { }
         }

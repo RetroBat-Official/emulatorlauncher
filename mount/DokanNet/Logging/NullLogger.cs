@@ -6,6 +6,9 @@
     public class NullLogger : ILogger
     {
         /// <inheritdoc />
+        public bool DebugEnabled { get { return false; } }
+
+        /// <inheritdoc />
         public void Debug(string message, params object[] args)
         {
         }

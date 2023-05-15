@@ -12,7 +12,7 @@ using System.Xml.Serialization;
 
 namespace emulatorLauncher
 {
-    class XmlDeserializer
+    public class XmlDeserializer
     {
         public static T DeserializeFile<T>(string xml) where T : class
         {
@@ -54,7 +54,7 @@ namespace emulatorLauncher
 
         #region Déserialisation
         private static object DeserializeType(XmlReader reader, Type t)
-        {            
+        {
             reader.SkipWhitespaces();
 
             if (t.IsValueType || t == typeof(string))
@@ -62,6 +62,7 @@ namespace emulatorLauncher
 
             reader.MoveToContent();
 
+            var attributeValues = new Dictionary<string, object>();
             if (reader.HasAttributes)
             {
                 for (int i = 0; i < reader.AttributeCount; i++)
@@ -81,11 +82,13 @@ namespace emulatorLauncher
                         if (xtype != null)
                             t = xtype.Type;
                     }
+                    else
+                        attributeValues[reader.LocalName] = reader.Value;
                 }
             }
 
             reader.MoveToElement();
-            
+
             TypeMapping xmlMapping = GetTypeMapping(t);
 
             object ret = null;
@@ -99,8 +102,30 @@ namespace emulatorLauncher
                 return ret;
             else
             {
+                if (typeof(IXmlSerializable).IsAssignableFrom(t))
+                {
+                    ((IXmlSerializable)ret).ReadXml(reader);
+                    return ret;
+                }
+
                 reader.ReadStartElement();
                 reader.SkipWhitespaces();
+            }
+
+            if (reader.NodeType == XmlNodeType.Text)
+            {
+                var mapping = xmlMapping.Properties.Select(p => p.Value).FirstOrDefault(p => p.XmlText != null);
+                if (mapping != null)
+                {
+                    object value = reader.Value;
+                    try { mapping.Property.SetValue(ret, value, null); }
+                    catch { }
+                }
+
+                reader.Read();
+                reader.SkipWhitespaces();
+
+                return ret;
             }
 
             var lists = new Dictionary<PropertyInfo, IList>();
@@ -122,6 +147,19 @@ namespace emulatorLauncher
 
                         if (lst != null)
                             lists[property] = lst;
+                    }
+                }
+            }
+
+            if (ret != null)
+            {
+                foreach (var attribute in attributeValues)
+                {
+                    PropertyMapping propertyMapping = null;
+                    if (xmlMapping != null && xmlMapping.Properties.TryGetValue(attribute.Key, out propertyMapping))
+                    {
+                        try { propertyMapping.Property.SetValue(ret, attribute.Value, null); }
+                        catch { }
                     }
                 }
             }
@@ -178,11 +216,16 @@ namespace emulatorLauncher
                                 var genericType = propertyType.GetGenericArguments().FirstOrDefault();
                                 if (genericType != null)
                                 {
-                                    XmlTypeAttribute[] types = (XmlTypeAttribute[])genericType.GetCustomAttributes(typeof(XmlTypeAttribute), false);
-                                    if (types.Length > 0)
-                                        xmlTypeName = types[0].TypeName;
+                                    if (propertyMapping.XmlArrayItem != null)
+                                        xmlTypeName = propertyMapping.XmlArrayItem.ElementName;
                                     else
-                                        xmlTypeName = GetXmlTypeName(genericType);                                   
+                                    {
+                                        XmlTypeAttribute[] types = (XmlTypeAttribute[])genericType.GetCustomAttributes(typeof(XmlTypeAttribute), false);
+                                        if (types.Length > 0)
+                                            xmlTypeName = types[0].TypeName;
+                                        else
+                                            xmlTypeName = GetXmlTypeName(genericType);
+                                    }
                                 }
                             }
 
@@ -199,22 +242,35 @@ namespace emulatorLauncher
                                     if (value != null)
                                         lst.Add(value);
 
-                                    if (!reader.EOF && !reader.IsEmptyElement)
+                                    if (!reader.EOF)
                                     {
-                                        if (reader.NodeType == XmlNodeType.Text)
-                                            while (!reader.EOF && reader.NodeType != XmlNodeType.EndElement)
-                                                if (!reader.Read())
-                                                    break;
+                                        if (reader.IsEmptyElement)
+                                            reader.Read();
+                                        else
+                                        {
+                                            if (reader.NodeType == XmlNodeType.Text)
+                                                while (!reader.EOF && reader.NodeType != XmlNodeType.EndElement)
+                                                    if (!reader.Read())
+                                                        break;
 
-                                        if (reader.NodeType == XmlNodeType.EndElement)
-                                            reader.ReadEndElement();
+                                            if (reader.NodeType == XmlNodeType.EndElement)
+                                                reader.ReadEndElement();
+                                        }
                                     }
 
                                     reader.SkipWhitespaces();
                                 }
 
-                                if (!reader.EOF && reader.NodeType == XmlNodeType.EndElement && reader.Name == propertyMapping.Property.Name)
-                                    reader.ReadEndElement();
+                                if (propertyMapping.XmlArray != null)
+                                {
+                                    if (!reader.EOF && reader.NodeType == XmlNodeType.EndElement && reader.Name == propertyMapping.XmlArray.ElementName)
+                                        reader.ReadEndElement();
+                                }
+                                else
+                                {
+                                    if (!reader.EOF && reader.NodeType == XmlNodeType.EndElement && reader.Name == propertyMapping.Property.Name)
+                                        reader.ReadEndElement();
+                                }
                             }
 
                             reader.SkipWhitespaces();
@@ -225,7 +281,7 @@ namespace emulatorLauncher
                             object value = null;
 
                             if (tp == typeof(string) || tp.IsValueType)
-                            {                                
+                            {
                                 if (!reader.EOF && !reader.IsEmptyElement)
                                 {
                                     value = ReadValueType(reader, tp);
@@ -302,6 +358,7 @@ namespace emulatorLauncher
                     if (types.Length > 0 && types[0].TypeName == localName)
                         return DeserializeType(reader, t);
 
+                    XmlArrayAttribute[] arr = (XmlArrayAttribute[])t.GetCustomAttributes(typeof(XmlArrayAttribute), false);
                     if (reader.IsEmptyElement)
                         reader.Read();
                     else
@@ -473,6 +530,10 @@ namespace emulatorLauncher
         {
             public PropertyInfo Property { get; set; }
             public XmlElementAttribute XmlElement { get; set; }
+            public XmlArrayAttribute XmlArray { get; set; }
+            public XmlArrayItemAttribute XmlArrayItem { get; set; }
+            public XmlTextAttribute XmlText { get; set; }
+            public XmlAttributeAttribute XmlAttribute { get; set; }
         }
 
         class TypeMapping
@@ -523,6 +584,41 @@ namespace emulatorLauncher
                                 pm.XmlElement = xmlElement;
                             }
                         }
+                        else if (Attribute.IsDefined(property, typeof(XmlArrayAttribute)))
+                        {
+                            XmlArrayAttribute xmlArray = property.GetCustomAttributes(typeof(XmlArrayAttribute), true).FirstOrDefault() as XmlArrayAttribute;
+                            if (xmlArray != null)
+                            {
+                                if (!string.IsNullOrEmpty(xmlArray.ElementName))
+                                    name = xmlArray.ElementName;
+
+                                pm.XmlArray = xmlArray;
+                            }
+                        }
+
+                        if (Attribute.IsDefined(property, typeof(XmlArrayItemAttribute)))
+                        {
+                            XmlArrayItemAttribute xmlArrayItem = property.GetCustomAttributes(typeof(XmlArrayItemAttribute), true).FirstOrDefault() as XmlArrayItemAttribute;
+                            if (xmlArrayItem != null)
+                                pm.XmlArrayItem = xmlArrayItem;
+                        }
+
+                        if (Attribute.IsDefined(property, typeof(XmlTextAttribute)))
+                        {
+                            XmlTextAttribute xmlText = property.GetCustomAttributes(typeof(XmlTextAttribute), true).FirstOrDefault() as XmlTextAttribute;
+                            if (xmlText != null)
+                                pm.XmlText = xmlText;
+                        }
+
+                        if (Attribute.IsDefined(property, typeof(XmlAttributeAttribute)))
+                        {
+                            XmlAttributeAttribute xmlAttribute = property.GetCustomAttributes(typeof(XmlAttributeAttribute), true).FirstOrDefault() as XmlAttributeAttribute;
+                            if (xmlAttribute != null)
+                            {
+                                name = xmlAttribute.AttributeName;
+                                pm.XmlAttribute = xmlAttribute;
+                            }
+                        }
 
                         xmlMapping.Properties[name] = pm;
                     }
@@ -533,7 +629,7 @@ namespace emulatorLauncher
                 return xmlMapping;
             }
         }
-        
+
         private static Dictionary<Type, TypeMapping> _xmlTypeMappings = new Dictionary<Type, TypeMapping>();
         #endregion
     }

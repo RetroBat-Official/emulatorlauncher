@@ -28,18 +28,59 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            List<string> disks = new List<string>();
+
+            // Treatment of multi-discs games
+            if (Path.GetExtension(rom).ToLower() == ".m3u")
+            {
+                string dskPath = Path.GetDirectoryName(rom);
+
+                foreach (var line in File.ReadAllLines(rom))
+                {
+                    string dsk = Path.Combine(dskPath, line);
+                    if (File.Exists(dsk))
+                        disks.Add(dsk);
+                    else
+                        throw new ApplicationException("File '" + Path.Combine(dskPath, line) + "' does not exist");
+                }
+
+                if (disks.Count == 0)
+                    return null;
+            }
+
             using (var conf = new IniFile(Path.Combine(path, "config.txt"), IniOptions.UseSpaces))
             {
                 conf.WriteValue(null, "s5d1", "");
                 conf.WriteValue(null, "s5d2", "");
                 conf.WriteValue(null, "s6d1", "");
                 conf.WriteValue(null, "s6d2", "");
-                conf.WriteValue(null, "s7d1", "");
+                for (int i = 0; i < 3; i++)
+                {
+                    conf.WriteValue(null, "s7d" + (i+1), "");
+                }
+
 
                 if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
                     conf.WriteValue(null, "g_cfg_rom_path", Path.Combine(AppConfig.GetFullPath("bios"), "APPLE2GS.ROM"));
+                
+                if (Path.GetExtension(rom).ToLower() == ".m3u")
+                {
+                    if (disks.Count == 0)
+                        return null;
 
-                if (Path.GetExtension(rom).ToLowerInvariant() == ".2mg")
+                    else if (disks.Count == 1)
+                        rom = disks[0];
+
+                    else
+                    {
+                        for (int i = 0; i < disks.Count; i++)
+                        {
+                            conf.WriteValue(null, "s7d" + (i+1), disks[i]);
+                        }
+                    }
+                }
+
+                else if (Path.GetExtension(rom).ToLowerInvariant() == ".2mg")
                     conf.WriteValue(null, "s7d1", rom);
             }
 
@@ -62,7 +103,8 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args
+                Arguments = args,
+                WindowStyle = ProcessWindowStyle.Minimized,
             };
         }
 

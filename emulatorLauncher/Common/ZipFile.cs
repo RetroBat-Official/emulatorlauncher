@@ -59,8 +59,20 @@ namespace emulatorLauncher
 
         private static System.Reflection.MethodInfo _zipOpenRead;
 
-        // Dotnet 4.0 compatible Zip entries reader ( ZipFile exists since 4.5 )
         public static ZipEntry[] ListEntries(string path)
+        {
+            ZipEntry[] ret;
+            if (!_entriesCache.TryGetValue(path, out ret))
+            {
+                ret = ListEntriesInternal(path);
+                _entriesCache[path] = ret;
+            }
+
+            return ret;
+        }
+
+        // Dotnet 4.0 compatible Zip entries reader ( ZipFile exists since 4.5 )
+        private static ZipEntry[] ListEntriesInternal(string path)
         {
             if (!IsCompressedFile(path))
                 return new ZipEntry[] { };
@@ -180,7 +192,21 @@ namespace emulatorLauncher
             }
         }
 
+        private static Dictionary<string, ZipEntry[]> _entriesCache = new Dictionary<string, ZipEntry[]>();
+
         private static ZipEntry[] GetSquashFsEntries(string archive)
+        {
+            ZipEntry[] ret;
+            if (!_entriesCache.TryGetValue(archive, out ret))
+            {
+                ret = GetSquashFsEntriesInternal(archive);
+                _entriesCache[archive] = ret;
+            }
+             
+            return ret;
+        }
+
+        private static ZipEntry[] GetSquashFsEntriesInternal(string archive)
         {
             var sevenZip = GetRdSquashFSPath();
             if (!File.Exists(sevenZip))
@@ -290,9 +316,14 @@ namespace emulatorLauncher
             if (!File.Exists(rdsquashfs))
                 return;
 
-            var entries = new HashSet<string>(GetSquashFsEntries(archive).Where(e => !e.IsDirectory).Select(e => e.Filename));
-            if (entries == null || entries.Count == 0)
-                return;
+            HashSet<string> entries = null;
+
+            if (progress != null && fileNameToExtract == null)
+            {
+                entries = new HashSet<string>(GetSquashFsEntries(archive).Where(e => !e.IsDirectory).Select(e => e.Filename));
+                if (entries == null || entries.Count == 0)
+                    return;
+            }
 
             if (fileNameToExtract == null)
             {
@@ -326,7 +357,7 @@ namespace emulatorLauncher
             };            
 
             var proc = Process.Start(px);
-            if (proc != null && progress != null)
+            if (proc != null && progress != null && entries != null)
             {
                 var unpacking = new HashSet<string>(entries);
 
@@ -386,6 +417,9 @@ namespace emulatorLauncher
             string args = "x -bsp1 \"" + archive + "\" -y -o\"" + destination + "\"";
             if (!string.IsNullOrEmpty(fileNameToExtract))
             {
+                // Multiple files :
+                // H:\[Emulz]\[batocera-ports]\7z x -bsp1 "h:\\applewin.7z" "History.txt" "MASTER.DSK" -y -o"h:\\tmp\\"
+
                 if (keepFolder)
                     args = "x -bsp1 \"" + archive + "\" \"" + fileNameToExtract + "\" -y -o\"" + destination + "\"";
                 else
@@ -484,7 +518,6 @@ namespace emulatorLauncher
                 catch { }
             }
         }
-
     }
 
     class ZipEntry
@@ -499,6 +532,5 @@ namespace emulatorLauncher
         {
             return Filename;
         }
-    }
-
+    }    
 }

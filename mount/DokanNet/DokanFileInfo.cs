@@ -13,7 +13,7 @@ namespace DokanNet
     /// </summary>
     /// <remarks>
     /// This class cannot be instantiated in C#, it is created by the kernel %Dokan driver.
-    /// This is the same structure as <c>_DOKAN_FILE_INFO</c> (dokan.h) in the C++ version of Dokan.
+    /// This is the same structure as <c>_DOKAN_FILE_INFO</c> (dokan.h) in the C version of Dokan.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public sealed class DokanFileInfo : IDokanFileInfo
@@ -29,6 +29,13 @@ namespace DokanNet
         /// A pointer to the <see cref="DOKAN_OPTIONS"/> which was passed to <see cref="DokanNet.Native.NativeMethods.DokanMain"/>.
         /// </summary>
         private readonly IntPtr _dokanOptions;
+
+        /// <summary>
+        /// Reserved. Used internally by Dokan library. Never modify.
+        /// If the processing for the event requires extra data to be associated with it
+        /// then a pointer to that data can be placed here
+        /// </summary>
+        private readonly IntPtr _processingContext;
 
         private readonly uint _processId;
 
@@ -59,21 +66,23 @@ namespace DokanNet
         /// </summary>
         public object Context
         {
-            get 
+            get
             {
-                return _context != 0 ? ((GCHandle)(IntPtr)_context).Target : null;
+                return _context != 0 
+                    ? GCHandle.FromIntPtr(new IntPtr((long)_context)).Target 
+                    : null;
             }
             set
             {
                 if (_context != 0)
                 {
-                    ((GCHandle)(IntPtr)_context).Free();
+                    GCHandle.FromIntPtr(new IntPtr((long)_context)).Free();
                     _context = 0;
                 }
 
                 if (value != null)
                 {
-                    _context = (ulong)(IntPtr)GCHandle.Alloc(value);
+                    _context = (ulong)GCHandle.ToIntPtr(GCHandle.Alloc(value));
                 }
             }
         }
@@ -82,7 +91,7 @@ namespace DokanNet
         /// Process id for the thread that originally requested a given I/O
         /// operation.
         /// </summary>
-        public int ProcessId { get { return (int)_processId; } }
+        public int ProcessId { get { return  (int)_processId;}}
 
         /// <summary>
         /// Gets or sets a value indicating whether it requesting a directory
@@ -133,10 +142,9 @@ namespace DokanNet
         /// -or- <c>null</c> if the operation was not successful.</returns>
         public WindowsIdentity GetRequestor()
         {
-            SafeFileHandle sfh = null;
             try
             {
-                using (sfh = new SafeFileHandle(NativeMethods.DokanOpenRequestorToken(this), true))
+                using (var sfh = new SafeFileHandle(NativeMethods.DokanOpenRequestorToken(this), true))
                 {
                     return new WindowsIdentity(sfh.DangerousGetHandle());
                 }
@@ -144,13 +152,6 @@ namespace DokanNet
             catch
             {
                 return null;
-            }
-            finally
-            {
-                if (sfh != null)
-                {
-                    sfh.Dispose();
-                }
             }
         }
 
@@ -168,9 +169,7 @@ namespace DokanNet
         /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
-            return
-                string.Format("{{{0}, {1}, {2}, {3}, {4}, #{5}, {6}, {7}}}",
-                Context, DeleteOnClose, IsDirectory, NoCache, PagingIo, ProcessId, SynchronousIo, WriteToEndOfFile);
+            return Context + ", " + DeleteOnClose + ", " + IsDirectory + ", " + NoCache + ", " + PagingIo + ", #" + ProcessId + ", " + SynchronousIo + ", " + WriteToEndOfFile;
         }
     }
 }

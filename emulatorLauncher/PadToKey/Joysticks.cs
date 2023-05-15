@@ -27,7 +27,10 @@ namespace emulatorLauncher.PadToKeyboard
         public void Close()
         {
             if (SdlJoystick != IntPtr.Zero)
+            {
+                SimpleLogger.Instance.Info("[PadToKey] RemoveJoystick " + Controller == null ? Id.ToString() : Controller.ToString());
                 SDL.SDL_JoystickClose(SdlJoystick);
+            }
 
             SdlJoystick = IntPtr.Zero;
         }
@@ -100,7 +103,7 @@ namespace emulatorLauncher.PadToKeyboard
             var js = _joysticks.FirstOrDefault(j => j.Id == which);
             if (js != null)
             {
-                SDL.SDL_JoystickClose(js.SdlJoystick);
+                js.Close();
                 _joysticks.Remove(js);
             }
         }

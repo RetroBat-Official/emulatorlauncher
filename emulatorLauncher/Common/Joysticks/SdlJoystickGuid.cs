@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace emulatorLauncher.Tools
 {   
@@ -270,10 +271,71 @@ namespace emulatorLauncher.Tools
                 return SdlVersion.Unknown;
             }
 
-            if (version.Minor > 26)
-                return SdlVersion.Unknown;
+            if (version.Major >= 3)
+                return SdlVersion.SDL2_26;
 
-            if (version.Minor > 0)
+            if (version.Minor >= 26)
+                return SdlVersion.SDL2_26;
+
+            if (version.Minor >= 24)
+                return SdlVersion.SDL2_24;
+
+            return SdlVersion.SDL2_0_X;
+        }
+
+        /// <summary>
+        /// Find SDL_LEGACY_VERSIONSDL in exe.
+        /// Next to it, since 2.2x versions, we should find another string containing linked version like this :</summary>
+        /// SDL-release-2.26.2-0-gf070c83a6
+        /// SDL-2.26.4-no-vcs
+        /// <returns></returns>
+        public static SdlVersion GetSdlVersionFromStaticBinary(string fileName, SdlVersion defaultValue = SdlVersion.SDL2_0_X)
+        {
+            if (!File.Exists(fileName))
+                return defaultValue;
+
+            System.Version version = null;
+
+            try
+            {
+                byte[] bytes = File.ReadAllBytes(fileName);
+                int startIndex = bytes.IndexOf(Encoding.ASCII.GetBytes("SDL_LEGACY_VERSION"));
+                if (startIndex > 0)
+                {
+                    startIndex = Misc.IndexOf(bytes, Encoding.ASCII.GetBytes("SDL"), startIndex + 4);
+                    if (startIndex > 0)
+                    {
+                        int end = Misc.IndexOf(bytes, new byte[] { 0 }, startIndex);
+                        if (end > startIndex)
+                        {
+                            int size = end - startIndex;
+                            byte[] extractedBytes = new byte[size];
+                            Array.Copy(bytes, startIndex, extractedBytes, 0, size);
+
+                            var str = Encoding.ASCII.GetString(extractedBytes);
+
+                            MatchCollection matches = Regex.Matches(str, @"(?<=-)(\d+)\.(\d+)\.(\d+)");
+                            if (matches.Count == 1 && matches[0].Groups.Count == 4)
+                                version = new Version(matches[0].Groups[1].Value.ToInteger(), matches[0].Groups[2].Value.ToInteger(), matches[0].Groups[3].Value.ToInteger());
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return defaultValue;
+            }
+
+            if (version == null)
+                return defaultValue;
+
+            if (version.Major >= 3)
+                return SdlVersion.SDL2_26;
+
+            if (version.Minor >= 26)
+                return SdlVersion.SDL2_26;
+
+            if (version.Minor >= 24)
                 return SdlVersion.SDL2_24;
 
             return SdlVersion.SDL2_0_X;

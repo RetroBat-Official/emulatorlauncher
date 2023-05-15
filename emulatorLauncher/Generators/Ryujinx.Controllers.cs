@@ -283,10 +283,10 @@ namespace emulatorLauncher
                         case 8: return tech == "XInput" ? "LeftStick" : "RightStick";
                         case 9: return tech == "XInput" ? "RightStick" : "LeftShoulder";
                         case 10: return "RightShoulder";
-                        case 11: return "DPadUp";
-                        case 12: return "DPadDown";
-                        case 13: return "DPadLeft";
-                        case 14: return "DPadRight";
+                        case 11: return "DpadUp";
+                        case 12: return "DpadDown";
+                        case 13: return "DpadLeft";
+                        case 14: return "DpadRight";
                     }
                 }
 
@@ -295,10 +295,10 @@ namespace emulatorLauncher
                     pid = input.Value;
                     switch (pid)
                     {
-                        case 1: return "DPadUp";
-                        case 2: return "DPadRight";
-                        case 4: return "DPadDown";
-                        case 8: return "DPadLeft";
+                        case 1: return "DpadUp";
+                        case 2: return "DpadRight";
+                        case 4: return "DpadDown";
+                        case 8: return "DpadLeft";
                     }
                 }
 
@@ -323,7 +323,7 @@ namespace emulatorLauncher
             switch (sdlCode)
             {
                 case 0x0D: return "Enter";
-                case 0x08: return "Backspace";
+                case 0x08: return "BackSpace";
                 case 0x09: return "Tab";
                 case 0x20: return "Space";
                 case 0x2B: return "Plus";

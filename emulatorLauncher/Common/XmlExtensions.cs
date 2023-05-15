@@ -26,10 +26,21 @@ namespace emulatorLauncher
             if (string.IsNullOrEmpty(xmlPathName))
                 return default(T);
 
-            XmlSerializer serializer = new XmlSerializer(typeof(T));
-
             using (FileStream sr = new FileStream(xmlPathName, FileMode.Open, FileAccess.Read))
+            {
+                if (typeof(IXmlSerializable).IsAssignableFrom(typeof(T)))
+                {
+                    using (var reader = XmlReader.Create(sr))
+                    {
+                        T t = Activator.CreateInstance<T>();
+                        ((IXmlSerializable)t).ReadXml(reader);
+                        return t;
+                    }
+                }
+
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
                 return serializer.Deserialize(sr) as T;
+            }
         }
 
         public static T FromXmlString<T>(this string xml) where T : class
@@ -45,7 +56,7 @@ namespace emulatorLauncher
                 ValidationType = ValidationType.None
             };
 
-            XmlSerializer serializer = new XmlSerializer(typeof(T));
+           
 
             // Fix attributes strings containing & caracters
             foreach (var toFix in xml.ExtractStrings("\"", "\"", true).Distinct().Where(s => s.Contains("& ")))
@@ -54,6 +65,14 @@ namespace emulatorLauncher
             using (var reader = new StringReader(xml.TrimStart('\uFEFF')))
             using (var xmlReader = XmlReader.Create(reader, settings))
             {
+                if (typeof(IXmlSerializable).IsAssignableFrom(typeof(T)))
+                {
+                    T t = Activator.CreateInstance<T>();
+                    ((IXmlSerializable)t).ReadXml(xmlReader);
+                    return t;
+                }
+
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
                 var obj = serializer.Deserialize(xmlReader);
                 return (T)obj;
             }
@@ -76,15 +95,27 @@ namespace emulatorLauncher
 
             using (var memoryStream = new MemoryStream())
             {
-                var xmlSerializer = new XmlSerializer(obj.GetType());
-
-                var xmlnsEmpty = new XmlSerializerNamespaces();
-                xmlnsEmpty.Add(String.Empty, String.Empty);
-
-                using (var xmlTextWriter = XmlWriter.Create(memoryStream, xmlWriterSettings))
+                IXmlSerializable xs = obj as IXmlSerializable;
+                if (xs != null)
                 {
-                    xmlSerializer.Serialize(xmlTextWriter, obj, xmlnsEmpty);
-                    memoryStream.Seek(0, SeekOrigin.Begin); //Rewind the Stream.
+                    using (XmlWriter xw = XmlWriter.Create(memoryStream, xmlWriterSettings))
+                    {
+                        xs.WriteXml(xw);
+                        xw.Close();
+                    }
+                }
+                else
+                {
+                    var xmlSerializer = new XmlSerializer(obj.GetType());
+
+                    var xmlnsEmpty = new XmlSerializerNamespaces();
+                    xmlnsEmpty.Add(String.Empty, String.Empty);
+
+                    using (var xmlTextWriter = XmlWriter.Create(memoryStream, xmlWriterSettings))
+                    {
+                        xmlSerializer.Serialize(xmlTextWriter, obj, xmlnsEmpty);
+                        memoryStream.Seek(0, SeekOrigin.Begin); //Rewind the Stream.
+                    }
                 }
 
                 var xml = xmlWriterSettings.Encoding.GetString(memoryStream.ToArray());

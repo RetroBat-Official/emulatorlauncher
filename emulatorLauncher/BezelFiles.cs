@@ -61,17 +61,31 @@ namespace emulatorLauncher
                 return img.Size;
         }
 
-        public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution)
+        public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution, bool useFakeBackground = false, int monitorIndex = -1)
         {
-            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+            var screen = Screen.PrimaryScreen;
+
+            if (monitorIndex > 0 && monitorIndex < Screen.AllScreens.Length)
+                screen = Screen.AllScreens[monitorIndex];
+
+            int resX = (resolution == null ? screen.Bounds.Width : resolution.Width);
+            int resY = (resolution == null ? screen.Bounds.Height : resolution.Height);
+
+            FakeBezelBackgroundFrm fakeBackground = null;
+            if (useFakeBackground)
+            {
+                fakeBackground = new FakeBezelBackgroundFrm();
+                fakeBackground.Bounds = screen.Bounds;
+                fakeBackground.Show();
+            }
 
             var bezel = new FakeBezelFrm();
+            bezel.Bounds = screen.Bounds;
             bezel.TopMost = true;
 
             bool stretchImage = false;
 
-            if (BezelInfos != null)
+            if (BezelInfos != null && BezelInfos.IsValid())
             {
                 Size imageSize = new Size(resX, resY);
 
@@ -87,7 +101,39 @@ namespace emulatorLauncher
                     stretchImage = true;
                 else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
                     stretchImage = true;
+
+                var infos = BezelInfos;
+                float wratio = resX / (float)infos.width;
+                float hratio = resY / (float)infos.height;
+                int xoffset = resX - infos.width.Value;
+                int yoffset = resY - infos.height.Value;
+
+                if (stretchImage)
+                {
+                    int custom_viewport_x = (int)(infos.left * wratio);
+                    int custom_viewport_y = (int)(infos.top * hratio);
+                    int custom_viewport_width = (int)((infos.width - infos.left - infos.right) * wratio);
+                    int custom_viewport_height = (int)((infos.height - infos.top - infos.bottom) * hratio);
+
+
+                    bezel.ViewPort = new Rectangle(
+                        screen.Bounds.Left + custom_viewport_x,
+                        screen.Bounds.Top + custom_viewport_y, custom_viewport_width, custom_viewport_height);
+                }
+                else
+                {
+                    int custom_viewport_x = (int)(infos.left + xoffset / 2);
+                    int custom_viewport_y = (int)(infos.top + yoffset / 2);
+                    int custom_viewport_width = (int)((infos.width - infos.left - infos.right));
+                    int custom_viewport_height = (int)((infos.height - infos.top - infos.bottom));
+
+                    bezel.ViewPort = new Rectangle(
+                        screen.Bounds.Left + custom_viewport_x,
+                        screen.Bounds.Top + custom_viewport_y, custom_viewport_width, custom_viewport_height);
+                }
             }
+            else
+                bezel.ViewPort = new Rectangle(0, 0, resX, resY);
 
             var file = stretchImage ? PngFile : GetStretchedBezel(PngFile, resX, resY);
             if (!bezel.SelectBezel(file, resX, resY))
@@ -96,10 +142,124 @@ namespace emulatorLauncher
                 return null;
             }
 
+            bezel.FakeBackground = fakeBackground;
             bezel.Show();
             return bezel;
         }
 
+        static string[] bezelPaths =
+        {            
+            // Bezels with exact rom name -> Uses {rom} for rom name
+            "{userpath}\\{bezel}\\games\\{system}\\{rom}.png",
+            "{systempath}\\{bezel}\\games\\{system}\\{rom}.png",
+            "{userpath}\\{bezel}\\games\\{rom}.png",
+            "{systempath}\\{bezel}\\games\\{rom}.png",
+
+            // Bezels with same IndexedRomName -> Uses * instead of rom name
+            "{userpath}\\{bezel}\\games\\{system}\\*.png",
+            "{systempath}\\{bezel}\\games\\{system}\\*.png",
+            "{userpath}\\{bezel}\\games\\*.png",
+            "{systempath}\\{bezel}\\games\\*.png",
+
+            // System bezels
+            "{userpath}\\{bezel}\\systems\\{system}.png",
+            "{systempath}\\{bezel}\\systems\\{system}.png",
+            "{userpath}\\{bezel}\\default.png",
+            "{systempath}\\{bezel}\\default.png",
+            
+            // Default_unglazed
+            "{userpath}\\default_unglazed\\systems\\{system}.png",
+            "{systempath}\\default_unglazed\\systems\\{system}.png",
+
+            // Default
+            "{userpath}\\default\\systems\\{system}.png",
+            "{systempath}\\default\\systems\\{system}.png"
+        };
+
+        private static bool IsPng(string filename)
+        {
+            try
+            {
+                // Open the file in binary mode and read the first 8 bytes
+                using (FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] header = new byte[8];
+                    fileStream.Read(header, 0, 8);
+
+                    // Check if the bytes match the PNG file signature
+                    if (header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47 && header[4] == 0x0D && header[5] == 0x0A && header[6] == 0x1A && header[7] == 0x0A)
+                        return true;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+        private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName)
+        {
+            string indexedRomName = romName.AsIndexedRomName();
+
+            foreach (var path in bezelPaths)
+            {
+                if (string.IsNullOrEmpty(overlaySystem) && path.StartsWith("{systempath}"))
+                    continue;
+
+                if (string.IsNullOrEmpty(bezel) && path.StartsWith("{bezel}"))
+                    continue;
+
+                string result = path
+                    .Replace("{userpath}", overlayUser ?? "")
+                    .Replace("{systempath}", overlaySystem ?? "")
+                    .Replace("{bezel}", bezel ?? "")
+                    .Replace("{system}", systemName ?? "")
+                    .Replace("{rom}", romName ?? "");
+
+                if (result.Contains("*"))
+                {
+                    string dir = Path.GetDirectoryName(result);
+                    if (Directory.Exists(dir))
+                    {
+                        foreach (var file in Directory.GetFiles(dir, Path.GetFileName(result)))
+                        {
+                            if (Path.GetFileNameWithoutExtension(file).AsIndexedRomName() == indexedRomName)
+                                return Path.GetFullPath(file);
+                        }
+                    }
+
+                    continue;
+                }
+
+                if (File.Exists(result))
+                {
+                    // Check if it's a real PNG file, or a file containing the relative path to another png
+                    if (!IsPng(result) && new FileInfo(result).Length < 1024)
+                    {
+                        try
+                        {
+                            string link = File.ReadAllText(result);
+                            if (link[0] == '.')
+                            {
+                                string relative = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(result)), link));
+                                if (!File.Exists(relative) || !IsPng(relative))
+                                    continue;
+
+                                result = relative;
+                            }
+                        }
+                        catch 
+                        {
+                            continue;
+                        }
+                    }
+
+                    return Path.GetFullPath(result);
+                }
+            }
+
+            return null;
+        }
+      
         public static BezelFiles GetBezelFiles(string systemName, string rom, ScreenResolution resolution)
         {
             if (systemName == null || rom == null)
@@ -139,78 +299,8 @@ namespace emulatorLauncher
                 return null;
             }
 
-            string romBase = Path.GetFileNameWithoutExtension(rom);
-
-            string overlay_info_file = overlayUser + "/" + bezel + "/games/" + systemName + "/" + romBase + ".info";
-            string overlay_png_file = overlayUser + "/" + bezel + "/games/" + systemName + "/" + romBase + ".png";
-
-            if (!File.Exists(overlay_png_file) && !string.IsNullOrEmpty(overlaySystem))
-            {
-                overlay_info_file = overlaySystem + "/" + bezel + "/games/" + systemName + "/" + romBase + ".info";
-                overlay_png_file = overlaySystem + "/" + bezel + "/games/" + systemName + "/" + romBase + ".png";
-            }
-
-            if (!File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlayUser + "/" + bezel + "/games/" + romBase + ".info";
-                overlay_png_file = overlayUser + "/" + bezel + "/games/" + romBase + ".png";
-            }
-
-            if (!string.IsNullOrEmpty(overlaySystem) && !File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlaySystem + "/" + bezel + "/games/" + romBase + ".info";
-                overlay_png_file = overlaySystem + "/" + bezel + "/games/" + romBase + ".png";
-            }
-
-            if (!File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlayUser + "/" + bezel + "/systems/" + systemName + ".info";
-                overlay_png_file = overlayUser + "/" + bezel + "/systems/" + systemName + ".png";
-            }
-
-            if (!string.IsNullOrEmpty(overlaySystem) && !File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlaySystem + "/" + bezel + "/systems/" + systemName + ".info";
-                overlay_png_file = overlaySystem + "/" + bezel + "/systems/" + systemName + ".png";
-            }
-
-            if (!File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlayUser + "/" + bezel + "/default.info";
-                overlay_png_file = overlayUser + "/" + bezel + "/default.png";
-            }
-
-            if (!string.IsNullOrEmpty(overlaySystem) && !File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlaySystem + "/" + bezel + "/default.info";
-                overlay_png_file = overlaySystem + "/" + bezel + "/default.png";
-            }
-
-            if (!File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlayUser + "/default_unglazed/systems/" + systemName + ".info";
-                overlay_png_file = overlayUser + "/default_unglazed/systems/" + systemName + ".png";
-            }
-
-            if (!string.IsNullOrEmpty(overlaySystem) && !File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlaySystem + "/default_unglazed/systems/" + systemName + ".info";
-                overlay_png_file = overlaySystem + "/default_unglazed/systems/" + systemName + ".png";
-            }
-
-            if (!File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlayUser + "/default/systems/" + systemName + ".info";
-                overlay_png_file = overlayUser + "/default/systems/" + systemName + ".png";
-            }
-
-            if (!string.IsNullOrEmpty(overlaySystem) && !File.Exists(overlay_png_file))
-            {
-                overlay_info_file = overlaySystem + "/default/systems/" + systemName + ".info";
-                overlay_png_file = overlaySystem + "/default/systems/" + systemName + ".png";
-            }
-
-            if (!File.Exists(overlay_png_file))
+            string overlay_png_file = FindBezel(overlayUser, overlaySystem, bezel, systemName, Path.GetFileNameWithoutExtension(rom));
+            if (string.IsNullOrEmpty(overlay_png_file))
             {
                 if (Program.SystemConfig.isOptSet("use_guns") && Program.SystemConfig.getOptBoolean("use_guns") && Misc.IsSindenLightGunConnected())
                     return CreateSindenBorderBezel(null, resolution);
@@ -218,14 +308,9 @@ namespace emulatorLauncher
                 return null;
             }
 
+            string overlay_info_file = Path.ChangeExtension(overlay_png_file, ".info");
             if (!File.Exists(overlay_info_file))
                 overlay_info_file = null;
-
-            if (overlay_png_file != null)
-                overlay_png_file = Path.GetFullPath(overlay_png_file);
-
-            if (overlay_info_file != null)
-                overlay_info_file = Path.GetFullPath(overlay_info_file);
 
             var ret = new BezelFiles() { PngFile = overlay_png_file, InfoFile = overlay_info_file };
 

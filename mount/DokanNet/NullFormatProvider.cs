@@ -29,11 +29,13 @@ namespace DokanNet
         /// </summary>
         /// <param name="formattable">The <see cref="FormattableString"/> to format.</param>
         /// <returns>The formated string.</returns>
-        /*
 #pragma warning disable 3001
-        public static string DokanFormat(FormattableString formattable) { return formattable.ToString(DefaultFormatProvider); }
+        public static string DokanFormat(string formattable)
+        {
+            return formattable; //.ToString(DefaultFormatProvider);
+        }
 #pragma warning restore 3001
-        */
+
         /// <summary>
         /// Returns an object that provides formatting services for the
         /// specified type.
@@ -65,12 +67,11 @@ namespace DokanNet
         /// information about the current instance. </param>
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
-            if (arg == null) return NullStringRepresentation;
-            var formattable = arg as IFormattable;
-            if (formattable == null)
-                return arg.ToString();
+            if (arg == null) 
+                return NullStringRepresentation;
 
-            return formattable.ToString(format, formatProvider);
+            var formattable = arg as IFormattable;
+            return formattable != null ? formattable.ToString(format, formatProvider) : arg.ToString();
         }
     }
 }

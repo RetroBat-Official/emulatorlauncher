@@ -20,6 +20,21 @@ namespace emulatorLauncher
             this.Load += OnLoaded;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (FakeBackground != null)
+            {
+                FakeBackground.Dispose();
+                FakeBackground = null;
+            }
+        }
+
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [Browsable(false)]
+        public FakeBezelBackgroundFrm FakeBackground { get; set; }        
+
         void OnLoaded(object sender, EventArgs e)
         {
             this.TopMost = true;
@@ -121,5 +136,45 @@ namespace emulatorLauncher
         const byte AC_SRC_OVER = 0x00;
         const byte AC_SRC_ALPHA = 0x01;
         #endregion
+
+        public Rectangle ViewPort { get; set; }
+    }
+
+    public partial class FakeBezelBackgroundFrm : Form
+    {
+        public FakeBezelBackgroundFrm()
+        {
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.ShowInTaskbar = false;
+            this.WindowState = FormWindowState.Maximized;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackColor = System.Drawing.Color.Black;
+        }
+        
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams createParams = base.CreateParams;
+
+                if (!DesignMode)
+                    createParams.ExStyle |= (int)(WS_EX.NOACTIVATE);
+
+                return createParams;
+            }
+        }
+        
+        const Int32 WM_NCHITTEST = 0x84;
+
+        protected override void WndProc(ref Message message)
+        {
+            if (message.Msg == WM_NCHITTEST)
+            {
+                message.Result = (IntPtr)(int)-1; // HT_TRANSPARENT
+                return;
+            }
+
+            base.WndProc(ref message);
+        }
     }
 }

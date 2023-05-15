@@ -40,6 +40,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["video_window_save_positions"] = "false";
             retroarchConfig["notification_show_autoconfig"] = "false";
+            retroarchConfig["notification_show_config_override_load"] = "false";            
             retroarchConfig["notification_show_remap_load"] = "false";
             retroarchConfig["driver_switch_enable"] = "true";
             retroarchConfig["input_driver"] = "dinput";
@@ -133,6 +134,35 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["screenshot_directory"] = AppConfig.GetFullPath("screenshots");
                 else if (retroarchConfig["screenshot_directory"] != @":\screenshots" && !Directory.Exists(retroarchConfig["screenshot_directory"]))
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
+            }
+
+            // Cheats folder
+            string cheatspath = Path.Combine(AppConfig.GetFullPath("cheats"), "retroarch");
+            if (!string.IsNullOrEmpty(cheatspath))
+            {
+                if (Directory.Exists(cheatspath))
+                    retroarchConfig["cheat_database_path"] = cheatspath;
+                else if (retroarchConfig["cheat_database_path"] != @":\cheats" && !Directory.Exists(retroarchConfig["cheat_database_path"]))
+                    retroarchConfig["cheat_database_path"] = @":\cheats";
+            }
+
+            // Records path
+            string recordconfigpath = Path.Combine(AppConfig.GetFullPath("records"), "config");
+            if (!string.IsNullOrEmpty(recordconfigpath))
+            {
+                if (Directory.Exists(recordconfigpath))
+                    retroarchConfig["recording_config_directory"] = recordconfigpath;
+                else if (retroarchConfig["recording_config_directory"] != @":\records\config" && !Directory.Exists(retroarchConfig["recording_config_directory"]))
+                    retroarchConfig["recording_config_directory"] = @":\records\config";
+            }
+
+            string recordoutputpath = Path.Combine(AppConfig.GetFullPath("records"), "output");
+            if (!string.IsNullOrEmpty(recordoutputpath))
+            {
+                if (Directory.Exists(recordoutputpath))
+                    retroarchConfig["recording_output_directory"] = recordoutputpath;
+                else if (retroarchConfig["recording_output_directory"] != @":\records\output" && !Directory.Exists(retroarchConfig["recording_output_directory"]))
+                    retroarchConfig["recording_output_directory"] = @":\records\output";
             }
 
             try 
@@ -230,13 +260,23 @@ namespace emulatorLauncher.libRetro
             BindBoolFeature(retroarchConfig, "video_frame_delay_auto", "video_frame_delay_auto", "true", "false"); // Auto frame delay (input delay reduction via frame timing)
             BindBoolFeature(retroarchConfig, "quit_press_twice", "PressTwice", "true", "false"); // Press hotkeys twice to exit
             
-            BindFeature(retroarchConfig, "video_font_enable", "OnScreenMsg", "false"); // OSD notifications
+            BindFeature(retroarchConfig, "video_font_enable", "OnScreenMsg", "true"); // OSD notifications
             BindFeature(retroarchConfig, "video_rotation", "RotateVideo", "0"); // video rotation
             BindFeature(retroarchConfig, "screen_orientation", "RotateScreen", "0"); // screen orientation
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
             BindFeature(retroarchConfig, "crt_switch_resolution_super", "CRTSuperRes", "0"); // CRT Resolution
 
-            BindFeature(retroarchConfig, "input_auto_game_focus", "GameFocus", "0"); // Game Focus
+
+            if ((systemGameFocus.Contains(system) && !SystemConfig.isOptSet("GameFocus")) || SystemConfig.getOptBoolean("GameFocus"))
+                retroarchConfig["input_auto_game_focus"] = "1";
+            else
+                retroarchConfig["input_auto_game_focus"] = "0";
+
+            // Discord presence
+            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                retroarchConfig["discord_allow"] = "true";
+            else
+                retroarchConfig["discord_allow"] = "false";
 
             // Stats
             if (SystemConfig.isOptSet("DrawStats"))
@@ -278,18 +318,6 @@ namespace emulatorLauncher.libRetro
 
             retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
             retroarchConfig["input_libretro_device_p2"] = coreToP2Device.ContainsKey(core) ? coreToP2Device[core] : "1";
-
-            //psx specifics
-            if (Controllers.Count > 2 && (core == "snes9x_next" || core == "snes9x"))
-                retroarchConfig["input_libretro_device_p2"] = "257";
-
-            if (core == "mednafen_psx" || core == "mednafen_psx_hw" || core == "pcsx_rearmed" || core == "duckstation" || core == "swanstation")
-            {
-                if (Features.IsSupported("psxcontroller1") && SystemConfig.isOptSet("psxcontroller1"))
-                    retroarchConfig["input_libretro_device_p1"] = SystemConfig["psxcontroller1"];
-                if (Features.IsSupported("psxcontroller2") && SystemConfig.isOptSet("psxcontroller2"))
-                    retroarchConfig["input_libretro_device_p2"] = SystemConfig["psxcontroller2"];
-            }
 
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
                 UseEsPadToKey = false;
@@ -559,6 +587,32 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["cheevos_challenge_indicators"] = SystemConfig["retroachievements.challenge_indicators"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_start_active"] = SystemConfig["retroachievements.encore"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_richpresence_enable"] = SystemConfig["retroachievements.richpresence"] == "true" ? "true" : "false";
+
+                // Unlock sound
+                if (AppConfig.isOptSet("retroachievementsounds") && SystemConfig.isOptSet("retroachievements.sound") && !string.IsNullOrEmpty(SystemConfig["retroachievements.sound"]))
+                {
+                    if (SystemConfig["retroachievements.sound"] != "none")
+                    {
+                        retroarchConfig["cheevos_unlock_sound_enable"] = "true";
+                        string targetSoundPath = Path.Combine(RetroarchPath, "assets", "sounds");
+                        if (!string.IsNullOrEmpty(targetSoundPath))
+                        {
+                            string targetSoundFile = Path.Combine(targetSoundPath, "unlock.ogg");
+                            string sourceSoundFile = Path.Combine(AppConfig.GetFullPath("retroachievementsounds"), SystemConfig["retroachievements.sound"] + ".ogg");
+
+                            if (File.Exists(targetSoundFile))
+                                File.Delete(targetSoundFile);
+
+                            if (File.Exists(sourceSoundFile))
+                                File.Copy(sourceSoundFile, targetSoundFile);
+                        }
+                    }
+                    else
+                        retroarchConfig["cheevos_unlock_sound_enable"] = "false";
+                }
+
+                else
+                    retroarchConfig["cheevos_unlock_sound_enable"] = "false";
             }
             else
                 retroarchConfig["cheevos_enable"] = "false";
@@ -737,7 +791,7 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["video_message_pos_x"] = "0.05";
             retroarchConfig["video_message_pos_y"] = "0.05";
 
-            if (systemName == "wii")
+            if (systemName == "wii" && (!SystemConfig.isOptSet("ratio")))
                 return;
 
             var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution);
@@ -940,7 +994,7 @@ namespace emulatorLauncher.libRetro
             // Detect best core for MAME games ( If not overridden by the user )
             if (system == "mame" && subCore == null && core != null && core.StartsWith("mame"))
             {
-                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && !"missing".Equals(Program.CurrentGame.Tag) && string.IsNullOrEmpty(Program.CurrentGame.Core))
+                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && string.IsNullOrEmpty(Program.CurrentGame.Core))
                 {
                     string[] supportedCores = null;
 
@@ -1135,7 +1189,7 @@ namespace emulatorLauncher.libRetro
             MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
             if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
             {
-                var messArgs = messSystem.GetMameCommandLineArguments(system, rom);
+                var messArgs = messSystem.GetMameCommandLineArguments(system, rom).JoinArguments();
                 messArgs = messArgs.Replace("\\\"", "\"");
                 messArgs = "\"" + messArgs.Replace("\"", "\\\"") + "\"";
                 messArgs = (messArgs + " " + args).Trim();
@@ -1233,7 +1287,8 @@ namespace emulatorLauncher.libRetro
 
         static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "mame", "hbmame", "fbneo", "dos", "scummvm" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn" };
-        
+        static List<string> systemGameFocus = new List<string>() { "dos", "amiga1200", "amiga4000", "amiga500", "amstradcpc", "bbcmicro", "camplynx", "fm7", "fmtowns", "ti99", "archimedes", "adam", "atom", "apple2", "atari800", "oricatmos", "thomson", "tutor", "coco" };
+
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
 

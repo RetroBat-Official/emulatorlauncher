@@ -42,6 +42,9 @@ namespace emulatorLauncher
 
             UpdateSdlControllersWithHints(ini);
 
+            // Hotkeys
+            WriteShortcuts(ini);
+
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
                 ConfigureInput(controller, ini);
         }
@@ -150,7 +153,7 @@ namespace emulatorLauncher
             if (!controller.IsXInputDevice)
             {
                 ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
-                ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:" + index + ", guid:" + yuzuGuid + "\"");
+                ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + yuzuGuid + "\"");
                 ini.WriteValue("Controls", player + "motionright" + "\\default", "false");
                 ini.WriteValue("Controls", player + "motionright", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + yuzuGuid + "\"");
             }
@@ -356,7 +359,18 @@ namespace emulatorLauncher
             ini.WriteValue("Controls", player + "motionright", "\"" + "engine:keyboard,code:56,toggle:0" + "\"");
         }
 
-        static Dictionary<string, string> DefKeys = new Dictionary<string, string>()
+        private static void WriteShortcuts(IniFile ini)
+        {
+            // exit yuzu with SELECT+START
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq", "Minus+Plus");
+
+            // Pause with SELECT+EAST
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "Minus+A");
+        }
+
+            static Dictionary<string, string> DefKeys = new Dictionary<string, string>()
         {
             { "button_a", "engine:keyboard,code:67,toggle:0" },
             { "button_b","engine:keyboard,code:88,toggle:0" },

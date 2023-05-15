@@ -17,6 +17,8 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("cemu");
@@ -38,6 +40,17 @@ namespace emulatorLauncher
                 else if (rom.StartsWith("\\") || rom.StartsWith("/"))
                     rom = Path.Combine(path, rom.Substring(1));
             }
+
+            // Extract SDL2 version info
+            try
+            {
+                string sdl2 = Path.Combine(path, "SDL2.dll");
+                if (FileVersionInfo.GetVersionInfo(exe).ProductMajorPart <= 1 && File.Exists(sdl2))
+                    _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
+                else
+                    _sdlVersion = SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe);
+            }
+            catch { }            
 
             //settings
             SetupConfiguration(path, rom);
@@ -75,7 +88,8 @@ namespace emulatorLauncher
         {
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>() 
             { 
-                { "jp", "0" }, 
+                { "jp", "0" },
+                { "ja", "0" },
                 { "en", "1" },                 
                 { "fr", "2" }, 
                 { "de", "3" }, 
@@ -86,7 +100,6 @@ namespace emulatorLauncher
                 { "nl", "8" }, 
                 { "pt", "9" }, 
                 { "ru", "10" },
-                { "tw", "11" }
             };
 
             // Special case for Taiwanese which is zh_TW
@@ -112,6 +125,11 @@ namespace emulatorLauncher
             string settingsFile = Path.Combine(path, "settings.xml");
 
             var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("content");
+
+            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                xdoc.SetElementValue("use_discord_presence", "true");
+            else
+                xdoc.SetElementValue("use_discord_presence", "false");
 
             xdoc.SetElementValue("check_update", "false");
             BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());

@@ -99,7 +99,9 @@ namespace emulatorLauncher
         static InputKeyMapping reversedButtons = new InputKeyMapping()
         {
             { InputKey.b,               "Buttons/A" },
-            { InputKey.a,               "Buttons/B" }
+            { InputKey.a,               "Buttons/B" },
+            { InputKey.x,               "Buttons/Y" },
+            { InputKey.y,               "Buttons/X" }
         };
 
         static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string,string>()
@@ -542,6 +544,79 @@ namespace emulatorLauncher
                 }
 
                 ini.Save();
+            }
+
+            // Reset hotkeys
+            string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
+            if (File.Exists(hotkeyini))
+                ResetHotkeysToDefault(hotkeyini);
+        }
+
+        private static void ResetHotkeysToDefault(string iniFile)
+        {
+            if (Program.Controllers.Count == 0)
+                return;
+
+            using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
+            {
+                var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+
+                string tech = "XInput";
+                string deviceName = "Gamepad";
+
+                if (c1.Config.Type == "keyboard")
+                {
+                    tech = "DInput";
+                    deviceName = "Keyboard Mouse";
+                }
+                else if (!c1.IsXInputDevice)
+                {
+                    var s = c1.SdlController;
+                    if (s != null)
+                    {
+                        tech = "SDL";
+                        deviceName = s.Name;
+                    }
+                }
+
+                if (tech == "XInput")
+                {
+                    ini.WriteValue("Hotkeys", "Device", tech + "/" + "0" + "/" + deviceName);
+                    ini.WriteValue("Hotkeys", "General/Toggle Pause", "Back&`Button A`");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Back&`Button B`");
+                    ini.WriteValue("Hotkeys", "General/Exit", "Back&Start");
+                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "Back&`Button X`");
+                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Back&`Button Y`");
+                    ini.WriteValue("Hotkeys", "General/Take Screenshot", "Back&`Trigger R`");
+                    ini.WriteValue("Hotkeys", "General/Eject Disc", "Back&`Shoulder L`");
+                    ini.WriteValue("Hotkeys", "General/Change Disc", "Back&`Shoulder R`");
+                }
+
+                else if (tech == "SDL")
+                {
+                    ini.WriteValue("Hotkeys", "Device", tech + "/" + "0" + "/" + deviceName);
+                    ini.WriteValue("Hotkeys", "General/Toggle Pause", "`Button 4`&`Button 0`");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "`Button 4`&`Button 1`");
+                    ini.WriteValue("Hotkeys", "General/Exit", "`Button 4`&`Button 6`");
+                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "`Button 4`&`Button 2`");
+                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "`Button 4`&`Button 3`");
+                    ini.WriteValue("Hotkeys", "General/Take Screenshot", "`Button 4`&`Full Axis 5+`");
+                    ini.WriteValue("Hotkeys", "General/Eject Disc", "`Button 4`&`Button 9`");
+                    ini.WriteValue("Hotkeys", "General/Change Disc", "`Button 4`&`Button 10`");
+                }
+
+                else        // Keyboard
+                {
+                    ini.WriteValue("Hotkeys", "Device", "DInput/0/Keyboard Mouse");
+                    ini.WriteValue("Hotkeys", "General/Toggle Pause", "`F10`");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Alt&RETURN");
+                    ini.WriteValue("Hotkeys", "General/Exit", "ESCAPE");
+                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "`F1`");
+                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Alt&`F1");
+                    ini.WriteValue("Hotkeys", "General/Take Screenshot", "`F9`");
+                    ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt&E");
+                    ini.WriteValue("Hotkeys", "General/Change Disc", "Alt&S");
+                }
             }
         }
 

@@ -63,6 +63,36 @@ namespace emulatorLauncher
             return ret;
         }
 
+        public static float ToFloat(this string value)
+        {
+            float ret = 0;
+            float.TryParse(value, out ret);
+            return ret;
+        }
+
+        public static float ToRatio(this string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return 0;
+
+            string[] parts = value.Split(new char[] { ':', '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2)
+                return 0;
+
+            float numerator = parts[0].ToFloat();
+            float denominator = parts[1].ToFloat();
+
+            if (denominator == 0)
+                return 0;
+
+            return numerator / denominator;
+        }
+
+        public static string JoinArguments(this IEnumerable<string> args)
+        {
+            return string.Join(" ", args.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
+        }
+
         public static string FormatVersionString(string version)
         {
             var numbers = version.Split(new char[] { '.', '-' }, StringSplitOptions.RemoveEmptyEntries).ToList();
