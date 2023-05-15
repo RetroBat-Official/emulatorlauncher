@@ -703,9 +703,10 @@ namespace emulatorLauncher
             }
 
             // Alternate ROM type for systems with mutiple media (ie cassette & floppy)
-            if (SystemConfig.isOptSet("altromtype"))
+            if (SystemConfig.isOptSet("altromtype") && Path.GetExtension(rom).ToLower() != ".m3u")
                 commandArray.Add("-" + SystemConfig["altromtype"]);
-            else
+            
+            else if (Path.GetExtension(rom).ToLower() != ".m3u")
             {
                 if (Directory.Exists(rom))
                 {
@@ -724,16 +725,64 @@ namespace emulatorLauncher
             if (system == "ti99" && rom.EndsWith(".rpk"))
                 UseFileNameWithoutExtension = false;
 
+
+            // Specific Managements for multi-disc roms using m3u
+            // Go through the .m3u file and assign each line to a floppy drive
+            if (Path.GetExtension(rom).ToLower() == ".m3u")
+            {
+                List<string> disks = new List<string>();
+                string dskPath = Path.GetDirectoryName(rom);
+
+                foreach (var line in File.ReadAllLines(rom))
+                {
+                    string dsk = Path.Combine(dskPath, line);
+                    if (File.Exists(dsk))
+                        disks.Add(dsk);
+                    else
+                        throw new ApplicationException("File specified in .m3u does not exist");
+                }
+
+                if (disks.Count == 0)
+                    throw new ApplicationException(".m3u file is empty");
+
+                else if (disks.Count == 1)
+                {
+                    var romType = this.GetRomType(disks[0]);
+                    if (!string.IsNullOrEmpty(romType))
+                        commandArray.Add("-" + romType);
+                    commandArray.Add(disks[0]);
+                }
+
+                else if (disks.Count > 1 && system == "apple2gs")
+                {
+                    var romType = this.GetRomType(disks[0]);
+                    if (romType == "flop3")
+                    {
+                        commandArray.Add("-flop3");
+                        commandArray.Add(disks[0]);
+                        commandArray.Add("-flop4");
+                        commandArray.Add(disks[1]);
+                    }
+                    else if (romType == "flop1")
+                    {
+                        commandArray.Add("-flop1");
+                        commandArray.Add(disks[0]);
+                        commandArray.Add("-flop2");
+                        commandArray.Add(disks[1]);
+                    }
+                }
+            }
+
             // Specific Managements to enable or disable softlist
             // When using softlist, the rom name must match exactly the hash file and be passed to command line without path or extension
-            // A specific softlist can be specified by putting the softlist name before the rom name separated by ":"
-            if (SystemConfig.isOptSet("force_softlist") && SystemConfig["force_softlist"] != "none")
+            else if (SystemConfig.isOptSet("force_softlist") && SystemConfig["force_softlist"] != "none")
             {
                 string softlist = SystemConfig["force_softlist"];
                 rom = softlist + ":" + Path.GetFileNameWithoutExtension(rom);
                 commandArray.Add(rom);
             }
-            
+
+            // Generic case: add rom to command line
             else if (MachineName != "%romname%")
                 commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
 
