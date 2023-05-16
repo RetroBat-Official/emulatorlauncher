@@ -22,13 +22,10 @@ namespace emulatorLauncher
 
             if (Directory.Exists(rom))
             {
-                string[] files = Directory.GetFiles(rom, "EBOOT.BIN", SearchOption.AllDirectories);
+                rom = Directory.GetFiles(rom, "EBOOT.BIN", SearchOption.AllDirectories).FirstOrDefault();
 
-                if (files.Length == 0)
+                if (!File.Exists(rom))
                     throw new ApplicationException("Unable to find any game in the provided folder");
-
-                if (files.Length > 0)
-                    rom = Path.Combine(rom, files[0]);
             }
 
             else if (Path.GetExtension(rom).ToLower() == ".m3u")
