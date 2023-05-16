@@ -56,6 +56,7 @@ namespace emulatorLauncher
             { "ppsspp", () => new PpssppGenerator() },
 			{ "project64", () => new Project64Generator() },
             { "dolphin", () => new DolphinGenerator() }, { "triforce", () => new DolphinGenerator() },
+            { "mupen64", () => new Mupen64Generator() },
             { "cemu", () => new CemuGenerator() },  { "wiiu", () => new CemuGenerator() },  
             { "winuae", () => new UaeGenerator() },
             { "applewin", () => new AppleWinGenerator() }, { "apple2", () => new AppleWinGenerator() },
