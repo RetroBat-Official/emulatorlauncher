@@ -771,6 +771,14 @@ namespace emulatorLauncher
                         commandArray.Add(disks[1]);
                     }
                 }
+
+                else if (disks.Count > 1 && system == "apple2")
+                {
+                    commandArray.Add("-flop1");
+                    commandArray.Add(disks[0]);
+                    commandArray.Add("-flop2");
+                    commandArray.Add(disks[1]);
+                }
             }
 
             // Specific Managements to enable or disable softlist

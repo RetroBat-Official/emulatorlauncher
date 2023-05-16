@@ -1137,6 +1137,49 @@ namespace emulatorLauncher.libRetro
                 commandArray.Add(subSystem);
             }
 
+            // Add subsystem for sameboy core multiplayer
+            bool multiplayer = (system == "gb2players" || system == "gbc2players");
+            if (core == "sameboy" && multiplayer)
+            {
+                // Case for different game cartridges (like Pokemon) - usage of m3u
+                if (Path.GetExtension(rom).ToLower() == ".m3u")
+                {
+                    List<string> disks = new List<string>();
+
+                    string dskPath = Path.GetDirectoryName(rom);
+
+                    foreach (var line in File.ReadAllLines(rom))
+                    {
+                        string dsk = Path.Combine(dskPath, line);
+                        if (File.Exists(dsk))
+                            disks.Add(dsk);
+                        else
+                            throw new ApplicationException("File '" + Path.Combine(dskPath, line) + "' does not exist");
+                    }
+
+                    if (disks.Count == 0)       // Empty m3u
+                        return null;
+
+                    else if (disks.Count == 1)  // Only 1 game in m3u file, just use this file as rom
+                        rom = disks[0];
+
+                    else
+                    {
+                        rom = disks[0];
+                        commandArray.Add("--subsystem");
+                        commandArray.Add("gb_link_2p");
+                        commandArray.Add("\"" + disks[1] + "\"");
+                    }
+                }
+                // Case for same game cartridge
+                else
+                {
+                    commandArray.Add("--subsystem");
+                    commandArray.Add("gb_link_2p");
+                    commandArray.Add("\"" + rom + "\"");
+                }
+            }
+
             if (!string.IsNullOrEmpty(SystemConfig["netplaymode"]))
             {
                 // Netplay mode

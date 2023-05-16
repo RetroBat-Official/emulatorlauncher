@@ -354,6 +354,7 @@ namespace emulatorLauncher.libRetro
             ConfigurePX68k(retroarchConfig, coreSettings, system, core);
             ConfigureQuasi88(retroarchConfig, coreSettings, system, core);
             ConfigureRace(retroarchConfig, coreSettings, system, core);
+            ConfigureSameBoy(retroarchConfig, coreSettings, system, core);
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
             ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
@@ -3028,6 +3029,21 @@ namespace emulatorLauncher.libRetro
                 return;
 
             BindFeature(coreSettings, "race_language", "race_language", "english");
+        }
+
+        private void ConfigureSameBoy(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "sameboy")
+                return;
+
+            bool multiplayer = (system == "gb2players" || system == "gbc2players");
+
+            if (multiplayer)
+            {
+                coreSettings["sameboy_link"] = "enabled";
+                coreSettings["sameboy_dual"] = "enabled";
+                BindFeature(coreSettings, "sameboy_screen_layout", "sameboy_screen_layout", "left-right");
+            }
         }
 
         private void ConfigureSameCDI(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
