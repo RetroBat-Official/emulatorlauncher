@@ -23,6 +23,7 @@ namespace emulatorLauncher
             if (Directory.Exists(rom)) // If rom is a directory ( .pc .win .windows, .wine )
             {
                 path = rom;
+
                 if (File.Exists(Path.Combine(rom, "autorun.cmd")))
                     rom = Path.Combine(rom, "autorun.cmd");
                 else if (File.Exists(Path.Combine(rom, "autorun.bat")))
@@ -41,7 +42,7 @@ namespace emulatorLauncher
                         throw new Exception("autorun.cmd is empty");
 
                     var dir = wineCmd.Where(l => l.StartsWith("DIR=")).Select(l => l.Substring(4)).FirstOrDefault();
-
+                    
                     var wineCommand = wineCmd.Where(l => l.StartsWith("CMD=")).Select(l => l.Substring(4)).FirstOrDefault();
                     if (string.IsNullOrEmpty(wineCommand) && wineCmd.Length > 0)
                         wineCommand = wineCmd.FirstOrDefault();
@@ -53,6 +54,14 @@ namespace emulatorLauncher
                         if (File.Exists(exe))
                         {
                             rom = exe;
+
+                            if (!string.IsNullOrEmpty(dir))
+                            {
+                                string customDir = Path.Combine(path, dir);
+                                path = Directory.Exists(customDir) ? customDir : Path.GetDirectoryName(rom);
+                            }
+                            else
+                                path = Path.GetDirectoryName(rom);
 
                             if (args.Length > 1)
                                 arguments = string.Join(" ", args.Skip(1).ToArray());
