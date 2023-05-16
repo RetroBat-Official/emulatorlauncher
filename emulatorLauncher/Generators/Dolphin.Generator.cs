@@ -421,8 +421,8 @@ namespace emulatorLauncher
                     else
                         ini.WriteValue("Display", "Fullscreen", "True");
 
-                    // draw or not FPS
-                    /*if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
+                    // Draw FPS
+                    if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
                     {
                         ini.WriteValue("General", "ShowLag", "True");
                         ini.WriteValue("General", "ShowFrameCount", "True");
@@ -432,7 +432,6 @@ namespace emulatorLauncher
                         ini.WriteValue("General", "ShowLag", "False");
                         ini.WriteValue("General", "ShowFrameCount", "False");
                     }
-                    */
 
                     // Discord
                     if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
@@ -472,7 +471,26 @@ namespace emulatorLauncher
                         ini.WriteValue("Core", "GameCubeLanguage", getGameCubeLangFromEnvironment());
                     }
 
-                    // backend - Default
+                    // Audio
+                    if (SystemConfig.isOptSet("enable_dpl2") && SystemConfig.getOptBoolean("enable_dpl2"))
+                    {
+                        ini.WriteValue("Core", "DSPHLE", "False");
+                        ini.WriteValue("Core", "DPL2Decoder", "True");
+                        ini.WriteValue("DSP", "EnableJIT", "True");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Core", "DSPHLE", "True");
+                        ini.WriteValue("Core", "DPL2Decoder", "False");
+                        ini.WriteValue("DSP", "EnableJIT", "False");
+                    }
+
+                    if (SystemConfig.isOptSet("audiobackend") && !string.IsNullOrEmpty(SystemConfig["audiobackend"]))
+                        ini.WriteValue("DSP", "Backend", SystemConfig["audiobackend"]);
+                    else
+                        ini.WriteValue("DSP", "Backend", "Cubeb");
+
+                    // Video backend - Default
                     if (SystemConfig.isOptSet("gfxbackend"))
                         ini.WriteValue("Core", "GFXBackend", SystemConfig["gfxbackend"]);
                     else
