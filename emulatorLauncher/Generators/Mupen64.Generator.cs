@@ -1,0 +1,234 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace emulatorLauncher
+{
+    class Mupen64Generator : Generator
+    {
+        public Mupen64Generator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
+        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
+        {
+            string path = AppConfig.GetFullPath("mupen64");
+            if (!Directory.Exists(path))
+                return null;
+
+            string exe = Path.Combine(path, "RMG.exe");
+            if (!File.Exists(exe))
+                return null;
+
+            SetupConfiguration(path, rom, system);
+            
+            if (!SystemConfig.isOptSet("gfxplugin") || SystemConfig["gfxplugin"] == "glide")
+                SetupGFX(path, rom, system);
+
+            List<string> commandArray = new List<string>();
+            
+            commandArray.Add("-f");
+            
+            if (!SystemConfig.isOptSet("show_gui") || !SystemConfig.getOptBoolean("show_gui"))
+                commandArray.Add("-n");
+
+            commandArray.Add("-q");
+
+            //Applying bezels
+            if (SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] != "1")
+                SystemConfig["forceNoBezel"] = "1";
+
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
+
+            string args = string.Join(" ", commandArray);
+
+            return new ProcessStartInfo()
+            {
+                FileName = exe,
+                WorkingDirectory = path,
+                Arguments = args + " \"" + rom + "\"",
+            };
+        }
+
+        private void SetupConfiguration(string path, string rom, string system)
+        {
+            string conf = Path.Combine(path, "Config", "mupen64plus.cfg");
+
+            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+            {
+                // Add rom path
+                ini.WriteValue("Rosalie's Mupen GUI RomBrowser", "Directory", Path.GetDirectoryName(rom));
+
+                // Other paths
+                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "Mupen64");
+                if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
+                    catch { }
+                ini.WriteValue("Core", "ScreenshotPath", screenshotPath);
+
+                string saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "Mupen64", "sstate");
+                if (!Directory.Exists(saveStatePath)) try { Directory.CreateDirectory(saveStatePath); }
+                    catch { }
+                ini.WriteValue("Core", "SaveStatePath", saveStatePath);
+
+                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "Mupen64", "game");
+                if (!Directory.Exists(saveSRAMPath)) try { Directory.CreateDirectory(saveSRAMPath); }
+                    catch { }
+                ini.WriteValue("Core", "SaveSRAMPath", saveSRAMPath);
+
+                // Default settings
+                ini.WriteValue("Core", "AutoStateSlotIncrement", "True");
+                ini.WriteValue("Rosalie's Mupen GUI", "HideCursorInFullscreenEmulation", "True");
+                ini.WriteValue("Rosalie's Mupen GUI", "PauseEmulationOnFocusLoss", "True");
+                ini.WriteValue("Rosalie's Mupen GUI", "ResumeEmulationOnFocus", "True");
+                ini.WriteValue("Rosalie's Mupen GUI", "AutomaticFullscreen", "True");
+                ini.WriteValue("Rosalie's Mupen GUI", "ShowVerboseLogMessages", "False");
+                ini.WriteValue("Rosalie's Mupen GUI", "CheckForUpdates", "False");
+
+                // CPU Emulator
+                if (SystemConfig.isOptSet("cpucore") && !string.IsNullOrEmpty(SystemConfig["cpucore"]))
+                    ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", SystemConfig["cpucore"]);
+                else
+                    ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", "0");
+
+                // Discord
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                    ini.WriteValue("Rosalie's Mupen GUI", "DiscordRpc", "True");
+                else
+                    ini.WriteValue("Rosalie's Mupen GUI", "DiscordRpc", "False");
+
+                // N64DD bios paths
+                string IPLJap = Path.Combine(AppConfig.GetFullPath("Bios"), "Mupen64plus", "IPL_JAP.n64");
+                if (File.Exists(IPLJap))
+                    ini.WriteValue("Rosalie's Mupen GUI Core 64DD", "64DD_JapaneseIPL", IPLJap.Replace("\\", "/"));
+
+                string IPLUSA = Path.Combine(AppConfig.GetFullPath("Bios"), "Mupen64plus", "IPL_USA.n64");
+                if (File.Exists(IPLUSA))
+                    ini.WriteValue("Rosalie's Mupen GUI Core 64DD", "64DD_AmericanIPL", IPLUSA.Replace("\\", "/"));
+
+                string IPLDev = Path.Combine(AppConfig.GetFullPath("Bios"), "Mupen64plus", "IPL_DEV.n64");
+                if (File.Exists(IPLDev))
+                    ini.WriteValue("Rosalie's Mupen GUI Core 64DD", "64DD_DevelopmentIPL", IPLDev.Replace("\\", "/"));
+
+                // Parallel options in case GFX is parallel
+                if (SystemConfig.isOptSet("gfxplugin") && SystemConfig["gfxplugin"] == "parallel")
+                {
+                    ini.WriteValue("Rosalie's Mupen GUI Core", "GFX_Plugin", "mupen64plus-video-parallel.dll");
+                    ini.WriteValue("Rosalie's Mupen GUI Core", "RSP_Plugin", "mupen64plus-rsp-parallel.dll");
+
+                    // Vsync
+                    if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))
+                        ini.WriteValue("Video-Parallel", "VSync", "0");
+                    else
+                        ini.WriteValue("Video-Parallel", "VSync", "1");
+
+                    // Widescreen
+                    if (SystemConfig.isOptSet("ratio") && (SystemConfig["ratio"] == "2" || SystemConfig["ratio"] == "0"))
+                        ini.WriteValue("Video-Parallel", "WidescreenStretch", "True");
+                    else
+                        ini.WriteValue("Video-Parallel", "WidescreenStretch", "False");
+
+                    // Upscaling
+                    if (SystemConfig.isOptSet("parallel_upscaling") && !string.IsNullOrEmpty(SystemConfig["parallel_upscaling"]))
+                        ini.WriteValue("Video-Parallel", "Upscaling", SystemConfig["parallel_upscaling"]);
+                    else
+                        ini.WriteValue("Video-Parallel", "Upscaling", "1");
+                }
+
+                else
+                {
+                    ini.WriteValue("Rosalie's Mupen GUI Core", "GFX_Plugin", "mupen64plus-video-GLideN64.dll");
+                    ini.WriteValue("Rosalie's Mupen GUI Core", "RSP_Plugin", "mupen64plus-rsp-hle.dll");
+                }
+
+                // Input plugin
+                if (SystemConfig.isOptSet("inputplugin") && !string.IsNullOrEmpty(SystemConfig["inputplugin"]))
+                    ini.WriteValue("Rosalie's Mupen GUI Core", "INPUT_Plugin", SystemConfig["inputplugin"]);
+                else
+                    ini.WriteValue("Rosalie's Mupen GUI Core", "INPUT_Plugin", "RMG-Input.dll");
+            }
+        }
+
+        private void SetupGFX(string path, string rom, string system)
+        {
+            string gfxConf = Path.Combine(path, "Config", "GLideN64.ini");
+
+            using (var ini = IniFile.FromFile(gfxConf, IniOptions.KeepEmptyValues))
+            {
+                // Vsync
+                if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))
+                    ini.WriteValue("User", "video\\verticalSync", "0");
+                else
+                    ini.WriteValue("User", "video\\verticalSync", "1");
+
+                // Aspect Ratio
+                if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
+                    ini.WriteValue("User", "frameBufferEmulation\\aspect", SystemConfig["ratio"]);
+                else
+                    ini.WriteValue("User", "frameBufferEmulation\\aspect", "1");
+
+                // Anti-alisaing
+                if (SystemConfig.isOptSet("antialiasing") && SystemConfig["antialiasing"] == "1")
+                {
+                    ini.WriteValue("User", "video\\multisampling", "0");
+                    ini.WriteValue("User", "video\\fxaa", "1");
+                }
+                else if (SystemConfig.isOptSet("antialiasing") && SystemConfig["antialiasing"] != "0" && SystemConfig["antialiasing"] != "1")
+                {
+                    ini.WriteValue("User", "video\\multisampling", SystemConfig["antialiasing"]);
+                    ini.WriteValue("User", "video\\fxaa", "0");
+                }
+                else
+                {
+                    ini.WriteValue("User", "video\\multisampling", "0");
+                    ini.WriteValue("User", "video\\fxaa", "0");
+                }
+
+                // Anisotropic filtering
+                if (SystemConfig.isOptSet("anisotropic_filtering") && !string.IsNullOrEmpty(SystemConfig["anisotropic_filtering"]))
+                    ini.WriteValue("User", "texture\\anisotropy", SystemConfig["anisotropic_filtering"]);
+                else
+                    ini.WriteValue("User", "texture\\anisotropy", "0");
+
+                // Resolution
+                if (SystemConfig.isOptSet("resolution") && !string.IsNullOrEmpty(SystemConfig["resolution"]))
+                    ini.WriteValue("User", "frameBufferEmulation\\nativeResFactor", SystemConfig["resolution"]);
+                else
+                    ini.WriteValue("User", "frameBufferEmulation\\nativeResFactor", "0");
+
+                // Custom textures
+                string texturePath = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", "hires_texture");
+                ini.WriteValue("User", "textureFilter\\txPath", texturePath.Replace("\\", "/"));
+
+                if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
+                    ini.WriteValue("User", "textureFilter\\txHiresEnable", "1");
+                else
+                    ini.WriteValue("User", "textureFilter\\txHiresEnable", "0");
+            }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            return ret;
+        }
+    }
+}
