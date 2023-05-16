@@ -3036,12 +3036,15 @@ namespace emulatorLauncher.libRetro
             if (core != "sameboy")
                 return;
 
+            BindFeature(coreSettings, "sameboy_rtc", "sameboy_rtc", "sync to system clock");
+
             bool multiplayer = (system == "gb2players" || system == "gbc2players");
 
             if (multiplayer)
             {
                 coreSettings["sameboy_link"] = "enabled";
                 coreSettings["sameboy_dual"] = "enabled";
+                coreSettings["sameboy_rtc"] = "sync to system clock";
                 BindFeature(coreSettings, "sameboy_screen_layout", "sameboy_screen_layout", "left-right");
                 BindFeature(coreSettings, "sameboy_audio_output", "sameboy_audio_output", "Game Boy #1");
 
@@ -3066,10 +3069,14 @@ namespace emulatorLauncher.libRetro
                 coreSettings["sameboy_dual"] = "disabled";
                 
                 if (system == "gb")
+                {
                     BindFeature(coreSettings, "sameboy_mono_palette", "sameboy_mono_palette", "greyscale");
+                }
 
                 else if (system == "gbc")
+                {
                     BindFeature(coreSettings, "sameboy_color_correction_mode", "sameboy_color_correction_mode", "emulate hardware");
+                }
             }
         }
 
