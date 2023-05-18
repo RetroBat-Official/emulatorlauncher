@@ -4,10 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    class Mupen64Generator : Generator
+    partial class Mupen64Generator : Generator
     {
         public Mupen64Generator()
         {
@@ -30,7 +31,7 @@ namespace emulatorLauncher
             SetupConfiguration(path, rom, system);
             
             if (!SystemConfig.isOptSet("gfxplugin") || SystemConfig["gfxplugin"] == "glide")
-                SetupGFX(path, rom, system);
+                SetupGFX(path);
 
             List<string> commandArray = new List<string>();
             
@@ -49,6 +50,16 @@ namespace emulatorLauncher
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
+
+            if (system == "n64dd" && Path.GetExtension(rom).ToLowerInvariant() != ".ndd")
+            {
+                string n64ddrom = rom + ".ndd";
+                if (File.Exists(n64ddrom))
+                {
+                    commandArray.Add("--disk");
+                    commandArray.Add(" \"" + n64ddrom + "\"");
+                }
+            }
 
             string args = string.Join(" ", commandArray);
 
@@ -96,9 +107,15 @@ namespace emulatorLauncher
 
                 // CPU Emulator
                 if (SystemConfig.isOptSet("cpucore") && !string.IsNullOrEmpty(SystemConfig["cpucore"]))
+                {
+                    ini.WriteValue("Core", "R4300Emulator", SystemConfig["cpucore"]);
                     ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", SystemConfig["cpucore"]);
+                }
                 else
-                    ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", "0");
+                {
+                    ini.WriteValue("Core", "R4300Emulator", "2");
+                    ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", "2");
+                }
 
                 // Discord
                 if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
@@ -144,10 +161,80 @@ namespace emulatorLauncher
                         ini.WriteValue("Video-Parallel", "Upscaling", "1");
                 }
 
+                else if (SystemConfig.isOptSet("gfxplugin") && SystemConfig["gfxplugin"] == "angrylion")
+                {
+                    ini.WriteValue("Rosalie's Mupen GUI Core", "GFX_Plugin", "mupen64plus-video-angrylion-plus.dll");
+
+                    // Resolution
+                    if (SystemConfig.isOptSet("resolution") && !string.IsNullOrEmpty(SystemConfig["resolution"]))
+                    {
+                        var res = SystemConfig["resolution"];
+
+                        switch (res)
+                        {
+                            case "0":
+                            case "1":
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "640");
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "480");
+                                break;
+                            case "2":
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "1280");
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "960");
+                                break;
+                            case "3":
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "1440");
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "1080");
+                                break;
+                            case "4":
+                            case "5":
+                            case "6":
+                            case "7":
+                            case "8":
+                            case "9":
+                            case "10":
+                            case "11":
+                            case "12":
+                            case "13":
+                            case "14":
+                            case "15":
+                            case "16":
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "1600");
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "1200");
+                                break;
+                            default:
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "640");
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "480");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "640");
+                        ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "480");
+                    }
+
+                    // Widescreen
+                    if (SystemConfig.isOptSet("ratio") && (SystemConfig["ratio"] == "2" || SystemConfig["ratio"] == "0"))
+                        ini.WriteValue("Video-AngrylionPlus", "ViWidescreen", "True");
+                    else
+                        ini.WriteValue("Video-AngrylionPlus", "ViWidescreen", "False");
+
+                    // RSP Plugin
+                    if (SystemConfig.isOptSet("rsp_plugin") && !string.IsNullOrEmpty(SystemConfig["rsp_plugin"]))
+                        ini.WriteValue("Rosalie's Mupen GUI Core", "RSP_Plugin", SystemConfig["rsp_plugin"]);
+                    else
+                        ini.WriteValue("Rosalie's Mupen GUI Core", "RSP_Plugin", "mupen64plus-rsp-hle.dll");
+                }
+                
                 else
                 {
                     ini.WriteValue("Rosalie's Mupen GUI Core", "GFX_Plugin", "mupen64plus-video-GLideN64.dll");
-                    ini.WriteValue("Rosalie's Mupen GUI Core", "RSP_Plugin", "mupen64plus-rsp-hle.dll");
+                    
+                    // RSP Plugin
+                    if (SystemConfig.isOptSet("rsp_plugin") && !string.IsNullOrEmpty(SystemConfig["rsp_plugin"]))
+                        ini.WriteValue("Rosalie's Mupen GUI Core", "RSP_Plugin", SystemConfig["rsp_plugin"]);
+                    else
+                        ini.WriteValue("Rosalie's Mupen GUI Core", "RSP_Plugin", "mupen64plus-rsp-hle.dll");
                 }
 
                 // Input plugin
@@ -155,10 +242,13 @@ namespace emulatorLauncher
                     ini.WriteValue("Rosalie's Mupen GUI Core", "INPUT_Plugin", SystemConfig["inputplugin"]);
                 else
                     ini.WriteValue("Rosalie's Mupen GUI Core", "INPUT_Plugin", "RMG-Input.dll");
+
+                /*if (!SystemConfig.isOptSet("inputplugin") || SystemConfig["inputplugin"] == "RMG-Input.dll")
+                    CreateControllerConfiguration(ini);*/
             }
         }
 
-        private void SetupGFX(string path, string rom, string system)
+        private void SetupGFX(string path)
         {
             string gfxConf = Path.Combine(path, "Config", "GLideN64.ini");
 
