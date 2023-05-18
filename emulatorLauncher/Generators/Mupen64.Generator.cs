@@ -243,8 +243,8 @@ namespace emulatorLauncher
                 else
                     ini.WriteValue("Rosalie's Mupen GUI Core", "INPUT_Plugin", "RMG-Input.dll");
 
-                /*if (!SystemConfig.isOptSet("inputplugin") || SystemConfig["inputplugin"] == "RMG-Input.dll")
-                    CreateControllerConfiguration(ini);*/
+                if (!SystemConfig.isOptSet("inputplugin") || SystemConfig["inputplugin"] == "RMG-Input.dll")
+                    CreateControllerConfiguration(ini);
             }
         }
 
