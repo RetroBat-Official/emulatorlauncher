@@ -3245,6 +3245,9 @@ namespace emulatorLauncher.libRetro
             {
                 retroarchConfig["input_player1_gun_start"] = "enter";
                 retroarchConfig["input_player1_gun_select"] = "space";
+                retroarchConfig["input_player1_gun_aux_a"] = "w";
+                retroarchConfig["input_player1_gun_aux_b"] = "x";
+                retroarchConfig["input_player1_gun_aux_c"] = "s";
             }
         }
 
