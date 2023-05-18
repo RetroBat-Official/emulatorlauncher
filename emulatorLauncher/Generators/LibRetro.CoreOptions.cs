@@ -2734,16 +2734,23 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_psx_hw_widescreen_hack_aspect_ratio", "widescreen_hack_aspect_ratio", "16:9");
             BindFeature(coreSettings, "beetle_psx_hw_pal_video_timing_override", "pal_video_timing_override", "disabled");
             BindFeature(coreSettings, "beetle_psx_hw_skip_bios", "skip_bios", "enabled");
-
-            // NEW
-            BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun", true);
-            BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross", true);
+            BindFeature(coreSettings, "beetle_psx_hw_renderer", "mednafen_psx_renderer", "hardware");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "psxcontroller2", "1");
+            BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun");
+            BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross");
 
-            SetupLightGuns(retroarchConfig, "260");
+            // If lightgun is enabled, renderer must be changed to software
+            if (SystemConfig.getOptBoolean("use_guns") || SystemConfig["psxcontroller1"] == "260")
+            {
+                coreSettings["beetle_psx_hw_renderer"] = "software";
+            }
+
+            SetupLightGuns(retroarchConfig, "260", 1);
+
+            
         }
 
         private void Configurevice(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2809,17 +2816,18 @@ namespace emulatorLauncher.libRetro
             if (core != "swanstation")
                 return;
 
-            BindFeature(coreSettings, "duckstation_Console.Region", "swanstation_region", "Auto");
-            BindFeature(coreSettings, "duckstation_GPU.Renderer", "swanstation_GPU", "Auto");
-            BindFeature(coreSettings, "duckstation_GPU.TextureFilter", "swanstation_texturefilter", "Nearest");
-            BindFeature(coreSettings, "duckstation_Display.AspectRatio", "swanstation_aspectratio", "Auto");
-            BindFeature(coreSettings, "duckstation_Display.CropMode", "swanstation_cropmode", "Overscan");
-            BindFeature(coreSettings, "duckstation_GPU.ResolutionScale", "internal_resolution", "1");
-            BindFeature(coreSettings, "duckstation_GPU.ForceNTSCTimings", "force_ntsc_timings", "false");
-            BindFeature(coreSettings, "duckstation_GPU.WidescreenHack", "widescreen_hack", "false");
-            BindFeature(coreSettings, "duckstation_GPU.MSAA", "msaa", "1");
-            BindFeature(coreSettings, "duckstation_GPU.ScaledDithering", "scaled_dithering", "true");
-            BindFeature(coreSettings, "duckstation_GPU.TrueColor", "truecolor", "false");
+            BindFeature(coreSettings, "swanstation_Console_Region", "swanstation_region", "Auto");
+            BindFeature(coreSettings, "swanstation_GPU_Renderer", "swanstation_GPU", "Auto");
+            BindFeature(coreSettings, "swanstation_GPU_TextureFilter", "swanstation_texturefilter", "Nearest");
+            BindFeature(coreSettings, "swanstation_Display_AspectRatio", "swanstation_aspectratio", "Auto");
+            BindFeature(coreSettings, "swanstation_Display_CropMode", "swanstation_cropmode", "Overscan");
+            BindFeature(coreSettings, "swanstation_GPU_ResolutionScale", "internal_resolution", "1");
+            BindFeature(coreSettings, "swanstation_GPU_ForceNTSCTimings", "force_ntsc_timings", "false");
+            BindFeature(coreSettings, "swanstation_GPU_WidescreenHack", "widescreen_hack", "false");
+            BindFeature(coreSettings, "swanstation_GPU_MSAA", "msaa", "1");
+            BindFeature(coreSettings, "swanstation_GPU_ScaledDithering", "scaled_dithering", "true");
+            BindFeature(coreSettings, "swanstation_GPU_TrueColor", "truecolor", "false");
+            BindFeature(coreSettings, "swanstation_BIOS_PatchFastBoot", "skip_bios", "true");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
@@ -3223,6 +3231,15 @@ namespace emulatorLauncher.libRetro
 
                 var select = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.select);
                 retroarchConfig["input_player1_gun_select"] = select == null ? "nul" : LibretroControllers.GetConfigValue(select);
+
+                var aux_a = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.b);
+                retroarchConfig["input_player1_gun_aux_a"] = aux_a == null ? "nul" : LibretroControllers.GetConfigValue(aux_a);
+
+                var aux_b = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.a);
+                retroarchConfig["input_player1_gun_aux_b"] = aux_b == null ? "nul" : LibretroControllers.GetConfigValue(aux_b);
+
+                var aux_c = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.y);
+                retroarchConfig["input_player1_gun_aux_c"] = aux_c == null ? "nul" : LibretroControllers.GetConfigValue(aux_c);
             }
             else
             {
