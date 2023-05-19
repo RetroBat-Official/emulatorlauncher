@@ -135,21 +135,32 @@ namespace emulatorLauncher
             WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
             WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
 
-            if (SystemConfig.isOptSet("pcsx2_gun") && SystemConfig.getOptBoolean("pcsx2_gun"))
+            if (SystemConfig.isOptSet("pcsx2_gun") && !string.IsNullOrEmpty(SystemConfig["pcsx2_gun"]) && SystemConfig["pcsx2_gun"] != "none")
             {
-                pcsx2ini.WriteValue("USB1", "Type", "guncon2");
-                WriteKeyboardMapping("USB1", "guncon2_Up", InputKey.up);
-                WriteKeyboardMapping("USB1", "guncon2_Down", InputKey.down);
-                WriteKeyboardMapping("USB1", "guncon2_Left", InputKey.left);
-                WriteKeyboardMapping("USB1", "guncon2_Right", InputKey.right);
-                pcsx2ini.WriteValue("USB1", "guncon2_Trigger", "Pointer-0/LeftButton");
-                pcsx2ini.WriteValue("USB1", "guncon2_ShootOffscreen", "Pointer-0/RightButton");
-                WriteKeyboardMapping("USB1", "guncon2_A", InputKey.a);
-                WriteKeyboardMapping("USB1", "guncon2_B", InputKey.b);
-                WriteKeyboardMapping("USB1", "guncon2_C", InputKey.y);
-                WriteKeyboardMapping("USB1", "guncon2_Select", InputKey.select);
-                WriteKeyboardMapping("USB1", "guncon2_Start", InputKey.start);
-                pcsx2ini.WriteValue("USB1", "guncon2_Recalibrate", "Pointer-0/LeftButton");
+                string usbSection = SystemConfig["pcsx2_gun"].ToUpperInvariant();
+                pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
+                WriteKeyboardMapping(usbSection, "guncon2_Up", InputKey.up);
+                WriteKeyboardMapping(usbSection, "guncon2_Down", InputKey.down);
+                WriteKeyboardMapping(usbSection, "guncon2_Left", InputKey.left);
+                WriteKeyboardMapping(usbSection, "guncon2_Right", InputKey.right);
+                pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", "Pointer-0/LeftButton");
+                pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", "Pointer-0/RightButton");
+                WriteKeyboardMapping(usbSection, "guncon2_A", InputKey.a);
+                WriteKeyboardMapping(usbSection, "guncon2_B", InputKey.b);
+                WriteKeyboardMapping(usbSection, "guncon2_C", InputKey.y);
+                WriteKeyboardMapping(usbSection, "guncon2_Select", InputKey.select);
+                WriteKeyboardMapping(usbSection, "guncon2_Start", InputKey.start);
+                pcsx2ini.WriteValue(usbSection, "guncon2_Recalibrate", "Pointer-0/LeftButton");
+
+                if (usbSection == "USB1")
+                    pcsx2ini.ClearSection("USB2");
+                else if (usbSection == "USB2")
+                    pcsx2ini.ClearSection("USB1");
+            }
+            else
+            {
+                pcsx2ini.ClearSection("USB1");
+                pcsx2ini.ClearSection("USB2");
             }
 
             // Restore keyboard hotkeys
@@ -250,25 +261,36 @@ namespace emulatorLauncher
                 }
                 if (SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
                     pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", techPadNumber + hotKeyName + " & " + techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
-            }
 
-            // Configure gun for player 1 if option is set in es_features
-            // Trigger & Reload assigned to mouse 1 (Pointer-0), all other buttons assigned to controller
-            if (SystemConfig.isOptSet("pcsx2_gun") && SystemConfig.getOptBoolean("pcsx2_gun") && playerIndex == 1)
-            {
-                pcsx2ini.WriteValue("USB1", "Type", "guncon2");
-                pcsx2ini.WriteValue("USB1", "guncon2_Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Trigger", "Pointer-0/LeftButton");
-                pcsx2ini.WriteValue("USB1", "guncon2_ShootOffscreen", "Pointer-0/RightButton");
-                pcsx2ini.WriteValue("USB1", "guncon2_A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));  // Cross
-                pcsx2ini.WriteValue("USB1", "guncon2_B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));  // Circle
-                pcsx2ini.WriteValue("USB1", "guncon2_C", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));  // Square
-                pcsx2ini.WriteValue("USB1", "guncon2_Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
-                pcsx2ini.WriteValue("USB1", "guncon2_Recalibrate", "Pointer-0/LeftButton");
+                // Configure gun for player 1 if option is set in es_features
+                // Trigger & Reload assigned to mouse 1 (Pointer-0), all other buttons assigned to controller
+                if (SystemConfig.isOptSet("pcsx2_gun") && !string.IsNullOrEmpty(SystemConfig["pcsx2_gun"]) && SystemConfig["pcsx2_gun"] != "none")
+                {
+                    string usbSection = SystemConfig["pcsx2_gun"].ToUpperInvariant();
+                    pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", "Pointer-0/LeftButton");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", "Pointer-0/RightButton");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));  // Cross
+                    pcsx2ini.WriteValue(usbSection, "guncon2_B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));  // Circle
+                    pcsx2ini.WriteValue(usbSection, "guncon2_C", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));  // Square
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Recalibrate", "Pointer-0/LeftButton");
+
+                    if (usbSection == "USB1")
+                        pcsx2ini.ClearSection("USB2");
+                    else if (usbSection == "USB2")
+                        pcsx2ini.ClearSection("USB1");
+                }
+                else
+                {
+                    pcsx2ini.ClearSection("USB1");
+                    pcsx2ini.ClearSection("USB2");
+                }
             }
         }
 
