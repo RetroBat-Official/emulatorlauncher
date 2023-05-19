@@ -2514,6 +2514,7 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["reicast_system"] = "auto";
+            coreSettings["reicast_show_lightgun_settings"] = "enabled";
             coreSettings["reicast_threaded_rendering"] = "enabled";
             coreSettings["reicast_enable_purupuru"] = "enabled"; // Enable controller force feedback
 
@@ -2569,10 +2570,14 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "flycast_controller2", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p3", "flycast_controller3", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p4", "flycast_controller4", "1");
-            BindFeature(retroarchConfig, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
-            BindFeature(retroarchConfig, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
+            BindFeature(coreSettings, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
+            BindFeature(coreSettings, "reicast_lightgun2_crosshair", "reicast_lightgun2_crosshair", "disabled");
 
             SetupLightGuns(retroarchConfig, "4");
+
+            // Disable keyboard for player 2 in case of guns and 1 joystick connected (as this generate a conflict on ENTER key)
+            if (Program.Controllers[1].IsKeyboard && (SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "4" ) && SystemConfig["flycast_controller2"] != "4")
+                retroarchConfig["input_libretro_device_p2"] = "0";
         }
 
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
