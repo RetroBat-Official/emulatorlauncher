@@ -19,11 +19,14 @@ namespace emulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string path = AppConfig.GetFullPath("citra");
+            string folderName = emulator;
+            string path = AppConfig.GetFullPath(folderName);
 
             string exe = Path.Combine(path, "citra-qt.exe");
             if (!File.Exists(exe))
                 return null;
+
+            bool isCitraCanary = folderName == "citra-canary";
 
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
@@ -33,31 +36,30 @@ namespace emulatorLauncher
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
-            if (core == "citra-sdl")
-            {
-                exe = Path.Combine(path, "citra.exe");
-                if (!File.Exists(exe))
-                    return null;
+            SetupConfiguration(path, isCitraCanary);
 
+            if (isCitraCanary)
+            {
                 return new ProcessStartInfo()
                 {
                     FileName = exe,
                     WorkingDirectory = path,
-                    Arguments = "\"" + rom + "\"",
+                    Arguments = "-f -g " + "\"" + rom + "\"",
                 };
             }
 
-            SetupConfiguration(path);
-
-            return new ProcessStartInfo()
+            else
+            {
+                return new ProcessStartInfo()
                 {
                     FileName = exe,
                     WorkingDirectory = path,
                     Arguments = "\"" + rom + "\" -f",
                 };
+            }
         }
 
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, bool isCitraCanary = false)
         {
             string userconfigPath = Path.Combine(path, "user", "config");
             if (!Directory.Exists(userconfigPath))
@@ -203,6 +205,13 @@ namespace emulatorLauncher
                 {
                     ini.WriteValue("Utility", "preload_textures\\default", "true");
                     ini.WriteValue("Utility", "preload_textures", "false");
+                }
+
+                // Addition canary features
+                if (isCitraCanary)
+                {
+                    // Renderer
+                    BindQtIniFeature(ini, "Renderer", "graphics_api", "graphics_api", "1");
                 }
             }
         }
