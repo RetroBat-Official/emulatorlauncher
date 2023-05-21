@@ -558,6 +558,26 @@ namespace emulatorLauncher
             if (force || Features.IsSupported(featureName))
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
         }
+
+        protected void BindIniFeature(IniFile ini, string section, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (force || Features.IsSupported(featureName))
+                    ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefault(featureName, defaultValue));
+            }
+        }
+
+        protected void BindBoolIniFeature(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, trueValue);
+                else
+                    ini.WriteValue(section, settingName, falseValue);
+            }
+        }
     }
 
     enum ExitCodes : int

@@ -648,22 +648,10 @@ namespace emulatorLauncher
 
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
             {
-                // Add rom path to RecursivePaths
-                AddPathToRecursivePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
+                // Disable auto-update
+                ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
 
-                CreateControllerConfiguration(ini);
-
-                // fullscreen (disable fullscreen start option, workaround for people with multi-screen that cannot get emulator to start fullscreen on the correct monitor)
-                if ( SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
-                    ini.WriteValue("UI", "StartFullscreen", "false");
-                else
-                    ini.WriteValue("UI", "StartFullscreen", "true");
-                
-                ini.Remove("UI", "MainWindowGeometry");
-                ini.Remove("UI", "MainWindowState");
-                ini.Remove("UI", "DisplayWindowGeometry");
-
-                //Enable cheevos is needed
+                // Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
                 {
                     ini.WriteValue("Achievements", "Enabled", "true");
@@ -691,9 +679,12 @@ namespace emulatorLauncher
                     ini.WriteValue("Achievements", "ChallengeMode", "false");
                 }
 
-                //Define paths
+                // Define paths
+                
+                // Add rom path to RecursivePaths
+                AddPathToRecursivePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
 
-                //BIOS path
+                // BIOS path
                 string biosPath = AppConfig.GetFullPath("bios");
 
                 if (biosList.Any(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b))))
@@ -706,6 +697,15 @@ namespace emulatorLauncher
                 if (!Directory.Exists(biosPcsx2Path))
                     try { Directory.CreateDirectory(biosPcsx2Path); }
                     catch { }
+
+                // Precise bios to use
+                string biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPcsx2Path, "bios", b)));
+                if (string.IsNullOrEmpty(biosFile))
+                    biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
+                else
+                    biosFile = "SCPH30004R.bin";
+
+                ini.WriteValue("Filenames", "BIOS", biosFile);
 
                 // Cheats Path
                 string cheatsPath = AppConfig.GetFullPath("cheats");
@@ -731,22 +731,12 @@ namespace emulatorLauncher
                     ini.WriteValue("Folders", "CheatsNI", Path.Combine(cheatsPcsx2Path, "cheats_ni"));
                 }
 
-                //precise bios to use
-
-                string biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPcsx2Path, "bios", b)));
-                if (string.IsNullOrEmpty(biosFile))
-                    biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
-                else
-                    biosFile = "SCPH30004R.bin";
-
-                ini.WriteValue("Filenames", "BIOS", biosFile);
-
-                //Snapshots path
+                // Snapshots path
                 string screenShotsPath = AppConfig.GetFullPath("screenshots");
                 if (!string.IsNullOrEmpty(screenShotsPath))
                     ini.WriteValue("Folders", "Snapshots", screenShotsPath + "\\" + "pcsx2");
 
-                //Savestates path
+                // Savestates path
                 string savesPath = AppConfig.GetFullPath("saves");
                 string memcardsPath = AppConfig.GetFullPath("saves");
                 if (!string.IsNullOrEmpty(savesPath))
@@ -779,52 +769,45 @@ namespace emulatorLauncher
                     ini.WriteValue("Folders", "Textures", texturePath);
                 }
 
-                //UI section
+                // UI section
                 ini.WriteValue("UI", "ConfirmShutdown", "false");
+                BindBoolIniFeature(ini, "UI", "StartFullscreen", "disable_fullscreen", "false", "true");
 
-                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
-                    ini.WriteValue("UI", "EnableDiscordPresence", "true");
-                else
-                    ini.WriteValue("UI", "EnableDiscordPresence", "false");
+                ini.Remove("UI", "MainWindowGeometry");
+                ini.Remove("UI", "MainWindowState");
+                ini.Remove("UI", "DisplayWindowGeometry");
 
+                // Emucore section
 
-                //Enable cheats automatically on load if Retroachievements is not set only
-                if (SystemConfig.isOptSet("enable_cheats") && !SystemConfig.getOptBoolean("retroachievements") && !string.IsNullOrEmpty(SystemConfig["enable_cheats"]))
+                //Enable cheats automatically on load if Retroachievements-hardcore is not set only
+                if (SystemConfig.isOptSet("enable_cheats") && !SystemConfig.getOptBoolean("retroachievements.hardcore") && !string.IsNullOrEmpty(SystemConfig["enable_cheats"]))
                     ini.WriteValue("EmuCore", "EnableCheats", SystemConfig["enable_cheats"]);
                 else if (Features.IsSupported("enable_cheats"))
                     ini.WriteValue("EmuCore", "EnableCheats", "false");
 
-                // Graphics - Emucore (display) - widescreen patch and no-interlacing patch
-                if (SystemConfig.isOptSet("widescreen_patch") && SystemConfig.getOptBoolean("widescreen_patch"))
-                    ini.WriteValue("EmuCore", "EnableWideScreenPatches", "true");
-                else if (Features.IsSupported("widescreen_patch"))
-                    ini.WriteValue("EmuCore", "EnableWideScreenPatches", "false");
+                BindBoolIniFeature(ini, "EmuCore", "EnableDiscordPresence", "discord", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore", "EnableWideScreenPatches", "widescreen_patch", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore", "EnableNoInterlacingPatches", "interlacing_patch", "true", "false");
 
-                if (SystemConfig.isOptSet("interlacing_patch") && SystemConfig.getOptBoolean("interlacing_patch"))
-                    ini.WriteValue("EmuCore", "EnableNoInterlacingPatches", "true");
-                else if (Features.IsSupported("interlacing_patch"))
-                    ini.WriteValue("EmuCore", "EnableNoInterlacingPatches", "false");
-
-                //Graphics - EmuCore/GS
-                if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
-                    ini.WriteValue("EmuCore/GS", "AspectRatio", SystemConfig["ratio"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "AspectRatio", "Auto 4:3/3:2");
-
-                if (SystemConfig.isOptSet("fmv_ratio") && !string.IsNullOrEmpty(SystemConfig["fmv_ratio"]))
-                    ini.WriteValue("EmuCore/GS", "FMVAspectRatioSwitch", SystemConfig["fmv_ratio"]);
-                else if (Features.IsSupported("fmv_ratio"))
-                    ini.WriteValue("EmuCore/GS", "FMVAspectRatioSwitch", "Off");
-
-                if (SystemConfig.isOptSet("renderer") && !string.IsNullOrEmpty(SystemConfig["renderer"]))
-                    ini.WriteValue("EmuCore/GS", "Renderer", SystemConfig["renderer"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "Renderer", "-1");
-
-                if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]))
-                    ini.WriteValue("EmuCore/GS", "deinterlace", SystemConfig["interlace"]);
-                else if (Features.IsSupported("interlace"))
-                    ini.WriteValue("EmuCore/GS", "deinterlace", "7");
+                // EmuCore/GS
+                BindBoolIniFeature(ini, "EmuCore/GS", "IntegerScaling", "integerscale", "true", "false");
+                BindIniFeature(ini, "EmuCore/GS", "AspectRatio", "ratio", "Auto 4:3/3:2");
+                BindIniFeature(ini, "EmuCore/GS", "FMVAspectRatioSwitch", "fmv_ratio", "Off");
+                BindIniFeature(ini, "EmuCore/GS", "Renderer", "renderer", "-1");
+                BindIniFeature(ini, "EmuCore/GS", "deinterlace_mode", "interlace", "0");
+                BindIniFeature(ini, "EmuCore/GS", "VsyncEnable", "VSync", "1");
+                BindBoolIniFeature(ini, "EmuCore/GS", "pcrtc_offsets", "pcrtc_offsets", "true", "false");
+                BindIniFeature(ini, "EmuCore/GS", "pcrtc_antiblur", "pcrtc_antiblur", "true");
+                BindIniFeature(ini, "EmuCore/GS", "upscale_multiplier", "internalresolution", "1");
+                BindIniFeature(ini, "EmuCore/GS", "mipmap_hw", "mipmap", "-1");
+                BindIniFeature(ini, "EmuCore/GS", "filter", "texture_filtering", "2");
+                BindIniFeature(ini, "EmuCore/GS", "TriFilter", "trilinear_filtering", "-1");
+                BindIniFeature(ini, "EmuCore/GS", "MaxAnisotropy", "anisotropic_filtering", "0");
+                BindIniFeature(ini, "EmuCore/GS", "dithering_ps2", "dithering", "2");
+                BindIniFeature(ini, "EmuCore/GS", "crc_hack_level", "crc_hack_level", "-1");
+                BindIniFeature(ini, "EmuCore/GS", "accurate_blending_unit", "blending_accuracy", "1");
+                BindBoolIniFeature(ini, "EmuCore/GS", "fxaa", "fxaa", "true", "false");
+                BindIniFeature(ini, "EmuCore/GS", "TVShader", "TVShader", "0");
 
                 if (SystemConfig.isOptSet("bilinear_filtering") && SystemConfig["bilinear_filtering"] == "0")
                 {
@@ -842,75 +825,14 @@ namespace emulatorLauncher
                     ini.WriteValue("EmuCore/GS", "linear_present_mode", "1");
                 }
 
-                //Vsync
-                if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
-                    ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "VsyncEnable", "1");
-
-                if (SystemConfig.isOptSet("pcrtc_offsets") && !string.IsNullOrEmpty(SystemConfig["pcrtc_offsets"]))
-                    ini.WriteValue("EmuCore/GS", "pcrtc_offsets", SystemConfig["pcrtc_offsets"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "pcrtc_offsets", "false");
-
-                if (SystemConfig.isOptSet("pcrtc_antiblur") && !string.IsNullOrEmpty(SystemConfig["pcrtc_antiblur"]))
-                    ini.WriteValue("EmuCore/GS", "pcrtc_antiblur", SystemConfig["pcrtc_antiblur"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "pcrtc_antiblur", "true");
-
-                //Resolution
-                if (SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
-                    ini.WriteValue("EmuCore/GS", "upscale_multiplier", SystemConfig["internalresolution"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "upscale_multiplier", "1");
-
-                if (SystemConfig.isOptSet("mipmap") && !string.IsNullOrEmpty(SystemConfig["mipmap"]))
-                    ini.WriteValue("EmuCore/GS", "mipmap_hw", SystemConfig["mipmap"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "mipmap_hw", "-1");
-
-                if (SystemConfig.isOptSet("texture_filtering") && !string.IsNullOrEmpty(SystemConfig["texture_filtering"]))
-                    ini.WriteValue("EmuCore/GS", "filter", SystemConfig["texture_filtering"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "filter", "2");
-
-                if (SystemConfig.isOptSet("trilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["trilinear_filtering"]))
-                    ini.WriteValue("EmuCore/GS", "TriFilter", SystemConfig["trilinear_filtering"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "TriFilter", "-1");
-
-                if (SystemConfig.isOptSet("anisotropic_filtering") && !string.IsNullOrEmpty(SystemConfig["anisotropic_filtering"]))
-                    ini.WriteValue("EmuCore/GS", "MaxAnisotropy", SystemConfig["anisotropic_filtering"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "MaxAnisotropy", "0");
-
-                if (SystemConfig.isOptSet("dithering") && !string.IsNullOrEmpty(SystemConfig["dithering"]))
-                    ini.WriteValue("EmuCore/GS", "dithering_ps2", SystemConfig["dithering"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "dithering_ps2", "2");
-
-                if (SystemConfig.isOptSet("crc_hack_level") && !string.IsNullOrEmpty(SystemConfig["crc_hack_level"]))
-                    ini.WriteValue("EmuCore/GS", "crc_hack_level", SystemConfig["crc_hack_level"]);
-                else if (Features.IsSupported("crc_hack_level"))
-                    ini.WriteValue("EmuCore/GS", "crc_hack_level", "-1");
-
-                if (SystemConfig.isOptSet("blending_accuracy") && !string.IsNullOrEmpty(SystemConfig["blending_accuracy"]))
-                    ini.WriteValue("EmuCore/GS", "accurate_blending_unit", SystemConfig["blending_accuracy"]);
-                else if (Features.IsSupported("blending_accuracy"))
-                    ini.WriteValue("EmuCore/GS", "accurate_blending_unit", "1");
-
                 if (SystemConfig.isOptSet("texture_preloading") && !string.IsNullOrEmpty(SystemConfig["texture_preloading"]))
                     ini.WriteValue("EmuCore/GS", "texture_preloading", SystemConfig["texture_preloading"]);
                 else if (Features.IsSupported("texture_preloading"))
                     ini.WriteValue("EmuCore/GS", "texture_preloading", "2");
 
-                //User hacks
-                if ((SystemConfig.isOptSet("UserHacks") && !string.IsNullOrEmpty(SystemConfig["UserHacks"])))
-                    ini.WriteValue("EmuCore/GS", "UserHacks", SystemConfig["UserHacks"]);
-                else if (Features.IsSupported("UserHacks"))
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "false");
+                // User hacks
+                BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks", "UserHacks", "true", "false");
 
-                //User hack half screen fix
                 if (SystemConfig.isOptSet("UserHacks_Half_Bottom_Override") && !string.IsNullOrEmpty(SystemConfig["UserHacks_Half_Bottom_Override"]))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_Half_Bottom_Override", SystemConfig["UserHacks_Half_Bottom_Override"]);
@@ -919,50 +841,45 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("Offset"))
                     ini.WriteValue("EmuCore/GS", "UserHacks_Half_Bottom_Override", "-1");
 
-                //User hacks Skipdraw range
-                if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                // User hacks Skipdraw range
+                if (SystemConfig.isOptSet("skipdraw") && !string.IsNullOrEmpty(SystemConfig["skipdraw"]))
                 {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "1");
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
-                }
-                else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "2");
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
-                }
-                else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "3");
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
-                }
-                else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "4");
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
-                }
-                else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "1");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "5");
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
-                }
-                else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "bully"))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "6");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "6");
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                    Action<string, string> skipdrawWrite = (s, e) =>
+                    {
+                        ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", s);
+                        ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", e);
+                        ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                    };
+
+                    switch (SystemConfig["skipdraw"])
+                    {
+                        case "1":
+                            skipdrawWrite("1", "1");
+                            break;
+                        case "2":
+                            skipdrawWrite("1", "2");
+                            break;
+                        case "3":
+                            skipdrawWrite("1", "3");
+                            break;
+                        case "4":
+                            skipdrawWrite("1", "4");
+                            break;
+                        case "5":
+                            skipdrawWrite("1", "5");
+                            break;
+                        case "bully":
+                            skipdrawWrite("1", "6");
+                            break;
+                    }
                 }
                 else if (Features.IsSupported("skipdraw"))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_Start", "0");
                     ini.WriteValue("EmuCore/GS", "UserHacks_SkipDraw_End", "0");
                 }
-                
-                //User hack safe features
+
+                // User hack safe features
                 if (SystemConfig.isOptSet("UserHacks_Disable_Safe_Features") && !string.IsNullOrEmpty(SystemConfig["UserHacks_Disable_Safe_Features"]))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_Disable_Safe_Features", SystemConfig["UserHacks_Disable_Safe_Features"]);
@@ -971,7 +888,7 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("UserHacks_Disable_Safe_Features"))
                     ini.WriteValue("EmuCore/GS", "UserHacks_Disable_Safe_Features", "false");
 
-                //User hacks Half Pixel Offset
+                // User hacks Half Pixel Offset
                 if (SystemConfig.isOptSet("UserHacks_HalfPixelOffset") && !string.IsNullOrEmpty(SystemConfig["UserHacks_HalfPixelOffset"]))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_HalfPixelOffset", SystemConfig["UserHacks_HalfPixelOffset"]);
@@ -980,7 +897,7 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("Offset"))
                     ini.WriteValue("EmuCore/GS", "UserHacks_HalfPixelOffset", "0");
 
-                //User hacks Round sprite
+                // User hacks Round sprite
                 if (SystemConfig.isOptSet("UserHacks_round_sprite_offset") && !string.IsNullOrEmpty(SystemConfig["UserHacks_round_sprite_offset"]))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_round_sprite_offset", SystemConfig["UserHacks_round_sprite_offset"]);
@@ -989,7 +906,7 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("Offset"))
                     ini.WriteValue("EmuCore/GS", "UserHacks_round_sprite_offset", "0");
 
-                //User hacks Align sprite
+                // User hacks Align sprite
                 if (SystemConfig.isOptSet("align_sprite") && !string.IsNullOrEmpty(SystemConfig["align_sprite"]))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_align_sprite_X", SystemConfig["align_sprite"]);
@@ -998,7 +915,7 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("align_sprite"))
                     ini.WriteValue("EmuCore/GS", "UserHacks_align_sprite_X", "false");
 
-                //User hacks Merge sprite
+                // User hacks Merge sprite
                 if (SystemConfig.isOptSet("UserHacks_merge_pp_sprite") && !string.IsNullOrEmpty(SystemConfig["UserHacks_merge_pp_sprite"]))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_merge_pp_sprite", SystemConfig["UserHacks_merge_pp_sprite"]);
@@ -1007,7 +924,7 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("align_sprite"))
                     ini.WriteValue("EmuCore/GS", "UserHacks_merge_pp_sprite", "false");
 
-                //User hacks Wild Arms offset
+                // User hacks Wild Arms offset
                 if (SystemConfig.isOptSet("UserHacks_WildHack") && !string.IsNullOrEmpty(SystemConfig["UserHacks_WildHack"]))
                 {
                     ini.WriteValue("EmuCore/GS", "UserHacks_WildHack", SystemConfig["UserHacks_WildHack"]);
@@ -1016,7 +933,33 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("UserHacks_WildHack"))
                     ini.WriteValue("EmuCore/GS", "UserHacks_WildHack", "false");
 
-                //Custom textures
+                //texture offset
+                if (SystemConfig.isOptSet("TextureOffsets") && !string.IsNullOrEmpty(SystemConfig["TextureOffsets"]))
+                {
+                    Action<string, string> textureOffsetsWrite = (x, y) =>
+                    {
+                        ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetX", x);
+                        ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetY", y);
+                        ini.WriteValue("EmuCore/GS", "UserHacks", "true");
+                    };
+
+                    switch (SystemConfig["TextureOffsets"])
+                    {
+                        case "1":
+                            textureOffsetsWrite("500", "500");
+                            break;
+                        case "2":
+                            textureOffsetsWrite("0", "1000");
+                            break;
+                    }
+                }
+                else if (Features.IsSupported("TextureOffsets"))
+                {
+                    ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetX", "0");
+                    ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetY", "0");
+                }
+
+                // Custom textures
                 if (SystemConfig.isOptSet("hires_textures") && SystemConfig["hires_textures"] == "1")
                 {
                     ini.WriteValue("EmuCore/GS", "LoadTextureReplacements", "true");
@@ -1032,8 +975,10 @@ namespace emulatorLauncher
                     ini.WriteValue("EmuCore/GS", "LoadTextureReplacements", "false");
                     ini.WriteValue("EmuCore/GS", "PrecacheTextureReplacements", "false");
                 }
-                
-                //OSD information
+
+                // OSD information
+                BindIniFeature(ini, "EmuCore/GS", "OsdShowMessages", "Notifications", "false");
+
                 if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
                 {
                     ini.WriteValue("EmuCore/GS", "OsdShowCPU", "true");
@@ -1051,139 +996,28 @@ namespace emulatorLauncher
                     ini.WriteValue("EmuCore/GS", "OsdShowSpeed", "false");
                 }
 
-                //texture offset
-                if (SystemConfig.isOptSet("TextureOffsets") && (SystemConfig["TextureOffsets"] == "1"))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetX", "500");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetY", "500");
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "1");
-                }
-                else if (SystemConfig.isOptSet("TextureOffsets") && (SystemConfig["TextureOffsets"] == "2"))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetX", "0");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetY", "1000");
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "1");
-                }
-                else if (Features.IsSupported("TextureOffsets"))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetX", "0");
-                    ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetY", "0");
-                }
+                // AUDIO section
+                BindIniFeature(ini, "SPU2/Output", "OutputModule", "apu", "cubeb");
 
-                //Show OSD notifications
-                if (SystemConfig.isOptSet("Notifications") && !string.IsNullOrEmpty(SystemConfig["Notifications"]))
-                    ini.WriteValue("EmuCore/GS", "OsdShowMessages", SystemConfig["Notifications"]);
-                else
-                    ini.WriteValue("EmuCore/GS", "OsdShowMessages", "false");
-
-                //FXAA
-                if (SystemConfig.isOptSet("fxaa") && !string.IsNullOrEmpty(SystemConfig["fxaa"]))
-                    ini.WriteValue("EmuCore/GS", "fxaa", SystemConfig["fxaa"]);
-                else if (Features.IsSupported("fxaa"))
-                    ini.WriteValue("EmuCore/GS", "fxaa", "false");
-
-                //TVShader
-                if (SystemConfig.isOptSet("TVShader") && !string.IsNullOrEmpty(SystemConfig["TVShader"]))
-                    ini.WriteValue("EmuCore/GS", "TVShader", SystemConfig["TVShader"]);
-                else if (Features.IsSupported("TVShader"))
-                    ini.WriteValue("EmuCore/GS", "TVShader", "0");
-
-                //AUDIO section
-                if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
-                    ini.WriteValue("SPU2/Output", "OutputModule", SystemConfig["apu"]);
-                else if (Features.IsSupported("apu"))
-                    ini.WriteValue("SPU2/Output", "OutputModule", "cubeb");
-
-                //Game fixes
-                if (SystemConfig.isOptSet("FpuNegDivHack") && !string.IsNullOrEmpty(SystemConfig["FpuNegDivHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "FpuNegDivHack", SystemConfig["FpuNegDivHack"]);
-                else if (Features.IsSupported("FpuNegDivHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "FpuNegDivHack", "false");
-
-                if (SystemConfig.isOptSet("FpuMulHack") && !string.IsNullOrEmpty(SystemConfig["FpuMulHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "FpuMulHack", SystemConfig["FpuMulHack"]);
-                else if (Features.IsSupported("FpuMulHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "FpuMulHack", "false");
-
-                if (SystemConfig.isOptSet("SoftwareRendererFMVHack") && !string.IsNullOrEmpty(SystemConfig["SoftwareRendererFMVHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "SoftwareRendererFMVHack", SystemConfig["SoftwareRendererFMVHack"]);
-                else if (Features.IsSupported("SoftwareRendererFMVHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "SoftwareRendererFMVHack", "false");
-
-                if (SystemConfig.isOptSet("SkipMPEGHack") && !string.IsNullOrEmpty(SystemConfig["SkipMPEGHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "SkipMPEGHack", SystemConfig["SkipMPEGHack"]);
-                else if (Features.IsSupported("SkipMPEGHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "SkipMPEGHack", "false");
-
-                if (SystemConfig.isOptSet("GoemonTlbHack") && !string.IsNullOrEmpty(SystemConfig["GoemonTlbHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "GoemonTlbHack", SystemConfig["GoemonTlbHack"]);
-                else if (Features.IsSupported("GoemonTlbHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "GoemonTlbHack", "false");
-
-                if (SystemConfig.isOptSet("EETimingHack") && !string.IsNullOrEmpty(SystemConfig["EETimingHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "EETimingHack", SystemConfig["EETimingHack"]);
-                else if (Features.IsSupported("EETimingHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "EETimingHack", "false");
-
-                if (SystemConfig.isOptSet("InstantDMAHack") && !string.IsNullOrEmpty(SystemConfig["InstantDMAHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "InstantDMAHack", SystemConfig["InstantDMAHack"]);
-                else if (Features.IsSupported("InstantDMAHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "InstantDMAHack", "false");
-
-                if (SystemConfig.isOptSet("OPHFlagHack") && !string.IsNullOrEmpty(SystemConfig["OPHFlagHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "OPHFlagHack", SystemConfig["OPHFlagHack"]);
-                else if (Features.IsSupported("OPHFlagHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "OPHFlagHack", "false");
-
-                if (SystemConfig.isOptSet("GIFFIFOHack") && !string.IsNullOrEmpty(SystemConfig["GIFFIFOHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "GIFFIFOHack", SystemConfig["GIFFIFOHack"]);
-                else if (Features.IsSupported("GIFFIFOHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "GIFFIFOHack", "false");
-
-                if (SystemConfig.isOptSet("DMABusyHack") && !string.IsNullOrEmpty(SystemConfig["DMABusyHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "DMABusyHack", SystemConfig["DMABusyHack"]);
-                else if (Features.IsSupported("DMABusyHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "DMABusyHack", "false");
-
-                if (SystemConfig.isOptSet("VIF1StallHack") && !string.IsNullOrEmpty(SystemConfig["VIF1StallHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "VIF1StallHack", SystemConfig["VIF1StallHack"]);
-                else if (Features.IsSupported("VIF1StallHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "VIF1StallHack", "false");
-
-                if (SystemConfig.isOptSet("VIFFIFOHack") && !string.IsNullOrEmpty(SystemConfig["VIFFIFOHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "VIFFIFOHack", SystemConfig["VIFFIFOHack"]);
-                else if (Features.IsSupported("VIFFIFOHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "VIFFIFOHack", "false");
-
-                if (SystemConfig.isOptSet("IbitHack") && !string.IsNullOrEmpty(SystemConfig["IbitHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "IbitHack", SystemConfig["IbitHack"]);
-                else if (Features.IsSupported("IbitHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "IbitHack", "false");
-
-                if (SystemConfig.isOptSet("VuAddSubHack") && !string.IsNullOrEmpty(SystemConfig["VuAddSubHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "VuAddSubHack", SystemConfig["VuAddSubHack"]);
-                else if (Features.IsSupported("VuAddSubHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "VuAddSubHack", "false");
-
-                if (SystemConfig.isOptSet("VUOverflowHack") && !string.IsNullOrEmpty(SystemConfig["VUOverflowHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "VUOverflowHack", SystemConfig["VUOverflowHack"]);
-                else if (Features.IsSupported("VUOverflowHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "VUOverflowHack", "false");
-
-                if (SystemConfig.isOptSet("VUSyncHack") && !string.IsNullOrEmpty(SystemConfig["VUSyncHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "VUSyncHack", SystemConfig["VUSyncHack"]);
-                else if (Features.IsSupported("VUSyncHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "VUSyncHack", "false");
-
-                if (SystemConfig.isOptSet("XgKickHack") && !string.IsNullOrEmpty(SystemConfig["XgKickHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "XgKickHack", SystemConfig["XgKickHack"]);
-                else if (Features.IsSupported("XgKickHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "XgKickHack", "false");
-
-                if (SystemConfig.isOptSet("BlitInternalFPSHack") && !string.IsNullOrEmpty(SystemConfig["BlitInternalFPSHack"]))
-                    ini.WriteValue("EmuCore/Gamefixes", "BlitInternalFPSHack", SystemConfig["BlitInternalFPSHack"]);
-                else if (Features.IsSupported("BlitInternalFPSHack"))
-                    ini.WriteValue("EmuCore/Gamefixes", "BlitInternalFPSHack", "false");                
+                // Game fixes
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "FpuNegDivHack", "FpuNegDivHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "FpuMulHack", "FpuMulHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "SoftwareRendererFMVHack", "SoftwareRendererFMVHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "SkipMPEGHack", "SkipMPEGHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "GoemonTlbHack", "GoemonTlbHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "EETimingHack", "EETimingHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "InstantDMAHack", "InstantDMAHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "OPHFlagHack", "OPHFlagHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "GIFFIFOHack", "GIFFIFOHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "DMABusyHack", "DMABusyHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "VIF1StallHack", "VIF1StallHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "VIFFIFOHack", "VIFFIFOHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "IbitHack", "IbitHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "VuAddSubHack", "VuAddSubHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "VUOverflowHack", "VUOverflowHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "VUSyncHack", "VUSyncHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "XgKickHack", "XgKickHack", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/Gamefixes", "BlitInternalFPSHack", "BlitInternalFPSHack", "true", "false");
             }
         }
 
