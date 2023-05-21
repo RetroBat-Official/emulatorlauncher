@@ -7,11 +7,26 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Linq.Expressions;
 using SharpDX.XInput;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
     partial class Model3Generator : Generator
     {
+
+        /// <summary>
+        /// Cf. https://github.com/trzy/Supermodel
+        /// </summary>
+        /// <param name="ini"></param>
+        private void UpdateSdlControllersWithHints(IniFile pcsx2ini)
+        {
+            var hints = new List<string>();
+            hints.Add("SDL_JOYSTICK_HIDAPI_WII = 1");
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         /// <summary>
         /// Create controller configuration
         /// </summary>
@@ -20,6 +35,8 @@ namespace emulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            UpdateSdlControllersWithHints(ini);
 
             //.ini file for supermodel has entry for 2 players.
             //If 2 controllers or more are connected : get controllers from p1 and p2
@@ -60,13 +77,11 @@ namespace emulatorLauncher
             //initialize controller index, supermodel uses directinput controller index (+1)
             //only index of player 1 is initialized as there might be only 1 controller at that point
             int j2index = -1;
-            int j1index = c1.SdlController !=null ? c1.SdlController.Index : c1.DeviceIndex;
+            int j1index = c1.SdlController !=null ? c1.SdlController.Index + 1 : c1.DeviceIndex + 1;
 
             //If a secod controller is connected, get controller index of player 2, if there is no 2nd controller, just increment the index
             if (c2 != null && c2.Config != null)
-                j2index = c2.SdlController != null ? c2.SdlController.Index : c2.DeviceIndex;
-            else
-                j2index = j1index + 1;
+                j2index = c2.SdlController != null ? c2.SdlController.Index + 1 : c2.DeviceIndex + 1;
 
             //initialize tech : as default we will use sdl instead of dinput, as there are less differences in button mappings in sdl !
             string tech = "sdl";
@@ -87,7 +102,27 @@ namespace emulatorLauncher
             if (c2 != null && c2.Config != null && c2.VendorID == Tools.USB_VENDOR.NINTENDO)
                 n2 = "nintendo";
 
-            //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT
+            // Override tech if option is set in es_features
+            if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "nintendo")
+            {
+                tech = "sdl";
+                n1 = "nintendo";
+                n2 = "nintendo";
+            }
+            else if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "sdl")
+                tech = "sdl";
+            else if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "xinput")
+                tech = "xinput";
+
+            // Force player index if option is set in es_features
+            if (SystemConfig.isOptSet("model3_p1index") && !string.IsNullOrEmpty(SystemConfig["model3_p1index"]))
+                j1index = SystemConfig["model3_p1index"].ToInteger();
+            if (SystemConfig.isOptSet("model3_p2index") && !string.IsNullOrEmpty(SystemConfig["model3_p2index"]))
+                j2index = SystemConfig["model3_p2index"].ToInteger();
+
+            bool multiplayer = j2index != -1;
+
+            //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT)
             if (tech == "sdl")
             {
                 ini.WriteValue(" Global ", "InputSystem", "sdl");
@@ -95,34 +130,67 @@ namespace emulatorLauncher
                 //common - start to start and select to input coins
                 //service menu and test menu can be accessed via L3 and R3 buttons
                 ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,JOY" + j1index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON7\"");
                 ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3,JOY" + j1index + "_BUTTON5\"");
-                ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON5\"");
                 ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5,JOY" + j1index + "_BUTTON8\"");
-                ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7,JOY" + j2index + "_BUTTON8\"");
                 ini.WriteValue(" Global ", "InputTestA", "\"KEY_6,JOY" + j1index + "_BUTTON9\"");
-                ini.WriteValue(" Global ", "InputTestB", "\"KEY_8,JOY" + j2index + "_BUTTON9\"");
 
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON7\"");
+                    ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON5\"");
+                    ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7,JOY" + j2index + "_BUTTON8\"");
+                    ini.WriteValue(" Global ", "InputTestB", "\"KEY_8,JOY" + j2index + "_BUTTON9\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputStart2");
+                    ini.Remove(" Global ", "InputCoin2");
+                    ini.Remove(" Global ", "InputServiceB");
+                    ini.Remove(" Global ", "InputTestB");
+                }
+                    
                 //4-way digital joysticks - directional stick
                 ini.WriteValue(" Global ", "InputJoyUp", "\"JOY" + j1index + "_YAXIS_NEG,JOY" + j1index + "_POV1_UP\"");
                 ini.WriteValue(" Global ", "InputJoyDown", "\"JOY" + j1index + "_YAXIS_POS,JOY" + j1index + "_POV1_DOWN\"");
                 ini.WriteValue(" Global ", "InputJoyLeft", "\"JOY" + j1index + "_XAXIS_NEG,JOY" + j1index + "_POV1_LEFT\"");
                 ini.WriteValue(" Global ", "InputJoyRight", "\"JOY" + j1index + "_XAXIS_POS,JOY" + j1index + "_POV1_RIGHT\"");
-                ini.WriteValue(" Global ", "InputJoyUp2", "\"JOY" + j2index + "_YAXIS_NEG,JOY" + j2index + "_POV1_UP\"");
-                ini.WriteValue(" Global ", "InputJoyDown2", "\"JOY" + j2index + "_YAXIS_POS,JOY" + j2index + "_POV1_DOWN\"");
-                ini.WriteValue(" Global ", "InputJoyLeft2", "\"JOY" + j2index + "_XAXIS_NEG,JOY" + j2index + "_POV1_LEFT\"");
-                ini.WriteValue(" Global ", "InputJoyRight2", "\"JOY" + j2index + "_XAXIS_POS,JOY" + j2index + "_POV1_RIGHT\"");
-
+                
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputJoyUp2", "\"JOY" + j2index + "_YAXIS_NEG,JOY" + j2index + "_POV1_UP\"");
+                    ini.WriteValue(" Global ", "InputJoyDown2", "\"JOY" + j2index + "_YAXIS_POS,JOY" + j2index + "_POV1_DOWN\"");
+                    ini.WriteValue(" Global ", "InputJoyLeft2", "\"JOY" + j2index + "_XAXIS_NEG,JOY" + j2index + "_POV1_LEFT\"");
+                    ini.WriteValue(" Global ", "InputJoyRight2", "\"JOY" + j2index + "_XAXIS_POS,JOY" + j2index + "_POV1_RIGHT\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputJoyUp2");
+                    ini.Remove(" Global ", "InputJoyDown2");
+                    ini.Remove(" Global ", "InputJoyLeft2");
+                    ini.Remove(" Global ", "InputJoyRight2");
+                }
+                
                 //Fighting game buttons - used for virtua fighters will be mapped with the 4 buttons
                 ini.WriteValue(" Global ", "InputPunch", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON4\"" : "\"JOY" + j1index + "_BUTTON3\"");
                 ini.WriteValue(" Global ", "InputKick", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON3\"" : "\"JOY" + j1index + "_BUTTON4\"");
                 ini.WriteValue(" Global ", "InputGuard", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2\"" : "\"JOY" + j1index + "_BUTTON1\"");
                 ini.WriteValue(" Global ", "InputEscape", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON1\"" : "\"JOY" + j1index + "_BUTTON2\"");
-                ini.WriteValue(" Global ", "InputPunch2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON4\"" : "\"JOY" + j2index + "_BUTTON3\"");
-                ini.WriteValue(" Global ", "InputKick2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON3\"" : "\"JOY" + j2index + "_BUTTON4\"");
-                ini.WriteValue(" Global ", "InputGuard2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON2\"" : "\"JOY" + j2index + "_BUTTON1\"");
-                ini.WriteValue(" Global ", "InputEscape2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON1\"" : "\"JOY" + j2index + "_BUTTON2\"");
-
+                
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputPunch2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON4\"" : "\"JOY" + j2index + "_BUTTON3\"");
+                    ini.WriteValue(" Global ", "InputKick2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON3\"" : "\"JOY" + j2index + "_BUTTON4\"");
+                    ini.WriteValue(" Global ", "InputGuard2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON2\"" : "\"JOY" + j2index + "_BUTTON1\"");
+                    ini.WriteValue(" Global ", "InputEscape2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON1\"" : "\"JOY" + j2index + "_BUTTON2\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputPunch2");
+                    ini.Remove(" Global ", "InputKick2");
+                    ini.Remove(" Global ", "InputGuard2");
+                    ini.Remove(" Global ", "InputEscape2");
+                }
+                
                 //Spikeout buttons
                 ini.WriteValue(" Global ", "InputShift", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON1,JOY" + j1index + "_BUTTON11\"" : "\"JOY" + j1index + "_BUTTON2,JOY" + j1index + "_BUTTON11\"");
                 ini.WriteValue(" Global ", "InputBeat", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2\"" : "\"JOY" + j1index + "_BUTTON1\"");
@@ -133,9 +201,20 @@ namespace emulatorLauncher
                 ini.WriteValue(" Global ", "InputShortPass", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON4\"" : "\"JOY" + j1index + "_BUTTON3\"");
                 ini.WriteValue(" Global ", "InputLongPass", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2\"" : "\"JOY" + j1index + "_BUTTON1\"");
                 ini.WriteValue(" Global ", "InputShoot", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON1\"" : "\"JOY" + j1index + "_BUTTON2\"");
-                ini.WriteValue(" Global ", "InputShortPass2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON4\"" : "\"JOY" + j2index + "_BUTTON3\"");
-                ini.WriteValue(" Global ", "InputLongPass2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON2\"" : "\"JOY" + j2index + "_BUTTON1\"");
-                ini.WriteValue(" Global ", "InputShoot2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON1\"" : "\"JOY" + j2index + "_BUTTON2\"");
+
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputShortPass2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON4\"" : "\"JOY" + j2index + "_BUTTON3\"");
+                    ini.WriteValue(" Global ", "InputLongPass2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON2\"" : "\"JOY" + j2index + "_BUTTON1\"");
+                    ini.WriteValue(" Global ", "InputShoot2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON1\"" : "\"JOY" + j2index + "_BUTTON2\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputShortPass2");
+                    ini.Remove(" Global ", "InputLongPass2");
+                    ini.Remove(" Global ", "InputShoot2");
+                }
+                
 
                 //Steering wheel - left analog stick horizontal axis
                 ini.WriteValue(" Global ", "InputSteeringLeft", "\"NONE\"");
@@ -268,9 +347,18 @@ namespace emulatorLauncher
                 ini.WriteValue(" Global ", "InputMagicalLeverUp2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputMagicalLeverDown2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputMagicalLever1", "\"JOY" + j1index + "_YAXIS\"");
-                ini.WriteValue(" Global ", "InputMagicalLever2", "\"JOY" + j2index + "_YAXIS\"");
                 ini.WriteValue(" Global ", "InputMagicalPedal1", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2\"" : "\"JOY" + j1index + "_BUTTON1\"");
-                ini.WriteValue(" Global ", "InputMagicalPedal2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON2\"" : "\"JOY" + j2index + "_BUTTON1\"");
+
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputMagicalLever2", "\"JOY" + j2index + "_YAXIS\"");
+                    ini.WriteValue(" Global ", "InputMagicalPedal2", n2 == "nintendo" ? "\"JOY" + j2index + "_BUTTON2\"" : "\"JOY" + j2index + "_BUTTON1\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputMagicalLever2");
+                    ini.Remove(" Global ", "InputMagicalPedal2");
+                }
 
                 //Sega Bass Fishing / Get Bass controls
                 ini.WriteValue(" Global ", "InputFishingRodLeft", "\"NONE\"");
@@ -293,8 +381,11 @@ namespace emulatorLauncher
                 //deadzones - set 5 as default deadzone, good compromise to avoid joystick drift
                 ini.WriteValue(" Global ", "InputJoy" + j1index + "XDeadZone", "5");
                 ini.WriteValue(" Global ", "InputJoy" + j1index + "YDeadZone", "5");
-                ini.WriteValue(" Global ", "InputJoy" + j2index + "XDeadZone", "5");
-                ini.WriteValue(" Global ", "InputJoy" + j2index + "YDeadZone", "5");
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputJoy" + j2index + "XDeadZone", "5");
+                    ini.WriteValue(" Global ", "InputJoy" + j2index + "YDeadZone", "5");
+                }
 
                 //other stuff
                 ini.WriteValue(" Global ", "DirectInputConstForceLeftMax", "100");
@@ -311,33 +402,66 @@ namespace emulatorLauncher
 
                 //common - L3 and R3 will be used to navigate service menu
                 ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,JOY" + j1index + "_BUTTON8\"");
-                ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON8\"");
                 ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3,JOY" + j1index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON7\"");
                 ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5,JOY" + j1index + "_BUTTON9\"");
-                ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7,JOY" + j2index + "_BUTTON9\"");
                 ini.WriteValue(" Global ", "InputTestA", "\"KEY_6,JOY" + j1index + "_BUTTON10\"");
-                ini.WriteValue(" Global ", "InputTestB", "\"KEY_8,JOY" + j2index + "_BUTTON10\"");
+
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON8\"");
+                    ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON7\"");
+                    ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7,JOY" + j2index + "_BUTTON9\"");
+                    ini.WriteValue(" Global ", "InputTestB", "\"KEY_8,JOY" + j2index + "_BUTTON10\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputStart2");
+                    ini.Remove(" Global ", "InputCoin2");
+                    ini.Remove(" Global ", "InputServiceB");
+                    ini.Remove(" Global ", "InputTestB");
+                }
 
                 //4-way digital joysticks
                 ini.WriteValue(" Global ", "InputJoyUp", "\"JOY" + j1index + "_YAXIS_NEG,JOY" + j1index + "_POV1_UP\"");
                 ini.WriteValue(" Global ", "InputJoyDown", "\"JOY" + j1index + "_YAXIS_POS,JOY" + j1index + "_POV1_DOWN\"");
                 ini.WriteValue(" Global ", "InputJoyLeft", "\"JOY" + j1index + "_XAXIS_NEG,JOY" + j1index + "_POV1_LEFT\"");
                 ini.WriteValue(" Global ", "InputJoyRight", "\"JOY" + j1index + "_XAXIS_POS,JOY" + j1index + "_POV1_RIGHT\"");
-                ini.WriteValue(" Global ", "InputJoyUp2", "\"JOY" + j2index + "_YAXIS_NEG,JOY" + j2index + "_POV1_UP\"");
-                ini.WriteValue(" Global ", "InputJoyDown2", "\"JOY" + j2index + "_YAXIS_POS,JOY" + j2index + "_POV1_DOWN\"");
-                ini.WriteValue(" Global ", "InputJoyLeft2", "\"JOY" + j2index + "_XAXIS_NEG,JOY" + j2index + "_POV1_LEFT\"");
-                ini.WriteValue(" Global ", "InputJoyRight2", "\"JOY" + j2index + "_XAXIS_POS,JOY" + j2index + "_POV1_RIGHT\"");
+                
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputJoyUp2", "\"JOY" + j2index + "_YAXIS_NEG,JOY" + j2index + "_POV1_UP\"");
+                    ini.WriteValue(" Global ", "InputJoyDown2", "\"JOY" + j2index + "_YAXIS_POS,JOY" + j2index + "_POV1_DOWN\"");
+                    ini.WriteValue(" Global ", "InputJoyLeft2", "\"JOY" + j2index + "_XAXIS_NEG,JOY" + j2index + "_POV1_LEFT\"");
+                    ini.WriteValue(" Global ", "InputJoyRight2", "\"JOY" + j2index + "_XAXIS_POS,JOY" + j2index + "_POV1_RIGHT\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputJoyUp2");
+                    ini.Remove(" Global ", "InputJoyDown2");
+                    ini.Remove(" Global ", "InputJoyLeft2");
+                    ini.Remove(" Global ", "InputJoyRight2");
+                }
 
                 //Fighting game buttons
                 ini.WriteValue(" Global ", "InputPunch", "\"JOY" + j1index + "_BUTTON3\"");
                 ini.WriteValue(" Global ", "InputKick", "\"JOY" + j1index + "_BUTTON4\"");
                 ini.WriteValue(" Global ", "InputGuard", "\"JOY" + j1index + "_BUTTON1\"");
                 ini.WriteValue(" Global ", "InputEscape", "\"JOY" + j1index + "_BUTTON2\"");
-                ini.WriteValue(" Global ", "InputPunch2", "\"JOY" + j2index + "_BUTTON3\"");
-                ini.WriteValue(" Global ", "InputKick2", "\"JOY" + j2index + "_BUTTON4\"");
-                ini.WriteValue(" Global ", "InputGuard2", "\"JOY" + j2index + "_BUTTON1\"");
-                ini.WriteValue(" Global ", "InputEscape2", "\"JOY" + j2index + "_BUTTON2\"");
+
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputPunch2", "\"JOY" + j2index + "_BUTTON3\"");
+                    ini.WriteValue(" Global ", "InputKick2", "\"JOY" + j2index + "_BUTTON4\"");
+                    ini.WriteValue(" Global ", "InputGuard2", "\"JOY" + j2index + "_BUTTON1\"");
+                    ini.WriteValue(" Global ", "InputEscape2", "\"JOY" + j2index + "_BUTTON2\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputPunch2");
+                    ini.Remove(" Global ", "InputKick2");
+                    ini.Remove(" Global ", "InputGuard2");
+                    ini.Remove(" Global ", "InputEscape2");
+                }
 
                 //Spikeout buttons
                 ini.WriteValue(" Global ", "InputShift", "\"JOY" + j1index + "_BUTTON2,JOY" + j1index + "_BUTTON6\"");
@@ -349,9 +473,19 @@ namespace emulatorLauncher
                 ini.WriteValue(" Global ", "InputShortPass", "\"JOY" + j1index + "_BUTTON3\"");
                 ini.WriteValue(" Global ", "InputLongPass", "\"JOY" + j1index + "_BUTTON1\"");
                 ini.WriteValue(" Global ", "InputShoot", "\"JOY" + j1index + "_BUTTON2\"");
-                ini.WriteValue(" Global ", "InputShortPass2", "\"JOY" + j2index + "_BUTTON3\"");
-                ini.WriteValue(" Global ", "InputLongPass2", "\"JOY" + j2index + "_BUTTON1\"");
-                ini.WriteValue(" Global ", "InputShoot2", "\"JOY" + j2index + "_BUTTON2\"");
+
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputShortPass2", "\"JOY" + j2index + "_BUTTON3\"");
+                    ini.WriteValue(" Global ", "InputLongPass2", "\"JOY" + j2index + "_BUTTON1\"");
+                    ini.WriteValue(" Global ", "InputShoot2", "\"JOY" + j2index + "_BUTTON2\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputShortPass2");
+                    ini.Remove(" Global ", "InputLongPass2");
+                    ini.Remove(" Global ", "InputShoot2");
+                }
 
                 //Steering wheel
                 ini.WriteValue(" Global ", "InputSteeringLeft", "\"NONE\"");
@@ -484,9 +618,18 @@ namespace emulatorLauncher
                 ini.WriteValue(" Global ", "InputMagicalLeverUp2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputMagicalLeverDown2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputMagicalLever1", "\"JOY" + j1index + "_YAXIS\"");
-                ini.WriteValue(" Global ", "InputMagicalLever2", "\"JOY" + j2index + "_YAXIS\"");
                 ini.WriteValue(" Global ", "InputMagicalPedal1", "\"JOY" + j1index + "_BUTTON1\"");
-                ini.WriteValue(" Global ", "InputMagicalPedal2", "\"JOY" + j2index + "_BUTTON1\"");
+
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputMagicalLever2", "\"JOY" + j2index + "_YAXIS\"");
+                    ini.WriteValue(" Global ", "InputMagicalPedal2", "\"JOY" + j2index + "_BUTTON1\"");
+                }
+                else
+                {
+                    ini.Remove(" Global ", "InputMagicalLever2");
+                    ini.Remove(" Global ", "InputMagicalPedal2");
+                }
 
                 //Sega Bass Fishing / Get Bass controls
                 ini.WriteValue(" Global ", "InputFishingRodLeft", "\"NONE\"");
@@ -509,8 +652,11 @@ namespace emulatorLauncher
                 //deadzones
                 ini.WriteValue(" Global ", "InputJoy" + j1index + "XDeadZone", "5");
                 ini.WriteValue(" Global ", "InputJoy" + j1index + "YDeadZone", "5");
-                ini.WriteValue(" Global ", "InputJoy" + j2index + "XDeadZone", "5");
-                ini.WriteValue(" Global ", "InputJoy" + j2index + "YDeadZone", "5");
+                if (multiplayer)
+                {
+                    ini.WriteValue(" Global ", "InputJoy" + j2index + "XDeadZone", "5");
+                    ini.WriteValue(" Global ", "InputJoy" + j2index + "YDeadZone", "5");
+                }
 
                 //other stuff
                 ini.WriteValue(" Global ", "XInputConstForceThreshold", "20");
