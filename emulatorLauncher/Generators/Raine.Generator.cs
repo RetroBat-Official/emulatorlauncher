@@ -4,33 +4,11 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using System.Windows.Forms;
-using System.Drawing;
-using System.Management;
 
 namespace emulatorLauncher
 {
     class RaineGenerator : Generator
     {
-        public RaineGenerator()
-        {
-            DependsOnDesktopResolution = true;
-        }
-
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            return ret;
-        }
 
         private string _path;
         private BezelFiles _bezelFileInfo;
@@ -54,12 +32,13 @@ namespace emulatorLauncher
                 rom = Path.GetFileNameWithoutExtension(rom);
             }
 
-            SetupSettings();
-
-            if (SystemConfig["ratio"] == "ON")
+            //Applying bezels
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, _path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
+
+            SetupSettings();
 
             return new ProcessStartInfo()
             {
@@ -67,6 +46,24 @@ namespace emulatorLauncher
                 WorkingDirectory = _path,
                 Arguments = "-n -fs 1 \"" + rom + "\"",
             };
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
 
         private void SetupSettings()
@@ -104,10 +101,12 @@ namespace emulatorLauncher
                     ini.WriteValue("Display", "video_mode", "0");
                     ini.WriteValue("Display", "ogl_render", "1");
 
+                    /*
                     if (SystemConfig.isOptSet("Set_Shader") && !string.IsNullOrEmpty(SystemConfig["Set_Shader"]))
                         ini.WriteValue("Display", "ogl_shader", _path + "\\" + SystemConfig["Set_Shader"]);
                     else
                         ini.WriteValue("Display", "ogl_shader", "None");
+                    */
 
                     if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                         ini.WriteValue("Display", "fix_aspect_ratio", SystemConfig["ratio"]);
