@@ -168,6 +168,8 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
+                    CreateControllerConfiguration(ini);
+
                     string biosPath = AppConfig.GetFullPath("bios");
                     string cheatsPath = AppConfig.GetFullPath("cheats");
                     if (!string.IsNullOrEmpty(biosPath))
