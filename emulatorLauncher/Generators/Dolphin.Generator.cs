@@ -115,7 +115,7 @@ namespace emulatorLauncher
             SetupGeneralConfig(path, system, emulator, rom);
             SetupGfxConfig(path);
 
-            DolphinControllers.WriteControllersConfig(path, system, rom);
+            DolphinControllers.WriteControllersConfig(path, system, rom, _triforce);
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
