@@ -2575,9 +2575,11 @@ namespace emulatorLauncher.libRetro
 
             SetupLightGuns(retroarchConfig, "4");
 
-            // Disable keyboard for player 2 in case of guns and 1 joystick connected (as this generate a conflict on ENTER key)
-            if (Program.Controllers[1].IsKeyboard && (SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "4" ) && SystemConfig["flycast_controller2"] != "4")
-                retroarchConfig["input_libretro_device_p2"] = "0";
+            // Disable "enter" for player 2 in case of guns and 1 joystick connected (as this generate a conflict on ENTER key between player 2 and gun action)
+            if (Program.Controllers[1].IsKeyboard && (SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "4") && SystemConfig["flycast_controller2"] != "4")
+            {
+                retroarchConfig["input_player2_start"] = "";
+            }
         }
 
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
