@@ -181,9 +181,7 @@ namespace emulatorLauncher
                     ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
 
                     // internal resolution
-                    if (SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
-                        ini.WriteValue("Settings", "InternalResolution", SystemConfig["internalresolution"]);
-                    else if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
+                    if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
                         ini.WriteValue("Settings", "InternalResolution", SystemConfig["internal_resolution"]);
                     else
                         ini.WriteValue("Settings", "InternalResolution", "0");
@@ -319,6 +317,9 @@ namespace emulatorLauncher
                         else
                             ini.WriteValue("Enhancements", "ForceFiltering", "False");
                     }
+
+                    // Shaders
+                    BindIniFeature(ini, "Enhancements", "PostProcessingShader", "dolphin_shaders", "(off)");
 
                 }
             }
@@ -497,7 +498,7 @@ namespace emulatorLauncher
                         ini.WriteValue("Core", "GFXBackend", "Vulkan");
 
                     // Cheats - default false
-                    if (SystemConfig.isOptSet("enable_cheats"))
+                    if (!_triforce && SystemConfig.isOptSet("enable_cheats"))
                     {
                         if (SystemConfig.getOptBoolean("enable_cheats"))
                             ini.WriteValue("Core", "EnableCheats", "True");
@@ -530,12 +531,12 @@ namespace emulatorLauncher
                     bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
                     
                     // wiimote scanning
-                    if (emulatedWiiMote || system == "gamecube")
+                    if (emulatedWiiMote || system == "gamecube" || _triforce)
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "False");
                     else
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
 
-                    // Write texture paths (not necessary for triforce)
+                    // Write texture paths
                     if (!_triforce)
                     {
                         string savesPath = AppConfig.GetFullPath("saves");
@@ -549,14 +550,16 @@ namespace emulatorLauncher
                     // Add rom path to isopath
                     AddPathToIsoPath(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
 
-                    // Triforce specifics AM-baseboard in SID devices
+                    // Triforce specifics (AM-baseboard in SID devices, panic handlers)
                     if (_triforce)
                     {
-                        ini.WriteValue("Core", "SerialPort1", "6");                        
-                        ini.WriteValue("Core", "SIDevice0", "11");
-                        ini.WriteValue("Core", "SIDevice1", "0");
+                        ini.WriteValue("Core", "SerialPort1", "6");                     // AM Baseboard
+                        ini.WriteValue("Core", "SIDevice0", "11");                      // AM Baseboard player 1
+                        ini.WriteValue("Core", "SIDevice1", "11");                      // AM Baseboard player 2
                         ini.WriteValue("Core", "SIDevice2", "0");
                         ini.WriteValue("Core", "SIDevice3", "0");
+                        ini.WriteValue("Interface", "UsePanicHandlers", "False");       // Disable panic handlers
+                        ini.WriteValue("Core", "EnableCheats", "True");                 // Cheats must be enabled
                     }
 
                     // Set SID devices (controllers)
