@@ -165,7 +165,7 @@ namespace emulatorLauncher.libRetro
                 { "pascal_pong", "PascalPong" },
                 { "pcem", "PCem" },
                 { "pcsx1", "PCSX1" },
-                { "pcsx2", "PCSX2" },
+                { "pcsx2", "LRPS2 (alpha)" },
                 { "pcsx_rearmed_interpreter", "PCSX ReARMed [Interpreter]" },
                 { "pcsx_rearmed", "PCSX-ReARMed" },
                 { "pcsx_rearmed_neon", "PCSX ReARMed [NEON]" },
@@ -343,6 +343,7 @@ namespace emulatorLauncher.libRetro
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigureParallelN64(retroarchConfig, coreSettings, system, core);
+            ConfigurePcsx2(retroarchConfig, coreSettings, system, core);
             ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
@@ -2613,6 +2614,12 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "mesen_controller2", "1");
 
             SetupLightGuns(retroarchConfig, "262", 2);
+        }
+
+        private void ConfigurePcsx2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "pcsx2")
+                return;
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
