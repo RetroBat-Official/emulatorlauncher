@@ -444,9 +444,10 @@ namespace emulatorLauncher
             else
                 retList.Add("winhybrid");
 
-            if (SystemConfig.isOptSet("mame_ctrlr_profile") && SystemConfig["mame_ctrlr_profile"] != "none")
+            if (SystemConfig.isOptSet("mame_ctrlr_profile") && SystemConfig["mame_ctrlr_profile"] != "none" && SystemConfig["mame_ctrlr_profile"] != "retrobat_auto")
             {
                 string ctrlrProfile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg");
+
                 if (File.Exists(ctrlrProfile) && SystemConfig["mame_ctrlr_profile"] != "per_game")
                 {
                     retList.Add("-ctrlr");
@@ -461,6 +462,15 @@ namespace emulatorLauncher
                         retList.Add("-ctrlr");
                         retList.Add(romName);
                     }
+                }
+            }
+            
+            else if (!SystemConfig.isOptSet("mame_ctrlr_profile") || SystemConfig["mame_ctrlr_profile"] != "retrobat_auto")
+            {
+                if (ConfigureMameControllers(ctrlrPath))
+                {
+                    retList.Add("-ctrlr");
+                    retList.Add("retrobat_auto");
                 }
             }
 
