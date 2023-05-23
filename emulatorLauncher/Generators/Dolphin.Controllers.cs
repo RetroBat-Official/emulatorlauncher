@@ -22,13 +22,13 @@ namespace emulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        public static bool WriteControllersConfig(string path, string system, string rom)
+        public static bool WriteControllersConfig(string path, string system, string rom, bool triforce)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
 
             UpdateSdlControllersWithHints();
-            
+
             if (system == "wii")
             {
                 if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"))
@@ -42,6 +42,9 @@ namespace emulatorLauncher
 
                 generateControllerConfig_gamecube(path, rom, gamecubeWiiMapping);
             }
+            // Special mapping for triforce games to remove Z button from R1 (as this is used to access service menu and will be mapped to R3+L3)
+            else if (triforce)
+                generateControllerConfig_gamecube(path, rom, triforceMapping, triforce);
             else
                 generateControllerConfig_gamecube(path, rom, gamecubeMapping);
             return true;            
@@ -68,6 +71,28 @@ namespace emulatorLauncher
             { InputKey.joystick1up,     "Main Stick/Up" }, 
             { InputKey.joystick1left,   "Main Stick/Left" },
             { InputKey.joystick2up,     "C-Stick/Up" },    
+            { InputKey.joystick2left,   "C-Stick/Left"},
+            { InputKey.hotkey,          "Buttons/Hotkey" },
+        };
+
+        static InputKeyMapping triforceMapping = new InputKeyMapping()
+        {
+            { InputKey.l2,              "Triggers/L-Analog" },
+            { InputKey.r2,              "Triggers/R-Analog"},
+            { InputKey.y,               "Buttons/Y" },
+            { InputKey.b,               "Buttons/B" },
+            { InputKey.x,               "Buttons/X" },
+            { InputKey.a,               "Buttons/A" },
+            { InputKey.start,           "Buttons/Start" },
+            { InputKey.l2,              "Triggers/L" },
+            { InputKey.r2,              "Triggers/R" },
+            { InputKey.up,              "D-Pad/Up" },
+            { InputKey.down,            "D-Pad/Down" },
+            { InputKey.left,            "D-Pad/Left" },
+            { InputKey.right,           "D-Pad/Right" },
+            { InputKey.joystick1up,     "Main Stick/Up" },
+            { InputKey.joystick1left,   "Main Stick/Left" },
+            { InputKey.joystick2up,     "C-Stick/Up" },
             { InputKey.joystick2left,   "C-Stick/Left"},
             { InputKey.hotkey,          "Buttons/Hotkey" },
         };
@@ -263,12 +288,12 @@ namespace emulatorLauncher
                 wiiMapping[InputKey.joystick2left] = "Classic/Right Stick/Left";
             }
 
-            generateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, extraOptions);
+            generateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, false, extraOptions);
         }
 
-        private static void generateControllerConfig_gamecube(string path, string rom, InputKeyMapping anyMapping)
+        private static void generateControllerConfig_gamecube(string path, string rom, InputKeyMapping anyMapping, bool triforce = false)
         {
-            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, gamecubeReverseAxes, gamecubeReplacements);        
+            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, gamecubeReverseAxes, gamecubeReplacements, triforce);        
         }
 
         static Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()
@@ -315,7 +340,7 @@ namespace emulatorLauncher
             }
         }
 
-        private static void generateControllerConfig_any(string path, string filename, string anyDefKey, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> anyReplacements, Dictionary<string, string> extraOptions = null)
+        private static void generateControllerConfig_any(string path, string filename, string anyDefKey, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> anyReplacements, bool triforce = false, Dictionary<string, string> extraOptions = null)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", filename);
@@ -422,6 +447,11 @@ namespace emulatorLauncher
                                 if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }
+
+                            // Z button is used to access test menu, do not map it with R1
+                            if (triforce)
+                                ini.WriteValue(gcpad, "Buttons/Z", "`Thumb L`&`Thumb R`");
+
                         }
                         else // SDL
                         {
@@ -466,6 +496,10 @@ namespace emulatorLauncher
                                 if (anyReverseAxes.TryGetValue(value, out reverseAxis))
                                     ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
                             }
+
+                            // Z button is used to access test menu, do not map it with R1
+                            if (triforce)
+                                ini.WriteValue(gcpad, "Buttons/Z", "@(`Button 7`+`Button 8`)");
                         }
                     }
 

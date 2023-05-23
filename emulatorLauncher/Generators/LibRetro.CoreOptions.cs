@@ -165,7 +165,7 @@ namespace emulatorLauncher.libRetro
                 { "pascal_pong", "PascalPong" },
                 { "pcem", "PCem" },
                 { "pcsx1", "PCSX1" },
-                { "pcsx2", "PCSX2" },
+                { "pcsx2", "LRPS2 (alpha)" },
                 { "pcsx_rearmed_interpreter", "PCSX ReARMed [Interpreter]" },
                 { "pcsx_rearmed", "PCSX-ReARMed" },
                 { "pcsx_rearmed_neon", "PCSX ReARMed [NEON]" },
@@ -343,6 +343,7 @@ namespace emulatorLauncher.libRetro
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigureParallelN64(retroarchConfig, coreSettings, system, core);
+            ConfigurePcsx2(retroarchConfig, coreSettings, system, core);
             ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
@@ -2514,6 +2515,7 @@ namespace emulatorLauncher.libRetro
                 return;
 
             coreSettings["reicast_system"] = "auto";
+            coreSettings["reicast_show_lightgun_settings"] = "enabled";
             coreSettings["reicast_threaded_rendering"] = "enabled";
             coreSettings["reicast_enable_purupuru"] = "enabled"; // Enable controller force feedback
 
@@ -2569,10 +2571,16 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "flycast_controller2", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p3", "flycast_controller3", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p4", "flycast_controller4", "1");
-            BindFeature(retroarchConfig, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
-            BindFeature(retroarchConfig, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
+            BindFeature(coreSettings, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
+            BindFeature(coreSettings, "reicast_lightgun2_crosshair", "reicast_lightgun2_crosshair", "disabled");
 
             SetupLightGuns(retroarchConfig, "4");
+
+            // Disable "enter" for player 2 in case of guns and 1 joystick connected (as this generate a conflict on ENTER key between player 2 and gun action)
+            if (Program.Controllers[1].IsKeyboard && (SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "4") && SystemConfig["flycast_controller2"] != "4")
+            {
+                retroarchConfig["input_player2_start"] = "";
+            }
         }
 
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2606,6 +2614,12 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "mesen_controller2", "1");
 
             SetupLightGuns(retroarchConfig, "262", 2);
+        }
+
+        private void ConfigurePcsx2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "pcsx2")
+                return;
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2734,16 +2748,23 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_psx_hw_widescreen_hack_aspect_ratio", "widescreen_hack_aspect_ratio", "16:9");
             BindFeature(coreSettings, "beetle_psx_hw_pal_video_timing_override", "pal_video_timing_override", "disabled");
             BindFeature(coreSettings, "beetle_psx_hw_skip_bios", "skip_bios", "enabled");
-
-            // NEW
-            BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun", true);
-            BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross", true);
+            BindFeature(coreSettings, "beetle_psx_hw_renderer", "mednafen_psx_renderer", "hardware");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "psxcontroller2", "1");
+            BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun");
+            BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross");
 
-            SetupLightGuns(retroarchConfig, "260");
+            // If lightgun is enabled, renderer must be changed to software
+            if (SystemConfig.getOptBoolean("use_guns") || SystemConfig["psxcontroller1"] == "260")
+            {
+                coreSettings["beetle_psx_hw_renderer"] = "software";
+            }
+
+            SetupLightGuns(retroarchConfig, "260", 1);
+
+            
         }
 
         private void Configurevice(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2809,17 +2830,18 @@ namespace emulatorLauncher.libRetro
             if (core != "swanstation")
                 return;
 
-            BindFeature(coreSettings, "duckstation_Console.Region", "swanstation_region", "Auto");
-            BindFeature(coreSettings, "duckstation_GPU.Renderer", "swanstation_GPU", "Auto");
-            BindFeature(coreSettings, "duckstation_GPU.TextureFilter", "swanstation_texturefilter", "Nearest");
-            BindFeature(coreSettings, "duckstation_Display.AspectRatio", "swanstation_aspectratio", "Auto");
-            BindFeature(coreSettings, "duckstation_Display.CropMode", "swanstation_cropmode", "Overscan");
-            BindFeature(coreSettings, "duckstation_GPU.ResolutionScale", "internal_resolution", "1");
-            BindFeature(coreSettings, "duckstation_GPU.ForceNTSCTimings", "force_ntsc_timings", "false");
-            BindFeature(coreSettings, "duckstation_GPU.WidescreenHack", "widescreen_hack", "false");
-            BindFeature(coreSettings, "duckstation_GPU.MSAA", "msaa", "1");
-            BindFeature(coreSettings, "duckstation_GPU.ScaledDithering", "scaled_dithering", "true");
-            BindFeature(coreSettings, "duckstation_GPU.TrueColor", "truecolor", "false");
+            BindFeature(coreSettings, "swanstation_Console_Region", "swanstation_region", "Auto");
+            BindFeature(coreSettings, "swanstation_GPU_Renderer", "swanstation_GPU", "Auto");
+            BindFeature(coreSettings, "swanstation_GPU_TextureFilter", "swanstation_texturefilter", "Nearest");
+            BindFeature(coreSettings, "swanstation_Display_AspectRatio", "swanstation_aspectratio", "Auto");
+            BindFeature(coreSettings, "swanstation_Display_CropMode", "swanstation_cropmode", "Overscan");
+            BindFeature(coreSettings, "swanstation_GPU_ResolutionScale", "internal_resolution", "1");
+            BindFeature(coreSettings, "swanstation_GPU_ForceNTSCTimings", "force_ntsc_timings", "false");
+            BindFeature(coreSettings, "swanstation_GPU_WidescreenHack", "widescreen_hack", "false");
+            BindFeature(coreSettings, "swanstation_GPU_MSAA", "msaa", "1");
+            BindFeature(coreSettings, "swanstation_GPU_ScaledDithering", "scaled_dithering", "true");
+            BindFeature(coreSettings, "swanstation_GPU_TrueColor", "truecolor", "false");
+            BindFeature(coreSettings, "swanstation_BIOS_PatchFastBoot", "skip_bios", "true");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
@@ -3223,11 +3245,39 @@ namespace emulatorLauncher.libRetro
 
                 var select = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.select);
                 retroarchConfig["input_player1_gun_select"] = select == null ? "nul" : LibretroControllers.GetConfigValue(select);
+
+                var aux_a = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.b);
+                retroarchConfig["input_player1_gun_aux_a"] = aux_a == null ? "nul" : LibretroControllers.GetConfigValue(aux_a);
+
+                var aux_b = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.a);
+                retroarchConfig["input_player1_gun_aux_b"] = aux_b == null ? "nul" : LibretroControllers.GetConfigValue(aux_b);
+
+                var aux_c = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.y);
+                retroarchConfig["input_player1_gun_aux_c"] = aux_c == null ? "nul" : LibretroControllers.GetConfigValue(aux_c);
+
+                var dpad_up = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.up);
+                retroarchConfig["input_player1_gun_dpad_up"] = dpad_up == null ? "nul" : LibretroControllers.GetConfigValue(dpad_up);
+
+                var dpad_down = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.down);
+                retroarchConfig["input_player1_gun_dpad_down"] = dpad_down == null ? "nul" : LibretroControllers.GetConfigValue(dpad_down);
+
+                var dpad_left = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.left);
+                retroarchConfig["input_player1_gun_dpad_left"] = dpad_left == null ? "nul" : LibretroControllers.GetConfigValue(dpad_left);
+
+                var dpad_right = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.right);
+                retroarchConfig["input_player1_gun_dpad_right"] = dpad_right == null ? "nul" : LibretroControllers.GetConfigValue(dpad_right);
             }
             else
             {
                 retroarchConfig["input_player1_gun_start"] = "enter";
                 retroarchConfig["input_player1_gun_select"] = "space";
+                retroarchConfig["input_player1_gun_aux_a"] = "w";
+                retroarchConfig["input_player1_gun_aux_b"] = "x";
+                retroarchConfig["input_player1_gun_aux_c"] = "s";
+                retroarchConfig["input_player1_gun_dpad_up"] = "up";
+                retroarchConfig["input_player1_gun_dpad_down"] = "down";
+                retroarchConfig["input_player1_gun_dpad_left"] = "left";
+                retroarchConfig["input_player1_gun_dpad_right"] = "right";
             }
         }
 

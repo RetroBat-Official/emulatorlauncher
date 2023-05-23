@@ -44,7 +44,8 @@ namespace emulatorLauncher.libRetro
             retroarchConfig["notification_show_remap_load"] = "false";
             retroarchConfig["driver_switch_enable"] = "true";
             retroarchConfig["input_driver"] = "dinput";
-            
+            retroarchConfig["pause_on_disconnect"] = "true";
+
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
             retroarchConfig["rgui_browser_directory"] = AppConfig.GetFullPath("roms") ?? "default";
@@ -326,7 +327,7 @@ namespace emulatorLauncher.libRetro
             ConfigureRetroachievements(retroarchConfig);
             ConfigureNetPlay(retroarchConfig);
             ConfigureAIService(retroarchConfig);
-            ConfigureRunahead(system, retroarchConfig);
+            ConfigureRunahead(system, core, retroarchConfig);
             ConfigureCoreOptions(retroarchConfig, system, core);
             ConfigureBezels(retroarchConfig, system, rom, resolution);
             
@@ -348,26 +349,34 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
         }
 
-        private void ConfigureRunahead(string system, ConfigFile retroarchConfig)
+        private void ConfigureRunahead(string system, string core, ConfigFile retroarchConfig)
         {
-            // if (!Features.IsSupported("runahead"))
-            //    return;
+            if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToInteger() > 0 && SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames") && !coreNoPreemptiveFrames.Contains(core))
+            {
+                retroarchConfig["run_ahead_enabled"] = "false";
+                retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"];
+                retroarchConfig["run_ahead_secondary_instance"] = "false";
+                retroarchConfig["preemptive_frames_enable"] = "true";
+            }
 
-            if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToInteger() > 0 && !systemNoRunahead.Contains(system))
+            else if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToInteger() > 0 && !systemNoRunahead.Contains(system))
             {
                 retroarchConfig["run_ahead_enabled"] = "true";
                 retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"];
+                retroarchConfig["preemptive_frames_enable"] = "false";
 
                 if (SystemConfig.isOptSet("secondinstance") && SystemConfig.getOptBoolean("secondinstance"))
                     retroarchConfig["run_ahead_secondary_instance"] = "true";
                 else
                     retroarchConfig["run_ahead_secondary_instance"] = "false";
             }
+
             else
             {
                 retroarchConfig["run_ahead_enabled"] = "false";
                 retroarchConfig["run_ahead_frames"] = "0";
                 retroarchConfig["run_ahead_secondary_instance"] = "false";
+                retroarchConfig["preemptive_frames_enable"] = "false";
             }
         }
 
@@ -1331,6 +1340,7 @@ namespace emulatorLauncher.libRetro
         static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "mame", "hbmame", "fbneo", "dos", "scummvm" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn" };
         static List<string> systemGameFocus = new List<string>() { "dos", "amiga1200", "amiga4000", "amiga500", "amstradcpc", "bbcmicro", "camplynx", "fm7", "fmtowns", "ti99", "archimedes", "adam", "atom", "apple2", "atari800", "oricatmos", "thomson", "tutor", "coco" };
+        static List<string> coreNoPreemptiveFrames = new List<string>() { "2048", "4do", "81", "atari800", "bluemsx", "bsnes", "bsnes_hd_beta", "cannonball", "cap32", "citra", "craft", "crocods", "desmume", "desmume2015", "dolphin", "dosbox_pure", "easyrpg", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "flycast", "frodo", "gw", "handy", "hatari", "imageviewer", "kronos", "lutro", "mame2000", "mame2003", "mame2003_plus", "mame2003_midway", "mame2010", "mame2014", "mame2016", "mednafen_psx_hw", "mednafen_snes", "mupen64plus_next", "nekop2", "nestopia", "np2kai", "nxengine", "o2em", "opera", "parallel_n64", "pcsx2", "ppsspp", "prboom", "prosystem", "puae", "px68k", "race", "retro8", "sameduck", "same_cdi", "scummvm", "swanstation", "theodore", "tic80", "tyrquake", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vecx", "virtualjaguar" };
 
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
