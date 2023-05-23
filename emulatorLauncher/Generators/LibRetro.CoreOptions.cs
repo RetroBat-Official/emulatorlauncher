@@ -3247,6 +3247,18 @@ namespace emulatorLauncher.libRetro
 
                 var aux_c = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.y);
                 retroarchConfig["input_player1_gun_aux_c"] = aux_c == null ? "nul" : LibretroControllers.GetConfigValue(aux_c);
+
+                var dpad_up = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.up);
+                retroarchConfig["input_player1_gun_dpad_up"] = dpad_up == null ? "nul" : LibretroControllers.GetConfigValue(dpad_up);
+
+                var dpad_down = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.down);
+                retroarchConfig["input_player1_gun_dpad_down"] = dpad_down == null ? "nul" : LibretroControllers.GetConfigValue(dpad_down);
+
+                var dpad_left = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.left);
+                retroarchConfig["input_player1_gun_dpad_left"] = dpad_left == null ? "nul" : LibretroControllers.GetConfigValue(dpad_left);
+
+                var dpad_right = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.right);
+                retroarchConfig["input_player1_gun_dpad_right"] = dpad_right == null ? "nul" : LibretroControllers.GetConfigValue(dpad_right);
             }
             else
             {
@@ -3255,6 +3267,10 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player1_gun_aux_a"] = "w";
                 retroarchConfig["input_player1_gun_aux_b"] = "x";
                 retroarchConfig["input_player1_gun_aux_c"] = "s";
+                retroarchConfig["input_player1_gun_dpad_up"] = "up";
+                retroarchConfig["input_player1_gun_dpad_down"] = "down";
+                retroarchConfig["input_player1_gun_dpad_left"] = "left";
+                retroarchConfig["input_player1_gun_dpad_right"] = "right";
             }
         }
 
