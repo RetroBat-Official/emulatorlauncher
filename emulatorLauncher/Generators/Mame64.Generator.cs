@@ -447,7 +447,8 @@ namespace emulatorLauncher
             if (SystemConfig.isOptSet("mame_ctrlr_profile") && SystemConfig["mame_ctrlr_profile"] != "none")
             {
                 string ctrlrProfile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg");
-                if (File.Exists(ctrlrProfile) && SystemConfig["mame_ctrlr_profile"] != "per_game")
+
+                if (File.Exists(ctrlrProfile) && SystemConfig["mame_ctrlr_profile"] != "per_game" && SystemConfig["mame_ctrlr_profile"] != "retrobat_auto")
                 {
                     retList.Add("-ctrlr");
                     retList.Add(SystemConfig["mame_ctrlr_profile"]);
@@ -461,6 +462,11 @@ namespace emulatorLauncher
                         retList.Add("-ctrlr");
                         retList.Add(romName);
                     }
+                }
+                else if(ConfigureMameControllers(ctrlrPath))
+                {
+                    retList.Add("-ctrlr");
+                    retList.Add("retrobat_auto.cfg");
                 }
             }
 

@@ -19,7 +19,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\EmulationStation\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\RetroBat\emulationstation\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -155,6 +155,9 @@
     </Compile>
     <Compile Include="Generators\Mame64.Generator.cs" />
     <Compile Include="Generators\Mame64.Bezels.cs">
+      <DependentUpon>Mame64.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Mame64.Controllers.cs">
       <DependentUpon>Mame64.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Daphne.Generator.cs" />
