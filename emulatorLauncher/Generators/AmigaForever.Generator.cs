@@ -15,6 +15,11 @@ namespace emulatorLauncher
 
             string exe = Path.Combine(path, "AmigaForever.exe");
             if (!File.Exists(exe))
+            {
+                path = Path.Combine(Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%"), "Cloanto", "Amiga Forever");
+                exe = Path.Combine(path, "AmigaForever.exe");
+            }
+            if (!File.Exists(exe))
                 return null;
 
             return new ProcessStartInfo()
