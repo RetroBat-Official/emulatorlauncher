@@ -61,15 +61,15 @@ namespace emulatorLauncher
             }
 
             // Allow fake decorations if ratio is set to 4/3, otherwise disable bezels
-            if (SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] != "1")
+            if (SystemConfig.isOptSet("demul_ratio") && SystemConfig["demul_ratio"] != "1")
                 SystemConfig["bezel"] = "none";
 
             var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
             _isUsingReshader = ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x86, system, rom, path, resolution, bezels != null);
             if (_isUsingReshader)
             {
-                if (bezels != null) 
-                    SystemConfig["ratio"] = "0"; // Force stretch mode if bezel is used
+                if (bezels != null)
+                    SystemConfig["demul_ratio"] = "0"; // Force stretch mode if bezel is used
             }
             else 
             {
@@ -285,7 +285,7 @@ namespace emulatorLauncher
 
                     if (SystemConfig.isOptSet("smooth"))
                         ini.WriteValue("main", "bilinearfb", SystemConfig.getOptBoolean("smooth") ? "true" : "false");
-                    else if (Features.IsSupported("ratio"))
+                    else if (Features.IsSupported("smooth"))
                         ini.WriteValue("main", "bilinearfb", "true");
                 }
             }
