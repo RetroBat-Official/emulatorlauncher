@@ -252,6 +252,8 @@ namespace emulatorLauncher
         {
             base.OnLoad(e);
             SetupPad();
+
+            SplashVideo.ShutDown();
         }
 
         public void UpdateAll()

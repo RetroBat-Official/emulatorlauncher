@@ -115,6 +115,36 @@ namespace emulatorLauncher
         [DllImport("user32.dll")]
         public static extern bool SetProcessDPIAware();
 
+        static void ShowSplashVideo()
+        {
+            var loadingScreens = AppConfig.GetFullPath("loadingscreens");
+            if (string.IsNullOrEmpty(loadingScreens))
+                return;
+
+            var system = SystemConfig["system"];
+            if (string.IsNullOrEmpty(system))
+                return;
+
+            var rom = Path.GetFileNameWithoutExtension(SystemConfig["rom"]??"");
+
+            var paths = new string[] 
+            {
+                "!screens!\\!system!\\!romname!.mp4",
+                "!screens!\\!system!\\!system!.mp4",
+                "!screens!\\!system!.mp4",
+                "!screens!\\default.mp4"
+            };
+
+            var videoPath = paths
+                .Select(path => path.Replace("!screens!", loadingScreens).Replace("!system!", system).Replace("!romname!", rom))
+                .FirstOrDefault(path => File.Exists(path));
+
+            if (string.IsNullOrEmpty(videoPath))
+                return;
+
+           SplashVideo.Start(videoPath, 5000);           
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -147,8 +177,7 @@ namespace emulatorLauncher
 
             if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun"))
                 SystemConfig["use_guns"] = "true";
-
-            LoadControllerConfiguration(args);
+            
             ImportShaderOverrides();
 
             if (args.Any(a => "-extract".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
@@ -272,6 +301,21 @@ namespace emulatorLauncher
                 };
             }
 
+            Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
+            if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
+                generator = new LibRetroGenerator();
+            if (generator == null)
+                generator = generators.Where(g => g.Key == SystemConfig["system"]).Select(g => g.Value()).FirstOrDefault();
+
+            LoadControllerConfiguration(args);
+
+            if (generator != null)
+            {
+                ShowSplashVideo();
+                //System.Threading.Thread.Sleep(5000);
+                //return;
+            }
+
             // Check if installed. Download & Install it if necessary.
             Installer installer = Installer.GetInstaller();
             if (installer != null)
@@ -285,12 +329,6 @@ namespace emulatorLauncher
                 }
             }
             
-            Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
-            if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
-                generator = new LibRetroGenerator();
-            if (generator == null)
-                generator = generators.Where(g => g.Key == SystemConfig["system"]).Select(g => g.Value()).FirstOrDefault();
-
             if (generator != null)
             {
                 SimpleLogger.Instance.Info("[Generator] Using " + generator.GetType().Name);
