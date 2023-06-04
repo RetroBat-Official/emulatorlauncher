@@ -88,21 +88,21 @@ namespace emulatorLauncher
                             new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
                         }),
 
-                // Camputers LYNX
+                // Camputers LYNX "mload\\\"\\\"\\n" (MLOAD"gamename")
                 new MessSystem("camplynx"     ,"lynx48k"  , new MessRomType[]
                         {
-                            new MessRomType("cass", new string[] { "wav", "tap" }, "mload\\\"\\\"\\n")
+                            new MessRomType("cass", new string[] { "wav", "tap" })
                         }),
 
                 new MessSystem("lynx96k"     ,"lynx96k"  , new MessRomType[]
                         {
-                            new MessRomType("cass", new string[] { "wav", "tap" }, "mload\\\"\\\"\\n"),
+                            new MessRomType("cass", new string[] { "wav", "tap" }),
                             new MessRomType("flop1" )
                         }),
 
                 new MessSystem("lynx128k"     ,"lynx128k"  , new MessRomType[]
                         {
-                            new MessRomType("cass", new string[] { "wav", "tap" }, "mload\\\"\\\"\\n"),
+                            new MessRomType("cass", new string[] { "wav", "tap" }),
                             new MessRomType("flop1" )
                         }),
 
