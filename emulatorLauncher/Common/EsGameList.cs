@@ -472,7 +472,7 @@ namespace emulatorLauncher.Tools
         [XmlElement("publisher")]
         public string Publisher { get; set; }
 
-        [XmlElement("Genre")]
+        [XmlElement("genre")]
         public string Genre { get; set; }
 
         [XmlElement("releasedate")]
