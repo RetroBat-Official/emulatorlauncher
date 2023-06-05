@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using emulatorLauncher;
 using emulatorLauncher.Tools;
+using System.Xml.Linq;
 
 namespace emulatorLauncher
 {
@@ -523,7 +524,7 @@ namespace emulatorLauncher
             return path;
         }
         
-        public List<string> GetMameCommandLineArguments(string system, string rom, bool injectCfgDirectory = true)
+        public List<string> GetMameCommandLineArguments(string system, string rom, bool injectCfgDirectory = true, string emulator = "libretro")
         {
             List<string> commandArray = new List<string>();
 
@@ -663,6 +664,37 @@ namespace emulatorLauncher
             var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
             if (autoRunCommand != null)
                 commandArray.AddRange(autoRunCommand.Arguments);
+
+            //Specific autostart for Camputers lynx based on hashfile (for now only for MAME standalone)
+            if (emulator == "mame64" && system == "camplynx" && SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
+            {
+                string hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", SystemConfig["force_softlist"] + ".xml");
+                if (File.Exists(hashfile))
+                {
+                    var romname = Path.GetFileNameWithoutExtension(rom);
+
+                    XDocument doc = XDocument.Load(hashfile);
+                    string idToFind = romname;
+                    XElement selectedElement = doc.Descendants()
+                            .Where(x => (string)x.Attribute("name") == idToFind).FirstOrDefault();
+                    
+                    if (selectedElement != null)
+                    {
+                        XElement commandElement = selectedElement.Descendants()
+                            .Where(x => (string)x.Attribute("name") == "usage").FirstOrDefault();
+
+                        if (commandElement != null)
+                        {
+                            string command = commandElement.Attribute("value").Value + "\\n";
+                            command = command.Replace("\"", "\\\"");
+                            commandArray.Add("-autoboot_delay");
+                            commandArray.Add("3");
+                            commandArray.Add("-autoboot_command");
+                            commandArray.Add(command);
+                        }   
+                    }
+                }
+            }
 
             // Additional disks if required
             if (SystemConfig.isOptSet("addblankdisk") && !string.IsNullOrEmpty(SystemConfig["addblankdisk"]))
