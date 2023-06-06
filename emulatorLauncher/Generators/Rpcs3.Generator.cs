@@ -248,6 +248,7 @@ namespace emulatorLauncher
             // Handle Miscellaneous part of yml file
             var misc = yml.GetOrCreateContainer("Miscellaneous");
             BindFeature(misc, "Start games in fullscreen mode", "startfullscreen", "true");
+            BindFeature(misc, "Show trophy popups", "show_trophy", "true");
             misc["Automatically start games after boot"] = "true";
             misc["Exit RPCS3 when process finishes"] = "true";
             misc["Prevent display sleep while running games"] = "true";
