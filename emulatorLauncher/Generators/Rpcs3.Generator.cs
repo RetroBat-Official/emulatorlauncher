@@ -166,6 +166,7 @@ namespace emulatorLauncher
             BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
             BindFeature(video, "Shader Precision", "shader_quality", "Auto");
             BindFeature(video, "Driver Wake-Up Delay", "driver_wake", "1");
+            BindBoolFeature(video, "Force CPU Blit", "cpu_blit", "true", "false");
 
             // ZCULL Accuracy
             if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))
