@@ -247,7 +247,7 @@ namespace emulatorLauncher.libRetro
                 { "vitaquake2-rogue", "vitaQuake 2 [Rogue]" },
                 { "vitaquake2-xatrix", "vitaQuake 2 [Xatrix]" },
                 { "vitaquake2-zaero", "vitaQuake 2 [Zaero]" },
-                { "vitaquake2", "vitaQuake 2" },
+                { "vitaquake2", "vitaQuakeII" },
                 { "vitaquake3", "vitaQuake 3" },
                 { "vitavoyager", "vitaVoyager" },
                 { "wasm4", "WASM-4" },
@@ -368,6 +368,7 @@ namespace emulatorLauncher.libRetro
             ConfigureVecx(retroarchConfig, coreSettings, system, core);
             Configurevice(retroarchConfig, coreSettings, system, core);
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
+            ConfigureVitaquake2 (retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
@@ -3144,6 +3145,31 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "tyrquake_invert_y_axis", "quake_invert_y_axis", "disabled");
             BindFeature(coreSettings, "tyrquake_rumble", "quake_rumble", "disabled");
             BindFeature(coreSettings, "tyrquake_resolution", "quake_resolution", "320x200");
+        }
+
+        private void ConfigureVitaquake2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "vitaquake2")
+                return;
+
+            // Video settings
+            BindFeature(coreSettings, "vitaquakeii_resolution", "vitaquakeii_resolution", "960x544");
+            BindFeature(coreSettings, "vitaquakeii_renderer", "vitaquakeii_renderer", "opengl");
+            BindFeature(coreSettings, "vitaquakeii_gl_shadows", "vitaquakeii_gl_shadows", "disabled");
+            BindFeature(coreSettings, "vitaquakeii_gl_texture_filtering", "vitaquakeii_gl_texture_filtering", "nearest_hq");
+            BindFeature(coreSettings, "vitaquakeii_hand", "vitaquakeii_hand", "right");
+            BindFeature(coreSettings, "vitaquakeii_xhair", "vitaquakeii_xhair", "cross");
+
+            // user interface
+            BindFeature(coreSettings, "vitaquakeii_fps", "vitaquakeii_fps", "disabled");
+
+            // Controls
+            BindFeature(coreSettings, "vitaquakeii_invert_y_axis", "vitaquakeii_invert_y_axis", "enabled");
+            BindFeature(coreSettings, "vitaquakeii_analog_deadzone", "vitaquakeii_analog_deadzone", "15");
+            BindFeature(coreSettings, "vitaquakeii_rumble", "vitaquakeii_rumble", "disabled");
+            BindFeature(coreSettings, "vitaquakeii_aimfix", "vitaquakeii_aimfix", "disabled");
+            BindFeature(coreSettings, "vitaquakeii_mouse_sensitivity", "vitaquakeii_mouse_sensitivity", "3.0");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "quake2_device_type", "1");
         }
 
         private void ConfigureVecx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
