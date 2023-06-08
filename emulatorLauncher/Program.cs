@@ -95,6 +95,7 @@ namespace emulatorLauncher
             { "bigpemu", () => new BigPEmuGenerator() },
             { "phoenix", () => new PhoenixGenerator() },
             { "openmsx", () => new OpenMSXGenerator() },
+            { "ssf", () => new SSFGenerator() },
             { "zinc", () => new ZincGenerator() }
         };
 
