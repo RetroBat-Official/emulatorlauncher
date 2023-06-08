@@ -83,8 +83,10 @@ namespace emulatorLauncher
             cfgFile["XSize"] = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString();
             cfgFile["YSize"] = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString();
             cfgFile["FullScreen"] = "1";
-            BindFeature(cfgFile, "ShowFPS", "zinc_fps", "0");
+            
             BindFeature(cfgFile, "ColorDepth", "zinc_colordepth", "32");
+            BindFeature(cfgFile, "ScanLines", "zinc_scanlines", "0");
+            BindFeature(cfgFile, "ShowFPS", "zinc_fps", "0");
 
             cfgFile.Save(cfg, false);
         }
