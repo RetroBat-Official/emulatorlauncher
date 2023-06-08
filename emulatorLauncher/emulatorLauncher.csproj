@@ -216,6 +216,7 @@
     <Compile Include="Generators\OpenMSX.Controllers.cs">
       <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Zinc.Generator.cs" />
     <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
