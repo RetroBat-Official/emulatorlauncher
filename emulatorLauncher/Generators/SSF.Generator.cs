@@ -84,6 +84,18 @@ namespace emulatorLauncher
                     ini.WriteValue("Screen", "VSynchWaitWindow", "\"" + "1" + "\"");
                 }
 
+                if (SystemConfig.isOptSet("ssf_scanlines") && SystemConfig.getOptBoolean("ssf_scanlines"))
+                {
+                    ini.WriteValue("Screen", "DisableFullscreenScanline", "\"" + "0" + "\"");
+                    ini.WriteValue("Screen", "Scanline", "\"" + "1" + "\"");
+                    ini.WriteValue("Screen", "ScanlineRatio", "\"" + "70" + "\"");
+                }
+                else
+                {
+                    ini.WriteValue("Screen", "DisableFullscreenScanline", "\"" + "1" + "\"");
+                    ini.WriteValue("Screen", "Scanline", "\"" + "0" + "\"");
+                }
+
                 BindBoolIniFeature(ini, "Screen", "WideScreen", "saturn_widescreen", "\"" + "1" + "\"", "\"" + "0" + "\"");
             }
         }
