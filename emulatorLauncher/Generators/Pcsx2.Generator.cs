@@ -124,6 +124,18 @@ namespace emulatorLauncher
                 commandArray.Add("-batch");
                 commandArray.Add("-nogui");
 
+                if (SystemConfig.isOptSet("pcsx2_startbios") && SystemConfig.getOptBoolean("pcsx2_startbios"))
+                {
+                    commandArray.Add("-bios");
+                    string argsBios = string.Join(" ", commandArray);
+                    return new ProcessStartInfo()
+                    {
+                        FileName = exe,
+                        WorkingDirectory = _path,
+                        Arguments = argsBios,
+                    };
+                }
+
                 if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
                 {
                     if (!SystemConfig.getOptBoolean("disable_fullscreen"))
