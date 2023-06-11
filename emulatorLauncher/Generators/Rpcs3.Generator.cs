@@ -167,6 +167,7 @@ namespace emulatorLauncher
             BindFeature(video, "Shader Precision", "shader_quality", "Auto");
             BindFeature(video, "Driver Wake-Up Delay", "driver_wake", "1");
             BindBoolFeature(video, "Force CPU Blit", "cpu_blit", "true", "false");
+            BindBoolFeature(video, "Disable ZCull Occlusion Queries", "disable_zcull_queries", "true", "false");
 
             // ZCULL Accuracy
             if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))

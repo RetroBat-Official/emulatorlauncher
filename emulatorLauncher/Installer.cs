@@ -74,7 +74,9 @@ namespace emulatorLauncher
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) },
             { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
             { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") },
-            { new Installer("openmsx", "openmsx", "openmsx.exe") }
+            { new Installer("openmsx", "openmsx", "openmsx.exe") },
+            { new Installer("ssf", "ssf", "SSF.exe") },
+            { new Installer("zinc", "zinc", "ZiNc.exe") }
         };
 
         #region Properties

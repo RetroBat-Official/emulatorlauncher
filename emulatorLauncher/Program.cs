@@ -94,7 +94,9 @@ namespace emulatorLauncher
             { "zaccariapinball", () => new ZaccariaPinballGenerator() },
             { "bigpemu", () => new BigPEmuGenerator() },
             { "phoenix", () => new PhoenixGenerator() },
-            { "openmsx", () => new OpenMSXGenerator() }
+            { "openmsx", () => new OpenMSXGenerator() },
+            { "ssf", () => new SSFGenerator() },
+            { "zinc", () => new ZincGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
