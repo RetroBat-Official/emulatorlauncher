@@ -769,9 +769,6 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "fba-vertical-mode", "fba_vertical_mode", "disabled");
 
-            if (SystemConfig["fba_vertical_mode"] == "enabled")
-                SystemConfig["bezel"] = "none";
-
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "fba_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "fba_controller2", "1");
@@ -783,9 +780,6 @@ namespace emulatorLauncher.libRetro
                 return;
 
             BindFeature(coreSettings, "fbneo-vertical-mode", "fba2012_vertical_mode", "disabled");
-
-            if (SystemConfig["fba2012_vertical_mode"] == "enabled")
-                SystemConfig["bezel"] = "none";
 
             // Player 1 controller
             BindFeature(retroarchConfig, "input_libretro_device_p1", "fba2012_controller1", "1");
@@ -987,9 +981,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fbneo-neogeo-mode", "fbneo-neogeo-mode", "UNIBIOS");
             BindFeature(coreSettings, "fbneo-vertical-mode", "fbneo-vertical-mode", "disabled");
             BindFeature(coreSettings, "fbneo-lightgun-hide-crosshair", "fbneo-lightgun-hide-crosshair", "disabled");
-
-            if (SystemConfig["fbneo-vertical-mode"] == "enabled")
-                SystemConfig["bezel"] = "none";
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "fbneo_controller1", "1");
@@ -1727,10 +1718,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mame2003-plus_input_interface", "mame2003-plus_input_interface", "retropad");
             BindFeature(coreSettings, "mame2003-plus_neogeo_bios", "mame2003-plus_neogeo_bios", "unibios33");
             BindFeature(coreSettings, "mame2003-plus_tate_mode", "mame2003-plus_tate_mode", "disabled");
-
-            if (SystemConfig["mame2003-plus_tate_mode"] == "enabled")
-                SystemConfig["bezel"] = "none";
-
             BindFeature(coreSettings, "mame2003-plus_four_way_emulation", "mame2003-plus_four_way_emulation", "disabled");
 
             // Controller type
@@ -2523,9 +2510,6 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "reicast_widescreen_hack", "widescreen_hack", "disabled");
             BindFeature(coreSettings, "reicast_widescreen_cheats", "widescreen_cheats", "disabled");
             BindFeature(coreSettings, "reicast_screen_rotation", "reicast_screen_rotation", "horizontal");
-
-            if (SystemConfig["reicast_screen_rotation"] == "vertical")
-                SystemConfig["bezel"] = "none";
 
             if (SystemConfig["widescreen_hack"] == "enabled")
             {
