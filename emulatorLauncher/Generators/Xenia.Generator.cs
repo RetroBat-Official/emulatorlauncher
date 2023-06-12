@@ -181,6 +181,10 @@ namespace emulatorLauncher
                         ini.AppendValue("Memory", "protect_zero", "true");
 
                     // Storage section
+                    string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia");
+                    if (Directory.Exists(contentPath))
+                        ini.AppendValue("Storage", "content_root", "\"" + contentPath.Replace("\\", "/") + "\"");
+
                     if (SystemConfig.isOptSet("mount_cache") && !string.IsNullOrEmpty(SystemConfig["mount_cache"]))
                         ini.AppendValue("Storage", "mount_cache", SystemConfig["mount_cache"]);
                     else if (Features.IsSupported("mount_cache"))
