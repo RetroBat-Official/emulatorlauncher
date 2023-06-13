@@ -111,5 +111,15 @@ namespace emulatorLauncher
 
             return ret;
         }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int exitCode = base.RunAndWait(path);
+
+            if (exitCode == 1)
+                return 0;
+
+            return exitCode;
+        }
     }
 }
