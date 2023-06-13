@@ -116,7 +116,7 @@ namespace emulatorLauncher
         {
             int exitCode = base.RunAndWait(path);
 
-            if (exitCode == 1)
+            if (exitCode == unchecked((int)0x00000001))
                 return 0;
 
             return exitCode;
