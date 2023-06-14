@@ -34,13 +34,13 @@ namespace emulatorLauncher
                 if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"))
                 {
                     generateControllerConfig_emulatedwiimotes(path, rom);
-                    //removeControllerConfig_gamecube(); // because pads will already be used as emulated wiimotes
+                    removeControllerConfig_gamecube(path, "Dolphin.ini"); // because pads will already be used as emulated wiimotes
                     return true;
                 }
                 else
                     generateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");
 
-                generateControllerConfig_gamecube(path, rom, gamecubeWiiMapping);
+                generateControllerConfig_gamecube(path, rom, gamecubeMapping);
             }
             // Special mapping for triforce games to remove Z button from R1 (as this is used to access service menu and will be mapped to R3+L3)
             else if (triforce)
@@ -652,6 +652,17 @@ namespace emulatorLauncher
                     ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt&E");
                     ini.WriteValue("Hotkeys", "General/Change Disc", "Alt&S");
                 }
+            }
+        }
+
+        private static void removeControllerConfig_gamecube(string path, string filename)
+        {
+            string iniFile = Path.Combine(path, "User", "Config", filename);
+
+            using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
+            {
+                for (int i = 0; i < 4; i++)
+                    ini.WriteValue("Core", "SIDevice" + i, "0");
             }
         }
 
