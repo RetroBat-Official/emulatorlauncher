@@ -53,12 +53,31 @@ namespace emulatorLauncher
 
             if (core == "pinballfx3-nosteam" || core == "pinballfx3-hack" || core == "hack")
             {
-                commandArray.Add("-offline");
-                commandArray.Add("-class");
-                commandArray.Add("-table_");
+                if (SystemConfig.isOptSet("pinballfx3_offline") && SystemConfig.getOptBoolean("pinballfx3_offline"))
+                    commandArray.Add("-offline");
+                
+                if (SystemConfig.isOptSet("pinballfx3_classic") && SystemConfig.getOptBoolean("pinballfx3_classic"))
+                    commandArray.Add("-class");
+
+                if (SystemConfig.isOptSet("pinballfx3_players") && SystemConfig["pinballfx3_players"] != "1")
+                    commandArray.Add("-hotseat_" + SystemConfig["pinballfx3_players"]);
             }
 
-            string _args = string.Join(" ", commandArray);
+            commandArray.Add("-table_" + Path.GetFileNameWithoutExtension(rom));
+
+            if (core == "pinballfx3-steam" || core == "steam")
+            {
+                if (SystemConfig.isOptSet("pinballfx3_offline") && SystemConfig.getOptBoolean("pinballfx3_offline"))
+                    commandArray.Add("-offline");
+
+                if (SystemConfig.isOptSet("pinballfx3_classic") && SystemConfig.getOptBoolean("pinballfx3_classic"))
+                    commandArray.Add("-class");
+
+                if (SystemConfig.isOptSet("pinballfx3_players") && SystemConfig["pinballfx3_players"] != "1")
+                    commandArray.Add("-hotseat_" + SystemConfig["pinballfx3_players"]);
+            }
+
+            string args = string.Join(" ", commandArray);
 
             var ret = new ProcessStartInfo()
             {
@@ -66,8 +85,8 @@ namespace emulatorLauncher
                 WorkingDirectory = path
             };
             
-            if (_args != null)
-                ret.Arguments = _args + Path.GetFileNameWithoutExtension(rom);
+            if (args != null)
+                ret.Arguments = args;
 
             string ext = Path.GetExtension(exe).ToLower();
             if (ext == ".bat" || ext == ".cmd")
