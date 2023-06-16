@@ -34,13 +34,13 @@ namespace emulatorLauncher
                 if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"))
                 {
                     generateControllerConfig_emulatedwiimotes(path, rom);
-                    //removeControllerConfig_gamecube(); // because pads will already be used as emulated wiimotes
+                    removeControllerConfig_gamecube(path, "Dolphin.ini"); // because pads will already be used as emulated wiimotes
                     return true;
                 }
                 else
                     generateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");
 
-                generateControllerConfig_gamecube(path, rom, gamecubeWiiMapping);
+                generateControllerConfig_gamecube(path, rom, gamecubeMapping);
             }
             // Special mapping for triforce games to remove Z button from R1 (as this is used to access service menu and will be mapped to R3+L3)
             else if (triforce)
@@ -616,11 +616,11 @@ namespace emulatorLauncher
                 if (tech == "XInput")
                 {
                     ini.WriteValue("Hotkeys", "Device", tech + "/" + "0" + "/" + deviceName);
-                    ini.WriteValue("Hotkeys", "General/Toggle Pause", "Back&`Button A`");
-                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Back&`Button B`");
+                    ini.WriteValue("Hotkeys", "General/Toggle Pause", "Back&`Button B`");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Back&`Button A`");
                     ini.WriteValue("Hotkeys", "General/Exit", "Back&Start");
-                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "Back&`Button X`");
-                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Back&`Button Y`");
+                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "Back&`Button Y`");
+                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Back&`Button X`");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "Back&`Trigger R`");
                     ini.WriteValue("Hotkeys", "General/Eject Disc", "Back&`Shoulder L`");
                     ini.WriteValue("Hotkeys", "General/Change Disc", "Back&`Shoulder R`");
@@ -628,12 +628,13 @@ namespace emulatorLauncher
 
                 else if (tech == "SDL")
                 {
+                    bool revert = c1.VendorID == USB_VENDOR.NINTENDO;
                     ini.WriteValue("Hotkeys", "Device", tech + "/" + "0" + "/" + deviceName);
-                    ini.WriteValue("Hotkeys", "General/Toggle Pause", "`Button 4`&`Button 0`");
-                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "`Button 4`&`Button 1`");
+                    ini.WriteValue("Hotkeys", "General/Toggle Pause", revert ? "`Button 4`&`Button 0`" : "`Button 4`&`Button 1`");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", revert ? "`Button 4`&`Button 1`" : "`Button 4`&`Button 0`");
                     ini.WriteValue("Hotkeys", "General/Exit", "`Button 4`&`Button 6`");
-                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "`Button 4`&`Button 2`");
-                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "`Button 4`&`Button 3`");
+                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", revert ? "`Button 4`&`Button 2`" : "`Button 4`&`Button 3`");
+                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", revert ? "`Button 4`&`Button 3`" : "`Button 4`&`Button 2`");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "`Button 4`&`Full Axis 5+`");
                     ini.WriteValue("Hotkeys", "General/Eject Disc", "`Button 4`&`Button 9`");
                     ini.WriteValue("Hotkeys", "General/Change Disc", "`Button 4`&`Button 10`");
@@ -651,6 +652,17 @@ namespace emulatorLauncher
                     ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt&E");
                     ini.WriteValue("Hotkeys", "General/Change Disc", "Alt&S");
                 }
+            }
+        }
+
+        private static void removeControllerConfig_gamecube(string path, string filename)
+        {
+            string iniFile = Path.Combine(path, "User", "Config", filename);
+
+            using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
+            {
+                for (int i = 0; i < 4; i++)
+                    ini.WriteValue("Core", "SIDevice" + i, "0");
             }
         }
 

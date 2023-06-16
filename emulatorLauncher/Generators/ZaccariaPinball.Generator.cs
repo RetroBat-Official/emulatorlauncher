@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using emulatorLauncher.PadToKeyboard;
-using System.Windows.Forms;
 using System.Threading;
 using Microsoft.Win32;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -19,43 +17,65 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private string _exename;
+        private string _corename;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
 
             List<string> commandArray = new List<string>();
 
-            string path = AppConfig.GetFullPath("steam");
-            if (string.IsNullOrEmpty(path) || (core == "zaccariapinball-nonsteam" || core == "nosteam"))
-                path = AppConfig.GetFullPath("zaccariapinball");
+            string path = null;
+            string exe = null;
+            _corename = core;
 
-            string exe = Path.Combine(path, "ZaccariaPinball.exe");
-            if (!File.Exists(exe) && (core == "zaccariapinball-steam" || core == "steam"))
-                exe = Path.Combine(path, "zaccariapinball.cmd");
-
-            if (!File.Exists(exe))
+            if (core == "steam")
             {
-                string folder = Path.GetDirectoryName(rom);
-                while (folder != null)
+                try
                 {
-                    exe = Path.Combine(folder, "ZaccariaPinball.exe");
-                    if (File.Exists(exe))
+                    using (RegistryKey key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node\\Valve\\Steam"))
                     {
-                        core = "zaccariapinball-nosteam";
-                        path = folder;
-                        break;
+                        if (key != null)
+                        {
+                            Object o = key.GetValue("InstallPath");
+                            if (o != null)
+                            {
+                                path = o as string;
+                            }
+                        }
                     }
-
-                    folder = Path.GetDirectoryName(folder);
                 }
+                catch
+                {
+                    throw new ApplicationException("Steam is not installed");
+                }
+
+                if (!Directory.Exists(path))
+                    return null;
+
+                exe = Path.Combine(path, "steam.exe");
+                if (!File.Exists(exe))
+                    return null;
+
+                commandArray.Add("-nofriendsui");
+                commandArray.Add("-silent");
+                commandArray.Add("-applaunch");
+                commandArray.Add("444930");
             }
 
-            if (!File.Exists(exe))
-                return null;
-
-            if (core == "zaccariapinball-nosteam" || core == "nosteam")
+            else if (core == "zaccariapinball-nonsteam" || core == "nosteam")
             {
-                commandArray.Add("-skipmenu");
+                path = AppConfig.GetFullPath("zaccariapinball");
+                if (!Directory.Exists(path))
+                    return null;
+                
+                exe = Path.Combine(path, "ZaccariaPinball.exe");
+                if (!File.Exists(exe))
+                    return null;
             }
+            _exename = "ZaccariaPinball";
+
+            commandArray.Add("-skipmenu");
 
             string table = "\"" + Path.GetFileNameWithoutExtension(rom) + "\"";
             commandArray.Add(table);
@@ -91,25 +111,62 @@ namespace emulatorLauncher
                 commandArray.Add("classic_arcade");
             }
 
-            string _args = string.Join(" ", commandArray);
+            string args = string.Join(" ", commandArray);
 
-            var ret = new ProcessStartInfo()
+            return new ProcessStartInfo()
             {
                 FileName = exe,
-                WorkingDirectory = path
+                WorkingDirectory = path,
+                Arguments = args,
             };
+        }
 
-            if (_args != null)
-                ret.Arguments = _args;
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
+        }
 
-            string ext = Path.GetExtension(exe).ToLower();
-            if (ext == ".bat" || ext == ".cmd")
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            if (_corename == "steam")
             {
-                ret.WindowStyle = ProcessWindowStyle.Hidden;
-                ret.UseShellExecute = true;
-            }
+                foreach (var z in Process.GetProcessesByName("ZaccariaPinball"))
+                    try 
+                    { 
+                        z.Kill();
+                        z.WaitForExit(3000);
+                    } 
+                    catch { }
 
-            return ret;
+                Process process = Process.Start(path);
+                
+                int i = 1;
+                Process[] zaccarialist = Process.GetProcessesByName("ZaccariaPinball");
+
+                while (i <= 5 && zaccarialist.Length == 0)
+                {
+                    zaccarialist = Process.GetProcessesByName("ZaccariaPinball");
+                    Thread.Sleep(4000);
+                    i++;
+                }
+
+                if (zaccarialist.Length == 0)
+                    return 0;
+                else
+                {
+                    Process zaccaria = zaccarialist.OrderBy(p => p.StartTime).FirstOrDefault();
+                    zaccaria.WaitForExit();
+                    if (SystemConfig.isOptSet("notkillsteam") && SystemConfig.getOptBoolean("notkillsteam"))
+                        return 0;
+                    else
+                        process.Kill();
+                }
+                return 0;
+            }
+            else
+                base.RunAndWait(path);
+
+            return 0;
         }
     }
 }
