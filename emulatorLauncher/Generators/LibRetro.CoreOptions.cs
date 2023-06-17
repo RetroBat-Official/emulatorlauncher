@@ -2734,6 +2734,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_psx_hw_pal_video_timing_override", "pal_video_timing_override", "disabled");
             BindFeature(coreSettings, "beetle_psx_hw_skip_bios", "skip_bios", "enabled");
             BindFeature(coreSettings, "beetle_psx_hw_renderer", "mednafen_psx_renderer", "hardware");
+            BindFeature(coreSettings, "beetle_psx_hw_gte_overclock", "beetle_psx_hw_gte_overclock", "disabled");
+            BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%(native)");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
