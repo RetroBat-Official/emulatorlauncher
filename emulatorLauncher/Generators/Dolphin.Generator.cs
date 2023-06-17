@@ -321,6 +321,9 @@ namespace emulatorLauncher
                     // Shaders
                     BindIniFeature(ini, "Enhancements", "PostProcessingShader", "dolphin_shaders", "(off)");
 
+                    // Hack vertex rounding
+                    BindBoolIniFeature(ini, "Hacks", "VertexRounding", "VertexRounding", "True", "False");
+
                 }
             }
             catch { }
