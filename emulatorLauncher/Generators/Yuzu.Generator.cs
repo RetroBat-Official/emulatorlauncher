@@ -270,6 +270,9 @@ namespace emulatorLauncher
 
                 // CPU accuracy (auto except if the user chooses otherwise)
                 BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
+
+                // ASTC Compression (non compressed by default, use medium for videocards with 6GB of VRAM and low for 2-4GB VRAM)
+                BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
             }
         }
 
