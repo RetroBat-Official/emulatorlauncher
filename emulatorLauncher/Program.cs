@@ -153,6 +153,8 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
+          //  var info = SteamAppInfoReader.FindGameInformations(444930);
+
             RegisterShellExtensions();
 
             if (args.Length == 0)
