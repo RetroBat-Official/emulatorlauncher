@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace emulatorLauncher
 {
-    class MednafenGenerator : Generator
+    partial class MednafenGenerator : Generator
     {
         public MednafenGenerator()
         {
@@ -109,6 +109,8 @@ namespace emulatorLauncher
                 cfg["filesys.path_firmware"] = biosPath;
 
             cfg[core+".enable"] = "1";
+
+            CreateControllerConfiguration(cfg, core);
 
             cfg.Save();
         }
