@@ -338,12 +338,12 @@ namespace emulatorLauncher
                         case 2: return "Y";
                         case 3: return "X";
                         case 4: return tech == "XInput" ? "LeftShoulder" : "Back";
-                        case 5: return "RightShoulder";
+                        case 5: return tech == "SDL" ? "Guide" : "RightShoulder";
                         case 6: return tech == "XInput" ? "Back" : "Start";
                         case 7: return tech == "XInput" ? "Start" : "LeftStick";
                         case 8: return tech == "XInput" ? "LeftStick" : "RightStick";
                         case 9: return tech == "XInput" ? "RightStick" : "LeftShoulder";
-                        case 10: return "RightShoulder";
+                        case 10: return tech == "XInput" ? "Guide" : "RightShoulder";
                         case 11: return "DPadUp";
                         case 12: return "DPadDown";
                         case 13: return "DPadLeft";
