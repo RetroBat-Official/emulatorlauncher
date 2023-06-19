@@ -68,6 +68,9 @@ namespace emulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
+                ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
+                ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");
+
                 if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                 {
                     ini.WriteValue("UI", "enable_discord_presence\\default", "true");
