@@ -54,6 +54,20 @@ namespace emulatorLauncher
             if (zincControllerCfgFiles.ContainsKey(romNumber) && File.Exists(controllerCfgFile) && !SystemConfig.getOptBoolean("zinc_controller_config"))
             {
                 string controllerCfgCommand = "--use-controller-cfg-file=" + "\"" + controllerCfgFile + "\"";
+                string oldControllerCfgFile = Path.Combine(path, "controller.cfg");
+                string outputFile = Path.Combine(path, "wberror.txt");
+                using (var ini = IniFile.FromFile(controllerCfgFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+                {
+                    ini.WriteValue("General", "output", outputFile);
+                    ini.Save();
+                }
+
+                if (File.Exists(oldControllerCfgFile))
+                    File.Delete(oldControllerCfgFile);
+                if (File.Exists(controllerCfgFile))
+                    File.Copy(controllerCfgFile, oldControllerCfgFile);
+
+                commandArray.Add("--controller=.\\controller.znc");
                 commandArray.Add(controllerCfgCommand);
             }
 
@@ -64,7 +78,7 @@ namespace emulatorLauncher
             string renderer = "ogl";
             if (SystemConfig.isOptSet("zinc_renderer") && !string.IsNullOrEmpty(SystemConfig["zinc_renderer"]))
                 renderer = SystemConfig["zinc_renderer"];
-            commandArray.Add("--renderer=" + renderer + "_renderer.znc");
+            commandArray.Add("--renderer=.\\" + renderer + "_renderer.znc");
 
             string args = string.Join(" ", commandArray);
 
