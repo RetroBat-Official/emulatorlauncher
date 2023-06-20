@@ -43,6 +43,7 @@ namespace emulatorLauncher
             { new Installer("demul") }, 
             { new Installer("demul-old", "demul-old", "demul.exe") }, 
             { new Installer("dolphin", new string[] { "dolphin-emu", "dolphin" }, "dolphin.exe") },
+            { new Installer("flycast", "flycast", "flycast.exe") },
             { new Installer("mupen64", "mupen64", "RMG.exe") },
             { new Installer("triforce", new string[] { "dolphin-triforce"}, new string[] { "dolphinWX.exe", "dolphin.exe" }) },
             { new Installer("dosbox") },

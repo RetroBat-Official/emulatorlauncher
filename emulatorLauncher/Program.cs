@@ -96,7 +96,8 @@ namespace emulatorLauncher
             { "phoenix", () => new PhoenixGenerator() },
             { "openmsx", () => new OpenMSXGenerator() },
             { "ssf", () => new SSFGenerator() },
-            { "zinc", () => new ZincGenerator() }
+            { "zinc", () => new ZincGenerator() },
+            { "flycast", () => new FlycastGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

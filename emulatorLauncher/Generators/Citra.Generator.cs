@@ -68,6 +68,9 @@ namespace emulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
+                ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
+                ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");
+
                 if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                 {
                     ini.WriteValue("UI", "enable_discord_presence\\default", "true");
@@ -98,6 +101,11 @@ namespace emulatorLauncher
                     catch { }
                 ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
                 ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
+
+                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "citra");
+                if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
+                    catch { }
+                ini.WriteValue("UI", "Paths\\screenshotPath", screenshotPath.Replace("\\", "/"));
 
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");

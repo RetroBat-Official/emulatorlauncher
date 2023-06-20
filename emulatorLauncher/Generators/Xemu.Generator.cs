@@ -209,6 +209,10 @@ namespace emulatorLauncher
                     ini.WriteValue("display.window", "vsync", "true");
 
                 //¨Paths
+                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "xemu");
+                if (Directory.Exists(screenshotPath))
+                    ini.WriteValue("general", "screenshot_dir", "'" + screenshotPath + "'");
+
                 if (!string.IsNullOrEmpty(eepromPath))
                     ini.WriteValue("sys.files", "eeprom_path", "'" + eepromPath + "'");
 

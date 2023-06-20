@@ -457,6 +457,7 @@ namespace emulatorLauncher
                         case 4:
                             if (tech == "DS3") return "Select";
                             else return "Share";
+                        case 5: return "PS Button";
                         case 6:
                             if (tech == "DS3") return "Start";
                             else return "Options";
@@ -520,6 +521,7 @@ namespace emulatorLauncher
                         case 7: return "Start";
                         case 8: return "LS";
                         case 9: return "RS";
+                        case 10: return "Guide";
                     }
                 }
                 
@@ -584,6 +586,7 @@ namespace emulatorLauncher
                         case 2: return revertbuttons ? "Y" : "X";
                         case 3: return revertbuttons ? "X" : "Y";
                         case 4: return "Back";
+                        case 5: return "Guide";
                         case 6: return "Start";
                         case 7: return "LS";
                         case 8: return "RS";

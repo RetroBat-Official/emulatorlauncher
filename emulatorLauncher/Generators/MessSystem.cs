@@ -566,6 +566,13 @@ namespace emulatorLauncher
             if (File.Exists(inipath))
                 File.Delete(inipath);
 
+            // Additional arguments for libretro:mame
+            if (emulator == "libretro")
+            {
+               if (SystemConfig.isOptSet("libretro_mame_rotate") && !string.IsNullOrEmpty(SystemConfig["libretro_mame_rotate"]) && SystemConfig["libretro_mame_rotate"] != "off")
+                   commandArray.Add("-" + SystemConfig["libretro_mame_rotate"]);
+            }
+
             // rompath
             commandArray.Add("-rompath");
             if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig.GetFullPath("bios")))
