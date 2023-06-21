@@ -334,6 +334,7 @@ namespace emulatorLauncher.libRetro
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureCrocoDS(retroarchConfig, coreSettings, system, core);
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
+            Configureecwolf(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFrodo(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
@@ -2888,6 +2889,20 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "craft_inverted_aim", "craft_inverted_aim", "disabled");
             BindFeature(coreSettings, "craft_draw_distance", "craft_draw_distance", "10");
             BindFeature(coreSettings, "craft_field_of_view", "craft_field_of_view", "65");
+        }
+
+        private void Configureecwolf(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "ecwolf")
+                return;
+
+            BindFeature(coreSettings, "ecwolf-resolution", "ecwolf_resolution", "320x200");
+            BindFeature(coreSettings, "ecwolf-fps", "ecwolf_fps", "35");
+            BindFeature(coreSettings, "ecwolf-palette", "ecwolf_palette", "rgb565");
+            BindFeature(coreSettings, "ecwolf-aspect", "ecwolf_ratio", "auto");
+            BindFeature(coreSettings, "ecwolf-analog-deadzone", "ecwolf_analog_deadzone", "15%");
+            BindBoolFeature(coreSettings, "ecwolf-alwaysrun", "ecwolf_run", "enabled", "disabled");
+
         }
 
         private void ConfigureEmuscv(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
