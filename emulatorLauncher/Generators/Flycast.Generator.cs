@@ -30,7 +30,7 @@ namespace emulatorLauncher
 
             string args = string.Join(" ", commandArray);
 
-            SetupConfiguration(path);
+            SetupConfiguration(path, system);
 
             return new ProcessStartInfo()
             {
@@ -41,7 +41,7 @@ namespace emulatorLauncher
         }
 
         //Configuration file emu.cfg
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, string system)
         {
             string configfile = Path.Combine(path, "emu.cfg");
 
@@ -168,7 +168,7 @@ namespace emulatorLauncher
                 ini.WriteValue("config", "rend.ThreadedRendering", "yes");
                 BindIniFeature(ini, "config", "Dynarec.Enabled", "flycast_dynarec", "yes");
 
-                //CreateControllerConfiguration(ini);
+                CreateControllerConfiguration(path, system, ini);
 
                 ini.Save();
             }
