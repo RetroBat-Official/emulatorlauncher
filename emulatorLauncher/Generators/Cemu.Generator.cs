@@ -135,7 +135,7 @@ namespace emulatorLauncher
             BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());
 
             // Graphic part of settings file
-            var graphic = xdoc.GetOrCreateElement("Graphic");            
+            var graphic = xdoc.GetOrCreateElement("Graphic");
             BindFeature(graphic, "VSync", "VSync", "1"); // VSYNC (true or false)
             BindFeature(graphic, "api", "video_renderer", "1"); // Graphic driver (0 for OpenGL / 1 for Vulkan)
             BindFeature(graphic, "AsyncCompile", "async_texture", SystemConfig["video_renderer"] != "0" ? "true" : "false"); // Async shader compilation (only if vulkan - true or false)
