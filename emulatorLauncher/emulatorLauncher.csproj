@@ -146,6 +146,9 @@
     </Compile>
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\Mesen.Generator.cs" />
+    <Compile Include="Generators\Mesen.Controllers.cs">
+      <DependentUpon>Mesen.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Ryujinx.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Controllers.cs">
       <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
