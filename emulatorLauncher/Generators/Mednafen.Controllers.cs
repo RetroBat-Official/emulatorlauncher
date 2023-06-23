@@ -5,7 +5,6 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using emulatorLauncher.Tools;
-using static emulatorLauncher.PadToKeyboard.SendKey;
 using System.Globalization;
 using System.Collections;
 using SharpDX.XInput;
