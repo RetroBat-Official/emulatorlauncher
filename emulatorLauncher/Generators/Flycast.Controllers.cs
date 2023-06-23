@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using emulatorLauncher.Tools;
-
 using System.Globalization;
-using SharpDX.DirectInput;
+using System.Management;
+using System.Windows.Documents;
 
 namespace emulatorLauncher
 {
@@ -29,8 +29,6 @@ namespace emulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
-            
-            //UpdateSdlControllersWithHints();
 
             // Reset controller attribution
             ini.WriteValue("input", "RawInput", "no");
@@ -426,6 +424,53 @@ namespace emulatorLauncher
                 ini.WriteValue("input", "maple_raw_mouse_" + lightgun2.DevicePath.Substring(8), "1");
                 ini.Remove("input", "maple_sdl_keyboard");
                 ini.Remove("input", "maple_sdl_mouse");
+
+                string cleanPath1 = "";
+                string cleanPath2 = "";
+
+                string devicepathHID1 = lightgun1.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
+                if (devicepathHID1.Length > 39)
+                    cleanPath1 = devicepathHID1.Substring(0, devicepathHID1.Length - 39);
+                string devicepathHID2 = lightgun2.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
+                if (devicepathHID2.Length > 39)
+                    cleanPath2 = devicepathHID2.Substring(0, devicepathHID2.Length - 39);
+
+                Dictionary<ManagementObject, string> mouseList = new Dictionary<ManagementObject, string>();
+
+                string query1 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath1 + "'").Replace("\\", "\\\\");
+                ManagementObjectSearcher moSearch1 = new ManagementObjectSearcher(query1);
+                ManagementObjectCollection moCollection1 = moSearch1.Get();
+                foreach (ManagementObject mo in moCollection1)
+                {
+                    string desc1 = mo["Description"].ToString();
+                    mouseList.Add(mo, desc1);
+                }
+
+                string query2 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath2 + "'").Replace("\\", "\\\\");
+                ManagementObjectSearcher moSearch2 = new ManagementObjectSearcher(query2);
+                ManagementObjectCollection moCollection2 = moSearch2.Get();
+                foreach (ManagementObject mo in moCollection2)
+                {
+                    string desc2 = mo["Description"].ToString();
+                    mouseList.Add(mo, desc2);
+                }
+                var mouseNameList = mouseList.Values.ToList();
+
+                foreach (var mouse in mouseNameList)
+                {
+                    string mouseMapping = Path.Combine(mappingPath, "RAW_" + mouse + ".cfg");
+                    
+                    using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
+                    {
+                        ctrlini.WriteValue("digital", "bind0", "1:reload");
+                        ctrlini.WriteValue("digital", "bind1", "2:btn_a");
+                        ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                        ctrlini.WriteValue("emulator", "dead_zone", "10");
+                        ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
+                        ctrlini.WriteValue("emulator", "rumble_power", "100");
+                        ctrlini.WriteValue("emulator", "version", "3");
+                    }
+                }
             }
 
             if (SystemConfig.isOptSet("flycast_crosshair") && SystemConfig.getOptBoolean("flycast_crosshair"))
