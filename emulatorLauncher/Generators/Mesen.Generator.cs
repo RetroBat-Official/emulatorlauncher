@@ -13,7 +13,7 @@ using System.Drawing;
 
 namespace emulatorLauncher
 {
-    class MesenGenerator : Generator
+   partial class MesenGenerator : Generator
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -130,6 +130,9 @@ namespace emulatorLauncher
             // Emulation menu
             var emulation = xdoc.GetOrCreateElement("EmulationInfo");
             BindFeature(emulation, "RunAheadFrames", "mesen_runahead", "0");
+
+            // Controllers configuration
+            SetupControllers(xdoc);
 
             // Save xml file
             xdoc.Save(settingsFile);
