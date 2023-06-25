@@ -71,10 +71,10 @@ namespace emulatorLauncher
 
             string playerType = "ProController";
 
-            if (SystemConfig.isOptSet("ryujinx_padtype") && !string.IsNullOrEmpty(SystemConfig["ryujinx_padtype"]))
-                playerType = SystemConfig["ryujinx_padtype"];
+            if (SystemConfig.isOptSet("ryujinx_padtype1") && !string.IsNullOrEmpty(SystemConfig["ryujinx_padtype1"]))
+                playerType = SystemConfig["ryujinx_padtype1"];
 
-            bool handheld = SystemConfig["ryujinx_padtype"] == "Handheld";
+            bool handheld = playerType == "Handheld";
 
             //Define action for keyboard mapping
             Action<DynamicJson, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
@@ -180,11 +180,12 @@ namespace emulatorLauncher
                 return;
 
             string playerType = "ProController";
+            string padType = "ryujinx_padtype" + playerIndex.ToString();
 
-            if (SystemConfig.isOptSet("ryujinx_padtype") && !string.IsNullOrEmpty(SystemConfig["ryujinx_padtype"]))
-                playerType = SystemConfig["ryujinx_padtype"];
+            if (SystemConfig.isOptSet(padType) && !string.IsNullOrEmpty(SystemConfig[padType]))
+                playerType = SystemConfig[padType];
 
-            bool handheld = SystemConfig["ryujinx_padtype"] == "Handheld";
+            bool handheld = playerType == "Handheld";
 
             //Define tech (SDL or XInput)
             string tech = c.IsXInputDevice ? "XInput" : "SDL";
