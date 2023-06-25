@@ -69,6 +69,13 @@ namespace emulatorLauncher
             if (keyboard == null)
                 return;
 
+            string playerType = "ProController";
+
+            if (SystemConfig.isOptSet("ryujinx_padtype1") && !string.IsNullOrEmpty(SystemConfig["ryujinx_padtype1"]))
+                playerType = SystemConfig["ryujinx_padtype1"];
+
+            bool handheld = playerType == "Handheld";
+
             //Define action for keyboard mapping
             Action<DynamicJson, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
             {
@@ -100,10 +107,22 @@ namespace emulatorLauncher
 
             var left_joycon = new DynamicJson();
             WriteKeyboardMapping(left_joycon, "button_minus", InputKey.select);
-            WriteKeyboardMapping(left_joycon, "button_l", InputKey.pageup);
-            WriteKeyboardMapping(left_joycon, "button_zl", InputKey.l2);
-            left_joycon["button_sl"] = "Unbound";
-            left_joycon["button_sr"] = "Unbound";
+
+            if (playerType == "JoyconLeft")
+            {
+                left_joycon["button_l"] = "Unbound";
+                left_joycon["button_zl"] = "Unbound";
+                WriteKeyboardMapping(left_joycon, "button_sl", InputKey.pageup);
+                WriteKeyboardMapping(left_joycon, "button_sr", InputKey.pagedown);
+            }
+            else
+            {
+                WriteKeyboardMapping(left_joycon, "button_l", InputKey.pageup);
+                WriteKeyboardMapping(left_joycon, "button_zl", InputKey.l2);
+                left_joycon["button_sl"] = "Unbound";
+                left_joycon["button_sr"] = "Unbound";
+            }
+
             WriteKeyboardMapping(left_joycon, "dpad_up", InputKey.up);
             WriteKeyboardMapping(left_joycon, "dpad_down", InputKey.down);
             WriteKeyboardMapping(left_joycon, "dpad_left", InputKey.left);
@@ -112,10 +131,22 @@ namespace emulatorLauncher
 
             var right_joycon = new DynamicJson();
             WriteKeyboardMapping(right_joycon, "button_plus", InputKey.start);
-            WriteKeyboardMapping(right_joycon, "button_r", InputKey.pagedown);
-            WriteKeyboardMapping(right_joycon, "button_zr", InputKey.r2);
-            right_joycon["button_sl"] = "Unbound";
-            right_joycon["button_sr"] = "Unbound";
+
+            if (playerType == "JoyconRight")
+            {
+                right_joycon["button_r"] = "Unbound";
+                right_joycon["button_zr"] = "Unbound";
+                WriteKeyboardMapping(right_joycon, "button_sl", InputKey.pageup);
+                WriteKeyboardMapping(right_joycon, "button_sr", InputKey.pagedown);
+            }
+            else
+            {
+                WriteKeyboardMapping(right_joycon, "button_r", InputKey.pagedown);
+                WriteKeyboardMapping(right_joycon, "button_zr", InputKey.r2);
+                right_joycon["button_sl"] = "Unbound";
+                right_joycon["button_sr"] = "Unbound";
+            }
+
             WriteKeyboardMapping(right_joycon, "button_x", InputKey.x);
             WriteKeyboardMapping(right_joycon, "button_b", InputKey.b);
             WriteKeyboardMapping(right_joycon, "button_y", InputKey.y);
@@ -125,8 +156,8 @@ namespace emulatorLauncher
             input_config["version"] = "1";
             input_config["backend"] = "WindowKeyboard";
             input_config["id"] = "\"" + "0" + "\"";
-            input_config["controller_type"] = "ProController";
-            input_config["player_index"] = "Player1";
+            input_config["controller_type"] = playerType;
+            input_config["player_index"] = handheld ? "Handheld" : "Player1";
 
             input_configs.Add(input_config);
             json.SetObject("input_config", input_configs);
@@ -147,6 +178,14 @@ namespace emulatorLauncher
             InputConfig joy = c.Config;
             if (joy == null)
                 return;
+
+            string playerType = "ProController";
+            string padType = "ryujinx_padtype" + playerIndex.ToString();
+
+            if (SystemConfig.isOptSet(padType) && !string.IsNullOrEmpty(SystemConfig[padType]))
+                playerType = SystemConfig[padType];
+
+            bool handheld = playerType == "Handheld";
 
             //Define tech (SDL or XInput)
             string tech = c.IsXInputDevice ? "XInput" : "SDL";
@@ -208,10 +247,22 @@ namespace emulatorLauncher
             //left joycon buttons mapping
             var left_joycon = new DynamicJson();
             left_joycon["button_minus"] = GetInputKeyName(c, InputKey.select, tech);
-            left_joycon["button_l"] = GetInputKeyName(c, InputKey.pageup, tech);
-            left_joycon["button_zl"] = GetInputKeyName(c, InputKey.l2, tech);
-            left_joycon["button_sl"] = "Unbound";
-            left_joycon["button_sr"] = "Unbound";
+
+            if (playerType == "JoyconLeft")
+            {
+                left_joycon["button_l"] = "Unbound";
+                left_joycon["button_zl"] = "Unbound";
+                left_joycon["button_sl"] = GetInputKeyName(c, InputKey.pageup, tech);
+                left_joycon["button_sr"] = GetInputKeyName(c, InputKey.pagedown, tech);
+            }
+            else
+            {
+                left_joycon["button_l"] = GetInputKeyName(c, InputKey.pageup, tech);
+                left_joycon["button_zl"] = GetInputKeyName(c, InputKey.l2, tech);
+                left_joycon["button_sl"] = "Unbound";
+                left_joycon["button_sr"] = "Unbound";
+            }
+
             left_joycon["dpad_up"] = GetInputKeyName(c, InputKey.up, tech);
             left_joycon["dpad_down"] = GetInputKeyName(c, InputKey.down, tech);
             left_joycon["dpad_left"] = GetInputKeyName(c, InputKey.left, tech);
@@ -221,10 +272,21 @@ namespace emulatorLauncher
             //right joycon buttons mapping
             var right_joycon = new DynamicJson();
             right_joycon["button_plus"] = GetInputKeyName(c, InputKey.start, tech);
-            right_joycon["button_r"] = GetInputKeyName(c, InputKey.pagedown, tech);
-            right_joycon["button_zr"] = GetInputKeyName(c, InputKey.r2, tech);
-            right_joycon["button_sl"] = "Unbound";
-            right_joycon["button_sr"] = "Unbound";
+
+            if (playerType == "JoyconRight")
+            {
+                right_joycon["button_r"] = "Unbound";
+                right_joycon["button_zr"] = "Unbound";
+                right_joycon["button_sl"] = GetInputKeyName(c, InputKey.pageup, tech);
+                right_joycon["button_sr"] = GetInputKeyName(c, InputKey.pagedown, tech);
+            }
+            else
+            {
+                right_joycon["button_r"] = GetInputKeyName(c, InputKey.pagedown, tech);
+                right_joycon["button_zr"] = GetInputKeyName(c, InputKey.r2, tech);
+                right_joycon["button_sl"] = "Unbound";
+                right_joycon["button_sr"] = "Unbound";
+            }
 
             // Invert button positions for XBOX controllers
             if (c.IsXInputDevice && Program.SystemConfig.isOptSet("ryujinx_gamepadbuttons") && Program.SystemConfig.getOptBoolean("ryujinx_gamepadbuttons"))
@@ -252,8 +314,8 @@ namespace emulatorLauncher
             input_config["version"] = "1";
             input_config["backend"] = "GamepadSDL2";
             input_config["id"] = index + "-" + newguid.ToString();
-            input_config["controller_type"] = "ProController";
-            input_config["player_index"] = "Player" + playerIndex;
+            input_config["controller_type"] = playerType;
+            input_config["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;
 
             //add section to file
             input_configs.Add(input_config);

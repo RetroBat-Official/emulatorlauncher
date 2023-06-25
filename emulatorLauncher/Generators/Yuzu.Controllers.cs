@@ -106,12 +106,14 @@ namespace emulatorLauncher
                 string id = SystemConfig[playerType];
                 if (!string.IsNullOrEmpty(id))
                     playerTypeId = id.ToInteger();
-            }            
+            }
+
+            bool handheld = playerTypeId == 4;
 
             ini.WriteValue("Controls", player + "type" + "\\default",  playerTypeId == 0 ? "true" : "false");
             ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
             ini.WriteValue("Controls", player + "connected" + "\\default", "false");
-            ini.WriteValue("Controls", player + "connected", "true");
+            ini.WriteValue("Controls", player + "connected", handheld ? "false" : "true");
 
             //Vibration settings
             ini.WriteValue("Controls", player + "vibration_enabled" + "\\default", "true");
@@ -295,12 +297,31 @@ namespace emulatorLauncher
             if (keyboard == null)
                 return;
 
+            // player_0_type=1 Pro controller
+            // player_0_type=1 Dual joycon
+            // player_0_type=2 Left joycon
+            // player_0_type=3 Right joycon
+            // player_0_type=4 Handheld
+            // player_0_type=5 Gamecube controller
+
+            int playerTypeId = 0;
+
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 
-            ini.WriteValue("Controls", player + "type" + "\\default", "true");
-            ini.WriteValue("Controls", player + "type", "0");
-            ini.WriteValue("Controls", player + "connected" + "\\default", "true");
-            ini.WriteValue("Controls", player + "connected", "true");
+            string playerType = player + "type";
+            if (Program.Features.IsSupported(playerType) && Program.SystemConfig.isOptSet(playerType))
+            {
+                string id = Program.SystemConfig[playerType];
+                if (!string.IsNullOrEmpty(id))
+                    playerTypeId = id.ToInteger();
+            }
+
+            bool handheld = playerTypeId == 4;
+
+            ini.WriteValue("Controls", player + "type" + "\\default", playerTypeId == 0 ? "true" : "false");
+            ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
+            ini.WriteValue("Controls", player + "connected" + "\\default", "false");
+            ini.WriteValue("Controls", player + "connected", handheld ? "false" : "true");
             ini.WriteValue("Controls", player + "vibration_enabled" + "\\default", "true");
             ini.WriteValue("Controls", player + "vibration_enabled", "true");
             ini.WriteValue("Controls", player + "left_vibration_device" + "\\default", "true");
