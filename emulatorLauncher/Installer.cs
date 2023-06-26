@@ -77,6 +77,7 @@ namespace emulatorLauncher
             { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") },
             { new Installer("openmsx", "openmsx", "openmsx.exe") },
             { new Installer("ssf", "ssf", "SSF.exe") },
+            { new Installer("melonds", "melonds", "melonDS.exe") },
             { new Installer("zinc", "zinc", "ZiNc.exe") }
         };
 
