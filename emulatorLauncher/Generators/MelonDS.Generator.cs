@@ -7,6 +7,9 @@ namespace emulatorLauncher
 {
    partial class MelonDSGenerator : Generator
     {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("melonds");
@@ -14,6 +17,12 @@ namespace emulatorLauncher
             string exe = Path.Combine(path, "melonDS.exe");
             if (!File.Exists(exe))
                 return null;
+
+            //Applying bezels
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
 
             // settings
             SetupConfiguration(path);
@@ -32,6 +41,24 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args + " \"" + rom + "\"",
             };
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
 
         private void SetupConfiguration(string path)
@@ -117,12 +144,12 @@ namespace emulatorLauncher
                 BindBoolIniFeature(ini, "", "ScreenVSync", "melonds_vsync", "0", "1");
                 BindIniFeature(ini, "", "GL_ScaleFactor", "melonds_internal_resolution", "1");
                 BindBoolIniFeature(ini, "", "GL_BetterPolygons", "melonds_polygon", "1", "0");
-                BindIniFeature(ini, "", "ScreenLayout", "melonds_screen_layout", "0");
+                BindIniFeature(ini, "", "ScreenLayout", "melonds_screen_layout", "1");
                 BindBoolIniFeature(ini, "", "ScreenSwap", "melonds_swapscreen", "1", "0");
-                BindIniFeature(ini, "", "ScreenSizing", "melonds_screen_sizing", "3");
+                BindIniFeature(ini, "", "ScreenSizing", "melonds_screen_sizing", "0");
                 BindBoolIniFeature(ini, "", "IntegerScaling", "integerscale", "1", "0");
-                BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "0");
-                BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "0");
+                BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "3");
+                BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "3");
                 BindIniFeature(ini, "", "ScreenGap", "melonds_screengap", "0");
                 BindIniFeature(ini, "", "ScreenRotation", "melonds_rotate", "0");
             }
