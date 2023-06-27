@@ -13,6 +13,8 @@ namespace emulatorLauncher
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            bool hbmame = system == "hbmame";
+
             string path = AppConfig.GetFullPath("mame");
             if (string.IsNullOrEmpty(path) && Environment.Is64BitOperatingSystem)
                 path = AppConfig.GetFullPath("mame64");
@@ -22,6 +24,15 @@ namespace emulatorLauncher
                 exe = Path.Combine(path, "mame64.exe");
             if (!File.Exists(exe))
                 exe = Path.Combine(path, "mame32.exe");
+
+            if (hbmame)
+            {
+                path = AppConfig.GetFullPath("hbmame");
+                if (string.IsNullOrEmpty(path))
+                    return null;
+
+                exe = Path.Combine(path, "hbmameui.exe");
+            }
 
             if (!File.Exists(exe))
                 return null;
@@ -33,7 +44,7 @@ namespace emulatorLauncher
             string args = null;
 
             MessSystem messMode = MessSystem.GetMessSystem(system, core);
-            if (messMode == null || messMode.Name == "mame")
+            if (messMode == null || messMode.Name == "mame" || messMode.Name == "hbmame")
             {
                 List<string> commandArray = new List<string>();
 
@@ -100,7 +111,7 @@ namespace emulatorLauncher
                 }
 
                 // cfg directory
-                string cfgPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg");
+                string cfgPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "cfg") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg");
                 if (!Directory.Exists(cfgPath)) try { Directory.CreateDirectory(cfgPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(cfgPath) && Directory.Exists(cfgPath))
@@ -110,7 +121,7 @@ namespace emulatorLauncher
                 }
 
                 // Ini path
-                string iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini");
+                string iniPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "ini") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini");
                 if (!Directory.Exists(iniPath)) try { Directory.CreateDirectory(iniPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(iniPath) && Directory.Exists(iniPath))
@@ -120,7 +131,7 @@ namespace emulatorLauncher
                 }
 
                 // Hash path
-                string hashPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash");
+                string hashPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "hash") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash");
                 if (!Directory.Exists(hashPath)) try { Directory.CreateDirectory(hashPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(hashPath) && Directory.Exists(hashPath))
@@ -143,7 +154,7 @@ namespace emulatorLauncher
                 commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
 
                 // Unknown system, try to run with rom name only
-                commandArray.Add(Path.GetFileName(rom));
+                commandArray.Add(Path.GetFileNameWithoutExtension(rom));
 
                 args = commandArray.JoinArguments();
             }
