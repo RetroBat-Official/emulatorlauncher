@@ -19,7 +19,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\EmulationStation\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\RetroBat6.0\emulationstation\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -145,6 +145,10 @@
       <DependentUpon>Duckstation.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\KegaFusion.Generator.cs" />
+    <Compile Include="Generators\MelonDS.Generator.cs" />
+    <Compile Include="Generators\MelonDS.Controllers.cs">
+      <DependentUpon>MelonDS.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Mesen.Generator.cs" />
     <Compile Include="Generators\Mesen.Controllers.cs">
       <DependentUpon>Mesen.Generator.cs</DependentUpon>

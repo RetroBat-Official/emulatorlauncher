@@ -54,7 +54,7 @@ namespace emulatorLauncher
             { "vpinball", () => new VPinballGenerator() },
             { "dosbox", () => new DosBoxGenerator() },
             { "ppsspp", () => new PpssppGenerator() },
-			{ "project64", () => new Project64Generator() },
+            { "project64", () => new Project64Generator() },
             { "dolphin", () => new DolphinGenerator() }, { "triforce", () => new DolphinGenerator() },
             { "mupen64", () => new Mupen64Generator() },
             { "cemu", () => new CemuGenerator() },  { "wiiu", () => new CemuGenerator() },  
@@ -97,6 +97,7 @@ namespace emulatorLauncher
             { "openmsx", () => new OpenMSXGenerator() },
             { "ssf", () => new SSFGenerator() },
             { "zinc", () => new ZincGenerator() },
+            { "melonds", () => new MelonDSGenerator() },
             { "flycast", () => new FlycastGenerator() }
         };
 

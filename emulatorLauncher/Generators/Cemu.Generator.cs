@@ -192,7 +192,7 @@ namespace emulatorLauncher
                 {
                     notification.SetElementValue("ControllerProfiles", "false");
                     notification.SetElementValue("ShaderCompiling", "false");
-                    notification.SetElementValue("ControllerBattery", "true");
+                    notification.SetElementValue("ControllerBattery", "false");
                 }
             }
 
