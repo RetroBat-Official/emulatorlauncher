@@ -55,7 +55,7 @@ namespace emulatorLauncher
                 return;
 
             if (controller.IsKeyboard)
-                ConfigureKeyboard(yml, controller.Config);
+                ConfigureKeyboard(yml, controller.Config, controller.PlayerIndex);
             else
                 ConfigureJoystick(yml, controller, controller.PlayerIndex, double_pads, nsamepad);
         }
@@ -66,13 +66,13 @@ namespace emulatorLauncher
         /// <param name="controllerSettings"></param>
         /// <param name="keyboard"></param>
         /// <param name="yml"></param>
-        private void ConfigureKeyboard(YmlContainer yml, InputConfig keyboard)
+        private void ConfigureKeyboard(YmlContainer yml, InputConfig keyboard, int playerindex)
         {
             if (keyboard == null)
                 return;
 
             //Create player section (only 1 player with keyboard)
-            var player = yml.GetOrCreateContainer("Player 1 Input");
+            var player = yml.GetOrCreateContainer("Player " + playerindex + " Input");
             player["Handler"] = "Keyboard";
             player["Device"] = "Keyboard";
 
