@@ -1,16 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
 using emulatorLauncher.PadToKeyboard;
 using emulatorLauncher.Tools;
+using Microsoft.Win32;
+using System.Runtime.Serialization;
+using System.Threading;
 
 namespace emulatorLauncher
 {
     class ExeLauncherGenerator : Generator
     {
+        private bool _isSteam = false;
+        private bool _isEpic = false;
+        private string _epicexename;
+
+        static List<string> epicList = new List<string>() { "com.epicgames.launcher" };
+        static List<string> steamList = new List<string>() { "steam" };
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             rom = this.TryUnZipGameIfNeeded(system, rom);
@@ -19,6 +28,30 @@ namespace emulatorLauncher
 
             string path = Path.GetDirectoryName(rom);
             string arguments = null;
+
+            string extension = Path.GetExtension(rom);
+
+            // Define if shortcut is an EpicGame or Steam shortcut
+            if (extension == ".url")
+            {
+                var file = File.ReadAllLines(rom);
+                if (file.Length == 0)
+                    return null;
+
+                string index = "URL=";
+                string line = Array.Find(file, s => s.StartsWith(index));
+                if (line == null)
+                    return null;
+
+                string url = line.Replace(index, "");
+
+                _isEpic = epicList.Any(url.StartsWith);
+                _isSteam = steamList.Any(url.StartsWith);
+
+                if (_isEpic)
+                    _epicexename = GetEpicGameExecutableName(url);
+            }
+
 
             if (Directory.Exists(rom)) // If rom is a directory ( .pc .win .windows, .wine )
             {
@@ -34,7 +67,7 @@ namespace emulatorLauncher
                     rom = Path.Combine(rom, "autoexec.bat");
                 else
                     rom = Directory.GetFiles(path, "*.exe").FirstOrDefault();
-                
+
                 if (Path.GetFileName(rom) == "autorun.cmd")
                 {
                     var wineCmd = File.ReadAllLines(rom);
@@ -42,7 +75,7 @@ namespace emulatorLauncher
                         throw new Exception("autorun.cmd is empty");
 
                     var dir = wineCmd.Where(l => l.StartsWith("DIR=")).Select(l => l.Substring(4)).FirstOrDefault();
-                    
+
                     var wineCommand = wineCmd.Where(l => l.StartsWith("CMD=")).Select(l => l.Substring(4)).FirstOrDefault();
                     if (string.IsNullOrEmpty(wineCommand) && wineCmd.Length > 0)
                         wineCommand = wineCmd.FirstOrDefault();
@@ -92,7 +125,7 @@ namespace emulatorLauncher
             var ret = new ProcessStartInfo()
             {
                 FileName = rom,
-                WorkingDirectory = path            
+                WorkingDirectory = path
             };
 
             if (arguments != null)
@@ -118,7 +151,10 @@ namespace emulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
+            if (_isEpic)
+                return PadToKey.AddOrUpdateKeyMapping(mapping, _epicexename, InputKey.hotkey | InputKey.start, "(%{KILL})");
+
+            else if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
                 return mapping;
 
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
@@ -146,14 +182,14 @@ namespace emulatorLauncher
 
                 ini.WriteValue("Video", "Width", resolution.Width.ToString());
                 ini.WriteValue("Video", "Height", resolution.Height.ToString());
-              
-                ini.WriteValue("Video", "VRetrace", SystemConfig["VSync"] != "false" ? "1" : "0");                
+
+                ini.WriteValue("Video", "VRetrace", SystemConfig["VSync"] != "false" ? "1" : "0");
                 ini.WriteValue("Video", "FullScreen", "1");
             }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
-        {
+        {            
             if (_systemName == "windows")
             {
                 using (var frm = new System.Windows.Forms.Form())
@@ -166,13 +202,108 @@ namespace emulatorLauncher
                     frm.Show();
 
                     System.Windows.Forms.Application.DoEvents();
-                    base.RunAndWait(path);
+
+                    if (_isEpic)
+                    {
+                        Process process = Process.Start(path);
+
+                        int i = 1;
+                        Process[] game = Process.GetProcessesByName(_epicexename);
+
+                        while (i <= 5 && game.Length == 0)
+                        {
+                            game = Process.GetProcessesByName(_epicexename);
+                            Thread.Sleep(4000);
+                            i++;
+                        }
+                        Process[] epic = Process.GetProcessesByName("EpicGamesLauncher");
+
+                        if (game.Length == 0)
+                            return 0;
+                        else
+                        {
+                            Process epicGame = game.OrderBy(p => p.StartTime).FirstOrDefault();
+                            Process epicLauncher = null;
+
+                            if (epic.Length > 0)
+                                epicLauncher = epic.OrderBy(p => p.StartTime).FirstOrDefault();
+
+                            epicGame.WaitForExit();
+
+                            if (SystemConfig.isOptSet("notkillsteam") && SystemConfig.getOptBoolean("notkillsteam"))
+                                return 0;
+                            else if (epicLauncher != null)
+                                epicLauncher.Kill();
+                        }
+                        return 0;
+                    }
+                    else
+                        base.RunAndWait(path);
                 }
             }
             else
                 base.RunAndWait(path);
 
             return 0;
+        }
+
+        private string GetEpicGameExecutableName(string url)
+        {
+            string toRemove = "com.epicgames.launcher://apps/";
+            string shorturl = url.Replace(toRemove, "");
+
+            int index = shorturl.IndexOf('%');
+            if (index > 0)
+                shorturl = shorturl.Substring(0, index);
+            else
+                return null;
+
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\Epic Games\\EOS"))
+                {
+                    if (key != null)
+                    {
+                        Object o = key.GetValue("ModSdkMetadataDir");
+                        if (o != null)
+                        {
+                            string manifestPath = o.ToString();
+
+                            List<EpicGames> games = new List<EpicGames>();
+
+                            foreach (var file in Directory.EnumerateFiles(manifestPath, "*.item"))
+                            {
+                                var rr = JsonSerializer.DeserializeString<EpicGames>(File.ReadAllText(file));
+                                if (rr != null)
+                                    games.Add(rr);
+                            }
+
+                            string gameExecutable = null;
+
+                            if (games.Count > 0)
+                                gameExecutable = games.Where(i => i.CatalogNamespace == shorturl).Select(i => i.LaunchExecutable).FirstOrDefault();
+                            
+                            if (gameExecutable != null)
+                                return Path.GetFileNameWithoutExtension(gameExecutable);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                throw new ApplicationException("There is a problem: Epic Launcher is not installed or the Game is not installed");
+            }
+            return null;
+        }
+
+        [DataContract]
+        public class EpicGames
+        {
+            [DataMember]
+            public string CatalogNamespace { get; set; }
+
+            [DataMember]
+            public string LaunchExecutable { get; set; }
         }
     }
 }
