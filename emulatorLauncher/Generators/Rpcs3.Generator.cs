@@ -157,7 +157,7 @@ namespace emulatorLauncher
             BindFeature(video, "Write Depth Buffer", "writedepthbuffers", "false");
             BindFeature(video, "Read Color Buffers", "readcolorbuffers", "false");
             BindFeature(video, "Read Depth Buffer", "readdepthbuffers", "false");
-            BindFeature(video, "VSync", "vsync", "false");
+            BindFeature(video, "VSync", "vsync", "true");
             BindFeature(video, "Stretch To Display Area", "stretchtodisplay", "false");
             BindFeature(video, "Strict Rendering Mode", "strict_rendering", "false");
             BindFeature(video, "Disable Vertex Cache", "disablevertex", "false");
@@ -254,11 +254,36 @@ namespace emulatorLauncher
             misc["Exit RPCS3 when process finishes"] = "true";
             misc["Prevent display sleep while running games"] = "true";
 
+            SetupGuns(yml, vulkan);
+
             // Save to yml file
             yml.Save();
         }
 
-        private string GetDefaultPS3Language()
+        /// <summary>
+        /// Setup config.yml file
+        /// </summary>
+        /// <param name="path"></param>
+        private void SetupGuns(YmlFile yml, YmlContainer vulkan)
+        {
+            if (!Program.SystemConfig.getOptBoolean("rpcs3_guns"))
+                return;
+
+            // set borderless window mode for guns
+            vulkan["Exclusive Fullscreen Mode"] = "Disable";
+
+            //
+            var io = yml.GetOrCreateContainer("Input/Output");
+            io["Keyboard"] = "\"Null\"";
+            io["Mouse"] = "\"Null\"";
+            io["Camera"] = "Fake";
+            io["Camera type"] = "PS Eye";
+            io["Move"] = "Mouse";
+
+            BindBoolFeature(io, "Show move cursor", "rpcs3_mouse_cursor", "true", "false");
+        }
+
+            private string GetDefaultPS3Language()
         {
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
             {
