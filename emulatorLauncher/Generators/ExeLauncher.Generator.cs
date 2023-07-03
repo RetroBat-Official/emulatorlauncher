@@ -13,17 +13,18 @@ using System.IO.Compression;
 
 namespace emulatorLauncher
 {
-    class ExeLauncherGenerator : Generator
+    partial class ExeLauncherGenerator : Generator
     {
-        private bool _isSteam = false;
-        private bool _isEpic = false;
-        private bool _isAmazon = false;
-        private string _epicexename;
-        private string _amazonexename;
+        private string _systemName;
+        private string _exename;
+        GameLauncher _gameLauncher;
 
-        static List<string> epicList = new List<string>() { "com.epicgames.launcher" };
-        static List<string> steamList = new List<string>() { "steam" };
-        static List<string> amazonList = new List<string>() { "amazon-games" };
+        static Dictionary<string, Func<Uri, GameLauncher>> launchers = new Dictionary<string, Func<Uri, GameLauncher>>()
+        {
+            { "com.epicgames.launcher", (uri) => new EpicGameLauncher(uri) },
+            //{ "steam", (uri) => new SteamGameLauncher(uri) },
+            { "amazon-games", (uri) => new AmazonGameLauncher(uri) }
+        };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -39,32 +40,19 @@ namespace emulatorLauncher
             // Define if shortcut is an EpicGame or Steam shortcut
             if (extension == ".url")
             {
-                var file = File.ReadAllLines(rom);
-                if (file.Length == 0)
-                    return null;
+                var ini = IniFile.FromFile(rom);
+                var uri = new Uri(ini.GetValue("InternetShortcut", "URL"));
 
-                string index = "URL=";
-                string line = Array.Find(file, s => s.StartsWith(index));
-                if (line == null)
-                    return null;
-
-                string url = line.Replace(index, "");
-
-                _isAmazon = amazonList.Any(url.StartsWith);
-                _isEpic = epicList.Any(url.StartsWith);
-                _isSteam = steamList.Any(url.StartsWith);
-
-                if (_isEpic)
-                    _epicexename = GetEpicGameExecutableName(url);
-
-                else if (_isAmazon)
+                Func<Uri, GameLauncher> gameLauncherInstanceBuilder;
+                if (launchers.TryGetValue(uri.Scheme, out gameLauncherInstanceBuilder))
                 {
-                    InstallSqlite();
-                    _amazonexename = GetAmazonGameExecutableName(url);
+                    try { _gameLauncher = gameLauncherInstanceBuilder(uri); }
+                    catch
+                    {
+                        return null;
+                    }
                 }
-
             }
-
 
             if (Directory.Exists(rom)) // If rom is a directory ( .pc .win .windows, .wine )
             {
@@ -159,16 +147,9 @@ namespace emulatorLauncher
             return ret;
         }
 
-        private string _systemName;
-        private string _exename;
-
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_isEpic)
-                return PadToKey.AddOrUpdateKeyMapping(mapping, _epicexename, InputKey.hotkey | InputKey.start, "(%{KILL})");
-
-            else if (_isAmazon)
-                return PadToKey.AddOrUpdateKeyMapping(mapping, _amazonexename, InputKey.hotkey | InputKey.start, "(%{KILL})");
+            if (_gameLauncher != null) return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
             else if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
                 return mapping;
@@ -206,6 +187,8 @@ namespace emulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
+            if (_gameLauncher != null) return _gameLauncher.RunAndWait(path);
+
             if (_systemName == "windows")
             {
                 using (var frm = new System.Windows.Forms.Form())
@@ -218,78 +201,7 @@ namespace emulatorLauncher
                     frm.Show();
 
                     System.Windows.Forms.Application.DoEvents();
-
-                    if (_isEpic)
-                    {
-                        Process process = Process.Start(path);
-
-                        int i = 1;
-                        Process[] game = Process.GetProcessesByName(_epicexename);
-
-                        while (i <= 5 && game.Length == 0)
-                        {
-                            game = Process.GetProcessesByName(_epicexename);
-                            Thread.Sleep(4000);
-                            i++;
-                        }
-                        Process[] epic = Process.GetProcessesByName("EpicGamesLauncher");
-
-                        if (game.Length == 0)
-                            return 0;
-                        else
-                        {
-                            Process epicGame = game.OrderBy(p => p.StartTime).FirstOrDefault();
-                            Process epicLauncher = null;
-
-                            if (epic.Length > 0)
-                                epicLauncher = epic.OrderBy(p => p.StartTime).FirstOrDefault();
-
-                            epicGame.WaitForExit();
-
-                            if (SystemConfig.isOptSet("notkillsteam") && SystemConfig.getOptBoolean("notkillsteam"))
-                                return 0;
-                            else if (epicLauncher != null)
-                                epicLauncher.Kill();
-                        }
-                        return 0;
-                    }
-
-                    else if (_isAmazon)
-                    {
-                        Process process = Process.Start(path);
-
-                        int i = 1;
-                        Process[] game = Process.GetProcessesByName(_amazonexename);
-
-                        while (i <= 5 && game.Length == 0)
-                        {
-                            game = Process.GetProcessesByName(_amazonexename);
-                            Thread.Sleep(4000);
-                            i++;
-                        }
-                        Process[] amazon = Process.GetProcessesByName("Amazon Games UI");
-
-                        if (game.Length == 0)
-                            return 0;
-                        else
-                        {
-                            Process amazonGame = game.OrderBy(p => p.StartTime).FirstOrDefault();
-                            Process amazonLauncher = null;
-
-                            if (amazon.Length > 0)
-                                amazonLauncher = amazon.OrderBy(p => p.StartTime).FirstOrDefault();
-
-                            amazonGame.WaitForExit();
-
-                            if (SystemConfig.isOptSet("notkillsteam") && SystemConfig.getOptBoolean("notkillsteam"))
-                                return 0;
-                            else if (amazonLauncher != null)
-                                amazonLauncher.Kill();
-                        }
-                        return 0;
-                    }
-                    else
-                        base.RunAndWait(path);
+                    base.RunAndWait(path);
                 }
             }
             else
@@ -298,181 +210,18 @@ namespace emulatorLauncher
             return 0;
         }
 
-        #region epic
-        private string GetEpicGameExecutableName(string url)
+        abstract class GameLauncher
         {
-            string toRemove = "com.epicgames.launcher://apps/";
-            string shorturl = url.Replace(toRemove, "");
-
-            int index = shorturl.IndexOf('%');
-            if (index > 0)
-                shorturl = shorturl.Substring(0, index);
-            else
-                return null;
-
-            try
+            public string _LauncherExeName;
+            public virtual int RunAndWait(ProcessStartInfo path)
             {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\Epic Games\\EOS"))
-                {
-                    if (key != null)
-                    {
-                        Object o = key.GetValue("ModSdkMetadataDir");
-                        if (o != null)
-                        {
-                            string manifestPath = o.ToString();
-
-                            List<EpicGames> games = new List<EpicGames>();
-
-                            foreach (var file in Directory.EnumerateFiles(manifestPath, "*.item"))
-                            {
-                                var rr = JsonSerializer.DeserializeString<EpicGames>(File.ReadAllText(file));
-                                if (rr != null)
-                                    games.Add(rr);
-                            }
-
-                            string gameExecutable = null;
-
-                            if (games.Count > 0)
-                                gameExecutable = games.Where(i => i.CatalogNamespace == shorturl).Select(i => i.LaunchExecutable).FirstOrDefault();
-
-                            if (gameExecutable != null)
-                                return Path.GetFileNameWithoutExtension(gameExecutable);
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                throw new ApplicationException("There is a problem: Epic Launcher is not installed or the Game is not installed");
-            }
-            return null;
-        }
-
-        [DataContract]
-        public class EpicGames
-        {
-            [DataMember]
-            public string CatalogNamespace { get; set; }
-
-            [DataMember]
-            public string LaunchExecutable { get; set; }
-        }
-        #endregion
-
-        #region amazon
-        private string GetAmazonGameExecutableName(string url)
-        {
-            string toRemove = "amazon-games://play/";
-            string shorturl = url.Replace(toRemove, "");
-
-            try
-            {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string amazonDB = Path.Combine(appData, "Amazon Games", "Data", "Games", "Sql", "GameInstallInfo.sqlite");
-
-                if (File.Exists(amazonDB))
-                {
-                    SQLiteConnection sqlite_conn = new SQLiteConnection("Data Source = " + amazonDB);
-                    sqlite_conn.Open();
-
-                    SQLiteDataReader sqlite_datareader;
-                    SQLiteCommand sqlite_cmd;
-                    sqlite_cmd = sqlite_conn.CreateCommand();
-                    sqlite_cmd.CommandText = "SELECT installDirectory FROM DbSet where Id = '" + shorturl + "'";
-
-                    sqlite_datareader = sqlite_cmd.ExecuteReader();
-
-                    if (!sqlite_datareader.HasRows)
-                    {
-                        sqlite_conn.Close();
-                        throw new ApplicationException("There is a problem: the Game is not installed in Amazon Launcher");
-                    }
-
-                    else
-                    {
-                        string gameInstallPath = null;
-                        while (sqlite_datareader.Read())
-                        {
-                            gameInstallPath = sqlite_datareader.GetString(0);
-                        }
-                        sqlite_conn.Close();
-                        return GetAmazonGameExecutable(gameInstallPath);
-                    }
-                }
-            }
-            catch
-            {
-                throw new ApplicationException("There is a problem: Amazon Launcher is not installed or the Game is not installed");
-            }
-            return null;
-        }
-
-        private string GetAmazonGameExecutable(string path)
-        {
-            string fuelFile = Path.Combine(path, "fuel.json");
-            string gameexe = null;
-
-            if (!File.Exists(fuelFile))
-            {
-                throw new ApplicationException("There is a problem: game executable cannot be found");
+                return 0;
             }
 
-            var json = DynamicJson.Load(fuelFile);
-            var jsonMain = json.GetObject("Main");
-
-            if (jsonMain != null)
-                gameexe = jsonMain["Command"];
-            else
-                return null;
-            
-            string amazonGameExecutable = Path.GetFileNameWithoutExtension(gameexe);
-
-            if (amazonGameExecutable != null)
-                return amazonGameExecutable;
-            else
-                return null;
-        }
-
-        private static void InstallSqlite()
-        {
-            string dllName = Path.Combine(Path.GetDirectoryName(typeof(ConfigFile).Assembly.Location), "SQLite.Interop.dll");
-            int platform = IntPtr.Size;
-
-            if (File.Exists(dllName))
+            public virtual PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
             {
-                try { File.Delete(dllName); }
-                catch { }
+                return PadToKey.AddOrUpdateKeyMapping(mapping, _LauncherExeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
             }
-
-            if (platform == 4)
-                GZipBytesToFile(Properties.Resources.SQLite_Interop_x86_gz, dllName);
-            else
-                GZipBytesToFile(Properties.Resources.SQLite_Interop_x64_gz, dllName);
-        }
-        #endregion
-
-        static bool GZipBytesToFile(byte[] bytes, string fileName)
-        {
-            try
-            {
-                using (var reader = new MemoryStream(bytes))
-                {
-                    using (var decompressedStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-                    {
-                        using (GZipStream decompressionStream = new GZipStream(reader, CompressionMode.Decompress))
-                        {
-                            decompressionStream.CopyTo(decompressedStream);
-                            return true;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SimpleLogger.Instance.Error("[ReadGZipStream] Failed " + ex.Message, ex);
-            }
-
-            return false;
         }
     }
 }

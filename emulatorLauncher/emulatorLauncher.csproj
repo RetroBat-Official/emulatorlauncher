@@ -185,6 +185,15 @@
     <Compile Include="Generators\Solarus.Generator.cs" />
     <Compile Include="Generators\Demul.Generator.cs" />
     <Compile Include="Generators\ExeLauncher.Generator.cs" />
+    <Compile Include="Generators\EpicLauncher.Generator.cs">
+      <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\AmazonLauncher.Generator.cs">
+      <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\SteamLauncher.Generator.cs">
+      <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\mGBA.Generator.cs" />
     <Compile Include="Generators\Mednafen.Generator.cs" />
     <Compile Include="Generators\Mednafen.Controllers.cs">
