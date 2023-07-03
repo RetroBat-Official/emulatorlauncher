@@ -63,6 +63,10 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\System.Data.SQLite.dll</HintPath>
+    </Reference>
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xaml" />
@@ -377,6 +381,8 @@
     <None Include="Resources\mamecrcs.xml.gz" />
     <None Include="Resources\reshader.x64.gz" />
     <None Include="Resources\reshader.x86.gz" />
+    <None Include="Resources\SQLite.Interop.x64.gz" />
+    <None Include="Resources\SQLite.Interop.x86.gz" />
     <None Include="Resources\xbox_hdd.qcow2.zip" />
   </ItemGroup>
   <ItemGroup>

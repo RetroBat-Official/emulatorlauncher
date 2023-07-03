@@ -365,6 +365,26 @@ namespace emulatorLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] SQLite_Interop_x64_gz {
+            get {
+                object obj = ResourceManager.GetObject("SQLite_Interop_x64_gz", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] SQLite_Interop_x86_gz {
+            get {
+                object obj = ResourceManager.GetObject("SQLite_Interop_x86_gz", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Decompressing {0}.
         /// </summary>
         internal static string UnCompressing {
