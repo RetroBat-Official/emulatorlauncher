@@ -121,7 +121,7 @@ namespace emulatorLauncher.Tools
             return new SdlJoystickGuid(_guid.Substring(0, 28) + "7200");
         }
 
-        public SdlJoystickGuid ConvertSdlGuid(string name, SdlVersion version)
+        public SdlJoystickGuid ConvertSdlGuid(string name, SdlVersion version, bool noRemoveDriver = false)
         {
             if (version == SdlVersion.Unknown || _guid.Length != 32)
                 return new SdlJoystickGuid(_guid);
@@ -148,7 +148,7 @@ namespace emulatorLauncher.Tools
             if (JoystickNameCrc16 == 0xd455) // "HORI Wireless Switch Pad" ??? Must check
                 return new SdlJoystickGuid(ret.ToString().Substring(0, 30) + "00");
 
-            if (VendorId == USB_VENDOR.NINTENDO)
+            if (VendorId == USB_VENDOR.NINTENDO && !noRemoveDriver)
             {
                 var prod = ProductId;
 
