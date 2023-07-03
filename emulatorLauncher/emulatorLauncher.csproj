@@ -193,6 +193,9 @@
     <Compile Include="Generators\Redream.Generator.cs" />
     <Compile Include="Generators\Raine.Generator.cs" />
     <Compile Include="Generators\Cxbx.Generator.cs" />
+    <Compile Include="Generators\Cxbx.Controllers.cs">
+      <DependentUpon>Cxbx.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\SimCoupe.Generator.cs" />
     <Compile Include="Generators\Model3.Generator.cs" />
     <Compile Include="Generators\Model3.Controllers.cs">

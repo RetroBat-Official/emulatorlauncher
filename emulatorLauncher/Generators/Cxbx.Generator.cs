@@ -9,7 +9,7 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-    class CxbxGenerator : Generator
+    partial class CxbxGenerator : Generator
     {
         #region XboxIsoVfs management
         private string _dokanDriveLetter;
@@ -190,6 +190,7 @@ namespace emulatorLauncher
                 else if (Features.IsSupported("rdtscPatching"))
                     ini.WriteValue("hack", "SkipRdtscPatching", "false");
 
+                ConfigureControllers(ini);
             }
 
             if (system == "xbox")
