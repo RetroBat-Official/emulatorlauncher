@@ -24,12 +24,12 @@ namespace emulatorLauncher
         
         public bool IsKeyboard { get { return "Keyboard".Equals(Name, StringComparison.InvariantCultureIgnoreCase); } }
 
-        public SdlJoystickGuid GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X)
+        public SdlJoystickGuid GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X, bool noRemoveDriver = false)
         {
             if (version == SdlVersion.Unknown)
                 return Guid;
 
-            return Guid.ConvertSdlGuid(Name??"", version);            
+            return Guid.ConvertSdlGuid(Name??"", version, noRemoveDriver);            
         }
 
         private HashSet<string> _compatibleSdlGuids;

@@ -9,8 +9,6 @@ namespace emulatorLauncher
 {
     class SSFGenerator : Generator
     {
-        private ScreenResolution _resolution;
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("ssf");
@@ -21,9 +19,6 @@ namespace emulatorLauncher
 
             if (!SystemConfig.isOptSet("saturn_custom_setting") || !SystemConfig.getOptBoolean("saturn_custom_setting"))
                 SetupConfiguration(path);
-
-            /*List<string> commandArray = new List<string>();
-            string args = string.Join(" ", commandArray);*/
 
             return new ProcessStartInfo()
             {
