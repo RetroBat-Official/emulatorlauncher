@@ -273,6 +273,18 @@ namespace emulatorLauncher
 
                 // ASTC Compression (non compressed by default, use medium for videocards with 6GB of VRAM and low for 2-4GB VRAM)
                 BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
+
+                // Controller applet (disabled by default)
+                if (SystemConfig.isOptSet("yuzu_controller_applet") && SystemConfig.getOptBoolean("yuzu_controller_applet"))
+                {
+                    ini.WriteValue("UI", "disableControllerApplet\\default", "true");
+                    ini.WriteValue("UI", "disableControllerApplet", "false");
+                }
+                else if (Features.IsSupported("yuzu_controller_applet"))
+                {
+                    ini.WriteValue("UI", "disableControllerApplet\\default", "false");
+                    ini.WriteValue("UI", "disableControllerApplet", "true");
+                }
             }
         }
 
