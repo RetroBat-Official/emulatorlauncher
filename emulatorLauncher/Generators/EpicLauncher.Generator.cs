@@ -7,6 +7,7 @@ using emulatorLauncher.Tools;
 using Microsoft.Win32;
 using System.Runtime.Serialization;
 using System.Threading;
+using System.Security.Policy;
 
 namespace emulatorLauncher
 {
@@ -16,14 +17,11 @@ namespace emulatorLauncher
         {
             public EpicGameLauncher(Uri uri)
             {
-                string url = uri.ToString();
-
-                _LauncherExeName = GetEpicGameExecutableName(url);
+                _LauncherExeName = GetEpicGameExecutableName(uri);
             }
-            private string GetEpicGameExecutableName(string url)
+            private string GetEpicGameExecutableName(Uri uri)
             {
-                string toRemove = "com.epicgames.launcher://apps/";
-                string shorturl = url.ToString().Replace(toRemove, "");
+                string shorturl = uri.LocalPath.ExtractString("/", ":");
 
                 try
                 {
@@ -48,7 +46,7 @@ namespace emulatorLauncher
                                 string gameExecutable = null;
 
                                 if (games.Count > 0)
-                                    gameExecutable = games.Where(i => shorturl.StartsWith(i.CatalogNamespace)).Select(i => i.LaunchExecutable).FirstOrDefault();
+                                    gameExecutable = games.Where(i => i.CatalogNamespace.Equals(shorturl)).Select(i => i.LaunchExecutable).FirstOrDefault();
 
                                 if (gameExecutable != null)
                                     return Path.GetFileNameWithoutExtension(gameExecutable);
