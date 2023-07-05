@@ -6,11 +6,36 @@ using System.Diagnostics;
 using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.IO.Compression;
 
 namespace emulatorLauncher
 {
-    class FileTools
+    static class FileTools
     {
+        public static bool ExtractGZipBytes(byte[] bytes, string fileName)
+        {
+            try
+            {
+                using (var reader = new MemoryStream(bytes))
+                {
+                    using (var decompressedStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                    {
+                        using (GZipStream decompressionStream = new GZipStream(reader, CompressionMode.Decompress))
+                        {
+                            decompressionStream.CopyTo(decompressedStream);
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[ReadGZipStream] Failed " + ex.Message, ex);
+            }
+
+            return false;
+        }
+
         public static string FindFreeDriveLetter()
         {
             var drives = DriveInfo.GetDrives();

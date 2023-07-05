@@ -64,6 +64,9 @@
     <Compile Include="..\emulatorLauncher\Common\ReflectionHelper.cs">
       <Link>Common\ReflectionHelper.cs</Link>
     </Compile>
+    <Compile Include="..\emulatorLauncher\Common\SimpleLogger.cs">
+      <Link>Common\SimpleLogger.cs</Link>
+    </Compile>
     <Compile Include="..\emulatorLauncher\Common\StringExtensions.cs">
       <Link>Common\StringExtensions.cs</Link>
     </Compile>

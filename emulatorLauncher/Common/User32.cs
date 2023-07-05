@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.IO;
 
 namespace emulatorLauncher
 {
@@ -189,6 +190,58 @@ namespace emulatorLauncher
 
         [DllImport("kernel32.dll")]
         static extern bool GetBinaryType(string lpApplicationName, out BinaryType lpBinaryType);
+        
+        public static bool IsX64(string dllorExePath)
+        {
+            if (!File.Exists(dllorExePath))
+                return false;
+
+            if (Path.GetExtension(dllorExePath).ToLowerInvariant() == ".exe")
+                return GetBinaryType(dllorExePath) == BinaryType.SCS_64BIT_BINARY;
+
+            try
+            {
+                using (FileStream stream = new FileStream(dllorExePath, FileMode.Open, FileAccess.Read))
+                {
+                    // Read the DOS header
+                    byte[] dosHeader = new byte[64];
+                    stream.Read(dosHeader, 0, 64);
+
+                    // Get the offset to the PE signature
+                    int peOffset = BitConverter.ToInt32(dosHeader, 60);
+
+                    // Move to the PE signature
+                    stream.Seek(peOffset, SeekOrigin.Begin);
+
+                    // Read the PE signature (4 bytes)
+                    byte[] peSignature = new byte[4];
+                    stream.Read(peSignature, 0, 4);
+
+                    // Check if it matches the "PE\0\0" signature
+                    if (peSignature[0] == 0x50 && peSignature[1] == 0x45 && peSignature[2] == 0x00 && peSignature[3] == 0x00)
+                    {
+                        // Read the machine architecture (2 bytes)
+                        byte[] machine = new byte[2];
+                        stream.Read(machine, 0, 2);
+
+                        ushort machineValue = BitConverter.ToUInt16(machine, 0);
+                        if (machineValue == 0x8664)
+                            return true;
+
+                        if (machineValue == 0x014c)
+                            return false; // X86
+
+                        // Inconnu
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return false;
+        }
     }
 
     public static class Gdi32

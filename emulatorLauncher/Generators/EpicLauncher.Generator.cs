@@ -17,8 +17,9 @@ namespace emulatorLauncher
         {
             public EpicGameLauncher(Uri uri)
             {
-                _LauncherExeName = GetEpicGameExecutableName(uri);
+                LauncherExe = GetEpicGameExecutableName(uri);
             }
+
             private string GetEpicGameExecutableName(Uri uri)
             {
                 string shorturl = uri.LocalPath.ExtractString("/", ":");
@@ -58,54 +59,44 @@ namespace emulatorLauncher
                 {
                     throw new ApplicationException("There is a problem: Epic Launcher is not installed or the Game is not installed");
                 }
+
                 return null;
             }
 
             public override int RunAndWait(ProcessStartInfo path)
             {
-                using (var frm = new System.Windows.Forms.Form())
+                Process process = Process.Start(path);
+
+                int i = 1;
+                Process[] game = Process.GetProcessesByName(LauncherExe);
+
+                while (i <= 5 && game.Length == 0)
                 {
-                    // Some games fail to allocate DirectX surface if EmulationStation is showing fullscren : pop an invisible window between ES & the game solves the problem
-                    frm.ShowInTaskbar = false;
-                    frm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-                    frm.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-                    frm.Opacity = 0;
-                    frm.Show();
-
-                    System.Windows.Forms.Application.DoEvents();
-
-                    Process process = Process.Start(path);
-
-                    int i = 1;
-                    Process[] game = Process.GetProcessesByName(_LauncherExeName);
-
-                    while (i <= 5 && game.Length == 0)
-                    {
-                        game = Process.GetProcessesByName(_LauncherExeName);
-                        Thread.Sleep(4000);
-                        i++;
-                    }
-                    Process[] epic = Process.GetProcessesByName("EpicGamesLauncher");
-
-                    if (game.Length == 0)
-                        return 0;
-                    else
-                    {
-                        Process epicGame = game.OrderBy(p => p.StartTime).FirstOrDefault();
-                        Process epicLauncher = null;
-
-                        if (epic.Length > 0)
-                            epicLauncher = epic.OrderBy(p => p.StartTime).FirstOrDefault();
-
-                        epicGame.WaitForExit();
-
-                        if (Program.SystemConfig.isOptSet("notkillsteam") && Program.SystemConfig.getOptBoolean("notkillsteam"))
-                            return 0;
-                        else if (epicLauncher != null)
-                            epicLauncher.Kill();
-                    }
-                    return 0;
+                    game = Process.GetProcessesByName(LauncherExe);
+                    Thread.Sleep(4000);
+                    i++;
                 }
+
+                Process[] epic = Process.GetProcessesByName("EpicGamesLauncher");
+
+                if (game.Length == 0)
+                    return 0;
+
+                Process epicGame = game.OrderBy(p => p.StartTime).FirstOrDefault();
+                Process epicLauncher = null;
+
+                if (epic.Length > 0)
+                    epicLauncher = epic.OrderBy(p => p.StartTime).FirstOrDefault();
+
+                epicGame.WaitForExit();
+
+                if (Program.SystemConfig.isOptSet("notkillsteam") && Program.SystemConfig.getOptBoolean("notkillsteam"))
+                    return 0;
+
+                if (epicLauncher != null)
+                    epicLauncher.Kill();
+
+                return 0;
             }
 
             [DataContract]
