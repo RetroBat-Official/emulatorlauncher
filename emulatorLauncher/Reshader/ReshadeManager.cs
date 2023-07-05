@@ -222,9 +222,9 @@ namespace emulatorLauncher
                 UninstallReshader(type, path);
 
                 if (platform == ReshadePlatform.x86)
-                    GZipBytesToFile(Properties.Resources.reshader_x86_gz, Path.Combine(path, dllName));
+                    FileTools.ExtractGZipBytes(Properties.Resources.reshader_x86_gz, Path.Combine(path, dllName));
                 else
-                    GZipBytesToFile(Properties.Resources.reshader_x64_gz, Path.Combine(path, dllName));
+                    FileTools.ExtractGZipBytes(Properties.Resources.reshader_x64_gz, Path.Combine(path, dllName));
             }
 
             if (!File.Exists(Path.Combine(path, "ReShade.ini")))
@@ -286,30 +286,6 @@ namespace emulatorLauncher
             }            
 
             return knownTechniques;
-        }
-
-        static bool GZipBytesToFile(byte[] bytes, string fileName)
-        {
-            try
-            {
-                using (var reader = new MemoryStream(bytes))
-                {
-                    using (var decompressedStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-                    {
-                        using (GZipStream decompressionStream = new GZipStream(reader, CompressionMode.Decompress))
-                        {
-                            decompressionStream.CopyTo(decompressedStream);
-                            return true;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SimpleLogger.Instance.Error("[ReadGZipStream] Failed " + ex.Message, ex);
-            }
-
-            return false;
         }
 
         static string GetEnumDescription(Enum value)

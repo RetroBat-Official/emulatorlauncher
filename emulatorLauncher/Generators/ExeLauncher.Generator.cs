@@ -17,7 +17,8 @@ namespace emulatorLauncher
     {
         private string _systemName;
         private string _exename;
-        GameLauncher _gameLauncher;
+
+        private GameLauncher _gameLauncher;
 
         static Dictionary<string, Func<Uri, GameLauncher>> launchers = new Dictionary<string, Func<Uri, GameLauncher>>()
         {
@@ -40,17 +41,17 @@ namespace emulatorLauncher
             // Define if shortcut is an EpicGame or Steam shortcut
             if (extension == ".url")
             {
-                var ini = IniFile.FromFile(rom);
-                var uri = new Uri(ini.GetValue("InternetShortcut", "URL"));
-
-                Func<Uri, GameLauncher> gameLauncherInstanceBuilder;
-                if (launchers.TryGetValue(uri.Scheme, out gameLauncherInstanceBuilder))
+                try
                 {
-                    try { _gameLauncher = gameLauncherInstanceBuilder(uri); }
-                    catch
-                    {
-                        return null;
-                    }
+                    var uri = new Uri(IniFile.FromFile(rom).GetValue("InternetShortcut", "URL"));
+
+                    Func<Uri, GameLauncher> gameLauncherInstanceBuilder;
+                    if (launchers.TryGetValue(uri.Scheme, out gameLauncherInstanceBuilder))
+                        _gameLauncher = gameLauncherInstanceBuilder(uri);
+                }
+                catch
+                {
+                    return null;
                 }
             }
 
@@ -187,9 +188,7 @@ namespace emulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            if (_gameLauncher != null) return _gameLauncher.RunAndWait(path);
-
-            if (_systemName == "windows")
+            if (_systemName == "windows" || _gameLauncher != null)
             {
                 using (var frm = new System.Windows.Forms.Form())
                 {
@@ -201,6 +200,10 @@ namespace emulatorLauncher
                     frm.Show();
 
                     System.Windows.Forms.Application.DoEvents();
+
+                    if (_gameLauncher != null) 
+                        return _gameLauncher.RunAndWait(path);
+
                     base.RunAndWait(path);
                 }
             }
@@ -212,15 +215,13 @@ namespace emulatorLauncher
 
         abstract class GameLauncher
         {
-            public string _LauncherExeName;
-            public virtual int RunAndWait(ProcessStartInfo path)
-            {
-                return 0;
-            }
+            public string LauncherExe { get; protected set; }
+
+            public abstract int RunAndWait(ProcessStartInfo path);
 
             public virtual PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
             {
-                return PadToKey.AddOrUpdateKeyMapping(mapping, _LauncherExeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
+                return PadToKey.AddOrUpdateKeyMapping(mapping, LauncherExe, InputKey.hotkey | InputKey.start, "(%{KILL})");
             }
         }
     }

@@ -10,6 +10,11 @@ namespace emulatorLauncher
             {
                 return;
             }
+
+            public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
