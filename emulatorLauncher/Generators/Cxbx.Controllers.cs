@@ -41,7 +41,7 @@ namespace emulatorLauncher
                 return;
 
             if (controller.IsKeyboard)
-                ConfigureKeyboard(ini, controller.Config, controller.PlayerIndex);
+                ConfigureKeyboard(ini, controller, controller.PlayerIndex);
             else
                 ConfigureJoystick(ini, controller, controller.PlayerIndex, double_pads, nsamepad);
         }
@@ -52,8 +52,12 @@ namespace emulatorLauncher
         /// <param name="pcsx2ini"></param>
         /// <param name="keyboard"></param>
         /// <param name="padNumber"></param>
-        private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, int playerIndex)
+        private void ConfigureKeyboard(IniFile ini, Controller ctrl, int playerIndex)
         {
+            if (ctrl == null)
+                return;
+
+            InputConfig keyboard = ctrl.Config;
             if (keyboard == null)
                 return;
 
@@ -64,16 +68,16 @@ namespace emulatorLauncher
             string profileSection = "input-profile-" + (playerIndex - 1);
             ini.ClearSection(profileSection);
 
-            // Write profile mapping section
-            string inputSection = "input-port-" + (playerIndex - 1);
-            ini.WriteValue(inputSection, "Type", padType);
-            ini.WriteValue(inputSection, "DeviceName", "DInput/0/KeyboardMouse");
-            ini.WriteValue(inputSection, "ProfileName", "Keyboard" + playerIndex);
-            ini.WriteValue(inputSection, "TopSlot", "-1");
-            ini.WriteValue(inputSection, "BottomSlot", "-1");
-
             if (padType != "2")
             {
+                // Write profile mapping section
+                string inputSection = "input-port-" + (playerIndex - 1);
+                ini.WriteValue(inputSection, "Type", padType);
+                ini.WriteValue(inputSection, "DeviceName", "DInput/0/KeyboardMouse");
+                ini.WriteValue(inputSection, "ProfileName", "Keyboard" + playerIndex);
+                ini.WriteValue(inputSection, "TopSlot", "-1");
+                ini.WriteValue(inputSection, "BottomSlot", "-1");
+
                 ini.WriteValue(profileSection, "Type", padType);
                 ini.WriteValue(profileSection, "ProfileName", "Keyboard" + playerIndex);
                 ini.WriteValue(profileSection, "DeviceName", "DInput/0/KeyboardMouse");
@@ -103,6 +107,9 @@ namespace emulatorLauncher
                 ini.WriteValue(profileSection, "Right Axis Y-", "K");
                 ini.WriteValue(profileSection, "Motor", "");
             }
+
+            else if (padType == "2" && playerIndex == 1)
+                ConfigureGun(ini, ctrl, playerIndex);
         }
 
         private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex, Dictionary<string, int> double_pads, int nsamepad)
@@ -137,17 +144,16 @@ namespace emulatorLauncher
             string profileSection = "input-profile-" + (playerIndex - 1);
             ini.ClearSection(profileSection);
 
-            // Write profile mapping section
-            string inputSection = "input-port-" + (playerIndex - 1);
-            ini.WriteValue(inputSection, "Type", padType);
-            ini.WriteValue(inputSection, "DeviceName", deviceName);
-            ini.WriteValue(inputSection, "ProfileName", "\"" + ctrl.Name + padIndex + "\"");
-            ini.WriteValue(inputSection, "TopSlot", "-1");
-            ini.WriteValue(inputSection, "BottomSlot", "-1");
-
-
             if (padType != "2")
             {
+                // Write profile mapping section
+                string inputSection = "input-port-" + (playerIndex - 1);
+                ini.WriteValue(inputSection, "Type", padType);
+                ini.WriteValue(inputSection, "DeviceName", deviceName);
+                ini.WriteValue(inputSection, "ProfileName", "\"" + ctrl.Name + padIndex + "\"");
+                ini.WriteValue(inputSection, "TopSlot", "-1");
+                ini.WriteValue(inputSection, "BottomSlot", "-1");
+
                 ini.WriteValue(profileSection, "Type", padType);
                 ini.WriteValue(profileSection, "ProfileName", "\"" + ctrl.Name + padIndex + "\"");
                 ini.WriteValue(profileSection, "DeviceName", deviceName);
@@ -181,6 +187,9 @@ namespace emulatorLauncher
                 else
                     ini.WriteValue(profileSection, "Motor", "");
             }
+
+            else if (padType == "2" && playerIndex == 1)
+                ConfigureGun(ini, ctrl, playerIndex);
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, bool isXinput)
@@ -251,6 +260,40 @@ namespace emulatorLauncher
                 }
             }
             return "";
+        }
+
+        // Configure ems topgun, only for player 1 and hardmapping to keyboard/mouse
+        private void ConfigureGun(IniFile ini, Controller ctrl, int playerIndex)
+        {
+            string profileSection = "input-profile-" + (playerIndex - 1);
+            string inputSection = "input-port-" + (playerIndex - 1);
+            
+            ini.WriteValue(inputSection, "Type", "2");
+            ini.WriteValue(inputSection, "DeviceName", "DInput/0/KeyboardMouse");
+            ini.WriteValue(inputSection, "ProfileName", "Gun" + playerIndex);
+            ini.WriteValue(inputSection, "TopSlot", "-1");
+            ini.WriteValue(inputSection, "BottomSlot", "-1");
+
+            ini.WriteValue(profileSection, "Type", "2");
+            ini.WriteValue(profileSection, "ProfileName", "Gun" + playerIndex);
+            ini.WriteValue(profileSection, "DeviceName", "DInput/0/KeyboardMouse");
+            ini.WriteValue(profileSection, "Stick Up", "UP");
+            ini.WriteValue(profileSection, "Stick Down", "DOWN");
+            ini.WriteValue(profileSection, "Stick Left", "LEFT");
+            ini.WriteValue(profileSection, "Stick Right", "RIGHT");
+            ini.WriteValue(profileSection, "START", "RETURN");
+            ini.WriteValue(profileSection, "SE/BA", "SPACE");
+            ini.WriteValue(profileSection, "Trigger", "Click 0");
+            ini.WriteValue(profileSection, "Grip", "Click 1");
+            ini.WriteValue(profileSection, "A", "S");
+            ini.WriteValue(profileSection, "B", "D");
+            ini.WriteValue(profileSection, "Aim X+", "Cursor X+");
+            ini.WriteValue(profileSection, "Aim X-", "Cursor X-");
+            ini.WriteValue(profileSection, "Aim Y+", "Cursor Y+");
+            ini.WriteValue(profileSection, "Aim Y-", "Cursor Y-");
+            ini.WriteValue(profileSection, "Turbo Left", "");
+            ini.WriteValue(profileSection, "Turbo Right", "");
+            ini.WriteValue(profileSection, "Laser", "C");
         }
 
         private static string SdlToKeyCode(long sdlCode)
