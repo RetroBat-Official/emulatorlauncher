@@ -146,7 +146,7 @@ namespace emulatorLauncher
                 while (i <= 5 && zaccarialist.Length == 0)
                 {
                     zaccarialist = Process.GetProcessesByName("ZaccariaPinball");
-                    Thread.Sleep(4000);
+                    Thread.Sleep(8000);
                     i++;
                 }
 
@@ -159,7 +159,13 @@ namespace emulatorLauncher
                     if (SystemConfig.isOptSet("notkillsteam") && SystemConfig.getOptBoolean("notkillsteam"))
                         return 0;
                     else
-                        process.Kill();
+                    {
+                        foreach (var p in Process.GetProcessesByName("steam"))
+                        {
+                            p.Kill();
+                        }
+                    }
+                        
                 }
                 return 0;
             }

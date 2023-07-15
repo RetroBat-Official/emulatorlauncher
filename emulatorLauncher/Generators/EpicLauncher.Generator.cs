@@ -73,7 +73,7 @@ namespace emulatorLauncher
                 while (i <= 5 && game.Length == 0)
                 {
                     game = Process.GetProcessesByName(LauncherExe);
-                    Thread.Sleep(4000);
+                    Thread.Sleep(6000);
                     i++;
                 }
 
