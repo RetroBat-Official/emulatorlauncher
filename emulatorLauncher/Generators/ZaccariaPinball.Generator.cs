@@ -156,16 +156,16 @@ namespace emulatorLauncher
                 {
                     Process zaccaria = zaccarialist.OrderBy(p => p.StartTime).FirstOrDefault();
                     zaccaria.WaitForExit();
-                    if (SystemConfig.isOptSet("notkillsteam") && SystemConfig.getOptBoolean("notkillsteam"))
-                        return 0;
-                    else
+                    if (SystemConfig.isOptSet("killsteam") && SystemConfig.getOptBoolean("killsteam"))
                     {
                         foreach (var p in Process.GetProcessesByName("steam"))
                         {
                             p.Kill();
                         }
                     }
-                        
+                    else
+                        return 0;
+
                 }
                 return 0;
             }

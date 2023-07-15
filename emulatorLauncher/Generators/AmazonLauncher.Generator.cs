@@ -132,11 +132,12 @@ namespace emulatorLauncher
 
                 amazonGame.WaitForExit();
 
-                if (Program.SystemConfig.isOptSet("notkillsteam") && Program.SystemConfig.getOptBoolean("notkillsteam"))
+                if (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam"))
+                    amazonLauncher?.Kill();
+                else
                     return 0;
                 
-                if (amazonLauncher != null)
-                    amazonLauncher.Kill();                
+                            
 
                 return 0;
             }

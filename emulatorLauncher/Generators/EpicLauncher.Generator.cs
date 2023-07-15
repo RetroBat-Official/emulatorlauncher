@@ -90,11 +90,10 @@ namespace emulatorLauncher
 
                 epicGame.WaitForExit();
 
-                if (Program.SystemConfig.isOptSet("notkillsteam") && Program.SystemConfig.getOptBoolean("notkillsteam"))
-                    return 0;
-
-                if (epicLauncher != null)
-                    epicLauncher.Kill();
+                if (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam"))
+                    epicLauncher?.Kill();
+                else
+                    return 0;                    
 
                 return 0;
             }
