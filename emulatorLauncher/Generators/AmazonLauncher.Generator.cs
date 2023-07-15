@@ -24,45 +24,40 @@ namespace emulatorLauncher
                 string toRemove = "amazon-games://play/";
                 string shorturl = url.Replace(toRemove, "");
 
-                try
+                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string amazonDB = Path.Combine(appData, "Amazon Games", "Data", "Games", "Sql", "GameInstallInfo.sqlite");
+
+                if (File.Exists(amazonDB))
                 {
-                    string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                    string amazonDB = Path.Combine(appData, "Amazon Games", "Data", "Games", "Sql", "GameInstallInfo.sqlite");
+                    string gameInstallPath = null;
 
-                    if (File.Exists(amazonDB))
+                    using (var db = new SQLiteConnection("Data Source = " + amazonDB))
                     {
-                        string gameInstallPath = null;
+                        db.Open();
 
-                        using (var db = new SQLiteConnection("Data Source = " + amazonDB))
+                        var cmd = db.CreateCommand();
+                        cmd.CommandText = "SELECT installDirectory FROM DbSet where Id = '" + shorturl + "'";
+
+                        var sqlite_datareader = cmd.ExecuteReader();
+
+                        if (!sqlite_datareader.HasRows)
                         {
-                            db.Open();
-
-                            var cmd = db.CreateCommand();                            
-                            cmd.CommandText = "SELECT installDirectory FROM DbSet where Id = '" + shorturl + "'";
-
-                            var sqlite_datareader = cmd.ExecuteReader();
-
-                            if (!sqlite_datareader.HasRows)
-                            {
-                                db.Close();
-                                throw new ApplicationException("There is a problem: the Game is not installed in Amazon Launcher");
-                            }
-
-                            while (sqlite_datareader.Read())
-                                gameInstallPath = sqlite_datareader.GetString(0);
-
                             db.Close();
+                            throw new ApplicationException("There is a problem: the Game is not installed in Amazon Launcher");
                         }
 
-                        return GetAmazonGameExecutable(gameInstallPath);
+                        while (sqlite_datareader.Read())
+                            gameInstallPath = sqlite_datareader.GetString(0);
+
+                        db.Close();
                     }
-                }
-                catch
-                {
-                    throw new ApplicationException("There is a problem: Amazon Launcher is not installed or the Game is not installed");
+
+                    var exe = GetAmazonGameExecutable(gameInstallPath);
+                    if (!string.IsNullOrEmpty(exe))
+                        return exe;
                 }
 
-                return null;
+                throw new ApplicationException("There is a problem: Amazon Launcher is not installed or the Game is not installed");
             }
 
             private string GetAmazonGameExecutable(string path)
@@ -107,37 +102,22 @@ namespace emulatorLauncher
 
             public override int RunAndWait(ProcessStartInfo path)
             {
-                Process process = Process.Start(path);
+                KillExistingLauncherExes();
 
-                int i = 1;
-                Process[] game = Process.GetProcessesByName(LauncherExe);
+                Process.Start(path);
 
-                while (i <= 5 && game.Length == 0)
+                var amazonGame = GetLauncherExeProcess();
+                if (amazonGame != null)
                 {
-                    game = Process.GetProcessesByName(LauncherExe);
-                    Thread.Sleep(6000);
-                    i++;
+                    amazonGame.WaitForExit();
+
+                    if (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam"))
+                    {
+                        var epicLauncher = Process.GetProcessesByName("Amazon Games UI").OrderBy(p => p.StartTime).FirstOrDefault();
+                        if (epicLauncher != null)
+                            epicLauncher.Kill();
+                    }                    
                 }
-
-                Process[] amazon = Process.GetProcessesByName("Amazon Games UI");
-
-                if (game.Length == 0)
-                    return 0;
-
-                Process amazonGame = game.OrderBy(p => p.StartTime).FirstOrDefault();
-                Process amazonLauncher = null;
-
-                if (amazon.Length > 0)
-                    amazonLauncher = amazon.OrderBy(p => p.StartTime).FirstOrDefault();
-
-                amazonGame.WaitForExit();
-
-                if (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam"))
-                    amazonLauncher?.Kill();
-                else
-                    return 0;
-                
-                            
 
                 return 0;
             }

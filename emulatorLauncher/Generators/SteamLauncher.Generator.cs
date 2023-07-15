@@ -8,7 +8,7 @@ namespace emulatorLauncher
         {
             public SteamGameLauncher(Uri uri)
             {
-                return;
+                throw new NotImplementedException("SteamGameLauncher is not implemented");
             }
 
             public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
