@@ -8,22 +8,80 @@ namespace emulatorLauncher.Tools
 {
     class HdiGameDevice
     {
+        public class UsbGameDevice : HdiGameDevice
+        {
+            public UsbGameDevice(ManagementObject mo, HdiGameDevice dev)
+                : base(mo)
+            {
+                HdiGameDevice = dev;
+            }
+
+            public HdiGameDevice HdiGameDevice { get; set; }
+
+            public void Enable(bool enable)
+            {
+                var mo = GetDeviceFromName(this.PNPDeviceID);
+                if (mo != null)
+                    mo.InvokeMethod(enable ? "Enable" : "Disable", null, null);
+            }
+        }
+
         private static List<HdiGameDevice> _devices;
+
+        public static UsbGameDevice[] GetUsbGameDevices()
+        {
+            return GetGameDevices()
+                .Select(dev => dev.AsUsbGameDevice())
+                .Where(dev => dev != null)
+                .ToArray();
+        }
+
+        private UsbGameDevice _usbDevice;
+        private bool _usbDeviceQueryed;
+
+        public UsbGameDevice AsUsbGameDevice()
+        {
+            if (!_usbDeviceQueryed)
+            {
+                _usbDeviceQueryed = true;
+
+                try
+                {
+                    var pt = InputDevices.GetInputDeviceParent(PNPDeviceID);
+                    if (pt.StartsWith("USB"))
+                    {
+                        var mo = GetDeviceFromName(pt);
+                        if (mo != null)
+                        {
+                            var dev = new UsbGameDevice(mo, this);
+                            mo.Dispose();
+                            _usbDevice = dev;
+                        }
+                    }
+                }
+                catch { }
+            }
+             
+            return _usbDevice;            
+        }
 
         public static HdiGameDevice[] GetGameDevices()
         {
             if (_devices == null)
             {
-                List<HdiGameDevice> devices = new List<HdiGameDevice>();
+                var devices = new List<HdiGameDevice>();
 
                 try
                 {
                     using (var QueryPnp = new ManagementObjectSearcher(@"\\.\root\cimv2", string.Format("SELECT * FROM Win32_PNPEntity WHERE Present = True AND PNPClass = 'HIDClass'"), new EnumerationOptions() { BlockSize = 48 }))
                     {
-                        foreach (var PnpDevice in QueryPnp.Get())
+                        foreach (ManagementObject PnpDevice in QueryPnp.Get())
                         {
                             var hardwareID = (string[])PnpDevice.Properties["HardwareID"].Value;
                             if (hardwareID == null || !hardwareID.Contains("HID_DEVICE_SYSTEM_GAME"))
+                                continue;
+
+                            if (!"OK".Equals(PnpDevice.Properties["Status"].Value))
                                 continue;
 
                             devices.Add(new HdiGameDevice(PnpDevice));
@@ -38,7 +96,22 @@ namespace emulatorLauncher.Tools
             return _devices.ToArray();
         }
 
-        private HdiGameDevice(ManagementBaseObject PnpDevice)
+        private static ManagementObject GetDeviceFromName(string name)
+        {
+            using (var myDevices = new ManagementObjectSearcher("root\\CIMV2", @"SELECT * FROM Win32_PnPEntity WHERE Present = True AND PNPClass = 'HIDClass'"))
+            {
+                foreach (ManagementObject item in myDevices.Get())
+                {
+                    var dev = new HdiGameDevice(item);
+                    if (dev.PNPDeviceID == name)
+                        return item;
+                }
+            }
+
+            return null;
+        }
+
+        protected HdiGameDevice(ManagementBaseObject PnpDevice)
         {
             DeviceId = (string)PnpDevice.Properties["DeviceID"].Value;
             Caption = (string)PnpDevice.Properties["Caption"].Value;
@@ -55,6 +128,11 @@ namespace emulatorLauncher.Tools
             SystemName = (string)PnpDevice.Properties["SystemName"].Value;
 
             Present = (bool)PnpDevice.Properties["Present"].Value;
+        }
+
+        public override string ToString()
+        {
+            return Caption;
         }
 
         public string Caption { get; set; }

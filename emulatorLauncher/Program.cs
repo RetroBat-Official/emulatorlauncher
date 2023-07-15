@@ -15,6 +15,7 @@ using System.Net;
 using System.ComponentModel;
 using Microsoft.Win32;
 using System.Text;
+using System.Security.Principal;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -155,8 +156,6 @@ namespace emulatorLauncher
         [STAThread]
         static void Main(string[] args)
         {
-          //  var info = SteamAppInfoReader.FindGameInformations(444930);
-
             RegisterShellExtensions();
 
             if (args.Length == 0)
@@ -185,6 +184,38 @@ namespace emulatorLauncher
                 SystemConfig["use_guns"] = "true";
             
             ImportShaderOverrides();
+            
+            if (args.Any(a => "-resetusbcontrollers".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                bool elevated = WindowsIdentity.GetCurrent().Owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
+                if (!elevated)
+                {
+                    MessageBox.Show("Process is not elevated");
+                }
+                else
+                {
+                    var dd = HdiGameDevice.GetUsbGameDevices();
+                    if (dd.Length > 1)
+                    {
+                        try
+                        {
+                            foreach (var dev in dd)
+                                dev.Enable(false);
+
+                            System.Threading.Thread.Sleep(200);
+
+                            foreach (var dev in dd.OrderBy(dev => dev.PNPDeviceID))
+                                dev.Enable(true);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message);
+                        }
+                    }
+                }
+
+                return;
+            }
 
             if (args.Any(a => "-extract".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
