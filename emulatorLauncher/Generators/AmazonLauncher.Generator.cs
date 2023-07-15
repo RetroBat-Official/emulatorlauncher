@@ -115,7 +115,7 @@ namespace emulatorLauncher
                 while (i <= 5 && game.Length == 0)
                 {
                     game = Process.GetProcessesByName(LauncherExe);
-                    Thread.Sleep(4000);
+                    Thread.Sleep(6000);
                     i++;
                 }
 
@@ -132,11 +132,12 @@ namespace emulatorLauncher
 
                 amazonGame.WaitForExit();
 
-                if (Program.SystemConfig.isOptSet("notkillsteam") && Program.SystemConfig.getOptBoolean("notkillsteam"))
+                if (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam"))
+                    amazonLauncher?.Kill();
+                else
                     return 0;
                 
-                if (amazonLauncher != null)
-                    amazonLauncher.Kill();                
+                            
 
                 return 0;
             }
