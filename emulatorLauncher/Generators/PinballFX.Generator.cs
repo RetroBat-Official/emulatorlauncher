@@ -45,9 +45,6 @@ namespace emulatorLauncher
 
                 exe = Path.Combine(path, "steam.exe");
 
-                if (!File.Exists(exe))
-                    return null;
-
                 commandArray.Add("-nofriendsui");
                 commandArray.Add("-silent");
                 commandArray.Add("-applaunch");
@@ -65,8 +62,6 @@ namespace emulatorLauncher
                 path = AppConfig.GetFullPath(system);
                 exe = Path.Combine(path, _exename + ".exe");
 
-                if (!File.Exists(exe))
-                    return null;
             }
 
             if (system == "pinballfx")
@@ -103,6 +98,9 @@ namespace emulatorLauncher
             }
 
             string args = string.Join(" ", commandArray);
+
+            if (!File.Exists(exe))
+                throw new ApplicationException("There is a problem: The Game is not installed");
 
             return new ProcessStartInfo()
             {
