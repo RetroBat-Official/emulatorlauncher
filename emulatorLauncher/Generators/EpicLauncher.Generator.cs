@@ -55,6 +55,8 @@ namespace emulatorLauncher
 
             public override int RunAndWait(ProcessStartInfo path)
             {
+                bool epicLauncherExists = Process.GetProcessesByName("EpicGamesLauncher").Any();
+
                 KillExistingLauncherExes();
 
                 Process.Start(path);
@@ -64,11 +66,13 @@ namespace emulatorLauncher
                 {
                     epicGame.WaitForExit();
 
-                    if (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam"))
+                    if (!epicLauncherExists || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
                     {
-                        var epicLauncher = Process.GetProcessesByName("EpicGamesLauncher").OrderBy(p => p.StartTime).FirstOrDefault();
-                        if (epicLauncher != null)
-                            epicLauncher.Kill();
+                        foreach (var ui in Process.GetProcessesByName("EpicGamesLauncher"))
+                        {
+                            try { ui.Kill(); }
+                            catch { }
+                        }
                     }
                 }
 

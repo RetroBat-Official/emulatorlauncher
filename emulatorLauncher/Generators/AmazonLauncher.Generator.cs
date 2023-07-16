@@ -14,15 +14,13 @@ namespace emulatorLauncher
         class AmazonGameLauncher : GameLauncher
         {
             public AmazonGameLauncher(Uri uri)
-            {
-                LauncherExe = GetAmazonGameExecutableName(uri.ToString());
-                InstallSQLiteInteropDll();
+            {                
+                LauncherExe = GetAmazonGameExecutableName(uri);
             }
 
-            private string GetAmazonGameExecutableName(string url)
+            private string GetAmazonGameExecutableName(Uri uri)
             {
-                string toRemove = "amazon-games://play/";
-                string shorturl = url.Replace(toRemove, "");
+                string shorturl = uri.AbsolutePath.Substring(1);
 
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string amazonDB = Path.Combine(appData, "Amazon Games", "Data", "Games", "Sql", "GameInstallInfo.sqlite");
@@ -30,6 +28,8 @@ namespace emulatorLauncher
                 if (File.Exists(amazonDB))
                 {
                     string gameInstallPath = null;
+
+                    InstallSQLiteInteropDll();
 
                     using (var db = new SQLiteConnection("Data Source = " + amazonDB))
                     {
@@ -53,8 +53,10 @@ namespace emulatorLauncher
                     }
 
                     var exe = GetAmazonGameExecutable(gameInstallPath);
-                    if (!string.IsNullOrEmpty(exe))
-                        return exe;
+                    if (string.IsNullOrEmpty(exe))
+                        throw new ApplicationException("There is a problem: Game is not installed");
+
+                    return exe;
                 }
 
                 throw new ApplicationException("There is a problem: Amazon Launcher is not installed or the Game is not installed");
@@ -102,6 +104,8 @@ namespace emulatorLauncher
 
             public override int RunAndWait(ProcessStartInfo path)
             {
+                bool uiExists = Process.GetProcessesByName("Amazon Games UI").Any();
+
                 KillExistingLauncherExes();
 
                 Process.Start(path);
@@ -111,12 +115,14 @@ namespace emulatorLauncher
                 {
                     amazonGame.WaitForExit();
 
-                    if (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam"))
+                    if (!uiExists || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
                     {
-                        var epicLauncher = Process.GetProcessesByName("Amazon Games UI").OrderBy(p => p.StartTime).FirstOrDefault();
-                        if (epicLauncher != null)
-                            epicLauncher.Kill();
-                    }                    
+                        foreach (var ui in Process.GetProcessesByName("Amazon Games UI"))
+                        {
+                            try { ui.Kill(); }
+                            catch { }
+                        }
+                    }                
                 }
 
                 return 0;
