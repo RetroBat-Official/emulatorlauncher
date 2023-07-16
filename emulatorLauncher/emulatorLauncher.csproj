@@ -135,6 +135,7 @@
     <Compile Include="Generators\Nes3d.Generator.cs" />
     <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
+	<Compile Include="Generators\PinballFX.Generator.cs" />
     <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />

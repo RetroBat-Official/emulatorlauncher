@@ -92,6 +92,7 @@ namespace emulatorLauncher
             { "n-gage", () => new Eka2l1Generator() },
             { "nosgba", () => new NosGbaGenerator() }, { "no$gba", () => new NosGbaGenerator() },
             { "pinballfx3", () => new PinballFX3Generator() },
+            { "pinballfx", () => new PinballFXGenerator() },
             { "zaccariapinball", () => new ZaccariaPinballGenerator() },
             { "bigpemu", () => new BigPEmuGenerator() },
             { "phoenix", () => new PhoenixGenerator() },
