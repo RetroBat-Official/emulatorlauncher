@@ -23,6 +23,8 @@ namespace emulatorLauncher
         private string _exename;
         private string _corename;
 
+        private static List<string> systemNoRunahead = new List<string>() { "pinballfx", "pinballfx3" };
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             List<string> commandArray = new List<string>();
@@ -97,9 +99,9 @@ namespace emulatorLauncher
                 commandArray.Add("-table_" + Path.GetFileNameWithoutExtension(rom));
             }
 
-            string args = string.Join(" ", commandArray);
+            string args = string.Join(" ", commandArray);           
 
-            if (!File.Exists(exe))
+            if (!File.Exists(exe) || !systemNoRunahead.Contains(system))
                 throw new ApplicationException("There is a problem: The Game is not installed");
 
             return new ProcessStartInfo()
