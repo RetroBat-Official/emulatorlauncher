@@ -199,13 +199,17 @@ namespace emulatorLauncher
                 if (rom.Contains(".side.") || Program.SystemConfig["controller_mode"] == "side")
                 {
                     extraOptions["Options/Sideways Wiimote"] = "1";
-                    wiiMapping[InputKey.x] = "Buttons/B";
-                    wiiMapping[InputKey.y] = "Buttons/A";
+                    wiiMapping[InputKey.x] = "Buttons/A";
+                    wiiMapping[InputKey.y] = "Buttons/1";
                     wiiMapping[InputKey.a] = "Buttons/2";
-                    wiiMapping[InputKey.b] = "Buttons/1";
+                    wiiMapping[InputKey.b] = "Buttons/B";
                     wiiMapping[InputKey.l2] = "Shake/X";
                     wiiMapping[InputKey.l2] = "Shake/Y";
                     wiiMapping[InputKey.l2] = "Shake/Z";
+                    wiiMapping[InputKey.select] = "Buttons/-";
+                    wiiMapping[InputKey.start] = "Buttons/+";
+                    wiiMapping[InputKey.pageup] = "Tilt/Left";
+                    wiiMapping[InputKey.pagedown] = "Tilt/Right";
                 }
 
                 // i: infrared, s: swing, t: tilt, n: nunchuk
@@ -254,30 +258,54 @@ namespace emulatorLauncher
                 if ((rom.Contains(".ni.") || rom.Contains(".ns.") || rom.Contains(".nt.")) || (Program.SystemConfig["controller_mode"] == "ni" || Program.SystemConfig["controller_mode"] == "ns" || Program.SystemConfig["controller_mode"] == "nt"))
                 {
                     extraOptions["Extension"] = "Nunchuk";
-                    wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
-                    wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
+                    wiiMapping[InputKey.l1] = "Nunchuk/Buttons/C";
+                    wiiMapping[InputKey.r1] = "Nunchuk/Buttons/Z";
                     wiiMapping[InputKey.joystick1up] = "Nunchuk/Stick/Up";
                     wiiMapping[InputKey.joystick1left] = "Nunchuk/Stick/Left";
+                    wiiMapping[InputKey.select] = "Buttons/-";
+                    wiiMapping[InputKey.start] = "Buttons/+";
+                    wiiMapping[InputKey.l2] = "Shake/X";
+                    wiiMapping[InputKey.l2] = "Shake/Y";
+                    wiiMapping[InputKey.l2] = "Shake/Z";
                 }
 
                 if ((rom.Contains(".in.") || rom.Contains(".sn.") || rom.Contains(".tn.")) || (Program.SystemConfig["controller_mode"] == "in" || Program.SystemConfig["controller_mode"] == "sn" || Program.SystemConfig["controller_mode"] == "tn"))
                 {
                     extraOptions["Extension"] = "Nunchuk";
-                    wiiMapping[InputKey.l2] = "Nunchuk/Buttons/C";
-                    wiiMapping[InputKey.r2] = "Nunchuk/Buttons/Z";
+                    wiiMapping[InputKey.l1] = "Nunchuk/Buttons/C";
+                    wiiMapping[InputKey.r1] = "Nunchuk/Buttons/Z";
                     wiiMapping[InputKey.joystick2up] = "Nunchuk/Stick/Up";
                     wiiMapping[InputKey.joystick2left] = "Nunchuk/Stick/Left";
+                    wiiMapping[InputKey.select] = "Buttons/-";
+                    wiiMapping[InputKey.start] = "Buttons/+";
+                    wiiMapping[InputKey.l2] = "Shake/X";
+                    wiiMapping[InputKey.l2] = "Shake/Y";
+                    wiiMapping[InputKey.l2] = "Shake/Z";
                 }
             }
 
             // cc : Classic Controller Settings
             else if (rom.Contains(".cc.") || Program.SystemConfig["controller_mode"] == "cc")
             {
+                bool revertall = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
+                bool revertAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
+
                 extraOptions["Extension"] = "Classic";
-                wiiMapping[InputKey.x] = "Classic/Buttons/X";
-                wiiMapping[InputKey.y] = "Classic/Buttons/Y";
-                wiiMapping[InputKey.b] = "Classic/Buttons/B";
-                wiiMapping[InputKey.a] = "Classic/Buttons/A";
+
+                if (revertall)
+                {
+                    wiiMapping[InputKey.y] = "Classic/Buttons/X";
+                    wiiMapping[InputKey.x] = "Classic/Buttons/Y";
+                    wiiMapping[InputKey.a] = "Classic/Buttons/B";
+                    wiiMapping[InputKey.b] = "Classic/Buttons/A";
+                }
+                else
+                {
+                    wiiMapping[InputKey.x] = "Classic/Buttons/X";
+                    wiiMapping[InputKey.y] = "Classic/Buttons/Y";
+                    wiiMapping[InputKey.b] = revertAB ? "Classic/Buttons/A" : "Classic/Buttons/B";
+                    wiiMapping[InputKey.a] = revertAB ? "Classic/Buttons/B" : "Classic/Buttons/A";
+                }
                 wiiMapping[InputKey.select] = "Classic/Buttons/-";
                 wiiMapping[InputKey.start] = "Classic/Buttons/+";
                 wiiMapping[InputKey.pageup] = "Classic/Triggers/L";
@@ -402,9 +430,7 @@ namespace emulatorLauncher
                        foreach(var xtra in extraOptions)
                            ini.WriteValue(gcpad, xtra.Key, xtra.Value);
 
-                    //bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons");
                     bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
-
                     bool revertButtonsAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
 
                     foreach (var x in anyMapping)
