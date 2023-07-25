@@ -129,6 +129,12 @@ namespace emulatorLauncher
             { InputKey.y,               "Buttons/X" }
         };
 
+        static InputKeyMapping reversedButtonsAB = new InputKeyMapping()
+        {
+            { InputKey.b,               "Buttons/A" },
+            { InputKey.a,               "Buttons/B" }
+        };
+
         static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string,string>()
         {
             { "Main Stick/Up",   "Main Stick/Down" },
@@ -396,7 +402,10 @@ namespace emulatorLauncher
                        foreach(var xtra in extraOptions)
                            ini.WriteValue(gcpad, xtra.Key, xtra.Value);
 
-                    bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons");
+                    //bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons");
+                    bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
+
+                    bool revertButtonsAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
 
                     foreach (var x in anyMapping)
                     {
@@ -404,6 +413,9 @@ namespace emulatorLauncher
 
                         if (revertButtons && reversedButtons.ContainsKey(x.Key))
                             value = reversedButtons[x.Key];
+
+                        if (revertButtonsAB && reversedButtonsAB.ContainsKey(x.Key))
+                            value = reversedButtonsAB[x.Key];
 
                         if (pad.Config.Type == "keyboard")
                         {

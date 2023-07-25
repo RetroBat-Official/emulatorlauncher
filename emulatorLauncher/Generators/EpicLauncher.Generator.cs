@@ -24,83 +24,63 @@ namespace emulatorLauncher
             {
                 string shorturl = uri.LocalPath.ExtractString("/", ":");
 
-                try
+                var modSdkMetadataDir = Registry.GetValue("HKEY_CURRENT_USER\\Software\\Epic Games\\EOS", "ModSdkMetadataDir", null);
+                if (modSdkMetadataDir != null)
                 {
-                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\Epic Games\\EOS"))
+                    string manifestPath = modSdkMetadataDir.ToString();
+
+                    string gameExecutable = null;
+
+                    if (Directory.Exists(manifestPath))
                     {
-                        if (key != null)
+                        foreach (var file in Directory.EnumerateFiles(manifestPath, "*.item"))
                         {
-                            Object o = key.GetValue("ModSdkMetadataDir");
-                            if (o != null)
+                            var item = JsonSerializer.DeserializeString<EpicGame>(File.ReadAllText(file));
+                            if (shorturl.Equals(item.CatalogNamespace))
                             {
-                                string manifestPath = o.ToString();
-
-                                List<EpicGames> games = new List<EpicGames>();
-
-                                foreach (var file in Directory.EnumerateFiles(manifestPath, "*.item"))
-                                {
-                                    var rr = JsonSerializer.DeserializeString<EpicGames>(File.ReadAllText(file));
-                                    if (rr != null)
-                                        games.Add(rr);
-                                }
-
-                                string gameExecutable = null;
-
-                                if (games.Count > 0)
-                                    gameExecutable = games.Where(i => i.CatalogNamespace.Equals(shorturl)).Select(i => i.LaunchExecutable).FirstOrDefault();
-
-                                if (gameExecutable != null)
-                                    return Path.GetFileNameWithoutExtension(gameExecutable);
+                                gameExecutable = item.LaunchExecutable;
+                                break;
                             }
                         }
                     }
-                }
-                catch
-                {
-                    throw new ApplicationException("There is a problem: Epic Launcher is not installed or the Game is not installed");
+
+                    if (gameExecutable == null)
+                        throw new ApplicationException("There is a problem: The Game is not installed");
+
+                    return Path.GetFileNameWithoutExtension(gameExecutable);
                 }
 
-                return null;
+                throw new ApplicationException("There is a problem: Epic Launcher is not installed");
             }
 
             public override int RunAndWait(ProcessStartInfo path)
             {
-                Process process = Process.Start(path);
+                bool epicLauncherExists = Process.GetProcessesByName("EpicGamesLauncher").Any();
 
-                int i = 1;
-                Process[] game = Process.GetProcessesByName(LauncherExe);
+                KillExistingLauncherExes();
 
-                while (i <= 5 && game.Length == 0)
+                Process.Start(path);
+
+                var epicGame = GetLauncherExeProcess();
+                if (epicGame != null)
                 {
-                    game = Process.GetProcessesByName(LauncherExe);
-                    Thread.Sleep(4000);
-                    i++;
+                    epicGame.WaitForExit();
+
+                    if (!epicLauncherExists || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
+                    {
+                        foreach (var ui in Process.GetProcessesByName("EpicGamesLauncher"))
+                        {
+                            try { ui.Kill(); }
+                            catch { }
+                        }
+                    }
                 }
-
-                Process[] epic = Process.GetProcessesByName("EpicGamesLauncher");
-
-                if (game.Length == 0)
-                    return 0;
-
-                Process epicGame = game.OrderBy(p => p.StartTime).FirstOrDefault();
-                Process epicLauncher = null;
-
-                if (epic.Length > 0)
-                    epicLauncher = epic.OrderBy(p => p.StartTime).FirstOrDefault();
-
-                epicGame.WaitForExit();
-
-                if (Program.SystemConfig.isOptSet("notkillsteam") && Program.SystemConfig.getOptBoolean("notkillsteam"))
-                    return 0;
-
-                if (epicLauncher != null)
-                    epicLauncher.Kill();
 
                 return 0;
             }
 
             [DataContract]
-            public class EpicGames
+            public class EpicGame
             {
                 [DataMember]
                 public string CatalogNamespace { get; set; }

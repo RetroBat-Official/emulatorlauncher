@@ -49,8 +49,10 @@ namespace emulatorLauncher
                     if (launchers.TryGetValue(uri.Scheme, out gameLauncherInstanceBuilder))
                         _gameLauncher = gameLauncherInstanceBuilder(uri);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    SetCustomError(ex.Message);
+                    SimpleLogger.Instance.Error("[ExeLauncherGenerator] " + ex.Message, ex);
                     return null;
                 }
             }
@@ -150,7 +152,8 @@ namespace emulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_gameLauncher != null) return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
+            if (_gameLauncher != null) 
+                return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
             else if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
                 return mapping;
@@ -201,8 +204,11 @@ namespace emulatorLauncher
 
                     System.Windows.Forms.Application.DoEvents();
 
-                    if (_gameLauncher != null) 
+                    if (_gameLauncher != null)
+                    {
+                        path.UseShellExecute = true;
                         return _gameLauncher.RunAndWait(path);
+                    }
 
                     base.RunAndWait(path);
                 }
@@ -222,6 +228,31 @@ namespace emulatorLauncher
             public virtual PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
             {
                 return PadToKey.AddOrUpdateKeyMapping(mapping, LauncherExe, InputKey.hotkey | InputKey.start, "(%{KILL})");
+            }
+
+            protected void KillExistingLauncherExes()
+            {
+                foreach (var px in Process.GetProcessesByName(LauncherExe))
+                {
+                    try { px.Kill(); }
+                    catch { }
+                }
+            }
+
+            protected Process GetLauncherExeProcess()
+            {
+                Process epicGame = null;
+
+                for (int i = 0; i < 30; i++)
+                {
+                    epicGame = Process.GetProcessesByName(LauncherExe).FirstOrDefault();
+                    if (epicGame != null)
+                        break;
+
+                    Thread.Sleep(1000);
+                }
+
+                return epicGame;
             }
         }
     }
