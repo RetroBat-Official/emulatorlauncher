@@ -431,7 +431,27 @@ namespace emulatorLauncher.libRetro
         /// <param name="retroarchConfig"></param>
         private void ConfigureVSync(ConfigFile retroarchConfig)
         {
-            BindFeature(retroarchConfig, "video_hard_sync", "video_hard_sync", "false");
+            if (Features.IsSupported("video_hard_sync"))
+            {
+                if (SystemConfig.isOptSet("video_hard_sync"))
+                {
+                    if (SystemConfig["video_hard_sync"] != "false")
+                    {
+                        retroarchConfig["video_hard_sync"] = "true";
+                        retroarchConfig["video_hard_sync_frames"] = SystemConfig["video_hard_sync"];
+                    }
+                    else
+                    {
+                        retroarchConfig["video_hard_sync"] = "false";
+                        retroarchConfig["video_hard_sync_frames"] = "0";
+                    }
+                }
+                else
+                {
+                    retroarchConfig["video_hard_sync"] = "false";
+                    retroarchConfig["video_hard_sync_frames"] = "0";
+                }
+            }
             BindFeature(retroarchConfig, "video_swap_interval", "video_swap_interval", "1");
             BindFeature(retroarchConfig, "video_black_frame_insertion", "video_black_frame_insertion", "0");
             BindFeature(retroarchConfig, "vrr_runloop_enable", "vrr_runloop_enable", "false");
