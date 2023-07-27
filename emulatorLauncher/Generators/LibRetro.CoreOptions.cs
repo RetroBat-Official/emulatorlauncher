@@ -2742,6 +2742,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "psxcontroller2", "1");
             BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun");
             BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross");
+            BindFeature(coreSettings, "beetle_psx_hw_analog_toggle_combo", "beetle_psx_hw_analog_toggle_combo", "l1+r1+start");
 
             // If lightgun is enabled, renderer must be changed to software
             if (SystemConfig.getOptBoolean("use_guns") || SystemConfig["psxcontroller1"] == "260")
@@ -3037,7 +3038,7 @@ namespace emulatorLauncher.libRetro
             if (core != "px68k")
                 return;
 
-            BindFeature(coreSettings, "px68k_cpuspeed", "px68k_cpuspeed", "10MHz");
+            BindFeature(coreSettings, "px68k_cpuspeed", "px68k_cpuspeed", "10Mhz");
             BindFeature(coreSettings, "px68k_ramsize", "px68k_ramsize", "2MB");
             BindFeature(coreSettings, "px68k_frameskip", "px68k_frameskip", "Full Frame");
             BindFeature(coreSettings, "px68k_joytype1", "px68k_joytype", "Default (2 Buttons)");

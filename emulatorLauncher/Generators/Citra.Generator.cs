@@ -38,25 +38,13 @@ namespace emulatorLauncher
 
             SetupConfiguration(path, isCitraCanary);
 
-            if (isCitraCanary)
+            return new ProcessStartInfo()
             {
-                return new ProcessStartInfo()
-                {
-                    FileName = exe,
-                    WorkingDirectory = path,
-                    Arguments = "-f -g " + "\"" + rom + "\"",
-                };
-            }
+                FileName = exe,
+                WorkingDirectory = path,
+                Arguments = "-f -g " + "\"" + rom + "\"",
+            };
 
-            else
-            {
-                return new ProcessStartInfo()
-                {
-                    FileName = exe,
-                    WorkingDirectory = path,
-                    Arguments = "\"" + rom + "\" -f",
-                };
-            }
         }
 
         private void SetupConfiguration(string path, bool isCitraCanary = false)
