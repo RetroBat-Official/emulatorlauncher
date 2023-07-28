@@ -220,6 +220,9 @@ namespace emulatorLauncher.libRetro
 
             if (system == "gamecube")
             {
+                bool revertall = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
+                bool revertAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
+
                 retroarchbtns = new Dictionary<InputKey, string>()
                 {
                     { InputKey.b, "a" },
@@ -233,6 +236,19 @@ namespace emulatorLauncher.libRetro
                     { InputKey.start, "start"}, 
                     { InputKey.pagedown, "r"} // select
                 };
+
+                if (revertall)
+                {
+                    retroarchbtns[InputKey.b] = "b";
+                    retroarchbtns[InputKey.a] = "a";
+                    retroarchbtns[InputKey.x] = "y";
+                    retroarchbtns[InputKey.y] = "x";
+                }
+                else if (revertAB)
+                {
+                    retroarchbtns[InputKey.b] = "b";
+                    retroarchbtns[InputKey.a] = "a";
+                }
             }
 
             if (system == "n64")
