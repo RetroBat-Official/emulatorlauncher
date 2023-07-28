@@ -66,7 +66,7 @@ namespace emulatorLauncher
         public static float ToFloat(this string value)
         {
             float ret = 0;
-            float.TryParse(value, out ret);
+            float.TryParse(value,System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out ret);
             return ret;
         }
 

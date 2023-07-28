@@ -355,14 +355,15 @@ namespace emulatorLauncher
                 bool showPrimaryBorder = LightgunOptions.ContainsKey("chkShowPrimaryBorder") ? LightgunOptions["chkShowPrimaryBorder"].ToInteger() != 0 : true;
                 bool showSecondaryBorder = LightgunOptions.ContainsKey("chkShowSecondaryBorder") ? LightgunOptions["chkShowSecondaryBorder"].ToInteger() != 0 : false;
 
-                int primaryBorderWidth = LightgunOptions.ContainsKey("txtPrimaryBorderWidth") ? LightgunOptions["txtPrimaryBorderWidth"].ToInteger() : 2;
-                int secondaryBorderWidth = LightgunOptions.ContainsKey("txtSecondaryBorderWidth") ? LightgunOptions["txtSecondaryBorderWidth"].ToInteger() : 0;
+                float primaryBorderWidth = LightgunOptions.ContainsKey("txtPrimaryBorderWidth") ? LightgunOptions["txtPrimaryBorderWidth"].ToFloat() : 2.0f;
+                float secondaryBorderWidth = LightgunOptions.ContainsKey("txtSecondaryBorderWidth") ? LightgunOptions["txtSecondaryBorderWidth"].ToFloat() : 0.0f;
 
                 Color primaryColor = Color.White;
 
                 try
                 {
-                    primaryColor = Color.FromArgb(LightgunOptions["txtColorPrimaryR"].ToInteger(), LightgunOptions["txtColorPrimaryG"].ToInteger(), LightgunOptions["txtColorPrimaryB"].ToInteger());
+                    if (LightgunOptions.ContainsKey("txtColorPrimaryR"))
+                        primaryColor = Color.FromArgb(LightgunOptions["txtColorPrimaryR"].ToInteger(), LightgunOptions["txtColorPrimaryG"].ToInteger(), LightgunOptions["txtColorPrimaryB"].ToInteger());
                 }
                 catch { }
 
@@ -370,7 +371,8 @@ namespace emulatorLauncher
 
                 try
                 {
-                    secondaryColor = Color.FromArgb(LightgunOptions["txtColorSecondaryR"].ToInteger(), LightgunOptions["txtColorSecondaryG"].ToInteger(), LightgunOptions["txtColorSecondaryB"].ToInteger());
+                    if (LightgunOptions.ContainsKey("txtColorSecondaryR"))
+                        secondaryColor = Color.FromArgb(LightgunOptions["txtColorSecondaryR"].ToInteger(), LightgunOptions["txtColorSecondaryG"].ToInteger(), LightgunOptions["txtColorSecondaryB"].ToInteger());
                 }
                 catch { }
 
@@ -390,8 +392,8 @@ namespace emulatorLauncher
 
                     string output_png_file = Path.Combine(Path.GetTempPath(), fn);
 
-                    int primaryBorderSize = (resY * primaryBorderWidth) / 100;
-                    int secondaryBorderSize = (resY * secondaryBorderWidth) / 100;
+                    int primaryBorderSize = (int) ((resY * primaryBorderWidth) / 100.0f);
+                    int secondaryBorderSize = (int) ((resY * secondaryBorderWidth) / 100.0f);
 
                     int borderSize = (showSecondaryBorder ? secondaryBorderSize : 0) + (showPrimaryBorder ? primaryBorderSize : 0);
 
