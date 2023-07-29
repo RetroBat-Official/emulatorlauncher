@@ -11,6 +11,9 @@ namespace emulatorLauncher
 {
     partial class DuckstationGenerator : Generator
     {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public DuckstationGenerator()
         {
             DependsOnDesktopResolution = true;
@@ -31,9 +34,6 @@ namespace emulatorLauncher
             return ret;
         }
 
-        private BezelFiles _bezelFileInfo;
-        private ScreenResolution _resolution;
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("duckstation");
@@ -48,7 +48,7 @@ namespace emulatorLauncher
             SetupSettings(path);
 
             //Applying bezels
-            if (!SystemConfig.isOptSet("psx_ratio") || SystemConfig["psx_ratio"] == "4:3")
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
