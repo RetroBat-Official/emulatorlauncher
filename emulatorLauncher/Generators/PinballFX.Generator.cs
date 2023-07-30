@@ -23,7 +23,7 @@ namespace emulatorLauncher
         private string _exename;
         private string _corename;
 
-        private static List<string> systemNoRunahead = new List<string>() { "pinballfx", "pinballfx3" };
+        private static List<string> pinballfxsystems = new List<string>() { "pinballfx", "pinballfx2", "pinballfx3" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -35,6 +35,9 @@ namespace emulatorLauncher
 
             if (system == "pinballfx")
                 _exename = "PinballFX";
+
+            if (system == "pinballfx2")
+                _exename = "Pinball FX2";
 
             if (system == "pinballfx3")
                 _exename = "Pinball FX3";
@@ -53,6 +56,9 @@ namespace emulatorLauncher
 
                 if (system == "pinballfx")
                     commandArray.Add("2328760");
+
+                if (system == "pinballfx2")
+                    commandArray.Add("226980");
 
                 if (system == "pinballfx3")
                     commandArray.Add("442120");
@@ -84,8 +90,20 @@ namespace emulatorLauncher
                 commandArray.Add("-Table" + " " + tableId);
 
             }
-            
-            if (system == "pinballfx3")
+
+            else if (system == "pinballfx2")
+            {
+                if (!File.Exists(rom) || Path.GetExtension(rom).ToLower() != ".table")
+                    return null;
+
+                if (core == "steam")
+                    commandArray.Add(Path.GetFileNameWithoutExtension(rom));
+                else if (core == "hack" || core == "nonsteam")
+                    commandArray.Add("/LoadTable " + "\"" + Path.GetFileNameWithoutExtension(rom) + "\"");
+
+            }
+
+            else if (system == "pinballfx3")
             {
                 if (SystemConfig.isOptSet("pinballfx3_offline") && SystemConfig.getOptBoolean("pinballfx3_offline"))
                     commandArray.Add("-offline");
@@ -101,7 +119,7 @@ namespace emulatorLauncher
 
             string args = string.Join(" ", commandArray);           
 
-            if (!File.Exists(exe) || !systemNoRunahead.Contains(system))
+            if (!File.Exists(exe) || !pinballfxsystems.Contains(system))
                 throw new ApplicationException("There is a problem: The Game is not installed");
 
             return new ProcessStartInfo()
