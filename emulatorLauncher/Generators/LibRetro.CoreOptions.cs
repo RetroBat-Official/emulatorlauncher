@@ -342,6 +342,7 @@ namespace emulatorLauncher.libRetro
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
+            ConfigureOpenLara(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigureParallelN64(retroarchConfig, coreSettings, system, core);
             ConfigurePcsx2(retroarchConfig, coreSettings, system, core);
@@ -1602,6 +1603,15 @@ namespace emulatorLauncher.libRetro
                     coreSettings["o2em_low_pass_range"] = "60";
                 }
             }
+        }
+
+        private void ConfigureOpenLara(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "openlara")
+                return;
+
+            BindFeature(coreSettings, "openlara_framerate", "openlara_framerate", "60fps");
+            BindFeature(coreSettings, "openlara_resolution", "openlara_resolution", "320x240");
         }
 
         private void ConfigureMame(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
