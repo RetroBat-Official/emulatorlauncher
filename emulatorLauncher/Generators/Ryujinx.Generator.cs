@@ -71,6 +71,9 @@ namespace emulatorLauncher
         //Manage Config.json file settings
         private void SetupConfiguration(string path)
         {
+            if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             var json = DynamicJson.Load(Path.Combine(path, "portable", "Config.json"));
 
             //Perform conroller configuration
