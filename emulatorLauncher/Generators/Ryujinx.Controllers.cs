@@ -308,7 +308,7 @@ namespace emulatorLauncher
 
             //player identification part
             //get guid in system.guid format
-            string guid = c.GetSdlGuid(SdlVersion.SDL2_26);
+            string guid = c.GetSdlGuid(SdlVersion.SDL2_26, true);
             var newguid = SdlJoystickGuidManager.FromSdlGuidString(guid);
 
             input_config["version"] = "1";
