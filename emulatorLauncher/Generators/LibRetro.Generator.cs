@@ -390,7 +390,7 @@ namespace emulatorLauncher.libRetro
                 _video_driver = retroarchConfig["video_driver"];
                 retroarchConfig["video_driver"] = SystemConfig["video_driver"];
             }
-            else if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan")
+            else if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan" && retroarchConfig["video_driver"] != "gl" && retroarchConfig["video_driver"] != "glcore")
             {
                 _video_driver = retroarchConfig["video_driver"];
                 retroarchConfig["video_driver"] = "d3d11";
