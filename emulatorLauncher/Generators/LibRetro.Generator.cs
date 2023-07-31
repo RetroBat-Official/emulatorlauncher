@@ -685,7 +685,7 @@ namespace emulatorLauncher.libRetro
         {
             new UIModeSetting("desktop_menu_enable", "false", "false", "true"),
             new UIModeSetting("content_show_add", "false", "false", "true"),
-            new UIModeSetting("content_show_contentless_cores", "false", "false", "true"),
+            new UIModeSetting("content_show_contentless_cores", "0", "0", "1"),
             new UIModeSetting("content_show_explore", "false", "false", "true"),
             new UIModeSetting("content_show_favorite", "false", "false", "true"),
             new UIModeSetting("content_show_favorites", "false", "false", "true"),
