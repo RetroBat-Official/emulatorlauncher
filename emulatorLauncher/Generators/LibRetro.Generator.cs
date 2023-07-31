@@ -1067,6 +1067,12 @@ namespace emulatorLauncher.libRetro
                 else
                     rom = null;
             }
+            else if (Path.GetExtension(rom).ToLowerInvariant() == ".croft")
+            {
+                string [] croftSubFile = File.ReadAllLines(rom);
+                string croftSubPath = croftSubFile[0];
+                rom = Path.Combine(Path.GetDirectoryName(rom), croftSubPath);
+            }
             
             if (string.IsNullOrEmpty(core))
             {
