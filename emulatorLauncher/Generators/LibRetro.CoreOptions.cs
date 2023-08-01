@@ -637,9 +637,6 @@ namespace emulatorLauncher.libRetro
             if (core != "dolphin")
                 return;
 
-            if (!SystemConfig.isOptSet("video_driver"))
-                retroarchConfig["video_driver"] = "vulkan";
-
             if (!SystemConfig.isOptSet("input_driver"))
                 retroarchConfig["input_driver"] = "xinput";
 

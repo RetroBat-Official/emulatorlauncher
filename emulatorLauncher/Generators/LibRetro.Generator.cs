@@ -390,7 +390,7 @@ namespace emulatorLauncher.libRetro
                 _video_driver = retroarchConfig["video_driver"];
                 retroarchConfig["video_driver"] = SystemConfig["video_driver"];
             }
-            else if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan")
+            else if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan" && retroarchConfig["video_driver"] != "gl" && retroarchConfig["video_driver"] != "glcore")
             {
                 _video_driver = retroarchConfig["video_driver"];
                 retroarchConfig["video_driver"] = "d3d11";
@@ -685,7 +685,7 @@ namespace emulatorLauncher.libRetro
         {
             new UIModeSetting("desktop_menu_enable", "false", "false", "true"),
             new UIModeSetting("content_show_add", "false", "false", "true"),
-            new UIModeSetting("content_show_contentless_cores", "false", "false", "true"),
+            new UIModeSetting("content_show_contentless_cores", "0", "0", "1"),
             new UIModeSetting("content_show_explore", "false", "false", "true"),
             new UIModeSetting("content_show_favorite", "false", "false", "true"),
             new UIModeSetting("content_show_favorites", "false", "false", "true"),
