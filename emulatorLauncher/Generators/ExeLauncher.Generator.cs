@@ -23,7 +23,7 @@ namespace emulatorLauncher
         static Dictionary<string, Func<Uri, GameLauncher>> launchers = new Dictionary<string, Func<Uri, GameLauncher>>()
         {
             { "com.epicgames.launcher", (uri) => new EpicGameLauncher(uri) },
-            //{ "steam", (uri) => new SteamGameLauncher(uri) },
+            { "steam", (uri) => new SteamGameLauncher(uri) },
             { "amazon-games", (uri) => new AmazonGameLauncher(uri) }
         };
 

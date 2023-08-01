@@ -1,4 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+using System.Diagnostics;
+using emulatorLauncher.Tools;
+using Microsoft.Win32;
+using System.Runtime.Serialization;
+using System.Threading;
+using System.Security.Policy;
 
 namespace emulatorLauncher
 {
@@ -8,12 +17,46 @@ namespace emulatorLauncher
         {
             public SteamGameLauncher(Uri uri)
             {
-                throw new NotImplementedException("SteamGameLauncher is not implemented");
+                LauncherExe = GetSteamGameExecutableName(uri);
+            }
+
+            private string GetSteamGameExecutableName(Uri uri)
+            {
+                string shorturl = uri.AbsolutePath.Substring(1);
+                int steamAppId = shorturl.ToInteger();
+
+                SteamGame game = SteamAppInfoReader.FindGameInformations(steamAppId);
+
+                if (game == null || game.Executable == null)
+                    throw new ApplicationException("There is a problem: Game is not installed");
+                else
+                    return Path.GetFileNameWithoutExtension(game.Executable);
             }
 
             public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
             {
-                throw new NotImplementedException();
+                bool uiExists = Process.GetProcessesByName("steam").Any();
+
+                KillExistingLauncherExes();
+
+                Process.Start(path);
+
+                var steam = GetLauncherExeProcess();
+
+                if (steam != null)
+                {
+                    steam.WaitForExit();
+
+                    if (!uiExists || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
+                    {
+                        foreach (var ui in Process.GetProcessesByName("steam"))
+                        {
+                            try { ui.Kill(); }
+                            catch { }
+                        }
+                    }
+                }
+                return 0;
             }
         }
     }
