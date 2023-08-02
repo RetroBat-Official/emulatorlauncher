@@ -185,6 +185,7 @@
     <Compile Include="Generators\Oricutron.Generator.cs" />
     <Compile Include="Generators\Solarus.Generator.cs" />
     <Compile Include="Generators\Demul.Generator.cs" />
+    <Compile Include="Generators\Eduke32.Generator.cs" />
     <Compile Include="Generators\ExeLauncher.Generator.cs" />
     <Compile Include="Generators\EpicLauncher.Generator.cs">
       <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>

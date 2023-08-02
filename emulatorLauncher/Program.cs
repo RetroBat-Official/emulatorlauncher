@@ -100,7 +100,8 @@ namespace emulatorLauncher
             { "ssf", () => new SSFGenerator() },
             { "zinc", () => new ZincGenerator() },
             { "melonds", () => new MelonDSGenerator() },
-            { "flycast", () => new FlycastGenerator() }
+            { "flycast", () => new FlycastGenerator() },
+            { "eduke32", () => new EDukeGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
