@@ -58,7 +58,7 @@ namespace emulatorLauncher
                     commandArray.Add(Path.GetDirectoryName(rom));
 
                 // Sample Path
-                string samplePath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "samples");
+                string samplePath = hbmame? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "samples") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "samples");
                 if (!Directory.Exists(samplePath)) try { Directory.CreateDirectory(samplePath); }
                     catch { }
                 if (!string.IsNullOrEmpty(samplePath) && Directory.Exists(samplePath))
@@ -69,6 +69,7 @@ namespace emulatorLauncher
 
                 // Artwork Path
                 string artPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork");
+                string artPath2 = hbmame? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "artwork") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork");
                 if (!Directory.Exists(artPath)) try { Directory.CreateDirectory(artPath); }
                     catch { }
 
@@ -78,7 +79,7 @@ namespace emulatorLauncher
                     if (SystemConfig.isOptSet("disable_artwork") && SystemConfig.getOptBoolean("disable_artwork"))
                         commandArray.Add(artPath);
                     else
-                        commandArray.Add(artPath + ";" + Path.Combine(path, "artwork") + ";" + Path.Combine(AppConfig.GetFullPath("saves"), "mame", "artwork"));
+                        commandArray.Add(artPath + ";" + Path.Combine(path, "artwork") + ";" + artPath2);
                 }
 
                 // Snapshots
@@ -91,7 +92,7 @@ namespace emulatorLauncher
                 // Cheats
                 if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
                 {
-                    string cheatPath = Path.Combine(AppConfig.GetFullPath("cheats"), "mame");
+                    string cheatPath = hbmame ? Path.Combine(AppConfig.GetFullPath("cheats"), "hbmame") : Path.Combine(AppConfig.GetFullPath("cheats"), "mame");
                     if (!string.IsNullOrEmpty(cheatPath) && Directory.Exists(cheatPath))
                     {
                         commandArray.Add("-cheat");
@@ -119,6 +120,11 @@ namespace emulatorLauncher
                     commandArray.Add("-cfg_directory");
                     commandArray.Add(cfgPath);
                 }
+
+                // Delete default.cfg files if they exist
+                string defaultCfg = Path.Combine(cfgPath, "default.cfg");
+                if (File.Exists(defaultCfg))
+                    File.Delete(defaultCfg);
 
                 // Ini path
                 string iniPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "ini") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini");
@@ -151,7 +157,7 @@ namespace emulatorLauncher
                 if (!SystemConfig.isOptSet("read_ini") || !SystemConfig.getOptBoolean("read_ini"))
                     commandArray.Add("-noreadconfig");
 
-                commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, resolution));
 
                 // Unknown system, try to run with rom name only
                 commandArray.Add(Path.GetFileNameWithoutExtension(rom));
@@ -161,7 +167,7 @@ namespace emulatorLauncher
             else
             {
                 var commandArray = messMode.GetMameCommandLineArguments(system, rom, true, emulator);
-                commandArray.AddRange(GetCommonMame64Arguments(rom, resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, resolution));
 
                 args = commandArray.JoinArguments();
             }
@@ -182,7 +188,7 @@ namespace emulatorLauncher
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
-        private List<string> GetCommonMame64Arguments(string rom, ScreenResolution resolution = null)
+        private List<string> GetCommonMame64Arguments(string rom, bool hbmame, ScreenResolution resolution = null)
         {
             var retList = new List<string>();
 
@@ -195,7 +201,7 @@ namespace emulatorLauncher
                 retList.Add(sstatePath);
             }
 
-            string ctrlrPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr");
+            string ctrlrPath = hbmame? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "ctrlr") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr");
             if (!Directory.Exists(ctrlrPath)) try { Directory.CreateDirectory(ctrlrPath); }
                 catch { }
             if (!string.IsNullOrEmpty(ctrlrPath) && Directory.Exists(ctrlrPath))
@@ -457,7 +463,7 @@ namespace emulatorLauncher
 
             if (SystemConfig.isOptSet("mame_ctrlr_profile") && SystemConfig["mame_ctrlr_profile"] != "none" && SystemConfig["mame_ctrlr_profile"] != "retrobat_auto")
             {
-                string ctrlrProfile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg");
+                string ctrlrProfile = hbmame? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg");
 
                 if (File.Exists(ctrlrProfile) && SystemConfig["mame_ctrlr_profile"] != "per_game")
                 {
@@ -478,7 +484,7 @@ namespace emulatorLauncher
             
             else if (!SystemConfig.isOptSet("mame_ctrlr_profile") || SystemConfig["mame_ctrlr_profile"] != "retrobat_auto")
             {
-                if (ConfigureMameControllers(ctrlrPath))
+                if (ConfigureMameControllers(ctrlrPath, hbmame))
                 {
                     retList.Add("-ctrlr");
                     retList.Add("retrobat_auto");

@@ -13,7 +13,7 @@ namespace emulatorLauncher
 {
     partial class Mame64Generator
     {
-        private bool ConfigureMameControllers(string path)
+        private bool ConfigureMameControllers(string path, bool hbmame)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
@@ -30,7 +30,9 @@ namespace emulatorLauncher
             }
             
             // Delete existing default file if any
-            string defaultCtrl = Path.Combine(path, "ctrlr\\default.cfg");
+            string defaultCtrl = Path.Combine(path, "default.cfg");
+            if (File.Exists(defaultCtrl))
+                File.Delete(defaultCtrl);
 
             string inputConfig = Path.Combine(path, "retrobat_auto.cfg");
             if (File.Exists(inputConfig))
@@ -49,21 +51,30 @@ namespace emulatorLauncher
                 var guns = RawLightgun.GetRawLightguns();
                 bool multigun = guns.Length >= 2;
 
-                var mapping = xInputMapping;
+                var mapping = hbmame? hbxInputMapping : xInputMapping;
 
                 if (controller.VendorID == USB_VENDOR.NINTENDO)
-                    mapping = nintendoMapping;
+                    mapping = hbmame ? hbnintendoMapping : nintendoMapping;
 
                 else if (controller.VendorID == USB_VENDOR.SONY)
-                    mapping = sonyMapping;
+                    mapping = hbmame ? hbsonyMapping : sonyMapping;
 
                 #region player1
                 // Add UI mapping for player 1 to control MAME UI + Service menu
                 if (i == 1)
                 {
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "UI_MENU"), 
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["south"] + " OR KEYCODE_TAB")));
+                    if (hbmame)
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "UI_CONFIGURE"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["south"] + " OR KEYCODE_TAB")));
+                    }
+                    else
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "UI_MENU"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["south"] + " OR KEYCODE_TAB")));
+                    }
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "UI_SELECT"),
@@ -219,7 +230,20 @@ namespace emulatorLauncher
                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " OR KEYCODE_5")));
 
                     // Pedals and other devices
-                    if (controller.IsXInputDevice || controller.VendorID == USB_VENDOR.SONY)
+                    if (hbmame)
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_PEDAL"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"]),
+                                new XElement("newseq", new XAttribute("type", "increment"), joy + mapping["south"] + " KEYCODE_LCONTROL")));
+
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_PEDAL2"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"]),
+                                new XElement("newseq", new XAttribute("type", "increment"), joy + mapping["east"] + " OR KEYCODE_LALT")));
+                    }
+                    else if (controller.IsXInputDevice || controller.VendorID == USB_VENDOR.SONY)
                     {
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_PEDAL"),
@@ -470,7 +494,19 @@ namespace emulatorLauncher
                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"])));
 
                     // Pedals and other devices
-                    if (controller.IsXInputDevice || controller.VendorID == USB_VENDOR.SONY)
+                    if (hbmame)
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_PEDAL"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"]),
+                                new XElement("newseq", new XAttribute("type", "increment"), joy + mapping["south"])));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_PEDAL2"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"]),
+                                new XElement("newseq", new XAttribute("type", "increment"), joy + mapping["east"])));
+                    }
+                    else if (controller.IsXInputDevice || controller.VendorID == USB_VENDOR.SONY)
                     {
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_PEDAL"),
@@ -618,6 +654,38 @@ namespace emulatorLauncher
             { "rs_y",           "RZAXIS"}
         };
 
+        static Dictionary<string, string> hbxInputMapping = new Dictionary<string, string>()
+        {
+            { "l3",             "BUTTON9"},
+            { "r3",             "BUTTON10"},
+            { "l2",             "RZAXIS_NEG_SWITCH" },  //differs
+            { "r2",             "ZAXIS_NEG_SWITCH"},    //differs
+            { "north",          "BUTTON4" },
+            { "south",          "BUTTON1" },
+            { "west",           "BUTTON3" },
+            { "east",           "BUTTON2" },
+            { "start",          "BUTTON7" },    //differs
+            { "select",         "BUTTON8" },    //differs
+            { "l1",             "BUTTON5" },
+            { "r1",             "BUTTON6" },
+            { "up",             "DPADUP" },     //differs
+            { "down",           "DPADDOWN" },   //differs
+            { "left",           "DPADLEFT" },   //differs
+            { "right",          "DPADRIGHT" },  //differs
+            { "lsup",           "YAXIS_UP_SWITCH" },
+            { "lsdown",         "YAXIS_DOWN_SWITCH" },
+            { "lsleft",         "XAXIS_LEFT_SWITCH" },
+            { "lsright",        "XAXIS_RIGHT_SWITCH"},
+            { "rsup",           "RYAXIS_NEG_SWITCH" },  //differs
+            { "rsdown",         "RYAXIS_POS_SWITCH" },  //differs
+            { "rsleft",         "RXAXIS_NEG_SWITCH" },  //differs
+            { "rsright",        "RXAXIS_POS_SWITCH"},   //differs
+            { "ls_x",           "XAXIS" },
+            { "ls_y",           "YAXIS" },
+            { "rs_x",           "ZAXIS" },
+            { "rs_y",           "RZAXIS"}
+        };
+
         static Dictionary<string, string> nintendoMapping = new Dictionary<string, string>()
         {
             { "l3",             "BUTTON11"},
@@ -650,12 +718,44 @@ namespace emulatorLauncher
             { "rs_y",           "RYAXIS"}
         };
 
-        static Dictionary<string, string> sonyMapping = new Dictionary<string, string>()
+        static Dictionary<string, string> hbnintendoMapping = new Dictionary<string, string>()
         {
             { "l3",             "BUTTON11"},
             { "r3",             "BUTTON12"},
+            { "l2",             "BUTTON7" },
+            { "r2",             "BUTTON8"},
+            { "north",          "BUTTON4" },
+            { "south",          "BUTTON1" },
+            { "west",           "BUTTON3" },
+            { "east",           "BUTTON2" },
+            { "start",          "BUTTON10" },
+            { "select",         "BUTTON9" },
+            { "l1",             "BUTTON5" },
+            { "r1",             "BUTTON6" },
+            { "up",             "COMMANDEDEPOUCEUP" },      //differs
+            { "down",           "COMMANDEDEPOUCEDOWN" },    //differs
+            { "left",           "COMMANDEDEPOUCELEFT" },    //differs
+            { "right",          "COMMANDEDEPOUCERIGHT" },   //differs
+            { "lsup",           "YAXIS_UP_SWITCH" },
+            { "lsdown",         "YAXIS_DOWN_SWITCH" },
+            { "lsleft",         "XAXIS_LEFT_SWITCH" },
+            { "lsright",        "XAXIS_RIGHT_SWITCH"},
+            { "rsup",           "RYAXIS_NEG_SWITCH" },
+            { "rsdown",         "RYAXIS_POS_SWITCH" },
+            { "rsleft",         "RXAXIS_NEG_SWITCH" },
+            { "rsright",        "RXAXIS_POS_SWITCH"},
+            { "ls_x",           "XAXIS" },
+            { "ls_y",           "YAXIS" },
+            { "rs_x",           "RXAXIS" },
+            { "rs_y",           "RYAXIS"}
+        };
+
+        static Dictionary<string, string> sonyMapping = new Dictionary<string, string>()
+        {
+            { "l3",             "BUTTON11" },
+            { "r3",             "BUTTON12" },
             { "l2",             "RXAXIS" },
-            { "r2",             "RYAXIS"},
+            { "r2",             "RYAXIS" },
             { "north",          "BUTTON4" },
             { "south",          "BUTTON2" },
             { "west",           "BUTTON1" },
@@ -675,11 +775,43 @@ namespace emulatorLauncher
             { "rsup",           "RZAXIS_NEG_SWITCH" },
             { "rsdown",         "RZAXIS_POS_SWITCH" },
             { "rsleft",         "ZAXIS_NEG_SWITCH" },
-            { "rsright",        "ZAXIS_POS_SWITCH"},
+            { "rsright",        "ZAXIS_POS_SWITCH" },
             { "ls_x",           "XAXIS" },
             { "ls_y",           "YAXIS" },
             { "rs_x",           "ZAXIS" },
-            { "rs_y",           "RZAXIS"}
+            { "rs_y",           "RZAXIS" }
+        };
+
+        static Dictionary<string, string> hbsonyMapping = new Dictionary<string, string>()
+        {
+            { "l3",             "BUTTON11" },
+            { "r3",             "BUTTON12" },
+            { "l2",             "RXAXIS_NEG" },
+            { "r2",             "RYAXIS_NEG" },
+            { "north",          "BUTTON4" },
+            { "south",          "BUTTON2" },
+            { "west",           "BUTTON1" },
+            { "east",           "BUTTON3" },
+            { "start",          "BUTTON10" },
+            { "select",         "BUTTON9" },
+            { "l1",             "BUTTON5" },
+            { "r1",             "BUTTON6" },
+            { "up",             "HAT1UP" },
+            { "down",           "HAT1DOWN" },
+            { "left",           "HAT1LEFT" },
+            { "right",          "HAT1RIGHT" },
+            { "lsup",           "YAXIS_UP_SWITCH" },
+            { "lsdown",         "YAXIS_DOWN_SWITCH" },
+            { "lsleft",         "XAXIS_LEFT_SWITCH" },
+            { "lsright",        "XAXIS_RIGHT_SWITCH"},
+            { "rsup",           "RZAXIS_NEG_SWITCH" },
+            { "rsdown",         "RZAXIS_POS_SWITCH" },
+            { "rsleft",         "ZAXIS_NEG_SWITCH" },
+            { "rsright",        "ZAXIS_POS_SWITCH" },
+            { "ls_x",           "XAXIS" },
+            { "ls_y",           "YAXIS" },
+            { "rs_x",           "ZAXIS" },
+            { "rs_y",           "RZAXIS" }
         };
         #endregion
     }
