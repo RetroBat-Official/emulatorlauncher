@@ -463,7 +463,7 @@ namespace emulatorLauncher
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,"%romname%",""      ),
                 new MessSystem("mame"         ,"mame"     ,""      ),
-                new MessSystem("hbmame"       ,"%romname%",""      ),
+                new MessSystem("hbmame"       ,"hbmame"   ,""      ),
                 new MessSystem("cave"         ,"%romname%",""      ),
                 new MessSystem("tvgames"      ,""         ,""      ),
                 new MessSystem("socrates"     ,"socrates" ,"cart"  ),
