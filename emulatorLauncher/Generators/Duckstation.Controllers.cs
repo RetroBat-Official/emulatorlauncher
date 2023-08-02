@@ -13,6 +13,8 @@ namespace emulatorLauncher
 {
     partial class DuckstationGenerator : Generator
     {
+        private int _xInputCount;
+
         /// <summary>
         /// Cf. https://github.com/stenzek/duckstation/blob/master/src/frontend-common/sdl_input_source.cpp
         /// </summary>
@@ -38,7 +40,9 @@ namespace emulatorLauncher
                 return;
 
             UpdateSdlControllersWithHints(ini);
-            
+
+            _xInputCount = 0;
+
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
                 ini.ClearSection("Pad" + i.ToString());
@@ -179,6 +183,11 @@ namespace emulatorLauncher
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
+            if (tech == "XInput")
+                _xInputCount++;
+            if (_xInputCount > 4)
+                tech = "SDL";
+
             string controllerType = "AnalogController";
             string controllerPlayerNr = "duck_controller" + playerIndex;
             if (SystemConfig.isOptSet(controllerPlayerNr) && !string.IsNullOrEmpty(SystemConfig[controllerPlayerNr]))
@@ -190,7 +199,7 @@ namespace emulatorLauncher
 
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
-            if (ctrl.IsXInputDevice)
+            if (ctrl.IsXInputDevice && _xInputCount <= 4)
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
             //Write button mapping
