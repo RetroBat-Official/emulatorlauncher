@@ -52,7 +52,7 @@ namespace emulatorLauncher
                 using (IniFile ini = new IniFile(Path.Combine(path, "eduke32.cfg"), IniOptions.UseSpaces))
                 {
                     ini.WriteValue("Setup", "ForceSetup", "0");
-                    ini.WriteValue("Setup", "NoAutoLoad", "0");
+                    BindBoolIniFeature(ini, "Setup", "NoAutoLoad", "autoload", "0", "1");
                     ini.WriteValue("Setup", "SelectedGRP", "\"" + grp + "\"");
                     ini.WriteValue("Updates", "CheckForUpdates", "0");
 
