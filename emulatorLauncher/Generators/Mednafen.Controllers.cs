@@ -1,22 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
 using emulatorLauncher.Tools;
 using System.Globalization;
-using System.Collections;
-using SharpDX.XInput;
-using SharpDX.DirectInput;
-using ValveKeyValue;
 
 namespace emulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "nes", "snes", "md", "pce" };
-        static List<string> mouseMapping = new List<string>() { "zapper", "superscope" };
+        static List<string> systemWithAutoconfig = new List<string>() { "nes", "snes", "md", "pce", "ss" };
+        static List<string> mouseMapping = new List<string>() { "zapper", "superscope", "gun" };
         
         static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
         {
@@ -24,6 +17,7 @@ namespace emulatorLauncher
             { "snes", "gamepad" },
             { "md", "gamepad6" },
             { "pce", "gamepad" },
+            { "ss", "gamepad" },
             { "apple2", "gamepad" }
         };
         
@@ -33,37 +27,99 @@ namespace emulatorLauncher
             { "snes", 8 },
             { "md", 8 },
             { "pce", 5 },
+            { "ss", 12 },
             { "apple2", 2 }
         };
 
-        private void CreateControllerConfiguration(MednafenConfigFile cfg, string core)
+        private void CreateControllerConfiguration(MednafenConfigFile cfg, string mednafenCore)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
-            if (!systemWithAutoconfig.Contains(core))
+            if (!systemWithAutoconfig.Contains(mednafenCore))
                 return;
 
-            CleanUpConfigFile(core, cfg);
+            CleanUpConfigFile(mednafenCore, cfg);
 
-            int maxPad = inputPortNb[core];
+            int maxPad = inputPortNb[mednafenCore];
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
-                ConfigureInput(controller, cfg, core);
+                ConfigureInput(controller, cfg, mednafenCore);
         }
 
-        private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string core)
+        private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string mednafenCore)
         {
             if (controller == null || controller.Config == null)
                 return;
 
+            // Multitap specifics
+            if (mednafenCore == "ss")
+            {
+                if (Controllers.Count > 6)
+                {
+                    cfg["ss.input.sport1.multitap"] = "1";
+                    cfg["ss.input.sport2.multitap"] = "1";
+                }
+                else if (Controllers.Count > 2)
+                {
+                    cfg["ss.input.sport1.multitap"] = "1";
+                    cfg["ss.input.sport2.multitap"] = "0";
+                }
+                else
+                {
+                    cfg["ss.input.sport1.multitap"] = "0";
+                    cfg["ss.input.sport2.multitap"] = "0";
+                }
+            }
+            else if (mednafenCore == "nes")
+            {
+                if (Controllers.Count > 2)
+                    cfg["nes.input.fcexp"] = "4player";
+                else
+                    cfg["nes.input.fcexp"] = "none";
+            }
+            else if (mednafenCore == "snes")
+            {
+                if (Controllers.Count > 4)
+                {
+                    cfg["snes.input.port1.multitap"] = "1";
+                    cfg["snes.input.port2.multitap"] = "1";
+                }
+                else if (Controllers.Count > 2)
+                {
+                    cfg["snes.input.port1.multitap"] = "1";
+                    cfg["snes.input.port2.multitap"] = "0";
+                }
+                else
+                {
+                    cfg["snes.input.port1.multitap"] = "0";
+                    cfg["snes.input.port2.multitap"] = "0";
+                }
+            }
+            else if (mednafenCore == "md")
+            {
+                if (Controllers.Count > 4)
+                    cfg["md.input.multitap"] = "tpd";
+                else if (Controllers.Count > 2)
+                    cfg["md.input.multitap"] = "tp1";
+                else
+                    cfg["md.input.multitap"] = "none";
+            }
+            else if (mednafenCore == "pce")
+            {
+                if (Controllers.Count > 2)
+                    cfg["pce.input.multitap"] = "1";
+                else
+                    cfg["pce.input.multitap"] = "0";
+            }
+
             if (controller.IsKeyboard && this.Controllers.Count(i => !i.IsKeyboard) == 0)
-                ConfigureKeyboard(controller, cfg, core);
+                ConfigureKeyboard(controller, cfg, mednafenCore);
             else
-                ConfigureJoystick(controller, cfg, core);
+                ConfigureJoystick(controller, cfg, mednafenCore);
         }
 
         #region joystick
-        private void ConfigureJoystick(Controller controller, MednafenConfigFile cfg, string core)
+        private void ConfigureJoystick(Controller controller, MednafenConfigFile cfg, string mednafenCore)
         {
             if (controller == null)
                 return;
@@ -77,12 +133,12 @@ namespace emulatorLauncher
 
             int playerIndex = controller.PlayerIndex;
 
-            string padType = defaultPadType[core];
+            string padType = defaultPadType[mednafenCore];
 
             if (Program.SystemConfig.isOptSet("mednafen_controller_type") && !string.IsNullOrEmpty(Program.SystemConfig["mednafen_controller_type"]))
                 padType = Program.SystemConfig["mednafen_controller_type"];
 
-            string mapping = core + "_" + padType;
+            string mapping = mednafenCore + "_" + padType;
 
             var newmapping = new Dictionary<string, InputKey>();
             var gunMapping = new Dictionary<string, string>();
@@ -90,36 +146,36 @@ namespace emulatorLauncher
             // Manage guns
             if (Program.SystemConfig.isOptSet("mednafen_gun") && Program.SystemConfig.getOptBoolean("mednafen_gun"))
             {
-                if (!gunPort.ContainsKey(core))
+                if (!gunPort.ContainsKey(mednafenCore))
                     return;
 
-                int portNumber = gunPort[core];
-                string gunType = gunName[core];
+                int portNumber = gunPort[mednafenCore];
+                string gunType = gunName[mednafenCore];
 
-                gunMapping = gunMappingToUse[core];
+                gunMapping = gunMappingToUse[mednafenCore];
 
                 if (portNumber == 1)
                 {
-                    cfg[core + ".input.port" + portNumber] = gunType;
+                    cfg[mednafenCore + ".input.port" + portNumber] = gunType;
                     
                     foreach (var entry in gunMapping)
-                        cfg[core + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
+                        cfg[mednafenCore + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
 
                     playerIndex += 1;
                 }
                 else if (this.Controllers.Count(i => !i.IsKeyboard) == 1 && portNumber == 2)
                 {
-                    cfg[core + ".input.port" + portNumber] = gunType;
+                    cfg[mednafenCore + ".input.port" + portNumber] = gunType;
 
                     foreach (var entry in gunMapping)
-                        cfg[core + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
+                        cfg[mednafenCore + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
                 }
                 else if (this.Controllers.Count(i => !i.IsKeyboard) > 1 && portNumber == 2 && playerIndex > 1)
                 {
-                    cfg[core + ".input.port" + portNumber] = gunType;
+                    cfg[mednafenCore + ".input.port" + portNumber] = gunType;
 
                     foreach (var entry in gunMapping)
-                        cfg[core + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
+                        cfg[mednafenCore + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
 
                     playerIndex += 1;
                 }
@@ -139,20 +195,42 @@ namespace emulatorLauncher
             if (mappingToUse.ContainsKey(mapping))
                 newmapping = mappingToUse[mapping];
 
-            cfg[core + ".input.port" + playerIndex] = padType;
-
-            foreach (var entry in newmapping)
+            if (mednafenCore == "apple2")
             {
-                InputKey joyButton = entry.Value;
-                string value = buttonMapping[joyButton];
+                cfg["apple2.input.port1.gamepad.resistance_select.defpos"] = "2";
+                cfg["apple2.input.port1.joystick.resistance_select.defpos"] = "2";
+                cfg["apple2.input.port1.joystick.axis_scale"] = "1.00";
 
-                cfg[core + ".input.port" + playerIndex + "." + padType + "." + entry.Key] = "joystick " + deviceID + " " + value;
+                if (playerIndex == 2)
+                {
+                    cfg[mednafenCore + ".input.port" + 2] = "atari";
+                    foreach (var entry in apple2atari)
+                    {
+                        InputKey joyButton = entry.Value;
+                        string value = buttonMapping[joyButton];
+
+                        cfg[mednafenCore + ".input.port" + 2 + ".atari." + entry.Key] = "joystick " + deviceID + " " + value;
+                    }
+                }
+            }
+
+            else
+            {
+                cfg[mednafenCore + ".input.port" + playerIndex] = padType;
+
+                foreach (var entry in newmapping)
+                {
+                    InputKey joyButton = entry.Value;
+                    string value = buttonMapping[joyButton];
+
+                    cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + entry.Key] = "joystick " + deviceID + " " + value;
+                }
             }
         }
         #endregion
 
         #region keyboard
-        private static void ConfigureKeyboard(Controller controller, MednafenConfigFile cfg, string core)
+        private static void ConfigureKeyboard(Controller controller, MednafenConfigFile cfg, string mednafenCore)
         {
             if (controller == null)
                 return;
@@ -180,50 +258,50 @@ namespace emulatorLauncher
                 }
             };
 
-            string padType = defaultPadType[core];
+            string padType = defaultPadType[mednafenCore];
 
             if (Program.SystemConfig.isOptSet("mednafen_controller_type") && !string.IsNullOrEmpty(Program.SystemConfig["mednafen_controller_type"]))
                 padType = Program.SystemConfig["mednafen_controller_type"];
 
-            string mapping = core + "_" + padType;
+            string mapping = mednafenCore + "_" + padType;
 
             var newmapping = new Dictionary<string, InputKey>();
             var gunMapping = new Dictionary<string, string>();
 
             if (Program.SystemConfig.isOptSet("mednafen_gun") && Program.SystemConfig.getOptBoolean("mednafen_gun"))
             {
-                if (!gunPort.ContainsKey(core))
+                if (!gunPort.ContainsKey(mednafenCore))
                     return;
                 
-                int portNumber = gunPort[core];
-                string gunType = gunName[core];
+                int portNumber = gunPort[mednafenCore];
+                string gunType = gunName[mednafenCore];
 
-                gunMapping = gunMappingToUse[core];
+                gunMapping = gunMappingToUse[mednafenCore];
 
-                cfg[core + ".input.port" + portNumber] = gunType;
+                cfg[mednafenCore + ".input.port" + portNumber] = gunType;
 
                 foreach (var entry in gunMapping)
-                    cfg[core + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
+                    cfg[mednafenCore + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
 
                 if (portNumber == 1)
                 {
                     if (mappingToUse.ContainsKey(mapping))
                         newmapping = mappingToUse[mapping];
 
-                    cfg[core + ".input.port2"] = padType;
+                    cfg[mednafenCore + ".input.port2"] = padType;
 
                     foreach (var entry in newmapping)
-                        WriteKeyboardMapping(core, 2, padType, entry.Key, entry.Value);
+                        WriteKeyboardMapping(mednafenCore, 2, padType, entry.Key, entry.Value);
                 }
                 else
                 {
                     if (mappingToUse.ContainsKey(mapping))
                         newmapping = mappingToUse[mapping];
 
-                    cfg[core + ".input.port1"] = padType;
+                    cfg[mednafenCore + ".input.port1"] = padType;
 
                     foreach (var entry in newmapping)
-                        WriteKeyboardMapping(core, 1, padType, entry.Key, entry.Value);
+                        WriteKeyboardMapping(mednafenCore, 1, padType, entry.Key, entry.Value);
                 }
             }
 
@@ -232,10 +310,10 @@ namespace emulatorLauncher
                 if (mappingToUse.ContainsKey(mapping))
                     newmapping = mappingToUse[mapping];
 
-                cfg[core + ".input.port1"] = padType;
+                cfg[mednafenCore + ".input.port1"] = padType;
 
                 foreach (var entry in newmapping)
-                    WriteKeyboardMapping(core, 1, padType, entry.Key, entry.Value);
+                    WriteKeyboardMapping(mednafenCore, 1, padType, entry.Key, entry.Value);
             }
         }
         #endregion
@@ -333,6 +411,54 @@ namespace emulatorLauncher
             { "x", InputKey.x },
             { "y", InputKey.y },
         };
+
+        static Dictionary<string, InputKey> ssgamepad = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "b", InputKey.a },
+            { "c", InputKey.pagedown },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "ls", InputKey.l2 },
+            { "right", InputKey.right },
+            { "rs", InputKey.r2 },
+            { "start", InputKey.start },
+            { "up", InputKey.up },
+            { "x", InputKey.x },
+            { "y", InputKey.y },
+            { "z", InputKey.pageup }
+        };
+
+        static Dictionary<string, InputKey> apple2gamepad = new Dictionary<string, InputKey>()
+        {
+            { "button1", InputKey.a },
+            { "button2", InputKey.b },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "resistance_select", InputKey.pageup },
+            { "right", InputKey.right },
+            { "up", InputKey.up }
+        };
+
+        static Dictionary<string, InputKey> apple2joystick = new Dictionary<string, InputKey>()
+        {
+            { "button1", InputKey.a },
+            { "button2", InputKey.b },
+            { "resistance_select", InputKey.pageup },
+            { "stick_down", InputKey.leftanalogdown },
+            { "stick_left", InputKey.leftanalogleft },
+            { "stick_right", InputKey.leftanalogright },
+            { "stick_up", InputKey.leftanalogup }
+        };
+
+        static Dictionary<string, InputKey> apple2atari = new Dictionary<string, InputKey>()
+        {
+            { "button", InputKey.a },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "right", InputKey.right },
+            { "up", InputKey.up }
+        };
         #endregion
 
         #region Gun Mapping
@@ -340,12 +466,14 @@ namespace emulatorLauncher
         {
             { "nes", 1 },
             { "snes", 2 },
+            { "ss", 1 },
         };
 
         static Dictionary<string, string> gunName = new Dictionary<string, string>()
         {
             { "nes", "zapper" },
             { "snes", "superscope" },
+            { "ss", "gun" },
         };
 
         static Dictionary<string, string> neszapper = new Dictionary<string, string>()
@@ -366,23 +494,36 @@ namespace emulatorLauncher
             { "x_axis", "mouse 0x0 cursor_x-+" },
             { "y_axis", "mouse 0x0 cursor_y-+" },
         };
+
+        static Dictionary<string, string> saturngun = new Dictionary<string, string>()
+        {
+            { "offscreen_shot", "mouse 0x0 button_right" },
+            { "start", "mouse 0x0 button_middle" },
+            { "trigger", "mouse 0x0 button_left" },
+            { "x_axis", "mouse 0x0 cursor_x-+" },
+            { "y_axis", "mouse 0x0 cursor_y-+" },
+        };
         #endregion
 
         #region Mapping link
         static Dictionary<string, Dictionary<string, InputKey> > mappingToUse = new Dictionary<string, Dictionary<string, InputKey>>()
         {
+            { "apple2_gamepad", apple2gamepad },
+            { "apple2_joystick", apple2joystick },
             { "nes_gamepad", nesgamepad },
             { "snes_gamepad", snesgamepad },
             { "md_gamepad", mdgamepad },
             { "md_gamepad2", mdgamepad2 },
             { "md_gamepad6", mdgamepad6 },
             { "pce_gamepad", pcegamepad },
+            { "ss_gamepad", ssgamepad }
         };
 
         static Dictionary<string, Dictionary<string, string>> gunMappingToUse = new Dictionary<string, Dictionary<string, string>>()
         {
             { "nes", neszapper },
             { "snes", snessuperscope },
+            { "ss", saturngun },
         };
         #endregion
 
@@ -694,6 +835,7 @@ namespace emulatorLauncher
             { "snes", 2 },
             { "md", 8 },
             { "pce", 5 },
+            { "ss", 12 },
             { "apple2", 2 }
         };
     }

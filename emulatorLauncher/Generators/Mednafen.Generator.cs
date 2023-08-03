@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.IO;
 using System.Diagnostics;
+using emulatorLauncher.PadToKeyboard;
+using System.IO;
+using emulatorLauncher.Tools;
+using System.Drawing;
 
 namespace emulatorLauncher
 {
@@ -33,27 +36,24 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
-            SetupConfig(path, mednafenCore);
+            SetupConfig(path, mednafenCore, system);
 
             List<string> commandArray = new List<string>();
             
             commandArray.Add("-fps.scale 0");
             commandArray.Add("-sound.volume 120");
-            commandArray.Add("-video.deinterlacer bob");
             commandArray.Add("-video.fs 1");
 			commandArray.Add("-video.disable_composition 1");
-			commandArray.Add("-video.glvsync 1");
             commandArray.Add("-video.driver opengl");
             
             if (mednafenCore == "pce" && AppConfig.isOptSet("bios"))
                 commandArray.Add("-pce.cdbios \"" + Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce") + "\"");
-
-            commandArray.Add("-" + mednafenCore + ".special none");            
+         
             commandArray.Add("-" + mednafenCore + ".shader none");
             commandArray.Add("-" + mednafenCore + ".xres 0");
             commandArray.Add("-" + mednafenCore + ".yres 0");
-            commandArray.Add("-" + mednafenCore + ".shader.goat.fprog 1");
-            commandArray.Add("-" + mednafenCore + ".shader.goat.slen 1");
+            commandArray.Add("-" + mednafenCore + ".shader.goat.fprog 0");
+            commandArray.Add("-" + mednafenCore + ".shader.goat.slen 0");
             commandArray.Add("-" + mednafenCore + ".shader.goat.tp 0.25");
             commandArray.Add("-" + mednafenCore + ".shader.goat.hdiv 1");
             commandArray.Add("-" + mednafenCore + ".shader.goat.vdiv 1");
@@ -68,8 +68,10 @@ namespace emulatorLauncher
             var platform = ReshadeManager.GetPlatformFromFile(exe);
             if (ReshadeManager.Setup(ReshadeBezelType.opengl, platform, system, rom, path, resolution, bezels != null) && bezels != null)
                 commandArray.Add("-" + mednafenCore + ".stretch full");
+            else if (SystemConfig.isOptSet("mednafen_ratio") && !string.IsNullOrEmpty(SystemConfig["mednafen_ratio"]))
+                commandArray.Add("-" + mednafenCore + ".stretch " + SystemConfig["mednafen_ratio"]);
             else
-                commandArray.Add("-" + mednafenCore + ".stretch aspect"); 
+                commandArray.Add("-" + mednafenCore + ".stretch aspect");
 
             commandArray.Add("\"" + rom + "\"");
 
@@ -100,7 +102,7 @@ namespace emulatorLauncher
             return ret;
         }
 
-        private void SetupConfig(string path, string core)
+        private void SetupConfig(string path, string mednafenCore, string system)
         {
             var cfg = MednafenConfigFile.FromFile(Path.Combine(path, "mednafen.cfg"));
 
@@ -108,11 +110,117 @@ namespace emulatorLauncher
             if (!string.IsNullOrEmpty(biosPath))
                 cfg["filesys.path_firmware"] = biosPath;
 
-            cfg[core+".enable"] = "1";
+            var cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "mednafen");
+            if (!Directory.Exists(cheatsPath)) try { Directory.CreateDirectory(cheatsPath); }
+                catch { }
+            if (!string.IsNullOrEmpty(cheatsPath))
+                cfg["filesys.path_cheat"] = cheatsPath;
 
-            CreateControllerConfiguration(cfg, core);
+            var savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen");
+            if (!Directory.Exists(savesPath)) try { Directory.CreateDirectory(savesPath); }
+                catch { }
+            if (!string.IsNullOrEmpty(savesPath))
+                cfg["filesys.path_sav"] = savesPath;
+
+            var saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen", "sstates");
+            if (!Directory.Exists(saveStatePath)) try { Directory.CreateDirectory(saveStatePath); }
+                catch { }
+            if (!string.IsNullOrEmpty(saveStatePath))
+                cfg["filesys.path_state"] = saveStatePath;
+
+            var screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "mednafen", system);
+            if (!Directory.Exists(screenshotsPath)) try { Directory.CreateDirectory(screenshotsPath); }
+                catch { }
+            if (!string.IsNullOrEmpty(screenshotsPath))
+                cfg["filesys.path_snap"] = screenshotsPath;
+
+            Action<string, string, string> BindMednafenFeature = (featureName, settingName, defaultValue) =>
+            {
+                if (SystemConfig.isOptSet(featureName) && !string.IsNullOrEmpty(SystemConfig[featureName]))
+                    cfg[settingName] = SystemConfig[featureName];
+                else
+                    cfg[settingName] = defaultValue;
+            };
+
+            Action<string, string, string, string> BindMednafenBoolFeature = (featureName, settingName, trueValue, falseValue) =>
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = trueValue;
+                else
+                    cfg[settingName] = falseValue;
+            };
+
+            cfg[mednafenCore + ".enable"] = "1";
+
+            // General Settings
+            BindMednafenFeature("mednafen_apu", "sound.driver", "default");
+            BindMednafenFeature("mednafen_interlace", "video.deinterlacer", "weave");
+            BindMednafenFeature("MonitorIndex", "video.fs.display", "-1");
+            BindMednafenBoolFeature("mednafen_vsync", "video.glvsync", "0", "1");
+            BindMednafenBoolFeature("autosave", "autosave", "1", "0");
+            BindMednafenBoolFeature("mednafen_cheats", "cheats", "1", "0");
+
+            // Core Specific settings
+            ConfigureMednafenSaturn(cfg, mednafenCore, system);
+            ConfigureMednafenMegadrive(cfg, mednafenCore, system);
+            ConfigureMednafenNES(cfg, mednafenCore, system);
+
+            if (SystemConfig.isOptSet("mednafen_scaler") && !string.IsNullOrEmpty(SystemConfig["mednafen_scaler"]))
+                cfg[mednafenCore + ".special"] = SystemConfig["mednafen_scaler"];
+            else
+                cfg[mednafenCore + ".special"] = "none";
+
+            CreateControllerConfiguration(cfg, mednafenCore);
 
             cfg.Save();
+        }
+
+        private void ConfigureMednafenSaturn(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "ss")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_saturn_region") && !string.IsNullOrEmpty(SystemConfig["mednafen_saturn_region"]))
+            {
+                cfg["ss.region_autodetect"] = "0";
+                cfg["ss.region_default"] = SystemConfig["mednafen_saturn_region"];
+            }
+            else
+                cfg["ss.region_autodetect"] = "1";
+        }
+
+        private void ConfigureMednafenMegadrive(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "md")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_md_region") && !string.IsNullOrEmpty(SystemConfig["mednafen_md_region"]))
+                cfg["md.region"] = SystemConfig["mednafen_md_region"];
+            else
+                cfg["md.region"] = "game";
+
+            cfg["md.reported_region"] = "same";
+        }
+
+        private void ConfigureMednafenNES(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "nes")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_nes_106bs") && SystemConfig.getOptBoolean("mednafen_nes_106bs"))
+                cfg["nes.n106bs"] = "1";
+            else
+                cfg["nes.n106bs"] = "0";
+
+            if (SystemConfig.isOptSet("mednafen_nes_videopreset") && !string.IsNullOrEmpty(SystemConfig["mednafen_nes_videopreset"]))
+                cfg["nes.ntsc.preset"] = SystemConfig["mednafen_nes_videopreset"];
+            else
+                cfg["nes.ntsc.preset"] = "none";
+
+            if (SystemConfig.isOptSet("mednafen_nes_pal50") && SystemConfig.getOptBoolean("mednafen_nes_pal50"))
+                cfg["nes.pal"] = "1";
+            else
+                cfg["nes.pal"] = "0";
         }
 
         private string GetMednafenCoreName(string core)
@@ -125,6 +233,8 @@ namespace emulatorLauncher
                 case "pcenginecd":
                 case "supergrafx":
                     return "pce";
+                case "saturn":
+                    return "ss";
             }
 
             return core;
@@ -202,5 +312,4 @@ namespace emulatorLauncher
             IsDirty = false;
         }
     }
-
 }
