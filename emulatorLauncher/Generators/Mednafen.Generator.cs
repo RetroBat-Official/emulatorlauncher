@@ -36,8 +36,10 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
+            // Configure cfg file
             SetupConfig(path, mednafenCore, system);
 
+            // Command line arguments
             List<string> commandArray = new List<string>();
             
             commandArray.Add("-fps.scale 0");
@@ -106,6 +108,7 @@ namespace emulatorLauncher
         {
             var cfg = MednafenConfigFile.FromFile(Path.Combine(path, "mednafen.cfg"));
 
+            // Paths
             var biosPath = AppConfig.GetFullPath("bios");
             if (!string.IsNullOrEmpty(biosPath))
                 cfg["filesys.path_firmware"] = biosPath;
@@ -128,12 +131,13 @@ namespace emulatorLauncher
             if (!string.IsNullOrEmpty(saveStatePath))
                 cfg["filesys.path_state"] = saveStatePath;
 
-            var screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "mednafen", system);
+            var screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "mednafen");
             if (!Directory.Exists(screenshotsPath)) try { Directory.CreateDirectory(screenshotsPath); }
                 catch { }
             if (!string.IsNullOrEmpty(screenshotsPath))
                 cfg["filesys.path_snap"] = screenshotsPath;
 
+            // Actions
             Action<string, string, string> BindMednafenFeature = (featureName, settingName, defaultValue) =>
             {
                 if (SystemConfig.isOptSet(featureName) && !string.IsNullOrEmpty(SystemConfig[featureName]))
@@ -150,9 +154,8 @@ namespace emulatorLauncher
                     cfg[settingName] = falseValue;
             };
 
-            cfg[mednafenCore + ".enable"] = "1";
-
             // General Settings
+            cfg[mednafenCore + ".enable"] = "1";
             BindMednafenFeature("mednafen_apu", "sound.driver", "default");
             BindMednafenFeature("mednafen_interlace", "video.deinterlacer", "weave");
             BindMednafenFeature("MonitorIndex", "video.fs.display", "-1");
@@ -160,33 +163,34 @@ namespace emulatorLauncher
             BindMednafenBoolFeature("autosave", "autosave", "1", "0");
             BindMednafenBoolFeature("mednafen_cheats", "cheats", "1", "0");
 
-            // Core Specific settings
-            ConfigureMednafenSaturn(cfg, mednafenCore, system);
-            ConfigureMednafenMegadrive(cfg, mednafenCore, system);
-            ConfigureMednafenNES(cfg, mednafenCore, system);
-
             if (SystemConfig.isOptSet("mednafen_scaler") && !string.IsNullOrEmpty(SystemConfig["mednafen_scaler"]))
                 cfg[mednafenCore + ".special"] = SystemConfig["mednafen_scaler"];
             else
                 cfg[mednafenCore + ".special"] = "none";
 
+            // Core Specific settings
+            ConfigureMednafenApple2(cfg, mednafenCore, system);
+            ConfigureMednafenMegadrive(cfg, mednafenCore, system);
+            ConfigureMednafenNES(cfg, mednafenCore, system);
+            ConfigureMednafenPCE(cfg, mednafenCore, system);
+            ConfigureMednafenPSX(cfg, mednafenCore, system);
+            ConfigureMednafenSaturn(cfg, mednafenCore, system);
+            ConfigureMednafenSnes(cfg, mednafenCore, system);
+
+            // controllers
             CreateControllerConfiguration(cfg, mednafenCore);
 
             cfg.Save();
         }
 
-        private void ConfigureMednafenSaturn(MednafenConfigFile cfg, string mednafenCore, string system)
+        private void ConfigureMednafenApple2(MednafenConfigFile cfg, string mednafenCore, string system)
         {
-            if (mednafenCore != "ss")
+            if (mednafenCore != "apple2")
                 return;
 
-            if (SystemConfig.isOptSet("mednafen_saturn_region") && !string.IsNullOrEmpty(SystemConfig["mednafen_saturn_region"]))
-            {
-                cfg["ss.region_autodetect"] = "0";
-                cfg["ss.region_default"] = SystemConfig["mednafen_saturn_region"];
-            }
-            else
-                cfg["ss.region_autodetect"] = "1";
+            cfg["apple2.input.port1.gamepad.resistance_select.defpos"] = "2";
+            cfg["apple2.input.port1.joystick.resistance_select.defpos"] = "2";
+            cfg["apple2.input.port1.joystick.axis_scale"] = "1.00";
         }
 
         private void ConfigureMednafenMegadrive(MednafenConfigFile cfg, string mednafenCore, string system)
@@ -200,6 +204,15 @@ namespace emulatorLauncher
                 cfg["md.region"] = "game";
 
             cfg["md.reported_region"] = "same";
+
+            if (SystemConfig.isOptSet("mednafen_md_multitap") && SystemConfig["mednafen_md_multitap"] == "both")
+                cfg["md.input.multitap"] = "tpd";
+            else if (SystemConfig.isOptSet("mednafen_md_multitap") && SystemConfig["mednafen_md_multitap"] == "1")
+                cfg["md.input.multitap"] = "tp1";
+            else if (SystemConfig.isOptSet("mednafen_md_multitap") && SystemConfig["mednafen_md_multitap"] == "2")
+                cfg["md.input.multitap"] = "tp2";
+            else
+                cfg["md.input.multitap"] = "none";
         }
 
         private void ConfigureMednafenNES(MednafenConfigFile cfg, string mednafenCore, string system)
@@ -221,6 +234,144 @@ namespace emulatorLauncher
                 cfg["nes.pal"] = "1";
             else
                 cfg["nes.pal"] = "0";
+
+            if (SystemConfig.isOptSet("mednafen_nes_multitap") && SystemConfig.getOptBoolean("mednafen_nes_multitap"))
+                cfg["nes.input.fcexp"] = "4player";
+            else
+                cfg["nes.input.fcexp"] = "none";
+        }
+
+        private void ConfigureMednafenPCE(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "pce")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_pce_multitap") && SystemConfig.getOptBoolean("mednafen_pce_multitap"))
+                cfg["pce.input.multitap"] = "1";
+            else
+                cfg["pce.input.multitap"] = "0";
+        }
+
+        private void ConfigureMednafenPSX(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "psx")
+                return;
+
+            cfg["psx.input.analog_mode_ct"] = "1";
+
+            if (SystemConfig.isOptSet("mednafen_psx_region") && !string.IsNullOrEmpty(SystemConfig["mednafen_psx_region"]))
+            {
+                cfg["psx.region_autodetect"] = "0";
+                cfg["psx.region_default"] = SystemConfig["mednafen_psx_region"];
+            }
+            else
+            {
+                cfg["psx.region_autodetect"] = "1";
+                cfg["psx.region_default"] = "eu";
+            }
+
+            if (SystemConfig.isOptSet("mednafen_psx_multitap") && SystemConfig["mednafen_psx_multitap"] == "1")
+            {
+                cfg["psx.input.pport1.multitap"] = "1";
+                cfg["psx.input.pport2.multitap"] = "0";
+            }
+            else if (SystemConfig.isOptSet("mednafen_psx_multitap") && SystemConfig["mednafen_psx_multitap"] == "2")
+            {
+                cfg["psx.input.pport1.multitap"] = "0";
+                cfg["psx.input.pport2.multitap"] = "1";
+            }
+            else if (SystemConfig.isOptSet("mednafen_psx_multitap") && SystemConfig["mednafen_psx_multitap"] == "both")
+            {
+                cfg["psx.input.pport1.multitap"] = "1";
+                cfg["psx.input.pport2.multitap"] = "1";
+            }
+            else
+            {
+                cfg["psx.input.pport1.multitap"] = "0";
+                cfg["psx.input.pport2.multitap"] = "0";
+            }
+
+            if (SystemConfig.isOptSet("mednafen_psx_analogcombo") && !string.IsNullOrEmpty(SystemConfig["mednafen_psx_analogcombo"]))
+                cfg["psx.input.analog_mode_ct.compare"] = SystemConfig["mednafen_psx_analogcombo"];
+            else
+                cfg["psx.input.analog_mode_ct.compare"] = "0x0C01";
+
+            // Memory cards (up to 4)
+            // Cleanup first
+            for (int i = 1; i < 9; i++)
+                cfg["psx.input.port" + i + ".memcard"] = "0";
+
+            if (SystemConfig.isOptSet("mednafen_psx_multitap") && SystemConfig["mednafen_psx_memcards"] != "0")
+            {
+                int memcnb = SystemConfig["mednafen_psx_memcards"].ToInteger();
+                for (int i = 1; i <= memcnb; i++)
+                    cfg["psx.input.port" + i + ".memcard"] = "1";
+            }
+
+            for (int i = 1; i < 9; i++)
+                cfg["psx.input.port" + i + ".dualshock.axis_scale"] = "1.00";
+        }
+
+        private void ConfigureMednafenSaturn(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "ss")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_saturn_region") && !string.IsNullOrEmpty(SystemConfig["mednafen_saturn_region"]))
+            {
+                cfg["ss.region_autodetect"] = "0";
+                cfg["ss.region_default"] = SystemConfig["mednafen_saturn_region"];
+            }
+            else
+                cfg["ss.region_autodetect"] = "1";
+
+            if (SystemConfig.isOptSet("mednafen_ss_multitap") && SystemConfig["mednafen_ss_multitap"] == "both")
+            {
+                cfg["ss.input.sport1.multitap"] = "1";
+                cfg["ss.input.sport2.multitap"] = "1";
+            }
+            else if (SystemConfig.isOptSet("mednafen_ss_multitap") && SystemConfig["mednafen_ss_multitap"] == "1")
+            {
+                cfg["ss.input.sport1.multitap"] = "1";
+                cfg["ss.input.sport2.multitap"] = "0";
+            }
+            else if (SystemConfig.isOptSet("mednafen_ss_multitap") && SystemConfig["mednafen_ss_multitap"] == "2")
+            {
+                cfg["ss.input.sport1.multitap"] = "0";
+                cfg["ss.input.sport2.multitap"] = "1";
+            }
+            else
+            {
+                cfg["ss.input.sport1.multitap"] = "0";
+                cfg["ss.input.sport2.multitap"] = "0";
+            }
+        }
+
+        private void ConfigureMednafenSnes(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "snes")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_snes_multitap") && SystemConfig["mednafen_snes_multitap"] == "both")
+            {
+                cfg["snes.input.port1.multitap"] = "1";
+                cfg["snes.input.port2.multitap"] = "1";
+            }
+            else if (SystemConfig.isOptSet("mednafen_snes_multitap") && SystemConfig["mednafen_snes_multitap"] == "1")
+            {
+                cfg["snes.input.port1.multitap"] = "1";
+                cfg["snes.input.port2.multitap"] = "0";
+            }
+            else if (SystemConfig.isOptSet("mednafen_snes_multitap") && SystemConfig["mednafen_snes_multitap"] == "2")
+            {
+                cfg["snes.input.port1.multitap"] = "0";
+                cfg["snes.input.port2.multitap"] = "1";
+            }
+            else
+            {
+                cfg["snes.input.port1.multitap"] = "0";
+                cfg["snes.input.port2.multitap"] = "0";
+            }
         }
 
         private string GetMednafenCoreName(string core)

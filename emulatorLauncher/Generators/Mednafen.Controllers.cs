@@ -8,27 +8,29 @@ namespace emulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "nes", "snes", "md", "pce", "ss" };
-        static List<string> mouseMapping = new List<string>() { "zapper", "superscope", "gun" };
+        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "md", "nes", "pce", "psx", "snes", "ss" };
+        static List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
         
         static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
         {
-            { "nes", "gamepad" },
-            { "snes", "gamepad" },
+            { "apple2", "gamepad" },
             { "md", "gamepad6" },
+            { "nes", "gamepad" },
             { "pce", "gamepad" },
-            { "ss", "gamepad" },
-            { "apple2", "gamepad" }
+            { "psx", "dualshock" },
+            { "snes", "gamepad" },
+            { "ss", "gamepad" }
         };
         
         static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
-            { "nes", 4 },
-            { "snes", 8 },
+            { "apple2", 2 },
             { "md", 8 },
+            { "nes", 4 },
             { "pce", 5 },
-            { "ss", 12 },
-            { "apple2", 2 }
+            { "psx", 8 },
+            { "snes", 8 },
+            { "ss", 12 }
         };
 
         private void CreateControllerConfiguration(MednafenConfigFile cfg, string mednafenCore)
@@ -38,8 +40,10 @@ namespace emulatorLauncher
             if (!systemWithAutoconfig.Contains(mednafenCore))
                 return;
 
+            // First, set all controllers to none
             CleanUpConfigFile(mednafenCore, cfg);
 
+            // Define maximum pads accepted by mednafen core
             int maxPad = inputPortNb[mednafenCore];
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
@@ -50,67 +54,6 @@ namespace emulatorLauncher
         {
             if (controller == null || controller.Config == null)
                 return;
-
-            // Multitap specifics
-            if (mednafenCore == "ss")
-            {
-                if (Controllers.Count > 6)
-                {
-                    cfg["ss.input.sport1.multitap"] = "1";
-                    cfg["ss.input.sport2.multitap"] = "1";
-                }
-                else if (Controllers.Count > 2)
-                {
-                    cfg["ss.input.sport1.multitap"] = "1";
-                    cfg["ss.input.sport2.multitap"] = "0";
-                }
-                else
-                {
-                    cfg["ss.input.sport1.multitap"] = "0";
-                    cfg["ss.input.sport2.multitap"] = "0";
-                }
-            }
-            else if (mednafenCore == "nes")
-            {
-                if (Controllers.Count > 2)
-                    cfg["nes.input.fcexp"] = "4player";
-                else
-                    cfg["nes.input.fcexp"] = "none";
-            }
-            else if (mednafenCore == "snes")
-            {
-                if (Controllers.Count > 4)
-                {
-                    cfg["snes.input.port1.multitap"] = "1";
-                    cfg["snes.input.port2.multitap"] = "1";
-                }
-                else if (Controllers.Count > 2)
-                {
-                    cfg["snes.input.port1.multitap"] = "1";
-                    cfg["snes.input.port2.multitap"] = "0";
-                }
-                else
-                {
-                    cfg["snes.input.port1.multitap"] = "0";
-                    cfg["snes.input.port2.multitap"] = "0";
-                }
-            }
-            else if (mednafenCore == "md")
-            {
-                if (Controllers.Count > 4)
-                    cfg["md.input.multitap"] = "tpd";
-                else if (Controllers.Count > 2)
-                    cfg["md.input.multitap"] = "tp1";
-                else
-                    cfg["md.input.multitap"] = "none";
-            }
-            else if (mednafenCore == "pce")
-            {
-                if (Controllers.Count > 2)
-                    cfg["pce.input.multitap"] = "1";
-                else
-                    cfg["pce.input.multitap"] = "0";
-            }
 
             if (controller.IsKeyboard && this.Controllers.Count(i => !i.IsKeyboard) == 0)
                 ConfigureKeyboard(controller, cfg, mednafenCore);
@@ -133,15 +76,19 @@ namespace emulatorLauncher
 
             int playerIndex = controller.PlayerIndex;
 
+            // Define default type of controller per core
             string padType = defaultPadType[mednafenCore];
 
+            // Change controller type if set in features
             if (Program.SystemConfig.isOptSet("mednafen_controller_type") && !string.IsNullOrEmpty(Program.SystemConfig["mednafen_controller_type"]))
                 padType = Program.SystemConfig["mednafen_controller_type"];
 
+            // Define pad mapping to use per core - see dictionnaries
             string mapping = mednafenCore + "_" + padType;
 
-            var newmapping = new Dictionary<string, InputKey>();
-            var gunMapping = new Dictionary<string, string>();
+            // Initiate dictionnaries
+            Dictionary<string, InputKey> newmapping = new Dictionary<string, InputKey>();
+            Dictionary<string, string> gunMapping = new Dictionary<string, string>();
 
             // Manage guns
             if (Program.SystemConfig.isOptSet("mednafen_gun") && Program.SystemConfig.getOptBoolean("mednafen_gun"))
@@ -149,10 +96,23 @@ namespace emulatorLauncher
                 if (!gunPort.ContainsKey(mednafenCore))
                     return;
 
-                int portNumber = gunPort[mednafenCore];
-                string gunType = gunName[mednafenCore];
+                string gunType;
+                string psx_gun = "guncon";
+                if (Program.SystemConfig.isOptSet("mednafen_psx_gun") && !string.IsNullOrEmpty(Program.SystemConfig["mednafen_psx_gun"]))
+                    psx_gun = Program.SystemConfig["mednafen_psx_gun"];
 
-                gunMapping = gunMappingToUse[mednafenCore];
+                int portNumber = gunPort[mednafenCore];
+
+                if (mednafenCore == "psx")
+                {
+                    gunType = psx_gun;
+                    gunMapping = gunMappingToUse[psx_gun];
+                }
+                else
+                {
+                    gunType = gunName[mednafenCore];
+                    gunMapping = gunMappingToUse[mednafenCore];
+                }
 
                 if (portNumber == 1)
                 {
@@ -194,14 +154,9 @@ namespace emulatorLauncher
 
             if (mappingToUse.ContainsKey(mapping))
                 newmapping = mappingToUse[mapping];
-
-            if (mednafenCore == "apple2")
-            {
-                cfg["apple2.input.port1.gamepad.resistance_select.defpos"] = "2";
-                cfg["apple2.input.port1.joystick.resistance_select.defpos"] = "2";
-                cfg["apple2.input.port1.joystick.axis_scale"] = "1.00";
-
-                if (playerIndex == 2)
+            
+            // apple2 only accepts atari joystick in port 2
+            if (mednafenCore == "apple2" && playerIndex == 2)
                 {
                     cfg[mednafenCore + ".input.port" + 2] = "atari";
                     foreach (var entry in apple2atari)
@@ -212,7 +167,6 @@ namespace emulatorLauncher
                         cfg[mednafenCore + ".input.port" + 2 + ".atari." + entry.Key] = "joystick " + deviceID + " " + value;
                     }
                 }
-            }
 
             else
             {
@@ -265,18 +219,31 @@ namespace emulatorLauncher
 
             string mapping = mednafenCore + "_" + padType;
 
-            var newmapping = new Dictionary<string, InputKey>();
-            var gunMapping = new Dictionary<string, string>();
+            Dictionary<string, InputKey> newmapping = new Dictionary<string, InputKey>();
+            Dictionary<string, string> gunMapping = new Dictionary<string, string>();
 
             if (Program.SystemConfig.isOptSet("mednafen_gun") && Program.SystemConfig.getOptBoolean("mednafen_gun"))
             {
                 if (!gunPort.ContainsKey(mednafenCore))
                     return;
-                
-                int portNumber = gunPort[mednafenCore];
-                string gunType = gunName[mednafenCore];
 
-                gunMapping = gunMappingToUse[mednafenCore];
+                string gunType;
+                string psx_gun = "guncon";
+                if (Program.SystemConfig.isOptSet("mednafen_psx_gun") && !string.IsNullOrEmpty(Program.SystemConfig["mednafen_psx_gun"]))
+                    psx_gun = Program.SystemConfig["mednafen_psx_gun"];
+
+                int portNumber = gunPort[mednafenCore];
+
+                if (mednafenCore == "psx")
+                {
+                    gunType = psx_gun;
+                    gunMapping = gunMappingToUse[psx_gun];
+                }
+                else
+                {
+                    gunType = gunName[mednafenCore];
+                    gunMapping = gunMappingToUse[mednafenCore];
+                }
 
                 cfg[mednafenCore + ".input.port" + portNumber] = gunType;
 
@@ -394,6 +361,52 @@ namespace emulatorLauncher
             { "vi", InputKey.pagedown },
         };
 
+        static Dictionary<string, InputKey> psxgamepad = new Dictionary<string, InputKey>()
+        {
+            { "circle", InputKey.b },
+            { "cross", InputKey.a },
+            { "down", InputKey.down },
+            { "l1", InputKey.pageup },
+            { "l2", InputKey.l2 },
+            { "left", InputKey.left },
+            { "r1", InputKey.pagedown },
+            { "r2", InputKey.r2 },
+            { "right", InputKey.right },
+            { "select", InputKey.select },
+            { "square", InputKey.y },
+            { "start", InputKey.start },
+            { "triangle", InputKey.x },
+            { "up", InputKey.up }
+        };
+
+        static Dictionary<string, InputKey> psxdualshock = new Dictionary<string, InputKey>()
+        {
+            { "circle", InputKey.b },
+            { "cross", InputKey.a },
+            { "down", InputKey.down },
+            { "l1", InputKey.pageup },
+            { "l2", InputKey.l2 },
+            { "l3", InputKey.l3 },
+            { "left", InputKey.left },
+            { "lstick_down", InputKey.leftanalogdown },
+            { "lstick_left", InputKey.leftanalogleft },
+            { "lstick_right", InputKey.leftanalogright },
+            { "lstick_up", InputKey.leftanalogup },
+            { "r1", InputKey.pagedown },
+            { "r2", InputKey.r2 },
+            { "r3", InputKey.r3 },
+            { "right", InputKey.right },
+            { "rstick_down", InputKey.rightanalogdown },
+            { "rstick_left", InputKey.rightanalogleft },
+            { "rstick_right", InputKey.rightanalogright },
+            { "rstick_up", InputKey.rightanalogup },
+            { "select", InputKey.select },
+            { "square", InputKey.y },
+            { "start", InputKey.start },
+            { "triangle", InputKey.x },
+            { "up", InputKey.up }
+        };
+
         static Dictionary<string, InputKey> snesgamepad = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
@@ -467,13 +480,14 @@ namespace emulatorLauncher
             { "nes", 1 },
             { "snes", 2 },
             { "ss", 1 },
+            { "psx", 1 }
         };
 
         static Dictionary<string, string> gunName = new Dictionary<string, string>()
         {
             { "nes", "zapper" },
             { "snes", "superscope" },
-            { "ss", "gun" },
+            { "ss", "gun" }
         };
 
         static Dictionary<string, string> neszapper = new Dictionary<string, string>()
@@ -484,10 +498,30 @@ namespace emulatorLauncher
             { "y_axis", "mouse 0x0 cursor_y-+" },
         };
 
+        static Dictionary<string, string> psxguncon = new Dictionary<string, string>()
+        {
+            { "a", "mouse 0x0 button_right" },
+            { "b", "mouse 0x0 button_middle" },
+            { "offscreen_shot", "keyboard 0x0 44" },    //space
+            { "trigger", "mouse 0x0 button_left" },
+            { "x_axis", "mouse 0x0 cursor_x-+" },
+            { "y_axis", "mouse 0x0 cursor_y-+" },
+        };
+
+        static Dictionary<string, string> psxjustifier = new Dictionary<string, string>()
+        {
+            { "o", "mouse 0x0 button_right" },
+            { "offscreen_shot", "keyboard 0x0 44" },    //space
+            { "start", "mouse 0x0 button_middle" },
+            { "trigger", "mouse 0x0 button_left" },
+            { "x_axis", "mouse 0x0 cursor_x-+" },
+            { "y_axis", "mouse 0x0 cursor_y-+" },
+        };
+
         static Dictionary<string, string> snessuperscope = new Dictionary<string, string>()
         {
             { "cursor", "mouse 0x0 button_right" },
-            { "offscreen_shot", "keyboard 0x0 44" },
+            { "offscreen_shot", "keyboard 0x0 44" },    //space
             { "pause", "mouse 0x0 button_middle" },
             { "trigger", "mouse 0x0 button_left" },
             { "turbo", "keyboard 0x0 77" },
@@ -516,7 +550,9 @@ namespace emulatorLauncher
             { "md_gamepad2", mdgamepad2 },
             { "md_gamepad6", mdgamepad6 },
             { "pce_gamepad", pcegamepad },
-            { "ss_gamepad", ssgamepad }
+            { "ss_gamepad", ssgamepad },
+            { "psx_gamepad", psxgamepad },
+            { "psx_dualshock", psxdualshock }
         };
 
         static Dictionary<string, Dictionary<string, string>> gunMappingToUse = new Dictionary<string, Dictionary<string, string>>()
@@ -524,6 +560,8 @@ namespace emulatorLauncher
             { "nes", neszapper },
             { "snes", snessuperscope },
             { "ss", saturngun },
+            { "guncon", psxguncon },
+            { "justifier", psxjustifier }
         };
         #endregion
 
@@ -836,7 +874,8 @@ namespace emulatorLauncher
             { "md", 8 },
             { "pce", 5 },
             { "ss", 12 },
-            { "apple2", 2 }
+            { "apple2", 2 },
+            { "psx", 8 }
         };
     }
 }
