@@ -204,7 +204,7 @@ namespace emulatorLauncher.libRetro
                 { "stella2014", "Stella 2014" },
                 { "stella", "Stella" },
                 { "stonesoup", "Dungeon Crawl Stone Soup" },
-                { "superbroswar", "superbroswar" },
+                { "superbroswar", "Super Bros War" },
                 { "swanstation", "SwanStation" },
                 { "tempgba", "TempGBA" },
                 { "testaudio_callback", "TestAudio Callback" },
