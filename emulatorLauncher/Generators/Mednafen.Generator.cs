@@ -178,6 +178,7 @@ namespace emulatorLauncher
             ConfigureMednafenPSX(cfg, mednafenCore, system);
             ConfigureMednafenSaturn(cfg, mednafenCore, system);
             ConfigureMednafenSnes(cfg, mednafenCore, system);
+            ConfigureMednafenWswan(cfg, mednafenCore, system);
 
             // controllers
             CreateControllerConfiguration(cfg, mednafenCore);
@@ -401,6 +402,18 @@ namespace emulatorLauncher
                 cfg["snes.input.port1.multitap"] = "0";
                 cfg["snes.input.port2.multitap"] = "0";
             }
+        }
+
+        private void ConfigureMednafenWswan(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "wswan")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_wswan_lang") && !string.IsNullOrEmpty(SystemConfig["mednafen_wswan_lang"]))
+                cfg["wswan.language"] = SystemConfig["mednafen_wswan_lang"];
+            else
+                cfg["wswan.language"] = "english";
+
         }
 
         private string GetMednafenCoreName(string core)

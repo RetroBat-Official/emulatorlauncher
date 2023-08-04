@@ -9,7 +9,7 @@ namespace emulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "lynx", "md", "nes", "pce", "psx", "sms", "snes", "ss" };
+        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "lynx", "md", "nes", "pce", "psx", "sms", "snes", "ss", "wswan" };
         static List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
         
         static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
@@ -22,7 +22,8 @@ namespace emulatorLauncher
             { "psx", "dualshock" },
             { "sms", "gamepad" },
             { "snes", "gamepad" },
-            { "ss", "gamepad" }
+            { "ss", "gamepad" },
+            { "wswan", "gamepad" }
         };
         
         static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
@@ -35,7 +36,8 @@ namespace emulatorLauncher
             { "psx", 8 },
             { "sms", 2 },
             { "snes", 8 },
-            { "ss", 12 }
+            { "ss", 12 },
+            { "wswan", 1 }
         };
 
         private void CreateControllerConfiguration(MednafenConfigFile cfg, string mednafenCore)
@@ -46,7 +48,7 @@ namespace emulatorLauncher
                 return;
 
             // First, set all controllers to none
-            if (mednafenCore != "lynx" && mednafenCore !="sms")
+            if (mednafenCore != "lynx" && mednafenCore !="sms" && mednafenCore != "wswan")
                 CleanUpConfigFile(mednafenCore, cfg);
 
             // Define maximum pads accepted by mednafen core
@@ -185,6 +187,19 @@ namespace emulatorLauncher
                 }
             }
 
+            else if (mednafenCore == "wswan")
+            {
+                cfg["wswan.input.builtin"] = padType;
+
+                foreach (var entry in newmapping)
+                {
+                    InputKey joyButton = entry.Value;
+                    string value = buttonMapping[joyButton];
+
+                    cfg["wswan.input.builtin." + padType + "." + entry.Key] = "joystick " + deviceID + " " + value;
+                }
+            }
+
             else
             {
                 bool noType = false;
@@ -314,6 +329,33 @@ namespace emulatorLauncher
                         int mednafenKey = mednafenKeyCodes[keycode];
 
                         cfg["lynx.input.builtin.gamepad." + entry.Key] = "keyboard 0x0 " + mednafenKey;
+                    }
+                }
+            }
+
+            else if (mednafenCore == "wswan")
+            {
+                if (mappingToUsekb.ContainsKey(mapping))
+                    newmapping = mappingToUsekb[mapping];
+
+                cfg["wswan.input.builtin"] = padType;
+
+                foreach (var entry in newmapping)
+                {
+                    var a = keyboard[entry.Value];
+                    if (a != null)
+                    {
+                        int id = (int)a.Id;
+
+                        SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                        List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                        if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                            keycode = azertyLayoutMapping[keycode];
+
+                        int mednafenKey = mednafenKeyCodes[keycode];
+
+                        cfg["wswan.input.builtin." + padType + "." + entry.Key] = "keyboard 0x0 " + mednafenKey;
                     }
                 }
             }
@@ -552,6 +594,74 @@ namespace emulatorLauncher
             { "right", InputKey.right },
             { "up", InputKey.up }
         };
+
+        static Dictionary<string, InputKey> wswanhorizontal = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "b", InputKey.a },
+            { "down-x", InputKey.down },
+            { "down-y", InputKey.leftanalogdown },
+            { "left-x", InputKey.left },
+            { "left-y", InputKey.leftanalogleft },
+            { "rapid_a", InputKey.x },
+            { "rapid_b", InputKey.y },
+            { "right-x", InputKey.right },
+            { "right-y", InputKey.leftanalogright },
+            { "start", InputKey.start },
+            { "up-x", InputKey.up },
+            { "up-y", InputKey.leftanalogup }
+        };
+
+        static Dictionary<string, InputKey> wswanvertical = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "ap", InputKey.x },
+            { "b", InputKey.a },
+            { "bp", InputKey.y },
+            { "down-x", InputKey.rightanalogdown },
+            { "down-y", InputKey.down },
+            { "left-x", InputKey.rightanalogleft },
+            { "left-y", InputKey.left },
+            { "right-x", InputKey.rightanalogright },
+            { "right-y", InputKey.right },
+            { "start", InputKey.start },
+            { "up-x", InputKey.rightanalogup },
+            { "up-y", InputKey.up }
+        };
+
+        static Dictionary<string, InputKey> wswanhorizontalkb = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "b", InputKey.a },
+            { "down-x", InputKey.down },
+            { "down-y", InputKey.pageup },
+            { "left-x", InputKey.left },
+            { "left-y", InputKey.l2 },
+            { "rapid_a", InputKey.x },
+            { "rapid_b", InputKey.y },
+            { "right-x", InputKey.right },
+            { "right-y", InputKey.r2 },
+            { "start", InputKey.start },
+            { "up-x", InputKey.up },
+            { "up-y", InputKey.pagedown }
+        };
+
+        static Dictionary<string, InputKey> wswanverticalkb = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "ap", InputKey.x },
+            { "b", InputKey.a },
+            { "bp", InputKey.y },
+            { "down-x", InputKey.down },
+            { "down-y", InputKey.pageup },
+            { "left-x", InputKey.left },
+            { "left-y", InputKey.l2 },
+            { "right-x", InputKey.right },
+            { "right-y", InputKey.r2 },
+            { "start", InputKey.start },
+            { "up-x", InputKey.up },
+            { "up-y", InputKey.pagedown }
+        };
         #endregion
 
         #region Gun Mapping
@@ -633,7 +743,15 @@ namespace emulatorLauncher
             { "sms_gamepad", smsgamepad },
             { "ss_gamepad", ssgamepad },
             { "psx_gamepad", psxgamepad },
-            { "psx_dualshock", psxdualshock }
+            { "psx_dualshock", psxdualshock },
+            { "wswan_gamepad", wswanhorizontal },
+            { "wswan_gamepadraa", wswanvertical }
+        };
+
+        static Dictionary<string, Dictionary<string, InputKey>> mappingToUsekb = new Dictionary<string, Dictionary<string, InputKey>>()
+        {
+            { "wswan_gamepad", wswanhorizontalkb },
+            { "wswan_gamepadraa", wswanverticalkb }
         };
 
         static Dictionary<string, Dictionary<string, string>> gunMappingToUse = new Dictionary<string, Dictionary<string, string>>()
