@@ -13,8 +13,6 @@ namespace emulatorLauncher
 {
     partial class Pcsx2Generator : Generator
     {
-        private int _xInputCount;
-
         /// <summary>
         /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
         /// </summary>
@@ -40,9 +38,7 @@ namespace emulatorLauncher
                 return;
 
             UpdateSdlControllersWithHints(pcsx2ini);
-
-            _xInputCount = 0;
-
+            
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
                 pcsx2ini.ClearSection("Pad" + i.ToString());
@@ -210,18 +206,13 @@ namespace emulatorLauncher
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
-            if (tech == "XInput")
-                _xInputCount++;
-            if (_xInputCount > 4)
-                tech = "SDL";
-
             //Start writing in ini file
             pcsx2ini.ClearSection(padNumber);
             pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
 
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
-            if (ctrl.IsXInputDevice && _xInputCount <= 4)
+            if (ctrl.IsXInputDevice)
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
             //Write button mapping
