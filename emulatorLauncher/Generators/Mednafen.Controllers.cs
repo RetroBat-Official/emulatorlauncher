@@ -9,7 +9,7 @@ namespace emulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "lynx", "md", "nes", "pce", "psx", "snes", "ss" };
+        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "lynx", "md", "nes", "pce", "psx", "sms", "snes", "ss" };
         static List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
         
         static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
@@ -20,6 +20,7 @@ namespace emulatorLauncher
             { "nes", "gamepad" },
             { "pce", "gamepad" },
             { "psx", "dualshock" },
+            { "sms", "gamepad" },
             { "snes", "gamepad" },
             { "ss", "gamepad" }
         };
@@ -32,6 +33,7 @@ namespace emulatorLauncher
             { "nes", 4 },
             { "pce", 5 },
             { "psx", 8 },
+            { "sms", 2 },
             { "snes", 8 },
             { "ss", 12 }
         };
@@ -44,7 +46,7 @@ namespace emulatorLauncher
                 return;
 
             // First, set all controllers to none
-            if (mednafenCore != "lynx")
+            if (mednafenCore != "lynx" && mednafenCore !="sms")
                 CleanUpConfigFile(mednafenCore, cfg);
 
             // Define maximum pads accepted by mednafen core
@@ -185,7 +187,14 @@ namespace emulatorLauncher
 
             else
             {
-                cfg[mednafenCore + ".input.port" + playerIndex] = padType;
+                bool noType = false;
+                if (mednafenCore == "snes" && playerIndex > 2)
+                    noType = true;
+                else if (mednafenCore == "sms")
+                    noType = true;
+
+                if (!noType)
+                    cfg[mednafenCore + ".input.port" + playerIndex] = padType;
 
                 foreach (var entry in newmapping)
                 {
@@ -311,10 +320,15 @@ namespace emulatorLauncher
 
             else
             {
+                bool noType = false;
+                if (mednafenCore == "sms")
+                    noType = true;
+
                 if (mappingToUse.ContainsKey(mapping))
                     newmapping = mappingToUse[mapping];
 
-                cfg[mednafenCore + ".input.port1"] = padType;
+                if (!noType)
+                    cfg[mednafenCore + ".input.port1"] = padType;
 
                 foreach (var entry in newmapping)
                     WriteKeyboardMapping(mednafenCore, 1, padType, entry.Key, entry.Value);
@@ -525,6 +539,19 @@ namespace emulatorLauncher
             { "right", InputKey.right },
             { "up", InputKey.up }
         };
+
+        static Dictionary<string, InputKey> smsgamepad = new Dictionary<string, InputKey>()
+        {
+            { "down", InputKey.down },
+            { "fire1", InputKey.a },
+            { "fire2", InputKey.b },
+            { "left", InputKey.left },
+            { "pause", InputKey.start },
+            { "rapid_fire1", InputKey.y },
+            { "rapid_fire2", InputKey.x },
+            { "right", InputKey.right },
+            { "up", InputKey.up }
+        };
         #endregion
 
         #region Gun Mapping
@@ -603,6 +630,7 @@ namespace emulatorLauncher
             { "md_gamepad2", mdgamepad2 },
             { "md_gamepad6", mdgamepad6 },
             { "pce_gamepad", pcegamepad },
+            { "sms_gamepad", smsgamepad },
             { "ss_gamepad", ssgamepad },
             { "psx_gamepad", psxgamepad },
             { "psx_dualshock", psxdualshock }

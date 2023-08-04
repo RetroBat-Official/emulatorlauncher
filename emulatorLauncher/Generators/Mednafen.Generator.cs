@@ -171,6 +171,7 @@ namespace emulatorLauncher
             // Core Specific settings
             ConfigureMednafenApple2(cfg, mednafenCore, system);
             ConfigureMednafenLynx(cfg, mednafenCore, system);
+            ConfigureMednafenMasterSystem(cfg, mednafenCore, system);
             ConfigureMednafenMegadrive(cfg, mednafenCore, system);
             ConfigureMednafenNES(cfg, mednafenCore, system);
             ConfigureMednafenPCE(cfg, mednafenCore, system);
@@ -208,6 +209,17 @@ namespace emulatorLauncher
                 cfg["lynx.rotateinput"] = "1";
             else
                 cfg["lynx.rotateinput"] = "0";
+        }
+
+        private void ConfigureMednafenMasterSystem(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "sms")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_sms_fm") && SystemConfig.getOptBoolean("mednafen_sms_fm"))
+                cfg["sms.fm"] = "1";
+            else
+                cfg["sms.fm"] = "0";
         }
 
         private void ConfigureMednafenMegadrive(MednafenConfigFile cfg, string mednafenCore, string system)
@@ -395,6 +407,8 @@ namespace emulatorLauncher
         {
             switch (core)
             {
+                case "mastersystem":
+                    return "sms";
                 case "megadrive":
                     return "md";
                 case "pcengine":
