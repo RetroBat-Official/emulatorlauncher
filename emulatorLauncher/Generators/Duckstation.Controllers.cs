@@ -13,6 +13,8 @@ namespace emulatorLauncher
 {
     partial class DuckstationGenerator : Generator
     {
+        private bool _forceSDL = false;
+
         /// <summary>
         /// Cf. https://github.com/stenzek/duckstation/blob/master/src/frontend-common/sdl_input_source.cpp
         /// </summary>
@@ -37,6 +39,9 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
+                _forceSDL = true;
+
             UpdateSdlControllersWithHints(ini);
             
             // clear existing pad sections of ini file
@@ -52,8 +57,20 @@ namespace emulatorLauncher
                 ini.WriteValue("ControllerPorts", "MultitapMode", "Disabled");
 
             ini.WriteValue("InputSources", "DInput", "false");
-            ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
-            ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
+
+            if (_forceSDL)
+            {
+                ini.WriteValue("InputSources", "XInput", "false");
+                ini.WriteValue("InputSources", "SDL", "true");
+            }
+            else
+            {
+                ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
+                ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true" : "false");
+            }
+
+            //ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
+            //ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
             ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
 
             // Reset hotkeys
@@ -179,6 +196,9 @@ namespace emulatorLauncher
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
+            if (_forceSDL)
+                tech = "SDL";
+
             string controllerType = "AnalogController";
             string controllerPlayerNr = "duck_controller" + playerIndex;
             if (SystemConfig.isOptSet(controllerPlayerNr) && !string.IsNullOrEmpty(SystemConfig[controllerPlayerNr]))
@@ -190,7 +210,7 @@ namespace emulatorLauncher
 
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
-            if (ctrl.IsXInputDevice)
+            if (ctrl.IsXInputDevice && !_forceSDL)
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
             //Write button mapping
