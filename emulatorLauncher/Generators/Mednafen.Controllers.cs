@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using emulatorLauncher.Tools;
 using System.Globalization;
+using SharpDX.DirectInput;
 
 namespace emulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "md", "nes", "pce", "psx", "snes", "ss" };
+        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "lynx", "md", "nes", "pce", "psx", "snes", "ss" };
         static List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
         
         static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
         {
             { "apple2", "gamepad" },
+            { "lynx", "builtin.gamepad"},
             { "md", "gamepad6" },
             { "nes", "gamepad" },
             { "pce", "gamepad" },
@@ -25,6 +27,7 @@ namespace emulatorLauncher
         static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "apple2", 2 },
+            { "lynx", 1 },
             { "md", 8 },
             { "nes", 4 },
             { "pce", 5 },
@@ -41,7 +44,8 @@ namespace emulatorLauncher
                 return;
 
             // First, set all controllers to none
-            CleanUpConfigFile(mednafenCore, cfg);
+            if (mednafenCore != "lynx")
+                CleanUpConfigFile(mednafenCore, cfg);
 
             // Define maximum pads accepted by mednafen core
             int maxPad = inputPortNb[mednafenCore];
@@ -168,6 +172,17 @@ namespace emulatorLauncher
                     }
                 }
 
+            else if (mednafenCore == "lynx")
+            {
+                foreach (var entry in lynxmapping)
+                {
+                    InputKey joyButton = entry.Value;
+                    string value = buttonMapping[joyButton];
+
+                    cfg["lynx.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
+                }
+            }
+
             else
             {
                 cfg[mednafenCore + ".input.port" + playerIndex] = padType;
@@ -272,6 +287,28 @@ namespace emulatorLauncher
                 }
             }
 
+            if (mednafenCore == "lynx")
+            {
+                foreach (var entry in lynxmapping)
+                {
+                    var a = keyboard[entry.Value];
+                    if (a != null)
+                    {
+                        int id = (int)a.Id;
+
+                        SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                        List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                        if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                            keycode = azertyLayoutMapping[keycode];
+
+                        int mednafenKey = mednafenKeyCodes[keycode];
+
+                        cfg["lynx.input.builtin.gamepad." + entry.Key] = "keyboard 0x0 " + mednafenKey;
+                    }
+                }
+            }
+
             else
             {
                 if (mappingToUse.ContainsKey(mapping))
@@ -286,6 +323,22 @@ namespace emulatorLauncher
         #endregion
 
         #region controller Mapping
+
+        static Dictionary<string, InputKey> lynxmapping = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "b", InputKey.a },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "option_1", InputKey.pageup },
+            { "option_2", InputKey.pagedown },
+            { "pause", InputKey.start },
+            { "rapid_a", InputKey.x },
+            { "rapid_b", InputKey.y },
+            { "right", InputKey.right },
+            { "up", InputKey.up }
+        };
+
         static Dictionary<string, InputKey> mdgamepad = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.y },
@@ -869,13 +922,13 @@ namespace emulatorLauncher
 
         static Dictionary<string, int> inputPortCleanupNb = new Dictionary<string, int>()
         {
-            { "nes", 4 },
-            { "snes", 2 },
-            { "md", 8 },
-            { "pce", 5 },
-            { "ss", 12 },
             { "apple2", 2 },
-            { "psx", 8 }
+            { "md", 8 },
+            { "nes", 4 },
+            { "pce", 5 },
+            { "psx", 8 },
+            { "snes", 2 },
+            { "ss", 12 }
         };
     }
 }

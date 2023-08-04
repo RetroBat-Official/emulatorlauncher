@@ -170,6 +170,7 @@ namespace emulatorLauncher
 
             // Core Specific settings
             ConfigureMednafenApple2(cfg, mednafenCore, system);
+            ConfigureMednafenLynx(cfg, mednafenCore, system);
             ConfigureMednafenMegadrive(cfg, mednafenCore, system);
             ConfigureMednafenNES(cfg, mednafenCore, system);
             ConfigureMednafenPCE(cfg, mednafenCore, system);
@@ -191,6 +192,22 @@ namespace emulatorLauncher
             cfg["apple2.input.port1.gamepad.resistance_select.defpos"] = "2";
             cfg["apple2.input.port1.joystick.resistance_select.defpos"] = "2";
             cfg["apple2.input.port1.joystick.axis_scale"] = "1.00";
+        }
+
+        private void ConfigureMednafenLynx(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "lynx")
+                    return;
+
+            if (SystemConfig.isOptSet("mednafen_lynx_lowpass") && SystemConfig.getOptBoolean("mednafen_lynx_lowpass"))
+                cfg["lynx.lowpass"] = "1";
+            else
+                cfg["lynx.lowpass"] = "0";
+
+            if (SystemConfig.isOptSet("mednafen_lynx_rotate") && SystemConfig.getOptBoolean("mednafen_lynx_rotate"))
+                cfg["lynx.rotateinput"] = "1";
+            else
+                cfg["lynx.rotateinput"] = "0";
         }
 
         private void ConfigureMednafenMegadrive(MednafenConfigFile cfg, string mednafenCore, string system)
