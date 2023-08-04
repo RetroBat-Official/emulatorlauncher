@@ -13,7 +13,7 @@ namespace emulatorLauncher
 {
     partial class Pcsx2Generator : Generator
     {
-        private int _xInputCount;
+        private bool _forceSDL = false;
 
         /// <summary>
         /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
@@ -39,10 +39,11 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
+                _forceSDL = true;
+
             UpdateSdlControllersWithHints(pcsx2ini);
-
-            _xInputCount = 0;
-
+            
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
                 pcsx2ini.ClearSection("Pad" + i.ToString());
@@ -62,8 +63,20 @@ namespace emulatorLauncher
             }
           
             pcsx2ini.WriteValue("InputSources", "DInput", "false");
-            pcsx2ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
-            pcsx2ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
+
+            if (_forceSDL)
+            {
+                pcsx2ini.WriteValue("InputSources", "XInput", "false");
+                pcsx2ini.WriteValue("InputSources", "SDL", "true");
+            }
+            else
+            {
+                pcsx2ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
+                pcsx2ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true" : "false");
+            }
+
+            //pcsx2ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
+            //pcsx2ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
             pcsx2ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
 
             // Reset hotkeys
@@ -210,9 +223,7 @@ namespace emulatorLauncher
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
-            if (tech == "XInput")
-                _xInputCount++;
-            if (_xInputCount > 4)
+            if (_forceSDL)
                 tech = "SDL";
 
             //Start writing in ini file
@@ -221,7 +232,7 @@ namespace emulatorLauncher
 
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
-            if (ctrl.IsXInputDevice && _xInputCount <= 4)
+            if (ctrl.IsXInputDevice && !_forceSDL)
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
             //Write button mapping
