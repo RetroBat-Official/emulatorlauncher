@@ -47,6 +47,7 @@ namespace emulatorLauncher
                 int i = controller.PlayerIndex;
                 int cIndex = controller.DirectInput.DeviceIndex + 1;
                 string joy = "JOYCODE_" + cIndex + "_";
+                bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
 
                 var guns = RawLightgun.GetRawLightguns();
                 bool multigun = guns.Length >= 2;
@@ -141,21 +142,42 @@ namespace emulatorLauncher
                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["r1"] + " OR KEYCODE_T")));
 
                     // Standard joystick buttons and directions
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_UP"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["up"] + " OR KEYCODE_UP")));
+                    if (dpadonly)
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_UP"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["up"] + " OR KEYCODE_UP")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["down"] + " OR KEYCODE_DOWN")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["down"] + " OR KEYCODE_DOWN")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["left"] + " OR KEYCODE_LEFT")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["left"] + " OR KEYCODE_LEFT")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["right"] + " OR KEYCODE_RIGHT")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["right"] + " OR KEYCODE_RIGHT")));
+                    }
+                    else
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_UP"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["up"] + " OR " + joy + mapping["lsup"] + " OR KEYCODE_UP")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["down"] + " OR " + joy + mapping["lsdown"] + " OR KEYCODE_DOWN")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["left"] + " OR " + joy + mapping["lsleft"] + " OR KEYCODE_LEFT")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["right"] + " OR " + joy + mapping["lsright"] + " OR KEYCODE_RIGHT")));
+                    }
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_JOYSTICKRIGHT_UP"),
@@ -379,21 +401,42 @@ namespace emulatorLauncher
                 // Max 8 players for mame
                 else if (i <= 8)
                 {
-                    input.Add(new XElement
+                    if (dpadonly)
+                    {
+                        input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_JOYSTICK_UP"),
                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["up"])));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["down"])));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["down"])));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["left"])));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["left"])));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["right"])));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["right"])));
+                    }
+                    else
+                    {
+                        input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_UP"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["up"] + " OR " + joy + mapping["lsup"])));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["down"] + " OR " + joy + mapping["lsdown"])));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["left"] + " OR " + joy + mapping["lsleft"])));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["right"] + " OR " + joy + mapping["lsright"])));
+                    }
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_JOYSTICKRIGHT_UP"),
