@@ -204,7 +204,7 @@ namespace emulatorLauncher.libRetro
                 { "stella2014", "Stella 2014" },
                 { "stella", "Stella" },
                 { "stonesoup", "Dungeon Crawl Stone Soup" },
-                { "superbroswar", "superbroswar" },
+                { "superbroswar", "Super Bros War" },
                 { "swanstation", "SwanStation" },
                 { "tempgba", "TempGBA" },
                 { "testaudio_callback", "TestAudio Callback" },
@@ -338,6 +338,7 @@ namespace emulatorLauncher.libRetro
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFrodo(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
+            ConfigureGong(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
@@ -2972,6 +2973,14 @@ namespace emulatorLauncher.libRetro
 
                 }
             }
+        }
+
+        private void ConfigureGong(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "gong")
+                return;
+
+            BindFeature(coreSettings, "gong_player2", "gong_player2", "CPU");
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
