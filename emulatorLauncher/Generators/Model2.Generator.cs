@@ -14,12 +14,12 @@ namespace emulatorLauncher
         { 
             // Daytona USA
             { "dayton93", "daytona" },
+            { "daytonam", "daytona" },
             { "daytonas", "daytona" },
             { "daytonase", "daytona" },
             { "daytonat", "daytona" },
             { "daytonata", "daytona" },
             { "daytonagtx", "daytona" },
-            { "daytonam", "daytona" },
             // Dead Or Alive
             { "doaa", "doa" },
             // Dynamite Cop
@@ -128,8 +128,14 @@ namespace emulatorLauncher
             if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path,  resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
-            SetupConfig(path, resolution);
-            
+            SetupConfig(path, resolution, rom);
+
+            bool dinput = false;
+            if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
+                dinput = true;
+
+            ConfigureInput(path, rom, dinput);
+
             string arg = Path.GetFileNameWithoutExtension(_destFile);
 
             return new ProcessStartInfo()
@@ -140,13 +146,13 @@ namespace emulatorLauncher
             };            
         }
 
-        private void SetupConfig(string path, ScreenResolution resolution)
+        private void SetupConfig(string path, ScreenResolution resolution, string rom)
         {
             string iniFile = Path.Combine(path, "Emulator.ini");
 
             try
             {
-                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
+                using (var ini = new IniFile(iniFile))
                 {
                     if (_bezelFileInfo == null)
                     {
@@ -163,11 +169,50 @@ namespace emulatorLauncher
 
                     ini.WriteValue("Renderer", "FullScreenWidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
                     ini.WriteValue("Renderer", "FullScreenHeight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
-                    ini.WriteValue("Renderer", "ForceSync", SystemConfig["VSync"] != "false" ? "1" : "0");                              
+                    ini.WriteValue("Renderer", "ForceSync", SystemConfig["VSync"] != "false" ? "1" : "0");
+
+                    BindBoolIniFeature(ini, "Renderer", "Bilinear", "bilinear_filtering", "0", "1");
+                    BindBoolIniFeature(ini, "Renderer", "Trilinear", "trilinear_filtering", "1", "0");
+                    BindBoolIniFeature(ini, "Renderer", "ForceManaged", "m2_ForceManaged", "1", "0");
+                    BindBoolIniFeature(ini, "Renderer", "AutoMip", "m2_AutoMip", "1", "0");
+                    BindBoolIniFeature(ini, "Renderer", "FSAA", "m2_fsaa", "1", "0");
+
+                    // Input Drivers
+                    if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
+                        ini.WriteValue("Input", "XInput", "0");
+                    else
+                        ini.WriteValue("Input", "XInput", "1");
+
+                    BindBoolIniFeature(ini, "Input", "EnableFF", "m2_force_feedback", "1", "0");
+                    BindBoolIniFeature(ini, "Input", "HoldGears", "m2_HoldGears", "1", "0");
+                    BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "0", "1");
                 }
             }
-
             catch { }
+        }
+
+        private void ConfigureInput(string path, string rom, bool dinput)
+        {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            string inputCFGpath = Path.Combine(path, "CFG");
+            if (!Directory.Exists(inputCFGpath)) try { Directory.CreateDirectory(inputCFGpath); }
+                catch { }
+
+            string game = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+
+            string sourceInputCfgFile = Path.Combine(path, "templatescfg", "xinput", game + ".input");
+            if (dinput)
+                sourceInputCfgFile = Path.Combine(path, "templatescfg", "dinput", game + ".input");
+
+            string targetInputCfgFile = Path.Combine(inputCFGpath, game + ".input");
+
+            if (File.Exists(targetInputCfgFile))
+                File.Delete(targetInputCfgFile);
+
+            if (File.Exists(sourceInputCfgFile))
+                File.Copy(sourceInputCfgFile, targetInputCfgFile);
         }
 
         public override void Cleanup()
