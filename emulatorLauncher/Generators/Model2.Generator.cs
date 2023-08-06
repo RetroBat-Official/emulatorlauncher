@@ -186,6 +186,8 @@ namespace emulatorLauncher
                     BindBoolIniFeature(ini, "Input", "EnableFF", "m2_force_feedback", "1", "0");
                     BindBoolIniFeature(ini, "Input", "HoldGears", "m2_HoldGears", "1", "0");
                     BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "0", "1");
+                    BindIniFeature(ini, "Input", "RawDevP1", "m2_rawinput_p1", "0");
+                    BindIniFeature(ini, "Input", "RawDevP2", "m2_rawinput_p2", "1");
                 }
             }
             catch { }
