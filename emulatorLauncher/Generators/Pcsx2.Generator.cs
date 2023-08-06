@@ -100,6 +100,7 @@ namespace emulatorLauncher
             // QT version has now only 1 ini file versus multiple for wxwidgets version
             if (_isPcsxqt)
                 SetupConfigurationQT(path, rom);
+
             else
             {
                 SetupPaths(emulator, core);
@@ -660,7 +661,9 @@ namespace emulatorLauncher
 
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
             {
+                ini.WriteValue("UI", "HideMouseCursor", "true");
                 CreateControllerConfiguration(ini);
+                SetupGunQT(ini, path);
 
                 // Disable auto-update
                 ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");

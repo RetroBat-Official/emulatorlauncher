@@ -351,6 +351,9 @@ namespace emulatorLauncher
 
                     // Controller configuration
                     CreateControllerConfiguration(ini);
+
+                    // Gun configuration
+                    CreateGunConfiguration(ini);
                 }
                 
             }
