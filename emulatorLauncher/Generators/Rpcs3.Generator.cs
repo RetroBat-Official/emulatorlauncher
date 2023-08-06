@@ -101,6 +101,11 @@ namespace emulatorLauncher
                     ini.WriteValue("Meta", "useRichPresence", "true");
                 else
                     ini.WriteValue("Meta", "useRichPresence", "false");
+
+                if (SystemConfig.isOptSet("rpcs3_guns") && SystemConfig.getOptBoolean("rpcs3_guns"))
+                    ini.WriteValue("GSFrame", "lockMouseInFullscreen", "false");
+                else
+                    ini.WriteValue("GSFrame", "lockMouseInFullscreen", "true");
             }
         }
 

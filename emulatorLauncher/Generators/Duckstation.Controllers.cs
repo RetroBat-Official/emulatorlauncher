@@ -29,7 +29,7 @@ namespace emulatorLauncher
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
             }
-         
+
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
@@ -43,7 +43,7 @@ namespace emulatorLauncher
                 _forceSDL = true;
 
             UpdateSdlControllersWithHints(ini);
-            
+
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
                 ini.ClearSection("Pad" + i.ToString());
@@ -154,16 +154,6 @@ namespace emulatorLauncher
             WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
             WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
 
-            if (controllerType == "GunCon")
-            {
-                ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
-                ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
-                ini.WriteValue(padNumber, "A", "Keyboard/K");
-                ini.WriteValue(padNumber, "B", "Keyboard/L");
-                ini.WriteValue(padNumber, "CrosshairScale", "0.500000");
-                ini.WriteValue(padNumber, "XScale", "0.930000");
-            }
-
             // Restore default keyboard hotkeys
             ini.WriteValue("Hotkeys", "FastForward", "Keyboard/Tab");
             ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/Space");
@@ -272,18 +262,6 @@ namespace emulatorLauncher
                     ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
             }
 
-            // Guncon configuration (mapping to mouse buttons and A & B to cross and circle of connected player gamepad (this is used in TIME CRISIS to hide for example))
-            // Only one mouse is supported so far in duckstation, for player 1
-            if (controllerType == "GunCon" && playerIndex == 1)
-            {
-                ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
-                ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
-                ini.WriteValue(padNumber, "A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));    // Guncon front button - map to a controller button
-                ini.WriteValue(padNumber, "B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));    // Guncon front button - map to b controller button
-                ini.WriteValue(padNumber, "CrosshairScale", "0.500000");                                    // Default crosshair is just HUGE, reduce size
-                ini.WriteValue(padNumber, "XScale", "0.930000");                                            // Adjust Xscale for mouse calibration
-            }
-
             // Write Hotkeys for player 1
             if (playerIndex == 1)
             {
@@ -311,7 +289,7 @@ namespace emulatorLauncher
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
-        {            
+        {
             { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
             { InputKey.y, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F3") },
@@ -327,7 +305,7 @@ namespace emulatorLauncher
 
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
-        {            
+        {
             Int64 pid = -1;
 
             // If controller is nintendo, A/B and X/Y are reversed
@@ -555,6 +533,100 @@ namespace emulatorLauncher
                 case 0x40000105: return "Media Play";
             }
             return "None";
+        }
+
+        private void CreateGunConfiguration(IniFile ini)
+        {
+            bool gun = (SystemConfig["use_guns"] == "1" || SystemConfig["duck_controller1"] == "GunCon");
+            
+            if (!gun)
+                return;
+
+            Controller ctrl = null;
+
+            if (Program.Controllers.Count >= 1)
+                ctrl = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+            else
+                return;
+
+            InputConfig joy = ctrl.Config;
+            if (joy == null)
+                return;
+
+            if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
+                _forceSDL = true;
+
+            string techPadNumber = null;
+            string tech = "";
+            bool gamepad = false;
+
+            if (!ctrl.IsKeyboard && ctrl.IsXInputDevice && !_forceSDL)
+            {
+                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
+                tech = "XInput";
+                gamepad = true;
+            }
+            else if (!ctrl.IsKeyboard)
+            {
+                techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
+                tech = "SDL";
+                gamepad = true;
+            }
+            else
+                techPadNumber = "Keyboard/";
+
+            string padNumber = "Pad1";
+
+            if (SystemConfig.isOptSet("duck_gunp2") && SystemConfig.getOptBoolean("duck_gunp2"))
+                padNumber = "Pad2";
+
+            // Guncon configuration
+            // Only one mouse is supported so far in duckstation, for player 1
+            ini.WriteValue(padNumber, "Type", "GunCon");
+            ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
+            ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
+
+            // Define mapping for A and B buttons (default is PageUp and PageDown on keyboard)
+            if (SystemConfig.isOptSet("duck_gun_ab") && !string.IsNullOrEmpty(SystemConfig["duck_gun_ab"]) && SystemConfig["duck_gun_ab"] == "controller_1")
+            {
+                if (gamepad)
+                {
+                    ini.WriteValue(padNumber, "A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));    // Guncon front button - map to a controller button
+                    ini.WriteValue(padNumber, "B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));    // Guncon front button - map to b controller button
+                }
+                else
+                {
+                    ini.WriteValue(padNumber, "A", "Keyboard/PageUp");      // Guncon front button - PageUp
+                    ini.WriteValue(padNumber, "B", "Keyboard/PageDown");    // Guncon front button - PageDown
+                }
+            }
+            else if (SystemConfig["duck_gun_ab"] == "key_2")
+            {
+                ini.WriteValue(padNumber, "A", "Keyboard/K");   // Guncon front button - K
+                ini.WriteValue(padNumber, "B", "Keyboard/L");   // Guncon front button - L
+            }
+            else if (SystemConfig["duck_gun_ab"] == "key_3")
+            {
+                ini.WriteValue(padNumber, "A", "Keyboard/Left");    // Guncon front button - Left
+                ini.WriteValue(padNumber, "B", "Keyboard/Right");   // Guncon front button - Right
+            }
+            else if (SystemConfig["duck_gun_ab"] == "key_4")
+            {
+                ini.WriteValue(padNumber, "A", "Keyboard/Left");      // Guncon front button - Left
+                ini.WriteValue(padNumber, "B", "Keyboard/Return");    // Guncon front button - Enter
+            }
+            else
+            {
+                ini.WriteValue(padNumber, "A", "Keyboard/PageUp");      // Guncon front button - PageUp
+                ini.WriteValue(padNumber, "B", "Keyboard/PageDown");    // Guncon front button - PageDown
+            }
+
+            if (SystemConfig.isOptSet("duck_crosshair") && !string.IsNullOrEmpty(SystemConfig["duck_crosshair"]))   // Crosshair size
+                ini.WriteValue(padNumber, "CrosshairScale", SystemConfig["duck_crosshair"]);
+            else
+                ini.WriteValue(padNumber, "CrosshairScale", "0.500000");
+            
+            ini.WriteValue(padNumber, "XScale", "0.930000");    // Adjust Xscale for mouse calibration
         }
     }
 }

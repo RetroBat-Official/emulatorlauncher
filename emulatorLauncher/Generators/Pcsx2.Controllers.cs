@@ -29,7 +29,7 @@ namespace emulatorLauncher
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
             }
-         
+
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
@@ -43,7 +43,7 @@ namespace emulatorLauncher
                 _forceSDL = true;
 
             UpdateSdlControllersWithHints(pcsx2ini);
-            
+
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
                 pcsx2ini.ClearSection("Pad" + i.ToString());
@@ -61,7 +61,7 @@ namespace emulatorLauncher
                 pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
                 pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
             }
-          
+
             pcsx2ini.WriteValue("InputSources", "DInput", "false");
 
             if (_forceSDL)
@@ -281,36 +281,6 @@ namespace emulatorLauncher
                 }
                 if (SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
                     pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", techPadNumber + hotKeyName + " & " + techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
-
-                // Configure gun for player 1 if option is set in es_features
-                // Trigger & Reload assigned to mouse 1 (Pointer-0), all other buttons assigned to controller
-                if (SystemConfig.isOptSet("pcsx2_gun") && !string.IsNullOrEmpty(SystemConfig["pcsx2_gun"]) && SystemConfig["pcsx2_gun"] != "none")
-                {
-                    string usbSection = SystemConfig["pcsx2_gun"].ToUpperInvariant();
-                    pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
-                    pcsx2ini.WriteValue(usbSection, "guncon2_Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
-                    pcsx2ini.WriteValue(usbSection, "guncon2_Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
-                    pcsx2ini.WriteValue(usbSection, "guncon2_Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
-                    pcsx2ini.WriteValue(usbSection, "guncon2_Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
-                    pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", "Pointer-0/LeftButton");
-                    pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", "Pointer-0/RightButton");
-                    pcsx2ini.WriteValue(usbSection, "guncon2_A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));  // Cross
-                    pcsx2ini.WriteValue(usbSection, "guncon2_B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));  // Circle
-                    pcsx2ini.WriteValue(usbSection, "guncon2_C", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));  // Square
-                    pcsx2ini.WriteValue(usbSection, "guncon2_Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
-                    pcsx2ini.WriteValue(usbSection, "guncon2_Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
-                    pcsx2ini.WriteValue(usbSection, "guncon2_Recalibrate", "Pointer-0/LeftButton");
-
-                    if (usbSection == "USB1")
-                        pcsx2ini.ClearSection("USB2");
-                    else if (usbSection == "USB2")
-                        pcsx2ini.ClearSection("USB1");
-                }
-                else
-                {
-                    pcsx2ini.ClearSection("USB1");
-                    pcsx2ini.ClearSection("USB2");
-                }
             }
         }
 
@@ -321,7 +291,7 @@ namespace emulatorLauncher
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
-        {            
+        {
             { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
             { InputKey.y, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
@@ -336,7 +306,7 @@ namespace emulatorLauncher
 
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
-        {            
+        {
             Int64 pid = -1;
 
             // If controller is nintendo, A/B and X/Y are reversed
@@ -564,6 +534,117 @@ namespace emulatorLauncher
                 case 0x40000105: return "Media Play";
             }
             return "None";
+        }
+
+        private void SetupGunQT(IniFile pcsx2ini, string path)
+        {
+            bool gun = SystemConfig["pcsx2_gun"] == "USB1" || SystemConfig["pcsx2_gun"] == "USB2";
+            if (!gun)
+                return;
+
+            Controller ctrl = null;
+
+            if (Program.Controllers.Count >= 1)
+                ctrl = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+            else
+                return;
+
+            InputConfig joy = ctrl.Config;
+            if (joy == null)
+                return;
+
+            // Initialize USB sections
+            string usbSection = SystemConfig["pcsx2_gun"].ToUpperInvariant();
+            pcsx2ini.ClearSection("USB1");
+            pcsx2ini.ClearSection("USB2");
+
+            if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
+                _forceSDL = true;
+
+            string techPadNumber = null;
+            string tech = "";
+            bool gamepad = false;
+            
+            if (!ctrl.IsKeyboard && ctrl.IsXInputDevice && !_forceSDL)
+            {
+                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
+                tech = "XInput";
+                gamepad = true;
+            }
+            else if (!ctrl.IsKeyboard)
+            {
+                techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
+                tech = "SDL";
+                gamepad = true;
+            }
+            else
+                techPadNumber = "Keyboard/";
+
+            // Configure gun for player 1 if option is set in es_features
+            pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
+            pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", "Pointer-0/LeftButton");
+            pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", "Pointer-0/RightButton");
+            pcsx2ini.WriteValue(usbSection, "guncon2_Recalibrate", "Pointer-0/LeftButton");
+
+            if (SystemConfig.isOptSet("pcsx2_gunmapping") && SystemConfig["pcsx2_gunmapping"] == "controller")
+            {
+                pcsx2ini.WriteValue(usbSection, "guncon2_Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
+                pcsx2ini.WriteValue(usbSection, "guncon2_Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
+                pcsx2ini.WriteValue(usbSection, "guncon2_Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+                pcsx2ini.WriteValue(usbSection, "guncon2_Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
+                pcsx2ini.WriteValue(usbSection, "guncon2_A", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));          // Cross
+                pcsx2ini.WriteValue(usbSection, "guncon2_B", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));          // Circle
+                pcsx2ini.WriteValue(usbSection, "guncon2_C", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));          // Square
+                pcsx2ini.WriteValue(usbSection, "guncon2_Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
+                pcsx2ini.WriteValue(usbSection, "guncon2_Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
+            }
+            else
+            {
+                pcsx2ini.WriteValue(usbSection, "guncon2_Up", "Keyboard/Up");
+                pcsx2ini.WriteValue(usbSection, "guncon2_Down", "Keyboard/Down");
+                pcsx2ini.WriteValue(usbSection, "guncon2_Left", "Keyboard/Left");
+                pcsx2ini.WriteValue(usbSection, "guncon2_Right", "Keyboard/Right");
+                pcsx2ini.WriteValue(usbSection, "guncon2_A", "Keyboard/1");
+                pcsx2ini.WriteValue(usbSection, "guncon2_B", "Keyboard/2");
+                pcsx2ini.WriteValue(usbSection, "guncon2_C", "Keyboard/3");
+                pcsx2ini.WriteValue(usbSection, "guncon2_Select", "Keyboard/Backspace");
+                if (SystemConfig.isOptSet("pcsx2_gunmapping") && SystemConfig["pcsx2_gunmapping"] == "keyboard_middle")
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Start", "Pointer-0/MiddleButton");
+                else
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Start", "Keyboard/Return");
+            }
+
+            // Crosshair
+            pcsx2ini.Remove(usbSection, "guncon2_cursor_path");
+            string crosshairPath = Path.Combine(path, "cross");
+            if (!Directory.Exists(crosshairPath)) try { Directory.CreateDirectory(crosshairPath); }
+                catch { }
+
+            string crosshairFile = Path.Combine(crosshairPath, "crosshair.png");
+
+            if (SystemConfig.isOptSet("pcsx2_crosshair") && SystemConfig["pcsx2_crosshair"] == "custom" && File.Exists(crosshairFile))
+            {
+                pcsx2ini.WriteValue(usbSection, "guncon2_cursor_path", crosshairFile);
+                pcsx2ini.WriteValue("UI", "HideMouseCursor", "true");
+            }
+            else if (SystemConfig.isOptSet("pcsx2_crosshair") && SystemConfig["pcsx2_crosshair"] == "mouse")
+            {
+                pcsx2ini.Remove(usbSection, "guncon2_cursor_path");
+                pcsx2ini.WriteValue("UI", "HideMouseCursor", "false");
+            }
+            else
+            {
+                pcsx2ini.Remove(usbSection, "guncon2_cursor_path");
+                pcsx2ini.WriteValue("UI", "HideMouseCursor", "true");
+            }
+
+            pcsx2ini.WriteValue(usbSection, "guncon2_custom_config", "false");
+            pcsx2ini.WriteValue(usbSection, "guncon2_cursor_color", "#ffffff");
+            pcsx2ini.WriteValue(usbSection, "guncon2_cursor_scale", "1.0");
+            pcsx2ini.Remove(usbSection, "guncon2_RelativeUp");
+            pcsx2ini.Remove(usbSection, "guncon2_RelativeDown");
+            pcsx2ini.Remove(usbSection, "guncon2_RelativeLeft");
+            pcsx2ini.Remove(usbSection, "guncon2_RelativeRight");
         }
     }
 }
