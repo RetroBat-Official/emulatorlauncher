@@ -612,8 +612,8 @@ namespace emulatorLauncher
             }
             else if (SystemConfig["duck_gun_ab"] == "key_4")
             {
-                ini.WriteValue(padNumber, "A", "Keyboard/Left");        // Guncon front button - Left
-                ini.WriteValue(padNumber, "B", "Pointer-0/WheelY-");    // Guncon front button - Mouse wheel down
+                ini.WriteValue(padNumber, "A", "Keyboard/Left");      // Guncon front button - Left
+                ini.WriteValue(padNumber, "B", "Keyboard/Return");    // Guncon front button - Enter
             }
             else
             {
