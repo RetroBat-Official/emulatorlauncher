@@ -346,6 +346,7 @@ namespace emulatorLauncher
         private void ConfigureFlycastGuns(IniFile ini, string mappingPath)
         {
             bool multigun = SystemConfig["flycast_controller1"] == "7" && SystemConfig["flycast_controller2"] == "7";
+            bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
 
             ini.WriteValue("input", "maple_sdl_mouse", "0");
 
@@ -356,8 +357,8 @@ namespace emulatorLauncher
 
             using (var ctrlini = new IniFile(mappingFile, IniOptions.UseSpaces))
             {
-                ctrlini.WriteValue("digital", "bind0", "1:reload");
-                ctrlini.WriteValue("digital", "bind1", "2:btn_a");
+                ctrlini.WriteValue("digital", "bind0", guninvert ? "2:btn_a" : "1:reload");
+                ctrlini.WriteValue("digital", "bind1", guninvert ? "1:reload" : "2:btn_a");
                 ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                 ctrlini.WriteValue("emulator", "dead_zone", "10");
                 ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
@@ -462,8 +463,8 @@ namespace emulatorLauncher
                     
                     using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
                     {
-                        ctrlini.WriteValue("digital", "bind0", "1:reload");
-                        ctrlini.WriteValue("digital", "bind1", "2:btn_a");
+                        ctrlini.WriteValue("digital", "bind0", guninvert ? "2:btn_a" : "1:reload");
+                        ctrlini.WriteValue("digital", "bind1", guninvert ? "1:reload" : "2:btn_a");
                         ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                         ctrlini.WriteValue("emulator", "dead_zone", "10");
                         ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
