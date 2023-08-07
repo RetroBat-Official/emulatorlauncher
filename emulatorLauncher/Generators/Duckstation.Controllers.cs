@@ -559,6 +559,7 @@ namespace emulatorLauncher
             string techPadNumber = null;
             string tech = "";
             bool gamepad = false;
+            bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
 
             if (!ctrl.IsKeyboard && ctrl.IsXInputDevice && !_forceSDL)
             {
@@ -583,8 +584,8 @@ namespace emulatorLauncher
             // Guncon configuration
             // Only one mouse is supported so far in duckstation, for player 1
             ini.WriteValue(padNumber, "Type", "GunCon");
-            ini.WriteValue(padNumber, "Trigger", "Pointer-0/LeftButton");
-            ini.WriteValue(padNumber, "ShootOffscreen", "Pointer-0/RightButton");
+            ini.WriteValue(padNumber, "Trigger", guninvert ? "Pointer-0/RightButton" : "Pointer-0/LeftButton");
+            ini.WriteValue(padNumber, "ShootOffscreen", guninvert ? "Pointer-0/LeftButton" : "Pointer-0/RightButton");
 
             // Define mapping for A and B buttons (default is PageUp and PageDown on keyboard)
             if (SystemConfig.isOptSet("duck_gun_ab") && !string.IsNullOrEmpty(SystemConfig["duck_gun_ab"]) && SystemConfig["duck_gun_ab"] == "controller_1")
@@ -596,14 +597,14 @@ namespace emulatorLauncher
                 }
                 else
                 {
-                    ini.WriteValue(padNumber, "A", "Keyboard/PageUp");      // Guncon front button - PageUp
-                    ini.WriteValue(padNumber, "B", "Keyboard/PageDown");    // Guncon front button - PageDown
+                    ini.WriteValue(padNumber, "A", "Keyboard/PageUp");      // Guncon front button - Left
+                    ini.WriteValue(padNumber, "B", "Keyboard/PageDown");    // Guncon front button - Right
                 }
             }
             else if (SystemConfig["duck_gun_ab"] == "key_2")
             {
-                ini.WriteValue(padNumber, "A", "Keyboard/K");   // Guncon front button - K
-                ini.WriteValue(padNumber, "B", "Keyboard/L");   // Guncon front button - L
+                ini.WriteValue(padNumber, "A", "Keyboard/K");   // Guncon front button - Left
+                ini.WriteValue(padNumber, "B", "Keyboard/L");   // Guncon front button - Right
             }
             else if (SystemConfig["duck_gun_ab"] == "key_3")
             {
@@ -613,12 +614,17 @@ namespace emulatorLauncher
             else if (SystemConfig["duck_gun_ab"] == "key_4")
             {
                 ini.WriteValue(padNumber, "A", "Keyboard/Left");      // Guncon front button - Left
-                ini.WriteValue(padNumber, "B", "Keyboard/Return");    // Guncon front button - Enter
+                ini.WriteValue(padNumber, "B", "Keyboard/Return");    // Guncon front button - Right
+            }
+            else if (SystemConfig["duck_gun_ab"] == "key_5")
+            {
+                ini.WriteValue(padNumber, "A", "Keyboard/VolumeUp");      // Guncon front button - Left
+                ini.WriteValue(padNumber, "B", "Keyboard/VolumeDown");    // Guncon front button - Right
             }
             else
             {
-                ini.WriteValue(padNumber, "A", "Keyboard/PageUp");      // Guncon front button - PageUp
-                ini.WriteValue(padNumber, "B", "Keyboard/PageDown");    // Guncon front button - PageDown
+                ini.WriteValue(padNumber, "A", "Keyboard/PageUp");      // Guncon front button - Left
+                ini.WriteValue(padNumber, "B", "Keyboard/PageDown");    // Guncon front button - Right
             }
 
             if (SystemConfig.isOptSet("duck_crosshair") && !string.IsNullOrEmpty(SystemConfig["duck_crosshair"]))   // Crosshair size

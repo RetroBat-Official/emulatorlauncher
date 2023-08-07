@@ -152,34 +152,6 @@ namespace emulatorLauncher
             WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
             WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
 
-            if (SystemConfig.isOptSet("pcsx2_gun") && !string.IsNullOrEmpty(SystemConfig["pcsx2_gun"]) && SystemConfig["pcsx2_gun"] != "none")
-            {
-                string usbSection = SystemConfig["pcsx2_gun"].ToUpperInvariant();
-                pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
-                WriteKeyboardMapping(usbSection, "guncon2_Up", InputKey.up);
-                WriteKeyboardMapping(usbSection, "guncon2_Down", InputKey.down);
-                WriteKeyboardMapping(usbSection, "guncon2_Left", InputKey.left);
-                WriteKeyboardMapping(usbSection, "guncon2_Right", InputKey.right);
-                pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", "Pointer-0/LeftButton");
-                pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", "Pointer-0/RightButton");
-                WriteKeyboardMapping(usbSection, "guncon2_A", InputKey.a);
-                WriteKeyboardMapping(usbSection, "guncon2_B", InputKey.b);
-                WriteKeyboardMapping(usbSection, "guncon2_C", InputKey.y);
-                WriteKeyboardMapping(usbSection, "guncon2_Select", InputKey.select);
-                WriteKeyboardMapping(usbSection, "guncon2_Start", InputKey.start);
-                pcsx2ini.WriteValue(usbSection, "guncon2_Recalibrate", "Pointer-0/LeftButton");
-
-                if (usbSection == "USB1")
-                    pcsx2ini.ClearSection("USB2");
-                else if (usbSection == "USB2")
-                    pcsx2ini.ClearSection("USB1");
-            }
-            else
-            {
-                pcsx2ini.ClearSection("USB1");
-                pcsx2ini.ClearSection("USB2");
-            }
-
             // Restore keyboard hotkeys
             pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", "Keyboard/Alt & Keyboard/Return");
             pcsx2ini.WriteValue("Hotkeys", "CycleAspectRatio", "Keyboard/F6");
@@ -564,6 +536,7 @@ namespace emulatorLauncher
             string techPadNumber = null;
             string tech = "";
             bool gamepad = false;
+            bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
             
             if (!ctrl.IsKeyboard && ctrl.IsXInputDevice && !_forceSDL)
             {
@@ -582,9 +555,9 @@ namespace emulatorLauncher
 
             // Configure gun for player 1 if option is set in es_features
             pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
-            pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", "Pointer-0/LeftButton");
-            pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", "Pointer-0/RightButton");
-            pcsx2ini.WriteValue(usbSection, "guncon2_Recalibrate", "Pointer-0/LeftButton");
+            pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", guninvert ? "Pointer-0/RightButton" : "Pointer-0/LeftButton");
+            pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", guninvert ? "Pointer-0/LeftButton" : "Pointer-0/RightButton");
+            pcsx2ini.WriteValue(usbSection, "guncon2_Recalibrate", guninvert ? "Pointer-0/RightButton" : "Pointer-0/LeftButton");
 
             if (SystemConfig.isOptSet("pcsx2_gunmapping") && SystemConfig["pcsx2_gunmapping"] == "controller")
             {
@@ -604,8 +577,17 @@ namespace emulatorLauncher
                 pcsx2ini.WriteValue(usbSection, "guncon2_Down", "Keyboard/Down");
                 pcsx2ini.WriteValue(usbSection, "guncon2_Left", "Keyboard/Left");
                 pcsx2ini.WriteValue(usbSection, "guncon2_Right", "Keyboard/Right");
-                pcsx2ini.WriteValue(usbSection, "guncon2_A", "Keyboard/1");
-                pcsx2ini.WriteValue(usbSection, "guncon2_B", "Keyboard/2");
+                if (SystemConfig.isOptSet("pcsx2_gunmapping") && SystemConfig["pcsx2_gunmapping"] == "keyboard_volume")
+                {
+                    pcsx2ini.WriteValue(usbSection, "guncon2_A", "Keyboard/VolumeUp");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_B", "Keyboard/VolumeDown");
+                }
+                else
+                {
+                    pcsx2ini.WriteValue(usbSection, "guncon2_A", "Keyboard/1");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_B", "Keyboard/2");
+                }
+
                 pcsx2ini.WriteValue(usbSection, "guncon2_C", "Keyboard/3");
                 pcsx2ini.WriteValue(usbSection, "guncon2_Select", "Keyboard/Backspace");
                 if (SystemConfig.isOptSet("pcsx2_gunmapping") && SystemConfig["pcsx2_gunmapping"] == "keyboard_middle")
