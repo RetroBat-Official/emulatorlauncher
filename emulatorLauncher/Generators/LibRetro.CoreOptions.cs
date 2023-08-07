@@ -1506,6 +1506,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fceumm_overclocking", "fceumm_overclocking", "disabled");
             BindFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "enabled");
             BindFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled");
+            BindFeature(coreSettings, "fceumm_zapper_mode", "gun_input", "clightgun");
 
             // MULTI-TAP for 4 players
             if (SystemConfig.isOptSet("fceumm_multitap") && SystemConfig.getOptBoolean("fceumm_multitap"))
