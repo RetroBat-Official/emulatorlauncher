@@ -1506,6 +1506,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fceumm_overclocking", "fceumm_overclocking", "disabled");
             BindFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "enabled");
             BindFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled");
+            BindFeature(coreSettings, "fceumm_zapper_mode", "gun_input", "clightgun");
 
             // MULTI-TAP for 4 players
             if (SystemConfig.isOptSet("fceumm_multitap") && SystemConfig.getOptBoolean("fceumm_multitap"))
@@ -2910,6 +2911,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "ecwolf-palette", "ecwolf_palette", "rgb565");
             BindFeature(coreSettings, "ecwolf-aspect", "ecwolf_ratio", "auto");
             BindFeature(coreSettings, "ecwolf-analog-deadzone", "ecwolf_analog_deadzone", "15%");
+            BindFeature(coreSettings, "ecwolf-analog-move-sensitivity", "ecwolf_analog_sensitivity", "10");
+            BindFeature(coreSettings, "ecwolf-analog-turn-sensitivity", "ecwolf_analog_sensitivity", "10");
             BindBoolFeature(coreSettings, "ecwolf-alwaysrun", "ecwolf_run", "enabled", "disabled");
 
         }
