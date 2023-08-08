@@ -2911,6 +2911,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "ecwolf-palette", "ecwolf_palette", "rgb565");
             BindFeature(coreSettings, "ecwolf-aspect", "ecwolf_ratio", "auto");
             BindFeature(coreSettings, "ecwolf-analog-deadzone", "ecwolf_analog_deadzone", "15%");
+            BindFeature(coreSettings, "ecwolf-analog-move-sensitivity", "ecwolf_analog_sensitivity", "10");
+            BindFeature(coreSettings, "ecwolf-analog-turn-sensitivity", "ecwolf_analog_sensitivity", "10");
             BindBoolFeature(coreSettings, "ecwolf-alwaysrun", "ecwolf_run", "enabled", "disabled");
 
         }

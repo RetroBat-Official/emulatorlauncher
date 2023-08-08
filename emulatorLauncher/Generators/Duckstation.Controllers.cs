@@ -581,6 +581,8 @@ namespace emulatorLauncher
             if (SystemConfig.isOptSet("duck_gunp2") && SystemConfig.getOptBoolean("duck_gunp2"))
                 padNumber = "Pad2";
 
+            ini.WriteValue("ControllerPorts", "MultitapMode", "Disabled");
+
             // Guncon configuration
             // Only one mouse is supported so far in duckstation, for player 1
             ini.WriteValue(padNumber, "Type", "GunCon");

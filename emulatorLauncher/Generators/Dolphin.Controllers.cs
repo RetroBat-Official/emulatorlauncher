@@ -459,11 +459,19 @@ namespace emulatorLauncher
 
                         if (pad.Config.Type == "keyboard")
                         {
-                            if (x.Key == InputKey.a)
+                            if (x.Key == InputKey.a && (revertButtons || revertButtonsAB))
+                                value = "Buttons/B";
+                            else if (x.Key == InputKey.a)
+                                value = "Buttons/A";
+                            else if (x.Key == InputKey.b && (revertButtons || revertButtonsAB))
                                 value = "Buttons/A";
                             else if (x.Key == InputKey.b)
                                 value = "Buttons/B";
+                            else if (x.Key == InputKey.x && revertButtons)
+                                value = "Buttons/Y";
                             else if (x.Key == InputKey.x)
+                                value = "Buttons/X";
+                            else if (x.Key == InputKey.y && revertButtons)
                                 value = "Buttons/X";
                             else if (x.Key == InputKey.y)
                                 value = "Buttons/Y";
