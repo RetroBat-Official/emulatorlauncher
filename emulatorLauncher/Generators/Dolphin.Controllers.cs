@@ -168,7 +168,9 @@ namespace emulatorLauncher
             { InputKey.joystick1up,     "IR/Up" }, 
             { InputKey.joystick1left,   "IR/Left" },
             { InputKey.joystick2up,     "Tilt/Forward" }, 
-            { InputKey.joystick2left,   "Tilt/Left" }
+            { InputKey.joystick2left,   "Tilt/Left" },
+            { InputKey.l3,              "IR/Relative Input Hold" },
+            { InputKey.r3,              "Tilt/Modifier" }
         };
 
         static Dictionary<string, string> wiiReverseAxes = new Dictionary<string,string>()
@@ -220,12 +222,14 @@ namespace emulatorLauncher
                 {
                     wiiMapping[InputKey.joystick1up] = "IR/Up";
                     wiiMapping[InputKey.joystick1left] = "IR/Left";
+                    wiiMapping[InputKey.l3] = "IR/Relative Input Hold";
                 }
 
                 if (Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "ti" || Program.SystemConfig["controller_mode"] == "ni")
                 {
                     wiiMapping[InputKey.joystick2up] = "IR/Up";
                     wiiMapping[InputKey.joystick2left] = "IR/Left";
+                    wiiMapping[InputKey.r3] = "IR/Relative Input Hold";
                 }
 
                 // s
@@ -246,12 +250,14 @@ namespace emulatorLauncher
                 {
                     wiiMapping[InputKey.joystick1up] = "Tilt/Forward";
                     wiiMapping[InputKey.joystick1left] = "Tilt/Left";
+                    wiiMapping[InputKey.l3] = "Tilt/Modifier";
                 }
 
                 if (Program.SystemConfig["controller_mode"] == "it" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "nt")
                 {
                     wiiMapping[InputKey.joystick2up] = "Tilt/Forward";
                     wiiMapping[InputKey.joystick2left] = "Tilt/Left";
+                    wiiMapping[InputKey.r3] = "Tilt/Modifier";
                 }
 
                 // n
@@ -262,6 +268,7 @@ namespace emulatorLauncher
                     wiiMapping[InputKey.r1] = "Nunchuk/Buttons/Z";
                     wiiMapping[InputKey.joystick1up] = "Nunchuk/Stick/Up";
                     wiiMapping[InputKey.joystick1left] = "Nunchuk/Stick/Left";
+                    wiiMapping[InputKey.l3] = "Nunchuk/Stick/Modifier";
                     wiiMapping[InputKey.select] = "Buttons/-";
                     wiiMapping[InputKey.start] = "Buttons/+";
                     wiiMapping[InputKey.l2] = "Shake/X";
@@ -276,6 +283,7 @@ namespace emulatorLauncher
                     wiiMapping[InputKey.r1] = "Nunchuk/Buttons/Z";
                     wiiMapping[InputKey.joystick2up] = "Nunchuk/Stick/Up";
                     wiiMapping[InputKey.joystick2left] = "Nunchuk/Stick/Left";
+                    wiiMapping[InputKey.r3] = "Nunchuk/Stick/Modifier";
                     wiiMapping[InputKey.select] = "Buttons/-";
                     wiiMapping[InputKey.start] = "Buttons/+";
                     wiiMapping[InputKey.l2] = "Shake/X";
@@ -334,6 +342,8 @@ namespace emulatorLauncher
                 wiiMapping[InputKey.joystick1left] = "Classic/Left Stick/Left";
                 wiiMapping[InputKey.joystick2up] = "Classic/Right Stick/Up";
                 wiiMapping[InputKey.joystick2left] = "Classic/Right Stick/Left";
+                wiiMapping[InputKey.l3] = "Classic/Left Stick/Modifier";
+                wiiMapping[InputKey.r3] = "Classic/Right Stick/Modifier";
             }
 
             generateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, false, extraOptions);
@@ -394,6 +404,7 @@ namespace emulatorLauncher
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
             int nsamepad = 0;
+            bool gc = anyDefKey == "GCPad";
 
             Dictionary<string, int> double_pads = new Dictionary<string,int>();
 
@@ -563,76 +574,184 @@ namespace emulatorLauncher
                         }
                     }
 
-                    ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.0");
-                    ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.0");
-
-                    if (tech == "XInput")
+                    if (gc)
                     {
-                        //ini.WriteValue(gcpad, "Main Stick/Modifier", "`Thumb L`");
-                        //ini.WriteValue(gcpad, "C-Stick/Modifier" , "`Thumb R`");
-                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
-                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
-                        ini.WriteValue(gcpad, "Rumble/Motor", "`Motor L`|`Motor R`");
-                        ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 108.24 109.27 115.00 109.59 106.10 101.96 100.00 101.96 105.22 107.49 117.34 112.43 108.24 101.96 100.00 101.96 108.24 116.11 116.57 116.72 108.24 101.96 100.00 101.96 108.24 109.75 115.91 109.18 107.47 101.96");
-                        ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 108.24 112.26 122.26 118.12 108.24 101.96 100.00 101.96 108.24 114.92 117.37 115.98 108.24 101.96 100.00 101.96 105.40 112.07 114.52 113.89 104.20 99.64 99.97 101.73 106.63 108.27 103.63 104.40 107.15 101.96");
-                    }
+                        ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.0");
+                        ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.0");
 
-                    if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)                      
-                    {
-                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "10.0000000000000000");
-                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "10.0000000000000000");
-                        ini.WriteValue(gcpad, "Main Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
-                        ini.WriteValue(gcpad, "C-Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
-                        ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
-                    }
-
-                    if (prod == USB_PRODUCT.SONY_DS3 ||
-                        prod == USB_PRODUCT.SONY_DS4 ||
-                        prod == USB_PRODUCT.SONY_DS4_DONGLE ||
-                        prod == USB_PRODUCT.SONY_DS4_SLIM ||
-                        prod == USB_PRODUCT.SONY_DS5)
-                    {
-                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
-                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
-                        ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
-                        ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
-                        ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
-                    }
-
-                    else
-                    {
-                        ini.WriteValue(gcpad, "Main Stick/Dead Zone", "5.0000000000000000");
-                        ini.WriteValue(gcpad, "C-Stick/Dead Zone", "5.0000000000000000");
-                        ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
-                        ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
-                    }
-
-                    if (Program.SystemConfig["controller_mode"] == "cc")
-                    {
-                        if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)
+                        // DEADZONE
+                        if (Program.SystemConfig.isOptSet("dolphin_gcpad_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_gcpad_deadzone"]))
                         {
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "10.0000000000000000");
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "10.0000000000000000");
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
-                        }
-                        else if (prod == USB_PRODUCT.SONY_DS3 ||
-                        prod == USB_PRODUCT.SONY_DS4 ||
-                        prod == USB_PRODUCT.SONY_DS4_DONGLE ||
-                        prod == USB_PRODUCT.SONY_DS4_SLIM ||
-                        prod == USB_PRODUCT.SONY_DS5)
-                        {
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "5.0000000000000000");
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "5.0000000000000000");
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                            ini.WriteValue(gcpad, "Main Stick/Dead Zone", Program.SystemConfig["dolphin_gcpad_deadzone"]);
+                            ini.WriteValue(gcpad, "C-Stick/Dead Zone", Program.SystemConfig["dolphin_gcpad_deadzone"]);
                         }
                         else
                         {
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "5.0000000000000000");
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "5.0000000000000000");
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                            ini.WriteValue(gcpad, "Main Stick/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "C-Stick/Dead Zone", "10.0");
+                        }
+
+                        // SENSITIVITY
+                        if (Program.SystemConfig.isOptSet("dolphin_gcpad_sensitivity") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_gcpad_sensitivity"]))
+                        {
+                            ini.WriteValue(gcpad, "Main Stick/Up/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                            ini.WriteValue(gcpad, "Main Stick/Down/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                            ini.WriteValue(gcpad, "Main Stick/Left/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                            ini.WriteValue(gcpad, "Main Stick/Right/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                            ini.WriteValue(gcpad, "C-Stick/Up/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                            ini.WriteValue(gcpad, "C-Stick/Down/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                            ini.WriteValue(gcpad, "C-Stick/Left/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                            ini.WriteValue(gcpad, "C-Stick/Right/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                        }
+                        else
+                        {
+                            ini.WriteValue(gcpad, "Main Stick/Up/Range", "100.0");
+                            ini.WriteValue(gcpad, "Main Stick/Down/Range", "100.0");
+                            ini.WriteValue(gcpad, "Main Stick/Left/Range", "100.0");
+                            ini.WriteValue(gcpad, "Main Stick/Right/Range", "100.0");
+                            ini.WriteValue(gcpad, "C-Stick/Up/Range", "100.0");
+                            ini.WriteValue(gcpad, "C-Stick/Down/Range", "100.0");
+                            ini.WriteValue(gcpad, "C-Stick/Left/Range", "100.0");
+                            ini.WriteValue(gcpad, "C-Stick/Right/Range", "100.0");
+                        }
+
+                        if (tech == "XInput")
+                        {
+                            ini.WriteValue(gcpad, "Rumble/Motor", "`Motor L`|`Motor R`");
+                            ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 108.24 109.27 115.00 109.59 106.10 101.96 100.00 101.96 105.22 107.49 117.34 112.43 108.24 101.96 100.00 101.96 108.24 116.11 116.57 116.72 108.24 101.96 100.00 101.96 108.24 109.75 115.91 109.18 107.47 101.96");
+                            ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 108.24 112.26 122.26 118.12 108.24 101.96 100.00 101.96 108.24 114.92 117.37 115.98 108.24 101.96 100.00 101.96 105.40 112.07 114.52 113.89 104.20 99.64 99.97 101.73 106.63 108.27 103.63 104.40 107.15 101.96");
+                        }
+
+                        if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)
+                        {
+                            ini.WriteValue(gcpad, "Main Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
+                            ini.WriteValue(gcpad, "C-Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
+                            ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
+                        }
+
+                        if (prod == USB_PRODUCT.SONY_DS3 ||
+                            prod == USB_PRODUCT.SONY_DS4 ||
+                            prod == USB_PRODUCT.SONY_DS4_DONGLE ||
+                            prod == USB_PRODUCT.SONY_DS4_SLIM ||
+                            prod == USB_PRODUCT.SONY_DS5)
+                        {
+                            ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                            ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                            ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
+                        }
+
+                        else
+                        {
+                            ini.WriteValue(gcpad, "Main Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                            ini.WriteValue(gcpad, "C-Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                        }
+                    }
+                    
+                    else
+                    {
+                        // DEAD ZONE
+                        if (Program.SystemConfig.isOptSet("dolphin_wii_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_wii_deadzone"]))
+                        {
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            ini.WriteValue(gcpad, "IR/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            ini.WriteValue(gcpad, "Tilt/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            ini.WriteValue(gcpad, "Swing/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            ini.WriteValue(gcpad, "IMUGyroscope/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            ini.WriteValue(gcpad, "Nunchuk/Tilt/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            ini.WriteValue(gcpad, "Nunchuk/Swing/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                        }
+                        else
+                        {
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "IR/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "Tilt/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "Swing/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "IMUGyroscope/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Tilt/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Swing/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Dead Zone", "10.0");
+                        }
+
+                        // SENSITIVITY
+                        if (Program.SystemConfig.isOptSet("dolphin_wii_sensitivity") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_wii_sensitivity"]))
+                        {
+                            ini.WriteValue(gcpad, "IR/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "IR/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "IR/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "IR/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Tilt/Forward/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Tilt/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Tilt/Backward/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Tilt/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Swing/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Swing/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Swing/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Swing/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                        }
+                        else
+                        {
+                            ini.WriteValue(gcpad, "IR/Up/Range", "100.0");
+                            ini.WriteValue(gcpad, "IR/Down/Range", "100.0");
+                            ini.WriteValue(gcpad, "IR/Left/Range", "100.0");
+                            ini.WriteValue(gcpad, "IR/Right/Range", "100.0");
+                            ini.WriteValue(gcpad, "Tilt/Forward/Range", "100.0");
+                            ini.WriteValue(gcpad, "Tilt/Left/Range", "100.0");
+                            ini.WriteValue(gcpad, "Tilt/Backward/Range", "100.0");
+                            ini.WriteValue(gcpad, "Tilt/Right/Range", "100.0");
+                            ini.WriteValue(gcpad, "Swing/Up/Range", "100.0");
+                            ini.WriteValue(gcpad, "Swing/Down/Range", "100.0");
+                            ini.WriteValue(gcpad, "Swing/Left/Range", "100.0");
+                            ini.WriteValue(gcpad, "Swing/Right/Range", "100.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Up/Range", "100.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Down/Range", "100.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Left/Range", "100.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Right/Range", "100.0");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Up/Range", "100.0");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Down/Range", "100.0");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Left/Range", "100.0");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Right/Range", "100.0");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Up/Range", "100.0");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Down/Range", "100.0");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Left/Range", "100.0");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Right/Range", "100.0");
+                        }
+
+                        if (Program.SystemConfig["controller_mode"] == "cc" || Program.SystemConfig["controller_mode"] == "ccp")
+                        {
+                            if (prod == USB_PRODUCT.NINTENDO_SWITCH_PRO)
+                            {
+                                ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "98.50 101.73 102.04 106.46 104.62 102.21 102.00 100.53 97.00 96.50 99.95 100.08 102.40 99.37 99.60 100.17 99.60 100.14 98.87 100.48 102.45 101.12 100.92 97.92 99.00 99.92 100.83 100.45 102.27 98.45 97.16 97.36");
+                                ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "98.19 101.79 101.37 102.32 103.05 101.19 99.56 99.11 98.45 100.60 98.65 100.67 99.85 97.31 97.24 96.36 95.94 97.94 98.17 100.24 99.22 98.10 99.69 98.77 97.14 100.45 99.08 100.13 102.61 101.37 100.55 97.03");
+                            }
+                            else if (prod == USB_PRODUCT.SONY_DS3 ||
+                            prod == USB_PRODUCT.SONY_DS4 ||
+                            prod == USB_PRODUCT.SONY_DS4_DONGLE ||
+                            prod == USB_PRODUCT.SONY_DS4_SLIM ||
+                            prod == USB_PRODUCT.SONY_DS5)
+                            {
+                                ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                                ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                            }
+                            else
+                            {
+                                ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
+                                ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
+                            }
                         }
                     }
                 }

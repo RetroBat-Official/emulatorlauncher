@@ -1636,6 +1636,7 @@ namespace emulatorLauncher.libRetro
             coreSettings["mame_mouse_enable"] = "enabled";
             coreSettings["mame_mame_paths_enable"] = "disabled";
 
+            BindFeature(coreSettings, "mame_buttons_profiles", "mame_buttons_profiles", "disabled");
             BindFeature(coreSettings, "mame_read_config", "mame_read_config", "disabled");
             BindFeature(coreSettings, "mame_alternate_renderer", "alternate_renderer", "disabled");
             BindFeature(coreSettings, "mame_altres", "internal_resolution", "640x480");
