@@ -373,6 +373,16 @@ namespace emulatorLauncher
             }
 
             // Add plugins
+
+            string pluginspath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "plugins");
+            if (!Directory.Exists(pluginspath)) try { Directory.CreateDirectory(pluginspath); }
+                catch { }
+            if (Directory.Exists(pluginspath))
+            {
+                retList.Add("-pluginspath");
+                retList.Add(pluginspath);
+            }
+
             List<string> pluginList = new List<string>();
             if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
                 pluginList.Add("cheat");
