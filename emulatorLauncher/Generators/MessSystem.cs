@@ -606,6 +606,15 @@ namespace emulatorLauncher
                 commandArray.Add(pluginJoin);
             }
 
+            string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "nvram");
+            if (!Directory.Exists(nvramPath)) try { Directory.CreateDirectory(nvramPath); }
+                catch { }
+            if (Directory.Exists(nvramPath))
+            {
+                commandArray.Add("-nvram_directory");
+                commandArray.Add(nvramPath);
+            }
+
             if (injectCfgDirectory)
             {
                 commandArray.Add("-cfg_directory");

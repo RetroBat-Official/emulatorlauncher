@@ -201,6 +201,24 @@ namespace emulatorLauncher
                 retList.Add(sstatePath);
             }
 
+            string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "nvram");
+            if (!Directory.Exists(nvramPath)) try { Directory.CreateDirectory(nvramPath); }
+                catch { }
+            if (Directory.Exists(nvramPath))
+            {
+                retList.Add("-nvram_directory");
+                retList.Add(nvramPath);
+            }
+
+            string homePath = Path.Combine(AppConfig.GetFullPath("bios"), "mame");
+            if (!Directory.Exists(homePath)) try { Directory.CreateDirectory(homePath); }
+                catch { }
+            if (Directory.Exists(homePath))
+            {
+                retList.Add("-homepath");
+                retList.Add(homePath);
+            }
+
             string ctrlrPath = hbmame? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "ctrlr") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr");
             if (!Directory.Exists(ctrlrPath)) try { Directory.CreateDirectory(ctrlrPath); }
                 catch { }
