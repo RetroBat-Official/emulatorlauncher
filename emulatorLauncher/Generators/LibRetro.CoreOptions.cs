@@ -2760,9 +2760,12 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_renderer"] = "software";
             }
 
-            SetupLightGuns(retroarchConfig, "260", core, 1);
+            if (SystemConfig.isOptSet("mednafen_psx_gun2") && SystemConfig.getOptBoolean("mednafen_psx_gun2"))
+                SetupLightGuns(retroarchConfig, "260", core, 2);
+            else
+                SetupLightGuns(retroarchConfig, "260", core, 1);
 
-            
+
         }
 
         private void Configurevice(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
