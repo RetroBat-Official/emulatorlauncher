@@ -13,8 +13,10 @@ namespace emulatorLauncher.libRetro
         static List<string> coreGunConfig = new List<string>() 
         { 
             "flycast",
+            "kronos",
             "mednafen_psx", 
             "mednafen_psx_hw",
+            "mednafen_saturn",
             "pcsx_rearmed",
             "swanstation",
             "fbneo",
@@ -444,8 +446,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "kronos",             "2" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
+            { "mednafen_saturn",    "2" },
             { "pcsx_rearmed",       "nul" },
             { "swanstation",        "nul" }
         };
@@ -454,8 +458,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "2" },
             { "flycast",            "2" },
+            { "kronos",             "nul" },
             { "mednafen_psx",       "2" },
             { "mednafen_psx_hw",    "2" },
+            { "mednafen_saturn",    "nul" },
             { "pcsx_rearmed",       "2" },
             { "swanstation",        "2" }
         };
@@ -464,8 +470,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "3" },
             { "flycast",            "3" },
+            { "kronos",             "nul" },
             { "mednafen_psx",       "3" },
             { "mednafen_psx_hw",    "3" },
+            { "mednafen_saturn",    "nul" },
             { "pcsx_rearmed",       "3" },
             { "swanstation",        "3" }
         };
@@ -474,8 +482,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "kronos",             "nul" },
             { "mednafen_psx",       "3" },
             { "mednafen_psx_hw",    "3" },
+            { "mednafen_saturn",    "nul" },
             { "pcsx_rearmed",       "3" },
             { "swanstation",        "3" }
         };
@@ -484,8 +494,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
+            { "mednafen_saturn",    "nul" },
             { "pcsx_rearmed",       "nul" },
             { "swanstation",        "nul" }
         };
@@ -494,8 +506,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
+            { "mednafen_saturn",    "nul" },
             { "pcsx_rearmed",       "nul" },
             { "swanstation",        "nul" }
         };
@@ -504,8 +518,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
+            { "mednafen_saturn",    "nul" },
             { "pcsx_rearmed",       "nul" },
             { "swanstation",        "nul" }
         };
@@ -514,8 +530,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "3" },
             { "flycast",            "3" },
+            { "kronos",             "3" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
+            { "mednafen_saturn",    "3" },
             { "pcsx_rearmed",       "nul" },
             { "swanstation",        "nul" }
         };
@@ -524,8 +542,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "kronos",             "3" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
+            { "mednafen_saturn",    "3" },
             { "pcsx_rearmed",       "nul" },
             { "swanstation",        "nul" }
         };
@@ -534,8 +554,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
+            { "mednafen_saturn",    "nul" },
             { "pcsx_rearmed",       "nul" },
             { "swanstation",        "nul" }
         };
@@ -544,8 +566,10 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
+            { "mednafen_saturn",    "nul" },
             { "pcsx_rearmed",       "nul" },
             { "swanstation",        "nul" }
         };

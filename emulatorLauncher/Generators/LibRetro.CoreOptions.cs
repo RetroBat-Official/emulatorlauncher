@@ -1069,6 +1069,13 @@ namespace emulatorLauncher.libRetro
             
             coreSettings["beetle_saturn_virtuagun_input"] = "Lightgun";
             SetupLightGuns(retroarchConfig, "260", core);
+
+            // Disable multitap if lightgun is enabled
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                coreSettings["beetle_saturn_multitap_port1"] = "disabled";
+                coreSettings["beetle_saturn_multitap_port2"] = "disabled";
+            }
         }
 
         private void ConfigurePicodrive(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1297,6 +1304,13 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p4", "kronos_controller4", "1");
 
             SetupLightGuns(retroarchConfig, "2", core);     // Kronos does not have device 260, only mouse "2"
+
+            // Disable multitap if guns are enabled
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                coreSettings["kronos_multitap_port1"] = "disabled";
+                coreSettings["kronos_multitap_port2"] = "disabled";
+            }
         }
 
         private void ConfigureHandy(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2695,6 +2709,7 @@ namespace emulatorLauncher.libRetro
             else
                 SetupLightGuns(retroarchConfig, "260", core);
 
+            // Disable multitap for multiple guns
             if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
                 coreSettings["pcsx_rearmed_multitap"] = "disabled";
         }
@@ -2772,10 +2787,9 @@ namespace emulatorLauncher.libRetro
 
             // If lightgun is enabled, renderer must be changed to software
             if (SystemConfig.getOptBoolean("use_guns") || SystemConfig["psxcontroller1"] == "260")
-            {
                 coreSettings["beetle_psx_hw_renderer"] = "software";
-            }
 
+            // Some games require a controller in port 1 and lightgun in port 2
             if (SystemConfig.isOptSet("psx_gunport2") && SystemConfig.getOptBoolean("psx_gunport2"))
                 SetupLightGuns(retroarchConfig, "260", core, 2);
             else
@@ -2877,6 +2891,7 @@ namespace emulatorLauncher.libRetro
             else
                 SetupLightGuns(retroarchConfig, "260", core);
 
+            // Disable multitap in case of lightgun
             if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
                 coreSettings["swanstation_ControllerPorts_MultitapMode"] = "Disabled";
         }
