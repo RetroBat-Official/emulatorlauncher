@@ -586,6 +586,35 @@ namespace emulatorLauncher
             else
                 commandArray.Add(Path.GetDirectoryName(rom));
 
+            string pluginspath = Path.Combine(bios, "mame", "plugins");
+            if (Directory.Exists(pluginspath))
+            {
+                commandArray.Add("-pluginspath");
+                commandArray.Add(pluginspath);
+            }
+
+            List<string> pluginList = new List<string>();
+            if (SystemConfig.isOptSet("cheats_enable") && SystemConfig.getOptBoolean("cheats_enable"))
+                pluginList.Add("cheat");
+            if (SystemConfig.isOptSet("mame_hiscore") && SystemConfig.getOptBoolean("mame_hiscore"))
+                pluginList.Add("hiscore");
+
+            if (pluginList.Count > 0)
+            {
+                string pluginJoin = string.Join<string>(",", pluginList);
+                commandArray.Add("-plugin");
+                commandArray.Add(pluginJoin);
+            }
+
+            string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "nvram");
+            if (!Directory.Exists(nvramPath)) try { Directory.CreateDirectory(nvramPath); }
+                catch { }
+            if (Directory.Exists(nvramPath))
+            {
+                commandArray.Add("-nvram_directory");
+                commandArray.Add(nvramPath);
+            }
+
             if (injectCfgDirectory)
             {
                 commandArray.Add("-cfg_directory");
