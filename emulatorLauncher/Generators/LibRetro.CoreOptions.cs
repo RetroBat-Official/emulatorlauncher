@@ -980,7 +980,17 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "fbneo-neogeo-mode", "fbneo-neogeo-mode", "UNIBIOS");
             BindFeature(coreSettings, "fbneo-vertical-mode", "fbneo-vertical-mode", "disabled");
-            BindFeature(coreSettings, "fbneo-lightgun-hide-crosshair", "fbneo-lightgun-hide-crosshair", "disabled");
+            
+            if (SystemConfig.isOptSet("fbneo-lightgun-hide-crosshair") && SystemConfig["fbneo-lightgun-hide-crosshair"] == "disabled")
+            {
+                coreSettings["fbneo-lightgun-crosshair-emulation"] = "always show";
+                coreSettings["fbneo-lightgun-hide-crosshair"] = "disabled";
+            }
+            else
+            {
+                coreSettings["fbneo-lightgun-crosshair-emulation"] = "always hide";
+                coreSettings["fbneo-lightgun-hide-crosshair"] = "enabled";
+            }
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "fbneo_controller1", "1");
@@ -2680,7 +2690,13 @@ namespace emulatorLauncher.libRetro
             else
                 coreSettings["pcsx_rearmed_multitap"] = "disabled";
 
-            SetupLightGuns(retroarchConfig, "260", core);
+            if (SystemConfig.isOptSet("psx_gunport2") && SystemConfig.getOptBoolean("psx_gunport2"))
+                SetupLightGuns(retroarchConfig, "260", core, 2);
+            else
+                SetupLightGuns(retroarchConfig, "260", core);
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+                coreSettings["pcsx_rearmed_multitap"] = "disabled";
         }
 
         private void ConfigureMednafenPsxHW(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2760,7 +2776,7 @@ namespace emulatorLauncher.libRetro
                 coreSettings["beetle_psx_hw_renderer"] = "software";
             }
 
-            if (SystemConfig.isOptSet("mednafen_psx_gun2") && SystemConfig.getOptBoolean("mednafen_psx_gun2"))
+            if (SystemConfig.isOptSet("psx_gunport2") && SystemConfig.getOptBoolean("psx_gunport2"))
                 SetupLightGuns(retroarchConfig, "260", core, 2);
             else
                 SetupLightGuns(retroarchConfig, "260", core, 1);
@@ -2847,8 +2863,22 @@ namespace emulatorLauncher.libRetro
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "psxcontroller2", "1");
+            BindFeature(retroarchConfig, "swanstation_Controller_AnalogCombo", "swanstation_Controller_AnalogCombo", "4");
 
-            SetupLightGuns(retroarchConfig, "260", core);
+            if (Controllers.Count > 5)
+                coreSettings["swanstation_ControllerPorts_MultitapMode"] = "BothPorts";
+            else if (Controllers.Count > 2)
+                coreSettings["swanstation_ControllerPorts_MultitapMode"] = "Port1Only";
+            else
+                coreSettings["swanstation_ControllerPorts_MultitapMode"] = "Disabled";
+
+            if (SystemConfig.isOptSet("psx_gunport2") && SystemConfig.getOptBoolean("psx_gunport2"))
+                SetupLightGuns(retroarchConfig, "260", core, 2);
+            else
+                SetupLightGuns(retroarchConfig, "260", core);
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+                coreSettings["swanstation_ControllerPorts_MultitapMode"] = "Disabled";
         }
 
         private void Configure81(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

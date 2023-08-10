@@ -12,8 +12,12 @@ namespace emulatorLauncher.libRetro
     {
         static List<string> coreGunConfig = new List<string>() 
         { 
+            "flycast",
             "mednafen_psx", 
-            "mednafen_psx_hw" 
+            "mednafen_psx_hw",
+            "pcsx_rearmed",
+            "swanstation",
+            "fbneo",
         };
 
         /// <summary>
@@ -52,20 +56,29 @@ namespace emulatorLauncher.libRetro
                 // Set mouse buttons for one player (default mapping)
                 retroarchConfig["input_libretro_device_p" + playerIndex] = deviceType;
                 retroarchConfig["input_player" + playerIndex + "_mouse_index"] = "0";
-                retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = "1";
-                retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = "2";
+                retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
+                retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = guninvert ? "1" : "2";
                 retroarchConfig["input_player" + playerIndex + "_gun_start_mbtn"] = "3";
 
                 // Assign gamepad buttons to gun buttons
-                retroarchConfig["input_player" + playerIndex + "_gun_select_btn"] = select_padbutton;
-                retroarchConfig["input_player" + playerIndex + "_gun_start_btn"] = start_padbutton;
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_a_btn"] = a_padbutton;
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_b_btn"] = b_padbutton;
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_c_btn"] = c_padbutton;
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_up_btn"] = up_padbutton;
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_down_btn"] = down_padbutton;
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_left_btn"] = left_padbutton;
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_right_btn"] = right_padbutton;
+                if (select_padbutton != "" && select_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_select_btn"] = select_padbutton;
+                if (start_padbutton != "" && start_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_start_btn"] = start_padbutton;
+                if (a_padbutton != "" && a_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_aux_a_btn"] = a_padbutton;
+                if (b_padbutton != "" && b_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_aux_b_btn"] = b_padbutton;
+                if (c_padbutton != "" && c_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_aux_c_btn"] = c_padbutton;
+                if (up_padbutton != "" && up_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_up_btn"] = up_padbutton;
+                if (down_padbutton != "" && down_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_down_btn"] = down_padbutton;
+                if (left_padbutton != "" && left_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_left_btn"] = left_padbutton;
+                if (right_padbutton != "" && right_padbutton != null)
+                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_right_btn"] = right_padbutton;
 
                 retroarchConfig["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
                 retroarchConfig["input_player" + playerIndex + "_joypad_index"] = "0";
@@ -95,20 +108,29 @@ namespace emulatorLauncher.libRetro
 
                     retroarchConfig["input_libretro_device_p" + i] = deviceType;
                     retroarchConfig["input_player" + i + "_mouse_index"] = deviceIndex.ToString();
-                    retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = "1";
-                    retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = "2";
+                    retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
+                    retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = guninvert ? "1" : "2";
                     retroarchConfig["input_player" + i + "_gun_start_mbtn"] = "3";
 
                     // Assign gamepad buttons to gun buttons
-                    retroarchConfig["input_player" + i + "_gun_select_btn"] = select_padbutton;
-                    retroarchConfig["input_player" + i + "_gun_start_btn"] = start_padbutton;
-                    retroarchConfig["input_player" + i + "_gun_aux_a_btn"] = a_padbutton;
-                    retroarchConfig["input_player" + i + "_gun_aux_b_btn"] = b_padbutton;
-                    retroarchConfig["input_player" + i + "_gun_aux_c_btn"] = c_padbutton;
-                    retroarchConfig["input_player" + i + "_gun_dpad_up_btn"] = up_padbutton;
-                    retroarchConfig["input_player" + i + "_gun_dpad_down_btn"] = down_padbutton;
-                    retroarchConfig["input_player" + i + "_gun_dpad_left_btn"] = left_padbutton;
-                    retroarchConfig["input_player" + i + "_gun_dpad_right_btn"] = right_padbutton;
+                    if (select_padbutton != "" && select_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_select_btn"] = select_padbutton;
+                    if (start_padbutton != "" && start_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_start_btn"] = start_padbutton;
+                    if (a_padbutton != "" && a_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_aux_a_btn"] = a_padbutton;
+                    if (b_padbutton != "" && b_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_aux_b_btn"] = b_padbutton;
+                    if (c_padbutton != "" && c_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_aux_c_btn"] = c_padbutton;
+                    if (up_padbutton != "" && up_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_dpad_up_btn"] = up_padbutton;
+                    if (down_padbutton != "" && down_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_dpad_down_btn"] = down_padbutton;
+                    if (left_padbutton != "" && left_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_dpad_left_btn"] = left_padbutton;
+                    if (right_padbutton != "" && right_padbutton != null)
+                        retroarchConfig["input_player" + i + "_gun_dpad_right_btn"] = right_padbutton;
 
                     retroarchConfig["input_player" + i + "_analog_dpad_mode"] = "0";
                     retroarchConfig["input_player" + i + "_joypad_index"] = deviceIndex.ToString();
@@ -186,23 +208,16 @@ namespace emulatorLauncher.libRetro
             
             // Configure core specific mappings            
             else
-            {
-                ConfigureGunsMednafenPSX(retroarchConfig, playerIndex, core, deviceType, multigun, guninvert, useOneGun);
-            }
+                ConfigureGunsCore(retroarchConfig, playerIndex, core, deviceType, multigun, guninvert, useOneGun);
         }
 
         // Mednafen psx mapping
         // GunCon buttons : trigger, A, B (offscreen reload)
 
-        private void ConfigureGunsMednafenPSX(ConfigFile retroarchConfig, int playerIndex, string core, string deviceType, bool multigun = false, bool guninvert = false, bool useOneGun = false)
+        private void ConfigureGunsCore(ConfigFile retroarchConfig, int playerIndex, string core, string deviceType, bool multigun = false, bool guninvert = false, bool useOneGun = false)
         {
-            if (core != "mednafen_psx_hw" && core != "mednafen_psx")
-                return;
-
             if (SystemConfig.isOptSet("gun_type") && !string.IsNullOrEmpty(SystemConfig["gun_type"]))
                 deviceType = SystemConfig["gun_type"];
-            else
-                deviceType = "260";
 
             var guns = RawLightgun.GetRawLightguns();
             if (guns.Length == 0)
@@ -217,22 +232,14 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_libretro_device_p" + playerIndex] = deviceType;
                 retroarchConfig["input_player" + playerIndex + "_mouse_index"] = deviceIndex.ToString();
 
-                if (SystemConfig.isOptSet("mednafen_reload") && SystemConfig.getOptBoolean("mednafen_reload"))
-                {
-                    retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
-                    retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = guninvert ? "1" : "2";
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_a_mbtn"] = "3";
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_b_mbtn"] = "nul";
-                }
-                else
-                {
-                    retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
-                    retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = "nul";
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_a_mbtn"] = guninvert ? "1" : "2";
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_b_mbtn"] = "3";
-                }
+                retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
+                retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = GetcoreMouseButton(core, guninvert, "reload");
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_a_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_a");
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_b_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_b");
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_c_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_c");
+                retroarchConfig["input_player" + playerIndex + "_gun_start_mbtn"] = GetcoreMouseButton(core, guninvert, "start");
+                retroarchConfig["input_player" + playerIndex + "_gun_select_mbtn"] = GetcoreMouseButton(core, guninvert, "select");
 
-                retroarchConfig["input_player" + playerIndex + "_gun_start_mbtn"] = "nul";
                 retroarchConfig["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
                 retroarchConfig["input_player" + playerIndex + "_joypad_index"] = deviceIndex.ToString();
 
@@ -243,7 +250,7 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
                     retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
 
-                    if (SystemConfig.isOptSet("mednafen_gun_ab") && SystemConfig["mednafen_gun_ab"] == "directions")
+                    if (SystemConfig.isOptSet("gun_ab") && SystemConfig["gun_ab"] == "directions")
                     {
                         retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = "left";
                         retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = "right";
@@ -284,22 +291,14 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_libretro_device_p" + i] = deviceType;
                     retroarchConfig["input_player" + i + "_mouse_index"] = deviceIndex.ToString();
 
-                    if (SystemConfig.isOptSet("mednafen_reload") && SystemConfig.getOptBoolean("mednafen_reload"))
-                    {
-                        retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
-                        retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = guninvert ? "1" : "2";
-                        retroarchConfig["input_player" + i + "_gun_aux_a_mbtn"] = "3";
-                        retroarchConfig["input_player" + i + "_gun_aux_b_mbtn"] = "nul";
-                    }
-                    else
-                    {
-                        retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
-                        retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = "nul";
-                        retroarchConfig["input_player" + i + "_gun_aux_a_mbtn"] = guninvert ? "1" : "2";
-                        retroarchConfig["input_player" + i + "_gun_aux_b_mbtn"] = "3";
-                    }
+                    retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
+                    retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = GetcoreMouseButton(core, guninvert, "reload");
+                    retroarchConfig["input_player" + i + "_gun_aux_a_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_a");
+                    retroarchConfig["input_player" + i + "_gun_aux_b_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_b");
+                    retroarchConfig["input_player" + i + "_gun_aux_c_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_c");
+                    retroarchConfig["input_player" + i + "_gun_start_mbtn"] = GetcoreMouseButton(core, guninvert, "start");
+                    retroarchConfig["input_player" + i + "_gun_select_mbtn"] = GetcoreMouseButton(core, guninvert, "select");
 
-                    retroarchConfig["input_player" + i + "_gun_start_mbtn"] = "nul";
                     retroarchConfig["input_player" + i + "_analog_dpad_mode"] = "0";
                     retroarchConfig["input_player" + i + "_joypad_index"] = deviceIndex.ToString();
 
@@ -308,7 +307,7 @@ namespace emulatorLauncher.libRetro
                         retroarchConfig["input_player" + i + "_gun_start"] = "enter";
                         retroarchConfig["input_player" + i + "_gun_select"] = "backspace";
 
-                        if (SystemConfig.isOptSet("mednafen_gun_ab") && SystemConfig["mednafen_gun_ab"] == "directions")
+                        if (SystemConfig.isOptSet("gun_ab") && SystemConfig["gun_ab"] == "directions")
                         {
                             retroarchConfig["input_player1_gun_aux_a"] = "left";
                             retroarchConfig["input_player1_gun_aux_b"] = "right";
@@ -339,7 +338,7 @@ namespace emulatorLauncher.libRetro
                 }
             }
         }
-        
+
         static List<string> gunButtons = new List<string>()
         {
             "_mouse_index",
@@ -389,5 +388,166 @@ namespace emulatorLauncher.libRetro
             "_gun_trigger_mbtn"
         };
 
+        private string GetcoreMouseButton (string core, bool guninvert, string mbtn)
+        {
+            bool changeReload = SystemConfig.isOptSet("gun_reload_button") && SystemConfig.getOptBoolean("gun_reload_button");
+            string ret = "nul";
+
+            switch (mbtn)
+            {
+                case "reload":
+                    if (coreDefaultMouseReloadButton.ContainsKey(core))
+                        ret = changeReload ? "2" : coreDefaultMouseReloadButton[core];
+                    else
+                        ret = "2";
+                    break;
+                case "aux_a":
+                    if (coreChangeReloadMouseAuxAButton.ContainsKey(core) && coreDefaultMouseAuxAButton.ContainsKey(core))
+                        ret = changeReload ? coreChangeReloadMouseAuxAButton[core] : coreDefaultMouseAuxAButton[core];
+                    else
+                        ret = "3";
+                    break;
+                case "aux_b":
+                    if (coreChangeReloadMouseAuxBButton.ContainsKey(core) && coreDefaultMouseAuxBButton.ContainsKey(core))
+                        ret = changeReload ? coreChangeReloadMouseAuxBButton[core] : coreDefaultMouseAuxBButton[core];
+                    else
+                        ret = "nul";
+                    break;
+                case "aux_c":
+                    if (coreChangeReloadMouseAuxCButton.ContainsKey(core) && coreDefaultMouseAuxCButton.ContainsKey(core))
+                        ret = changeReload ? coreChangeReloadMouseAuxCButton[core] : coreDefaultMouseAuxCButton[core];
+                    else
+                        ret = "nul";
+                    break;
+                case "start":
+                    if (coreChangeReloadMouseStartButton.ContainsKey(core) && coreDefaultMouseStartButton.ContainsKey(core))
+                        ret = changeReload ? coreChangeReloadMouseStartButton[core] : coreDefaultMouseStartButton[core];
+                    else
+                        ret = "nul";
+                    break;
+                case "select":
+                    if (coreChangeReloadMouseSelectButton.ContainsKey(core) && coreDefaultMouseSelectButton.ContainsKey(core))
+                        ret = changeReload ? coreChangeReloadMouseSelectButton[core] : coreDefaultMouseSelectButton[core];
+                    else
+                        ret = "nul";
+                    break;
+            }
+
+            if (ret == "2" && guninvert)
+                return "1";
+            else
+                return ret;
+        }
+
+        // Set all dictionnaries for mouse buttons (2 dictionaries for each button, one for default value, one for value when reload is forced on mouse rightclick)
+        static Dictionary<string, string> coreDefaultMouseReloadButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "nul" },
+            { "flycast",            "nul" },
+            { "mednafen_psx",       "nul" },
+            { "mednafen_psx_hw",    "nul" },
+            { "pcsx_rearmed",       "nul" },
+            { "swanstation",        "nul" }
+        };
+
+        static Dictionary<string, string> coreDefaultMouseAuxAButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "2" },
+            { "flycast",            "2" },
+            { "mednafen_psx",       "2" },
+            { "mednafen_psx_hw",    "2" },
+            { "pcsx_rearmed",       "2" },
+            { "swanstation",        "2" }
+        };
+
+        static Dictionary<string, string> coreChangeReloadMouseAuxAButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "3" },
+            { "flycast",            "3" },
+            { "mednafen_psx",       "3" },
+            { "mednafen_psx_hw",    "3" },
+            { "pcsx_rearmed",       "3" },
+            { "swanstation",        "3" }
+        };
+
+        static Dictionary<string, string> coreDefaultMouseAuxBButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "nul" },
+            { "flycast",            "nul" },
+            { "mednafen_psx",       "3" },
+            { "mednafen_psx_hw",    "3" },
+            { "pcsx_rearmed",       "3" },
+            { "swanstation",        "3" }
+        };
+
+        static Dictionary<string, string> coreChangeReloadMouseAuxBButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "nul" },
+            { "flycast",            "nul" },
+            { "mednafen_psx",       "nul" },
+            { "mednafen_psx_hw",    "nul" },
+            { "pcsx_rearmed",       "nul" },
+            { "swanstation",        "nul" }
+        };
+
+        static Dictionary<string, string> coreDefaultMouseAuxCButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "nul" },
+            { "flycast",            "nul" },
+            { "mednafen_psx",       "nul" },
+            { "mednafen_psx_hw",    "nul" },
+            { "pcsx_rearmed",       "nul" },
+            { "swanstation",        "nul" }
+        };
+
+        static Dictionary<string, string> coreChangeReloadMouseAuxCButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "nul" },
+            { "flycast",            "nul" },
+            { "mednafen_psx",       "nul" },
+            { "mednafen_psx_hw",    "nul" },
+            { "pcsx_rearmed",       "nul" },
+            { "swanstation",        "nul" }
+        };
+
+        static Dictionary<string, string> coreDefaultMouseStartButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "3" },
+            { "flycast",            "3" },
+            { "mednafen_psx",       "nul" },
+            { "mednafen_psx_hw",    "nul" },
+            { "pcsx_rearmed",       "nul" },
+            { "swanstation",        "nul" }
+        };
+
+        static Dictionary<string, string> coreChangeReloadMouseStartButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "nul" },
+            { "flycast",            "nul" },
+            { "mednafen_psx",       "nul" },
+            { "mednafen_psx_hw",    "nul" },
+            { "pcsx_rearmed",       "nul" },
+            { "swanstation",        "nul" }
+        };
+
+        static Dictionary<string, string> coreDefaultMouseSelectButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "nul" },
+            { "flycast",            "nul" },
+            { "mednafen_psx",       "nul" },
+            { "mednafen_psx_hw",    "nul" },
+            { "pcsx_rearmed",       "nul" },
+            { "swanstation",        "nul" }
+        };
+
+        static Dictionary<string, string> coreChangeReloadMouseSelectButton = new Dictionary<string, string>()
+        {
+            { "fbneo",              "nul" },
+            { "flycast",            "nul" },
+            { "mednafen_psx",       "nul" },
+            { "mednafen_psx_hw",    "nul" },
+            { "pcsx_rearmed",       "nul" },
+            { "swanstation",        "nul" }
+        };
     }
 }
