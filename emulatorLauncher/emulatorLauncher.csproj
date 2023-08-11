@@ -124,6 +124,10 @@
     <Compile Include="Generators\Mupen64.Controllers.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Simple64.Generator.cs" />
+    <Compile Include="Generators\Simple64.Controllers.cs">
+      <DependentUpon>Simple64.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />

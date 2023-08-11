@@ -101,7 +101,8 @@ namespace emulatorLauncher
             { "zinc", () => new ZincGenerator() },
             { "melonds", () => new MelonDSGenerator() },
             { "flycast", () => new FlycastGenerator() },
-            { "eduke32", () => new EDukeGenerator() }
+            { "eduke32", () => new EDukeGenerator() },
+            { "simple64", () => new Simple64Generator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

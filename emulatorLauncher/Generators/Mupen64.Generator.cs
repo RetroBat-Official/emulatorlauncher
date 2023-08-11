@@ -8,6 +8,7 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
+    // Generator for Rosalie's Mupen64Plus GUI
     partial class Mupen64Generator : Generator
     {
         public Mupen64Generator()
@@ -78,23 +79,23 @@ namespace emulatorLauncher
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
                 // Add rom path
-                ini.WriteValue("Rosalie's Mupen GUI RomBrowser", "Directory", Path.GetDirectoryName(rom));
+                ini.WriteValue("Rosalie's Mupen GUI RomBrowser", "Directory", Path.GetDirectoryName(rom).Replace("\\", "/"));
 
                 // Other paths
                 string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "Mupen64");
                 if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
                     catch { }
-                ini.WriteValue("Core", "ScreenshotPath", screenshotPath);
+                ini.WriteValue("Core", "ScreenshotPath", screenshotPath.Replace("\\", "/"));
 
-                string saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "Mupen64", "sstate");
+                string saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "sstates");
                 if (!Directory.Exists(saveStatePath)) try { Directory.CreateDirectory(saveStatePath); }
                     catch { }
-                ini.WriteValue("Core", "SaveStatePath", saveStatePath);
+                ini.WriteValue("Core", "SaveStatePath", saveStatePath.Replace("\\", "/"));
 
-                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "Mupen64", "game");
+                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "games");
                 if (!Directory.Exists(saveSRAMPath)) try { Directory.CreateDirectory(saveSRAMPath); }
                     catch { }
-                ini.WriteValue("Core", "SaveSRAMPath", saveSRAMPath);
+                ini.WriteValue("Core", "SaveSRAMPath", saveSRAMPath.Replace("\\", "/"));
 
                 // Default settings
                 ini.WriteValue("Core", "AutoStateSlotIncrement", "True");
