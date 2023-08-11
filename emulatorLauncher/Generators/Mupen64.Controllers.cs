@@ -29,7 +29,7 @@ namespace emulatorLauncher
 
             // UpdateSdlControllersWithHints();     // No hints found in emulator code
 
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                 ConfigureInput(controller, ini);
         }
 

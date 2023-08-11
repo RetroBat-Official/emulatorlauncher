@@ -50,6 +50,8 @@ namespace emulatorLauncher
             //Applying bezels
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
+            _resolution = resolution;
+
             List<string> commandArray = new List<string>();
 
             commandArray.Add("\"" + rom + "\"");
