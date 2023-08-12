@@ -195,9 +195,6 @@ namespace emulatorLauncher
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
-            if (_forceSDL)
-                tech = "SDL";
-
             //Start writing in ini file
             pcsx2ini.ClearSection(padNumber);
             pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");

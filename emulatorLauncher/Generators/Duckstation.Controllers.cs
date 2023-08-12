@@ -186,9 +186,6 @@ namespace emulatorLauncher
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
-            if (_forceSDL)
-                tech = "SDL";
-
             string controllerType = "AnalogController";
             string controllerPlayerNr = "duck_controller" + playerIndex;
             if (SystemConfig.isOptSet(controllerPlayerNr) && !string.IsNullOrEmpty(SystemConfig[controllerPlayerNr]))
