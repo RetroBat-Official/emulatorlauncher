@@ -10,15 +10,19 @@ namespace emulatorLauncher.libRetro
 {
     partial class LibRetroGenerator : Generator
     {
+        // List of cores with dedicated configuration
+        // To be updated each time a core is correctly / succesfully configured
         static List<string> coreGunConfig = new List<string>() 
         { 
             "flycast",
+            "genesis_plus_gx",
+            "genesis_plus_gx_wide",
             "kronos",
             "mednafen_psx", 
             "mednafen_psx_hw",
             "mednafen_saturn",
             "pcsx_rearmed",
-            "swanstation",
+            "swanstation",          // Has some issues, works with the right combination of video driver and aspect ratio
             "fbneo",
         };
 
@@ -34,14 +38,22 @@ namespace emulatorLauncher.libRetro
                 return;
 
             bool multigun = false;
+
+            // Used in some specific cases to invert trigger and reload buttons (for example with wiizapper)
             bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
+
+            // Force to use only one gun even when multiple gun devices / mouses are connected
             bool useOneGun = SystemConfig.isOptSet("one_gun") && SystemConfig.getOptBoolean("one_gun");
 
             int gunCount = RawLightgun.GetUsableLightGunCount();
             var guns = RawLightgun.GetRawLightguns();
+
+            // Set multigun to true in some cases
+            // Case 1 = multiple guns are connected, playerindex is 1 and user did not force 'one gun only'
             if (gunCount > 1 && guns.Length > 1 && playerIndex == 1 && !useOneGun)
                 multigun = true;
 
+            // Single player - assign buttons of joystick linked with playerIndex to gun buttons
             if (!multigun)
             {
                 // Get gamepad buttons to assign them so that controller buttons can be used along with gun
@@ -85,6 +97,8 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
                 retroarchConfig["input_player" + playerIndex + "_joypad_index"] = "0";
             }
+
+            // Multigun case
             else
             {
                 // DirectInput does not differenciate mouse indexes. We have to use "Raw" with multiple guns
@@ -139,85 +153,108 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
-            if (guns.Length <= 16)
+            // Clean up unused mapping after last gun used
+            if (useOneGun)
             {
-                for (int i = guns.Length + 1; i == 16; i++)
+                // If playerindex is 2, nullify player 1 gun buttons
+                if (playerIndex == 2)
                 {
                     foreach (string cfg in gunButtons)
-                        retroarchConfig["input_player" + i + cfg] = "nul";
+                        retroarchConfig["input_player1" + cfg] = "nul";
+                }
+
+                // Nullify all buttons after playerindex
+                if (guns.Length <= 16)
+                {
+                    for (int i = playerIndex + 1; i == 16; i++)
+                    {
+                        foreach (string cfg in gunButtons)
+                            retroarchConfig["input_player" + i + cfg] = "nul";
+                    }
+                }
+            }
+            else
+            {
+                // Nullify all buttons after guns.length
+                if (guns.Length <= 16)
+                {
+                    for (int i = guns.Length + 1; i == 16; i++)
+                    {
+                        foreach (string cfg in gunButtons)
+                            retroarchConfig["input_player" + i + cfg] = "nul";
+                    }
                 }
             }
 
-            // Set additional buttons gun mapping default
-            ConfigureLightgunKeyboardActions(retroarchConfig, deviceType, playerIndex, core, multigun, guninvert, useOneGun);
+
+            // Set additional buttons gun mapping default ...
+            if (!coreGunConfig.Contains(core))
+                ConfigureLightgunKeyboardActions(retroarchConfig, playerIndex);
+            
+            // ... or configure core specific mappings            
+            else
+                ConfigureGunsCore(retroarchConfig, playerIndex, core, deviceType, multigun, guninvert, useOneGun);
         }
 
         /// <summary>
         /// Injects keyboard actions for lightgun games
         /// </summary>
         /// <param name="retroarchConfig"></param>
-        /// <param name="playerId"></param>
-        private void ConfigureLightgunKeyboardActions(ConfigFile retroarchConfig, string deviceType, int playerIndex, string core, bool multigun, bool guninvert, bool useOneGun)
+        /// <param name="playerIndex"></param>
+        private void ConfigureLightgunKeyboardActions(ConfigFile retroarchConfig, int playerIndex)
         {
             if (!SystemConfig.getOptBoolean("use_guns"))
                 return;
 
-            if (!coreGunConfig.Contains(core))
+            var keyb = Controllers.Where(c => c.Name == "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
+            if (keyb != null)
             {
-                var keyb = Controllers.Where(c => c.Name == "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
-                if (keyb != null)
-                {
-                    var start = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.start);
-                    retroarchConfig["input_player" + playerIndex + "_gun_start"] = start == null ? "nul" : LibretroControllers.GetConfigValue(start);
+                var start = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.start);
+                retroarchConfig["input_player" + playerIndex + "_gun_start"] = start == null ? "nul" : LibretroControllers.GetConfigValue(start);
 
-                    var select = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.select);
-                    retroarchConfig["input_player" + playerIndex + "_gun_select"] = select == null ? "nul" : LibretroControllers.GetConfigValue(select);
+                var select = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.select);
+                retroarchConfig["input_player" + playerIndex + "_gun_select"] = select == null ? "nul" : LibretroControllers.GetConfigValue(select);
 
-                    var aux_a = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.b);
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = aux_a == null ? "nul" : LibretroControllers.GetConfigValue(aux_a);
+                var aux_a = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.b);
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = aux_a == null ? "nul" : LibretroControllers.GetConfigValue(aux_a);
 
-                    var aux_b = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.a);
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = aux_b == null ? "nul" : LibretroControllers.GetConfigValue(aux_b);
+                var aux_b = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.a);
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = aux_b == null ? "nul" : LibretroControllers.GetConfigValue(aux_b);
 
-                    var aux_c = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.y);
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_c"] = aux_c == null ? "nul" : LibretroControllers.GetConfigValue(aux_c);
+                var aux_c = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.y);
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_c"] = aux_c == null ? "nul" : LibretroControllers.GetConfigValue(aux_c);
 
-                    var dpad_up = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.up);
-                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = dpad_up == null ? "nul" : LibretroControllers.GetConfigValue(dpad_up);
+                var dpad_up = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.up);
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = dpad_up == null ? "nul" : LibretroControllers.GetConfigValue(dpad_up);
 
-                    var dpad_down = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.down);
-                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = dpad_down == null ? "nul" : LibretroControllers.GetConfigValue(dpad_down);
+                var dpad_down = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.down);
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = dpad_down == null ? "nul" : LibretroControllers.GetConfigValue(dpad_down);
 
-                    var dpad_left = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.left);
-                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_left"] = dpad_left == null ? "nul" : LibretroControllers.GetConfigValue(dpad_left);
+                var dpad_left = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.left);
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_left"] = dpad_left == null ? "nul" : LibretroControllers.GetConfigValue(dpad_left);
 
-                    var dpad_right = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.right);
-                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_right"] = dpad_right == null ? "nul" : LibretroControllers.GetConfigValue(dpad_right);
-                }
-                else
-                {
-                    retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
-                    retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = "w";
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = "x";
-                    retroarchConfig["input_player" + playerIndex + "_gun_aux_c"] = "s";
-                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = "up";
-                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = "down";
-                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_left"] = "left";
-                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_right"] = "right";
-                }
+                var dpad_right = keyb.Input.FirstOrDefault(i => i.Name == Tools.InputKey.right);
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_right"] = dpad_right == null ? "nul" : LibretroControllers.GetConfigValue(dpad_right);
             }
-            
-            // Configure core specific mappings            
             else
-                ConfigureGunsCore(retroarchConfig, playerIndex, core, deviceType, multigun, guninvert, useOneGun);
+            {
+                retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
+                retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = "w";
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = "x";
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_c"] = "s";
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = "up";
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = "down";
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_left"] = "left";
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_right"] = "right";
+            }
         }
 
-        // Mednafen psx mapping
-        // GunCon buttons : trigger, A, B (offscreen reload)
-
+        /// <summary>
+        /// Dedicated core mappings for lightgun games
         private void ConfigureGunsCore(ConfigFile retroarchConfig, int playerIndex, string core, string deviceType, bool multigun = false, bool guninvert = false, bool useOneGun = false)
         {
+            // Some systems offer multiple type of guns (justifier, guncon...). Option must be available in es_features.cfg
             if (SystemConfig.isOptSet("gun_type") && !string.IsNullOrEmpty(SystemConfig["gun_type"]))
                 deviceType = SystemConfig["gun_type"];
 
@@ -225,15 +262,19 @@ namespace emulatorLauncher.libRetro
             if (guns.Length == 0)
                 return;
 
-            if (useOneGun)
+            // If option in ES is forced to use one gun, only one gun will be configured on the playerIndex defined for the core
+            if (useOneGun || playerIndex == 2)
             {
+                // First gun will be used
                 int deviceIndex = guns[0].Index;
 
                 SimpleLogger.Instance.Debug("[LightGun] Assigned player " + playerIndex + " to -> " + guns[0].ToString());
 
+                // Set deviceType and DeviceIndex
                 retroarchConfig["input_libretro_device_p" + playerIndex] = deviceType;
                 retroarchConfig["input_player" + playerIndex + "_mouse_index"] = deviceIndex.ToString();
 
+                // Set mouse buttons (mouse only has 3 buttons, that can be mapped differently for each core)
                 retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
                 retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = GetcoreMouseButton(core, guninvert, "reload");
                 retroarchConfig["input_player" + playerIndex + "_gun_aux_a_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_a");
@@ -247,17 +288,21 @@ namespace emulatorLauncher.libRetro
 
                 var ctrl = Controllers.Where(c => c.Name != "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
 
+                // For first player (or player 2 if playerindex is 2 and player 1 has a gamepad), we set keyboard keys to auxiliary gun buttons
                 if (playerIndex == 1 || ctrl != null)
                 {
+                    // Start always set to enter and backspace
                     retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
                     retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
 
+                    // Auxiliary buttons can be set to directions if using a wiimote
                     if (SystemConfig.isOptSet("gun_ab") && SystemConfig["gun_ab"] == "directions")
                     {
                         retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = "left";
                         retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = "right";
                         retroarchConfig["input_player" + playerIndex + "_gun_aux_c"] = "up";
                     }
+                    // By default auxiliary buttons are set to keys defined in es_input for the keyboard
                     else
                     {
                         var keyb = Controllers.Where(c => c.Name == "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
@@ -282,6 +327,7 @@ namespace emulatorLauncher.libRetro
                 }
             }
 
+            // Multigun case
             else
             {
                 for (int i = 1; i <= guns.Length; i++)
@@ -341,6 +387,7 @@ namespace emulatorLauncher.libRetro
             }
         }
 
+        // List of retroarch.cfg gun input lines (used to clean up)
         static List<string> gunButtons = new List<string>()
         {
             "_mouse_index",
@@ -390,6 +437,10 @@ namespace emulatorLauncher.libRetro
             "_gun_trigger_mbtn"
         };
 
+        // Rule to get mouse button assignment for each core, based on dictionaries
+        // 2 type of cases : 
+        // 1 - Classic case ==> mouse left = trigger
+        // 2 - reverse case ==> mouse right = trigger
         private string GetcoreMouseButton (string core, bool guninvert, string mbtn)
         {
             bool changeReload = SystemConfig.isOptSet("gun_reload_button") && SystemConfig.getOptBoolean("gun_reload_button");
@@ -444,20 +495,24 @@ namespace emulatorLauncher.libRetro
         // Set all dictionnaries for mouse buttons (2 dictionaries for each button, one for default value, one for value when reload is forced on mouse rightclick)
         static Dictionary<string, string> coreDefaultMouseReloadButton = new Dictionary<string, string>()
         {
-            { "fbneo",              "nul" },
-            { "flycast",            "nul" },
-            { "kronos",             "2" },
-            { "mednafen_psx",       "nul" },
-            { "mednafen_psx_hw",    "nul" },
-            { "mednafen_saturn",    "2" },
-            { "pcsx_rearmed",       "nul" },
-            { "swanstation",        "nul" }
+            { "fbneo",                  "nul" },
+            { "flycast",                "nul" },
+            { "genesis_plus_gx",        "nul" },
+            { "genesis_plus_gx_wide",   "nul" },
+            { "kronos",                 "2" },
+            { "mednafen_psx",           "nul" },
+            { "mednafen_psx_hw",        "nul" },
+            { "mednafen_saturn",        "2" },
+            { "pcsx_rearmed",           "nul" },
+            { "swanstation",            "nul" }
         };
 
         static Dictionary<string, string> coreDefaultMouseAuxAButton = new Dictionary<string, string>()
         {
             { "fbneo",              "2" },
             { "flycast",            "2" },
+            { "genesis_plus_gx",        "2" },
+            { "genesis_plus_gx_wide",   "2" },
             { "kronos",             "nul" },
             { "mednafen_psx",       "2" },
             { "mednafen_psx_hw",    "2" },
@@ -470,6 +525,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "3" },
             { "flycast",            "3" },
+            { "genesis_plus_gx",        "3" },
+            { "genesis_plus_gx_wide",   "3" },
             { "kronos",             "nul" },
             { "mednafen_psx",       "3" },
             { "mednafen_psx_hw",    "3" },
@@ -482,6 +539,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "genesis_plus_gx",        "3" },
+            { "genesis_plus_gx_wide",   "3" },
             { "kronos",             "nul" },
             { "mednafen_psx",       "3" },
             { "mednafen_psx_hw",    "3" },
@@ -494,6 +553,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "genesis_plus_gx",        "nul" },
+            { "genesis_plus_gx_wide",   "nul" },
             { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
@@ -506,6 +567,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "genesis_plus_gx",        "nul" },
+            { "genesis_plus_gx_wide",   "nul" },
             { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
@@ -518,6 +581,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "genesis_plus_gx",        "nul" },
+            { "genesis_plus_gx_wide",   "nul" },
             { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
@@ -530,6 +595,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "3" },
             { "flycast",            "3" },
+            { "genesis_plus_gx",        "nul" },
+            { "genesis_plus_gx_wide",   "nul" },
             { "kronos",             "3" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
@@ -542,6 +609,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "genesis_plus_gx",        "nul" },
+            { "genesis_plus_gx_wide",   "nul" },
             { "kronos",             "3" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
@@ -554,6 +623,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "genesis_plus_gx",        "nul" },
+            { "genesis_plus_gx_wide",   "nul" },
             { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
@@ -566,6 +637,8 @@ namespace emulatorLauncher.libRetro
         {
             { "fbneo",              "nul" },
             { "flycast",            "nul" },
+            { "genesis_plus_gx",        "nul" },
+            { "genesis_plus_gx_wide",   "nul" },
             { "kronos",             "nul" },
             { "mednafen_psx",       "nul" },
             { "mednafen_psx_hw",    "nul" },
