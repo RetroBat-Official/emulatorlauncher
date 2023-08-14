@@ -404,7 +404,7 @@ namespace emulatorLauncher.libRetro
             // Inject custom input_libretro_device_pXX values into remap file, as it's no longer supported in retroarch.cfg file
             if (InputRemap != null && InputRemap.Count == 0 && Program.SystemConfig["disableautocontrollers"] != "1")
             {
-                for (int i = 1; i <= 5; i++)
+                for (int i = 1; i <= 8; i++)
                 {
                     var dev = retroarchConfig["input_libretro_device_p" + i];
                     if (string.IsNullOrEmpty(dev))
@@ -2692,10 +2692,21 @@ namespace emulatorLauncher.libRetro
 
             // Controls
             BindFeature(coreSettings, "pcsx_rearmed_vibration", "pcsx_rearmed_vibration", "disabled");
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "psx_controller1", "259");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "psx_controller2", "259");
-            BindFeature(retroarchConfig, "input_libretro_device_p3", "psx_controller3", "259");
-            BindFeature(retroarchConfig, "input_libretro_device_p4", "psx_controller4", "259");
+            
+            if (SystemConfig.isOptSet("pcsx_controller") && !string.IsNullOrEmpty(SystemConfig["pcsx_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["pcsx_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
 
             if (Controllers.Count > 5)
                 coreSettings["pcsx_rearmed_multitap"] = "both";
@@ -2718,6 +2729,23 @@ namespace emulatorLauncher.libRetro
         {
             if (core != "mednafen_psx_hw")
                 return;
+
+            // Multitap in case of multiplayer
+            if (Controllers.Count > 5)
+            {
+                coreSettings["beetle_psx_hw_enable_multitap_port1"] = "enabled";
+                coreSettings["beetle_psx_hw_enable_multitap_port2"] = "enabled";
+            }
+            else if (Controllers.Count > 2)
+            {
+                coreSettings["beetle_psx_hw_enable_multitap_port1"] = "enabled";
+                coreSettings["beetle_psx_hw_enable_multitap_port2"] = "disabled";
+            }
+            else
+            {
+                coreSettings["beetle_psx_hw_enable_multitap_port1"] = "disabled";
+                coreSettings["beetle_psx_hw_enable_multitap_port2"] = "disabled";
+            }
 
             // widescreen
             BindFeature(coreSettings, "beetle_psx_hw_widescreen_hack", "widescreen_hack", "disabled");
@@ -2779,22 +2807,37 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%(native)");
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "psxcontroller2", "1");
+            if (SystemConfig.isOptSet("mednafen_controller") && !string.IsNullOrEmpty(SystemConfig["mednafen_controller"]))
+            {
+                for (int i = 1; i<9;i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["mednafen_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
             BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun");
             BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross");
             BindFeature(coreSettings, "beetle_psx_hw_analog_toggle_combo", "beetle_psx_hw_analog_toggle_combo", "l1+r1+start");
 
-            // If lightgun is enabled, renderer must be changed to software
-            if (SystemConfig.getOptBoolean("use_guns") || SystemConfig["psxcontroller1"] == "260")
-                coreSettings["beetle_psx_hw_renderer"] = "software";
+            // If lightgun is enabled, multitaps are disabled
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                coreSettings["beetle_psx_hw_enable_multitap_port1"] = "disabled";
+                coreSettings["beetle_psx_hw_enable_multitap_port2"] = "disabled";
+            }
+
 
             // Some games require a controller in port 1 and lightgun in port 2
             if (SystemConfig.isOptSet("psx_gunport2") && SystemConfig.getOptBoolean("psx_gunport2"))
                 SetupLightGuns(retroarchConfig, "260", core, 2);
             else
                 SetupLightGuns(retroarchConfig, "260", core, 1);
-
 
         }
 
@@ -2875,8 +2918,21 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "swanstation_BIOS_PatchFastBoot", "skip_bios", "true");
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "psxcontroller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "psxcontroller2", "1");
+            if (SystemConfig.isOptSet("swanstation_controller") && !string.IsNullOrEmpty(SystemConfig["swanstation_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["swanstation_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
+
             BindFeature(retroarchConfig, "swanstation_Controller_AnalogCombo", "swanstation_Controller_AnalogCombo", "4");
 
             if (Controllers.Count > 5)
