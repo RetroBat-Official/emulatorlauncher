@@ -770,8 +770,20 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "fba-vertical-mode", "fba_vertical_mode", "disabled");
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "fba_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "fba_controller2", "1");
+            if (SystemConfig.isOptSet("fba_controller") && !string.IsNullOrEmpty(SystemConfig["fba_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fba_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
         }
 
         private void ConfigureFbalpha2012(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -781,11 +793,21 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "fbneo-vertical-mode", "fba2012_vertical_mode", "disabled");
 
-            // Player 1 controller
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "fba2012_controller1", "1");
-
-            // Player 2 controller
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "fba2012_controller2", "1");
+            // Controllers
+            if (SystemConfig.isOptSet("fba2012_controller") && !string.IsNullOrEmpty(SystemConfig["fba2012_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fba2012_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
         }
 
         private void ConfigureFbalphaCPS3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -993,8 +1015,20 @@ namespace emulatorLauncher.libRetro
             }
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "fbneo_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "fbneo_controller2", "1");
+            if (SystemConfig.isOptSet("fbneo_controller") && !string.IsNullOrEmpty(SystemConfig["fbneo_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fbneo_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
 
             SetupLightGuns(retroarchConfig, "4", core);
         }
@@ -1064,9 +1098,21 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "beetle_saturn_mouse_sensitivity", "beetle_saturn_mouse_sensitivity", "100%");
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "saturn_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "saturn_controller2", "1");
-            
+            if (SystemConfig.isOptSet("mednafen_saturn_controller") && !string.IsNullOrEmpty(SystemConfig["mednafen_saturn_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["mednafen_saturn_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
+
             coreSettings["beetle_saturn_virtuagun_input"] = "Lightgun";
             SetupLightGuns(retroarchConfig, "260", core);
 
@@ -1091,8 +1137,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "picodrive_region", "region", "Auto");
             BindFeature(coreSettings, "picodrive_renderer", "renderer", "accurate");
             BindFeature(coreSettings, "picodrive_drc", "dynamic_recompiler", "disabled");
-            BindFeature(coreSettings, "picodrive_input1", "input1", "3 button pad");
-            BindFeature(coreSettings, "picodrive_input2", "input2", "3 button pad");
+            BindFeature(coreSettings, "picodrive_input1", "picodrive_input1", "3 button pad");
+            BindFeature(coreSettings, "picodrive_input2", "picodrive_input2", "3 button pad");
             BindFeature(coreSettings, "picodrive_smsfm", "picodrive_smsfm", "off");
             BindFeature(coreSettings, "picodrive_smsmapper", "picodrive_smsmapper", "Auto");
 
@@ -1298,10 +1344,20 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "kronos_videoformattype", "videoformattype", "auto");
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "kronos_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "kronos_controller2", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p3", "kronos_controller3", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p4", "kronos_controller4", "1");
+            if (SystemConfig.isOptSet("kronos_controller") && !string.IsNullOrEmpty(SystemConfig["kronos_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["kronos_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
 
             SetupLightGuns(retroarchConfig, "2", core);     // Kronos does not have device 260, only mouse "2"
 
@@ -2150,8 +2206,20 @@ namespace emulatorLauncher.libRetro
             }
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "genesis_plus_gx_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "genesis_plus_gx_controller2", "1");
+            if (SystemConfig.isOptSet("genesis_plus_gx_controller") && !string.IsNullOrEmpty(SystemConfig["genesis_plus_gx_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["genesis_plus_gx_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
 
             BindFeature(coreSettings, "genesis_plus_gx_gun_cursor", "gun_cursor", "enabled");
             BindFeature(coreSettings, "genesis_plus_gx_gun_input", "gun_input", "lightgun");
@@ -2586,10 +2654,21 @@ namespace emulatorLauncher.libRetro
                 coreSettings["reicast_frame_skipping"] = "disabled";
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "flycast_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "flycast_controller2", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p3", "flycast_controller3", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p4", "flycast_controller4", "1");
+            if (SystemConfig.isOptSet("flycast_controller") && !string.IsNullOrEmpty(SystemConfig["flycast_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["flycast_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
+
             BindFeature(coreSettings, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
             BindFeature(coreSettings, "reicast_lightgun2_crosshair", "reicast_lightgun2_crosshair", "disabled");
 
