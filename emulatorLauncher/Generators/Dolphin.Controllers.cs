@@ -5,6 +5,8 @@ using System.Text;
 using System.IO;
 using emulatorLauncher.Tools;
 using System.Globalization;
+using static emulatorLauncher.PadToKeyboard.SendKey;
+using System.Security.Cryptography;
 
 namespace emulatorLauncher
 {
@@ -403,6 +405,10 @@ namespace emulatorLauncher
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
+            bool forceSDL = false;
+            if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
+                forceSDL = true;
+
             int nsamepad = 0;
             bool gc = anyDefKey == "GCPad";
 
@@ -432,13 +438,14 @@ namespace emulatorLauncher
                         tech = "DInput";
                         deviceName = "Keyboard Mouse";                        
                     } 
-                    else if (!pad.IsXInputDevice)
+                    else if (!pad.IsXInputDevice || forceSDL)
                     {
                         var s = pad.SdlController;
                         if (s == null)
                             continue;
                         
                         tech = "SDL";
+
                         deviceName = s.Name;
                     }
              
@@ -524,6 +531,74 @@ namespace emulatorLauncher
                                 ini.WriteValue(gcpad, "Buttons/Z", "`Thumb L`&`Thumb R`");
 
                         }
+                        else if (forceSDL)
+                        {
+                            var input = pad.Config[x.Key];
+
+                            if (input == null)
+                                continue;
+
+                            if (input.Type == "button")
+                            {
+                                if (input.Id == 0) // invert A&B
+                                    ini.WriteValue(gcpad, value, "`Button 1`");
+                                else if (input.Id == 1) // invert A&B
+                                    ini.WriteValue(gcpad, value, "`Button 0`");
+                                else
+                                    ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
+                            }
+
+                            else if (input.Type == "axis")
+                            {
+                                Func<Input, bool, string> axisValue = (inp, revertAxis) =>
+                                {
+                                    string axis = "`Axis ";
+
+                                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
+                                        axis += inp.Id;
+
+                                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))
+                                        axis += "+";
+                                    else
+                                        axis += "-";
+
+                                    if (inp.Id == 4 || inp.Id == 5)
+                                        axis = "`Full Axis " + inp.Id + "+";
+
+                                    return axis + "`";
+                                };
+
+                                ini.WriteValue(gcpad, value, axisValue(input, false));
+
+                                string reverseAxis;
+                                if (anyReverseAxes.TryGetValue(value, out reverseAxis))
+                                    ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
+                            }
+
+                            else if (input.Type == "hat")
+                            {
+                                Int64 pid = input.Value;
+                                switch (pid)
+                                {
+                                    case 1: 
+                                        ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " N`");
+                                        break;
+                                    case 2:
+                                        ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " E`");
+                                        break;
+                                    case 4:
+                                        ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " S`");
+                                        break;
+                                    case 8:
+                                        ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " W`");
+                                        break;
+                                }
+                            }
+                            // Z button is used to access test menu, do not map it with R1
+                            if (triforce)
+                                ini.WriteValue(gcpad, "Buttons/Z", "@(`Button 8`+`Button 9`)");
+                        }
+                        
                         else // SDL
                         {
                             var input = pad.GetSdlMapping(x.Key);

@@ -154,7 +154,7 @@ namespace emulatorLauncher
             BindFeature(yml, "backend-renderer", "backend-renderer", "Vulkan");
             BindFeature(yml, "resolution-multiplier", "resolution-multiplier", "1");
             BindFeature(yml, "disable-surface-sync", "disable_surfacesync", "false");
-            BindFeature(yml, "enable-fxaa", "enable-fxaa", "false");
+            BindFeature(yml, "screen-filter", "vita_screenfilter", "Bilinear");
             BindFeature(yml, "v-sync", "vsync", "false");
             BindFeature(yml, "anisotropic-filtering", "anisotropic-filtering", "1");
             BindFeature(yml, "cpu-opt", "cpu-opt", "true");

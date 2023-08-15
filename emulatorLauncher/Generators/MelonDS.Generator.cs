@@ -119,9 +119,9 @@ namespace emulatorLauncher
                 if (dsi)
                 {
                     ini.WriteValue("", "ConsoleType", "1");
-                    string dsifirmware = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_bios7.bin");
-                    string dsibios7 = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_bios9.bin");
-                    string dsibios9 = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_firmware.bin");
+                    string dsibios9 = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_bios9.bin");
+                    string dsifirmware = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_firmware.bin");
+                    string dsibios7 = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_bios7.bin");
                     string dsinand = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
 
                     if (!File.Exists(dsifirmware) || !File.Exists(dsibios7) || !File.Exists(dsibios9) || !File.Exists(dsinand))
