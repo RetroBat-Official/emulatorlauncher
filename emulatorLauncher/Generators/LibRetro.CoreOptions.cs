@@ -2154,7 +2154,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
 
             // Gun configuration only for bsnes as bsnes_hd_beta does not have lightgun
-            if (SystemConfig.getOptBoolean("use_guns") && core == "bsnes")
+            if (SystemConfig.getOptBoolean("use_guns"))
             {
                 string gunId = "260";
 
@@ -2162,8 +2162,11 @@ namespace emulatorLauncher.libRetro
                 if (gunInfo != null && gunInfo.GunType == "justifier")
                     gunId = "516";
 
-                coreSettings["bsnes_touchscreen_lightgun_superscope_reverse"] = (gunInfo != null && gunInfo.ReversedButtons ? "ON" : "OFF");
-                coreSettings["bsnes_touchscreen_lightgun"] = "ON";
+                if (core == "bsnes")
+                {
+                    coreSettings["bsnes_touchscreen_lightgun_superscope_reverse"] = (gunInfo != null && gunInfo.ReversedButtons ? "ON" : "OFF");
+                    coreSettings["bsnes_touchscreen_lightgun"] = "ON";
+                }
 
                 SetupLightGuns(retroarchConfig, gunId, core, 2);
             }
