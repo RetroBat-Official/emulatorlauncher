@@ -107,7 +107,9 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_player" + playerIndex + "_gun_dpad_right_btn"] = right_padbutton;
 
                 retroarchConfig["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
-                retroarchConfig["input_player" + playerIndex + "_joypad_index"] = "0";
+                
+                string joypadIndex = retroarchConfig["input_player" + playerIndex + "_joypad_index"];
+                retroarchConfig["input_player" + playerIndex + "_joypad_index"] = joypadIndex;
             }
 
             // Multigun case
@@ -161,7 +163,9 @@ namespace emulatorLauncher.libRetro
                         retroarchConfig["input_player" + i + "_gun_dpad_right_btn"] = right_padbutton;
 
                     retroarchConfig["input_player" + i + "_analog_dpad_mode"] = "0";
-                    retroarchConfig["input_player" + i + "_joypad_index"] = deviceIndex.ToString();
+
+                    string joypadIndex = retroarchConfig["input_player" + i + "_joypad_index"];
+                    retroarchConfig["input_player" + i + "_joypad_index"] = joypadIndex;
                 }
             }
 
@@ -267,7 +271,7 @@ namespace emulatorLauncher.libRetro
         private void ConfigureGunsCore(ConfigFile retroarchConfig, int playerIndex, string core, string deviceType, bool multigun = false, bool guninvert = false, bool useOneGun = false)
         {
             // Some systems offer multiple type of guns (justifier, guncon...). Option must be available in es_features.cfg
-            if (SystemConfig.isOptSet("gun_type") && !string.IsNullOrEmpty(SystemConfig["gun_type"]))
+            if (SystemConfig.isOptSet("gun_type") && !string.IsNullOrEmpty(SystemConfig["gun_type"]) && SystemConfig["gun_type"] != "justifiers")
                 deviceType = SystemConfig["gun_type"];
 
             var guns = RawLightgun.GetRawLightguns();
@@ -296,7 +300,9 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["input_player" + playerIndex + "_gun_select_mbtn"] = GetcoreMouseButton(core, guninvert, "select");
 
                 retroarchConfig["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
-                retroarchConfig["input_player" + playerIndex + "_joypad_index"] = deviceIndex.ToString();
+
+                string joypadIndex = retroarchConfig["input_player" + playerIndex + "_joypad_index"];
+                retroarchConfig["input_player" + playerIndex + "_joypad_index"] = joypadIndex;
 
                 var ctrl = Controllers.Where(c => c.Name != "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
 
@@ -337,6 +343,50 @@ namespace emulatorLauncher.libRetro
                         }
                     }
                 }
+
+                // Additionaly we configure keyboard buttons for directions
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = "up";
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = "down";
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_left"] = "left";
+                retroarchConfig["input_player" + playerIndex + "_gun_dpad_right"] = "right";
+
+                // Case of justifiers (use port 3)
+                if (SystemConfig.isOptSet("gun_type") && SystemConfig["gun_type"] == "justifiers" && guns[1] != null && playerIndex == 2)
+                {
+                    retroarchConfig["input_driver"] = "raw";
+                    int deviceIndex2 = guns[1].Index;
+                    retroarchConfig["input_libretro_device_p3"] = "772";
+                    retroarchConfig["input_player3_mouse_index"] = deviceIndex2.ToString();
+                    retroarchConfig["input_player3_gun_trigger_mbtn"] = guninvert ? "2" : "1";
+                    retroarchConfig["input_player3_gun_offscreen_shot_mbtn"] = GetcoreMouseButton(core, guninvert, "reload");
+                    retroarchConfig["input_player3_gun_aux_a_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_a");
+                    retroarchConfig["input_player3_gun_aux_b_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_b");
+                    retroarchConfig["input_player3_gun_aux_c_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_c");
+                    retroarchConfig["input_player3_gun_start_mbtn"] = GetcoreMouseButton(core, guninvert, "start");
+                    retroarchConfig["input_player3_gun_select_mbtn"] = GetcoreMouseButton(core, guninvert, "select");
+                    retroarchConfig["input_player3_analog_dpad_mode"] = "0";
+
+                    string joypadIndex2 = retroarchConfig["input_player3_joypad_index"];
+                    retroarchConfig["input_player3_joypad_index"] = joypadIndex2;
+
+                    // Delete keyboard assignment
+                    retroarchConfig["input_player3_a"] = "nul";
+                    retroarchConfig["input_player3_b"] = "nul";
+                    retroarchConfig["input_player3_x"] = "nul";
+                    retroarchConfig["input_player3_y"] = "nul";
+                    retroarchConfig["input_player3_down"] = "nul";
+                    retroarchConfig["input_player3_l"] = "nul";
+                    retroarchConfig["input_player3_l2"] = "nul";
+                    retroarchConfig["input_player3_l3"] = "nul";
+                    retroarchConfig["input_player3_left"] = "nul";
+                    retroarchConfig["input_player3_r"] = "nul";
+                    retroarchConfig["input_player3_r2"] = "nul";
+                    retroarchConfig["input_player3_r3"] = "nul";
+                    retroarchConfig["input_player3_right"] = "nul";
+                    retroarchConfig["input_player3_select"] = "nul";
+                    retroarchConfig["input_player3_start"] = "nul";
+                    retroarchConfig["input_player3_up"] = "nul";
+                }
             }
 
             // Multigun case
@@ -360,12 +410,18 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_player" + i + "_gun_select_mbtn"] = GetcoreMouseButton(core, guninvert, "select");
 
                     retroarchConfig["input_player" + i + "_analog_dpad_mode"] = "0";
-                    retroarchConfig["input_player" + i + "_joypad_index"] = deviceIndex.ToString();
+
+                    string joypadIndex = retroarchConfig["input_player" + i + "_joypad_index"];
+                    retroarchConfig["input_player" + i + "_joypad_index"] = joypadIndex;
 
                     if (i == 1)
                     {
                         retroarchConfig["input_player" + i + "_gun_start"] = "enter";
                         retroarchConfig["input_player" + i + "_gun_select"] = "backspace";
+                        retroarchConfig["input_player" + i + "_gun_dpad_up"] = "up";
+                        retroarchConfig["input_player" + i + "_gun_dpad_down"] = "down";
+                        retroarchConfig["input_player" + i + "_gun_dpad_left"] = "left";
+                        retroarchConfig["input_player" + i + "_gun_dpad_right"] = "right";
 
                         if (SystemConfig.isOptSet("gun_ab") && SystemConfig["gun_ab"] == "directions")
                         {
