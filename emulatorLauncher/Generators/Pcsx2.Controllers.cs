@@ -204,10 +204,10 @@ namespace emulatorLauncher
             if (ctrl.IsXInputDevice && !_forceSDL)
             {
                     int xIndex = Program.Controllers
-                        .GroupBy(c => c.DeviceIndex)
+                        .GroupBy(c => c)
                         .Where(c => ctrl.IsXInputDevice)
                         .SelectMany(c => c)
-                        .OrderBy(c => c.DirectInput.DeviceIndex)
+                        .OrderBy(c => c.DirectInput.DevicePath)
                         .ToList()
                         .IndexOf(ctrl);
                 
