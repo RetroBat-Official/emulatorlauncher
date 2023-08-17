@@ -18,6 +18,8 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool bootToDSINand = Path.GetExtension(rom).ToLowerInvariant() == ".bin";
+
             //Applying bezels
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
@@ -25,7 +27,7 @@ namespace emulatorLauncher
             _resolution = resolution;
 
             // settings
-            SetupConfiguration(path);
+            SetupConfiguration(path, rom, bootToDSINand);
 
             // command line parameters
             var commandArray = new List<string>
@@ -39,7 +41,10 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args + " \"" + rom + "\"",
+                Arguments =
+                    bootToDSINand ?
+                        args + " -b always" :
+                        args + " \"" + rom + "\"",
             };
         }
 
@@ -61,7 +66,7 @@ namespace emulatorLauncher
             return ret;
         }
 
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, string rom, bool bootToDSINand = false)
         {
             string settingsFile = Path.Combine(path, "melonDS.ini");
 
@@ -70,6 +75,9 @@ namespace emulatorLauncher
                 CreateControllerConfiguration(ini);
 
                 bool dsi = SystemConfig.isOptSet("melonds_console") && SystemConfig["melonds_console"] == "dsi";
+
+                if (bootToDSINand)
+                    dsi = true;
 
                 ini.WriteValue("", "ExternalBIOSEnable", "0");
 
@@ -123,6 +131,23 @@ namespace emulatorLauncher
                     string dsifirmware = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_firmware.bin");
                     string dsibios7 = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_bios7.bin");
                     string dsinand = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
+
+                    if (bootToDSINand)
+                    {
+                        // Copy the loaded nand to the bios folder before loading, so that multiple nand files can be used.
+                        string biosPath = Path.Combine(AppConfig.GetFullPath("bios"));
+                        if (!string.IsNullOrEmpty(biosPath))
+                        {
+                            string nandFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
+                            string nandFileSource = rom;
+
+                            if (File.Exists(nandFileTarget) && File.Exists(nandFileSource))
+                                File.Delete(nandFileTarget);
+
+                            if (File.Exists(nandFileSource))
+                                File.Copy(nandFileSource, nandFileTarget);
+                        }
+                    }
 
                     if (!File.Exists(dsifirmware) || !File.Exists(dsibios7) || !File.Exists(dsibios9) || !File.Exists(dsinand))
                         throw new ApplicationException("Cannot run dsi system, dsi bios files are missing");

@@ -3182,6 +3182,30 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
             BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+
+            // Boot to firmware directly if a .bin file is loaded
+            string rom = SystemConfig["rom"];
+
+            if (Path.GetExtension(rom) == ".bin")
+            {
+                coreSettings["melonds_boot_directly"] = "disabled";
+                coreSettings["melonds_console_mode"] = "DSi";
+
+                // Copy the loaded nand to the bios folder before loading, so that multiple nand files can be used.
+                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"));
+                if (!string.IsNullOrEmpty(biosPath))
+                {
+                    string nandFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
+                    string nandFileSource = rom;
+
+                    if (File.Exists(nandFileTarget) && File.Exists(nandFileSource))
+                        File.Delete(nandFileTarget);
+
+                    if (File.Exists(nandFileSource))
+                        File.Copy(nandFileSource, nandFileTarget);
+
+                }
+            }
         }
 
         private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
