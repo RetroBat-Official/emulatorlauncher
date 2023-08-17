@@ -16,11 +16,6 @@ namespace emulatorLauncher
     {
         private LoadingForm _splash;
 
-        public FpinballGenerator()                
-        {
-            SetupControllers();
-        }
-
         public static int JoystickValue(InputKey key, Controller c)
         {
             var a = c.GetDirectInputMapping(key);
@@ -38,68 +33,70 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
-            if (controller != null)
+            if (Controllers != null)
             {
-                var directInput = controller.DirectInput;
-                if (directInput != null)
+                var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
+                if (controller != null)
                 {
-                    string fpinballName = directInput.Name.Length > 47 ? directInput.Name.Substring(0, 47) : directInput.Name;
-
-                    RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
-                    if (regKeyc != null)
-                        regKeyc = regKeyc.CreateSubKey("Future Pinball").CreateSubKey("GamePlayer").CreateSubKey("JoyPads");
-
-                    if (regKeyc != null)
+                    var directInput = controller.DirectInput;
+                    if (directInput != null)
                     {
-                        foreach (var name in regKeyc.GetValueNames())
-                            regKeyc.DeleteValue(name);
+                        string fpinballName = directInput.Name.Length > 47 ? directInput.Name.Substring(0, 47) : directInput.Name;
 
-                        regKeyc = regKeyc.CreateSubKey(fpinballName);
+                        RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
+                        if (regKeyc != null)
+                            regKeyc = regKeyc.CreateSubKey("Future Pinball").CreateSubKey("GamePlayer").CreateSubKey("JoyPads");
+
                         if (regKeyc != null)
                         {
-                            regKeyc.SetValue("JoypadSupport", 1);
-                            
-                            regKeyc.SetValue("JoypadDigitalPlunger", JoystickValue(InputKey.a, controller));
-                            regKeyc.SetValue("JoypadToggleHud", JoystickValue(InputKey.y, controller));
-                            regKeyc.SetValue("JoypadNextCamera", JoystickValue(InputKey.b, controller));
-                            regKeyc.SetValue("JoypadExit", JoystickValue(InputKey.x, controller));
-                            regKeyc.SetValue("JoypadLeftFlipper", JoystickValue(InputKey.pageup, controller));
-                            regKeyc.SetValue("JoypadRightFlipper", JoystickValue(InputKey.pagedown, controller));
+                            foreach (var name in regKeyc.GetValueNames())
+                                regKeyc.DeleteValue(name);
 
-                            regKeyc.SetValue("JoypadStartGame", JoystickValue(InputKey.start, controller));
-                            regKeyc.SetValue("JoypadInsertCoin", JoystickValue(InputKey.select, controller));
+                            regKeyc = regKeyc.CreateSubKey(fpinballName);
+                            if (regKeyc != null)
+                            {
+                                regKeyc.SetValue("JoypadSupport", 1);
 
-                            regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.r3, controller));
-                            regKeyc.SetValue("JoypadBackbox", JoystickValue(InputKey.l3, controller));
+                                regKeyc.SetValue("JoypadDigitalPlunger", JoystickValue(InputKey.a, controller));
+                                regKeyc.SetValue("JoypadToggleHud", JoystickValue(InputKey.y, controller));
+                                regKeyc.SetValue("JoypadNextCamera", JoystickValue(InputKey.b, controller));
+                                regKeyc.SetValue("JoypadExit", JoystickValue(InputKey.x, controller));
+                                regKeyc.SetValue("JoypadLeftFlipper", JoystickValue(InputKey.pageup, controller));
+                                regKeyc.SetValue("JoypadRightFlipper", JoystickValue(InputKey.pagedown, controller));
 
-                            regKeyc.SetValue("JoypadSpecial1", -1);
-                            regKeyc.SetValue("JoypadSpecial2", -1);
-                            regKeyc.SetValue("JoypadInsertCoin2", -1);
-                            regKeyc.SetValue("JoypadInsertCoin3", -1);
-                            regKeyc.SetValue("JoypadLeft2ndFlipper", -1);
-                            regKeyc.SetValue("JoypadRight2ndFlipper", -1);
-                            regKeyc.SetValue("JoypadTest", -1);
-                            regKeyc.SetValue("JoypadVolumeUp", -1);
-                            regKeyc.SetValue("JoypadVolumeDown", -1);
-                            regKeyc.SetValue("JoypadMusicUp", -1);
-                            regKeyc.SetValue("JoypadMusicDown", -1);
-                            regKeyc.SetValue("JoypadService", -1);
-                            regKeyc.SetValue("JoypadPinballRoller", -1);
-                            regKeyc.SetValue("JoypadPlungerAxis", -1);
-                            regKeyc.SetValue("JoypadNudgeAxisX", -1);
-                            regKeyc.SetValue("JoypadNudgeAxisY", -1);
-                            regKeyc.SetValue("JoypadPinballRollerAxisX", -1);
-                            regKeyc.SetValue("JoypadPinballRollerAxisY", -1);
-                          
+                                regKeyc.SetValue("JoypadStartGame", JoystickValue(InputKey.start, controller));
+                                regKeyc.SetValue("JoypadInsertCoin", JoystickValue(InputKey.select, controller));
 
-                            regKeyc.Close();
+                                regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.r3, controller));
+                                regKeyc.SetValue("JoypadBackbox", JoystickValue(InputKey.l3, controller));
+
+                                regKeyc.SetValue("JoypadSpecial1", -1);
+                                regKeyc.SetValue("JoypadSpecial2", -1);
+                                regKeyc.SetValue("JoypadInsertCoin2", -1);
+                                regKeyc.SetValue("JoypadInsertCoin3", -1);
+                                regKeyc.SetValue("JoypadLeft2ndFlipper", -1);
+                                regKeyc.SetValue("JoypadRight2ndFlipper", -1);
+                                regKeyc.SetValue("JoypadTest", -1);
+                                regKeyc.SetValue("JoypadVolumeUp", -1);
+                                regKeyc.SetValue("JoypadVolumeDown", -1);
+                                regKeyc.SetValue("JoypadMusicUp", -1);
+                                regKeyc.SetValue("JoypadMusicDown", -1);
+                                regKeyc.SetValue("JoypadService", -1);
+                                regKeyc.SetValue("JoypadPinballRoller", -1);
+                                regKeyc.SetValue("JoypadPlungerAxis", -1);
+                                regKeyc.SetValue("JoypadNudgeAxisX", -1);
+                                regKeyc.SetValue("JoypadNudgeAxisY", -1);
+                                regKeyc.SetValue("JoypadPinballRollerAxisX", -1);
+                                regKeyc.SetValue("JoypadPinballRollerAxisY", -1);
+
+
+                                regKeyc.Close();
+                            }
                         }
                     }
                 }
             }
         }
-
 
         string _bam;
         string _rom;
@@ -137,6 +134,7 @@ namespace emulatorLauncher
             ScreenResolution.SetHighDpiAware(exe);
 
             SetupOptions(resolution);
+            SetupControllers();
 
             var ret = new ProcessStartInfo()
             {
