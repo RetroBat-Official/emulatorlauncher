@@ -5,7 +5,6 @@ using System.Text;
 using System.IO;
 using emulatorLauncher.Tools;
 using System.Globalization;
-using static emulatorLauncher.PadToKeyboard.SendKey;
 using System.Security.Cryptography;
 
 namespace emulatorLauncher

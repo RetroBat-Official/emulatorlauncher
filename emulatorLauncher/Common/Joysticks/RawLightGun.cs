@@ -125,8 +125,11 @@ namespace emulatorLauncher.Tools
         {
             switch (Type)
             {
-                case RawLighGunType.SindenLightgun:
+                case RawLighGunType.Gun4Ir:
                     return Index;
+
+                case RawLighGunType.SindenLightgun:
+                    return 10 + Index;
 
                 case RawLighGunType.MayFlashWiimote:
                     return 100 + Index;
@@ -152,6 +155,10 @@ namespace emulatorLauncher.Tools
                 if (sindenDeviceIds.Any(d => DevicePath.Contains(d)))
                     return RawLighGunType.SindenLightgun;
 
+                string[] gun4irDeviceIds = new string[] { "VID_2341&PID_8042" };
+                if (gun4irDeviceIds.Any(d => DevicePath.Contains(d)))
+                    return RawLighGunType.Gun4Ir;
+
                 string[] mayFlashWiimoteIds = new string[] { "VID_0079&PID_1802" };  // Mayflash Wiimote, using mode 1
                 if (mayFlashWiimoteIds.Any(d => DevicePath.Contains(d)))
                     return RawLighGunType.MayFlashWiimote;
@@ -169,6 +176,7 @@ namespace emulatorLauncher.Tools
     {
         SindenLightgun,
         MayFlashWiimote, // Using mode 1
+        Gun4Ir,
         Mouse
     }
 }
