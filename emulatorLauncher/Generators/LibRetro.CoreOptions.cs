@@ -107,7 +107,7 @@ namespace emulatorLauncher.libRetro
                 { "jaxe", "JAXE" },
                 { "jumpnbump", "jumpnbump" },
                 { "kronos", "Kronos" },
-                { "lowresnx", "lowresnx" },
+                { "lowresnx", "LowRes NX" },
                 { "lutro", "Lutro" },
                 { "mame2000", "MAME 2000" },
                 { "mame2003", "MAME 2003 (0.78)" },
