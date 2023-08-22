@@ -124,6 +124,11 @@ namespace emulatorLauncher
                     else if (Features.IsSupported("d3d12_allow_variable_refresh_rate_and_tearing"))
                         ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", "true");
 
+                    if (SystemConfig.isOptSet("d3d12_readback_resolve") && !string.IsNullOrEmpty(SystemConfig["d3d12_readback_resolve"]))
+                        ini.AppendValue("D3D12", "d3d12_readback_resolve", SystemConfig["d3d12_readback_resolve"]);
+                    else if (Features.IsSupported("d3d12_readback_resolve"))
+                        ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
+
                     //Display section
                     string fxaa = "\"" + SystemConfig["postprocess_antialiasing"] + "\"";
                     if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
@@ -168,6 +173,11 @@ namespace emulatorLauncher
                         ini.AppendValue("GPU", "vsync", SystemConfig["vsync"]);
                     else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
+
+                    if (SystemConfig.isOptSet("query_occlusion_fake_sample_count") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_fake_sample_count"]))
+                        ini.AppendValue("GPU", "query_occlusion_fake_sample_count", SystemConfig["query_occlusion_fake_sample_count"]);
+                    else if (Features.IsSupported("query_occlusion_fake_sample_count"))
+                        ini.AppendValue("GPU", "query_occlusion_fake_sample_count", "1000");
 
                     // Memory section
                     if (SystemConfig.isOptSet("scribble_heap") && !string.IsNullOrEmpty(SystemConfig["scribble_heap"]))
