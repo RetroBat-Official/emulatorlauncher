@@ -107,7 +107,7 @@ namespace emulatorLauncher.libRetro
                 { "jaxe", "JAXE" },
                 { "jumpnbump", "jumpnbump" },
                 { "kronos", "Kronos" },
-                { "lowresnx", "lowresnx" },
+                { "lowresnx", "LowRes NX" },
                 { "lutro", "Lutro" },
                 { "mame2000", "MAME 2000" },
                 { "mame2003", "MAME 2003 (0.78)" },
@@ -2910,6 +2910,7 @@ namespace emulatorLauncher.libRetro
             // If lightgun is enabled, multitaps are disabled
             if (SystemConfig.getOptBoolean("use_guns"))
             {
+                coreSettings["beetle_psx_hw_renderer"] = "software";                // Lightgun only works with software renderer
                 coreSettings["beetle_psx_hw_enable_multitap_port1"] = "disabled";
                 coreSettings["beetle_psx_hw_enable_multitap_port2"] = "disabled";
             }

@@ -202,17 +202,7 @@ namespace emulatorLauncher
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
             if (ctrl.IsXInputDevice && !_forceSDL)
-            {
-                    int xIndex = Program.Controllers
-                        .GroupBy(c => c)
-                        .Where(c => ctrl.IsXInputDevice)
-                        .SelectMany(c => c)
-                        .OrderBy(c => c.DirectInput.DevicePath)
-                        .ToList()
-                        .IndexOf(ctrl);
-                
-                techPadNumber = "XInput-" + xIndex + "/";
-            }
+                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
             //Write button mapping
             pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
