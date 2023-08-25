@@ -96,7 +96,7 @@ namespace emulatorLauncher
         /// <param name="rom"></param>
         private void SetupConfiguration(string path, string rom)
         {
-            string settingsFile = Path.Combine(path, "DATA", "config.xml");
+            string settingsFile = Path.Combine(path, "Play Data Files", "config.xml");
             string romPath = Path.GetDirectoryName(rom).Replace("\\", "/");
             string templateConfigFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "config.xml");
 
@@ -146,6 +146,14 @@ namespace emulatorLauncher
                     forcebilineartextures.SetAttributeValue("Value", "true");
                 else
                     forcebilineartextures.SetAttributeValue("Value", "false");
+
+                // Video driver
+                XElement videodriver = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "video.gshandler").FirstOrDefault();
+
+                if (SystemConfig.isOptSet("play_renderer") && !string.IsNullOrEmpty(SystemConfig["play_renderer"]))
+                    videodriver.SetAttributeValue("Value", SystemConfig["play_renderer"]);
+                else
+                    videodriver.SetAttributeValue("Value", "0");
 
                 //save file
                 configfile.Save(settingsFile);
