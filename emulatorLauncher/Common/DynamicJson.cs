@@ -85,7 +85,14 @@ namespace emulatorLauncher.Tools
             var element = GetElement(key);
             if (element == null)
             {
-                var tempElement = new XElement(key, CreateTypeAttr(asArray ? JsonType.array : JsonType.@object));
+                XElement tempElement;                 
+                XNamespace ns = "item";
+
+                if (KeyHasInvalidXmlChars(key))
+                    tempElement = new XElement(ns + "item", new XAttribute("item", key), CreateTypeAttr(asArray ? JsonType.array : JsonType.@object));
+                else
+                    tempElement = new XElement(key, CreateTypeAttr(asArray ? JsonType.array : JsonType.@object));
+
                 result = new DynamicJson(tempElement, asArray ? JsonType.array : JsonType.@object) { _temporaryParentObject = this };
                 return result;
             }
@@ -595,7 +602,14 @@ namespace emulatorLauncher.Tools
             var element = GetElement(binder.Name);
             if (element == null)
             {
-                var tempElement = new XElement(binder.Name, CreateTypeAttr(JsonType.@object));
+                XNamespace ns = "item";
+                XElement tempElement;
+
+                if (KeyHasInvalidXmlChars(binder.Name))
+                    tempElement = new XElement(ns + "item", new XAttribute("item", binder.Name), CreateTypeAttr(JsonType.@object));
+                else
+                    tempElement = new XElement(binder.Name, CreateTypeAttr(JsonType.@object));
+
                 result = new DynamicJson(tempElement, JsonType.@object) { _temporaryParentObject = this };
                 return true;
             }
