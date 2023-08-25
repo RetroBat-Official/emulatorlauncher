@@ -81,7 +81,8 @@ namespace emulatorLauncher
             { new Installer("melonds", "melonds", "melonDS.exe") },
             { new Installer("hbmame", "hbmame", "hbmameui.exe") },
             { new Installer("zinc", "zinc", "ZiNc.exe") },
-            { new Installer("eduke32", "eduke32", "eduke32.exe") }
+            { new Installer("eduke32", "eduke32", "eduke32.exe") },
+            { new Installer("play", "play", "Play.exe") }
         };
 
         #region Properties
