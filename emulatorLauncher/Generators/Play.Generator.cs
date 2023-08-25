@@ -19,6 +19,24 @@ namespace emulatorLauncher
 
         private bool _isArcade = false;
 
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            return ret;
+        }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("play");
@@ -38,6 +56,12 @@ namespace emulatorLauncher
 
             //settings
             SetupConfiguration(path, rom);
+
+            //Applying bezels
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
 
             var commandArray = new List<string>();
 
