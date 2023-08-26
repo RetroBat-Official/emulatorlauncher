@@ -103,7 +103,8 @@ namespace emulatorLauncher
             { "flycast", () => new FlycastGenerator() },
             { "eduke32", () => new EDukeGenerator() },
             { "simple64", () => new Simple64Generator() },
-            { "play", () => new PlayGenerator() }
+            { "play", () => new PlayGenerator() },
+            { "bizhawk", () => new BizhawkGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
