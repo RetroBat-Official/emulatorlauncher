@@ -46,6 +46,7 @@ namespace emulatorLauncher
             var bml = BmlFile.Load(Path.Combine(path, "settings.bml"));
             SetupConfiguration(bml, path, system, core, rom);
             WriteKeyboardHotkeys(bml, path);
+            CreateControllerConfiguration(bml, path);
 
             bml.Save();
 

@@ -357,6 +357,9 @@
       <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Ares.Generator.cs" />
+    <Compile Include="Generators\Ares.Controllers.cs">
+      <DependentUpon>Ares.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Common\SystemShaders.cs" />
