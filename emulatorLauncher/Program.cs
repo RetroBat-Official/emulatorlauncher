@@ -104,7 +104,8 @@ namespace emulatorLauncher
             { "eduke32", () => new EDukeGenerator() },
             { "simple64", () => new Simple64Generator() },
             { "play", () => new PlayGenerator() },
-            { "bizhawk", () => new BizhawkGenerator() }
+            { "bizhawk", () => new BizhawkGenerator() },
+            { "ares", () => new AresGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
