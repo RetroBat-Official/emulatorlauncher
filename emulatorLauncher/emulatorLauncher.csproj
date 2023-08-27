@@ -407,6 +407,7 @@
     <None Include="Resources\hidtodinput.cfg">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Resources\libretrocoreguns.yml" />
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />

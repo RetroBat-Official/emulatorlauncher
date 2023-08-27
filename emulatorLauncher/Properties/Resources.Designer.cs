@@ -217,6 +217,16 @@ namespace emulatorLauncher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] libretrocoreguns {
+            get {
+                object obj = ResourceManager.GetObject("libretrocoreguns", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Looking for updates....
         /// </summary>
         internal static string LookingForUpdates {
