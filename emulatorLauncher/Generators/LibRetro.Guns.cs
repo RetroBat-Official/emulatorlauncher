@@ -10,34 +10,6 @@ namespace emulatorLauncher.libRetro
 {
     partial class LibRetroGenerator : Generator
     {
-        // List of cores with dedicated configuration
-        // To be updated each time a core is correctly / succesfully configured
-        static List<string> coreGunConfig = new List<string>()
-        {
-            "4do",
-            "bsnes",
-            "bsnes_hd_beta",
-            "cap32",
-            "fceumm",
-            "flycast",
-            "genesis_plus_gx",
-            "genesis_plus_gx_wide",
-            "kronos",
-            "mednafen_psx",
-            "mednafen_psx_hw",
-            "mednafen_saturn",
-            "mesen",
-            "mesen-s",
-            "nestopia",
-            "opera",
-            "pcsx_rearmed",
-            "snes9x",
-            "snes9x_next",
-            "stella",
-            "swanstation",          // Has some issues, works with the right combination of video driver and aspect ratio
-            "fbneo",
-        };
-
         /// <summary>
         /// Injects guns settings
         /// </summary>
@@ -107,7 +79,7 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_player" + playerIndex + "_gun_dpad_right_btn"] = right_padbutton;
 
                 retroarchConfig["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
-                
+
                 string joypadIndex = retroarchConfig["input_player" + playerIndex + "_joypad_index"];
                 retroarchConfig["input_player" + playerIndex + "_joypad_index"] = joypadIndex;
             }
@@ -204,9 +176,9 @@ namespace emulatorLauncher.libRetro
 
 
             // Set additional buttons gun mapping default ...
-            if (!coreGunConfig.Contains(core))
+            if (!LibretroGunCoreInfo.Instance.ContainsKey(core))
                 ConfigureLightgunKeyboardActions(retroarchConfig, playerIndex);
-            
+
             // ... or configure core specific mappings            
             else
                 ConfigureGunsCore(retroarchConfig, playerIndex, core, deviceType, multigun, guninvert, useOneGun);
@@ -292,12 +264,12 @@ namespace emulatorLauncher.libRetro
 
                 // Set mouse buttons (mouse only has 3 buttons, that can be mapped differently for each core)
                 retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
-                retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = GetcoreMouseButton(core, guninvert, "reload");
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_a_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_a");
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_b_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_b");
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_c_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_c");
-                retroarchConfig["input_player" + playerIndex + "_gun_start_mbtn"] = GetcoreMouseButton(core, guninvert, "start");
-                retroarchConfig["input_player" + playerIndex + "_gun_select_mbtn"] = GetcoreMouseButton(core, guninvert, "select");
+                retroarchConfig["input_player" + playerIndex + "_gun_offscreen_shot_mbtn"] = GetCoreMouseButton(core, guninvert, "reload");
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_a_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_a");
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_b_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_b");
+                retroarchConfig["input_player" + playerIndex + "_gun_aux_c_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_c");
+                retroarchConfig["input_player" + playerIndex + "_gun_start_mbtn"] = GetCoreMouseButton(core, guninvert, "start");
+                retroarchConfig["input_player" + playerIndex + "_gun_select_mbtn"] = GetCoreMouseButton(core, guninvert, "select");
 
                 retroarchConfig["input_player" + playerIndex + "_analog_dpad_mode"] = "0";
 
@@ -358,12 +330,12 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_libretro_device_p3"] = "772";
                     retroarchConfig["input_player3_mouse_index"] = deviceIndex2.ToString();
                     retroarchConfig["input_player3_gun_trigger_mbtn"] = guninvert ? "2" : "1";
-                    retroarchConfig["input_player3_gun_offscreen_shot_mbtn"] = GetcoreMouseButton(core, guninvert, "reload");
-                    retroarchConfig["input_player3_gun_aux_a_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_a");
-                    retroarchConfig["input_player3_gun_aux_b_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_b");
-                    retroarchConfig["input_player3_gun_aux_c_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_c");
-                    retroarchConfig["input_player3_gun_start_mbtn"] = GetcoreMouseButton(core, guninvert, "start");
-                    retroarchConfig["input_player3_gun_select_mbtn"] = GetcoreMouseButton(core, guninvert, "select");
+                    retroarchConfig["input_player3_gun_offscreen_shot_mbtn"] = GetCoreMouseButton(core, guninvert, "reload");
+                    retroarchConfig["input_player3_gun_aux_a_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_a");
+                    retroarchConfig["input_player3_gun_aux_b_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_b");
+                    retroarchConfig["input_player3_gun_aux_c_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_c");
+                    retroarchConfig["input_player3_gun_start_mbtn"] = GetCoreMouseButton(core, guninvert, "start");
+                    retroarchConfig["input_player3_gun_select_mbtn"] = GetCoreMouseButton(core, guninvert, "select");
                     retroarchConfig["input_player3_analog_dpad_mode"] = "0";
 
                     string joypadIndex2 = retroarchConfig["input_player3_joypad_index"];
@@ -402,12 +374,12 @@ namespace emulatorLauncher.libRetro
                     retroarchConfig["input_player" + i + "_mouse_index"] = deviceIndex.ToString();
 
                     retroarchConfig["input_player" + i + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
-                    retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = GetcoreMouseButton(core, guninvert, "reload");
-                    retroarchConfig["input_player" + i + "_gun_aux_a_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_a");
-                    retroarchConfig["input_player" + i + "_gun_aux_b_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_b");
-                    retroarchConfig["input_player" + i + "_gun_aux_c_mbtn"] = GetcoreMouseButton(core, guninvert, "aux_c");
-                    retroarchConfig["input_player" + i + "_gun_start_mbtn"] = GetcoreMouseButton(core, guninvert, "start");
-                    retroarchConfig["input_player" + i + "_gun_select_mbtn"] = GetcoreMouseButton(core, guninvert, "select");
+                    retroarchConfig["input_player" + i + "_gun_offscreen_shot_mbtn"] = GetCoreMouseButton(core, guninvert, "reload");
+                    retroarchConfig["input_player" + i + "_gun_aux_a_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_a");
+                    retroarchConfig["input_player" + i + "_gun_aux_b_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_b");
+                    retroarchConfig["input_player" + i + "_gun_aux_c_mbtn"] = GetCoreMouseButton(core, guninvert, "aux_c");
+                    retroarchConfig["input_player" + i + "_gun_start_mbtn"] = GetCoreMouseButton(core, guninvert, "start");
+                    retroarchConfig["input_player" + i + "_gun_select_mbtn"] = GetCoreMouseButton(core, guninvert, "select");
 
                     retroarchConfig["input_player" + i + "_analog_dpad_mode"] = "0";
 
@@ -509,342 +481,86 @@ namespace emulatorLauncher.libRetro
         // 2 type of cases : 
         // 1 - Classic case ==> mouse left = trigger
         // 2 - reverse case ==> mouse right = trigger
-        private string GetcoreMouseButton (string core, bool guninvert, string mbtn)
+        private string GetCoreMouseButton(string core, bool guninvert, string mbtn)
         {
             bool changeReload = SystemConfig.isOptSet("gun_reload_button") && SystemConfig.getOptBoolean("gun_reload_button");
+
             string ret = "nul";
+
+            LibretroGunCoreInfo conf;
+            if (!LibretroGunCoreInfo.Instance.TryGetValue(core, out conf))
+                conf = new LibretroGunCoreInfo() { reload = "2", aux_a = "3" };
 
             switch (mbtn)
             {
                 case "reload":
-                    if (coreDefaultMouseReloadButton.ContainsKey(core))
-                        ret = changeReload ? "2" : coreDefaultMouseReloadButton[core];
-                    else
-                        ret = "2";
+                    ret = changeReload ? "2" : conf.reload;
                     break;
                 case "aux_a":
-                    if (coreChangeReloadMouseAuxAButton.ContainsKey(core) && coreDefaultMouseAuxAButton.ContainsKey(core))
-                        ret = changeReload ? coreChangeReloadMouseAuxAButton[core] : coreDefaultMouseAuxAButton[core];
-                    else
-                        ret = "3";
+                    ret = changeReload ? conf.aux_a_changereload : conf.aux_a;
                     break;
                 case "aux_b":
-                    if (coreChangeReloadMouseAuxBButton.ContainsKey(core) && coreDefaultMouseAuxBButton.ContainsKey(core))
-                        ret = changeReload ? coreChangeReloadMouseAuxBButton[core] : coreDefaultMouseAuxBButton[core];
-                    else
-                        ret = "nul";
+                    ret = changeReload ? conf.aux_b_changereload : conf.aux_b;
                     break;
                 case "aux_c":
-                    if (coreChangeReloadMouseAuxCButton.ContainsKey(core) && coreDefaultMouseAuxCButton.ContainsKey(core))
-                        ret = changeReload ? coreChangeReloadMouseAuxCButton[core] : coreDefaultMouseAuxCButton[core];
-                    else
-                        ret = "nul";
+                    ret = changeReload ? conf.aux_c_changereload : conf.aux_c;
                     break;
                 case "start":
-                    if (coreChangeReloadMouseStartButton.ContainsKey(core) && coreDefaultMouseStartButton.ContainsKey(core))
-                        ret = changeReload ? coreChangeReloadMouseStartButton[core] : coreDefaultMouseStartButton[core];
-                    else
-                        ret = "nul";
+                    ret = changeReload ? conf.start_changereload : conf.start;
                     break;
                 case "select":
-                    if (coreChangeReloadMouseSelectButton.ContainsKey(core) && coreDefaultMouseSelectButton.ContainsKey(core))
-                        ret = changeReload ? coreChangeReloadMouseSelectButton[core] : coreDefaultMouseSelectButton[core];
-                    else
-                        ret = "nul";
+                    ret = changeReload ? conf.select_changereload : conf.select;
                     break;
             }
 
             if (ret == "2" && guninvert)
                 return "1";
-            else
-                return ret;
+            
+            return ret;
         }
 
-        // Set all dictionnaries for mouse buttons (2 dictionaries for each button, one for default value, one for value when reload is forced on mouse rightclick)
-        static Dictionary<string, string> coreDefaultMouseReloadButton = new Dictionary<string, string>()
+        /// <summary>
+        /// Set all dictionnaries for mouse buttons (2 dictionaries for each button, one for default value, one for value when reload is forced on mouse rightclick)
+        /// </summary>
+        class LibretroGunCoreInfo
         {
-            { "4do",                    "2" },
-            { "bsnes",                  "nul" },
-            { "bsnes_hd_beta",          "nul" },
-            { "cap32",                  "2" },
-            { "fbneo",                  "nul" },
-            { "fceumm",                 "2" },
-            { "flycast",                "nul" },
-            { "genesis_plus_gx",        "nul" },
-            { "genesis_plus_gx_wide",   "nul" },
-            { "kronos",                 "2" },
-            { "mednafen_psx",           "nul" },
-            { "mednafen_psx_hw",        "nul" },
-            { "mednafen_saturn",        "2" },
-            { "mesen",                  "2" },
-            { "mesen-s",                "nul" },
-            { "nestopia",               "nul" },
-            { "opera",                  "2" },
-            { "pcsx_rearmed",           "nul" },
-            { "snes9x",                 "nul" },
-            { "snes9x_next",            "nul" },
-            { "stella",                 "2" },
-            { "swanstation",            "nul" }
-        };
+            #region Factory
+            public static Dictionary<string, LibretroGunCoreInfo> Instance
+            {
+                get
+                {
+                    if (_instance == null)
+                    {
+                        _instance = SimpleYml<LibretroGunCoreInfo>
+                            .Parse(Encoding.UTF8.GetString(Properties.Resources.libretrocoreguns))
+                            .ToDictionary(a => a.system, a => a);
+                    }
 
-        static Dictionary<string, string> coreDefaultMouseAuxAButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "nul" },
-            { "bsnes",                  "2" },
-            { "bsnes_hd_beta",          "2" },
-            { "cap32",                  "nul" },
-            { "fbneo",                  "2" },
-            { "fceumm",                 "nul" },
-            { "flycast",                "2" },
-            { "genesis_plus_gx",        "2" },
-            { "genesis_plus_gx_wide",   "2" },
-            { "kronos",                 "nul" },
-            { "mednafen_psx",           "2" },
-            { "mednafen_psx_hw",        "2" },
-            { "mednafen_saturn",        "nul" },
-            { "mesen",                  "nul" },
-            { "mesen-s",                "2" },
-            { "nestopia",               "nul" },
-            { "opera",                  "nul" },
-            { "pcsx_rearmed",           "2" },
-            { "snes9x",                 "2" },
-            { "snes9x_next",            "2" },
-            { "stella",                 "nul" },
-            { "swanstation",            "2" }
-        };
+                    return _instance;
+                }
+            }
 
-        static Dictionary<string, string> coreChangeReloadMouseAuxAButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "nul" },
-            { "bsnes",                  "3" },
-            { "bsnes_hd_beta",          "3" },
-            { "cap32",                  "nul" },
-            { "fbneo",                  "3" },
-            { "fceumm",                 "nul" },
-            { "flycast",                "3" },
-            { "genesis_plus_gx",        "3" },
-            { "genesis_plus_gx_wide",   "3" },
-            { "kronos",                 "nul" },
-            { "mednafen_psx",           "3" },
-            { "mednafen_psx_hw",        "3" },
-            { "mednafen_saturn",        "nul" },
-            { "mesen",                  "nul" },
-            { "mesen-s",                "3" },
-            { "nestopia",               "nul" },
-            { "opera",                  "nul" },
-            { "pcsx_rearmed",           "3" },
-            { "snes9x",                 "3" },
-            { "snes9x_next",            "3" },
-            { "stella",                 "nul" },
-            { "swanstation",            "3" }
-        };
+            private static Dictionary<string, LibretroGunCoreInfo> _instance;
 
-        static Dictionary<string, string> coreDefaultMouseAuxBButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "nul" },
-            { "bsnes",                  "3" },
-            { "bsnes_hd_beta",          "3" },
-            { "cap32",                  "nul" },
-            { "fbneo",                  "nul" },
-            { "fceumm",                 "nul" },
-            { "flycast",                "nul" },
-            { "genesis_plus_gx",        "3" },
-            { "genesis_plus_gx_wide",   "3" },
-            { "kronos",                 "nul" },
-            { "mednafen_psx",           "3" },
-            { "mednafen_psx_hw",        "3" },
-            { "mednafen_saturn",        "nul" },
-            { "mesen",                  "nul" },
-            { "mesen-s",                "3" },
-            { "nestopia",               "2" },
-            { "opera",                  "nul" },
-            { "pcsx_rearmed",           "3" },
-            { "snes9x",                 "3" },
-            { "snes9x_next",            "3" },
-            { "stella",                 "nul" },
-            { "swanstation",            "3" }
-        };
+            public LibretroGunCoreInfo()
+            {
+                reload = aux_a = aux_a_changereload = aux_b = aux_b_changereload = aux_c = aux_c_changereload = start = start_changereload = select = select_changereload = "nul";
+            }
+            #endregion
 
-        static Dictionary<string, string> coreChangeReloadMouseAuxBButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "nul" },
-            { "bsnes",                  "nul" },
-            { "bsnes_hd_beta",          "nul" },
-            { "cap32",                  "nul" },
-            { "fbneo",                  "nul" },
-            { "fceumm",                 "nul" },
-            { "flycast",                "nul" },
-            { "genesis_plus_gx",        "nul" },
-            { "genesis_plus_gx_wide",   "nul" },
-            { "kronos",                 "nul" },
-            { "mednafen_psx",           "nul" },
-            { "mednafen_psx_hw",        "nul" },
-            { "mednafen_saturn",        "nul" },
-            { "mesen",                  "nul" },
-            { "mesen-s",                "nul" },
-            { "nestopia",               "3" },
-            { "opera",                  "nul" },
-            { "pcsx_rearmed",           "nul" },
-            { "snes9x",                 "nul" },
-            { "snes9x_next",            "nul" },
-            { "stella",                 "nul" },
-            { "swanstation",            "nul" }
-        };
-
-        static Dictionary<string, string> coreDefaultMouseAuxCButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "nul" },
-            { "bsnes",                  "nul" },
-            { "bsnes_hd_beta",          "nul" },
-            { "cap32",                  "nul" },
-            { "fbneo",                  "nul" },
-            { "fceumm",                 "nul" },
-            { "flycast",                "nul" },
-            { "genesis_plus_gx",        "nul" },
-            { "genesis_plus_gx_wide",   "nul" },
-            { "kronos",                 "nul" },
-            { "mednafen_psx",           "nul" },
-            { "mednafen_psx_hw",        "nul" },
-            { "mednafen_saturn",        "nul" },
-            { "mesen",                  "nul" },
-            { "mesen-s",                "nul" },
-            { "nestopia",               "nul" },
-            { "opera",                  "nul" },
-            { "pcsx_rearmed",           "nul" },
-            { "snes9x",                 "nul" },
-            { "snes9x_next",            "nul" },
-            { "stella",                 "nul" },
-            { "swanstation",            "nul" }
-        };
-
-        static Dictionary<string, string> coreChangeReloadMouseAuxCButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "nul" },
-            { "bsnes",                  "nul" },
-            { "bsnes_hd_beta",          "nul" },
-            { "cap32",                  "nul" },
-            { "fbneo",                  "nul" },
-            { "fceumm",                 "nul" },
-            { "flycast",                "nul" },
-            { "genesis_plus_gx",        "nul" },
-            { "genesis_plus_gx_wide",   "nul" },
-            { "kronos",                 "nul" },
-            { "mednafen_psx",           "nul" },
-            { "mednafen_psx_hw",        "nul" },
-            { "mednafen_saturn",        "nul" },
-            { "mesen",                  "nul" },
-            { "mesen-s",                "nul" },
-            { "nestopia",               "nul" },
-            { "opera",                  "nul" },
-            { "pcsx_rearmed",           "nul" },
-            { "snes9x",                 "nul" },
-            { "snes9x_next",            "nul" },
-            { "stella",                 "nul" },
-            { "swanstation",            "nul" }
-        };
-
-        static Dictionary<string, string> coreDefaultMouseStartButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "3" },
-            { "bsnes",                  "nul" },
-            { "bsnes_hd_beta",          "nul" },
-            { "cap32",                  "3" },
-            { "fbneo",                  "3" },
-            { "fceumm",                 "3" },
-            { "flycast",                "3" },
-            { "genesis_plus_gx",        "nul" },
-            { "genesis_plus_gx_wide",   "nul" },
-            { "kronos",                 "3" },
-            { "mednafen_psx",           "nul" },
-            { "mednafen_psx_hw",        "nul" },
-            { "mednafen_saturn",        "3" },
-            { "mesen",                  "3" },
-            { "mesen-s",                "nul" },
-            { "nestopia",               "nul" },
-            { "opera",                  "3" },
-            { "pcsx_rearmed",           "nul" },
-            { "snes9x",                 "nul" },
-            { "snes9x_next",            "nul" },
-            { "stella",                 "3" },
-            { "swanstation",            "nul" }
-        };
-
-        static Dictionary<string, string> coreChangeReloadMouseStartButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "3" },
-            { "bsnes",                  "nul" },
-            { "bsnes_hd_beta",          "nul" },
-            { "cap32",                  "3" },
-            { "fbneo",                  "nul" },
-            { "fceumm",                 "3" },
-            { "flycast",                "nul" },
-            { "genesis_plus_gx",        "nul" },
-            { "genesis_plus_gx_wide",   "nul" },
-            { "kronos",                 "3" },
-            { "mednafen_psx",           "nul" },
-            { "mednafen_psx_hw",        "nul" },
-            { "mednafen_saturn",        "3" },
-            { "mesen",                  "3" },
-            { "mesen-s",                "nul" },
-            { "nestopia",               "nul" },
-            { "opera",                  "3" },
-            { "pcsx_rearmed",           "nul" },
-            { "snes9x",                 "nul" },
-            { "snes9x_next",            "nul" },
-            { "stella",                 "3" },
-            { "swanstation",            "nul" }
-        };
-
-        static Dictionary<string, string> coreDefaultMouseSelectButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "nul" },
-            { "bsnes",                  "nul" },
-            { "bsnes_hd_beta",          "nul" },
-            { "cap32",                  "nul" },
-            { "fbneo",                  "nul" },
-            { "fceumm",                 "nul" },
-            { "flycast",                "nul" },
-            { "genesis_plus_gx",        "nul" },
-            { "genesis_plus_gx_wide",   "nul" },
-            { "kronos",                 "nul" },
-            { "mednafen_psx",           "nul" },
-            { "mednafen_psx_hw",        "nul" },
-            { "mednafen_saturn",        "nul" },
-            { "mesen",                  "nul" },
-            { "mesen-s",                "nul" },
-            { "nestopia",               "nul" },
-            { "opera",                  "nul" },
-            { "pcsx_rearmed",           "nul" },
-            { "snes9x",                 "nul" },
-            { "snes9x_next",            "nul" },
-            { "stella",                 "nul" },
-            { "swanstation",            "nul" }
-        };
-
-        static Dictionary<string, string> coreChangeReloadMouseSelectButton = new Dictionary<string, string>()
-        {
-            { "4do",                    "nul" },
-            { "bsnes",                  "nul" },
-            { "bsnes_hd_beta",          "nul" },
-            { "cap32",                  "nul" },
-            { "fbneo",                  "nul" },
-            { "fceumm",                 "nul" },
-            { "flycast",                "nul" },
-            { "genesis_plus_gx",        "nul" },
-            { "genesis_plus_gx_wide",   "nul" },
-            { "kronos",                 "nul" },
-            { "mednafen_psx",           "nul" },
-            { "mednafen_psx_hw",        "nul" },
-            { "mednafen_saturn",        "nul" },
-            { "mesen",                  "nul" },
-            { "mesen-s",                "nul" },
-            { "nestopia",               "nul" },
-            { "opera",                  "nul" },
-            { "pcsx_rearmed",           "nul" },
-            { "snes9x",                 "nul" },
-            { "snes9x_next",            "nul" },
-            { "stella",                 "nul" },
-            { "swanstation",            "nul" }
-        };
+            [YmlName]
+            public string system { get; set; }
+            public string reload { get; set; }
+            public string aux_a { get; set; }
+            public string aux_a_changereload { get; set; }
+            public string aux_b { get; set; }
+            public string aux_b_changereload { get; set; }
+            public string aux_c { get; set; }
+            public string aux_c_changereload { get; set; }
+            public string start { get; set; }
+            public string start_changereload { get; set; }
+            public string select { get; set; }
+            public string select_changereload { get; set; }
+        }
     }
 }
