@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using SharpDX.DirectInput;
 using System.Windows.Documents;
+using System.Data;
 
 namespace emulatorLauncher
 {
@@ -16,6 +17,10 @@ namespace emulatorLauncher
         {
             { "QuickNes", 2 },
             { "NesHawk", 4 },
+            { "Faust", 8 },
+            { "Snes9x", 5 },
+            { "BSNES", 8 },
+            { "Mupen64Plus", 4 },
         };
 
         private void CreateControllerConfiguration(DynamicJson json, string system, string core)
@@ -34,7 +39,7 @@ namespace emulatorLauncher
             if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.IsKeyboard && this.Controllers.Count(i => !i.IsKeyboard) == 0)
+            if (controller.IsKeyboard)
                 ConfigureKeyboard(controller, json, system, core);
             else
                 ConfigureJoystick(controller, json, system, core);
@@ -59,7 +64,7 @@ namespace emulatorLauncher
             if (!isXInput)
             {
                 var list = new List<Controller>();
-                foreach (var c in this.Controllers.OrderBy(i => i.DirectInput.DeviceIndex))
+                foreach (var c in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(c => c.DirectInput != null ? c.DirectInput.DeviceIndex : c.DeviceIndex))
                 {
                     if (!c.IsXInputDevice)
                         list.Add(c);
@@ -67,27 +72,34 @@ namespace emulatorLauncher
                 index = list.IndexOf(controller) + 1;
             }
             else
-                index = controller.XInput.DeviceIndex + 1;
-
-            var controllerConfig = json.GetOrCreateContainer("AllTrollers");
-
-            if (system == "nes")
             {
-                var nesControllerConfig = controllerConfig.GetOrCreateContainer("NES Controller");
-
-                foreach (var x in nesMapping)
+                var list = new List<Controller>();
+                foreach (var c in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(c => c.WinmmJoystick != null ? c.WinmmJoystick.Index : c.DeviceIndex))
                 {
-                    string value = x.Value;
-                    InputKey key = x.Key;
+                    if (c.IsXInputDevice)
+                        list.Add(c);
+                }
+                index = list.IndexOf(controller) + 1;
+            }
 
-                    if (isXInput)
-                    {
-                        nesControllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
-                    }
-                    else
-                    {
-                        nesControllerConfig["P" + playerIndex + " " + value] = "J" + index + " " + GetInputKeyName(controller, key);
-                    }
+            //int testindex = controller.DirectInput.DeviceIndex;
+
+            var trollers = json.GetOrCreateContainer("AllTrollers");
+            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+            InputKeyMapping mapping = mappingToUse[system];
+            
+            foreach (var x in mapping)
+            {
+                string value = x.Value;
+                InputKey key = x.Key;
+
+                if (isXInput)
+                {
+                    controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                }
+                else
+                {
+                    controllerConfig["P" + playerIndex + " " + value] = "J" + index + " " + GetInputKeyName(controller, key);
                 }
             }
         }
@@ -111,7 +123,45 @@ namespace emulatorLauncher
             { InputKey.start,           "Start" },
             { InputKey.select,          "Select" },
             { InputKey.x,               "B" },
-            { InputKey.a,               "A" },
+            { InputKey.a,               "A" }
+        };
+
+        static InputKeyMapping snesMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.a,               "B" },
+            { InputKey.b,               "A" },
+            { InputKey.x,               "X" },
+            { InputKey.y,               "Y" },
+            { InputKey.pageup,          "L" },
+            { InputKey.pagedown,        "R" }
+        };
+
+        static InputKeyMapping n64Mapping = new InputKeyMapping()
+        {
+            { InputKey.leftanalogup,        "A Up" },
+            { InputKey.leftanalogdown,      "A Down" },
+            { InputKey.leftanalogleft,      "A Left" },
+            { InputKey.leftanalogright,     "A Right" },
+            { InputKey.up,                  "DPad U"},
+            { InputKey.down,                "DPad D"},
+            { InputKey.left,                "DPad L" },
+            { InputKey.right,               "DPad R"},
+            { InputKey.start,               "Start" },
+            { InputKey.r2,                  "Z" },
+            { InputKey.y,                   "B" },
+            { InputKey.a,                   "A" },
+            { InputKey.rightanalogup,       "C Up" },
+            { InputKey.rightanalogdown,     "C Down" },
+            { InputKey.rightanalogleft,     "C Left" },
+            { InputKey.rightanalogright,    "C Right" },
+            { InputKey.pageup,              "L" },
+            { InputKey.pagedown,            "R" }
         };
 
         private static string GetXInputKeyName(Controller c, InputKey key)
@@ -221,14 +271,40 @@ namespace emulatorLauncher
                         if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "Y+";
                         else return "Y-";
                     case 2:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "U+";
-                        else return "U-";
+                        if (c.VendorID == USB_VENDOR.SONY && ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))) return "Z+";
+                        else if (c.VendorID == USB_VENDOR.SONY) return "Z-";
+                        else if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RotationX+";
+                        else return "RotationX-";
                     case 3:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "R+";
-                        else return "R-";
+                        if (c.VendorID == USB_VENDOR.SONY && ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))) return "RotationX+";
+                        else if (c.VendorID == USB_VENDOR.SONY) return "RotationX-";
+                        else if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RotationY+";
+                        else return "RotationY-";
+                    case 4:
+                        if (c.VendorID == USB_VENDOR.SONY && ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))) return "RotationY+";
+                        else if (c.VendorID == USB_VENDOR.SONY) return "RotationY-";
+                        else if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "Z+";
+                        else return "Z-";
+                    case 5:
+                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RotationZ+";
+                        else return "RotationZ-";
                 }
             }
             return "";
         }
+
+        static Dictionary<string, string> systemController = new Dictionary<string, string>()
+        {
+            { "nes", "NES Controller" },
+            { "snes", "SNES Controller" },
+            { "n64", "Nintendo 64 Controller" }
+        };
+
+        static Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
+        {
+            { "nes", nesMapping },
+            { "snes", snesMapping },
+            { "n64", n64Mapping }
+        };
     }
 }
