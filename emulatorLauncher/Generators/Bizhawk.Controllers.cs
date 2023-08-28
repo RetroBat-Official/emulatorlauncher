@@ -13,6 +13,8 @@ namespace emulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {
+        static List<string> systemMonoPlayer = new List<string>() { "gb" };
+
         static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "QuickNes", 2 },
@@ -21,6 +23,11 @@ namespace emulatorLauncher
             { "Snes9x", 5 },
             { "BSNES", 8 },
             { "Mupen64Plus", 4 },
+            { "Ares64", 4 },
+            { "Genplus-gx", 8 },
+            { "Gambatte", 1 },
+            { "GBHawk", 1 },
+            { "SameBoy", 1 },
         };
 
         private void CreateControllerConfiguration(DynamicJson json, string system, string core)
@@ -87,20 +94,37 @@ namespace emulatorLauncher
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
             InputKeyMapping mapping = mappingToUse[system];
+
+            bool monoplayer = systemMonoPlayer.Contains(system);
             
             foreach (var x in mapping)
             {
                 string value = x.Value;
                 InputKey key = x.Key;
 
-                if (isXInput)
+                if (!monoplayer)
                 {
-                    controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                    if (isXInput)
+                    {
+                        controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                    }
+                    else
+                    {
+                        controllerConfig["P" + playerIndex + " " + value] = "J" + index + " " + GetInputKeyName(controller, key);
+                    }
                 }
                 else
                 {
-                    controllerConfig["P" + playerIndex + " " + value] = "J" + index + " " + GetInputKeyName(controller, key);
+                    if (isXInput)
+                    {
+                        controllerConfig[value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                    }
+                    else
+                    {
+                        controllerConfig[value] = "J" + index + " " + GetInputKeyName(controller, key);
+                    }
                 }
+
             }
         }
 
@@ -124,6 +148,18 @@ namespace emulatorLauncher
             { InputKey.select,          "Select" },
             { InputKey.x,               "B" },
             { InputKey.a,               "A" }
+        };
+
+        static InputKeyMapping gbMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.a,               "B" },
+            { InputKey.b,               "A" }
         };
 
         static InputKeyMapping snesMapping = new InputKeyMapping()
@@ -162,6 +198,22 @@ namespace emulatorLauncher
             { InputKey.rightanalogright,    "C Right" },
             { InputKey.pageup,              "L" },
             { InputKey.pagedown,            "R" }
+        };
+
+        static InputKeyMapping mdMapping = new InputKeyMapping()
+        {
+            { InputKey.up,                  "DPad U"},
+            { InputKey.down,                "DPad D"},
+            { InputKey.left,                "DPad L" },
+            { InputKey.right,               "DPad R"},
+            { InputKey.y,                   "A" },
+            { InputKey.a,                   "B" },
+            { InputKey.b,                   "C" },
+            { InputKey.start,               "Start" },
+            { InputKey.pageup,              "X" },
+            { InputKey.x,                   "Y" },
+            { InputKey.pagedown,            "Z" },
+            { InputKey.select,              "Mode" },
         };
 
         private static string GetXInputKeyName(Controller c, InputKey key)
@@ -297,14 +349,33 @@ namespace emulatorLauncher
         {
             { "nes", "NES Controller" },
             { "snes", "SNES Controller" },
-            { "n64", "Nintendo 64 Controller" }
+            { "n64", "Nintendo 64 Controller" },
+            { "gb", "Gameboy Controller" },
+            { "gba", "GBA Controller" },
+            { "nds", "NDS Controller" },
+            { "c64", "Commodore 64 Controller" },
+            { "zxspectrum", "ZXSpectrum Controller" },
+            { "c64", "PC-FX Controller" },
+            { "saturn", "Saturn Controller" },
+            { "pcengine", "PC Engine Controller" },
+            { "mastersystem", "SMS Controller" },
+            { "gamegear", "GG Controller" },
+            { "wswan", "WonderSwan Controller" },
+            { "psx", "PSX Front Panel" },
+            { "lynx", "Lynx Controller" },
+            { "jaguar", "Jaguar Controller" },
+            { "lynx", "Lynx Controller" },
+            { "megadrive", "GPGX Genesis Controller" }
         };
 
         static Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
         {
             { "nes", nesMapping },
             { "snes", snesMapping },
-            { "n64", n64Mapping }
+            { "n64", n64Mapping },
+            { "megadrive", mdMapping },
+            { "gb", gbMapping },
+            { "gbc", gbMapping },
         };
     }
 }

@@ -20,6 +20,7 @@ namespace emulatorLauncher
             ConfigureFaust(json, coreSettings, coreSyncSettings, core, system);
             ConfigureSnes9x(json, coreSettings, coreSyncSettings, core, system);
             ConfigureBsnes(json, coreSettings, coreSyncSettings, core, system);
+            ConfigureGenesisPlusGX(json, coreSettings, coreSyncSettings, core, system);
         }
 
         private void ConfigureQuickNES(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -124,6 +125,32 @@ namespace emulatorLauncher
             {
                 bsnesSync["LeftPort"] = "1";
                 bsnesSync["RightPort"] = "1";
+            }
+        }
+
+        private void ConfigureGenesisPlusGX(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "Genplus-gx")
+                return;
+
+            var genplusgxSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.Sega.gpgx.GPGX");
+            genplusgxSync["$type"] = "BizHawk.Emulation.Cores.Consoles.Sega.gpgx.GPGX+GPGXSyncSettings, BizHawk.Emulation.Cores";
+            genplusgxSync["UseSixButton"] = "true";
+
+            if (Controllers.Count > 5)
+            {
+                genplusgxSync["ControlTypeLeft"] = "4";
+                genplusgxSync["ControlTypeRight"] = "4";
+            }
+            else if (Controllers.Count > 2)
+            {
+                genplusgxSync["ControlTypeLeft"] = "1";
+                genplusgxSync["ControlTypeRight"] = "4";
+            }
+            else
+            {
+                genplusgxSync["ControlTypeLeft"] = "1";
+                genplusgxSync["ControlTypeRight"] = "1";
             }
         }
     }
