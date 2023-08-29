@@ -22,6 +22,7 @@ namespace emulatorLauncher
             { "nes", "NES" },
             { "snes", "SNES" },
             { "n64", "N64" },
+            { "nds", "NDS" },
             { "gb", "GB" },
             { "gbc", "GBC" },
             { "pcengine", "PCE" },
@@ -113,8 +114,12 @@ namespace emulatorLauncher
             var romPath = new DynamicJson();
             romPath["Type"] = "ROM";
             romPath["Path"] = romFolder;
-            romPath["System"] = bizHawkSystems[system];
-            paths.Add(romPath);
+
+            if (bizHawkSystems.ContainsKey(system))
+            {
+                romPath["System"] = bizHawkSystems[system];
+                paths.Add(romPath);
+            }
 
             string saveStateFolder = Path.Combine(AppConfig.GetFullPath("saves"), system, emulator, "sstates");
             if (!Directory.Exists(saveStateFolder))

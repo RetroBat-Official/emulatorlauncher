@@ -226,7 +226,7 @@ namespace emulatorLauncher.Tools
                             break;
 
                         case JsonType.number:
-                            newValue = Convert.ToDouble(value);
+                            newValue = Convert.ToDouble(value, CultureInfo.InvariantCulture);
                             break;
 
                         case JsonType.array:

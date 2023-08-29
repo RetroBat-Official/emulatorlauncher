@@ -14,6 +14,7 @@ namespace emulatorLauncher
     partial class BizhawkGenerator : Generator
     {
         private static List<string> systemMonoPlayer = new List<string>() { "gb", "gbc", "gba", "lynx", "nds" };
+
         private static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "Ares64", 4 },
@@ -133,6 +134,40 @@ namespace emulatorLauncher
                         controllerConfig[value] = "J" + index + " " + GetInputKeyName(controller, key);
                     }
                 }
+            }
+
+            // Configure analog part of .ini
+            var analog = json.GetOrCreateContainer("AllTrollersAnalog");
+            var analogConfig = analog.GetOrCreateContainer(systemController[system]);
+
+            if (system == "n64")
+            {
+                var xAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " X Axis");
+                var yAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " Y Axis");
+
+                xAxis["Value"] = isXInput ? "X" + index + " LeftThumbX" : "J" + index + " X";
+                xAxis.SetObject("Mult", 1.0);
+                xAxis.SetObject("Deadzone", 0.1);
+
+                yAxis["Value"] = isXInput ? "X" + index + " LeftThumbY" : "J" + index + " Y";
+                yAxis.SetObject("Mult", 1.0);
+                yAxis.SetObject("Deadzone", 0.1);
+            }
+
+            if (system == "nds")
+            {
+                var xAxis = analogConfig.GetOrCreateContainer("Touch X");
+                var yAxis = analogConfig.GetOrCreateContainer("Touch Y");
+
+                xAxis["Value"] = "WMouse X";
+                xAxis.SetObject("Mult", 1.0);
+                xAxis.SetObject("Deadzone", 0.0);
+
+                yAxis["Value"] = "WMouse Y";
+                yAxis.SetObject("Mult", 1.0);
+                yAxis.SetObject("Deadzone", 0.0);
+
+                controllerConfig["Touch"] = "WMouse L";
             }
         }
 
