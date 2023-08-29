@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using emulatorLauncher.Tools;
-using System.Globalization;
 using System.IO;
-using SharpDX.DirectInput;
-using System.Windows.Documents;
-using System.Data;
+using System.Diagnostics;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Management;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {
-        static List<string> systemMonoPlayer = new List<string>() { "gb" };
-
-        static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
+        private static List<string> systemMonoPlayer = new List<string>() { "gb", "gbc", "gba", "lynx", "nds" };
+        private static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "QuickNes", 2 },
             { "NesHawk", 4 },
@@ -28,6 +27,14 @@ namespace emulatorLauncher
             { "Gambatte", 1 },
             { "GBHawk", 1 },
             { "SameBoy", 1 },
+            { "mGBA", 1 },
+            { "melonDS", 1 },
+            { "TurboNyma", 5 },
+            { "HyperNyma", 5 },
+            { "PCEHawk", 5 },
+            { "NeoPop", 1 },
+            { "SMSHawk", 2 },
+            { "Saturnus", 12 },
         };
 
         private void CreateControllerConfiguration(DynamicJson json, string system, string core)
@@ -36,6 +43,8 @@ namespace emulatorLauncher
                 return;
 
             int maxPad = inputPortNb[core];
+
+            ResetControllerConfiguration(json, maxPad, system, core);
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(controller, json, system, core);
@@ -65,6 +74,14 @@ namespace emulatorLauncher
                 return;
 
             bool isXInput = controller.IsXInputDevice;
+            bool monoplayer = systemMonoPlayer.Contains(system);
+            var trollers = json.GetOrCreateContainer("AllTrollers");
+            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+            InputKeyMapping mapping = mappingToUse[system];
+
+            // Perform clean up of previous config to avoid having a controller in 2 positions
+            int maxPad = inputPortNb[core];
+
             int playerIndex = controller.PlayerIndex;
             int index = 1;
 
@@ -89,14 +106,6 @@ namespace emulatorLauncher
                 index = list.IndexOf(controller) + 1;
             }
 
-            //int testindex = controller.DirectInput.DeviceIndex;
-
-            var trollers = json.GetOrCreateContainer("AllTrollers");
-            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
-            InputKeyMapping mapping = mappingToUse[system];
-
-            bool monoplayer = systemMonoPlayer.Contains(system);
-            
             foreach (var x in mapping)
             {
                 string value = x.Value;
@@ -124,7 +133,6 @@ namespace emulatorLauncher
                         controllerConfig[value] = "J" + index + " " + GetInputKeyName(controller, key);
                     }
                 }
-
             }
         }
 
@@ -138,19 +146,7 @@ namespace emulatorLauncher
                 return;
         }
 
-        static InputKeyMapping nesMapping = new InputKeyMapping()
-        {
-            { InputKey.up,              "Up"},
-            { InputKey.down,            "Down"},
-            { InputKey.left,            "Left" },
-            { InputKey.right,           "Right"},
-            { InputKey.start,           "Start" },
-            { InputKey.select,          "Select" },
-            { InputKey.x,               "B" },
-            { InputKey.a,               "A" }
-        };
-
-        static InputKeyMapping gbMapping = new InputKeyMapping()
+        private static InputKeyMapping gbMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -162,7 +158,7 @@ namespace emulatorLauncher
             { InputKey.b,               "A" }
         };
 
-        static InputKeyMapping snesMapping = new InputKeyMapping()
+        private static InputKeyMapping gbaMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -172,13 +168,27 @@ namespace emulatorLauncher
             { InputKey.select,          "Select" },
             { InputKey.a,               "B" },
             { InputKey.b,               "A" },
-            { InputKey.x,               "X" },
-            { InputKey.y,               "Y" },
             { InputKey.pageup,          "L" },
             { InputKey.pagedown,        "R" }
         };
 
-        static InputKeyMapping n64Mapping = new InputKeyMapping()
+        private static InputKeyMapping mdMapping = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.y,                   "A" },
+            { InputKey.a,                   "B" },
+            { InputKey.b,                   "C" },
+            { InputKey.start,               "Start" },
+            { InputKey.pageup,              "X" },
+            { InputKey.x,                   "Y" },
+            { InputKey.pagedown,            "Z" },
+            { InputKey.select,              "Mode" },
+        };
+
+        private static InputKeyMapping n64Mapping = new InputKeyMapping()
         {
             { InputKey.leftanalogup,        "A Up" },
             { InputKey.leftanalogdown,      "A Down" },
@@ -200,20 +210,105 @@ namespace emulatorLauncher
             { InputKey.pagedown,            "R" }
         };
 
-        static InputKeyMapping mdMapping = new InputKeyMapping()
+        private static InputKeyMapping ndsMapping = new InputKeyMapping()
         {
-            { InputKey.up,                  "DPad U"},
-            { InputKey.down,                "DPad D"},
-            { InputKey.left,                "DPad L" },
-            { InputKey.right,               "DPad R"},
-            { InputKey.y,                   "A" },
+            { InputKey.b,                   "A" },
             { InputKey.a,                   "B" },
-            { InputKey.b,                   "C" },
+            { InputKey.x,                   "X" },
+            { InputKey.y,                   "Y" },
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.pageup,              "L" },
+            { InputKey.pagedown,            "R" },
+            { InputKey.select,              "Select" },
+            { InputKey.start,               "Start" },
+        };
+
+        private static InputKeyMapping nesMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.x,               "B" },
+            { InputKey.a,               "A" }
+        };
+
+        private static InputKeyMapping ngpMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.b,               "B" },
+            { InputKey.a,               "A" },
+            { InputKey.start,           "Option"}
+        };
+
+        private static InputKeyMapping pceMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "I" },
+            { InputKey.b,               "II" },
+            { InputKey.y,               "III" },
+            { InputKey.x,               "IV" },
+            { InputKey.pageup,          "V" },
+            { InputKey.pagedown,        "VI" },
+            { InputKey.select,          "Select" },
+            { InputKey.start,           "Run" },
+            { InputKey.l2,              "Mode: Set 2-button" },
+            { InputKey.r2,              "Mode: Set 6-button" },
+
+        };
+
+        private static InputKeyMapping saturnMapping = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
             { InputKey.start,               "Start" },
             { InputKey.pageup,              "X" },
             { InputKey.x,                   "Y" },
             { InputKey.pagedown,            "Z" },
-            { InputKey.select,              "Mode" },
+            { InputKey.y,                   "A" },
+            { InputKey.a,                   "B" },
+            { InputKey.b,                   "C" },
+            { InputKey.l2,                  "L" },
+            { InputKey.r2,                  "R" },
+        };
+
+        private static InputKeyMapping smsMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "B1" },
+            { InputKey.b,               "B2" }
+        };
+
+        private static InputKeyMapping snesMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.a,               "B" },
+            { InputKey.b,               "A" },
+            { InputKey.x,               "X" },
+            { InputKey.y,               "Y" },
+            { InputKey.pageup,          "L" },
+            { InputKey.pagedown,        "R" }
         };
 
         private static string GetXInputKeyName(Controller c, InputKey key)
@@ -345,7 +440,7 @@ namespace emulatorLauncher
             return "";
         }
 
-        static Dictionary<string, string> systemController = new Dictionary<string, string>()
+        private static Dictionary<string, string> systemController = new Dictionary<string, string>()
         {
             { "nes", "NES Controller" },
             { "snes", "SNES Controller" },
@@ -365,10 +460,11 @@ namespace emulatorLauncher
             { "lynx", "Lynx Controller" },
             { "jaguar", "Jaguar Controller" },
             { "lynx", "Lynx Controller" },
-            { "megadrive", "GPGX Genesis Controller" }
+            { "megadrive", "GPGX Genesis Controller" },
+            { "ngp", "NeoGeo Portable Controller" }
         };
 
-        static Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
+        private static Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
         {
             { "nes", nesMapping },
             { "snes", snesMapping },
@@ -376,6 +472,44 @@ namespace emulatorLauncher
             { "megadrive", mdMapping },
             { "gb", gbMapping },
             { "gbc", gbMapping },
+            { "gba", gbaMapping },
+            { "nds", ndsMapping },
+            { "pcengine", pceMapping },
+            { "ngp", ngpMapping },
+            { "mastersystem", smsMapping },
+            { "saturn", saturnMapping }
         };
+
+        private void ResetControllerConfiguration(DynamicJson json, int totalNB, string system, string core)
+        {
+            bool monoplayer = systemMonoPlayer.Contains(system);
+            InputKeyMapping mapping = mappingToUse[system];
+
+            var trollers = json.GetOrCreateContainer("AllTrollers");
+            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+
+            if (monoplayer)
+            {
+                foreach (var x in mapping)
+                {
+                    string value = x.Value;
+                    InputKey key = x.Key;
+                    controllerConfig[value] = "";
+                }
+            }
+
+            else
+            {
+                for (int i = 1; i < totalNB; i++)
+                {
+                    foreach (var x in mapping)
+                    {
+                        string value = x.Value;
+                        InputKey key = x.Key;
+                        controllerConfig["P" + i + " " + value] = "";
+                    }
+                }
+            }
+        }
     }
 }
