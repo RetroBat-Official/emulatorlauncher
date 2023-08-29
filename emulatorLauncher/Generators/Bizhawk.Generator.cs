@@ -15,7 +15,6 @@ namespace emulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-        private string _path;
 
         private static Dictionary<string, string> bizHawkSystems = new Dictionary<string, string>()
         {
@@ -32,24 +31,19 @@ namespace emulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             // Define path
-            _path = AppConfig.GetFullPath("bizhawk");
+            string path = AppConfig.GetFullPath("bizhawk");
 
-            if (string.IsNullOrEmpty(_path))
+            if (string.IsNullOrEmpty(path))
                 return null;
 
             // Define exe
-            string exe = Path.Combine(_path, "EmuHawk.exe");
+            string exe = Path.Combine(path, "EmuHawk.exe");
 
             if (!File.Exists(exe))
                 return null;
 
-            // Bezels
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-
-            _resolution = resolution;
-
             // Json Config file
-            string configFile = Path.Combine(_path, "config.ini");
+            string configFile = Path.Combine(path, "config.ini");
 
             if (File.Exists(configFile))
             {
@@ -65,11 +59,19 @@ namespace emulatorLauncher
                 json.Save();
             }
 
+            bool fullscreen = !IsEmulationStationWindowed(out _);
+            // Bezels
+            if (fullscreen)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
+
             // Command line arguments
             var commandArray = new List<string>();
 
             commandArray.Add("\"" + rom + "\"");
-            commandArray.Add("--fullscreen");
+            if (fullscreen)
+                commandArray.Add("--fullscreen");
 
             string args = string.Join(" ", commandArray);
 
@@ -77,7 +79,7 @@ namespace emulatorLauncher
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                WorkingDirectory = _path,
+                WorkingDirectory = path,
                 Arguments = args,
             };
         }
