@@ -16,25 +16,25 @@ namespace emulatorLauncher
         private static List<string> systemMonoPlayer = new List<string>() { "gb", "gbc", "gba", "lynx", "nds" };
         private static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
-            { "QuickNes", 2 },
-            { "NesHawk", 4 },
-            { "Faust", 8 },
-            { "Snes9x", 5 },
-            { "BSNES", 8 },
-            { "Mupen64Plus", 4 },
             { "Ares64", 4 },
-            { "Genplus-gx", 8 },
+            { "BSNES", 8 },
+            { "Faust", 8 },
             { "Gambatte", 1 },
             { "GBHawk", 1 },
-            { "SameBoy", 1 },
+            { "Genplus-gx", 8 },
+            { "HyperNyma", 5 },
             { "mGBA", 1 },
             { "melonDS", 1 },
-            { "TurboNyma", 5 },
-            { "HyperNyma", 5 },
-            { "PCEHawk", 5 },
+            { "Mupen64Plus", 4 },
             { "NeoPop", 1 },
-            { "SMSHawk", 2 },
+            { "NesHawk", 4 },
+            { "PCEHawk", 5 },
+            { "QuickNes", 2 },
+            { "SameBoy", 1 },
             { "Saturnus", 12 },
+            { "SMSHawk", 2 },
+            { "Snes9x", 5 },
+            { "TurboNyma", 5 }, 
         };
 
         private void CreateControllerConfiguration(DynamicJson json, string system, string core)
@@ -442,42 +442,41 @@ namespace emulatorLauncher
 
         private static Dictionary<string, string> systemController = new Dictionary<string, string>()
         {
-            { "nes", "NES Controller" },
-            { "snes", "SNES Controller" },
-            { "n64", "Nintendo 64 Controller" },
+            { "c64", "Commodore 64 Controller" },
+            { "gamegear", "GG Controller" },
             { "gb", "Gameboy Controller" },
             { "gba", "GBA Controller" },
-            { "nds", "NDS Controller" },
-            { "c64", "Commodore 64 Controller" },
-            { "zxspectrum", "ZXSpectrum Controller" },
-            { "c64", "PC-FX Controller" },
-            { "saturn", "Saturn Controller" },
-            { "pcengine", "PC Engine Controller" },
-            { "mastersystem", "SMS Controller" },
-            { "gamegear", "GG Controller" },
-            { "wswan", "WonderSwan Controller" },
-            { "psx", "PSX Front Panel" },
-            { "lynx", "Lynx Controller" },
             { "jaguar", "Jaguar Controller" },
             { "lynx", "Lynx Controller" },
+            { "mastersystem", "SMS Controller" },
             { "megadrive", "GPGX Genesis Controller" },
-            { "ngp", "NeoGeo Portable Controller" }
+            { "n64", "Nintendo 64 Controller" },
+            { "nds", "NDS Controller" },
+            { "nes", "NES Controller" },
+            { "ngp", "NeoGeo Portable Controller" },
+            { "pcengine", "PC Engine Controller" },
+            { "pcfx", "PC-FX Controller" },
+            { "psx", "PSX Front Panel" },
+            { "saturn", "Saturn Controller" },
+            { "snes", "SNES Controller" },
+            { "wswan", "WonderSwan Controller" },
+            { "zxspectrum", "ZXSpectrum Controller" }, 
         };
 
         private static Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
         {
-            { "nes", nesMapping },
-            { "snes", snesMapping },
-            { "n64", n64Mapping },
-            { "megadrive", mdMapping },
             { "gb", gbMapping },
-            { "gbc", gbMapping },
             { "gba", gbaMapping },
-            { "nds", ndsMapping },
-            { "pcengine", pceMapping },
-            { "ngp", ngpMapping },
+            { "gbc", gbMapping },
             { "mastersystem", smsMapping },
-            { "saturn", saturnMapping }
+            { "megadrive", mdMapping },
+            { "n64", n64Mapping },
+            { "nds", ndsMapping },
+            { "nes", nesMapping },
+            { "ngp", ngpMapping },
+            { "pcengine", pceMapping },
+            { "saturn", saturnMapping },
+            { "snes", snesMapping },  
         };
 
         private void ResetControllerConfiguration(DynamicJson json, int totalNB, string system, string core)
