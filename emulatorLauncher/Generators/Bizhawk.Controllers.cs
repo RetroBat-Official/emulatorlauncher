@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Management;
 using emulatorLauncher.Tools;
+using System.Reflection;
 
 namespace emulatorLauncher
 {
@@ -79,9 +80,6 @@ namespace emulatorLauncher
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
             InputKeyMapping mapping = mappingToUse[system];
-
-            // Perform clean up of previous config to avoid having a controller in 2 positions
-            int maxPad = inputPortNb[core];
 
             int playerIndex = controller.PlayerIndex;
             int index = 1;
@@ -179,6 +177,38 @@ namespace emulatorLauncher
             InputConfig keyboard = controller.Config;
             if (keyboard == null)
                 return;
+            
+            var trollers = json.GetOrCreateContainer("AllTrollers");
+            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+            var analog = json.GetOrCreateContainer("AllTrollersAnalog");
+            var analogConfig = analog.GetOrCreateContainer(systemController[system]);
+            
+            InputKeyMapping mapping = mappingToUse[system];
+
+            foreach (var x in mapping)
+            {
+                string value = x.Value;
+                var a = keyboard[x.Key];
+                if (a != null)
+                    controllerConfig["P1 " + value] = SdlToKeyCode(a.Id);
+ 
+            }
+
+            if (system == "nds")
+            {
+                var xAxis = analogConfig.GetOrCreateContainer("Touch X");
+                var yAxis = analogConfig.GetOrCreateContainer("Touch Y");
+
+                xAxis["Value"] = "WMouse X";
+                xAxis.SetObject("Mult", 1.0);
+                xAxis.SetObject("Deadzone", 0.0);
+
+                yAxis["Value"] = "WMouse Y";
+                yAxis.SetObject("Mult", 1.0);
+                yAxis.SetObject("Deadzone", 0.0);
+
+                controllerConfig["Touch"] = "WMouse L";
+            }
         }
 
         private static InputKeyMapping gbMapping = new InputKeyMapping()
@@ -544,6 +574,135 @@ namespace emulatorLauncher
                     }
                 }
             }
+        }
+
+        private static string SdlToKeyCode(long sdlCode)
+        {
+            switch (sdlCode)
+            {
+                case 0x0D: return "Enter";
+                case 0x08: return "Backspace";
+                case 0x09: return "Tab";
+                case 0x20: return "Space";
+                case 0x27: return "Apostrophe";
+                case 0x2B: return "Plus";
+                case 0x2C: return "Comma";
+                case 0x2D: return "Minus";
+                case 0x2E: return "Period";
+                case 0x2F: return "Slash";
+                case 0x30: return "Number0";
+                case 0x31: return "Number1";
+                case 0x32: return "Number2";
+                case 0x33: return "Number3";
+                case 0x34: return "Number4";
+                case 0x35: return "Number5";
+                case 0x36: return "Number6";
+                case 0x37: return "Number7";
+                case 0x38: return "Number8";
+                case 0x39: return "Number9";
+                case 0x3A: return "Semicolon";
+                case 0x3B: return "Semicolon";
+                case 0x3C: return "Comma";
+                case 0x3D: return "Equal";
+                case 0x3F: return "Period";
+                case 0x5B: return "LeftBracket";
+                case 0x5C: return "Backslash";
+                case 0x5D: return "RightBracket";
+                case 0x5F: return "Minus";
+                case 0x60: return "Apostrophe";
+                case 0x61: return "A";
+                case 0x62: return "B";
+                case 0x63: return "C";
+                case 0x64: return "D";
+                case 0x65: return "E";
+                case 0x66: return "F";
+                case 0x67: return "G";
+                case 0x68: return "H";
+                case 0x69: return "I";
+                case 0x6A: return "J";
+                case 0x6B: return "K";
+                case 0x6C: return "L";
+                case 0x6D: return "M";
+                case 0x6E: return "N";
+                case 0x6F: return "O";
+                case 0x70: return "P";
+                case 0x71: return "Q";
+                case 0x72: return "R";
+                case 0x73: return "S";
+                case 0x74: return "T";
+                case 0x75: return "U";
+                case 0x76: return "V";
+                case 0x77: return "W";
+                case 0x78: return "X";
+                case 0x79: return "Y";
+                case 0x7A: return "Z";
+                case 0x7F: return "Delete";
+                case 0x40000039: return "CapsLock";
+                case 0x4000003A: return "F1";
+                case 0x4000003B: return "F2";
+                case 0x4000003C: return "F3";
+                case 0x4000003D: return "F4";
+                case 0x4000003E: return "F5";
+                case 0x4000003F: return "F6";
+                case 0x40000040: return "F7";
+                case 0x40000041: return "F8";
+                case 0x40000042: return "F9";
+                case 0x40000043: return "F10";
+                case 0x40000044: return "F11";
+                case 0x40000045: return "F12";
+                case 0x40000047: return "ScrollLock";
+                case 0x40000048: return "Pause";
+                case 0x40000049: return "Insert";
+                case 0x4000004A: return "Home";
+                case 0x4000004B: return "PageUp";
+                case 0x4000004D: return "End";
+                case 0x4000004E: return "PageDown";
+                case 0x4000004F: return "Right";
+                case 0x40000050: return "Left";
+                case 0x40000051: return "Down";
+                case 0x40000052: return "Up";
+                case 0x40000053: return "NumLock";
+                case 0x40000054: return "KeypadDivide";
+                case 0x40000055: return "KeypadMultiply";
+                case 0x40000056: return "KeypadSubtract";
+                case 0x40000057: return "KeypadAdd";
+                case 0x40000058: return "KeypadEnter";
+                case 0x40000059: return "Keypad1";
+                case 0x4000005A: return "Keypad2";
+                case 0x4000005B: return "Keypad3";
+                case 0x4000005C: return "Keypad4";
+                case 0x4000005D: return "Keypad5";
+                case 0x4000005E: return "Keypad6";
+                case 0x4000005F: return "Keypad7";
+                case 0x40000060: return "Keypad8";
+                case 0x40000061: return "Keypad9";
+                case 0x40000062: return "Keypad0";
+                case 0x40000063: return "KeypadDecimal";
+                case 0x40000067: return "KeypadEquals";
+                case 0x40000068: return "F13";
+                case 0x40000069: return "F14";
+                case 0x4000006A: return "F15";
+                case 0x4000006B: return "F16";
+                case 0x4000006C: return "F17";
+                case 0x4000006D: return "F18";
+                case 0x4000006E: return "F19";
+                case 0x4000006F: return "F20";
+                case 0x40000070: return "F21";
+                case 0x40000071: return "F22";
+                case 0x40000072: return "F23";
+                case 0x40000073: return "F24";
+                case 0x4000007F: return "Volume Mute";
+                case 0x40000080: return "Volume Up";
+                case 0x40000081: return "Volume Down";
+                case 0x40000085: return "KeypadDecimal";
+                case 0x400000E0: return "Ctrl";
+                case 0x400000E1: return "Shift";
+                case 0x400000E2: return "Alt";
+                case 0x400000E4: return "Ctrl";
+                case 0x400000E5: return "Shift";
+                case 0x400000E6: return "Alt";
+            }
+            return "";
         }
     }
 }

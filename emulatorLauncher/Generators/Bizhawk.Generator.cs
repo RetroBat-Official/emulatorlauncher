@@ -16,6 +16,8 @@ namespace emulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
+        private static List<string> preferredRomExtensions = new List<string>() { ".bin", ".cue", ".img", ".iso", ".rom" };
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             // Define path
@@ -98,6 +100,14 @@ namespace emulatorLauncher
                 string systemName = bizhawkPreferredCore[system];
                 var preferredcores = json.GetOrCreateContainer("PreferredCores");
                 preferredcores[systemName] = core;
+            }
+
+            // If using some extensions, config file needs to be updated to specify the system to autorun
+            string romExtension = Path.GetExtension(rom).ToLowerInvariant();
+            if (preferredRomExtensions.Contains(romExtension) && bizHawkShortSystems.ContainsKey(system))
+            {
+                var preferredextensions = json.GetOrCreateContainer("PreferredPlatformsForExtensions");
+                preferredextensions[romExtension] = bizHawkShortSystems[system];
             }
 
             // General settings
@@ -414,6 +424,43 @@ namespace emulatorLauncher
             { "virtualboy", "VB" },
             { "wswan", "WSWAN" },
             { "zxspectrum", "ZXSpectrum" },
+        };
+
+        private static Dictionary<string, string> bizHawkShortSystems = new Dictionary<string, string>()
+        {
+            { "atari2600", "A26" },
+            { "atari7800", "A78" },
+            { "jaguar", "Jaguar" },
+            { "lynx", "Lynx" },
+            { "nes", "NES" },
+            { "snes", "SNES" },
+            { "n64", "N64" },
+            { "gb", "GB" },
+            { "gba", "GBA" },
+            { "psx", "PSX" },
+            { "mastersystem", "SMS" },
+            { "megadrive", "GEN" },
+            { "sega32x", "32X" },
+            { "saturn", "SAT" },
+            { "pcengine", "PCE" },
+            { "colecovision", "Coleco" },
+            { "ti83", "TI83" },
+            { "wswan", "WSWAN" },
+            { "c64", "C64" },
+            { "apple2", "AppleII" },
+            { "intellivision", "INTV" },
+            { "zxspectrum", "ZXSpectrum" },
+            { "amstradcpc", "AmstradCPC" },
+            { "channelf", "ChannelF" },
+            { "odyssey2", "O2" },
+            { "vectrex", "VEC" },
+            { "msx", "MSX" },
+            { "nds", "NDS" },
+            { "gb2players", "GB" },
+            { "gbc", "GB" },
+            { "gbc2players", "GB" },
+            { "pcenginecd", "PCE" },
+            { "sgb", "GB" },
         };
     }
 }
