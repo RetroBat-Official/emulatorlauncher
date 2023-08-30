@@ -39,7 +39,25 @@ namespace emulatorLauncher
             
             commandArray.Add("--system");
             commandArray.Add(core);
+
+            // if running a n64dd game, both roms need to be specified with the ndd rom last
+            if (system == "n64dd" && Path.GetExtension(rom) == ".ndd")
+            {
+                string n64Rom = rom.Remove(rom.Length - 4);
+                if (File.Exists(n64Rom))
+                    commandArray.Add("\"" + n64Rom + "\"");
+            }
+
             commandArray.Add("\"" + rom + "\"");
+
+            if (system == "n64dd" && Path.GetExtension(rom) != ".ndd")
+            {
+                string nddRom = rom + ".ndd";
+                if (File.Exists(nddRom))
+                    commandArray.Add("\"" + nddRom + "\"");
+            }
+
+            commandArray.Add("--no-file-prompt");
 
             if (fullscreen)
                 commandArray.Add("--fullscreen");
@@ -108,7 +126,7 @@ namespace emulatorLauncher
                 catch { }
             string aresScreenshotsPath = screenshotsPath + "/";
             
-            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "ares");
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "ares");
             if (!Directory.Exists(savesPath)) try { Directory.CreateDirectory(savesPath); }
                 catch { }
             string aresSavesPath = savesPath + "/";
@@ -149,6 +167,17 @@ namespace emulatorLauncher
                     var sys = bml.GetOrCreateContainer("ColecoVision");
                     var firmware = sys.GetOrCreateContainer("Firmware");
                     firmware["BIOS.World"] = colecoBios.Replace("\\", "/");
+                }
+            }
+
+            if (system == "fds")
+            {
+                string fdsBios = Path.Combine(AppConfig.GetFullPath("bios"), "disksys.rom");
+                if (File.Exists(fdsBios))
+                {
+                    var sys = bml.GetOrCreateContainer("FamicomDiskSystem");
+                    var firmware = sys.GetOrCreateContainer("Firmware");
+                    firmware["BIOS.Japan"] = fdsBios.Replace("\\", "/");
                 }
             }
 
@@ -194,6 +223,41 @@ namespace emulatorLauncher
                     firmware["BIOS.US"] = n64dd_us.Replace("\\", "/");
                 if (File.Exists(n64dd_dev))
                     firmware["BIOS.DEV"] = n64dd_dev.Replace("\\", "/");
+            }
+
+            if (system == "ngp")
+            {
+                string ngpBios = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp");
+                if (File.Exists(ngpBios))
+                {
+                    var sys = bml.GetOrCreateContainer("NeoGeoPocket");
+                    var firmware = sys.GetOrCreateContainer("Firmware");
+                    firmware["BIOS.World"] = ngpBios.Replace("\\", "/");
+                }
+            }
+
+            if (system == "ngpc")
+            {
+                string ngpBios = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp");
+                if (File.Exists(ngpBios))
+                {
+                    var sys = bml.GetOrCreateContainer("NeoGeoPocketColor");
+                    var firmware = sys.GetOrCreateContainer("Firmware");
+                    firmware["BIOS.World"] = ngpBios.Replace("\\", "/");
+                }
+            }
+
+            if (system == "pcenginecd")
+            {
+                var sys = bml.GetOrCreateContainer("PCEngineCD");
+                var firmware = sys.GetOrCreateContainer("Firmware");
+
+                string biospcecd = Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce");
+                if (File.Exists(biospcecd))
+                {
+                    firmware["BIOS.US"] = biospcecd.Replace("\\", "/");
+                    firmware["BIOS.Japan"] = biospcecd.Replace("\\", "/");
+                }
             }
 
             if (system == "psx")
