@@ -48,6 +48,7 @@ namespace emulatorLauncher
 
             var bml = BmlFile.Load(Path.Combine(path, "settings.bml"));
             SetupConfiguration(bml, path, system, core, rom);
+            SetupFirmwares(bml, path, system, core, rom);
             WriteKeyboardHotkeys(bml, path);
             CreateControllerConfiguration(bml, path);
 
@@ -73,7 +74,21 @@ namespace emulatorLauncher
 
             // Video
             var video = bml.GetOrCreateContainer("Video");
+            video["AspectCorrection"] = "true";
+            video["AdaptiveSizing"] = "true";
             BindFeature(video, "Driver", "ares_renderer", "OpenGL 3.2");
+            BindFeature(video, "Output", "ares_aspect", "Scale");
+
+            if (SystemConfig.isOptSet("ares_shaders") && SystemConfig["ares_shaders"] == "none")
+                video["Shader"] = "None";
+            else if (SystemConfig.isOptSet("ares_shaders") && SystemConfig["ares_shaders"] == "Blur")
+                video["Shader"] = "Blur";
+            else if (SystemConfig.isOptSet("ares_shaders") && !string.IsNullOrEmpty(SystemConfig["ares_shaders"]))
+            {
+                string shader = SystemConfig["ares_shaders"];
+                string pathShader = Path.Combine(path, "Shaders", shader + "/").Replace("\\", "/");
+                video["Shader"] = pathShader;
+            }
 
             // Audio
             var audio = bml.GetOrCreateContainer("Audio");
@@ -122,6 +137,96 @@ namespace emulatorLauncher
             hotkey["IncrementStateSlot"] = "0x1/0/4;;";     // F4
             hotkey["PauseEmulation"] = "0x1/0/6;;";         // F6
             hotkey["QuitEmulator"] = "0x1/0/12;;";          // F12
+        }
+
+        private void SetupFirmwares(BmlFile bml, string path, string system, string core, string rom)
+        {
+            if (system == "colecovision")
+            {
+                string colecoBios = Path.Combine(AppConfig.GetFullPath("bios"), "colecovision.rom");
+                if (File.Exists(colecoBios))
+                {
+                    var sys = bml.GetOrCreateContainer("ColecoVision");
+                    var firmware = sys.GetOrCreateContainer("Firmware");
+                    firmware["BIOS.World"] = colecoBios.Replace("\\", "/");
+                }
+            }
+
+            if (system == "gba")
+            {
+                string gbaBios = Path.Combine(AppConfig.GetFullPath("bios"), "gba_bios.bin");
+                if (File.Exists(gbaBios))
+                {
+                    var sys = bml.GetOrCreateContainer("GameBoyAdvance");
+                    var firmware = sys.GetOrCreateContainer("Firmware");
+                    firmware["BIOS.World"] = gbaBios.Replace("\\", "/");
+                }
+            }
+
+            if (system == "mastersystem")
+            {
+                var sys = bml.GetOrCreateContainer("MasterSystem");
+                var firmware = sys.GetOrCreateContainer("Firmware");
+
+                string bios_euus = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] Sega Master System (USA, Europe) (v1.3).sms");
+                string bios_japan = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] Sega Master System (Japan) (v2.1).sms");
+
+                if (File.Exists(bios_japan))
+                    firmware["BIOS.Japan"] = bios_japan.Replace("\\", "/");
+                if (File.Exists(bios_euus))
+                {
+                    firmware["BIOS.Europe"] = bios_euus.Replace("\\", "/");
+                    firmware["BIOS.US"] = bios_euus.Replace("\\", "/");
+                }
+            }
+
+            if (system == "n64dd")
+            {
+                var sys = bml.GetOrCreateContainer("Nintendo64DD");
+                var firmware = sys.GetOrCreateContainer("Firmware");
+
+                string n64dd_japan = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", "IPL_JAP.n64");
+                string n64dd_us = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", "IPL_USA.n64");
+                string n64dd_dev = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", "IPL_DEV.n64");
+                if (File.Exists(n64dd_japan))
+                    firmware["BIOS.Japan"] = n64dd_japan.Replace("\\", "/");
+                if (File.Exists(n64dd_us))
+                    firmware["BIOS.US"] = n64dd_us.Replace("\\", "/");
+                if (File.Exists(n64dd_dev))
+                    firmware["BIOS.DEV"] = n64dd_dev.Replace("\\", "/");
+            }
+
+            if (system == "psx")
+            {
+                var sys = bml.GetOrCreateContainer("PlayStation");
+                var firmware = sys.GetOrCreateContainer("Firmware");
+
+                string bios_us = Path.Combine(AppConfig.GetFullPath("bios"), "scph5501.bin");
+                string bios_japan = Path.Combine(AppConfig.GetFullPath("bios"), "scph5500.bin");
+                string bios_eu = Path.Combine(AppConfig.GetFullPath("bios"), "scph5502.bin");
+                if (File.Exists(bios_us))
+                    firmware["BIOS.US"] = bios_us.Replace("\\", "/");
+                if (File.Exists(bios_japan))
+                    firmware["BIOS.Japan"] = bios_japan.Replace("\\", "/");
+                if (File.Exists(bios_eu))
+                    firmware["BIOS.Europe"] = bios_eu.Replace("\\", "/");
+            }
+
+            if (system == "segacd")
+            {
+                var sys = bml.GetOrCreateContainer("MegaCD");
+                var firmware = sys.GetOrCreateContainer("Firmware");
+
+                string bios_japan = Path.Combine(AppConfig.GetFullPath("bios"), "bios_CD_J.bin");
+                string bios_us = Path.Combine(AppConfig.GetFullPath("bios"), "bios_CD_U.bin");
+                string bios_eu = Path.Combine(AppConfig.GetFullPath("bios"), "bios_CD_E.bin");
+                if (File.Exists(bios_japan))
+                    firmware["BIOS.Japan"] = bios_japan.Replace("\\", "/");
+                if (File.Exists(bios_us))
+                    firmware["BIOS.US"] = bios_us.Replace("\\", "/");
+                if (File.Exists(bios_eu))
+                    firmware["BIOS.Europe"] = bios_eu.Replace("\\", "/");
+            }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
