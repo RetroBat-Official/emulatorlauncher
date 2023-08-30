@@ -56,6 +56,15 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
+            // case of DSI nand loading
+            if (core == "melonDS" && Path.GetExtension(rom) == ".bin")
+            {
+                string romPath = Path.GetDirectoryName(rom);
+                var romToLaunch = Directory.EnumerateFiles(romPath, "*.nds")
+                    .FirstOrDefault();
+                rom = romToLaunch;
+            }
+
             // Command line arguments
             var commandArray = new List<string>();
 
@@ -204,6 +213,13 @@ namespace emulatorLauncher
             pathEntries.SetObject("Paths", paths);
 
             // Display options
+            json["DispFixAspectRatio"] = "true";
+            json["DispFullscreenHacks"] = "true";
+            BindBoolFeature(json, "DisplayFps", "bizhawk_fps", "true", "false");
+            BindBoolFeature(json, "DispFixScaleInteger", "integerscale", "true", "false");
+            BindFeature(json, "TargetDisplayFilter", "bizhawk_filter", "0");
+            BindFeature(json, "DispFinalFilter", "bizhawk_finalfilter", "0");
+
             // Display driver
             if (SystemConfig.isOptSet("bizhawk_renderer") && !string.IsNullOrEmpty(SystemConfig["bizhawk_renderer"]))
                 json["DispMethod"] = SystemConfig["bizhawk_renderer"];
@@ -302,6 +318,16 @@ namespace emulatorLauncher
                 string dsiFirmware = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_firmware.bin");
                 if (File.Exists(dsiFirmware))
                     firmware["NDS+firmwarei"] = dsiFirmware;
+                string dsiNand = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
+                if (File.Exists(dsiNand))
+                {
+                    firmware["NDS+NAND (EUR)"] = dsiNand;
+                    firmware["NDS+NAND (JPN)"] = dsiNand;
+                    firmware["NDS+NAND (USA)"] = dsiNand;
+                    firmware["NDS+NAND (AUS)"] = dsiNand;
+                    firmware["NDS+NAND (CHN)"] = dsiNand;
+                    firmware["NDS+NAND (KOR)"] = dsiNand;
+                }
             }
 
             if (system == "nes")

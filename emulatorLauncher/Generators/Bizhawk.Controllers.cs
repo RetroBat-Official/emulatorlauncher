@@ -182,15 +182,22 @@ namespace emulatorLauncher
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
             var analog = json.GetOrCreateContainer("AllTrollersAnalog");
             var analogConfig = analog.GetOrCreateContainer(systemController[system]);
-            
-            InputKeyMapping mapping = mappingToUse[system];
+            bool monoplayer = systemMonoPlayer.Contains(system);
+
+            var mapping = mappingToUse[system];
 
             foreach (var x in mapping)
             {
                 string value = x.Value;
                 var a = keyboard[x.Key];
                 if (a != null)
-                    controllerConfig["P1 " + value] = SdlToKeyCode(a.Id);
+                {
+                    if (monoplayer)
+                        controllerConfig[value] = SdlToKeyCode(a.Id);
+                    else
+                        controllerConfig["P1 " + value] = SdlToKeyCode(a.Id);
+                }
+                    
  
             }
 
