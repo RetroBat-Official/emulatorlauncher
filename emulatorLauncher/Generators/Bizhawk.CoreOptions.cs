@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Management;
 using emulatorLauncher.Tools;
+using SharpDX.DirectInput;
 
 namespace emulatorLauncher
 {
@@ -98,6 +99,16 @@ namespace emulatorLauncher
                 nesHawkControls["Famicom"] = "false";
                 nesHawkControls["FamicomExpPort"] = "UnpluggedFam";
             }
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                string devicetype = "Zapper";
+                nesHawkControls["Famicom"] = "false";
+                nesHawkControls["NesLeftPort"] = "ControllerNES";
+                nesHawkControls["NesRightPort"] = "Zapper";
+                nesHawkControls["FamicomExpPort"] = "UnpluggedFam";
+                SetupLightGuns(json, devicetype, core, system, 2);
+            }
         }
 
         private void ConfigureFaust(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -138,6 +149,14 @@ namespace emulatorLauncher
                 snes9xSync["RightPort"] = "2";
             else
                 snes9xSync["RightPort"] = "1";
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                string devicetype = "4";
+                snes9xSync["LeftPort"] = "1";
+                snes9xSync["RightPort"] = "4";
+                SetupLightGuns(json, devicetype, core, system, 2);
+            }
         }
 
         private void ConfigureBsnes(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -163,6 +182,14 @@ namespace emulatorLauncher
                 bsnesSync["LeftPort"] = "1";
                 bsnesSync["RightPort"] = "1";
             }
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                string devicetype = "4";
+                bsnesSync["LeftPort"] = "1";
+                bsnesSync["RightPort"] = "4";
+                SetupLightGuns(json, devicetype, core, system, 2);
+            }
         }
 
         private void ConfigureSmsHawk(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -175,6 +202,14 @@ namespace emulatorLauncher
             smsHawkSync["EnableFm"] = "true";
             smsHawkSync["Port1"] = "0";
             smsHawkSync["Port2"] = "0";
+
+            if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
+            {
+                string devicetype = "3";
+                smsHawkSync["Port1"] = "3";
+                smsHawkSync["Port2"] = "0";
+                SetupLightGuns(json, devicetype, core, system, 1);
+            }
         }
 
         private void ConfigureGenesisPlusGX(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
