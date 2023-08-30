@@ -16,18 +16,6 @@ namespace emulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
-        private static Dictionary<string, string> bizHawkSystems = new Dictionary<string, string>()
-        {
-            { "nes", "NES" },
-            { "snes", "SNES" },
-            { "n64", "N64" },
-            { "nds", "NDS" },
-            { "gb", "GB" },
-            { "gbc", "GBC" },
-            { "pcengine", "PCE" },
-            { "pcenginecd", "PCECD" }
-        };
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             // Define path
@@ -84,15 +72,39 @@ namespace emulatorLauncher
             };
         }
 
+        private static Dictionary<string, string> bizhawkPreferredCore = new Dictionary<string, string>()
+        {
+            { "gb", "GB" },
+            { "gbc", "GBC" },
+            { "gb2players", "GBL" },
+            { "mastersystem", "SMS" },
+            { "n64", "N64" },
+            { "nds", "NDS" },
+            { "nes", "NES" },
+            { "pcengine", "PCE" },
+            { "pcenginecd", "PCECD" },
+            { "psx", "PSX" },
+            { "sgb", "SGB" },
+            { "snes", "SNES" },
+            { "supergrafx", "SGX" },
+            { "ti83", "TI83" },
+        };
+
         private void SetupGeneralConfig(DynamicJson json, string system, string core, string rom, string emulator)
         {
             // First, set core to use !
-            if (bizHawkSystems.ContainsKey(system))
+            if (bizhawkPreferredCore.ContainsKey(system))
             {
-                string systemName = bizHawkSystems[system];
+                string systemName = bizhawkPreferredCore[system];
                 var preferredcores = json.GetOrCreateContainer("PreferredCores");
                 preferredcores[systemName] = core;
             }
+
+            // General settings
+            json["PauseWhenMenuActivated"] = "true";
+            json["SingleInstanceMode"] = "true";
+            json["ShowContextMenu"] = "false";
+            json["UpdateAutoCheckEnabled"] = "false";
 
             // Set Paths
             var pathEntries = json.GetOrCreateContainer("PathEntries");
@@ -130,8 +142,12 @@ namespace emulatorLauncher
             var saveStatePath = new DynamicJson();
             saveStatePath["Type"] = "Savestates";
             saveStatePath["Path"] = saveStateFolder;
-            saveStatePath["System"] = bizHawkSystems[system];
-            paths.Add(saveStatePath);
+
+            if (bizHawkSystems.ContainsKey(system))
+            {
+                saveStatePath["System"] = bizHawkSystems[system];
+                paths.Add(saveStatePath);
+            }
 
             string saveRAMFolder = Path.Combine(AppConfig.GetFullPath("saves"), system, emulator);
             if (!Directory.Exists(saveRAMFolder))
@@ -140,8 +156,12 @@ namespace emulatorLauncher
             var saveRAMPath = new DynamicJson();
             saveRAMPath["Type"] = "Save RAM";
             saveRAMPath["Path"] = saveRAMFolder;
-            saveRAMPath["System"] = bizHawkSystems[system];
-            paths.Add(saveRAMPath);
+
+            if (bizHawkSystems.ContainsKey(system))
+            {
+                saveRAMPath["System"] = bizHawkSystems[system];
+                paths.Add(saveRAMPath);
+            }
 
             string screenshotsFolder = Path.Combine(AppConfig.GetFullPath("screenshots"), emulator);
             if (!Directory.Exists(screenshotsFolder))
@@ -150,8 +170,12 @@ namespace emulatorLauncher
             var screenshotsPath = new DynamicJson();
             screenshotsPath["Type"] = "Screenshots";
             screenshotsPath["Path"] = screenshotsFolder;
-            screenshotsPath["System"] = bizHawkSystems[system];
-            paths.Add(screenshotsPath);
+
+            if (bizHawkSystems.ContainsKey(system))
+            {
+                screenshotsPath["System"] = bizHawkSystems[system];
+                paths.Add(screenshotsPath);
+            }
 
             string cheatsFolder = Path.Combine(AppConfig.GetFullPath("cheats"), emulator, system);
             if (!Directory.Exists(cheatsFolder))
@@ -160,8 +184,12 @@ namespace emulatorLauncher
             var cheatsPath = new DynamicJson();
             cheatsPath["Type"] = "Cheats";
             cheatsPath["Path"] = cheatsFolder;
-            cheatsPath["System"] = bizHawkSystems[system];
-            paths.Add(cheatsPath);
+
+            if (bizHawkSystems.ContainsKey(system))
+            {
+                cheatsPath["System"] = bizHawkSystems[system];
+                paths.Add(cheatsPath);
+            }
 
             pathEntries.SetObject("Paths", paths);
 
@@ -341,5 +369,51 @@ namespace emulatorLauncher
 
             return ret;
         }
+
+        private static Dictionary<string, string> bizHawkSystems = new Dictionary<string, string>()
+        {
+            { "amstradcpc", "AmstradCPC" },
+            { "apple2", "AppleII" },
+            { "atari2600", "A26" },
+            { "atari7800", "A78" },
+            { "c64", "C64" },
+            { "channelf", "ChannelF" },
+            { "colecovision", "Coleco" },
+            { "gamegear", "GG" },
+            { "gb", "GB_GBC_SGB" },
+            { "gb2players", "GBL" },
+            { "gba", "GBA" },
+            { "gbc", "GB_GBC_SGB" },
+            { "gbc2players", "GBL" },
+            { "intellivision", "INTV" },
+            { "jaguar", "Jaguar" },
+            { "lynx", "Lynx" },
+            { "mastersystem", "SMS" },
+            { "megadrive", "GEN" },
+            { "msx", "MSX" },
+            { "n64", "N64" },
+            { "nes", "NES" },
+            { "nds", "NDS" },
+            { "ngp", "NGP" },
+            { "odyssey2", "O2" },
+            { "pcengine", "PCE_PCECD_SGX_SGXCD" },
+            { "pcenginecd", "PCE_PCECD_SGX_SGXCD" },
+            { "pcfx", "PCFX" },
+            { "psx", "PSX" },
+            { "satellaview", "BSX" },
+            { "saturn", "SAT" },
+            { "sega32x", "32X" },
+            { "sg1000", "SG" },
+            { "sgb", "GB_GBC_SGB" },
+            { "snes", "SNES" },
+            { "supergrafx", "PCE_PCECD_SGX_SGXCD" },
+            { "ti83", "TI83" },
+            { "tic80", "TIC80" },
+            { "uzebox", "UZE" },
+            { "vectrex", "VEC" },
+            { "virtualboy", "VB" },
+            { "wswan", "WSWAN" },
+            { "zxspectrum", "ZXSpectrum" },
+        };
     }
 }
