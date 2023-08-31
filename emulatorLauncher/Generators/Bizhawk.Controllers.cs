@@ -39,7 +39,10 @@ namespace emulatorLauncher
             { "Mupen64Plus", 4 },
             { "NeoPop", 1 },
             { "NesHawk", 4 },
+            { "Nymashock", 8 },
+            { "Octoshock", 8 },
             { "PCEHawk", 5 },
+            { "PCFX", 2 },
             { "QuickNes", 2 },
             { "SameBoy", 1 },
             { "Saturnus", 12 },
@@ -70,7 +73,7 @@ namespace emulatorLauncher
             if (computersystem.Contains(system))
                 ConfigureKeyboardSystem(json, system);
             else if (controller.IsKeyboard)
-                ConfigureKeyboard(controller, json, system, core);
+                ConfigureKeyboard(controller, json, system, core, controller.PlayerIndex);
             else
                 ConfigureJoystick(controller, json, system, core);
         }
@@ -91,7 +94,18 @@ namespace emulatorLauncher
             bool monoplayer = systemMonoPlayer.Contains(system);
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+            
             InputKeyMapping mapping = mappingToUse[system];
+
+            if (system == "psx")
+            {
+                if (core == "Nymashock" && SystemConfig.isOptSet("bizhawk_psx_digital") && SystemConfig.getOptBoolean("bizhawk_psx_digital"))
+                    mapping = psxNymaMapping;
+                else if (core == "Nymashock")
+                    mapping = dualshockNymaMapping;
+                else if (SystemConfig.isOptSet("bizhawk_psx_digital") && SystemConfig.getOptBoolean("bizhawk_psx_digital"))
+                    mapping = psxOctoMapping;
+            }
 
             int playerIndex = controller.PlayerIndex;
             int index = 1;
@@ -146,10 +160,7 @@ namespace emulatorLauncher
                 }
             }
 
-            // Configure analog part of .ini
-            var analog = json.GetOrCreateContainer("AllTrollersAnalog");
-            var analogConfig = analog.GetOrCreateContainer(systemController[system]);
-
+            // Specifics
             if (system == "atari2600" || system == "atari7800")
             {
                 controllerConfig["Reset"] = "";
@@ -176,7 +187,7 @@ namespace emulatorLauncher
 
             if (system == "jaguar")
             {
-                for (int i = 1; i<3; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     controllerConfig["P" + i + " 7"] = "";
                     controllerConfig["P" + i + " 8"] = "";
@@ -188,6 +199,10 @@ namespace emulatorLauncher
 
             if (system == "jaguar")
                 controllerConfig["Power"] = "";
+
+            // Configure analog part of .ini
+            var analog = json.GetOrCreateContainer("AllTrollersAnalog");
+            var analogConfig = analog.GetOrCreateContainer(systemController[system]);
 
             if (system == "n64")
             {
@@ -218,9 +233,46 @@ namespace emulatorLauncher
 
                 controllerConfig["Touch"] = "WMouse L";
             }
+
+            if (system == "psx")
+            {
+                var lStickH = analogConfig.GetOrCreateContainer("P" + playerIndex + " Left Stick Left / Right");
+                var lStickV = analogConfig.GetOrCreateContainer("P" + playerIndex + " Left Stick Up / Down");
+                var rStickH = analogConfig.GetOrCreateContainer("P" + playerIndex + " Right Stick Left / Right");
+                var rStickV = analogConfig.GetOrCreateContainer("P" + playerIndex + " Right Stick Up / Down");
+
+                lStickH["Value"] = isXInput ? "X" + index + " LeftThumbX" : "J" + index + " X";
+                lStickH.SetObject("Mult", 1.0);
+                lStickH.SetObject("Deadzone", 0.1);
+
+                lStickV["Value"] = isXInput ? "X" + index + " LeftThumbY" : "J" + index + " Y";
+                lStickV.SetObject("Mult", 1.0);
+                lStickV.SetObject("Deadzone", 0.1);
+
+                if (controller.VendorID == USB_VENDOR.SONY)
+                {
+                    rStickH["Value"] = "J" + index + " Z";
+                    rStickH.SetObject("Mult", 1.0);
+                    rStickH.SetObject("Deadzone", 0.1);
+
+                    rStickV["Value"] = "J" + index + " RotationZ";
+                    rStickV.SetObject("Mult", 1.0);
+                    rStickV.SetObject("Deadzone", 0.1);
+                }
+                else
+                {
+                    rStickH["Value"] = isXInput ? "X" + index + " RightThumbX" : "J" + index + " RotationX";
+                    rStickH.SetObject("Mult", 1.0);
+                    rStickH.SetObject("Deadzone", 0.1);
+
+                    rStickV["Value"] = isXInput ? "X" + index + " RightThumbY" : "J" + index + " RotationY";
+                    rStickV.SetObject("Mult", 1.0);
+                    rStickV.SetObject("Deadzone", 0.1);
+                }
+            }
         }
 
-        private static void ConfigureKeyboard(Controller controller, DynamicJson json, string system, string core)
+        private static void ConfigureKeyboard(Controller controller, DynamicJson json, string system, string core, int playerindex)
         {
             if (controller == null)
                 return;
@@ -236,6 +288,16 @@ namespace emulatorLauncher
             bool monoplayer = systemMonoPlayer.Contains(system);
 
             var mapping = mappingToUse[system];
+
+            if (system == "psx")
+            {
+                if (core == "Nymashock" && Program.SystemConfig.isOptSet("bizhawk_psx_digital") && Program.SystemConfig.getOptBoolean("bizhawk_psx_digital"))
+                    mapping = psxNymaMapping;
+                else if (core == "Nymashock")
+                    mapping = dualshockNymaMapping;
+                else if (Program.SystemConfig.isOptSet("bizhawk_psx_digital") && Program.SystemConfig.getOptBoolean("bizhawk_psx_digital"))
+                    mapping = psxOctoMapping;
+            }
 
             foreach (var x in mapping)
             {
@@ -369,6 +431,46 @@ namespace emulatorLauncher
             { InputKey.l3,                  "Key 8" },
             { InputKey.select,              "Star" },
             { InputKey.start,               "Pound" }
+        };
+
+        private static InputKeyMapping dualshockNymaMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "D-Pad Up"},
+            { InputKey.down,            "D-Pad Down"},
+            { InputKey.left,            "D-Pad Left" },
+            { InputKey.right,           "D-Pad Right"},
+            { InputKey.a,               "X" },
+            { InputKey.b,               "○" },
+            { InputKey.y,               "□" },
+            { InputKey.x,               "△" },
+            { InputKey.pageup,          "L1" },
+            { InputKey.pagedown,        "R1" },
+            { InputKey.select,          "Select" },
+            { InputKey.start,           "Start" },
+            { InputKey.l2,              "L2" },
+            { InputKey.r2,              "R2" },
+            { InputKey.l3,              "Left Stick, Button" },
+            { InputKey.r3,              "Right Stick, Button" }
+        };
+
+        private static InputKeyMapping dualshockOctoMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "Cross" },
+            { InputKey.b,               "Circle" },
+            { InputKey.y,               "Square" },
+            { InputKey.x,               "Triangle" },
+            { InputKey.pageup,          "L1" },
+            { InputKey.pagedown,        "R1" },
+            { InputKey.select,          "Select" },
+            { InputKey.start,           "Start" },
+            { InputKey.l2,              "L2" },
+            { InputKey.r2,              "R2" },
+            { InputKey.l3,              "L3" },
+            { InputKey.r3,              "R3" }
         };
 
         private static InputKeyMapping gbMapping = new InputKeyMapping()
@@ -522,8 +624,63 @@ namespace emulatorLauncher
             { InputKey.select,          "Select" },
             { InputKey.start,           "Run" },
             { InputKey.l2,              "Mode: Set 2-button" },
-            { InputKey.r2,              "Mode: Set 6-button" },
+            { InputKey.r2,              "Mode: Set 6-button" }
+        };
 
+        private static InputKeyMapping pcfxMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "I" },
+            { InputKey.b,               "II" },
+            { InputKey.y,               "III" },
+            { InputKey.x,               "IV" },
+            { InputKey.pageup,          "V" },
+            { InputKey.pagedown,        "VI" },
+            { InputKey.select,          "Select" },
+            { InputKey.start,           "Run" },
+            { InputKey.l2,              "P1 Mode 1: Set A" },
+            { InputKey.r2,              "P1 Mode 1: Set B" },
+            { InputKey.l3,              "P1 Mode 2: Set A" },
+            { InputKey.r3,              "P1 Mode 2: Set B" }
+        };
+
+        private static InputKeyMapping psxOctoMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "Cross" },
+            { InputKey.b,               "Circle" },
+            { InputKey.y,               "Square" },
+            { InputKey.x,               "Triangle" },
+            { InputKey.pageup,          "L1" },
+            { InputKey.pagedown,        "R1" },
+            { InputKey.select,          "Select" },
+            { InputKey.start,           "Start" },
+            { InputKey.l2,              "L2" },
+            { InputKey.r2,              "R2" }
+        };
+
+        private static InputKeyMapping psxNymaMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "X" },
+            { InputKey.b,               "○" },
+            { InputKey.y,               "□" },
+            { InputKey.x,               "△" },
+            { InputKey.pageup,          "L1" },
+            { InputKey.pagedown,        "R1" },
+            { InputKey.select,          "Select" },
+            { InputKey.start,           "Start" },
+            { InputKey.l2,              "L2" },
+            { InputKey.r2,              "R2" }
         };
 
         private static InputKeyMapping saturnMapping = new InputKeyMapping()
@@ -540,7 +697,7 @@ namespace emulatorLauncher
             { InputKey.a,                   "B" },
             { InputKey.b,                   "C" },
             { InputKey.l2,                  "L" },
-            { InputKey.r2,                  "R" },
+            { InputKey.r2,                  "R" }
         };
 
         private static InputKeyMapping smsMapping = new InputKeyMapping()
@@ -742,6 +899,8 @@ namespace emulatorLauncher
             { "nes", nesMapping },
             { "ngp", ngpMapping },
             { "pcengine", pceMapping },
+            { "pcfx", pcfxMapping },
+            { "psx", dualshockOctoMapping },
             { "saturn", saturnMapping },
             { "snes", snesMapping },
         };
@@ -749,7 +908,18 @@ namespace emulatorLauncher
         private void ResetControllerConfiguration(DynamicJson json, int totalNB, string system, string core)
         {
             bool monoplayer = systemMonoPlayer.Contains(system);
+            
             InputKeyMapping mapping = mappingToUse[system];
+
+            if (system == "psx")
+            {
+                if (core == "Nymashock" && Program.SystemConfig.isOptSet("bizhawk_psx_digital") && SystemConfig.getOptBoolean("bizhawk_psx_digital"))
+                    mapping = psxNymaMapping;
+                else if (core == "Nymashock")
+                    mapping = dualshockNymaMapping;
+                else if (SystemConfig.isOptSet("bizhawk_psx_digital") && SystemConfig.getOptBoolean("bizhawk_psx_digital"))
+                    mapping = psxOctoMapping;
+            }
 
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);

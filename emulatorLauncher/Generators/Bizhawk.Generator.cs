@@ -379,6 +379,31 @@ namespace emulatorLauncher
                     firmware["NES+Bios_FDS"] = disksysPath;
             }
 
+            if (system == "pcfx")
+            {
+                // PC-FX firmware
+                string scsiRom = Path.Combine(AppConfig.GetFullPath("bios"), "fx-scsi.rom");
+                if (File.Exists(scsiRom))
+                    firmware["PCFX+SCSIROM"] = scsiRom;
+                string pcfxrom = Path.Combine(AppConfig.GetFullPath("bios"), "pcfx.rom");
+                if (File.Exists(pcfxrom))
+                    firmware["PCFX+BIOS"] = pcfxrom;
+            }
+
+            if (system == "psx")
+            {
+                // PSX firmware
+                string usBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5501.bin");
+                if (File.Exists(usBios))
+                    firmware["PSX+U"] = usBios;
+                string jpBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5500.bin");
+                if (File.Exists(jpBios))
+                    firmware["PSX+J"] = jpBios;
+                string euBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5502.bin");
+                if (File.Exists(euBios))
+                    firmware["PSX+E"] = euBios;
+            }
+
             if (system == "saturn")
             {
                 // SATURN firmware
