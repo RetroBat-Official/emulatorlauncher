@@ -379,6 +379,20 @@ namespace emulatorLauncher
                     firmware["NES+Bios_FDS"] = disksysPath;
             }
 
+            if (system == "odyssey2")
+            {
+                // Odyssey2 firmware
+                string o2Bios = Path.Combine(AppConfig.GetFullPath("bios"), "o2rom.bin");
+                if (File.Exists(o2Bios))
+                    firmware["O2+BIOS-O2"] = o2Bios;
+                string c52Bios = Path.Combine(AppConfig.GetFullPath("bios"), "c52.bin");
+                if (File.Exists(c52Bios))
+                    firmware["O2+BIOS-C52"] = c52Bios;
+                string g7400Bios = Path.Combine(AppConfig.GetFullPath("bios"), "g7400.bin");
+                if (File.Exists(g7400Bios))
+                    firmware["O2+BIOS-G7400"] = g7400Bios;
+            }
+
             if (system == "pcfx")
             {
                 // PC-FX firmware
@@ -422,6 +436,20 @@ namespace emulatorLauncher
                 string ultramanBios = Path.Combine(AppConfig.GetFullPath("bios"), "mpr-19367-mx.ic1");
                 if (File.Exists(ultramanBios))
                     firmware["SAT+ULTRAMAN"] = ultramanBios;
+            }
+
+            if (system == "sega32x")
+            {
+                // 32X firmware
+                string gBios = Path.Combine(AppConfig.GetFullPath("bios"), "32X_G_BIOS.BIN");
+                if (File.Exists(gBios))
+                    firmware["32X+G"] = gBios;
+                string mBios = Path.Combine(AppConfig.GetFullPath("bios"), "32X_M_BIOS.BIN");
+                if (File.Exists(mBios))
+                    firmware["32X+M"] = mBios;
+                string sBios = Path.Combine(AppConfig.GetFullPath("bios"), "32X_S_BIOS.BIN");
+                if (File.Exists(sBios))
+                    firmware["32X+S"] = sBios;
             }
         }
 

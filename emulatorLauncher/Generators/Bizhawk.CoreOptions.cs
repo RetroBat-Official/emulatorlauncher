@@ -34,11 +34,12 @@ namespace emulatorLauncher
             ConfigureSnes9x(json, coreSettings, coreSyncSettings, core, system);
             ConfigureBsnes(json, coreSettings, coreSyncSettings, core, system);
 
-            // MASTER SYSTEM
+            // MASTER SYSTEM + GAMEGEAR
             ConfigureSmsHawk(json, coreSettings, coreSyncSettings, core, system);
 
-            // MEGADRIVE
+            // MEGADRIVE + 32X
             ConfigureGenesisPlusGX(json, coreSettings, coreSyncSettings, core, system);
+            ConfigurePicoDrive(json, coreSettings, coreSyncSettings, core, system);
 
             // SATURN
             ConfigureSaturnus(json, coreSettings, coreSyncSettings, core, system);
@@ -75,6 +76,9 @@ namespace emulatorLauncher
             // PSX
             ConfigureNymashock(json, coreSettings, coreSyncSettings, core, system);
             ConfigureOctoshock(json, coreSettings, coreSyncSettings, core, system);
+
+            // Odyssey 2
+            ConfigureO2Hawk(json, coreSettings, coreSyncSettings, core, system);
         }
 
         private void ConfigureAtari2600(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -253,7 +257,8 @@ namespace emulatorLauncher
 
             var smsHawkSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Sega.MasterSystem.SMS");
             smsHawkSync["$type"] = "BizHawk.Emulation.Cores.Sega.MasterSystem.SMS+SmsSyncSettings, BizHawk.Emulation.Cores";
-            
+
+
             BindBoolFeature(smsHawkSync, "EnableFm", "bizhawk_sms_fm", "true", "false");
             BindBoolFeature(smsHawkSync, "UseBios", "bizhawk_sms_bios", "true", "false");
             BindFeature(smsHawkSync, "ConsoleRegion", "bizhawk_sms_region", "3");
@@ -298,6 +303,17 @@ namespace emulatorLauncher
                 genplusgxSync["ControlTypeLeft"] = "1";
                 genplusgxSync["ControlTypeRight"] = "1";
             }
+        }
+
+        private void ConfigurePicoDrive(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "PicoDrive")
+                return;
+
+            var picoSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.Sega.PicoDrive.PicoDrive");
+            picoSync["$type"] = "BizHawk.Emulation.Cores.Consoles.Sega.PicoDrive.PicoDrive+SyncSettings, BizHawk.Emulation.Cores";
+
+            BindFeature(picoSync, "RegionOverride", "bizhawk_pico_region", "0");
         }
 
         private void ConfigureSaturnus(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -743,6 +759,17 @@ namespace emulatorLauncher
             var octoshock = coreSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Sony.PSX.Octoshock");
             octoshock["$type"] = "BizHawk.Emulation.Cores.Sony.PSX.Octoshock+Settings, BizHawk.Emulation.Cores";
             octoshock["ResolutionMode"] = "3";
+        }
+
+        private void ConfigureO2Hawk(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "O2Hawk")
+                return;
+
+            var o2Sync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.O2Hawk.O2Hawk");
+            o2Sync["$type"] = "BizHawk.Emulation.Cores.Consoles.O2Hawk.O2Hawk+O2SyncSettings, BizHawk.Emulation.Cores";
+
+            BindBoolFeature(o2Sync, "G7400_Enable", "bizhawk_o2_g7400", "true", "false");
         }
     }
 }

@@ -40,9 +40,11 @@ namespace emulatorLauncher
             { "NeoPop", 1 },
             { "NesHawk", 4 },
             { "Nymashock", 8 },
+            { "O2Hawk", 2 },
             { "Octoshock", 8 },
             { "PCEHawk", 5 },
             { "PCFX", 2 },
+            { "PicoDrive", 2 },
             { "QuickNes", 2 },
             { "SameBoy", 1 },
             { "Saturnus", 12 },
@@ -56,7 +58,12 @@ namespace emulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            json["InputHotkeyOverrideOptions"] = "0";
+
             int maxPad = inputPortNb[core];
+
+            if (system == "gamegear")
+                maxPad = 1;
 
             if (!computersystem.Contains(system))
                 ResetControllerConfiguration(json, maxPad, system, core);
@@ -76,6 +83,9 @@ namespace emulatorLauncher
                 ConfigureKeyboard(controller, json, system, core, controller.PlayerIndex);
             else
                 ConfigureJoystick(controller, json, system, core);
+
+            if (system == "odyssey2")
+                ConfigureKeyboardSystem(json, system);
         }
 
         private void ConfigureJoystick(Controller controller, DynamicJson json, string system, string core)
@@ -280,6 +290,8 @@ namespace emulatorLauncher
             InputConfig keyboard = controller.Config;
             if (keyboard == null)
                 return;
+
+            json["InputHotkeyOverrideOptions"] = "1";
             
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
@@ -393,6 +405,9 @@ namespace emulatorLauncher
             if (system == "apple2")
                 kbmapping = apple2Mapping;
 
+            if (system == "odyssey2")
+                kbmapping = o2KbMapping;
+
             if (kbmapping == null)
                 return;
 
@@ -497,6 +512,17 @@ namespace emulatorLauncher
             { InputKey.b,               "A" },
             { InputKey.pageup,          "L" },
             { InputKey.pagedown,        "R" }
+        };
+
+        private static InputKeyMapping ggMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "B1" },
+            { InputKey.b,               "B2" },
+            { InputKey.start,           "Start" }
         };
 
         private static InputKeyMapping jaguarMapping = new InputKeyMapping()
@@ -607,6 +633,15 @@ namespace emulatorLauncher
             { InputKey.b,               "B" },
             { InputKey.a,               "A" },
             { InputKey.start,           "Option"}
+        };
+
+        private static InputKeyMapping o2Mapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.b,               "F" }
         };
 
         private static InputKeyMapping pceMapping = new InputKeyMapping()
@@ -873,10 +908,12 @@ namespace emulatorLauncher
             { "nds", "NDS Controller" },
             { "nes", "NES Controller" },
             { "ngp", "NeoGeo Portable Controller" },
+            { "odyssey2", "O2 Joystick" },
             { "pcengine", "PC Engine Controller" },
             { "pcfx", "PC-FX Controller" },
             { "psx", "PSX Front Panel" },
             { "saturn", "Saturn Controller" },
+            { "sega32x", "PicoDrive Genesis Controller" },
             { "snes", "SNES Controller" },
             { "wswan", "WonderSwan Controller" },
             { "zxspectrum", "ZXSpectrum Controller" },
@@ -887,6 +924,7 @@ namespace emulatorLauncher
             { "atari2600", atariMapping },
             { "atari7800", atariMapping },
             { "colecovision", colecoMapping },
+            { "gamegear", ggMapping },
             { "gb", gbMapping },
             { "gba", gbaMapping },
             { "gbc", gbMapping },
@@ -898,10 +936,12 @@ namespace emulatorLauncher
             { "nds", ndsMapping },
             { "nes", nesMapping },
             { "ngp", ngpMapping },
+            { "odyssey2", o2Mapping },
             { "pcengine", pceMapping },
             { "pcfx", pcfxMapping },
             { "psx", dualshockOctoMapping },
             { "saturn", saturnMapping },
+            { "sega32x", mdMapping },
             { "snes", snesMapping },
         };
 
@@ -976,7 +1016,7 @@ namespace emulatorLauncher
                 case 0x3B: return "Semicolon";
                 case 0x3C: return "Comma";
                 case 0x3D: return "Equal";
-                case 0x3F: return "Period";
+                case 0x3F: return "Shift+Slash";
                 case 0x5B: return "LeftBracket";
                 case 0x5C: return "Backslash";
                 case 0x5D: return "RightBracket";
@@ -1142,6 +1182,56 @@ namespace emulatorLauncher
             { "Black Apple", "End" },
             { "Previous Disk", "PageUp" },
             { "Next Disk", "PageDown" }
+        };
+
+        private static Dictionary<string, string> o2KbMapping = new Dictionary<string, string>()
+        {
+            { "0", "Number0" },
+            { "1", "Number1" },
+            { "2", "Number2"},
+            { "3", "Number3" },
+            { "4", "Number4" },
+            { "5", "Number5" },
+            { "6", "Number6" },
+            { "7", "Number7" },
+            { "8", "Number8" },
+            { "9", "Number9" },
+            { "YES", "Y" },
+            { "NO", "N" },
+            { "ENT", "Enter" },
+            { "SPC", "Space" },
+            { "?", "Question" },
+            { "L", "L" },
+            { "P", "P" },
+            { "+", "Plus" },
+            { "W", "W" },
+            { "E", "E" },
+            { "R", "R" },
+            { "T", "T" },
+            { "U", "U" },
+            { "I", "I" },
+            { "O", "O" },
+            { "Q", "Q" },
+            { "S", "S" },
+            { "D", "D" },
+            { "F", "F" },
+            { "G", "G" },
+            { "H", "H" },
+            { "J", "J" },
+            { "K", "K" },
+            { "A", "A" },
+            { "Z", "Z" },
+            { "X", "X" },
+            { "C", "C" },
+            { "V", "V" },
+            { "B", "B" },
+            { "M", "M" },
+            { "PERIOD", "Period" },
+            { "-", "Minus" },
+            { "*", "Multiply" },
+            { "/", "Slash" },
+            { "=", "Equals" },
+            { "CLR", "Backspace" },
         };
     }
 }
