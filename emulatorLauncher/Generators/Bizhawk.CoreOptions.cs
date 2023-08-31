@@ -20,6 +20,11 @@ namespace emulatorLauncher
             var coreSettings = json.GetOrCreateContainer("CoreSettings");
             var coreSyncSettings = json.GetOrCreateContainer("CoreSyncSettings");
 
+            // ATARI
+            ConfigureAtari2600(json, coreSettings, coreSyncSettings, core, system);
+            ConfigureAtari7800(json, coreSettings, coreSyncSettings, core, system);
+            ConfigureJaguar(json, coreSettings, coreSyncSettings, core, system);
+
             // NES
             ConfigureQuickNES(json, coreSettings, coreSyncSettings, core, system);
             ConfigureNesHawk(json, coreSettings, coreSyncSettings, core, system);
@@ -60,6 +65,47 @@ namespace emulatorLauncher
 
             // NEO GEO POCKET
             ConfigureNeopop(json, coreSettings, coreSyncSettings, core, system);
+
+            // COLECOVISION
+            ConfigureColecovision(json, coreSettings, coreSyncSettings, core, system);
+        }
+
+        private void ConfigureAtari2600(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "A26")
+                return;
+
+            var a2600Sync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Atari.Atari2600.Atari2600");
+            a2600Sync["$type"] = "BizHawk.Emulation.Cores.Atari.Atari2600.Atari2600+A2600SyncSettings, BizHawk.Emulation.Cores";
+            a2600Sync["Port1"] = "1";
+            a2600Sync["Port2"] = "1";
+
+            BindFeature(a2600Sync, "LeftDifficulty", "bizhawk_A26_difficulty", "true");
+            BindFeature(a2600Sync, "RightDifficulty", "bizhawk_A26_difficulty", "true");
+        }
+
+        private void ConfigureAtari7800(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "A78")
+                return;
+
+            var a7800Sync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Atari.A7800Hawk.A7800Hawk");
+            a7800Sync["$type"] = "BizHawk.Emulation.Cores.Atari.A7800Hawk.A7800Hawk+A7800SyncSettings, BizHawk.Emulation.Cores";
+            a7800Sync["_port1"] = "Joystick Controller";
+            a7800Sync["_port2"] = "Joystick Controller";
+        }
+
+        private void ConfigureJaguar(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "Jaguar")
+                return;
+
+            var jaguarSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Atari.Jaguar.VirtualJaguar");
+            jaguarSync["$type"] = "BizHawk.Emulation.Cores.Atari.Jaguar.VirtualJaguar+VirtualJaguarSyncSettings, BizHawk.Emulation.Cores";
+            jaguarSync["P1Active"] = "true";
+            jaguarSync["P2Active"] = "true";
+
+            BindBoolFeature(jaguarSync, "NTSC", "bizhawk_jaguar_forcePAL", "false", "true");
         }
 
         private void ConfigureQuickNES(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -556,6 +602,18 @@ namespace emulatorLauncher
             var mednafenValues = neopopSync.GetOrCreateContainer("MednafenValues");
 
             BindFeature(mednafenValues, "ngp.language", "bizhawk_ngp_language", "english");
+        }
+
+        private void ConfigureColecovision(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "colecovision")
+                return;
+
+            var colecoSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.ColecoVision.ColecoVision");
+            colecoSync["$type"] = "BizHawk.Emulation.Cores.ColecoVision.ColecoVision+ColecoSyncSettings, BizHawk.Emulation.Cores";
+            colecoSync["_port1"] = "ColecoVision Basic Controller";
+            colecoSync["_port2"] = "ColecoVision Basic Controller";
+
         }
     }
 }
