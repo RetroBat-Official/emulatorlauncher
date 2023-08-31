@@ -9,22 +9,31 @@ using System.Drawing;
 using System.Management;
 using emulatorLauncher.Tools;
 using System.Reflection;
+using System.Collections;
+using ValveKeyValue;
 
 namespace emulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {
-        private static List<string> systemMonoPlayer = new List<string>() { "gb", "gbc", "gba", "lynx", "nds" };
+        private static List<string> systemMonoPlayer = new List<string>() { "apple2", "gb", "gbc", "gba", "lynx", "nds" };
+        private static List<string> computersystem = new List<string>() { "apple2" };
 
         private static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
+            { "A26", 2 },
+            { "A78", 2 },
+            { "AppleII", 1 },
             { "Ares64", 4 },
             { "BSNES", 8 },
+            { "Coleco", 2 },
             { "Faust", 8 },
             { "Gambatte", 1 },
             { "GBHawk", 1 },
             { "Genplus-gx", 8 },
             { "HyperNyma", 5 },
+            { "Jaguar", 2 },
+            { "Lynx", 1 },
             { "mGBA", 1 },
             { "melonDS", 1 },
             { "Mupen64Plus", 4 },
@@ -46,7 +55,8 @@ namespace emulatorLauncher
 
             int maxPad = inputPortNb[core];
 
-            ResetControllerConfiguration(json, maxPad, system, core);
+            if (!computersystem.Contains(system))
+                ResetControllerConfiguration(json, maxPad, system, core);
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(controller, json, system, core);
@@ -57,7 +67,9 @@ namespace emulatorLauncher
             if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.IsKeyboard)
+            if (computersystem.Contains(system))
+                ConfigureKeyboardSystem(json, system);
+            else if (controller.IsKeyboard)
                 ConfigureKeyboard(controller, json, system, core);
             else
                 ConfigureJoystick(controller, json, system, core);
@@ -138,6 +150,45 @@ namespace emulatorLauncher
             var analog = json.GetOrCreateContainer("AllTrollersAnalog");
             var analogConfig = analog.GetOrCreateContainer(systemController[system]);
 
+            if (system == "atari2600" || system == "atari7800")
+            {
+                controllerConfig["Reset"] = "";
+                controllerConfig["Power"] = "";
+                controllerConfig["Select"] = GetInputKeyName(controller, InputKey.start);
+                controllerConfig["Toggle Left Difficulty"] = "";
+                controllerConfig["Toggle Right Difficulty"] = "";
+
+                if (system == "atari7800")
+                {
+                    controllerConfig["BW"] = "";
+                    controllerConfig["Pause"] = GetInputKeyName(controller, InputKey.select);
+                }
+            }
+
+            if (system == "colecovision")
+            {
+                for (int i = 1; i < 3; i++)
+                {
+                    controllerConfig["P" + i + " Key 0"] = "";
+                    controllerConfig["P" + i + " Key 9"] = "";
+                }
+            }
+
+            if (system == "jaguar")
+            {
+                for (int i = 1; i<3; i++)
+                {
+                    controllerConfig["P" + i + " 7"] = "";
+                    controllerConfig["P" + i + " 8"] = "";
+                    controllerConfig["P" + i + " 9"] = "";
+                    controllerConfig["P" + i + " Asterisk"] = "";
+                    controllerConfig["P" + i + " Pound"] = "";
+                }
+            }
+
+            if (system == "jaguar")
+                controllerConfig["Power"] = "";
+
             if (system == "n64")
             {
                 var xAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " X Axis");
@@ -197,8 +248,60 @@ namespace emulatorLauncher
                     else
                         controllerConfig["P1 " + value] = SdlToKeyCode(a.Id);
                 }
-                    
- 
+            }
+
+            if (system == "atari2600" || system == "atari7800")
+            {
+                controllerConfig["Reset"] = "";
+                controllerConfig["Toggle Left Difficulty"] = "";
+                controllerConfig["Toggle Right Difficulty"] = "";
+                controllerConfig["Power"] = "";
+                controllerConfig["Select"] = SdlToKeyCode(keyboard[InputKey.start].Id);
+
+                if (system == "atari7800")
+                {
+                    controllerConfig["BW"] = "";
+                    controllerConfig["Pause"] = SdlToKeyCode(keyboard[InputKey.select].Id);
+                }
+            }
+
+            if (system == "colecovision")
+            {
+                controllerConfig["P1 Key 0"] = "Number0";
+                controllerConfig["P1 Key 1"] = "Number1";
+                controllerConfig["P1 Key 2"] = "Number2";
+                controllerConfig["P1 Key 3"] = "Number3";
+                controllerConfig["P1 Key 4"] = "Number4";
+                controllerConfig["P1 Key 5"] = "Number5";
+                controllerConfig["P1 Key 6"] = "Number6";
+                controllerConfig["P1 Key 7"] = "Number7";
+                controllerConfig["P1 Key 8"] = "Number8";
+                controllerConfig["P1 Key 9"] = "Number9";
+                controllerConfig["P1 Star"] = "Minus";
+                controllerConfig["P1 Pound"] = "Plus";
+                controllerConfig["P2 Star"] = "";
+                controllerConfig["P2 Pound"] = "";
+            }
+
+            if (system == "jaguar")
+            {
+                controllerConfig["P1 0"] = "Number0";
+                controllerConfig["P1 1"] = "Number1";
+                controllerConfig["P1 2"] = "Number2";
+                controllerConfig["P1 3"] = "Number3";
+                controllerConfig["P1 4"] = "Number4";
+                controllerConfig["P1 5"] = "Number5";
+                controllerConfig["P1 6"] = "Number6";
+                controllerConfig["P1 7"] = "Number7";
+                controllerConfig["P1 8"] = "Number8";
+                controllerConfig["P1 9"] = "Number9";
+                controllerConfig["P1 Asterisk"] = "Minus";
+                controllerConfig["P1 Pound"] = "Plus";
+                controllerConfig["P2 7"] = "";
+                controllerConfig["P2 8"] = "";
+                controllerConfig["P2 9"] = "";
+                controllerConfig["P2 Asterisk"] = "";
+                controllerConfig["P2 Pound"] = "";
             }
 
             if (system == "nds")
@@ -217,6 +320,56 @@ namespace emulatorLauncher
                 controllerConfig["Touch"] = "WMouse L";
             }
         }
+
+        private static void ConfigureKeyboardSystem(DynamicJson json, string system)
+        {
+            var trollers = json.GetOrCreateContainer("AllTrollers");
+            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+
+            Dictionary<string, string> kbmapping = null;
+            
+            if (system == "apple2")
+                kbmapping = apple2Mapping;
+
+            if (kbmapping == null)
+                return;
+
+            foreach (var x in kbmapping)
+            {
+                string value = x.Value;
+                string key = x.Key;
+                controllerConfig[key] = value;
+            }
+        }
+
+        private static InputKeyMapping atariMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "Button" }
+        };
+
+        private static InputKeyMapping colecoMapping = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.a,                   "L" },
+            { InputKey.b,                   "R" },
+            { InputKey.x,                   "Key 1" },
+            { InputKey.y,                   "Key 2" },
+            { InputKey.pagedown,            "Key 3" },
+            { InputKey.pageup,              "Key 4" },
+            { InputKey.r2,                  "Key 5" },
+            { InputKey.l2,                  "Key 6" },
+            { InputKey.r3,                  "Key 7" },
+            { InputKey.l3,                  "Key 8" },
+            { InputKey.select,              "Star" },
+            { InputKey.start,               "Pound" }
+        };
 
         private static InputKeyMapping gbMapping = new InputKeyMapping()
         {
@@ -242,6 +395,39 @@ namespace emulatorLauncher
             { InputKey.b,               "A" },
             { InputKey.pageup,          "L" },
             { InputKey.pagedown,        "R" }
+        };
+
+        private static InputKeyMapping jaguarMapping = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.y,                   "A" },
+            { InputKey.a,                   "B" },
+            { InputKey.b,                   "C" },
+            { InputKey.start,               "Option" },
+            { InputKey.select,              "Pause" },
+            { InputKey.x,                   "0" },
+            { InputKey.pageup,              "1" },
+            { InputKey.pagedown,            "2" },
+            { InputKey.l2,                  "3" },
+            { InputKey.r2,                  "4" },
+            { InputKey.l3,                  "5" },
+            { InputKey.r3,                  "6" }
+        };
+
+        private static InputKeyMapping lynxMapping = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.b,                   "A" },
+            { InputKey.a,                   "B" },
+            { InputKey.pageup,              "Option 1" },
+            { InputKey.pagedown,            "Option 2" },
+            { InputKey.start,               "Pause" }
         };
 
         private static InputKeyMapping mdMapping = new InputKeyMapping()
@@ -514,7 +700,11 @@ namespace emulatorLauncher
 
         private static Dictionary<string, string> systemController = new Dictionary<string, string>()
         {
+            { "apple2", "Apple IIe Keyboard" },
+            { "atari2600", "Atari 2600 Basic Controller" },
+            { "atari7800", "Atari 7800 Basic Controller" },
             { "c64", "Commodore 64 Controller" },
+            { "colecovision", "ColecoVision Basic Controller" },
             { "gamegear", "GG Controller" },
             { "gb", "Gameboy Controller" },
             { "gba", "GBA Controller" },
@@ -532,14 +722,19 @@ namespace emulatorLauncher
             { "saturn", "Saturn Controller" },
             { "snes", "SNES Controller" },
             { "wswan", "WonderSwan Controller" },
-            { "zxspectrum", "ZXSpectrum Controller" }, 
+            { "zxspectrum", "ZXSpectrum Controller" },
         };
 
         private static Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
         {
+            { "atari2600", atariMapping },
+            { "atari7800", atariMapping },
+            { "colecovision", colecoMapping },
             { "gb", gbMapping },
             { "gba", gbaMapping },
             { "gbc", gbMapping },
+            { "jaguar", jaguarMapping },
+            { "lynx", lynxMapping },
             { "mastersystem", smsMapping },
             { "megadrive", mdMapping },
             { "n64", n64Mapping },
@@ -548,7 +743,7 @@ namespace emulatorLauncher
             { "ngp", ngpMapping },
             { "pcengine", pceMapping },
             { "saturn", saturnMapping },
-            { "snes", snesMapping },  
+            { "snes", snesMapping },
         };
 
         private void ResetControllerConfiguration(DynamicJson json, int totalNB, string system, string core)
@@ -711,5 +906,72 @@ namespace emulatorLauncher
             }
             return "";
         }
+
+        private static Dictionary<string, string> apple2Mapping = new Dictionary<string, string>()
+        {
+            { "Delete", "Delete" },
+            { "Left", "Left" },
+            { "Tab", "Tab" },
+            { "Down", "Down" },
+            { "Up", "Up" },
+            { "Return", "Enter" },
+            { "Right", "Right" },
+            { "Escape", "Escape" },
+            { "Space", "Space" },
+            { "'", "Apostrophe" },
+            { ",", "Comma" },
+            { "-", "Minus" },
+            { ".", "Period" },
+            { "/", "Slash" },
+            { "0", "Number0" },
+            { "1", "Number1" },
+            { "2", "Number2"},
+            { "3", "Number3" },
+            { "4", "Number4" },
+            { "5", "Number5" },
+            { "6", "Number6" },
+            { "7", "Number7" },
+            { "8", "Number8" },
+            { "9", "Number9" },
+            { ";", "Semicolon" },
+            { "=", "Equals" },
+            { "[", "LeftBracket" },
+            { "\\", "Backslash" },
+            { "]", "RightBracket" },
+            { "`", "Backtick" },
+            { "A", "A" },
+            { "B", "B" },
+            { "C", "C" },
+            { "D", "D" },
+            { "E", "E" },
+            { "F", "F" },
+            { "G", "G" },
+            { "H", "H" },
+            { "I", "I" },
+            { "J", "J" },
+            { "K", "K" },
+            { "L", "L" },
+            { "M", "M" },
+            { "N", "N" },
+            { "O", "O" },
+            { "P", "P" },
+            { "Q", "Q" },
+            { "R", "R" },
+            { "S", "S" },
+            { "T", "T" },
+            { "U", "U" },
+            { "V", "V" },
+            { "W", "W" },
+            { "X", "X" },
+            { "Y", "Y" },
+            { "Z", "Z" },
+            { "Control", "Ctrl" },
+            { "Shift", "Shift" },
+            { "Caps Lock", "CapsLock" },
+            { "White Apple", "Home" },
+            { "Black Apple", "End" },
+            { "Previous Disk", "PageUp" },
+            { "Next Disk", "PageDown" }
+        };
     }
 }

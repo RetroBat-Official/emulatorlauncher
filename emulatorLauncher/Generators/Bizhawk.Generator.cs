@@ -254,6 +254,39 @@ namespace emulatorLauncher
         {
             var firmware = json.GetOrCreateContainer("FirmwareUserSpecifications");
 
+            if (system == "apple2")
+            {
+                // Apple2 roms
+                string apple2DiskBios = Path.Combine(AppConfig.GetFullPath("bios"), "AppleIIe_DiskII.rom");
+                if (File.Exists(apple2DiskBios))
+                    firmware["AppleII+DiskII"] = apple2DiskBios;
+                string apple2eBios = Path.Combine(AppConfig.GetFullPath("bios"), "AppleIIe.rom");
+                if (File.Exists(apple2eBios))
+                    firmware["AppleII+AppleIIe"] = apple2eBios;
+            }
+
+            if (system == "atari7800")
+            {
+                // Atari7800 firmware
+                string hscBios = Path.Combine(AppConfig.GetFullPath("bios"), "A78_highscore.bin");
+                if (File.Exists(hscBios))
+                    firmware["A78+Bios_HSC"] = hscBios;
+                string palBios = Path.Combine(AppConfig.GetFullPath("bios"), "7800 BIOS (E).rom");
+                if (File.Exists(palBios))
+                    firmware["A78+Bios_PAL"] = palBios;
+                string ntscBios = Path.Combine(AppConfig.GetFullPath("bios"), "7800 BIOS (U).rom");
+                if (File.Exists(ntscBios))
+                    firmware["A78+Bios_NTSC"] = ntscBios;
+            }
+
+            if (system == "colecovision")
+            {
+                // Colecovision firmware
+                string colecoBios = Path.Combine(AppConfig.GetFullPath("bios"), "colecovision.rom");
+                if (File.Exists(colecoBios))
+                    firmware["Coleco+Bios"] = colecoBios;
+            }
+
             if (system == "gb")
             {
                 // GB firmware
@@ -282,6 +315,14 @@ namespace emulatorLauncher
                 string gbcBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "gbc_bios.bin");
                 if (File.Exists(gbcBiosPath))
                     firmware["GBC+World"] = gbcBiosPath;
+            }
+
+            if (system == "lynx")
+            {
+                // Lynx firmware
+                string lynxBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "lynxboot.img");
+                if (File.Exists(lynxBiosPath))
+                    firmware["Lynx+Boot"] = lynxBiosPath;
             }
 
             if (system == "mastersystem")
