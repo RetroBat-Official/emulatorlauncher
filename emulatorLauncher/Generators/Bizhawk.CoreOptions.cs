@@ -34,11 +34,12 @@ namespace emulatorLauncher
             ConfigureSnes9x(json, coreSettings, coreSyncSettings, core, system);
             ConfigureBsnes(json, coreSettings, coreSyncSettings, core, system);
 
-            // MASTER SYSTEM
+            // MASTER SYSTEM + GAMEGEAR
             ConfigureSmsHawk(json, coreSettings, coreSyncSettings, core, system);
 
-            // MEGADRIVE
+            // MEGADRIVE + 32X
             ConfigureGenesisPlusGX(json, coreSettings, coreSyncSettings, core, system);
+            ConfigurePicoDrive(json, coreSettings, coreSyncSettings, core, system);
 
             // SATURN
             ConfigureSaturnus(json, coreSettings, coreSyncSettings, core, system);
@@ -68,6 +69,16 @@ namespace emulatorLauncher
 
             // COLECOVISION
             ConfigureColecovision(json, coreSettings, coreSyncSettings, core, system);
+
+            // PCFX
+            ConfigurePcfx(json, coreSettings, coreSyncSettings, core, system);
+
+            // PSX
+            ConfigureNymashock(json, coreSettings, coreSyncSettings, core, system);
+            ConfigureOctoshock(json, coreSettings, coreSyncSettings, core, system);
+
+            // Odyssey 2
+            ConfigureO2Hawk(json, coreSettings, coreSyncSettings, core, system);
         }
 
         private void ConfigureAtari2600(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -246,7 +257,8 @@ namespace emulatorLauncher
 
             var smsHawkSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Sega.MasterSystem.SMS");
             smsHawkSync["$type"] = "BizHawk.Emulation.Cores.Sega.MasterSystem.SMS+SmsSyncSettings, BizHawk.Emulation.Cores";
-            
+
+
             BindBoolFeature(smsHawkSync, "EnableFm", "bizhawk_sms_fm", "true", "false");
             BindBoolFeature(smsHawkSync, "UseBios", "bizhawk_sms_bios", "true", "false");
             BindFeature(smsHawkSync, "ConsoleRegion", "bizhawk_sms_region", "3");
@@ -291,6 +303,17 @@ namespace emulatorLauncher
                 genplusgxSync["ControlTypeLeft"] = "1";
                 genplusgxSync["ControlTypeRight"] = "1";
             }
+        }
+
+        private void ConfigurePicoDrive(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "PicoDrive")
+                return;
+
+            var picoSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.Sega.PicoDrive.PicoDrive");
+            picoSync["$type"] = "BizHawk.Emulation.Cores.Consoles.Sega.PicoDrive.PicoDrive+SyncSettings, BizHawk.Emulation.Cores";
+
+            BindFeature(picoSync, "RegionOverride", "bizhawk_pico_region", "0");
         }
 
         private void ConfigureSaturnus(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -606,7 +629,7 @@ namespace emulatorLauncher
 
         private void ConfigureColecovision(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
         {
-            if (core != "colecovision")
+            if (core != "Coleco")
                 return;
 
             var colecoSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.ColecoVision.ColecoVision");
@@ -614,6 +637,139 @@ namespace emulatorLauncher
             colecoSync["_port1"] = "ColecoVision Basic Controller";
             colecoSync["_port2"] = "ColecoVision Basic Controller";
 
+        }
+
+        private void ConfigurePcfx(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "PCFX")
+                return;
+
+            var pcfxSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.NEC.PCFX.Tst");
+            pcfxSync["$type"] = "BizHawk.Emulation.Cores.Waterbox.NymaCore+NymaSyncSettings, BizHawk.Emulation.Cores";
+
+            var portDevices = pcfxSync.GetOrCreateContainer("PortDevices");
+            
+            for (int i = 0; i < 8; i++)
+            {
+                portDevices[i.ToString()] = "gamepad";
+            }
+        }
+
+        private void ConfigureNymashock(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "Nymashock")
+                return;
+
+            var nymashockSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Sony.PSX.Nymashock");
+            nymashockSync["$type"] = "BizHawk.Emulation.Cores.Waterbox.NymaCore+NymaSyncSettings, BizHawk.Emulation.Cores";
+
+            var mednafenValues = nymashockSync.GetOrCreateContainer("MednafenValues");
+            if (Controllers.Count > 5)
+            {
+                mednafenValues["psx.input.pport1.multitap"] = "1";
+                mednafenValues["psx.input.pport1.multitap"] = "1";
+            }
+            else if (Controllers.Count > 2)
+            {
+                mednafenValues["psx.input.pport1.multitap"] = "0";
+                mednafenValues["psx.input.pport1.multitap"] = "1";
+            }
+            else
+            {
+                mednafenValues["psx.input.pport1.multitap"] = "0";
+                mednafenValues["psx.input.pport1.multitap"] = "0";
+            }
+
+            if (SystemConfig.isOptSet("bizhawk_psx_region") && !string.IsNullOrEmpty(SystemConfig["bizhawk_psx_region"]))
+            {
+                mednafenValues["psx.region_default"] = SystemConfig["bizhawk_psx_region"];
+                mednafenValues["psx.region_autodetect"] = "0";
+            }
+            else
+            {
+                mednafenValues["psx.region_default"] = "jp";
+                mednafenValues["psx.region_autodetect"] = "1";
+            }
+
+            var portDevices = nymashockSync.GetOrCreateContainer("PortDevices");
+
+            if (SystemConfig.isOptSet("bizhawk_psx_digital") && SystemConfig.getOptBoolean("bizhawk_psx_digital"))
+            {
+                for (int i = 0; i < 8; i++)
+                    portDevices[i.ToString()] = "gamepad";
+            }
+            else
+            {
+                for (int i = 0; i < 8; i++)
+                    portDevices[i.ToString()] = "dualshock";
+            }
+        }
+
+        private void ConfigureOctoshock(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "Octoshock")
+                return;
+
+            var octoshockSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Sony.PSX.Octoshock");
+            octoshockSync["$type"] = "BizHawk.Emulation.Cores.Sony.PSX.Octoshock+SyncSettings, BizHawk.Emulation.Cores";
+
+            var fioconfig = octoshockSync.GetOrCreateContainer("FIOConfig");
+            fioconfig.Remove("Multitaps");
+
+            // Add memcards
+            List<bool> memcards = new List<bool>();
+            memcards.Add(true);
+            memcards.Add(true);
+            fioconfig.SetObject("Memcards", memcards);
+
+            // Multitaps
+            List<bool> multitaps = new List<bool>();
+
+            if (Controllers.Count > 5)
+            {
+                multitaps.Add(true);
+                multitaps.Add(true);
+            }
+            else if (Controllers.Count > 2)
+            {
+                multitaps.Add(false);
+                multitaps.Add(true);
+            }
+            else
+            {
+                multitaps.Add(false);
+                multitaps.Add(false);
+            }
+            fioconfig.SetObject("Multitaps", multitaps);
+
+            // Controller devices
+            List<int> deviceTypes = new List<int>();
+            if (SystemConfig.isOptSet("bizhawk_psx_digital") && SystemConfig.getOptBoolean("bizhawk_psx_digital"))
+            {
+                for (int i = 0; i < 8; i++)
+                    deviceTypes.Add(1);
+            }
+            else
+            {
+                for (int i = 0; i < 8; i++)
+                    deviceTypes.Add(2);
+            }
+            fioconfig.SetObject("Devices8", deviceTypes);
+
+            var octoshock = coreSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Sony.PSX.Octoshock");
+            octoshock["$type"] = "BizHawk.Emulation.Cores.Sony.PSX.Octoshock+Settings, BizHawk.Emulation.Cores";
+            octoshock["ResolutionMode"] = "3";
+        }
+
+        private void ConfigureO2Hawk(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "O2Hawk")
+                return;
+
+            var o2Sync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.O2Hawk.O2Hawk");
+            o2Sync["$type"] = "BizHawk.Emulation.Cores.Consoles.O2Hawk.O2Hawk+O2SyncSettings, BizHawk.Emulation.Cores";
+
+            BindBoolFeature(o2Sync, "G7400_Enable", "bizhawk_o2_g7400", "true", "false");
         }
     }
 }
