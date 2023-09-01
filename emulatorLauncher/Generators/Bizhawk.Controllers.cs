@@ -506,33 +506,6 @@ namespace emulatorLauncher
             }
         }
 
-        private static void ConfigureKeyboardSystem(DynamicJson json, string system)
-        {
-            var trollers = json.GetOrCreateContainer("AllTrollers");
-            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
-
-            Dictionary<string, string> kbmapping = null;
-            
-            if (system == "apple2")
-                kbmapping = apple2Mapping;
-
-            else if (system == "odyssey2")
-                kbmapping = o2KbMapping;
-
-            else if (system == "zxspectrum")
-                kbmapping = zxkbMapping;
-
-            if (kbmapping == null)
-                return;
-
-            foreach (var x in kbmapping)
-            {
-                string value = x.Value;
-                string key = x.Key;
-                controllerConfig[key] = value;
-            }
-        }
-
         private static InputKeyMapping atariMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
@@ -1340,6 +1313,33 @@ namespace emulatorLauncher
             return "";
         }
 
+        private static void ConfigureKeyboardSystem(DynamicJson json, string system)
+        {
+            var trollers = json.GetOrCreateContainer("AllTrollers");
+            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+
+            Dictionary<string, string> kbmapping = null;
+
+            if (system == "apple2")
+                kbmapping = apple2Mapping;
+
+            else if (system == "odyssey2")
+                kbmapping = o2KbMapping;
+
+            else if (system == "zxspectrum")
+                kbmapping = zxkbMapping;
+
+            if (kbmapping == null)
+                return;
+
+            foreach (var x in kbmapping)
+            {
+                string value = x.Value;
+                string key = x.Key;
+                controllerConfig[key] = value;
+            }
+        }
+
         private static Dictionary<string, string> apple2Mapping = new Dictionary<string, string>()
         {
             { "Delete", "Delete" },
@@ -1459,19 +1459,19 @@ namespace emulatorLauncher
 
         private static Dictionary<string, string> zxkbMapping = new Dictionary<string, string>()
         {
-            { "Play Tape", "" },
-            { "Stop Tape", "" },
-            { "RTZ Tape", "" },
-            { "Insert Next Tape", "" },
-            { "Insert Previous Tape", "" },
-            { "Next Tape Block", "" },
-            { "Prev Tape Block", "" },
-            { "Get Tape Status", "" },
-            { "Insert Next Disk", "" },
-            { "Insert Previous Disk", "" },
-            { "Get Disk Status", "" },
-            { "Key True Video", "" },
-            { "Key Inv Video", "" },
+            { "Play Tape", "F2" },
+            { "Stop Tape", "F3" },
+            { "RTZ Tape", "F4" },
+            { "Insert Next Tape", "F5" },
+            { "Insert Previous Tape", "F6" },
+            { "Next Tape Block", "F7" },
+            { "Prev Tape Block", "F8" },
+            { "Get Tape Status", "F9" },
+            { "Insert Next Disk", "F10" },
+            { "Insert Previous Disk", "F11" },
+            { "Get Disk Status", "F12" },
+            { "Key True Video", "Escape" },
+            { "Key Inv Video", "F1" },
             { "Key 0", "Number0" },
             { "Key 1", "Number1" },
             { "Key 2", "Number2"},
@@ -1482,9 +1482,9 @@ namespace emulatorLauncher
             { "Key 7", "Number7" },
             { "Key 8", "Number8" },
             { "Key 9", "Number9" },
-            { "Key Break", "" },
-            { "Key Delete", "" },
-            { "Key Graph", "" },
+            { "Key Break", "Backspace" },
+            { "Key Delete", "Delete" },
+            { "Key Graph", "Backtick" },
             { "Key A", "A" },
             { "Key B", "B" },
             { "Key C", "C" },
@@ -1511,21 +1511,21 @@ namespace emulatorLauncher
             { "Key X", "X" },
             { "Key Y", "Y" },
             { "Key Z", "Z" },
-            { "Key Extend Mode", "" },
-            { "Key Edit", "" },
-            { "Key Return", "" },
-            { "Key Caps Shift", "" },
-            { "Key Caps Lock", "" },
-            { "Key Period", "" },
-            { "Key Symbol Shift", "" },
-            { "Key Semi-Colon", "" },
-            { "Key Quote", "" },
-            { "Key Left Cursor", "" },
-            { "Key Right Cursor", "" },
-            { "Key Space", "" },
-            { "Key Up Cursor", "" },
-            { "Key Down Cursor", "" },
-            { "Key Comma", "" }
+            { "Key Extend Mode", "Tab" },
+            { "Key Edit", "Alt" },
+            { "Key Return", "Enter" },
+            { "Key Caps Shift", "Shift" },
+            { "Key Caps Lock", "CapsLock" },
+            { "Key Period", "Period" },
+            { "Key Symbol Shift", "Ctrl" },
+            { "Key Semi-Colon", "Semicolon" },
+            { "Key Quote", "Quote" },
+            { "Key Left Cursor", "Left" },
+            { "Key Right Cursor", "Right" },
+            { "Key Space", "Space" },
+            { "Key Up Cursor", "Up" },
+            { "Key Down Cursor", "Down" },
+            { "Key Comma", "Comma" }
         };
     }
 }
