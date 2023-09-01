@@ -248,6 +248,12 @@ namespace emulatorLauncher
                 json["SoundOutputMethod"] = SystemConfig["bizhawk_audiooutput"];
             else
                 json["SoundOutputMethod"] = "0";
+
+            // Specific system settings
+            if (system == "sgb")
+                json["GbAsSgb"] = "true";
+            else
+                json["GbAsSgb"] = "false";
         }
 
         private void SetupFirmwares(DynamicJson json, string system, string core)
@@ -287,7 +293,7 @@ namespace emulatorLauncher
                     firmware["Coleco+Bios"] = colecoBios;
             }
 
-            if (system == "gb")
+            if (system == "gb" || system == "sgb")
             {
                 // GB firmware
                 string gbBios = Path.Combine(AppConfig.GetFullPath("bios"), "gb_bios.bin");
@@ -451,6 +457,14 @@ namespace emulatorLauncher
                 if (File.Exists(sBios))
                     firmware["32X+S"] = sBios;
             }
+
+            if (system == "vectrex")
+            {
+                // Vectrex BIOS
+                string vectrexBios = Path.Combine(AppConfig.GetFullPath("bios"), "Vectrex_Bios.bin");
+                if (File.Exists(vectrexBios))
+                    firmware["VEC+Bios"] = vectrexBios;
+            }
         }
 
         private void SetupRetroAchievements(DynamicJson json)
@@ -543,6 +557,7 @@ namespace emulatorLauncher
             { "vectrex", "VEC" },
             { "virtualboy", "VB" },
             { "wswan", "WSWAN" },
+            { "wswanc", "WSWAN" },
             { "zxspectrum", "ZXSpectrum" },
         };
 

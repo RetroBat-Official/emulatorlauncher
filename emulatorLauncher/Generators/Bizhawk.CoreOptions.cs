@@ -79,6 +79,18 @@ namespace emulatorLauncher
 
             // Odyssey 2
             ConfigureO2Hawk(json, coreSettings, coreSyncSettings, core, system);
+
+            // TIC-80
+            Configuretic80(json, coreSettings, coreSyncSettings, core, system);
+
+            // Virtual Boy
+            ConfigureticVirtualBoyee(json, coreSettings, coreSyncSettings, core, system);
+
+            // WSWAN - WSWANC
+            ConfigureCygne(json, coreSettings, coreSyncSettings, core, system);
+
+            // ZX Spectrum
+            ConfigureZXHawk(json, coreSettings, coreSyncSettings, core, system);
         }
 
         private void ConfigureAtari2600(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
@@ -770,6 +782,54 @@ namespace emulatorLauncher
             o2Sync["$type"] = "BizHawk.Emulation.Cores.Consoles.O2Hawk.O2Hawk+O2SyncSettings, BizHawk.Emulation.Cores";
 
             BindBoolFeature(o2Sync, "G7400_Enable", "bizhawk_o2_g7400", "true", "false");
+        }
+
+        private void Configuretic80(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "TIC-80")
+                return;
+
+            var tic80Sync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Computers.TIC80.TIC80");
+            tic80Sync["$type"] = "BizHawk.Emulation.Cores.Computers.TIC80.TIC80+TIC80SyncSettings, BizHawk.Emulation.Cores";
+
+            for (int i = 1; i < 5; i++)
+                tic80Sync["Gamepad" + i] = "true";
+
+            tic80Sync["Mouse"] = "true";
+        }
+
+        private void ConfigureticVirtualBoyee(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "VirtualBoyee")
+                return;
+
+            var vbSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.Nintendo.VB.VirtualBoyee");
+            vbSync["$type"] = "BizHawk.Emulation.Cores.Waterbox.NymaCore+NymaSyncSettings, BizHawk.Emulation.Cores";
+        }
+
+        private void ConfigureCygne(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "Cygne")
+                return;
+
+            var wswanSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.WonderSwan.WonderSwan");
+            wswanSync["$type"] = "BizHawk.Emulation.Cores.WonderSwan.WonderSwan+SyncSettings, BizHawk.Emulation.Cores";
+
+            BindFeature(wswanSync, "Language", "bizhawk_wswan_language", "1");
+        }
+
+        private void ConfigureZXHawk(DynamicJson json, DynamicJson coreSettings, DynamicJson coreSyncSettings, string core, string system)
+        {
+            if (core != "ZXHawk")
+                return;
+
+            var zxSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Computers.SinclairSpectrum.ZXSpectrum");
+            zxSync["$type"] = "BizHawk.Emulation.Cores.Computers.SinclairSpectrum.ZXSpectrum+ZXSpectrumSyncSettings, BizHawk.Emulation.Cores";
+            zxSync["JoystickType1"] = "1";
+            zxSync["JoystickType2"] = "2";
+            zxSync["JoystickType3"] = "3";
+
+            BindFeature(zxSync, "MachineType", "bizhawk_zx_machine", "1");
         }
     }
 }
