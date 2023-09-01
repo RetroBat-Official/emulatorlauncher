@@ -27,10 +27,12 @@ namespace emulatorLauncher
             { "Ares64", 4 },
             { "BSNES", 8 },
             { "Coleco", 2 },
+            { "Cygne", 1 },
             { "Faust", 8 },
             { "Gambatte", 1 },
             { "GBHawk", 1 },
             { "Genplus-gx", 8 },
+            { "Handy", 1 },
             { "HyperNyma", 5 },
             { "Jaguar", 2 },
             { "Lynx", 1 },
@@ -50,7 +52,12 @@ namespace emulatorLauncher
             { "Saturnus", 12 },
             { "SMSHawk", 2 },
             { "Snes9x", 5 },
-            { "TurboNyma", 5 }, 
+            { "TIC-80", 4 },
+            { "TurboNyma", 5 },
+            { "Uzem", 2 },
+            { "VectrexHawk", 2 },
+            { "VirtualBoyee", 1 },
+            { "ZXHawk", 3 }
         };
 
         private void CreateControllerConfiguration(DynamicJson json, string system, string core)
@@ -62,8 +69,13 @@ namespace emulatorLauncher
 
             int maxPad = inputPortNb[core];
 
+            // Specifics
             if (system == "gamegear")
                 maxPad = 1;
+            if (system == "sgb" && core == "Gambatte")
+                maxPad = 4;
+            if (system == "sgb" && core == "BSNES")
+                maxPad = 2;
 
             if (!computersystem.Contains(system))
                 ResetControllerConfiguration(json, maxPad, system, core);
@@ -84,7 +96,7 @@ namespace emulatorLauncher
             else
                 ConfigureJoystick(controller, json, system, core);
 
-            if (system == "odyssey2")
+            if (system == "odyssey2" || system == "zxspectrum")
                 ConfigureKeyboardSystem(json, system);
         }
 
@@ -104,9 +116,11 @@ namespace emulatorLauncher
             bool monoplayer = systemMonoPlayer.Contains(system);
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
-            
+
+            // Define mapping to use
             InputKeyMapping mapping = mappingToUse[system];
 
+            // Specific cases
             if (system == "psx")
             {
                 if (core == "Nymashock" && SystemConfig.isOptSet("bizhawk_psx_digital") && SystemConfig.getOptBoolean("bizhawk_psx_digital"))
@@ -117,6 +131,20 @@ namespace emulatorLauncher
                     mapping = psxOctoMapping;
             }
 
+            if (system == "sgb" && core == "BSNES")
+            {
+                mapping = snesMapping;
+                controllerConfig = trollers.GetOrCreateContainer(systemController["snes"]);
+            }
+
+            if (core == "GBHawk")
+            {
+                monoplayer = false;
+                controllerConfig = trollers.GetOrCreateContainer("Gameboy Controller H");
+            }
+
+
+            // Perform mapping
             int playerIndex = controller.PlayerIndex;
             int index = 1;
 
@@ -210,6 +238,13 @@ namespace emulatorLauncher
             if (system == "jaguar")
                 controllerConfig["Power"] = "";
 
+            if (system == "tic80")
+            {
+                controllerConfig["Mouse Left Click"] = "WMouse L";
+                controllerConfig["Mouse Middle Click"] = "WMouse M";
+                controllerConfig["Mouse Right Click"] = "WMouse R";
+            }
+
             // Configure analog part of .ini
             var analog = json.GetOrCreateContainer("AllTrollersAnalog");
             var analogConfig = analog.GetOrCreateContainer(systemController[system]);
@@ -280,6 +315,35 @@ namespace emulatorLauncher
                     rStickV.SetObject("Deadzone", 0.1);
                 }
             }
+
+            if (system == "tic80")
+            {
+                controllerConfig["Mouse Left Click"] = "WMouse L";
+                controllerConfig["Mouse Middle Click"] = "WMouse M";
+                controllerConfig["Mouse Right Click"] = "WMouse R";
+
+                var mouseX = analogConfig.GetOrCreateContainer("Mouse Position X");
+                var mouseY = analogConfig.GetOrCreateContainer("Mouse Position Y");
+                mouseX["Value"] = "WMouse X";
+                mouseX.SetObject("Mult", 1.0);
+                mouseX.SetObject("Deadzone", 0.0);
+                mouseY["Value"] = "WMouse Y";
+                mouseY.SetObject("Mult", 1.0);
+                mouseY.SetObject("Deadzone", 0.0);
+            }
+
+            if (core == "Cygne")
+            {
+                controllerConfig["P2 X1"] = GetInputKeyName(controller, InputKey.y);
+                controllerConfig["P2 X3"] = GetInputKeyName(controller, InputKey.b);
+                controllerConfig["P2 X4"] = GetInputKeyName(controller, InputKey.a);
+                controllerConfig["P2 X2"] = GetInputKeyName(controller, InputKey.x);
+                controllerConfig["P2 Y1"] = GetInputKeyName(controller, InputKey.left);
+                controllerConfig["P2 Y3"] = GetInputKeyName(controller, InputKey.right);
+                controllerConfig["P2 Y4"] = GetInputKeyName(controller, InputKey.down);
+                controllerConfig["P2 Y2"] = GetInputKeyName(controller, InputKey.up);
+                controllerConfig["P2 Start"] = GetInputKeyName(controller, InputKey.start);
+            }
         }
 
         private static void ConfigureKeyboard(Controller controller, DynamicJson json, string system, string core, int playerindex)
@@ -299,8 +363,10 @@ namespace emulatorLauncher
             var analogConfig = analog.GetOrCreateContainer(systemController[system]);
             bool monoplayer = systemMonoPlayer.Contains(system);
 
+            // Define mapping to use
             var mapping = mappingToUse[system];
 
+            // Specific cases
             if (system == "psx")
             {
                 if (core == "Nymashock" && Program.SystemConfig.isOptSet("bizhawk_psx_digital") && Program.SystemConfig.getOptBoolean("bizhawk_psx_digital"))
@@ -311,6 +377,22 @@ namespace emulatorLauncher
                     mapping = psxOctoMapping;
             }
 
+            if (system == "sgb" && core == "BSNES")
+            {
+                mapping = snesMapping;
+                controllerConfig = trollers.GetOrCreateContainer(systemController["snes"]);
+            }
+
+            if (core == "GBHawk")
+            {
+                monoplayer = false;
+                controllerConfig = trollers.GetOrCreateContainer("Gameboy Controller H");
+            }
+
+            if (core == "VirtualBoyee")
+                mapping = vbKbMapping;
+
+            // Perform mapping
             foreach (var x in mapping)
             {
                 string value = x.Value;
@@ -393,6 +475,35 @@ namespace emulatorLauncher
 
                 controllerConfig["Touch"] = "WMouse L";
             }
+
+            if (system == "tic80")
+            {
+                controllerConfig["Mouse Left Click"] = "WMouse L";
+                controllerConfig["Mouse Middle Click"] = "WMouse M";
+                controllerConfig["Mouse Right Click"] = "WMouse R";
+
+                var mouseX = analogConfig.GetOrCreateContainer("Mouse Position X");
+                var mouseY = analogConfig.GetOrCreateContainer("Mouse Position Y");
+                mouseX["Value"] = "WMouse X";
+                mouseX.SetObject("Mult", 1.0);
+                mouseX.SetObject("Deadzone", 0.0);
+                mouseY["Value"] = "WMouse Y";
+                mouseY.SetObject("Mult", 1.0);
+                mouseY.SetObject("Deadzone", 0.0);
+            }
+
+            if (core == "Cygne")
+            {
+                controllerConfig["P2 X1"] = SdlToKeyCode(keyboard[InputKey.y].Id);
+                controllerConfig["P2 X3"] = SdlToKeyCode(keyboard[InputKey.b].Id);
+                controllerConfig["P2 X4"] = SdlToKeyCode(keyboard[InputKey.a].Id);
+                controllerConfig["P2 X2"] = SdlToKeyCode(keyboard[InputKey.x].Id);
+                controllerConfig["P2 Y1"] = SdlToKeyCode(keyboard[InputKey.left].Id);
+                controllerConfig["P2 Y3"] = SdlToKeyCode(keyboard[InputKey.right].Id);
+                controllerConfig["P2 Y4"] = SdlToKeyCode(keyboard[InputKey.down].Id);
+                controllerConfig["P2 Y2"] = SdlToKeyCode(keyboard[InputKey.up].Id);
+                controllerConfig["P2 Start"] = SdlToKeyCode(keyboard[InputKey.start].Id);
+            }
         }
 
         private static void ConfigureKeyboardSystem(DynamicJson json, string system)
@@ -405,8 +516,11 @@ namespace emulatorLauncher
             if (system == "apple2")
                 kbmapping = apple2Mapping;
 
-            if (system == "odyssey2")
+            else if (system == "odyssey2")
                 kbmapping = o2KbMapping;
+
+            else if (system == "zxspectrum")
+                kbmapping = zxkbMapping;
 
             if (kbmapping == null)
                 return;
@@ -761,6 +875,90 @@ namespace emulatorLauncher
             { InputKey.pagedown,        "R" }
         };
 
+        private static InputKeyMapping tic80Mapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "B" },
+            { InputKey.b,               "A" },
+            { InputKey.y,               "Y" },
+            { InputKey.x,               "X" }
+        };
+
+        private static InputKeyMapping vbMapping = new InputKeyMapping()
+        {
+            { InputKey.leftanalogup,        "L_Up"},
+            { InputKey.leftanalogdown,      "L_Down"},
+            { InputKey.leftanalogleft,      "L_Left" },
+            { InputKey.leftanalogright,     "L_Right"},
+            { InputKey.rightanalogup,       "R_Up"},
+            { InputKey.rightanalogdown,     "R_Down"},
+            { InputKey.rightanalogleft,     "R_Left" },
+            { InputKey.rightanalogright,    "R_Right"},
+            { InputKey.y,                   "B" },
+            { InputKey.a,                   "A" },
+            { InputKey.pagedown,            "R" },
+            { InputKey.pageup,              "L" },
+            { InputKey.select,              "Select" },
+            { InputKey.start,               "Start" }
+        };
+
+        private static InputKeyMapping vbKbMapping = new InputKeyMapping()
+        {
+            { InputKey.up,                  "L_Up"},
+            { InputKey.down,                "L_Down"},
+            { InputKey.left,                "L_Left" },
+            { InputKey.right,               "L_Right"},
+            { InputKey.rightanalogup,       "R_Up"},
+            { InputKey.rightanalogdown,     "R_Down"},
+            { InputKey.rightanalogleft,     "R_Left" },
+            { InputKey.rightanalogright,    "R_Right"},
+            { InputKey.y,                   "B" },
+            { InputKey.a,                   "A" },
+            { InputKey.pagedown,            "R" },
+            { InputKey.pageup,              "L" },
+            { InputKey.select,              "Select" },
+            { InputKey.start,               "Start" }
+        };
+
+        private static InputKeyMapping vecMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.b,               "Button 1" },
+            { InputKey.a,               "Button 2" },
+            { InputKey.x,               "Button 3" },
+            { InputKey.y,               "Button 4" }
+        };
+
+        private static InputKeyMapping wswanMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "X1"},
+            { InputKey.down,            "X3"},
+            { InputKey.left,            "X4" },
+            { InputKey.right,           "X2"},
+            { InputKey.x,               "Y1" },
+            { InputKey.a,               "Y3" },
+            { InputKey.y,               "Y4" },
+            { InputKey.b,               "Y2" },
+            { InputKey.start,           "Start" },
+            { InputKey.pagedown,        "B" },
+            { InputKey.pageup,          "A" }
+        };
+
+        private static InputKeyMapping zxMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "Button" }
+        };
+
         private static string GetXInputKeyName(Controller c, InputKey key)
         {
             Int64 pid = -1;
@@ -914,8 +1112,14 @@ namespace emulatorLauncher
             { "psx", "PSX Front Panel" },
             { "saturn", "Saturn Controller" },
             { "sega32x", "PicoDrive Genesis Controller" },
+            { "sgb", "Gameboy Controller" },
             { "snes", "SNES Controller" },
+            { "tic80", "TIC-80 Controller" },
+            { "uzebox", "SNES Controller" },
+            { "vectrex", "Vectrex Digital Controller" },
+            { "virtualboy", "VirtualBoy Controller" },
             { "wswan", "WonderSwan Controller" },
+            { "wswanc", "WonderSwan Controller" },
             { "zxspectrum", "ZXSpectrum Controller" },
         };
 
@@ -942,13 +1146,23 @@ namespace emulatorLauncher
             { "psx", dualshockOctoMapping },
             { "saturn", saturnMapping },
             { "sega32x", mdMapping },
+            { "sgb", gbMapping },
             { "snes", snesMapping },
+            { "tic80", tic80Mapping },
+            { "uzebox", snesMapping },
+            { "vectrex", vecMapping },
+            { "virtualboy", vbMapping },
+            { "wswan", wswanMapping },
+            { "wswanc", wswanMapping },
+            { "zxspectrum", zxMapping }
         };
 
         private void ResetControllerConfiguration(DynamicJson json, int totalNB, string system, string core)
         {
             bool monoplayer = systemMonoPlayer.Contains(system);
-            
+            var trollers = json.GetOrCreateContainer("AllTrollers");
+            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+
             InputKeyMapping mapping = mappingToUse[system];
 
             if (system == "psx")
@@ -961,8 +1175,17 @@ namespace emulatorLauncher
                     mapping = psxOctoMapping;
             }
 
-            var trollers = json.GetOrCreateContainer("AllTrollers");
-            var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+            if (system == "sgb" && core == "BSNES")
+                mapping = snesMapping;
+
+            if (core == "GBHawk")
+            {
+                monoplayer = false;
+                controllerConfig = trollers.GetOrCreateContainer("Gameboy Controller H");
+            }
+
+            if (core == "Cygne")
+                totalNB = 2;
 
             if (monoplayer)
             {
@@ -1232,6 +1455,77 @@ namespace emulatorLauncher
             { "/", "Slash" },
             { "=", "Equals" },
             { "CLR", "Backspace" },
+        };
+
+        private static Dictionary<string, string> zxkbMapping = new Dictionary<string, string>()
+        {
+            { "Play Tape", "" },
+            { "Stop Tape", "" },
+            { "RTZ Tape", "" },
+            { "Insert Next Tape", "" },
+            { "Insert Previous Tape", "" },
+            { "Next Tape Block", "" },
+            { "Prev Tape Block", "" },
+            { "Get Tape Status", "" },
+            { "Insert Next Disk", "" },
+            { "Insert Previous Disk", "" },
+            { "Get Disk Status", "" },
+            { "Key True Video", "" },
+            { "Key Inv Video", "" },
+            { "Key 0", "Number0" },
+            { "Key 1", "Number1" },
+            { "Key 2", "Number2"},
+            { "Key 3", "Number3" },
+            { "Key 4", "Number4" },
+            { "Key 5", "Number5" },
+            { "Key 6", "Number6" },
+            { "Key 7", "Number7" },
+            { "Key 8", "Number8" },
+            { "Key 9", "Number9" },
+            { "Key Break", "" },
+            { "Key Delete", "" },
+            { "Key Graph", "" },
+            { "Key A", "A" },
+            { "Key B", "B" },
+            { "Key C", "C" },
+            { "Key D", "D" },
+            { "Key E", "E" },
+            { "Key F", "F" },
+            { "Key G", "G" },
+            { "Key H", "H" },
+            { "Key I", "I" },
+            { "Key J", "J" },
+            { "Key K", "K" },
+            { "Key L", "L" },
+            { "Key M", "M" },
+            { "Key N", "N" },
+            { "Key O", "O" },
+            { "Key P", "P" },
+            { "Key Q", "Q" },
+            { "Key R", "R" },
+            { "Key S", "S" },
+            { "Key T", "T" },
+            { "Key U", "U" },
+            { "Key V", "V" },
+            { "Key W", "W" },
+            { "Key X", "X" },
+            { "Key Y", "Y" },
+            { "Key Z", "Z" },
+            { "Key Extend Mode", "" },
+            { "Key Edit", "" },
+            { "Key Return", "" },
+            { "Key Caps Shift", "" },
+            { "Key Caps Lock", "" },
+            { "Key Period", "" },
+            { "Key Symbol Shift", "" },
+            { "Key Semi-Colon", "" },
+            { "Key Quote", "" },
+            { "Key Left Cursor", "" },
+            { "Key Right Cursor", "" },
+            { "Key Space", "" },
+            { "Key Up Cursor", "" },
+            { "Key Down Cursor", "" },
+            { "Key Comma", "" }
         };
     }
 }
