@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Drawing;
 using System.Reflection;
 using emulatorLauncher.PadToKeyboard;
 using emulatorLauncher.Tools;
@@ -12,7 +13,67 @@ namespace emulatorLauncher
 {
     class XEmuGenerator : Generator
     {
+        public XEmuGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
+        private ScreenResolution _resolution;
+        private BezelFiles _bezelFileInfo;
+        private Rectangle _windowRect = Rectangle.Empty;
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = 0;
+
+            if (_windowRect.IsEmpty)
+                ret = base.RunAndWait(path);
+            else
+            {
+                var process = Process.Start(path);
+
+                while (process != null)
+                {
+                    try
+                    {
+                        var hWnd = process.MainWindowHandle;
+                        if (hWnd != IntPtr.Zero)
+                        {
+                            User32.SetWindowPos(hWnd, IntPtr.Zero, _windowRect.Left, _windowRect.Top, _windowRect.Width, _windowRect.Height, SWP.NOZORDER);
+                            break;
+                        }
+                    }
+                    catch { }
+
+                    if (process.WaitForExit(1))
+                    {
+                        try { ret = process.ExitCode; }
+                        catch { }
+                        process = null;
+                        break;
+                    }
+
+                }
+
+                if (process != null)
+                {
+                    process.WaitForExit();
+                    try { ret = process.ExitCode; }
+                    catch { }
+                }
+            }
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            return ret;
+        }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -26,6 +87,12 @@ namespace emulatorLauncher
             
             if (!File.Exists(exe))
                 return null;
+
+            //Applying bezels
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;                  
 
             // Extract SDL2 version info
             _sdlVersion = SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe, SdlVersion.SDL2_0_X);
@@ -93,14 +160,39 @@ namespace emulatorLauncher
 
                 // Save to new TOML format
                 SetupTOMLConfiguration(path, eepromPath, hddPath, flashPath, bootRom, rom);
+                
             }
             catch { }
+
+            // Command line arguments
+            List<string> commandArray = new List<string>();
+
+            Rectangle emulationStationBounds;
+            if (IsEmulationStationWindowed(out emulationStationBounds, true))
+            {
+                _windowRect = emulationStationBounds;
+                _bezelFileInfo = null;
+            }
+            else
+                commandArray.Add("-full-screen");
+
+            commandArray.Add("-dvd_path");
+            commandArray.Add("\"" + rom + "\"");
+
+            string args = string.Join(" ", commandArray);
+
+            // Disable bezel if is widescreen
+            if (!SystemConfig.isOptSet("bezel") && SystemConfig["scale"] == "stretch")
+            {
+                SystemConfig["forceNoBezel"] = "1";
+                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
+            }
 
             // Launch emulator
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-full-screen -dvd_path \"" + rom + "\"",
+                Arguments = args,
                 WorkingDirectory = path,
             };
         }
@@ -192,9 +284,16 @@ namespace emulatorLauncher
 
                 // Aspect Ratio
                 if (SystemConfig.isOptSet("scale") && !string.IsNullOrEmpty(SystemConfig["scale"]))
-                    ini.WriteValue("display.ui", "fit", "'" + SystemConfig["scale"] + "'");
+                    ini.WriteValue("display.ui", "fit", "'" + SystemConfig["scale"] + "'");                
                 else if (Features.IsSupported("scale"))
                     ini.WriteValue("display.ui", "fit", "'scale'");
+                
+                // Menu Bar
+                if (SystemConfig.isOptSet("menubar") && !string.IsNullOrEmpty(SystemConfig["menubar"]))
+                    ini.WriteValue("display.ui", "show_menubar", SystemConfig["menubar"]);
+                else if (Features.IsSupported("menubar") || (_bezelFileInfo != null))
+                    ini.WriteValue("display.ui", "show_menubar", "false");
+
 
                 // Memory (64 or 128)
                 if (SystemConfig.isOptSet("system_memory") && !string.IsNullOrEmpty(SystemConfig["system_memory"]))
