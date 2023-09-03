@@ -210,6 +210,22 @@ namespace emulatorLauncher.libRetro
             else if (Features.IsSupported("shaderset"))
                 retroarchConfig["video_shader_enable"] = "false";
 
+            // Video filters
+            string videoFiltersPath = Path.Combine(RetroarchPath, "filters", "video");
+            if (Directory.Exists(videoFiltersPath))
+                retroarchConfig["video_filter_dir"] = videoFiltersPath;
+            
+            if (SystemConfig.isOptSet("videofilters") && !string.IsNullOrEmpty(SystemConfig["videofilters"]) && SystemConfig["videofilters"] != "None")
+            {
+                string videofilter = SystemConfig["videofilters"] + ".filt";
+                retroarchConfig["video_filter"] = Path.Combine(videoFiltersPath, videofilter);
+            }
+            else if (Features.IsSupported("videofilters"))
+            {
+                retroarchConfig["video_filter_dir"] = ":\\filters\\video";
+                retroarchConfig["video_filter"] = "";
+            }
+
             // Aspect ratio
             if (SystemConfig.isOptSet("ratio"))
             {
