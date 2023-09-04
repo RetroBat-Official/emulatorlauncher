@@ -462,7 +462,7 @@ namespace emulatorLauncher
                 new MessSystem("gw"           ,""         ,""      ),
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,"%romname%",""      ),
-                new MessSystem("mame"         ,"mame"     ,""      ),
+                new MessSystem("mame"         ,"%romname%"     ,""      ),
                 new MessSystem("hbmame"       ,"hbmame"   ,""      ),
                 new MessSystem("cave"         ,"%romname%",""      ),
                 new MessSystem("tvgames"      ,""         ,""      ),
@@ -862,7 +862,13 @@ namespace emulatorLauncher
             else if (MachineName != "%romname%")
                 commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
 
-            return commandArray;
+            // Add an argument to mame core to fix saving of remap file naming
+            if (system == "mame" && MachineName == "%romname%")
+            {
+                commandArray.Add("-comment_directory");
+                commandArray.Add(rom);
+            }
+                return commandArray;
         }
         #endregion
 
