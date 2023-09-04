@@ -93,6 +93,7 @@ namespace emulatorLauncher
             BindFeature(video, "DisplayMode", "displaymode", "0");      //0 for borderless windows, 1 for windowed, 2 for fullscreen
             BindFeature(video, "VSync", "vsync", "1");                  // vsync on as default setting
             BindFeature(video, "HDROutput", "enable_hdr", "0");
+            video["ShittyFreqWarn"] = "0";
 
             // resolution
             if (resolution != null)
