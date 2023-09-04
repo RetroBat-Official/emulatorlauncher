@@ -3181,7 +3181,18 @@ namespace emulatorLauncher.libRetro
 
             BindFeature(coreSettings, "melonds_boot_directly", "nds_boot", "enabled");
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
-            BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
+            
+            if (SystemConfig.isOptSet("melonds_screen_layout") && SystemConfig["melonds_screen_layout"] == "duplicate")
+            {
+                coreSettings["melonds_screen_layout"] = "Hybrid Top";
+                coreSettings["melonds_hybrid_small_screen"] = "Duplicate";
+            }
+            else
+            {
+                BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
+                coreSettings["melonds_hybrid_small_screen"] = "Bottom";
+            }
+                
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
 
             // Boot to firmware directly if a .bin file is loaded

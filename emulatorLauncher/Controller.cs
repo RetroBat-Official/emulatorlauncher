@@ -150,14 +150,13 @@ namespace emulatorLauncher
                         return null;
 
                     var xinputindex = Program.Controllers
-                        .OrderBy(c => c.DeviceIndex)
                         .Where(c => c == this || c.IsXInputDevice)
+                        .OrderBy(c => c.DirectInput != null ? c.DirectInput.DeviceIndex : c.DeviceIndex)
                         .ToList()
                         .IndexOf(this);
-
+                    
                     _xInputDevice = new XInputDevice(xinputindex);
                 }
-
                 return _xInputDevice;
             }
         }

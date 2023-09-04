@@ -140,6 +140,7 @@
     <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\PinballFX.Generator.cs" />
+    <Compile Include="Generators\Play.Generator.cs" />
     <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
@@ -174,12 +175,6 @@
     <Compile Include="Generators\Yuzu.Generator.cs" />
     <Compile Include="Generators\Yuzu.Controllers.cs">
       <DependentUpon>Yuzu.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\LibRetro.CoreOptions.cs">
-      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\LibRetro.Guns.cs">
-      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Mame64.Generator.cs" />
     <Compile Include="Generators\Mame64.Bezels.cs">
@@ -337,12 +332,33 @@
     <Compile Include="Common\SDL2.cs" />
     <Compile Include="Common\Joysticks\SdlGameController.cs" />
     <Compile Include="Common\SimpleLogger.cs" />
+    <Compile Include="Common\SimpleBml.cs" />
     <Compile Include="Common\SimpleYml.cs" />
     <Compile Include="Common\SystemDefaults.cs" />
     <Compile Include="Common\Generator.cs" />
     <Compile Include="Generators\LibRetro.Generator.cs" />
     <Compile Include="Generators\Libretro.Controllers.cs">
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\LibRetro.CoreOptions.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\LibRetro.Guns.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Bizhawk.Generator.cs" />
+    <Compile Include="Generators\Bizhawk.Controllers.cs">
+      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Bizhawk.CoreOptions.cs">
+      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Bizhawk.Guns.cs">
+      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Ares.Generator.cs" />
+    <Compile Include="Generators\Ares.Controllers.cs">
+      <DependentUpon>Ares.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -396,6 +412,7 @@
     <None Include="Resources\hidtodinput.cfg">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Resources\libretrocoreguns.yml" />
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />

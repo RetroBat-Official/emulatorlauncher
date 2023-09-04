@@ -294,7 +294,7 @@ namespace emulatorLauncher
                         ini.WriteValue("Display", "ShowGPU", "false");
                     }
 
-                    if (SystemConfig.isOptSet("duck_shaders") && !string.IsNullOrEmpty(SystemConfig["duck_shaders"]))
+                    if (SystemConfig["shaderset"] == "none" && SystemConfig.isOptSet("duck_shaders") && !string.IsNullOrEmpty(SystemConfig["duck_shaders"]))
                     {
                         ini.WriteValue("Display", "PostProcessing", "true");
                         ini.WriteValue("Display", "PostProcessChain", SystemConfig["duck_shaders"].Replace("_", "/"));

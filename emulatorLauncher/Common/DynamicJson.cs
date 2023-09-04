@@ -82,10 +82,17 @@ namespace emulatorLauncher.Tools
         {
             DynamicJson result;
 
-            var element = xml.Element(key);
+            var element = GetElement(key);
             if (element == null)
             {
-                var tempElement = new XElement(key, CreateTypeAttr(asArray ? JsonType.array : JsonType.@object));
+                XElement tempElement;                 
+                XNamespace ns = "item";
+
+                if (KeyHasInvalidXmlChars(key))
+                    tempElement = new XElement(ns + "item", new XAttribute("item", key), CreateTypeAttr(asArray ? JsonType.array : JsonType.@object));
+                else
+                    tempElement = new XElement(key, CreateTypeAttr(asArray ? JsonType.array : JsonType.@object));
+
                 result = new DynamicJson(tempElement, asArray ? JsonType.array : JsonType.@object) { _temporaryParentObject = this };
                 return result;
             }
@@ -99,7 +106,7 @@ namespace emulatorLauncher.Tools
 
         public DynamicJson GetObject(string key)
         {
-            var element = xml.Element(key);
+            var element = GetElement(key);
             if (element == null)
                 return null;
 
@@ -112,7 +119,7 @@ namespace emulatorLauncher.Tools
 
         public ArrayList GetArray(string key)
         {
-            var element = xml.Element(key);            
+            var element = GetElement(key);            
             if (element == null)
                 return new ArrayList();
 
@@ -153,11 +160,44 @@ namespace emulatorLauncher.Tools
             TrySet(key, ret);
         }
 
+        static HashSet<char> InvalidChars = new HashSet<char>(new char[] 
+        {
+            '+', '&', '<', '>', '"', '\'', ' ', '\r', '\n', '!', '@', '#', '$', '%', '^', '*', '(', ')', '+', '=', '{', '}', '[', ']', '\\', '|', '/', '?', ',', ';', '~'
+        });
+
+        private bool KeyHasInvalidXmlChars(string key)
+        {
+            foreach (var ch in key)
+                if (InvalidChars.Contains(ch))
+                    return true;
+
+            return false;
+        }
+
+        private XElement GetElement(string key)
+        {
+            XElement element = null;
+
+            try
+            {
+                if (KeyHasInvalidXmlChars(key))
+                    element = xml.Elements().FirstOrDefault(e => e.Name.LocalName == "item" && e.Attribute("item") != null && e.Attribute("item").Value == key);
+                else
+                    element = xml.Element(key);
+            }
+            catch
+            {
+                element = xml.Elements().FirstOrDefault(e => e.Name.LocalName == "item" && e.Attribute("item") != null && e.Attribute("item").Value == key);
+            }
+
+            return element;
+        }
+
         public string this[string key]
         {
             get
             {
-                var element = xml.Element(key);
+                var element = GetElement(key);                
                 if (element != null)
                 {
                     object ret;
@@ -175,7 +215,7 @@ namespace emulatorLauncher.Tools
             {
                 object newValue = value;
 
-                var element = xml.Element(key);
+                var element = GetElement(key);
                 if (element != null)
                 {
                     var type = (JsonType)Enum.Parse(typeof(JsonType), element.Attribute("type").Value);
@@ -186,7 +226,7 @@ namespace emulatorLauncher.Tools
                             break;
 
                         case JsonType.number:
-                            newValue = Convert.ToDouble(value);
+                            newValue = Convert.ToDouble(value, CultureInfo.InvariantCulture);
                             break;
 
                         case JsonType.array:
@@ -337,7 +377,7 @@ namespace emulatorLauncher.Tools
                 else
                 {
                     return dj.GetDynamicMemberNames()
-                        .Select(pi => new { Name = pi, Value = ToValue(dj.xml.Element(pi)) })
+                        .Select(pi => new { Name = pi, Value = ToValue(dj.GetElement(pi)) })
                         .Select(a => new XStreamingElement(a.Name, CreateTypeAttr(GetJsonType(a.Value)), CreateJsonNode(a.Value)));
                 }
             }
@@ -393,7 +433,7 @@ namespace emulatorLauncher.Tools
         /// <summary>has property or not</summary>
         public bool IsDefined(string name)
         {
-            return IsObject && (xml.Element(name) != null);
+            return IsObject && (GetElement(name) != null);
         }
 
         /// <summary>has property or not</summary>
@@ -405,7 +445,7 @@ namespace emulatorLauncher.Tools
         /// <summary>delete property</summary>
         public bool Remove(string name)
         {
-            var elem = xml.Element(name);
+            var elem = GetElement(name);
             if (elem != null)
             {
                 elem.Remove();
@@ -543,7 +583,7 @@ namespace emulatorLauncher.Tools
         {
             return (IsArray)
                 ? TryGet(xml.Elements().ElementAtOrDefault((int)indexes[0]), out result)
-                : TryGet(xml.Element((string)indexes[0]), out result);
+                : TryGet(GetElement((string)indexes[0]), out result);
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
@@ -559,10 +599,17 @@ namespace emulatorLauncher.Tools
                 return TryGet(xml.Elements().ElementAtOrDefault(int.Parse(binder.Name)), out result);
             }
 
-            var element = xml.Element(binder.Name);
+            var element = GetElement(binder.Name);
             if (element == null)
             {
-                var tempElement = new XElement(binder.Name, CreateTypeAttr(JsonType.@object));
+                XNamespace ns = "item";
+                XElement tempElement;
+
+                if (KeyHasInvalidXmlChars(binder.Name))
+                    tempElement = new XElement(ns + "item", new XAttribute("item", binder.Name), CreateTypeAttr(JsonType.@object));
+                else
+                    tempElement = new XElement(binder.Name, CreateTypeAttr(JsonType.@object));
+
                 result = new DynamicJson(tempElement, JsonType.@object) { _temporaryParentObject = this };
                 return true;
             }
@@ -588,10 +635,22 @@ namespace emulatorLauncher.Tools
             AssignTemporaryParentObject();
 
             var type = GetJsonType(value);
-            var element = xml.Element(name);
+            var element = GetElement(name);
             if (element == null)
             {
-                xml.Add(new XElement(name, CreateTypeAttr(type), CreateJsonNode(value)));
+                XNamespace ns = "item";
+
+                try
+                {
+                    if (KeyHasInvalidXmlChars(name))
+                        xml.Add(new XElement(ns + "item", new XAttribute("item", name), CreateTypeAttr(type), CreateJsonNode(value)));
+                    else
+                        xml.Add(new XElement(name, CreateTypeAttr(type), CreateJsonNode(value)));
+                }
+                catch 
+                {
+                    xml.Add(new XElement(ns + "item", new XAttribute("item", name), CreateTypeAttr(type), CreateJsonNode(value)));
+                }
             }
             else
             {

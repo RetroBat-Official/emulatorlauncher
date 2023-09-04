@@ -102,7 +102,10 @@ namespace emulatorLauncher
             { "melonds", () => new MelonDSGenerator() },
             { "flycast", () => new FlycastGenerator() },
             { "eduke32", () => new EDukeGenerator() },
-            { "simple64", () => new Simple64Generator() }
+            { "simple64", () => new Simple64Generator() },
+            { "play", () => new PlayGenerator() },
+            { "bizhawk", () => new BizhawkGenerator() },
+            { "ares", () => new AresGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
