@@ -58,7 +58,7 @@ namespace emulatorLauncher
                 BindBoolIniFeature(ini, "", "frameskip", "redream_frameskip", "1", "0");
                 BindIniFeature(ini, "", "aspect", "redream_aspect", "4:3");
 
-                //ConfigureControllers(ini);
+                ConfigureControllers(ini);
             }
         }
 

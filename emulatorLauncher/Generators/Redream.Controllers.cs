@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Media;
 using emulatorLauncher.Tools;
+using System.Windows.Media.Effects;
 
 namespace emulatorLauncher
 {
@@ -19,10 +20,18 @@ namespace emulatorLauncher
             // Clear existing ports
 
             for (int i = 0; i < 4; i++)
-                ini.WriteValue("", "port" + i, "");
+                ini.WriteValue("", "port" + i, "dev:1,desc:disabled,type:controller");
 
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
-                ConfigureInput(ini, controller, controller.PlayerIndex);
+            if (SystemConfig.isOptSet("redream_controller_autoconfig") && SystemConfig.getOptBoolean("redream_controller_autoconfig"))
+            {
+                for (int i = 0; i < 4; i++)
+                    ini.WriteValue("", "port" + i, "dev:0,desc:auto,type:controller");
+            }
+            else
+            {
+                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
+                    ConfigureInput(ini, controller, controller.PlayerIndex);
+            }
         }
 
         private void ConfigureInput(IniFile ini, Controller controller, int playerIndex)
@@ -40,6 +49,46 @@ namespace emulatorLauncher
         {
             if (keyboard == null)
                 return;
+
+            string portNr = "port" + (playerIndex - 1);
+            string profileNr = "profile" + (playerIndex - 1);
+            string deviceType = "controller";
+            string deadzone = "12";
+            string crosshair = "1";
+
+            ini.WriteValue("", portNr, "dev:2,desc:keyboard,type:controller");
+
+            var profileList = new List<string>();
+
+            profileList.Add("name:keyboard0,type:controller,deadzone:12,crosshair:1");
+
+            Action<string, InputKey> WriteKeyboardMapping = (v, k) =>
+            {
+                var a = keyboard[k];
+                if (a != null)
+                    profileList.Add(v + ":" + SdlToKeyCode(a.Id));
+            };
+
+            WriteKeyboardMapping("a", InputKey.a);
+            WriteKeyboardMapping("b", InputKey.b);
+            WriteKeyboardMapping("x", InputKey.y);
+            WriteKeyboardMapping("y", InputKey.x);
+            WriteKeyboardMapping("start", InputKey.start);
+            WriteKeyboardMapping("dpad_up", InputKey.up);
+            WriteKeyboardMapping("dpad_down", InputKey.down);
+            WriteKeyboardMapping("dpad_left", InputKey.left);
+            WriteKeyboardMapping("dpad_right", InputKey.right);
+            WriteKeyboardMapping("ljoy_up", InputKey.leftanalogup);
+            WriteKeyboardMapping("ljoy_down", InputKey.leftanalogdown);
+            WriteKeyboardMapping("ljoy_left", InputKey.leftanalogleft);
+            WriteKeyboardMapping("ljoy_right", InputKey.leftanalogright);
+            WriteKeyboardMapping("ltrig", InputKey.pageup);
+            WriteKeyboardMapping("rtrig", InputKey.pagedown);
+            WriteKeyboardMapping("menu", InputKey.select);
+
+            string profile = string.Join(",", profileList);
+
+            ini.WriteValue("", profileNr, profile);
         }
 
         private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex)
@@ -50,6 +99,104 @@ namespace emulatorLauncher
             InputConfig joy = ctrl.Config;
             if (joy == null)
                 return;
+
+            string portNr = "port" + (playerIndex - 1);
+            string deviceType = "controller";
+            string deadzone = "12";
+            string crosshair = "1";
+
+            string tech = "xinput";
+            if (ctrl.VendorID == USB_VENDOR.NINTENDO)
+                tech = "nintendo";
+            else if (ctrl.VendorID == USB_VENDOR.SONY)
+                tech = "dualshock";
+            else if (!ctrl.IsXInputDevice)
+                tech = "standard";
+
+            int index = 0;
+            if (ctrl.DirectInput != null)
+                index = ctrl.DirectInput.DeviceIndex + 4;
+
+            string guid = ctrl.Guid;
+
+            if (guid.EndsWith("6803"))
+                guid = guid.Substring(0, guid.Length - 4) + "6800";
+            else if (guid.EndsWith("7200"))
+                guid = guid.Substring(0, guid.Length - 4) + "7801";
+
+            ini.WriteValue("", portNr, "dev:" + index + ",desc:" + guid + ",type:controller");
+        }
+
+        private static string GetInputKeyName(Controller c, InputKey key, string tech)
+        {
+            Int64 pid = -1;
+
+            bool revertAxis = false;
+            key = key.GetRevertedAxis(out revertAxis);
+
+            var input = c.Config[key];
+
+            if (input != null)
+            {
+                if (input.Type == "button")
+                {
+                    pid = input.Id;
+                    switch (pid)
+                    {
+                        case 0: return "B";
+                        case 1: return "A";
+                        case 2: return "X";
+                        case 3: return "Y";
+                        case 4: return "Back";
+                        case 5: return "Guide";
+                        case 6: return "Start";
+                        case 7: return "LS";
+                        case 8: return "RS";
+                        case 9: return "LB";
+                        case 10: return "RB";
+                        case 11: return "Up";
+                        case 12: return "Down";
+                        case 13: return "Left";
+                        case 14: return "Right";
+                    }
+                }
+
+                if (input.Type == "axis")
+                {
+                    pid = input.Id;
+                    switch (pid)
+                    {
+                        case 0:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS X+";
+                            else return "LS X-";
+                        case 1:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS Y-";
+                            else return "LS Y+";
+                        case 2:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS X+";
+                            else return "RS X-";
+                        case 3:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS Y-";
+                            else return "RS Y+";
+                        case 4: return "LT";
+                        case 5: return "RT";
+                    }
+                }
+
+                if (input.Type == "hat")
+                {
+                    pid = input.Value;
+                    switch (pid)
+                    {
+                        case 1: return "Up";
+                        case 2: return "Right";
+                        case 4: return "Down";
+                        case 8: return "Left";
+                    }
+                }
+            }
+
+            return "\"\"";
         }
 
         private static string SdlToKeyCode(long sdlCode)
