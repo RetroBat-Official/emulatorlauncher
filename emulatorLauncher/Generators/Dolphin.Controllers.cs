@@ -82,7 +82,7 @@ namespace emulatorLauncher
             { InputKey.r2,              "Triggers/R-Analog"},
             { InputKey.y,               "Buttons/Y" },
             { InputKey.b,               "Buttons/B" },
-            { InputKey.x,               "Buttons/X" },
+            { InputKey.select,               "Buttons/X" },
             { InputKey.a,               "Buttons/A" },
             { InputKey.start,           "Buttons/Start" },
             { InputKey.l2,              "Triggers/L" },
