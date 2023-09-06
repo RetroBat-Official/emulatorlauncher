@@ -204,6 +204,9 @@
       <DependentUpon>Mednafen.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Redream.Generator.cs" />
+    <Compile Include="Generators\Redream.Controllers.cs">
+      <DependentUpon>Redream.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Raine.Generator.cs" />
     <Compile Include="Generators\Cxbx.Generator.cs" />
     <Compile Include="Generators\Cxbx.Controllers.cs">
