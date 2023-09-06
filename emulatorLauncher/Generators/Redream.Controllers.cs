@@ -101,6 +101,7 @@ namespace emulatorLauncher
                 return;
 
             string portNr = "port" + (playerIndex - 1);
+            string profileNr = "profile" + (playerIndex - 1);
             string deviceType = "controller";
             string deadzone = "12";
             string crosshair = "1";
@@ -108,16 +109,14 @@ namespace emulatorLauncher
             string tech = "xinput";
             if (ctrl.VendorID == USB_VENDOR.NINTENDO)
                 tech = "nintendo";
-            else if (ctrl.VendorID == USB_VENDOR.SONY)
-                tech = "dualshock";
             else if (!ctrl.IsXInputDevice)
-                tech = "standard";
+                tech = "sdl";
 
             int index = 0;
             if (ctrl.DirectInput != null)
-                index = ctrl.DirectInput.DeviceIndex + 4;
+                index = ctrl.DeviceIndex + 4;
 
-            string guid = ctrl.Guid;
+            string guid = ctrl.Guid.ToLowerInvariant();
 
             if (guid.EndsWith("6803"))
                 guid = guid.Substring(0, guid.Length - 4) + "6800";
@@ -125,11 +124,48 @@ namespace emulatorLauncher
                 guid = guid.Substring(0, guid.Length - 4) + "7801";
 
             ini.WriteValue("", portNr, "dev:" + index + ",desc:" + guid + ",type:controller");
+
+            var profileList = new List<string>();
+
+            profileList.Add("name:" + guid + ",type:controller,deadzone:12,crosshair:1");
+
+            profileList.Add("a:" + GetInputKeyName(ctrl, InputKey.a, tech));
+            profileList.Add("b:" + GetInputKeyName(ctrl, InputKey.b, tech));
+            profileList.Add("x:" + GetInputKeyName(ctrl, InputKey.y, tech));
+            profileList.Add("y:" + GetInputKeyName(ctrl, InputKey.x, tech));
+            profileList.Add("start:" + GetInputKeyName(ctrl, InputKey.start, tech));
+            profileList.Add("dpad_up:" + GetInputKeyName(ctrl, InputKey.up, tech));
+            profileList.Add("dpad_down:" + GetInputKeyName(ctrl, InputKey.down, tech));
+            profileList.Add("dpad_left:" + GetInputKeyName(ctrl, InputKey.left, tech));
+            profileList.Add("dpad_right:" + GetInputKeyName(ctrl, InputKey.right, tech));
+            profileList.Add("ljoy_up:" + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
+            profileList.Add("ljoy_down:" + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
+            profileList.Add("ljoy_left:" + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
+            profileList.Add("ljoy_right:" + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
+
+            if (SystemConfig.isOptSet("redream_use_digital_triggers") && SystemConfig.getOptBoolean("redream_use_digital_triggers"))
+            {
+                profileList.Add("ltrig:" + GetInputKeyName(ctrl, InputKey.pageup, tech));
+                profileList.Add("rtrig:" + GetInputKeyName(ctrl, InputKey.pagedown, tech));
+            }
+            else
+            {
+                profileList.Add("ltrig:" + GetInputKeyName(ctrl, InputKey.l2, tech));
+                profileList.Add("rtrig:" + GetInputKeyName(ctrl, InputKey.r2, tech));
+            }
+
+            profileList.Add("menu:" + GetInputKeyName(ctrl, InputKey.select, tech));
+
+            string profile = string.Join(",", profileList);
+            ini.WriteValue("", profileNr, profile);
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
         {
             Int64 pid = -1;
+
+            bool isNintendo = c.VendorID == USB_VENDOR.NINTENDO;
+            bool isXinput = tech == "xinput";
 
             bool revertAxis = false;
             key = key.GetRevertedAxis(out revertAxis);
@@ -140,25 +176,7 @@ namespace emulatorLauncher
             {
                 if (input.Type == "button")
                 {
-                    pid = input.Id;
-                    switch (pid)
-                    {
-                        case 0: return "B";
-                        case 1: return "A";
-                        case 2: return "X";
-                        case 3: return "Y";
-                        case 4: return "Back";
-                        case 5: return "Guide";
-                        case 6: return "Start";
-                        case 7: return "LS";
-                        case 8: return "RS";
-                        case 9: return "LB";
-                        case 10: return "RB";
-                        case 11: return "Up";
-                        case 12: return "Down";
-                        case 13: return "Left";
-                        case 14: return "Right";
-                    }
+                    return "joy" + input.Id;
                 }
 
                 if (input.Type == "axis")
@@ -167,19 +185,19 @@ namespace emulatorLauncher
                     switch (pid)
                     {
                         case 0:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS X+";
-                            else return "LS X-";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "+axis0";
+                            else return "-axis0";
                         case 1:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "LS Y-";
-                            else return "LS Y+";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "+axis1";
+                            else return "-axis1";
                         case 2:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS X+";
-                            else return "RS X-";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return isXinput ? "+axis3" : "+axis2";
+                            else return isXinput ? "-axis3" : "-axis2";
                         case 3:
-                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RS Y-";
-                            else return "RS Y+";
-                        case 4: return "LT";
-                        case 5: return "RT";
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return isXinput ? "+axis4" : "+axis3";
+                            else return isXinput ? "-axis4" : "-axis3";
+                        case 4: return isXinput ? "+axis2" : "+axis4";
+                        case 5: return "+axis5";
                     }
                 }
 
@@ -188,10 +206,10 @@ namespace emulatorLauncher
                     pid = input.Value;
                     switch (pid)
                     {
-                        case 1: return "Up";
-                        case 2: return "Right";
-                        case 4: return "Down";
-                        case 8: return "Left";
+                        case 1: return "hat0";
+                        case 2: return "hat3";
+                        case 4: return "hat1";
+                        case 8: return "hat2";
                     }
                 }
             }
