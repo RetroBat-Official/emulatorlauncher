@@ -84,7 +84,8 @@ namespace emulatorLauncher
             { new Installer("eduke32", "eduke32", "eduke32.exe") },
             { new Installer("play", "play", "Play.exe") },
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },
-            { new Installer("ares", "ares", "ares.exe") }
+            { new Installer("ares", "ares", "ares.exe") },
+            { new Installer("ruffle", "ruffle", "ruffle.exe") }
         };
 
         #region Properties
