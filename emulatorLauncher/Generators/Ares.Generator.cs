@@ -35,10 +35,15 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
+            string aresSystem = core;
+
+            if (aresSystems.ContainsKey(core))
+                aresSystem = aresSystems[core];
+
             List<string> commandArray = new List<string>();
             
             commandArray.Add("--system");
-            commandArray.Add(core);
+            commandArray.Add("\"" + aresSystem + "\"");
 
             // if running a n64dd game, both roms need to be specified with the ndd rom last
             if (system == "n64dd" && Path.GetExtension(rom) == ".ndd")
@@ -310,5 +315,43 @@ namespace emulatorLauncher
 
             return ret;
         }
+
+        private static Dictionary<string, string> aresSystems = new Dictionary<string, string>
+        {
+            { "Atari2600", "Atari 2600" },
+            { "WonderSwan", "WonderSwan" },
+            { "WonderSwanColor", "WonderSwan Color" },
+            { "PocketChallengeV2", "Pocket Challenge V2" },
+            { "ColecoVision", "ColecoVision" },
+            { "MyVision", "MyVision" },
+            { "MSX", "MSX" },
+            { "MSX2", "MSX2" },
+            { "PCEngine", "PC Engine" },
+            { "PCEngineCD", "PC Engine CD" },
+            { "SuperGrafx", "SuperGrafx" },
+            { "SuperGrafxCD", "SuperGrafx CD" },
+            { "Famicom", "Famicom" },
+            { "FamicomDiskSystem", "Famicom Disk System" },
+            { "SuperFamicom", "Super Famicom" },
+            { "Nintendo64", "Nintendo 64" },
+            { "Nintendo64DD", "Nintendo 64DD" },
+            { "GameBoy", "Game Boy" },
+            { "GameBoyColor", "Game Boy Color" },
+            { "GameBoyAdvance", "Game Boy Advance" },
+            { "SG-1000", "SG-1000" },
+            { "MasterSystem", "Master System" },
+            { "GameGear", "Game Gear" },
+            { "MegaDrive", "Mega Drive" },
+            { "Mega32X", "Mega 32X" },
+            { "MegaCD", "Mega CD" },
+            { "MegaCD32X", "Mega CD 32X" },
+            { "NeoGeoAES", "Neo Geo AES" },
+            { "NeoGeoMVS", "Neo Geo MVS" },
+            { "NeoGeoPocket", "Neo Geo Pocket" },
+            { "NeoGeoPocketColor", "Neo Geo Pocket Color" },
+            { "PlayStation", "PlayStation" },
+            { "ZXSpectrum", "ZX Spectrum" },
+            { "ZXSpectrum128", "ZX Spectrum 128" }
+        };
     }
 }
