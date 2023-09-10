@@ -255,6 +255,9 @@
       <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Zinc.Generator.cs" />
+    <Compile Include="Generators\Zinc.Controllers.cs">
+      <DependentUpon>Zinc.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\SSF.Generator.cs" />
     <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />

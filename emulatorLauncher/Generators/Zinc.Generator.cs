@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace emulatorLauncher
 {
-    class ZincGenerator : Generator
+    partial class ZincGenerator : Generator
     {
         private ScreenResolution _resolution;
 
@@ -50,25 +50,37 @@ namespace emulatorLauncher
 
             // Add controller config path command line
             string controllerCfgFile = Path.Combine(path, "cfg", zincControllerCfgFiles[romNumber]);
+            string oldControllerCfgFile = Path.Combine(path, "controller.cfg");
 
-            if (zincControllerCfgFiles.ContainsKey(romNumber) && File.Exists(controllerCfgFile) && !SystemConfig.getOptBoolean("zinc_controller_config"))
+            if (zincControllerCfgFiles.ContainsKey(romNumber) && File.Exists(controllerCfgFile) && SystemConfig["zinc_controller_config"] != "none")
             {
-                string controllerCfgCommand = "--use-controller-cfg-file=" + "\"" + controllerCfgFile + "\"";
-                string oldControllerCfgFile = Path.Combine(path, "controller.cfg");
-                string outputFile = Path.Combine(path, "wberror.txt");
-                using (var ini = IniFile.FromFile(controllerCfgFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+                if (SystemConfig.isOptSet("zinc_controller_config") && SystemConfig["zinc_controller_config"] == "autoconfig")
                 {
-                    ini.WriteValue("General", "output", outputFile);
-                    ini.Save();
+                    ConfigureControllers(oldControllerCfgFile, path);
+                    string controllerCfgCommand = "--use-controller-cfg-file=" + "\"" + oldControllerCfgFile + "\"";
+                    commandArray.Add("--controller=.\\controller.znc");
+                    commandArray.Add(controllerCfgCommand);
                 }
+                else
+                {
+                    controllerCfgFile = Path.Combine(path, "cfg", zincControllerCfgFiles[romNumber]);
+                    string controllerCfgCommand = "--use-controller-cfg-file=" + "\"" + controllerCfgFile + "\"";
+                    string outputFile = Path.Combine(path, "wberror.txt");
+                    using (var ini = IniFile.FromFile(controllerCfgFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+                    {
+                        ini.WriteValue("General", "output", outputFile);
+                        ini.WriteValue("General", "NOERROR", "1");
+                        ini.Save();
+                    }
 
-                if (File.Exists(oldControllerCfgFile))
-                    File.Delete(oldControllerCfgFile);
-                if (File.Exists(controllerCfgFile))
-                    File.Copy(controllerCfgFile, oldControllerCfgFile);
+                    if (File.Exists(oldControllerCfgFile))
+                        File.Delete(oldControllerCfgFile);
+                    if (File.Exists(controllerCfgFile))
+                        File.Copy(controllerCfgFile, oldControllerCfgFile);
 
-                commandArray.Add("--controller=.\\controller.znc");
-                commandArray.Add(controllerCfgCommand);
+                    commandArray.Add("--controller=.\\controller.znc");
+                    commandArray.Add(controllerCfgCommand);
+                }
             }
 
             // Renderer choice
