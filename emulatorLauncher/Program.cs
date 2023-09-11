@@ -106,7 +106,8 @@ namespace emulatorLauncher
             { "play", () => new PlayGenerator() },
             { "bizhawk", () => new BizhawkGenerator() },
             { "ares", () => new AresGenerator() },
-            { "ruffle", () => new RuffleGenerator() }
+            { "ruffle", () => new RuffleGenerator() },
+            { "zesarux", () => new ZEsarUXGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

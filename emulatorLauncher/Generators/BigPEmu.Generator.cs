@@ -40,7 +40,7 @@ namespace emulatorLauncher
 
             string args = string.Join(" ", commandArray);
 
-            SetupConfiguration(path, resolution);
+            SetupConfiguration(path, system, resolution);
 
             return new ProcessStartInfo()
             {
@@ -69,7 +69,7 @@ namespace emulatorLauncher
         }
 
         //Configuration file in json format "BigPEmuConfig.bigpcfg"
-        private void SetupConfiguration(string path, ScreenResolution resolution = null)
+        private void SetupConfiguration(string path, string system, ScreenResolution resolution = null)
         {
             //open userdata config file
             string folder = Path.Combine(path, "userdata");
@@ -81,70 +81,84 @@ namespace emulatorLauncher
 
             string configfile = Path.Combine(folder, "BigPEmuConfig.bigpcfg");
 
-            var json = DynamicJson.Load(configfile);
-            var bigpemucore = json.GetOrCreateContainer("BigPEmuConfig");
-
-            //system part
-            var system = bigpemucore.GetOrCreateContainer("System");
-            BindFeature(system, "PALMode", "pal_mode", "0");
-            
-            //video part
-            var video = bigpemucore.GetOrCreateContainer("Video");
-            BindFeature(video, "DisplayMode", "displaymode", "0");      //0 for borderless windows, 1 for windowed, 2 for fullscreen
-            BindFeature(video, "VSync", "vsync", "1");                  // vsync on as default setting
-            BindFeature(video, "HDROutput", "enable_hdr", "0");
-            video["ShittyFreqWarn"] = "0";
-
-            // resolution
-            if (resolution != null)
+            if (File.Exists(configfile))
             {
-                video["DisplayWidth"] = (resolution.Width).ToString();
-                video["DisplayHeight"] = (resolution.Height).ToString();
-            }
-            else
-            {
-                video.Remove("DisplayWidth");
-                video.Remove("DisplayHeight");
-            }
+                var json = DynamicJson.Load(configfile);
+                var bigpemucore = json.GetOrCreateContainer("BigPEmuConfig");
 
-            // Monitor index
-            if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-            {
-                string emuMonitor = "\\\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
-                video["Display"] = emuMonitor;
-            }
+                //system part
+                var jsonSystem = bigpemucore.GetOrCreateContainer("System");
+                BindFeature(jsonSystem, "PALMode", "pal_mode", "0");
+                jsonSystem["PerGameSlots"] = "1";
+                jsonSystem["SaveAutoIncr"] = "1";
 
-            // Allow use of internal effects if shaders are set to none
-            if (SystemConfig["shaderset"] == "none" && SystemConfig.isOptSet("bigpemu_shader") && !string.IsNullOrEmpty(SystemConfig["bigpemu_shader"]))
-                bigpemucore["ScreenEffect"] = SystemConfig["bigpemu_shader"];
-            else
-                bigpemucore["ScreenEffect"] = "";
-
-            // Bilinear filtering
-            BindFeature(video, "ScreenFilter", "smooth", "0");
-
-            // Stretch
-            if (_bezelFileInfo == null && SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
-            {
-                if (SystemConfig["ratio"] == "stretch")                 // Stretch only if bezels are empty and ratio = STRETCH
+                if (system == "jaguarcd")
                 {
-                    video["ScreenScaling"] = "6";
+                    jsonSystem["AttachButch"] = "1";
+                    jsonSystem["AttachMT"] = "1";
                 }
                 else
                 {
-                    video["ScreenScaling"] = "0";                       // else do not stretch and apply selected ratio
-                    video["ScreenAspect"] = SystemConfig["ratio"];
+                    jsonSystem["AttachButch"] = "0";
+                    jsonSystem["AttachMT"] = "0";
                 }
-                
-            }
-            else                                                        // set aspect ratio to 4/3 and no stretch (this is the standard case but also with bezels)
-            {
-                video["ScreenScaling"] = "0";
-                video["ScreenAspect"] = "2";
-            }
+                BindBoolFeature(jsonSystem, "ForceJGD", "bigpemu_jgd", "1", "0");
 
-            //save
-            json.Save();
+                //video part
+                var video = bigpemucore.GetOrCreateContainer("Video");
+                BindFeature(video, "DisplayMode", "displaymode", "0");      //0 for borderless windows, 1 for windowed, 2 for fullscreen
+                BindFeature(video, "VSync", "vsync", "1");                  // vsync on as default setting
+                BindFeature(video, "HDROutput", "enable_hdr", "0");
+                video["ShittyFreqWarn"] = "0";
+
+                if (resolution != null)
+                {
+                    video["DisplayWidth"] = (resolution.Width).ToString();
+                    video["DisplayHeight"] = (resolution.Height).ToString();
+                }
+                else
+                {
+                    video.Remove("DisplayWidth");
+                    video.Remove("DisplayHeight");
+                }
+
+                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                {
+                    string emuMonitor = "\\\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
+                    video["Display"] = emuMonitor;
+                }
+
+                BindFeature(video, "MSAAPref", "bigpemu_antialiasing", "0");
+                BindFeature(video, "ScreenFilter", "smooth", "0");
+
+                if (_bezelFileInfo == null && SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
+                {
+                    if (SystemConfig["ratio"] == "stretch")                 // Stretch only if bezels are empty and ratio = STRETCH
+                    {
+                        video["ScreenScaling"] = "6";
+                    }
+                    else
+                    {
+                        video["ScreenScaling"] = "0";                       // else do not stretch and apply selected ratio
+                        video["ScreenAspect"] = SystemConfig["ratio"];
+                    }
+
+                }
+                else                                                        // set aspect ratio to 4/3 and no stretch (this is the standard case but also with bezels)
+                {
+                    video["ScreenScaling"] = "0";
+                    video["ScreenAspect"] = "2";
+                }
+
+                // Allow use of internal effects if shaders are set to none
+                if (SystemConfig["shaderset"] == "none" && SystemConfig.isOptSet("bigpemu_shader") && !string.IsNullOrEmpty(SystemConfig["bigpemu_shader"]))
+                    bigpemucore["ScreenEffect"] = SystemConfig["bigpemu_shader"];
+                else
+                    bigpemucore["ScreenEffect"] = "";
+
+                //save
+                json.Save();
+            }
         }
     }
 
