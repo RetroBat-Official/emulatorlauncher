@@ -4,6 +4,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using emulatorLauncher.Tools;
+using System.Windows.Documents;
 
 namespace emulatorLauncher
 {
@@ -95,6 +96,9 @@ namespace emulatorLauncher
             else
                 cfg["--joystickemulated"] = "Kempston";
 
+            if (system != "zxspectrum")
+                cfg.Remove("--realvideo");
+
             // controllers
             CreateControllerConfiguration(cfg);
 
@@ -159,6 +163,16 @@ namespace emulatorLauncher
                 }
 
                 IsDirty = true;
+            }
+        }
+
+        public void Remove(string key)
+        {
+            int idx = _lines.FindIndex(l => !string.IsNullOrEmpty(l) && l[0] != ';' && l.StartsWith(key + " "));
+            if (idx >= 0)
+            {
+                _lines.RemoveAt(idx);
+                File.WriteAllLines(_fileName, _lines);
             }
         }
 
