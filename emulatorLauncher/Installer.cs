@@ -85,7 +85,8 @@ namespace emulatorLauncher
             { new Installer("play", "play", "Play.exe") },
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },
             { new Installer("ares", "ares", "ares.exe") },
-            { new Installer("ruffle", "ruffle", "ruffle.exe") }
+            { new Installer("ruffle", "ruffle", "ruffle.exe") },
+            { new Installer("zesarux", "zesarux", "zesarux.exe") }
         };
 
         #region Properties

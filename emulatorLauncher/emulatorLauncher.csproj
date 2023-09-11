@@ -128,6 +128,10 @@
     <Compile Include="Generators\Simple64.Controllers.cs">
       <DependentUpon>Simple64.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\ZEsarUX.Generator.cs" />
+    <Compile Include="Generators\ZEsarUX.Controllers.cs">
+      <DependentUpon>ZEsarUX.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
