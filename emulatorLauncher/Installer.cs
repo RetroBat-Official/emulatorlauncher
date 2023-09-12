@@ -86,7 +86,8 @@ namespace emulatorLauncher
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },
             { new Installer("ares", "ares", "ares.exe") },
             { new Installer("ruffle", "ruffle", "ruffle.exe") },
-            { new Installer("zesarux", "zesarux", "zesarux.exe") }
+            { new Installer("zesarux", "zesarux", "zesarux.exe") },
+            { new Installer("jynx", "jynx", "Jynx-Windows-64bit.exe") }
         };
 
         #region Properties
