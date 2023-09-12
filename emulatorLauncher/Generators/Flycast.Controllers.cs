@@ -357,8 +357,8 @@ namespace emulatorLauncher
 
             using (var ctrlini = new IniFile(mappingFile, IniOptions.UseSpaces))
             {
-                ctrlini.WriteValue("digital", "bind0", guninvert ? "2:btn_a" : "1:reload");
-                ctrlini.WriteValue("digital", "bind1", guninvert ? "1:reload" : "2:btn_a");
+                ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
                 ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                 ctrlini.WriteValue("emulator", "dead_zone", "10");
                 ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
@@ -463,8 +463,8 @@ namespace emulatorLauncher
                     
                     using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
                     {
-                        ctrlini.WriteValue("digital", "bind0", guninvert ? "2:btn_a" : "1:reload");
-                        ctrlini.WriteValue("digital", "bind1", guninvert ? "1:reload" : "2:btn_a");
+                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
                         ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                         ctrlini.WriteValue("emulator", "dead_zone", "10");
                         ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
