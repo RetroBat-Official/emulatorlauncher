@@ -107,7 +107,8 @@ namespace emulatorLauncher
             { "bizhawk", () => new BizhawkGenerator() },
             { "ares", () => new AresGenerator() },
             { "ruffle", () => new RuffleGenerator() },
-            { "zesarux", () => new ZEsarUXGenerator() }
+            { "zesarux", () => new ZEsarUXGenerator() },
+            { "jynx", () => new JynxGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
