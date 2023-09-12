@@ -157,7 +157,7 @@ namespace emulatorLauncher
                     }
                 }
             }
-            return "None";
+            return "";
         }
     }
 }

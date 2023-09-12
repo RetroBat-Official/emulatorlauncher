@@ -83,8 +83,28 @@ namespace emulatorLauncher
 
         private void SetupConfig(string path, string machineType)
         {
-            var cfg = JynxConfigFile.FromFile(Path.Combine(path, "settings.txt"));
+            string cfgFile = Path.Combine(path, "settings.txt");
+            
+            if (!File.Exists(cfgFile))
+            {
+                using (StreamWriter sw = File.CreateText(cfgFile))
+                {
+                    sw.WriteLine("FileVersion 4");
+                    sw.WriteLine("MachineType 0");
+                    sw.WriteLine("RenderStyle 1");
+                    sw.WriteLine("SoundEnable 1");
+                    sw.WriteLine("FullScreenEnable 1");
+                    sw.WriteLine("CyclesPerTimeslice 70000");
+                    sw.WriteLine("TapeSounds 0");
+                    sw.WriteLine("RemExtensions 0");
+                    sw.WriteLine("MaxSpeedCassette 1");
+                    sw.WriteLine("MaxSpeedConsole 0");
+                    sw.WriteLine("MaxSpeedAlways 0");
+                    sw.WriteLine("ColourSet 0");
+                }
+            }
 
+            var cfg = JynxConfigFile.FromFile(cfgFile);
             if (!_fullscreen)
                 cfg["FullScreenEnable"] = "0";
             else
