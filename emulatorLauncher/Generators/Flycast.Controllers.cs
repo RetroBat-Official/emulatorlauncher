@@ -281,10 +281,10 @@ namespace emulatorLauncher
                     ctrlini.WriteValue("digital", "bind3", GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
                     ctrlini.WriteValue("digital", "bind4", GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
                     ctrlini.WriteValue("digital", "bind5", GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_c");
-                    ctrlini.WriteValue("digital", "bind6", GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_menu");                 // emulator menu
+                    ctrlini.WriteValue("digital", "bind6", GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_menu");                     // emulator menu
                     ctrlini.WriteValue("digital", "bind7", GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
-                    ctrlini.WriteValue("digital", "bind8", GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_d");                        // coin
-                    ctrlini.WriteValue("digital", "bind9", GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // test
+                    ctrlini.WriteValue("digital", "bind8", GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_d");                    // coin
+                    ctrlini.WriteValue("digital", "bind9", GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_dpad2_down");               // test
                 }
                 
                 else
