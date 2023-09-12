@@ -38,11 +38,45 @@ namespace emulatorLauncher
         private void SetupConfig(string path)
         {
             string iniFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "ppsspp.ini");
+            bool cheevosEnable = Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements");
+
+            if (cheevosEnable)
+            {
+                string cheevosTokenFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "ppsspp_retroachievements.dat");
+                string cheevosToken = SystemConfig["retroachievements.token"];
+                try 
+                { 
+                    File.WriteAllText(cheevosTokenFile, cheevosToken); 
+                } 
+                catch { }
+            }
 
             try
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
+                    // Retroachievements
+                    if (cheevosEnable)
+                    {
+                        ini.WriteValue("Achievements", "AchievementsUserName", SystemConfig["retroachievements.username"]);
+                        ini.WriteValue("Achievements", "AchievementsEnable", "True");
+                        ini.WriteValue("Achievements", "AchievementsEncoreMode", "False");
+                        ini.WriteValue("Achievements", "AchievementsUnofficial", "False");
+                        ini.WriteValue("Achievements", "AchievementsSoundEffects", "True");
+                        ini.WriteValue("Achievements", "AchievementsLogBadMemReads", "False");
+                        ini.WriteValue("Achievements", "AchievementsChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "True" : "False");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Achievements", "AchievementsUserName", "");
+                        ini.WriteValue("Achievements", "AchievementsEnable", "False");
+                        ini.WriteValue("Achievements", "AchievementsEncoreMode", "False");
+                        ini.WriteValue("Achievements", "AchievementsUnofficial", "False");
+                        ini.WriteValue("Achievements", "AchievementsSoundEffects", "False");
+                        ini.WriteValue("Achievements", "AchievementsLogBadMemReads", "False");
+                        ini.WriteValue("Achievements", "AchievementsChallengeMode", "False");
+                    }
+                    
                     // Graphics
                     ini.WriteValue("Graphics", "FullScreen", "True");
 
