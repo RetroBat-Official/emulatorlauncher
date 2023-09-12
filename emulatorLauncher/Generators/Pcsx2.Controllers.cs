@@ -263,8 +263,8 @@ namespace emulatorLauncher
         {
             { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
-            { InputKey.y, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
-            { InputKey.x, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
+            { InputKey.x, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
+            { InputKey.y, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
             { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F2") },
             { InputKey.down, new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },
