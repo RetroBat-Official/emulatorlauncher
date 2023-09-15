@@ -105,7 +105,10 @@ namespace emulatorLauncher
             { "simple64", () => new Simple64Generator() },
             { "play", () => new PlayGenerator() },
             { "bizhawk", () => new BizhawkGenerator() },
-            { "ares", () => new AresGenerator() }
+            { "ares", () => new AresGenerator() },
+            { "ruffle", () => new RuffleGenerator() },
+            { "zesarux", () => new ZEsarUXGenerator() },
+            { "jynx", () => new JynxGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
