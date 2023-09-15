@@ -155,6 +155,19 @@ namespace emulatorLauncher
                 else
                     videodriver.SetAttributeValue("Value", "0");
 
+                // Manage Input profiles
+                XElement padProfile = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "input.pad1.profile").FirstOrDefault();
+                string inputProfilePath = Path.Combine(path, "Play Data Files", "inputprofiles");
+                if (!Directory.Exists(inputProfilePath)) try { Directory.CreateDirectory(inputProfilePath); }
+                    catch { }
+                string romName = Path.GetFileNameWithoutExtension(rom);
+                string inputProfile = Path.Combine(inputProfilePath, romName + "xml");
+
+                if (File.Exists(inputProfile))
+                    padProfile.SetAttributeValue("Value", romName);
+                else
+                    padProfile.SetAttributeValue("Value", "default");
+
                 //save file
                 configfile.Save(settingsFile);
             }
