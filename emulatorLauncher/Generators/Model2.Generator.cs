@@ -127,14 +127,12 @@ namespace emulatorLauncher
 
             if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-
-            SetupConfig(path, resolution, rom);
-
+            
             _dinput = false;
             if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
                 _dinput = true;
-
-            ConfigureInput(path, rom);
+            
+            SetupConfig(path, resolution, rom);
 
             string arg = Path.GetFileNameWithoutExtension(_destFile);
 
@@ -188,17 +186,19 @@ namespace emulatorLauncher
                     BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "0", "1");
                     BindIniFeature(ini, "Input", "RawDevP1", "m2_rawinput_p1", "0");
                     BindIniFeature(ini, "Input", "RawDevP2", "m2_rawinput_p2", "1");
+
+                    ConfigureInput(path, ini, rom);
                 }
             }
             catch { }
         }
 
-        private void ConfigureInput(string path, string rom)
+        private void ConfigureInput(string path, IniFile ini, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            else if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "template")
+            else if (Program.SystemConfig.isOptSet("m2_joystick_autoconfig") && Program.SystemConfig["m2_joystick_autoconfig"] == "template")
             {
                 string inputCFGpath = Path.Combine(path, "CFG");
                 if (!Directory.Exists(inputCFGpath)) try { Directory.CreateDirectory(inputCFGpath); }
@@ -242,7 +242,7 @@ namespace emulatorLauncher
                 else
                     bytes = new byte[hexLength];
 
-                ConfigureControllers(bytes);
+                ConfigureControllers(bytes, ini, parentRom, hexLength);
 
                 File.WriteAllBytes(inputFile, bytes);
             }

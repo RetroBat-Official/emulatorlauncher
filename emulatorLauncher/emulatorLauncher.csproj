@@ -244,6 +244,9 @@
       <DependentUpon>OpenBor.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Model2.Generator.cs" />
+    <Compile Include="Generators\Model2.Controllers.cs">
+      <DependentUpon>Model2.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Uae.Generator.cs" />
     <Compile Include="Generators\Snes9x.Generator.cs" />
     <Compile Include="Generators\Citra.Generator.cs" />
