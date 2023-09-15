@@ -324,6 +324,7 @@ namespace emulatorLauncher
                     // Hack vertex rounding
                     BindBoolIniFeature(ini, "Hacks", "VertexRounding", "VertexRounding", "True", "False");
 
+                    BindBoolIniFeature(ini, "Hacks", "FastTextureSampling", "manual_texture_sampling", "False", "True");
                 }
             }
             catch { }
