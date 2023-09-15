@@ -6,6 +6,7 @@ using System.IO;
 using emulatorLauncher.Tools;
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Drawing;
 
 namespace emulatorLauncher
 {
@@ -204,8 +205,8 @@ namespace emulatorLauncher
                     extraOptions["Options/Sideways Wiimote"] = "1";
                     wiiMapping[InputKey.x] = "Buttons/A";
                     wiiMapping[InputKey.y] = "Buttons/1";
-                    wiiMapping[InputKey.a] = "Buttons/2";
-                    wiiMapping[InputKey.b] = "Buttons/B";
+                    wiiMapping[InputKey.b] = "Buttons/2";
+                    wiiMapping[InputKey.a] = "Buttons/B";
                     wiiMapping[InputKey.l2] = "Shake/X";
                     wiiMapping[InputKey.l2] = "Shake/Y";
                     wiiMapping[InputKey.l2] = "Shake/Z";
@@ -445,7 +446,10 @@ namespace emulatorLauncher
                         
                         tech = "SDL";
 
-                        deviceName = s.Name;
+                        deviceName = pad.Name;
+
+                        if (deviceName == "DualSense Wireless Controller")
+                            deviceName = "PS5 Controller";
                     }
              
                     if (double_pads.ContainsKey(tech + "/" + deviceName))
@@ -826,6 +830,32 @@ namespace emulatorLauncher
                                 ini.WriteValue(gcpad, "Classic/Left Stick/Calibration", "100.00 101.96 104.75 107.35 109.13 110.30 105.04 101.96 100.00 101.96 105.65 105.14 105.94 103.89 104.87 101.04 100.00 101.96 107.16 107.49 105.93 103.65 102.31 101.96 100.00 101.96 103.68 108.28 108.05 105.96 103.66 101.48");
                                 ini.WriteValue(gcpad, "Classic/Right Stick/Calibration", "100.00 101.96 104.31 104.51 105.93 104.41 103.44 101.96 100.00 101.96 104.07 105.45 109.33 107.39 104.91 101.96 100.00 101.96 106.79 107.84 105.66 104.16 102.91 100.38 98.14 101.63 105.29 107.30 106.77 104.73 104.87 100.92");
                             }
+                        }
+                        if (Program.SystemConfig.isOptSet("wii_motionpad") && Program.SystemConfig.getOptBoolean("wii_motionpad"))
+                        {
+                            ini.WriteValue(gcpad, "IMUAccelerometer/Up", "`Accel Up`");
+                            ini.WriteValue(gcpad, "IMUAccelerometer/Down", "`Accel Down`");
+                            ini.WriteValue(gcpad, "IMUAccelerometer/Left", "`Accel Left`");
+                            ini.WriteValue(gcpad, "IMUAccelerometer/Right", "`Accel Right`");
+                            ini.WriteValue(gcpad, "IMUAccelerometer/Forward", "`Accel Forward`");
+                            ini.WriteValue(gcpad, "IMUAccelerometer/Backward", "`Accel Backward`");
+                            ini.WriteValue(gcpad, "IMUGyroscope/Pitch Up", "`Gyro Pitch Up`");
+                            ini.WriteValue(gcpad, "IMUGyroscope/Pitch Down", "`Gyro Pitch Down`");
+                            ini.WriteValue(gcpad, "IMUGyroscope/Roll Left", "`Gyro Roll Left`");
+                            ini.WriteValue(gcpad, "IMUGyroscope/Roll Right", "`Gyro Roll Right`");
+                            ini.WriteValue(gcpad, "IMUGyroscope/Yaw Left", "`Gyro Yaw Left`");
+                            ini.WriteValue(gcpad, "IMUGyroscope/Yaw Right", "`Gyro Yaw Right`");
+                            ini.Remove(gcpad, "Tilt/Forward");
+                            ini.Remove(gcpad, "Tilt/Left");
+                            ini.Remove(gcpad, "Tilt/Right");
+                            ini.Remove(gcpad, "Tilt/Backward");
+                            ini.Remove(gcpad, "Shake/X");
+                            ini.Remove(gcpad, "Shake/Y");
+                            ini.Remove(gcpad, "Shake/Z");
+                            ini.Remove(gcpad, "Swing/Down");
+                            ini.Remove(gcpad, "Swing/Right");
+                            ini.Remove(gcpad, "Swing/Up");
+                            ini.Remove(gcpad, "Swing/Left");
                         }
                     }
                 }

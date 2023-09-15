@@ -413,7 +413,7 @@ namespace emulatorLauncher
             
             try
             {
-                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
                 {
                     Rectangle emulationStationBounds;
                     if (IsEmulationStationWindowed(out emulationStationBounds, true))
@@ -584,9 +584,8 @@ namespace emulatorLauncher
                                 ini.WriteValue("Core", "SIDevice" + i, "0");
                         }
                     }
-
                     // Disable auto updates
-                    ini.WriteValue("AutoUpdate", "UpdateTrack", " ");
+                    //ini.AppendValue("AutoUpdate", "UpdateTrack", "");
                 }
             }
 
