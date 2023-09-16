@@ -324,6 +324,7 @@ namespace emulatorLauncher
                     // Hack vertex rounding
                     BindBoolIniFeature(ini, "Hacks", "VertexRounding", "VertexRounding", "True", "False");
 
+                    BindBoolIniFeature(ini, "Hacks", "FastTextureSampling", "manual_texture_sampling", "False", "True");
                 }
             }
             catch { }
@@ -413,7 +414,7 @@ namespace emulatorLauncher
             
             try
             {
-                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
                 {
                     Rectangle emulationStationBounds;
                     if (IsEmulationStationWindowed(out emulationStationBounds, true))
@@ -584,9 +585,8 @@ namespace emulatorLauncher
                                 ini.WriteValue("Core", "SIDevice" + i, "0");
                         }
                     }
-
                     // Disable auto updates
-                    ini.WriteValue("AutoUpdate", "UpdateTrack", " ");
+                    //ini.AppendValue("AutoUpdate", "UpdateTrack", "");
                 }
             }
 

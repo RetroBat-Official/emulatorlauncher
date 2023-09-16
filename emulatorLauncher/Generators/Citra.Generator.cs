@@ -203,12 +203,8 @@ namespace emulatorLauncher
                     ini.WriteValue("Utility", "preload_textures", "false");
                 }
 
-                // Addition canary features
-                if (isCitraCanary)
-                {
-                    // Renderer
-                    BindQtIniFeature(ini, "Renderer", "graphics_api", "graphics_api", "1");
-                }
+                // Renderer
+                BindQtIniFeature(ini, "Renderer", "graphics_api", "graphics_api", "1");
             }
         }
 

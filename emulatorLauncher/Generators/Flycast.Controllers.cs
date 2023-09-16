@@ -200,6 +200,7 @@ namespace emulatorLauncher
             int index = ctrl.SdlController.Index;
             int playerIndex = ctrl.PlayerIndex;
             string deviceName = ctrl.SdlController.Name;
+            bool serviceMenu = SystemConfig.isOptSet("flycast_service_menu") && SystemConfig.getOptBoolean("flycast_service_menu");
 
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
@@ -267,7 +268,7 @@ namespace emulatorLauncher
 
                     ctrlini.WriteValue("digital", "bind0", GetInputKeyName(ctrl, InputKey.a, tech) + ":btn_a");
                     ctrlini.WriteValue("digital", "bind1", GetInputKeyName(ctrl, InputKey.b, tech) + ":btn_b");
-                    ctrlini.WriteValue("digital", "bind10", tech == "SDL" ? "5" + ":btn_dpad2_up" : "10" + ":btn_dpad2_up");            // Guide button (service menu)
+                    ctrlini.WriteValue("digital", "bind10", tech == "SDL" ? "5" + ":btn_menu" : "10" + ":btn_menu");                    // Guide button (emulator menu)
                     ctrlini.WriteValue("digital", "bind11", GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
                     ctrlini.WriteValue("digital", "bind12", GetInputKeyName(ctrl, InputKey.down, tech) + ":btn_dpad1_down");
                     ctrlini.WriteValue("digital", "bind13", GetInputKeyName(ctrl, InputKey.left, tech) + ":btn_dpad1_left");
@@ -281,10 +282,13 @@ namespace emulatorLauncher
                     ctrlini.WriteValue("digital", "bind3", GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
                     ctrlini.WriteValue("digital", "bind4", GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
                     ctrlini.WriteValue("digital", "bind5", GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_c");
-                    ctrlini.WriteValue("digital", "bind6", GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_menu");                 // emulator menu
                     ctrlini.WriteValue("digital", "bind7", GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
-                    ctrlini.WriteValue("digital", "bind8", GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_d");                        // coin
-                    ctrlini.WriteValue("digital", "bind9", GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // test
+                    ctrlini.WriteValue("digital", "bind8", GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_d");                    // coin
+                    if (serviceMenu)
+                    {
+                        ctrlini.WriteValue("digital", "bind6", GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // service menu
+                        ctrlini.WriteValue("digital", "bind9", GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_dpad2_up");                 // test
+                    }
                 }
                 
                 else
@@ -357,8 +361,8 @@ namespace emulatorLauncher
 
             using (var ctrlini = new IniFile(mappingFile, IniOptions.UseSpaces))
             {
-                ctrlini.WriteValue("digital", "bind0", guninvert ? "2:btn_a" : "1:reload");
-                ctrlini.WriteValue("digital", "bind1", guninvert ? "1:reload" : "2:btn_a");
+                ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
                 ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                 ctrlini.WriteValue("emulator", "dead_zone", "10");
                 ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
@@ -463,8 +467,8 @@ namespace emulatorLauncher
                     
                     using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
                     {
-                        ctrlini.WriteValue("digital", "bind0", guninvert ? "2:btn_a" : "1:reload");
-                        ctrlini.WriteValue("digital", "bind1", guninvert ? "1:reload" : "2:btn_a");
+                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
                         ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                         ctrlini.WriteValue("emulator", "dead_zone", "10");
                         ctrlini.WriteValue("emulator", "mapping_name", "Mouse");

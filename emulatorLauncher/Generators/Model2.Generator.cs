@@ -8,9 +8,9 @@ using System.Windows.Forms;
 
 namespace emulatorLauncher
 {
-    class Model2Generator : Generator
+    partial class Model2Generator : Generator
     {
-        static Dictionary<string, string> parentRoms = new Dictionary<string, string>() 
+        static Dictionary<string, string> parentRoms = new Dictionary<string, string>()
         { 
             // Daytona USA
             { "dayton93", "daytona" },
@@ -25,7 +25,6 @@ namespace emulatorLauncher
             // Dynamite Cop
             { "dynmcopb", "dynamcop" },
             { "dynmcopc", "dynamcop" },
-            // Dynamite Deka 
             { "dyndeka2", "dynamcop" },
             { "dyndek2b", "dynamcop" },
             // Indianapolis 500
@@ -67,6 +66,7 @@ namespace emulatorLauncher
 
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private bool _dinput;
 
         public Model2Generator()
         {
@@ -103,7 +103,7 @@ namespace emulatorLauncher
             if (!File.Exists(_destFile))
             {
                 File.Copy(rom, _destFile);
-                
+
                 try { new FileInfo(_destFile).Attributes &= ~FileAttributes.ReadOnly; }
                 catch { }
             }
@@ -122,19 +122,17 @@ namespace emulatorLauncher
                     catch { }
                 }
             }
-            
+
             _resolution = resolution;
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path,  resolution))
+            if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-
-            SetupConfig(path, resolution, rom);
-
-            bool dinput = false;
+            
+            _dinput = false;
             if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
-                dinput = true;
-
-            ConfigureInput(path, rom, dinput);
+                _dinput = true;
+            
+            SetupConfig(path, resolution, rom);
 
             string arg = Path.GetFileNameWithoutExtension(_destFile);
 
@@ -142,8 +140,8 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 Arguments = arg,
-                WorkingDirectory = path,                
-            };            
+                WorkingDirectory = path,
+            };
         }
 
         private void SetupConfig(string path, ScreenResolution resolution, string rom)
@@ -188,33 +186,67 @@ namespace emulatorLauncher
                     BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "0", "1");
                     BindIniFeature(ini, "Input", "RawDevP1", "m2_rawinput_p1", "0");
                     BindIniFeature(ini, "Input", "RawDevP2", "m2_rawinput_p2", "1");
+                    BindIniFeature(ini, "Input", "FE_CENTERING_Deadband", "m2_deadzone", "1000");
+
+                    ConfigureInput(path, ini, rom);
                 }
             }
             catch { }
         }
 
-        private void ConfigureInput(string path, string rom, bool dinput)
+        private void ConfigureInput(string path, IniFile ini, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            string inputCFGpath = Path.Combine(path, "CFG");
-            if (!Directory.Exists(inputCFGpath)) try { Directory.CreateDirectory(inputCFGpath); }
-                catch { }
+            else if (Program.SystemConfig.isOptSet("m2_joystick_autoconfig") && Program.SystemConfig["m2_joystick_autoconfig"] == "template")
+            {
+                string inputCFGpath = Path.Combine(path, "CFG");
+                if (!Directory.Exists(inputCFGpath)) try { Directory.CreateDirectory(inputCFGpath); }
+                    catch { }
 
-            string game = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+                string game = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+                string parentGame = game;
+                if (parentRoms.ContainsKey(game))
+                    parentGame = parentRoms[game];
 
-            string sourceInputCfgFile = Path.Combine(path, "templatescfg", "xinput", game + ".input");
-            if (dinput)
-                sourceInputCfgFile = Path.Combine(path, "templatescfg", "dinput", game + ".input");
+                string sourceInputCfgFile = Path.Combine(path, "templatescfg", "xinput", parentGame + ".input");
+                if (_dinput)
+                    sourceInputCfgFile = Path.Combine(path, "templatescfg", "dinput", parentGame + ".input");
 
-            string targetInputCfgFile = Path.Combine(inputCFGpath, game + ".input");
+                string targetInputCfgFile = Path.Combine(inputCFGpath, game + ".input");
 
-            if (File.Exists(targetInputCfgFile))
-                File.Delete(targetInputCfgFile);
+                if (File.Exists(targetInputCfgFile))
+                    File.Delete(targetInputCfgFile);
 
-            if (File.Exists(sourceInputCfgFile))
-                File.Copy(sourceInputCfgFile, targetInputCfgFile);
+                if (File.Exists(sourceInputCfgFile))
+                    File.Copy(sourceInputCfgFile, targetInputCfgFile);
+            }
+            else
+            {
+                string inputCFGpath = Path.Combine(path, "CFG");
+                if (!Directory.Exists(inputCFGpath)) try { Directory.CreateDirectory(inputCFGpath); }
+                    catch { }
+
+                string inputFilename = Path.GetFileNameWithoutExtension(rom);
+                string inputFile = Path.Combine(inputCFGpath, inputFilename + ".input");
+
+                string parentRom = parentRoms.ContainsKey(inputFilename) ? parentRoms[inputFilename] : inputFilename;
+                int hexLength = 107;
+                if (byteLength.ContainsKey(parentRom))
+                    hexLength = byteLength[parentRom];
+
+                byte[] bytes;
+
+                if (File.Exists(inputFile))
+                    bytes = File.ReadAllBytes(inputFile);
+                else
+                    bytes = new byte[hexLength];
+
+                ConfigureControllers(bytes, ini, parentRom, hexLength);
+
+                File.WriteAllBytes(inputFile, bytes);
+            }
         }
 
         public override void Cleanup()
@@ -255,7 +287,7 @@ namespace emulatorLauncher
                                 User32.SetWindowStyle(hWnd, style & ~WS.CAPTION);
                                 User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
                                 User32.SetMenu(hWnd, IntPtr.Zero);
-                                
+
                                 if (_bezelFileInfo != null && bezel == null)
                                     bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
                             }
@@ -276,5 +308,41 @@ namespace emulatorLauncher
 
             return -1;
         }
+
+        static Dictionary<string, int> byteLength = new Dictionary<string, int>()
+        {
+            { "bel", 108 },
+            { "daytona", 104 },
+            { "desert", 100 },
+            { "doa", 108 },
+            { "dynabb97", 116 },
+            { "dynamcop", 108 },
+            { "fvipers", 108 },
+            { "gunblade", 108 },
+            { "hotd", 108 },
+            { "indy500", 80 },
+            { "lastbrnx", 108 },
+            { "manxtt", 76 },
+            { "manxttc", 76 },
+            { "motoraid", 76 },
+            { "overrev", 80 },
+            { "pltkids", 108 },
+            { "rchase2", 108 },
+            { "schamp", 108 },
+            { "segawski", 68 },
+            { "sgt24h", 80 },
+            { "skisuprg", 76 },
+            { "skytargt", 76 },
+            { "srallyc", 92 },
+            { "stcc", 80 },
+            { "topskatr", 76 },
+            { "vcop", 108 },
+            { "vcop2", 108 },
+            { "vf2", 108 },
+            { "von", 84 },
+            { "vstriker", 108 },
+            { "waverunr", 72 },
+            { "zerogun", 108 }
+        };
     }
 }
