@@ -266,6 +266,7 @@ namespace emulatorLauncher
 
             }
             #endregion
+            #region driving gear stick
             else if (drivingshiftlever.Contains(parentRom))
             {
                 bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = bytes[41] = bytes[45] = bytes[49] = bytes[53] = bytes[57] = Convert.ToByte(j1index);
@@ -295,7 +296,6 @@ namespace emulatorLauncher
                     bytes[61] = bytes[65] = bytes[69] = Convert.ToByte(j1index);
                     bytes[52] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
                     bytes[56] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
-                    bytes[60] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
                     bytes[60] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
                     bytes[64] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
                     bytes[68] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
@@ -361,8 +361,6 @@ namespace emulatorLauncher
                 }
 
             }
-            #region driving gear stick
-
             #endregion
             #region fighters
             else if (fighters.Contains(parentRom))
@@ -512,31 +510,31 @@ namespace emulatorLauncher
 
                     if (parentRom == "vstriker")
                     {
-                        bytes[56] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
-                        bytes[60] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
-                        bytes[64] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
-                        bytes[68] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
+                        bytes[56] = _dinput ? GetInputCode(InputKey.a, c2, tech2) : (byte)0x30;
+                        bytes[60] = _dinput ? GetInputCode(InputKey.b, c2, tech2) : (byte)0x40;
+                        bytes[64] = _dinput ? GetInputCode(InputKey.y, c2, tech2) : (byte)0x10;
+                        bytes[68] = _dinput ? GetInputCode(InputKey.x, c2, tech2) : (byte)0x20;
                     }
                     else if (parentRom == "dynamcop")
                     {
-                        bytes[56] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
-                        bytes[60] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
-                        bytes[64] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
-                        bytes[68] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
+                        bytes[56] = _dinput ? GetInputCode(InputKey.y, c2, tech2) : (byte)0x10;
+                        bytes[60] = _dinput ? GetInputCode(InputKey.x, c2, tech2) : (byte)0x20;
+                        bytes[64] = _dinput ? GetInputCode(InputKey.a, c2, tech2) : (byte)0x30;
+                        bytes[68] = _dinput ? GetInputCode(InputKey.b, c2, tech2) : (byte)0x40;
                     }
                     else if (parentRom == "pltkids")
                     {
-                        bytes[56] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
-                        bytes[60] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
-                        bytes[64] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
-                        bytes[68] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
+                        bytes[56] = _dinput ? GetInputCode(InputKey.y, c2, tech2) : (byte)0x10;
+                        bytes[60] = _dinput ? GetInputCode(InputKey.a, c2, tech2) : (byte)0x30;
+                        bytes[64] = _dinput ? GetInputCode(InputKey.x, c2, tech2) : (byte)0x20;
+                        bytes[68] = _dinput ? GetInputCode(InputKey.b, c2, tech2) : (byte)0x40;
                     }
                     else if (parentRom == "zerogun")
                     {
-                        bytes[56] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
-                        bytes[60] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
-                        bytes[64] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
-                        bytes[68] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
+                        bytes[56] = _dinput ? GetInputCode(InputKey.y, c2, tech2) : (byte)0x10;
+                        bytes[60] = _dinput ? GetInputCode(InputKey.a, c2, tech2) : (byte)0x30;
+                        bytes[64] = _dinput ? GetInputCode(InputKey.b, c2, tech2) : (byte)0x40;
+                        bytes[68] = _dinput ? GetInputCode(InputKey.x, c2, tech2) : (byte)0x20;
                     }
 
                     bytes[72] = _dinput ? GetInputCode(InputKey.start, c2, tech2) : (byte)0xB0;
@@ -564,6 +562,375 @@ namespace emulatorLauncher
                 bytes[96] = (byte)0x40;
             }
             #endregion
+            #region sports
+            else if (sports.Contains(parentRom))
+            {
+                bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = Convert.ToByte(j1index);
+                if (parentRom != "segawski")
+                    bytes[41] = Convert.ToByte(j1index);
+                if (parentRom != "segawski" && parentRom != "waverunr")
+                    bytes[45] = Convert.ToByte(j1index);
+
+                if (parentRom == "waverunr")
+                {
+                    bytes[0] = _dinput ? GetInputCode(InputKey.rightanalogleft, c1, tech1) : (byte)0x08;
+                    bytes[4] = _dinput ? GetInputCode(InputKey.rightanalogright, c1, tech1) : (byte)0x09;
+                    bytes[8] = _dinput ? GetInputCode(InputKey.leftanalogleft, c1, tech1) : (byte)0x04;
+                    bytes[12] = _dinput ? GetInputCode(InputKey.leftanalogright, c1, tech1) : (byte)0x05;
+                    bytes[16] = _dinput ? GetInputCode(InputKey.r2, c1, tech1) : (byte)0x80;
+                    bytes[20] = _dinput ? (byte)0x00 : (byte)0x02;
+                    bytes[23] = 0xFF;
+                    bytes[24] = _dinput ? (byte)0x03 : (byte)0x04;
+                    bytes[27] = 0xFF;
+                    bytes[28] = _dinput ? GetInputCode(InputKey.r2, c1, tech1, true) : (byte)0x07;
+                    bytes[31] = 0xFF;
+                    bytes[32] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
+                    bytes[36] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
+                    bytes[40] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
+
+                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+                    {
+                        bytes[44] = (byte)0x3B;
+                        bytes[45] = 0x00;
+                        bytes[48] = (byte)0x3C;
+                        bytes[49] = 0x00;
+                    }
+                    else
+                    {
+                        bytes[44] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
+                        bytes[45] = (byte)j1index;
+                        bytes[48] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
+                        bytes[49] = (byte)j1index;
+                    }
+
+                    bytes[52] = (byte)0x42;
+                    bytes[53] = (byte)0x00;
+                    bytes[56] = (byte)0x41;
+                    bytes[57] = (byte)0x00;
+                    bytes[60] = (byte)0x40;
+                    bytes[61] = (byte)0x00;
+                    bytes[64] = (byte)0x01;
+                    bytes[65] = (byte)0x01;
+                    bytes[66] = (byte)0x01;
+                }
+
+                else if (parentRom == "skisuprg")
+                {
+                    bytes[0] = _dinput ? GetInputCode(InputKey.leftanalogleft, c1, tech1) : (byte)0x04;
+                    bytes[4] = _dinput ? GetInputCode(InputKey.leftanalogright, c1, tech1) : (byte)0x05;
+                    bytes[8] = _dinput ? GetInputCode(InputKey.rightanalogleft, c1, tech1) : (byte)0x08;
+                    bytes[12] = _dinput ? GetInputCode(InputKey.rightanalogright, c1, tech1) : (byte)0x09;
+
+                    bytes[16] = _dinput ? (byte)0x03 : (byte)0x04;
+                    bytes[19] = 0xFF;
+                    bytes[20] = _dinput ? (byte)0x00 : (byte)0x02;
+                    bytes[21] = Convert.ToByte(j1index + 16);
+                    bytes[23] = 0xFF;
+
+                    bytes[24] = _dinput ? GetInputCode(InputKey.down, c1, tech1) : (byte)0x03;
+                    bytes[28] = _dinput ? GetInputCode(InputKey.up, c1, tech1) : (byte)0x02;
+
+                    bytes[32] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
+                    bytes[36] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
+                    bytes[40] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
+                    bytes[44] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
+
+                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+                    {
+                        bytes[48] = (byte)0x3B;
+                        bytes[49] = 0x00;
+                        bytes[52] = (byte)0x3C;
+                        bytes[53] = 0x00;
+                    }
+                    else
+                    {
+                        bytes[48] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
+                        bytes[49] = (byte)j1index;
+                        bytes[52] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
+                        bytes[53] = (byte)j1index;
+                    }
+
+                    bytes[56] = (byte)0x42;
+                    bytes[57] = (byte)0x00;
+                    bytes[60] = (byte)0x41;
+                    bytes[61] = (byte)0x00;
+                    bytes[64] = (byte)0x40;
+                    bytes[65] = (byte)0x00;
+                    bytes[64] = (byte)0x01;
+                    bytes[68] = (byte)0x01;
+                    bytes[69] = (byte)0x01;
+                }
+
+                else if (parentRom == "topskatr" || parentRom == "segawski")
+                {
+                    bytes[0] = _dinput ? GetInputCode(InputKey.leftanalogup, c1, tech1) : (byte)0x06;
+                    bytes[4] = _dinput ? GetInputCode(InputKey.leftanalogdown, c1, tech1) : (byte)0x07;
+                    bytes[8] = _dinput ? GetInputCode(InputKey.leftanalogleft, c1, tech1) : (byte)0x04;
+                    bytes[12] = _dinput ? GetInputCode(InputKey.leftanalogright, c1, tech1) : (byte)0x05;
+                    bytes[16] = _dinput ? (byte)0x00 : (byte)0x02;
+                    bytes[17] = Convert.ToByte(j1index + 16);
+                    bytes[19] = 0xFF;
+
+                    if (parentRom == "topskatr")
+                    {
+                        bytes[20] = _dinput ? (byte)0x03 : (byte)0x04;
+                        bytes[23] = 0xFF;
+                        bytes[24] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
+                        bytes[28] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
+                        bytes[32] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
+                        bytes[36] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
+                        bytes[40] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
+                        bytes[44] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
+
+                        if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+                        {
+                            bytes[48] = (byte)0x3B;
+                            bytes[49] = 0x00;
+                            bytes[52] = (byte)0x3C;
+                            bytes[53] = 0x00;
+                        }
+                        else
+                        {
+                            bytes[48] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
+                            bytes[49] = (byte)j1index;
+                            bytes[52] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
+                            bytes[53] = (byte)j1index;
+                        }
+
+                        bytes[56] = (byte)0x42;
+                        bytes[57] = (byte)0x00;
+                        bytes[60] = (byte)0x41;
+                        bytes[61] = (byte)0x00;
+                        bytes[64] = (byte)0x40;
+                        bytes[65] = (byte)0x00;
+                        bytes[68] = (byte)0x01;
+                        bytes[69] = (byte)0x01;
+                    }
+
+                    if (parentRom == "segawski")
+                    {
+                        bytes[20] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
+                        bytes[24] = _dinput ? GetInputCode(InputKey.l2, c1, tech1) : (byte)0x70;
+                        bytes[28] = _dinput ? GetInputCode(InputKey.r2, c1, tech1) : (byte)0x80;
+                        bytes[32] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
+                        bytes[36] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
+
+                        if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+                        {
+                            bytes[40] = (byte)0x3B;
+                            bytes[41] = 0x00;
+                            bytes[44] = (byte)0x3C;
+                            bytes[45] = 0x00;
+                        }
+                        else
+                        {
+                            bytes[40] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
+                            bytes[41] = (byte)j1index;
+                            bytes[44] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
+                            bytes[45] = (byte)j1index;
+                        }
+                        bytes[48] = (byte)0x42;
+                        bytes[49] = (byte)0x00;
+                        bytes[52] = (byte)0x41;
+                        bytes[53] = (byte)0x00;
+                        bytes[56] = (byte)0x40;
+                        bytes[57] = (byte)0x00;
+                        bytes[60] = (byte)0x01;
+                    }
+                }
+            }
+            #endregion
+
+            // Games with completely specific schemes
+            // Desert Tank
+            else if (parentRom == "desert")
+            {
+                bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = bytes[41] = bytes[45] = bytes[49] = bytes[53] = bytes[57] = bytes[61] = bytes[65] = bytes[69] = Convert.ToByte(j1index);
+                bytes[0] = _dinput ? GetInputCode(InputKey.rightanalogleft, c1, tech1) : (byte)0x08;
+                bytes[4] = _dinput ? GetInputCode(InputKey.rightanalogright, c1, tech1) : (byte)0x09;
+                bytes[8] = _dinput ? GetInputCode(InputKey.rightanalogup, c1, tech1) : (byte)0x0A;
+                bytes[12] = _dinput ? GetInputCode(InputKey.rightanalogdown, c1, tech1) : (byte)0x0B;
+                bytes[16] = _dinput ? GetInputCode(InputKey.leftanalogup, c1, tech1) : (byte)0x06;
+                bytes[20] = _dinput ? GetInputCode(InputKey.leftanalogdown, c1, tech1) : (byte)0x07;
+                bytes[24] = _dinput ? (byte)0x03 : (byte)0x04;
+                bytes[27] = 0xFF;
+                bytes[28] = _dinput ? (byte)0x02 : (byte)0x05;
+                bytes[31] = 0xFF;
+                bytes[32] = _dinput ? (byte)0x01 : (byte)0x03;
+                bytes[35] = 0xFF;
+                bytes[36] = _dinput ? GetInputCode(InputKey.l2, c1, tech1) : (byte)0x70;
+                bytes[40] = _dinput ? GetInputCode(InputKey.pagedown, c1, tech1) : (byte)0x60;
+                bytes[44] = _dinput ? GetInputCode(InputKey.r2, c1, tech1) : (byte)0x80;
+                bytes[48] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
+                bytes[52] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
+                bytes[56] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
+                bytes[60] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
+                bytes[64] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
+                bytes[68] = 0x07;
+                bytes[69] = 0x00;
+
+                if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+                {
+                    bytes[72] = (byte)0x3B;
+                    bytes[73] = 0x00;
+                    bytes[76] = (byte)0x3C;
+                    bytes[77] = 0x00;
+                }
+                else
+                {
+                    bytes[72] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
+                    bytes[73] = (byte)j1index;
+                    bytes[76] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
+                    bytes[77] = (byte)j1index;
+                }
+                bytes[80] = (byte)0x42;
+                bytes[81] = (byte)0x00;
+                bytes[84] = (byte)0x41;
+                bytes[85] = (byte)0x00;
+                bytes[88] = (byte)0x40;
+                bytes[89] = (byte)0x00;
+            }
+
+            else
+            {
+                bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = bytes[41] = Convert.ToByte(j1index);
+                
+                bytes[0] = _dinput ? GetInputCode(InputKey.leftanalogup, c1, tech1) : (byte)0x06;
+                bytes[4] = _dinput ? GetInputCode(InputKey.leftanalogdown, c1, tech1) : (byte)0x07;
+                bytes[8] = _dinput ? GetInputCode(InputKey.leftanalogleft, c1, tech1) : (byte)0x04;
+                bytes[12] = _dinput ? GetInputCode(InputKey.leftanalogright, c1, tech1) : (byte)0x05;
+
+                // Dynamite Baseball '97
+                if (parentRom == "dynabb97")
+                {
+                    if (c2 != null)
+                        bytes[45] = bytes[49] = bytes[53] = bytes[57] = bytes[61] = bytes[65] = bytes[69] = bytes[73] = bytes[77] = bytes[81] = bytes[85] = Convert.ToByte(j2index);
+                    else
+                        bytes[45] = bytes[49] = bytes[53] = bytes[57] = bytes[61] = bytes[65] = bytes[69] = bytes[73] = bytes[77] = bytes[81] = bytes[85] = 0x00;
+
+                    bytes[16] = _dinput ? GetInputCode(InputKey.r2, c1, tech1, true) : (byte)0x07;
+                    bytes[19] = 0xFF;
+                    bytes[20] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
+                    bytes[24] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
+                    bytes[28] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
+                    bytes[32] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
+                    bytes[36] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
+                    bytes[40] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
+
+                    if (c2 != null)
+                    {
+                        bytes[44] = _dinput ? GetInputCode(InputKey.leftanalogup, c2, tech2) : (byte)0x06;
+                        bytes[48] = _dinput ? GetInputCode(InputKey.leftanalogdown, c2, tech2) : (byte)0x07;
+                        bytes[52] = _dinput ? GetInputCode(InputKey.leftanalogleft, c2, tech2) : (byte)0x04;
+                        bytes[56] = _dinput ? GetInputCode(InputKey.leftanalogright, c2, tech2) : (byte)0x05;
+
+                        bytes[60] = _dinput ? GetInputCode(InputKey.r2, c2, tech2, true) : (byte)0x07;
+                        bytes[63] = 0xFF;
+                        bytes[64] = _dinput ? GetInputCode(InputKey.y, c2, tech2) : (byte)0x10;
+                        bytes[68] = _dinput ? GetInputCode(InputKey.a, c2, tech2) : (byte)0x30;
+                        bytes[72] = _dinput ? GetInputCode(InputKey.b, c2, tech2) : (byte)0x40;
+                        bytes[76] = _dinput ? GetInputCode(InputKey.x, c2, tech2) : (byte)0x20;
+                        bytes[80] = _dinput ? GetInputCode(InputKey.start, c2, tech2) : (byte)0xB0;
+                        bytes[84] = _dinput ? GetInputCode(InputKey.select, c2, tech2) : (byte)0xC0;
+                    }
+
+                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+                    {
+                        bytes[88] = (byte)0x3B;
+                        bytes[89] = 0x00;
+                        bytes[92] = (byte)0x3C;
+                        bytes[93] = 0x00;
+                    }
+                    else
+                    {
+                        bytes[88] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
+                        bytes[89] = (byte)j1index;
+                        bytes[92] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
+                        bytes[93] = (byte)j1index;
+                    }
+
+                    bytes[96] = (byte)0x42;
+                    bytes[97] = (byte)0x00;
+                    bytes[100] = (byte)0x41;
+                    bytes[101] = (byte)0x00;
+                    bytes[104] = (byte)0x40;
+                    bytes[105] = (byte)0x00;
+
+                    bytes[108] = (byte)0x01;
+                    bytes[109] = (byte)0x01;
+                }
+                else if (parentRom == "skytargt")
+                {
+                    bytes[16] = _dinput ? (byte)0x00 : (byte)0x02;
+                    bytes[19] = 0xFF;
+                    bytes[20] = _dinput ? (byte)0x01 : (byte)0x03;
+                    bytes[21] = 0xFF;
+                    bytes[24] = _dinput ? GetInputCode(InputKey.r2, c1, tech1) : (byte)0x80;
+                    bytes[28] = _dinput ? GetInputCode(InputKey.l2, c1, tech1) : (byte)0x70;
+                    bytes[32] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
+                    bytes[36] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
+                    bytes[40] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
+                    bytes[44] = 0x07;
+                    bytes[45] = 0x00;
+
+                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+                    {
+                        bytes[48] = (byte)0x3B;
+                        bytes[49] = 0x00;
+                        bytes[52] = (byte)0x3C;
+                        bytes[53] = 0x00;
+                    }
+                    else
+                    {
+                        bytes[48] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
+                        bytes[49] = (byte)j1index;
+                        bytes[52] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
+                        bytes[53] = (byte)j1index;
+                    }
+                    bytes[56] = (byte)0x42;
+                    bytes[57] = (byte)0x00;
+                    bytes[60] = (byte)0x41;
+                    bytes[61] = (byte)0x00;
+                    bytes[64] = (byte)0x40;
+                    bytes[65] = (byte)0x00;
+                    bytes[68] = (byte)0x01;
+                }
+                else if (parentRom == "von")
+                {
+                    bytes[16] = _dinput ? GetInputCode(InputKey.l2, c1, tech1) : (byte)0x70;
+                    bytes[20] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
+                    bytes[24] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
+                    bytes[28] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
+                    bytes[32] = _dinput ? GetInputCode(InputKey.rightanalogup, c1, tech1) : (byte)0x0A;
+                    bytes[36] = _dinput ? GetInputCode(InputKey.rightanalogdown, c1, tech1) : (byte)0x0B;
+                    bytes[40] = _dinput ? GetInputCode(InputKey.rightanalogleft, c1, tech1) : (byte)0x08;
+                    bytes[44] = _dinput ? GetInputCode(InputKey.rightanalogright, c1, tech1) : (byte)0x09;
+                    bytes[48] = _dinput ? GetInputCode(InputKey.r2, c1, tech1) : (byte)0x80;
+                    bytes[52] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
+
+                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+                    {
+                        bytes[56] = (byte)0x3B;
+                        bytes[57] = 0x00;
+                        bytes[60] = (byte)0x3C;
+                        bytes[61] = 0x00;
+                    }
+                    else
+                    {
+                        bytes[56] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
+                        bytes[57] = (byte)j1index;
+                        bytes[60] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
+                        bytes[61] = (byte)j1index;
+                    }
+
+                    bytes[64] = (byte)0x42;
+                    bytes[65] = (byte)0x00;
+                    bytes[68] = (byte)0x41;
+                    bytes[69] = (byte)0x00;
+                    bytes[72] = (byte)0x40;
+                    bytes[73] = (byte)0x00;
+                }
+            }
         }
 
         private static byte GetInputCode(InputKey key, Controller c, string tech, bool trigger = false)
@@ -672,5 +1039,6 @@ namespace emulatorLauncher
         static List<string> standard = new List<string>() { "dynamcop", "pltkids", "vstriker", "zerogun" };
         static List<string> drivingshiftupdown = new List<string>() { "indy500", "motoraid", "overrev", "sgt24h", "stcc", "manxtt", "manxttc" };
         static List<string> drivingshiftlever = new List<string>() { "daytona", "srallyc" };
+        static List<string> sports = new List<string>() { "segawski", "skisuprg", "topskatr", "waverunr" };
     }
 }
