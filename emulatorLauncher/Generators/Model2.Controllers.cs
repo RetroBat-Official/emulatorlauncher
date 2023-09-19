@@ -88,6 +88,11 @@ namespace emulatorLauncher
                     tech2 = tech1;
             }
 
+            // Write end of binary file for service buttons, test buttons and keyboard buttons for stats display
+            WriteServiceBytes(bytes, j1index, c1, tech1, serviceByte[parentRom]);
+            WriteStatsBytes(bytes, serviceByte[parentRom] + 8);
+
+            // Per game category mapping
             #region  shooters
             if (shooters.Contains(parentRom))
             {
@@ -105,7 +110,7 @@ namespace emulatorLauncher
                 bytes[28] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
                 bytes[32] = (byte)0x02;
                 bytes[36] = (byte)0x04;
-                if (c2 != null)
+                if (c2 != null && !c2.IsKeyboard)
                 {
                     bytes[40] = _dinput ? GetInputCode(InputKey.up, c2, tech2) : (byte)0x02;
                     bytes[44] = _dinput ? GetInputCode(InputKey.down, c2, tech2) : (byte)0x03;
@@ -116,22 +121,25 @@ namespace emulatorLauncher
                     bytes[64] = _dinput ? GetInputCode(InputKey.y, c2, tech2) : (byte)0x10;
                     bytes[68] = _dinput ? GetInputCode(InputKey.x, c2, tech2) : (byte)0x20;
                 }
-
-                if (c2 != null || c2.IsKeyboard)
-                {
-                    bytes[72] = (byte)0x00;
-                    bytes[76] = (byte)0x00;
-                }
                 else
                 {
-                    bytes[72] = (byte)0x03;
-                    bytes[76] = (byte)0x05;
+                    bytes[40] = (byte)0x00;
+                    bytes[44] = (byte)0x00;
+                    bytes[48] = (byte)0x00;
+                    bytes[52] = (byte)0x00;
+                    bytes[56] = (byte)0x00;
+                    bytes[60] = (byte)0x00;
+                    bytes[64] = (byte)0x00;
+                    bytes[68] = (byte)0x00;
                 }
+
+                bytes[72] = (byte)0x03;
+                    bytes[76] = (byte)0x05;
+
                 bytes[80] = (byte)0x3B;
+                bytes[81] = (byte)0x00;
                 bytes[84] = (byte)0x3C;
-                bytes[88] = (byte)0x42;
-                bytes[92] = (byte)0x41;
-                bytes[96] = (byte)0x40;
+                bytes[85] = (byte)0x00;
             }
             #endregion
             #region driving
@@ -172,28 +180,7 @@ namespace emulatorLauncher
                     bytes[40] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
                     bytes[44] = (byte)0x00;
                     bytes[45] = (byte)0x00;
-                    
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[48] = (byte)0x3B;
-                        bytes[49] = 0x00;
-                        bytes[52] = (byte)0x3C;
-                        bytes[53] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[48] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[49] = (byte)j1index;
-                        bytes[52] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[53] = (byte)j1index;
-                    }
 
-                    bytes[56] = (byte)0x42;
-                    bytes[57] = (byte)0x00;
-                    bytes[60] = (byte)0x41;
-                    bytes[61] = (byte)0x00;
-                    bytes[64] = (byte)0x40;
-                    bytes[65] = (byte)0x00;
                     bytes[68] = (byte)0x01;
                     bytes[69] = (byte)0x01;
                     bytes[70] = (byte)0x01;
@@ -207,24 +194,6 @@ namespace emulatorLauncher
                     bytes[44] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
                     bytes[48] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
 
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[52] = (byte)0x3B;
-                        bytes[53] = 0x00;
-                        bytes[56] = (byte)0x3C;
-                        bytes[57] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[52] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[53] = (byte)j1index;
-                        bytes[56] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[57] = (byte)j1index;
-                    }
-                    bytes[60] = (byte)0x42;
-                    bytes[64] = (byte)0x41;
-                    bytes[68] = (byte)0x40;
-
                     bytes[72] = (byte)0x01;
                     bytes[73] = (byte)0x01;
                     bytes[74] = (byte)0x01;
@@ -237,27 +206,6 @@ namespace emulatorLauncher
                     bytes[40] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
                     bytes[44] = (byte)0x00;
                     bytes[45] = (byte)0x00;
-
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[48] = (byte)0x3B;
-                        bytes[49] = 0x00;
-                        bytes[52] = (byte)0x3C;
-                        bytes[53] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[48] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[49] = (byte)j1index;
-                        bytes[52] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[53] = (byte)j1index;
-                    }
-                    bytes[56] = (byte)0x42;
-                    bytes[57] = (byte)0x00;
-                    bytes[60] = (byte)0x41;
-                    bytes[61] = (byte)0x00;
-                    bytes[64] = (byte)0x40;
-                    bytes[65] = (byte)0x00;
 
                     bytes[68] = (byte)0x01;
                     bytes[69] = (byte)0x01;
@@ -300,28 +248,6 @@ namespace emulatorLauncher
                     bytes[64] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
                     bytes[68] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
 
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[76] = (byte)0x3B;
-                        bytes[77] = 0x00;
-                        bytes[80] = (byte)0x3C;
-                        bytes[81] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[76] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[77] = (byte)j1index;
-                        bytes[80] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[81] = (byte)j1index;
-                    }
-
-                    bytes[84] = (byte)0x42;
-                    bytes[85] = (byte)0x00;
-                    bytes[88] = (byte)0x41;
-                    bytes[89] = (byte)0x00;
-                    bytes[92] = (byte)0x40;
-                    bytes[93] = (byte)0x00;
-
                     bytes[96] = (byte)0x01;
                     bytes[97] = (byte)0x01;
                     bytes[98] = (byte)0x01;
@@ -329,31 +255,8 @@ namespace emulatorLauncher
 
                 else if (parentRom.StartsWith("srally"))
                 {
-                    bytes[61] = bytes[65] = bytes[69] = 0x00;
                     bytes[52] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
                     bytes[56] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
-
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[64] = (byte)0x3B;
-                        bytes[65] = 0x00;
-                        bytes[68] = (byte)0x3C;
-                        bytes[69] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[64] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[65] = (byte)j1index;
-                        bytes[68] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[69] = (byte)j1index;
-                    }
-
-                    bytes[72] = (byte)0x42;
-                    bytes[73] = (byte)0x00;
-                    bytes[76] = (byte)0x41;
-                    bytes[77] = (byte)0x00;
-                    bytes[80] = (byte)0x40;
-                    bytes[81] = (byte)0x00;
 
                     bytes[84] = (byte)0x01;
                     bytes[85] = (byte)0x01;
@@ -436,24 +339,6 @@ namespace emulatorLauncher
                 }
                 else
                     bytes[40] = bytes[44] = bytes[48] = bytes[52] = bytes[56] = bytes[60] = bytes[64] = bytes[68] = bytes[72] = bytes[76] = 0x00;
-
-                if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                {
-                    bytes[80] = (byte)0x3B;
-                    bytes[81] = 0x00;
-                    bytes[84] = (byte)0x3C;
-                    bytes[85] = 0x00;
-                }
-                else
-                {
-                    bytes[80] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                    bytes[81] = (byte)j1index;
-                    bytes[84] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                    bytes[85] = (byte)j1index;
-                }
-                bytes[88] = (byte)0x42;
-                bytes[92] = (byte)0x41;
-                bytes[96] = (byte)0x40;
             }
             #endregion
             #region standard
@@ -542,24 +427,6 @@ namespace emulatorLauncher
                 }
                 else
                     bytes[40] = bytes[44] = bytes[48] = bytes[52] = bytes[56] = bytes[60] = bytes[64] = bytes[68] = bytes[72] = bytes[76] = 0x00;
-
-                if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                {
-                    bytes[80] = (byte)0x3B;
-                    bytes[81] = 0x00;
-                    bytes[84] = (byte)0x3C;
-                    bytes[85] = 0x00;
-                }
-                else
-                {
-                    bytes[80] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                    bytes[81] = (byte)j1index;
-                    bytes[84] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                    bytes[85] = (byte)j1index;
-                }
-                bytes[88] = (byte)0x42;
-                bytes[92] = (byte)0x41;
-                bytes[96] = (byte)0x40;
             }
             #endregion
             #region sports
@@ -588,27 +455,6 @@ namespace emulatorLauncher
                     bytes[36] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
                     bytes[40] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
 
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[44] = (byte)0x3B;
-                        bytes[45] = 0x00;
-                        bytes[48] = (byte)0x3C;
-                        bytes[49] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[44] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[45] = (byte)j1index;
-                        bytes[48] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[49] = (byte)j1index;
-                    }
-
-                    bytes[52] = (byte)0x42;
-                    bytes[53] = (byte)0x00;
-                    bytes[56] = (byte)0x41;
-                    bytes[57] = (byte)0x00;
-                    bytes[60] = (byte)0x40;
-                    bytes[61] = (byte)0x00;
                     bytes[64] = (byte)0x01;
                     bytes[65] = (byte)0x01;
                     bytes[66] = (byte)0x01;
@@ -635,28 +481,6 @@ namespace emulatorLauncher
                     bytes[40] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
                     bytes[44] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
 
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[48] = (byte)0x3B;
-                        bytes[49] = 0x00;
-                        bytes[52] = (byte)0x3C;
-                        bytes[53] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[48] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[49] = (byte)j1index;
-                        bytes[52] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[53] = (byte)j1index;
-                    }
-
-                    bytes[56] = (byte)0x42;
-                    bytes[57] = (byte)0x00;
-                    bytes[60] = (byte)0x41;
-                    bytes[61] = (byte)0x00;
-                    bytes[64] = (byte)0x40;
-                    bytes[65] = (byte)0x00;
-                    bytes[64] = (byte)0x01;
                     bytes[68] = (byte)0x01;
                     bytes[69] = (byte)0x01;
                 }
@@ -682,27 +506,6 @@ namespace emulatorLauncher
                         bytes[40] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
                         bytes[44] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
 
-                        if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                        {
-                            bytes[48] = (byte)0x3B;
-                            bytes[49] = 0x00;
-                            bytes[52] = (byte)0x3C;
-                            bytes[53] = 0x00;
-                        }
-                        else
-                        {
-                            bytes[48] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                            bytes[49] = (byte)j1index;
-                            bytes[52] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                            bytes[53] = (byte)j1index;
-                        }
-
-                        bytes[56] = (byte)0x42;
-                        bytes[57] = (byte)0x00;
-                        bytes[60] = (byte)0x41;
-                        bytes[61] = (byte)0x00;
-                        bytes[64] = (byte)0x40;
-                        bytes[65] = (byte)0x00;
                         bytes[68] = (byte)0x01;
                         bytes[69] = (byte)0x01;
                     }
@@ -715,26 +518,6 @@ namespace emulatorLauncher
                         bytes[32] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
                         bytes[36] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
 
-                        if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                        {
-                            bytes[40] = (byte)0x3B;
-                            bytes[41] = 0x00;
-                            bytes[44] = (byte)0x3C;
-                            bytes[45] = 0x00;
-                        }
-                        else
-                        {
-                            bytes[40] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                            bytes[41] = (byte)j1index;
-                            bytes[44] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                            bytes[45] = (byte)j1index;
-                        }
-                        bytes[48] = (byte)0x42;
-                        bytes[49] = (byte)0x00;
-                        bytes[52] = (byte)0x41;
-                        bytes[53] = (byte)0x00;
-                        bytes[56] = (byte)0x40;
-                        bytes[57] = (byte)0x00;
                         bytes[60] = (byte)0x01;
                     }
                 }
@@ -768,27 +551,6 @@ namespace emulatorLauncher
                 bytes[64] = _dinput ? GetInputCode(InputKey.select, c1, tech1) : (byte)0xC0;
                 bytes[68] = 0x07;
                 bytes[69] = 0x00;
-
-                if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                {
-                    bytes[72] = (byte)0x3B;
-                    bytes[73] = 0x00;
-                    bytes[76] = (byte)0x3C;
-                    bytes[77] = 0x00;
-                }
-                else
-                {
-                    bytes[72] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                    bytes[73] = (byte)j1index;
-                    bytes[76] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                    bytes[77] = (byte)j1index;
-                }
-                bytes[80] = (byte)0x42;
-                bytes[81] = (byte)0x00;
-                bytes[84] = (byte)0x41;
-                bytes[85] = (byte)0x00;
-                bytes[88] = (byte)0x40;
-                bytes[89] = (byte)0x00;
             }
 
             else
@@ -834,37 +596,19 @@ namespace emulatorLauncher
                         bytes[84] = _dinput ? GetInputCode(InputKey.select, c2, tech2) : (byte)0xC0;
                     }
 
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[88] = (byte)0x3B;
-                        bytes[89] = 0x00;
-                        bytes[92] = (byte)0x3C;
-                        bytes[93] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[88] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[89] = (byte)j1index;
-                        bytes[92] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[93] = (byte)j1index;
-                    }
-
-                    bytes[96] = (byte)0x42;
-                    bytes[97] = (byte)0x00;
-                    bytes[100] = (byte)0x41;
-                    bytes[101] = (byte)0x00;
-                    bytes[104] = (byte)0x40;
-                    bytes[105] = (byte)0x00;
-
                     bytes[108] = (byte)0x01;
-                    bytes[109] = (byte)0x01;
+                    if (c2 != null && !c2.IsKeyboard)
+                        bytes[109] = (byte)0x01;
+                    else
+                        bytes[109] = (byte)0x00;
                 }
+                // Sky Target
                 else if (parentRom == "skytargt")
                 {
                     bytes[16] = _dinput ? (byte)0x00 : (byte)0x02;
                     bytes[19] = 0xFF;
                     bytes[20] = _dinput ? (byte)0x01 : (byte)0x03;
-                    bytes[21] = 0xFF;
+                    bytes[23] = 0xFF;
                     bytes[24] = _dinput ? GetInputCode(InputKey.r2, c1, tech1) : (byte)0x80;
                     bytes[28] = _dinput ? GetInputCode(InputKey.l2, c1, tech1) : (byte)0x70;
                     bytes[32] = _dinput ? GetInputCode(InputKey.x, c1, tech1) : (byte)0x20;
@@ -873,30 +617,11 @@ namespace emulatorLauncher
                     bytes[44] = 0x07;
                     bytes[45] = 0x00;
 
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[48] = (byte)0x3B;
-                        bytes[49] = 0x00;
-                        bytes[52] = (byte)0x3C;
-                        bytes[53] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[48] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[49] = (byte)j1index;
-                        bytes[52] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[53] = (byte)j1index;
-                    }
-                    bytes[56] = (byte)0x42;
-                    bytes[57] = (byte)0x00;
-                    bytes[60] = (byte)0x41;
-                    bytes[61] = (byte)0x00;
-                    bytes[64] = (byte)0x40;
-                    bytes[65] = (byte)0x00;
                     bytes[68] = (byte)0x01;
                 }
                 else if (parentRom == "von")
                 {
+                    bytes[45] = bytes[49] = bytes[53] = Convert.ToByte(j1index);
                     bytes[16] = _dinput ? GetInputCode(InputKey.l2, c1, tech1) : (byte)0x70;
                     bytes[20] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
                     bytes[24] = _dinput ? GetInputCode(InputKey.start, c1, tech1) : (byte)0xB0;
@@ -907,28 +632,6 @@ namespace emulatorLauncher
                     bytes[44] = _dinput ? GetInputCode(InputKey.rightanalogright, c1, tech1) : (byte)0x09;
                     bytes[48] = _dinput ? GetInputCode(InputKey.r2, c1, tech1) : (byte)0x80;
                     bytes[52] = _dinput ? GetInputCode(InputKey.b, c1, tech1) : (byte)0x40;
-
-                    if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
-                    {
-                        bytes[56] = (byte)0x3B;
-                        bytes[57] = 0x00;
-                        bytes[60] = (byte)0x3C;
-                        bytes[61] = 0x00;
-                    }
-                    else
-                    {
-                        bytes[56] = _dinput ? GetInputCode(InputKey.l3, c1, tech1) : (byte)0x90;
-                        bytes[57] = (byte)j1index;
-                        bytes[60] = _dinput ? GetInputCode(InputKey.r3, c1, tech1) : (byte)0xA0;
-                        bytes[61] = (byte)j1index;
-                    }
-
-                    bytes[64] = (byte)0x42;
-                    bytes[65] = (byte)0x00;
-                    bytes[68] = (byte)0x41;
-                    bytes[69] = (byte)0x00;
-                    bytes[72] = (byte)0x40;
-                    bytes[73] = (byte)0x00;
                 }
             }
         }
@@ -1032,6 +735,71 @@ namespace emulatorLauncher
                 }
             }
             return 0x00;
+        }
+
+        private void WriteServiceBytes(byte[] bytes, int index, Controller c, string tech, int startByte)
+        {
+            if (SystemConfig.isOptSet("m2_enable_service") && SystemConfig.getOptBoolean("m2_enable_service"))
+            {
+                bytes[startByte] = (byte)0x3B;
+                bytes[startByte + 1] = 0x00;
+                bytes[startByte + 4] = (byte)0x3C;
+                bytes[startByte + 5] = 0x00;
+            }
+            else
+            {
+                bytes[startByte] = _dinput ? GetInputCode(InputKey.l3, c, tech) : (byte)0x90;
+                bytes[startByte + 1] = (byte)index;
+                bytes[startByte + 4] = _dinput ? GetInputCode(InputKey.r3, c, tech) : (byte)0xA0;
+                bytes[startByte + 5] = (byte)index;
+            }
+        }
+
+        static Dictionary<string, int> serviceByte = new Dictionary<string, int>()
+        { 
+            { "bel", 80 },
+            { "daytona", 76 },
+            { "desert", 72 },
+            { "doa", 80 },
+            { "dynabb97", 88 },
+            { "dynamcop", 80 },
+            { "fvipers", 80 },
+            { "gunblade", 80 },
+            { "hotd", 80 },
+            { "indy500", 52 },
+            { "lastbrnx", 80 },
+            { "manxtt", 48 },
+            { "manxttc", 48 },
+            { "motoraid", 48 },
+            { "overrev", 52 },
+            { "pltkids", 80 },
+            { "rchase2", 80 },
+            { "schamp", 80 },
+            { "segawski", 40 },
+            { "sgt24h", 52 },
+            { "skisuprg", 48 },
+            { "skytargt", 48 },
+            { "srallyc", 64 },
+            { "srallyp", 64 },
+            { "stcc", 52 },
+            { "topskatr", 48 },
+            { "vcop", 80 },
+            { "vcop2", 80 },
+            { "vf2", 80 },
+            { "von", 56 },
+            { "vstriker", 80 },
+            { "waverunr", 44 },
+            { "zerogun", 80 }
+        };
+
+        private void WriteStatsBytes(byte[] bytes, int startByte)
+        {
+            bytes[startByte] = (byte)0x42;
+            bytes[startByte + 1] = (byte)0x00;
+            bytes[startByte + 4] = (byte)0x41;
+            bytes[startByte + 5] = (byte)0x00;
+            bytes[startByte + 8] = (byte)0x40;
+            bytes[startByte + 9] = (byte)0x00;
         }
 
         static List<string> shooters = new List<string>() { "bel", "gunblade", "hotd", "rchase2", "vcop", "vcop2" };
