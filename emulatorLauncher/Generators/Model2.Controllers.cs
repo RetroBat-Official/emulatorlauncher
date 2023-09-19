@@ -571,6 +571,9 @@ namespace emulatorLauncher
                         bytes[45] = bytes[49] = bytes[53] = bytes[57] = bytes[61] = bytes[65] = bytes[69] = bytes[73] = bytes[77] = bytes[81] = bytes[85] = 0x00;
 
                     bytes[16] = _dinput ? GetInputCode(InputKey.r2, c1, tech1, true) : (byte)0x07;
+                    if (!_dinput)
+                        bytes[17] = Convert.ToByte(j1index + 16);
+
                     bytes[19] = 0xFF;
                     bytes[20] = _dinput ? GetInputCode(InputKey.y, c1, tech1) : (byte)0x10;
                     bytes[24] = _dinput ? GetInputCode(InputKey.a, c1, tech1) : (byte)0x30;
