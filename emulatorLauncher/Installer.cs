@@ -87,7 +87,8 @@ namespace emulatorLauncher
             { new Installer("ares", "ares", "ares.exe") },
             { new Installer("ruffle", "ruffle", "ruffle.exe") },
             { new Installer("zesarux", "zesarux", "zesarux.exe") },
-            { new Installer("jynx", "jynx", "Jynx-Windows-64bit.exe") }
+            { new Installer("jynx", "jynx", "Jynx-Windows-64bit.exe") },
+            { new Installer("hatari", "hatari", "hatari.exe") }
         };
 
         #region Properties
