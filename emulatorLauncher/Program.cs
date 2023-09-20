@@ -108,7 +108,8 @@ namespace emulatorLauncher
             { "ares", () => new AresGenerator() },
             { "ruffle", () => new RuffleGenerator() },
             { "zesarux", () => new ZEsarUXGenerator() },
-            { "jynx", () => new JynxGenerator() }
+            { "jynx", () => new JynxGenerator() },
+            { "hatari", () => new HatariGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

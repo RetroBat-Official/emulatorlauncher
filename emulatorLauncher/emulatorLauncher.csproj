@@ -142,6 +142,7 @@
     <Compile Include="Common\InputKeyMapping.cs" />
     <Compile Include="Generators\Nes3d.Generator.cs" />
     <Compile Include="Generators\Phoenix.Generator.cs" />
+    <Compile Include="Generators\Hatari.Generator.cs" />
     <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\PinballFX.Generator.cs" />
     <Compile Include="Generators\Play.Generator.cs" />

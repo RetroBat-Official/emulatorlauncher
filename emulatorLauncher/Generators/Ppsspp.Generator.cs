@@ -27,10 +27,17 @@ namespace emulatorLauncher
 
             SetupConfig(path);
 
+            var commandArray = new List<string>();
+            //commandArray.Add("--escape-exit");
+            commandArray.Add("-fullscreen");
+            commandArray.Add("\"" + rom + "\"");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "--escape-exit -fullscreen \"" + rom + "\"",
+                Arguments = args,
                 WorkingDirectory = path,
             };
         }
