@@ -124,8 +124,13 @@ namespace emulatorLauncher
                 ini.WriteValue("Rosalie's Mupen GUI", "ShowVerboseLogMessages", "False");
                 ini.WriteValue("Rosalie's Mupen GUI", "CheckForUpdates", "False");
 
-                // CPU Emulator
-                if (SystemConfig.isOptSet("cpucore") && !string.IsNullOrEmpty(SystemConfig["cpucore"]))
+                // CPU Emulator (n64dd does not worked with dynamic recompiler)
+                if (system == "n64dd" && (!SystemConfig.isOptSet("cpucore") || SystemConfig["cpucore"] == "2"))
+                {
+                    ini.WriteValue("Core", "R4300Emulator", "0");
+                    ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", "0");
+                }
+                else if (SystemConfig.isOptSet("cpucore") && !string.IsNullOrEmpty(SystemConfig["cpucore"]))
                 {
                     ini.WriteValue("Core", "R4300Emulator", SystemConfig["cpucore"]);
                     ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", SystemConfig["cpucore"]);
