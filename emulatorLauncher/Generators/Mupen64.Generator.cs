@@ -58,9 +58,27 @@ namespace emulatorLauncher
                 if (File.Exists(n64ddrom))
                 {
                     commandArray.Add("--disk");
-                    commandArray.Add(" \"" + n64ddrom + "\"");
+                    commandArray.Add("\"" + n64ddrom + "\"");
                 }
+
+                commandArray.Add("\"" + rom + "\"");
             }
+
+            else if (system == "n64dd" && Path.GetExtension(rom).ToLowerInvariant() == ".ndd")
+            {
+                string romPath = Path.GetDirectoryName(rom);
+                string n64rom = Path.Combine(romPath, Path.GetFileNameWithoutExtension(rom));
+                if (File.Exists(n64rom))
+                {
+                    commandArray.Add("--disk");
+                    commandArray.Add("\"" + rom + "\"");
+                }
+
+                commandArray.Add("\"" + n64rom + "\"");
+            }
+
+            else
+                commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
 
@@ -68,7 +86,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args + " \"" + rom + "\"",
+                Arguments = args,
             };
         }
 
