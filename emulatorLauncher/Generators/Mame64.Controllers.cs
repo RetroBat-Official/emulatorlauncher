@@ -45,13 +45,16 @@ namespace emulatorLauncher
             foreach(var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
             {
                 int i = controller.PlayerIndex;
-                int cIndex = controller.DirectInput.DeviceIndex + 1;
+                int cIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex + 1 : controller.DeviceIndex + 1;
                 string joy = "JOYCODE_" + cIndex + "_";
                 bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
 
                 int gunCount = RawLightgun.GetUsableLightGunCount();
                 var guns = RawLightgun.GetRawLightguns();
-                bool multigun = (guns.Length >= 2 && gunCount >= 2);
+                bool multigun = false;
+
+                if (gunCount > 1 && guns.Length > 1)
+                    multigun = true;
 
                 string mouseIndex1 = "1";
                 string mouseIndex2 = "2";
@@ -59,7 +62,7 @@ namespace emulatorLauncher
                 if (gunCount > 0 && guns.Length > 0)
                 {
                     mouseIndex1 = (guns[0].Index + 1).ToString();
-                    if (gunCount > 1 && guns.Length > 1)
+                    if (multigun)
                         mouseIndex2 = (guns[1].Index + 1).ToString();
                 }
 
