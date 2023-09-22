@@ -305,10 +305,10 @@ namespace emulatorLauncher
                 ini.WriteValue(" Global ", "InputAnalogJoyRight", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyX", "\"JOY" + j1index + "_XAXIS_INV,MOUSE_XAXIS_INV\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"JOY" + j1index + "_YAXIS_INV,MOUSE_YAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyTrigger", n1 == "nintendo" ? "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON4,MOUSE_LEFT_BUTTON\"" : "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON3,MOUSE_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyEvent", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2,MOUSE_RIGHT_BUTTON\"" : "\"JOY" + j1index + "_BUTTON1,MOUSE_RIGHT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyX", "\"JOY" + j1index + "_XAXIS_INV,MOUSE" + mouseIndex1 + "_XAXIS_INV\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"JOY" + j1index + "_YAXIS_INV,MOUSE" + mouseIndex1 + "_YAXIS\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyTrigger", n1 == "nintendo" ? "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON4,MOUSE" + mouseIndex1 + "_LEFT_BUTTON\"" : "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON3,MOUSE" + mouseIndex1 + "_LEFT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyEvent", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2,MOUSE" + mouseIndex1 + "_RIGHT_BUTTON\"" : "\"JOY" + j1index + "_BUTTON1,MOUSE" + mouseIndex1 + "_RIGHT_BUTTON\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyEvent2", "\"NONE\"");
 
@@ -579,10 +579,10 @@ namespace emulatorLauncher
                 ini.WriteValue(" Global ", "InputAnalogJoyRight", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyX", "\"MOUSE_XAXIS_INV,JOY" + j1index + "_XAXIS_INV\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"MOUSE_YAXIS,JOY" + j1index + "_YAXIS_INV\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyTrigger", "\"MOUSE_LEFT_BUTTON,JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON3\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyEvent", "\"MOUSE_RIGHT_BUTTON,JOY" + j1index + "_BUTTON1\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyX", "\"MOUSE" + mouseIndex1 + "_XAXIS_INV,JOY" + j1index + "_XAXIS_INV\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"MOUSE" + mouseIndex1 + "_YAXIS,JOY" + j1index + "_YAXIS_INV\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyTrigger", "\"MOUSE" + mouseIndex1 + "_LEFT_BUTTON,JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON3\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyEvent", "\"MOUSE" + mouseIndex1 + "_RIGHT_BUTTON,JOY" + j1index + "_BUTTON1\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyEvent2", "\"NONE\"");
 
@@ -854,10 +854,10 @@ namespace emulatorLauncher
             }
             else
             {
-                ini.WriteValue(" Global ", "InputGunX", "\"MOUSE_XAXIS\"");
-                ini.WriteValue(" Global ", "InputGunY", "\"MOUSE_YAXIS\"");
-                ini.WriteValue(" Global ", "InputTrigger", "\"KEY_A,MOUSE_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputOffscreen", "\"KEY_S,MOUSE_RIGHT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputGunX", "\"MOUSE" + mouseIndex1 + "_XAXIS\"");
+                ini.WriteValue(" Global ", "InputGunY", "\"MOUSE" + mouseIndex1 + "_YAXIS\"");
+                ini.WriteValue(" Global ", "InputTrigger", "\"KEY_A,MOUSE" + mouseIndex1 + "_LEFT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputOffscreen", "\"KEY_S,MOUSE" + mouseIndex1 + "_RIGHT_BUTTON\"");
             }
             ini.WriteValue(" Global ", "InputAutoTrigger", "1");
             ini.WriteValue(" Global ", "InputGunLeft2", "\"NONE\"");
@@ -895,10 +895,10 @@ namespace emulatorLauncher
             }
             else
             {
-                ini.WriteValue(" Global ", "InputAnalogGunX", "\"MOUSE_XAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogGunY", "\"MOUSE_YAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "\"KEY_A,MOUSE_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerRight", "\"KEY_S,MOUSE_RIGHT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputAnalogGunX", "\"MOUSE" + mouseIndex1 + "_XAXIS\"");
+                ini.WriteValue(" Global ", "InputAnalogGunY", "\"MOUSE" + mouseIndex1 + "_YAXIS\"");
+                ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "\"KEY_A,MOUSE" + mouseIndex1 + "_LEFT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputAnalogTriggerRight", "\"KEY_S,MOUSE" + mouseIndex1 + "_RIGHT_BUTTON\"");
             }
             ini.WriteValue(" Global ", "InputAnalogGunLeft2", "\"NONE\"");
             ini.WriteValue(" Global ", "InputAnalogGunRight2", "\"NONE\"");
