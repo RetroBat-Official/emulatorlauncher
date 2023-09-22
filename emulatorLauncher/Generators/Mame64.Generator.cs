@@ -11,6 +11,7 @@ namespace emulatorLauncher
 {
     partial class Mame64Generator : Generator
     {
+        private bool _multigun;
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             bool hbmame = system == "hbmame";
@@ -414,66 +415,95 @@ namespace emulatorLauncher
                 retList.Add(pluginJoin);
             }
 
-            // Enable inputs
-            if (SystemConfig.isOptSet("mame_lightgun") && !string.IsNullOrEmpty(SystemConfig["mame_lightgun"]))
+            // DEVICES
+            // Mouse
+            if (SystemConfig.isOptSet("mame_mouse") && SystemConfig["mame_mouse"] == "none")
+                retList.Add("-nomouse");
+            else if (SystemConfig.isOptSet("mame_mouse") && !string.IsNullOrEmpty(SystemConfig["mame_mouse"]))
             {
-                if (SystemConfig["mame_lightgun"] == "mouse")
-                {
-                    retList.Add("-lightgun_device");
-                    retList.Add("mouse");
-                    retList.Add("-adstick_device");
-                    retList.Add("mouse");
-                }
-                else if (SystemConfig["mame_lightgun"] == "lightgun")
-                {
-                    retList.Add("-lightgun_device");
-                    retList.Add("lightgun");
-                    retList.Add("-adstick_device");
-                    retList.Add("lightgun");
-                }
-                else if (SystemConfig["mame_lightgun"] == "none")
-                {
-                    retList.Add("-lightgun_device");
-                    retList.Add("none");
-                    retList.Add("-adstick_device");
-                    retList.Add("none");
-                }
-                else
-                {
-                    retList.Add("-lightgun_device");
-                    retList.Add("joystick");
-                    retList.Add("-adstick_device");
-                    retList.Add("joystick");
-                }
-            }
-
-            // Other devices
-            if (SystemConfig.isOptSet("mame_mouse") && SystemConfig.getOptBoolean("mame_mouse"))
-            {
-                retList.Add("-dial_device");
-                retList.Add("mouse");
-                retList.Add("-trackball_device");
-                retList.Add("mouse");
-                retList.Add("-paddle_device");
-                retList.Add("mouse");
-                retList.Add("-positional_device");
-                retList.Add("mouse");
                 retList.Add("-mouse_device");
-                retList.Add("mouse");
+                retList.Add(SystemConfig["mame_mouse"]);
                 retList.Add("-ui_mouse");
             }
             else
             {
-                retList.Add("-dial_device");
-                retList.Add("joystick");
-                retList.Add("-trackball_device");
-                retList.Add("joystick");
-                retList.Add("-paddle_device");
-                retList.Add("joystick");
-                retList.Add("-positional_device");
-                retList.Add("joystick");
                 retList.Add("-mouse_device");
+                retList.Add("mouse");
+                retList.Add("-ui_mouse");
+            }
+
+            // Lightgun
+            if (SystemConfig.isOptSet("mame_lightgun") && SystemConfig["mame_lightgun"] == "none")
+                retList.Add("-nolightgun");
+            else if (SystemConfig.isOptSet("mame_lightgun") && !string.IsNullOrEmpty(SystemConfig["mame_lightgun"]))
+            {
+                retList.Add("-lightgun_device");
+                retList.Add(SystemConfig["mame_lightgun"]);
+            }
+            else
+            {
+                retList.Add("-lightgun_device");
+                retList.Add("lightgun");
+            }
+
+            // Paddle
+            if (SystemConfig.isOptSet("mame_paddle") && !string.IsNullOrEmpty(SystemConfig["mame_paddle"]))
+            {
+                retList.Add("-paddle_device");
+                retList.Add(SystemConfig["mame_paddle"]);
+            }
+            else
+            {
+                retList.Add("-paddle_device");
+                retList.Add("none");
+            }
+
+            // Adstick
+            if (SystemConfig.isOptSet("mame_adstick") && !string.IsNullOrEmpty(SystemConfig["mame_adstick"]))
+            {
+                retList.Add("-adstick_device");
+                retList.Add(SystemConfig["mame_adstick"]);
+            }
+            else
+            {
+                retList.Add("-adstick_device");
                 retList.Add("joystick");
+            }
+
+            // Positional Device
+            if (SystemConfig.isOptSet("mame_positional") && !string.IsNullOrEmpty(SystemConfig["mame_positional"]))
+            {
+                retList.Add("-positional_device");
+                retList.Add(SystemConfig["mame_positional"]);
+            }
+            else
+            {
+                retList.Add("-positional_device");
+                retList.Add("none");
+            }
+
+            // Trackball
+            if (SystemConfig.isOptSet("mame_trackball") && !string.IsNullOrEmpty(SystemConfig["mame_trackball"]))
+            {
+                retList.Add("-trackball_device");
+                retList.Add(SystemConfig["mame_trackball"]);
+            }
+            else
+            {
+                retList.Add("-trackball_device");
+                retList.Add("none");
+            }
+
+            // Dial device
+            if (SystemConfig.isOptSet("mame_dial") && !string.IsNullOrEmpty(SystemConfig["mame_dial"]))
+            {
+                retList.Add("-dial_device");
+                retList.Add(SystemConfig["mame_dial"]);
+            }
+            else
+            {
+                retList.Add("-dial_device");
+                retList.Add("none");
             }
 
             if (SystemConfig.isOptSet("mame_offscreen_reload") && SystemConfig.getOptBoolean("mame_offscreen_reload") && SystemConfig["mame_lightgun"] != "none")
@@ -518,6 +548,9 @@ namespace emulatorLauncher
                     retList.Add("retrobat_auto");
                 }
             }
+
+            // Add code here
+
 
             return retList;
         }

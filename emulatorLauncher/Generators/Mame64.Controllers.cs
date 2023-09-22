@@ -51,10 +51,10 @@ namespace emulatorLauncher
 
                 int gunCount = RawLightgun.GetUsableLightGunCount();
                 var guns = RawLightgun.GetRawLightguns();
-                bool multigun = false;
+                _multigun = false;
 
                 if (gunCount > 1 && guns.Length > 1)
-                    multigun = true;
+                    _multigun = true;
 
                 string mouseIndex1 = "1";
                 string mouseIndex2 = "2";
@@ -62,7 +62,7 @@ namespace emulatorLauncher
                 if (gunCount > 0 && guns.Length > 0)
                 {
                     mouseIndex1 = (guns[0].Index + 1).ToString();
-                    if (multigun)
+                    if (_multigun)
                         mouseIndex2 = (guns[1].Index + 1).ToString();
                 }
 
@@ -490,7 +490,7 @@ namespace emulatorLauncher
                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["lsright"])));
 
                     // Case of 2 guns only for now, cannot test more than 2 guns so stop here
-                    if ((multigun && (i == 2)) || (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse") && (i == 2)))
+                    if ((_multigun && (i == 2)) || (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse") && (i == 2)))
                     {
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
@@ -633,7 +633,7 @@ namespace emulatorLauncher
                         ("port", new XAttribute("type", "P" + i + "_AD_STICK_Z"),
                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["rs_y"])));
 
-                    if ((multigun && (i == 2)) || (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse") && (i == 2)))
+                    if ((_multigun && (i == 2)) || (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse") && (i == 2)))
                     {
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_LIGHTGUN_X"),
