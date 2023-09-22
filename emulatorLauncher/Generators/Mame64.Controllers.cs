@@ -49,8 +49,24 @@ namespace emulatorLauncher
                 string joy = "JOYCODE_" + cIndex + "_";
                 bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
 
+                int gunCount = RawLightgun.GetUsableLightGunCount();
                 var guns = RawLightgun.GetRawLightguns();
-                bool multigun = guns.Length >= 2;
+                bool multigun = (guns.Length >= 2 && gunCount >= 2);
+
+                string mouseIndex1 = "1";
+                string mouseIndex2 = "2";
+
+                if (gunCount > 0 && guns.Length > 0)
+                {
+                    mouseIndex1 = (guns[0].Index + 1).ToString();
+                    if (gunCount > 1 && guns.Length > 1)
+                        mouseIndex2 = (guns[1].Index + 1).ToString();
+                }
+
+                if (SystemConfig.isOptSet("mame_gun1") && !string.IsNullOrEmpty(SystemConfig["mame_gun1"]))
+                    mouseIndex1 = SystemConfig["mame_gun1"];
+                if (SystemConfig.isOptSet("mame_gun2") && !string.IsNullOrEmpty(SystemConfig["mame_gun2"]))
+                    mouseIndex2 = SystemConfig["mame_gun2"];
 
                 var mapping = hbmame? hbxInputMapping : xInputMapping;
 
@@ -213,15 +229,15 @@ namespace emulatorLauncher
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"] + " OR KEYCODE_LCONTROL OR MOUSECODE_" + i + "_BUTTON1 OR GUNCODE_" + i + "_BUTTON1")));
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"] + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"] + " OR KEYCODE_LALT OR MOUSECODE_" + i + "_BUTTON3 OR GUNCODE_" + i + "_BUTTON2")));
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"] + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"] + " OR KEYCODE_SPACE OR MOUSECODE_" + i + "_BUTTON2")));
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"] + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
@@ -298,61 +314,61 @@ namespace emulatorLauncher
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_PADDLE"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + i + "_XAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + mouseIndex1 + "_XAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_RIGHT"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_LEFT")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_PADDLE_V"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + i + "_YAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + mouseIndex1 + "_YAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_DOWN"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_POSITIONAL"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + i + "_XAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + mouseIndex1 + "_XAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_RIGHT"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_LEFT")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_POSITIONAL_V"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + i + "_YAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + mouseIndex1 + "_YAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_DOWN"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_DIAL"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + i + "_XAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + mouseIndex1 + "_XAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_RIGHT"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_LEFT")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_DIAL_V"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + i + "_YAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + mouseIndex1 + "_YAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_DOWN"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_TRACKBALL_X"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + i + "_XAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + mouseIndex1 + "_XAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_RIGHT"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_LEFT")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_TRACKBALL_Y"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + i + "_YAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + mouseIndex1 + "_YAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_DOWN"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_AD_STICK_X"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + i + "_XAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + mouseIndex1 + "_XAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_RIGHT"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_LEFT")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_AD_STICK_Y"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + i + "_YAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + mouseIndex1 + "_YAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_DOWN"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
 
@@ -364,25 +380,25 @@ namespace emulatorLauncher
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_LIGHTGUN_X"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + i + "_XAXIS OR GUNCODE_" + i + "_XAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + mouseIndex1 + "_XAXIS OR GUNCODE_" + mouseIndex1 + "_XAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_RIGHT"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_LEFT")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_LIGHTGUN_Y"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + i + "_YAXIS OR GUNCODE_" + i + "_YAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + mouseIndex1 + "_YAXIS OR GUNCODE_" + mouseIndex1 + "_YAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_DOWN"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_MOUSE_X"),
-                            new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + i + "_XAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + mouseIndex1 + "_XAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_RIGHT"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_LEFT")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_MOUSE_Y"),
-                            new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + i + "_YAXIS"),
+                            new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + mouseIndex1 + "_YAXIS"),
                             new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_DOWN"),
                             new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
 
@@ -475,15 +491,15 @@ namespace emulatorLauncher
                     {
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
-                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"] + " OR MOUSECODE_" + i + "_BUTTON1 OR GUNCODE_" + i + "_BUTTON1")));
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"] + " OR MOUSECODE_" + mouseIndex2 + "_BUTTON1 OR GUNCODE_" + mouseIndex2 + "_BUTTON1")));
 
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
-                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"] + " OR MOUSECODE_" + i + "_BUTTON3 OR GUNCODE_" + i + "_BUTTON2")));
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"] + " OR MOUSECODE_" + mouseIndex2 + "_BUTTON3 OR GUNCODE_" + mouseIndex2 + "_BUTTON2")));
 
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
-                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"] + " OR MOUSECODE_" + i + "_BUTTON2")));
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"] + " OR MOUSECODE_" + mouseIndex2 + "_BUTTON2")));
                     }
                     else
                     {
@@ -618,19 +634,19 @@ namespace emulatorLauncher
                     {
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_LIGHTGUN_X"),
-                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + i + "_XAXIS OR GUNCODE_" + i + "_XAXIS")));
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_x"] + " OR MOUSECODE_" + mouseIndex2 + "_XAXIS OR GUNCODE_" + mouseIndex2 + "_XAXIS")));
 
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_LIGHTGUN_Y"),
-                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + i + "_YAXIS OR GUNCODE_" + i + "_YAXIS")));
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["ls_y"] + " OR MOUSECODE_" + mouseIndex2 + "_YAXIS OR GUNCODE_" + mouseIndex2 + "_YAXIS")));
 
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_MOUSE_X"),
-                                new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + i + "_XAXIS")));
+                                new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + mouseIndex2 + "_XAXIS")));
 
                         input.Add(new XElement
                             ("port", new XAttribute("type", "P" + i + "_MOUSE_Y"),
-                                new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + i + "_YAXIS")));
+                                new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + mouseIndex2 + "_YAXIS")));
                     }
                     else
                     {

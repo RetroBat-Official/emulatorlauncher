@@ -114,9 +114,24 @@ namespace emulatorLauncher
             else if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "xinput")
                 tech = "xinput";
 
+            int gunCount = RawLightgun.GetUsableLightGunCount();
+            var guns = RawLightgun.GetRawLightguns();
+
             bool multigun = SystemConfig.isOptSet("multigun") && SystemConfig.getOptBoolean("multigun");
-            string mouseIndex1 = (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))? SystemConfig["supermodel_gun1"] : "1";
-            string mouseIndex2 = (SystemConfig.isOptSet("supermodel_gun2") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun2"])) ? SystemConfig["supermodel_gun2"] : "2";
+            string mouseIndex1 = "1";
+            string mouseIndex2 = "2";
+
+            if (gunCount > 0 && guns.Length > 0)
+            {
+                mouseIndex1 = (guns[0].Index + 1).ToString();
+                if (gunCount > 1 && guns.Length > 1)
+                    mouseIndex2 = (guns[1].Index + 1).ToString();
+            }
+
+            if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))
+                mouseIndex1 = SystemConfig["supermodel_gun1"];
+            if (SystemConfig.isOptSet("supermodel_gun2") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun2"]))
+                mouseIndex2 = SystemConfig["supermodel_gun2"];
 
             // Force player index if option is set in es_features
             if (SystemConfig.isOptSet("model3_p1index") && !string.IsNullOrEmpty(SystemConfig["model3_p1index"]))
@@ -682,9 +697,24 @@ namespace emulatorLauncher
         // no need to diferentiate qwerty and azerty (on azerty keyboard A is recognized as Q)
         private void WriteKeyboardMapping(IniFile ini, Controller c1)
         {
+            int gunCount = RawLightgun.GetUsableLightGunCount();
+            var guns = RawLightgun.GetRawLightguns();
+
             bool multigun = SystemConfig.isOptSet("multigun") && SystemConfig.getOptBoolean("multigun");
-            string mouseIndex1 = (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"])) ? SystemConfig["supermodel_gun1"] : "1";
-            string mouseIndex2 = (SystemConfig.isOptSet("supermodel_gun2") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun2"])) ? SystemConfig["supermodel_gun2"] : "2";
+            string mouseIndex1 = "1";
+            string mouseIndex2 = "2";
+
+            if (gunCount > 0 && guns.Length > 0)
+            {
+                mouseIndex1 = (guns[0].Index + 1).ToString();
+                if (gunCount > 1 && guns.Length > 1)
+                    mouseIndex2 = (guns[1].Index + 1).ToString();
+            }
+
+            if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))
+                mouseIndex1 = SystemConfig["supermodel_gun1"];
+            if (SystemConfig.isOptSet("supermodel_gun2") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun2"]))
+                mouseIndex2 = SystemConfig["supermodel_gun2"];
 
             if (multigun)
                 ini.WriteValue(" Global ", "InputSystem", "rawinput");
