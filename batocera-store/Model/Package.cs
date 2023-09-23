@@ -53,6 +53,9 @@ namespace batocera_store
         [XmlElement("preview_url")]
         public string PreviewUrl { get; set; }
 
+        [XmlElement("download_url")]
+        public string DownloadUrl { get; set; }
+
         // Online packages
         [XmlElement("game")]
         public List<PackageGame> Games { get; set; }
