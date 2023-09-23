@@ -11,6 +11,9 @@ using System.Globalization;
 
 namespace emulatorLauncher.libRetro
 {
+    // -system nes -emulator libretro -core fceumm -rom "H:\[Emulz]\roms\nes\Arkanoid.nes" -state_slot 1 -autosave 1
+    // -system nes -emulator libretro -core fceumm -rom "H:\[Emulz]\roms\nes\Arkanoid.nes" -state_slot 1 -state_file "H:/[Emulz]/saves/nes/Arkanoid.state"
+
     partial class LibRetroGenerator : Generator
     {
         const string RetroArchNetPlayPatchedName = "RETROBAT";
@@ -19,6 +22,8 @@ namespace emulatorLauncher.libRetro
         public string RetroarchCorePath { get; set; }
 
         public string CurrentHomeDirectory { get; set; }
+
+        private LibRetroStateFileManager _stateFileManager;
 
         public LibRetroGenerator()
         {
@@ -200,8 +205,18 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["savestate_max_keep"] = "0";
             }
 
-            BindBoolFeature(retroarchConfig, "savestate_auto_save", "autosave", "true", "false");
-            BindBoolFeature(retroarchConfig, "savestate_auto_load", "autosave", "true", "false");
+            _stateFileManager = LibRetroStateFileManager.FromSaveStateFile(SystemConfig["state_file"]);
+            if (_stateFileManager != null)
+            {
+                retroarchConfig["savestate_auto_load"] = "true";
+                retroarchConfig["savestate_auto_save"] = _stateFileManager.IsAutoFile ? "true" : "false";
+            }
+            else
+            {
+                BindBoolFeature(retroarchConfig, "savestate_auto_load", "autosave", "true", "false");
+                BindBoolFeature(retroarchConfig, "savestate_auto_save", "autosave", "true", "false");
+            }
+
             BindFeature(retroarchConfig, "state_slot", "state_slot", "0");
 
             // Shaders
@@ -1013,7 +1028,13 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["video_driver"] = _video_driver;
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
             }
-            
+
+            if (_stateFileManager != null)
+            {
+                _stateFileManager.Dispose();
+                _stateFileManager = null;
+            }
+
             base.Cleanup();
         }
 
