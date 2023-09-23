@@ -49,13 +49,11 @@ namespace emulatorLauncher
                 pcsx2ini.ClearSection("Pad" + i.ToString());
 
             // If more than 2 controllers plugged, PCSX2 must be set to use multitap, if more than 5, both multitaps must be activated
-            if (Controllers.Count > 5)
+            if (Controllers.Count > 2)
             {
                 pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
                 pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
             }
-            else if (Controllers.Count > 2)
-                pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
             else
             {
                 pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");

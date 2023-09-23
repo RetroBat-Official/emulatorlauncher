@@ -2721,6 +2721,28 @@ namespace emulatorLauncher.libRetro
         {
             if (core != "pcsx2")
                 return;
+
+            coreSettings["pcsx2_memcard_slot_1"] = "shared32";
+            coreSettings["pcsx2_memcard_slot_2"] = "shared32";
+
+            BindFeature(coreSettings, "pcsx2_upscale_multiplier", "pcsx2_upscale_multiplier", "1");
+            BindFeature(coreSettings, "pcsx2_aspect_ratio", "pcsx2_aspect_ratio", "0");
+            BindBoolFeature(coreSettings, "pcsx2_enable_widescreen_patches", "pcsx2_enable_widescreen_patches", "enabled", "disabled");
+            BindFeature(coreSettings, "pcsx2_renderer", "pcsx2_renderer", "Auto");
+            BindBoolFeature(coreSettings, "pcsx2_fxaa", "pcsx2_fxaa", "1", "0");
+            BindFeature(coreSettings, "pcsx2_anisotropic_filter", "pcsx2_anisotropic_filter", "0");
+            BindFeature(coreSettings, "pcsx2_dithering", "pcsx2_dithering", "2");
+            BindFeature(coreSettings, "pcsx2_texture_filtering", "pcsx2_texture_filtering", "2");
+            BindFeature(coreSettings, "pcsx2_deinterlace_mode", "pcsx2_deinterlace_mode", "7");
+            BindFeature(coreSettings, "pcsx2_system_language", "pcsx2_system_language", "English");
+            BindBoolFeature(coreSettings, "pcsx2_fastboot", "pcsx2_fastboot", "disabled", "enabled");
+            BindBoolFeature(coreSettings, "pcsx2_boot_bios", "pcsx2_boot_bios", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_enable_60fps_patches", "pcsx2_enable_60fps_patches", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_enable_cheats", "pcsx2_enable_cheats", "enabled", "disabled");
+            BindFeature(coreSettings, "pcsx2_speedhacks_presets", "pcsx2_speedhacks_presets", "1");
+            BindFeature(coreSettings, "pcsx2_rumble_enable", "pcsx2_rumble_enable", "enabled");
+            BindFeature(coreSettings, "pcsx2_gamepad_l_deadzone", "pcsx2_deadzone", "5");
+            BindFeature(coreSettings, "pcsx2_gamepad_r_deadzone", "pcsx2_deadzone", "5");
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
