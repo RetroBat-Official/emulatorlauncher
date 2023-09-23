@@ -2721,6 +2721,18 @@ namespace emulatorLauncher.libRetro
         {
             if (core != "pcsx2")
                 return;
+
+            coreSettings["pcsx2_memcard_slot_1"] = "shared32";
+            coreSettings["pcsx2_memcard_slot_2"] = "shared32";
+
+            BindFeature(coreSettings, "pcsx2_upscale_multiplier", "pcsx2_upscale_multiplier", "1");
+            BindFeature(coreSettings, "pcsx2_aspect_ratio", "pcsx2_aspect_ratio", "0");
+            BindBoolFeature(coreSettings, "pcsx2_enable_widescreen_patches", "pcsx2_enable_widescreen_patches", "enabled", "disabled");
+            BindFeature(coreSettings, "pcsx2_renderer", "pcsx2_renderer", "Auto");
+            BindFeature(coreSettings, "pcsx2_system_language", "pcsx2_system_language", "English");
+            BindBoolFeature(coreSettings, "pcsx2_fastboot", "pcsx2_fastboot", "disabled", "enabled");
+            BindBoolFeature(coreSettings, "pcsx2_boot_bios", "pcsx2_boot_bios", "enabled", "disabled");
+            BindFeature(coreSettings, "pcsx2_rumble_enable", "pcsx2_rumble_enable", "enabled");
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
