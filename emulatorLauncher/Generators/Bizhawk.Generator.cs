@@ -49,7 +49,7 @@ namespace emulatorLauncher
                 json.Save();
             }
 
-            bool fullscreen = !IsEmulationStationWindowed(out _);
+            bool fullscreen = !IsEmulationStationWindowed();
             // Bezels
             if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);

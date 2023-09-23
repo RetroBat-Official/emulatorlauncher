@@ -401,6 +401,12 @@ namespace emulatorLauncher
             return null;
         }
 
+        public static bool IsEmulationStationWindowed()
+        {
+            Rectangle bounds;
+            return IsEmulationStationWindowed(out bounds);
+        }
+
         public static bool IsEmulationStationWindowed(out Rectangle bounds, bool updateSize = false)
         {
             bool isWindowed = false;

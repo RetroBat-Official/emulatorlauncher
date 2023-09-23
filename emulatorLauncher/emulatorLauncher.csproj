@@ -119,7 +119,7 @@
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Eka2l1.Generator.cs" />
+    <Compile Include="Generators\Eka2l1.Generator.cs" />    
     <Compile Include="Generators\Mupen64.Generator.cs" />
     <Compile Include="Generators\Mupen64.Controllers.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
@@ -353,6 +353,9 @@
     <Compile Include="Common\SystemDefaults.cs" />
     <Compile Include="Common\Generator.cs" />
     <Compile Include="Generators\LibRetro.Generator.cs" />
+    <Compile Include="Generators\LibRetro.StateFileManager.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Libretro.Controllers.cs">
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
