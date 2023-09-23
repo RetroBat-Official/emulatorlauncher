@@ -115,7 +115,7 @@ namespace batocera_store
 
             string localFile = Path.Combine(Path.GetTempPath(), package.Name + ".7z");
 
-            Uri uri = new Uri(repo.Url + "/" + package.Name + ".7z");
+            Uri uri = new Uri(!string.IsNullOrEmpty(package.DownloadUrl) ? package.DownloadUrl : repo.Url + "/" + package.Name + ".7z");
 
             if (uri.Scheme == "file")
             {
