@@ -155,6 +155,14 @@ namespace emulatorLauncher
                 else
                     videodriver.SetAttributeValue("Value", "0");
 
+                // Widescreen
+                XElement widescreen = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "renderer.widescreen").FirstOrDefault();
+
+                if (SystemConfig.isOptSet("play_widescreen") && SystemConfig.getOptBoolean("play_widescreen"))
+                    widescreen.SetAttributeValue("Value", "true");
+                else
+                    widescreen.SetAttributeValue("Value", "false");
+
                 // Manage Input profiles
                 XElement padProfile = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "input.pad1.profile").FirstOrDefault();
                 string inputProfilePath = Path.Combine(path, "Play Data Files", "inputprofiles");
