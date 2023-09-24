@@ -92,10 +92,7 @@ namespace emulatorLauncher
             json["hide_cursor_on_idle"] = "true";
 
             // Discord
-            if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
-                json["enable_discord_integration"] = "true";
-            else
-                json["enable_discord_integration"] = "false";
+            BindBoolFeature(json, "enable_discord_integration", "discord", "true", "false");
 
             //System
             BindFeature(json, "system_language", "switch_language", GetDefaultswitchLanguage());
