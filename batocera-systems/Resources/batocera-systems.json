@@ -642,10 +642,6 @@
     "biosFiles": [
       {
         "md5": "8d3d9f294b6e174bc7b1d2fd1c727530",
-        "file": "bios/64DD_IPL.bin"
-      },
-      {
-        "md5": "8d3d9f294b6e174bc7b1d2fd1c727530",
         "file": "bios/Mupen64plus/IPL_JAP.n64"
       },
       {
@@ -917,20 +913,6 @@
     ]
   },
 
-  "psvita": {
-    "name": "PS Vita",
-    "biosFiles": [
-      {
-        "md5": "8b5f60b56c3da8365b973dba570c53a5",
-        "file": "bios/PSP2UPDAT.PUP"
-      },
-      {
-        "md5": "f2c7b12fe85496ec88a0391b514d6e3b",
-        "file": "bios/PSVUPDAT.PUP"
-      }
-    ]
-  },
-
   "psx": {
     "name": "PSX",
     "biosFiles": [
@@ -1081,6 +1063,16 @@
       {
         "md5": "38179df8f4ac870017db21ebcbf53114",
         "file": "bios/syscard3.pce"
+      }
+    ]
+  },
+
+  "supracan": {
+    "name": "Super A Can",
+    "biosFiles": [
+      {
+        "md5": "3bd04a2e4edcc77fa0e62ff79a99b569",
+        "file": "bios/supracan.zip"
       }
     ]
   },
