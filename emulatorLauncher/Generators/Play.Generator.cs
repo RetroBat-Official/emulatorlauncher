@@ -169,7 +169,7 @@ namespace emulatorLauncher
                 if (!Directory.Exists(inputProfilePath)) try { Directory.CreateDirectory(inputProfilePath); }
                     catch { }
                 string romName = Path.GetFileNameWithoutExtension(rom);
-                string inputProfile = Path.Combine(inputProfilePath, romName + "xml");
+                string inputProfile = Path.Combine(inputProfilePath, romName + ".xml");
 
                 if (File.Exists(inputProfile))
                     padProfile.SetAttributeValue("Value", romName);
