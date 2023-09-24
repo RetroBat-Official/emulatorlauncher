@@ -253,10 +253,7 @@ namespace emulatorLauncher
                 ini.WriteValue("general.updates", "check", "false");
 
                 // Skip Boot anim
-                if (SystemConfig.isOptSet("show_boot") && SystemConfig.getOptBoolean("show_boot"))
-                    ini.WriteValue("general", "skip_boot_anim", "false");
-                else if (Features.IsSupported("show_boot"))
-                    ini.WriteValue("general", "skip_boot_anim", "true");
+                BindBoolIniFeature(ini, "general", "skip_boot_anim", "show_boot", "false", "true");
 
                 // Controllers
                 if (!SystemConfig.getOptBoolean("disableautocontrollers"))
@@ -277,10 +274,7 @@ namespace emulatorLauncher
                 }
 
                 // Resolution
-                if (SystemConfig.isOptSet("render_scale") && !string.IsNullOrEmpty(SystemConfig["render_scale"]))
-                    ini.WriteValue("display.quality", "surface_scale", SystemConfig["render_scale"]);
-                else if (Features.IsSupported("render_scale"))
-                    ini.WriteValue("display.quality", "surface_scale", "1");
+                BindIniFeature(ini, "display.quality", "surface_scale", "render_scale", "1");
 
                 // Aspect Ratio
                 if (SystemConfig.isOptSet("scale") && !string.IsNullOrEmpty(SystemConfig["scale"]))
@@ -302,10 +296,7 @@ namespace emulatorLauncher
                     ini.WriteValue("sys", "mem_limit", "'128'");
 
                 // Vsync
-                if (SystemConfig.isOptSet("vsync") && !string.IsNullOrEmpty(SystemConfig["vsync"]))
-                    ini.WriteValue("display.window", "vsync", SystemConfig["vsync"]);
-                else
-                    ini.WriteValue("display.window", "vsync", "true");
+                BindIniFeature(ini, "display.window", "vsync", "vsync", "true");
 
                 //¨Paths
                 string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "xemu");

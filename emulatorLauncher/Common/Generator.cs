@@ -479,6 +479,7 @@ namespace emulatorLauncher
             return s;
         }
 
+        // xml bindfeatures
         protected void BindFeature(System.Xml.Linq.XElement cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
            if (force || Features.IsSupported(featureName))
@@ -496,6 +497,7 @@ namespace emulatorLauncher
             }
         }
 
+        // yml and bml bindfeatures
         protected void BindFeature(YmlContainer cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -536,6 +538,7 @@ namespace emulatorLauncher
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
         }
 
+        // Qtini bindfeatures
         protected void BindQtIniFeature(IniFile ini, string section, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -548,6 +551,7 @@ namespace emulatorLauncher
             }
         }
 
+        // json bindfeatures
         protected void BindFeature(DynamicJson cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -565,6 +569,7 @@ namespace emulatorLauncher
             } 
         }
 
+        // cfg bindfeatures
         protected void BindBoolFeature(ConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -582,6 +587,7 @@ namespace emulatorLauncher
                 cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
         }
 
+        // ini bindfeatures
         protected void BindIniFeature(IniFile ini, string section, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -600,6 +606,16 @@ namespace emulatorLauncher
                 else
                     ini.WriteValue(section, settingName, falseValue);
             }
+        }
+
+        protected void SetIniPath(IniFile ini, string section, string settingName, string pathName)
+        {
+            if (!Directory.Exists(pathName))
+                try { Directory.CreateDirectory(pathName); }
+                catch { }
+
+            if (!string.IsNullOrEmpty(pathName))
+                ini.WriteValue(section, settingName, pathName);
         }
     }
 
