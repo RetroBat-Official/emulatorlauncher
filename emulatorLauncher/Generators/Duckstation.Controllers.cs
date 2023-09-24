@@ -14,6 +14,7 @@ namespace emulatorLauncher
     partial class DuckstationGenerator : Generator
     {
         private bool _forceSDL = false;
+        private bool _multitap = false;
 
         /// <summary>
         /// Cf. https://github.com/stenzek/duckstation/blob/master/src/frontend-common/sdl_input_source.cpp
@@ -50,9 +51,15 @@ namespace emulatorLauncher
 
             // If more than 2 controllers plugged, Duckstation must be set to use multitap, if more than 5, both multitaps must be activated
             if (Controllers.Count > 5)
+            {
                 ini.WriteValue("ControllerPorts", "MultitapMode", "BothPorts");
+                _multitap = true;
+            } 
             else if (Controllers.Count > 2)
+            {
                 ini.WriteValue("ControllerPorts", "MultitapMode", "Port1Only");
+                _multitap = true;
+            }
             else
                 ini.WriteValue("ControllerPorts", "MultitapMode", "Disabled");
 
@@ -78,7 +85,17 @@ namespace emulatorLauncher
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-                ConfigureInput(ini, controller, "Pad" + controller.PlayerIndex); // ini has one section for each pad (from Pad1 to Pad8)
+            {
+                int padSectionNumber = controller.PlayerIndex;
+                if (_multitap)
+                {
+                    padSectionNumber = multitapPadNb[controller.PlayerIndex];
+                }
+
+                string padNumber = "Pad" + padSectionNumber.ToString();
+
+                ConfigureInput(ini, controller, padNumber); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
+            }  
         }
 
         private void ConfigureInput(IniFile ini, Controller controller, string padNumber)
@@ -531,6 +548,18 @@ namespace emulatorLauncher
             }
             return "None";
         }
+
+        static Dictionary<int, int> multitapPadNb = new Dictionary<int, int>()
+        {
+            { 1, 1 },
+            { 2, 3 },
+            { 3, 4 },
+            { 4, 5 },
+            { 5, 2 },
+            { 6, 6 },
+            { 7, 7 },
+            { 8, 8 },
+        };
 
         private void CreateGunConfiguration(IniFile ini)
         {
