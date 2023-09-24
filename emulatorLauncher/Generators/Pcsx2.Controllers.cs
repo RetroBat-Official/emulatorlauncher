@@ -14,6 +14,7 @@ namespace emulatorLauncher
     partial class Pcsx2Generator : Generator
     {
         private bool _forceSDL = false;
+        private bool _multitap = false;
 
         /// <summary>
         /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
@@ -53,6 +54,7 @@ namespace emulatorLauncher
             {
                 pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
                 pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
+                _multitap = true;
             }
             else
             {
@@ -82,7 +84,17 @@ namespace emulatorLauncher
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-                ConfigureInput(pcsx2ini, controller, "Pad" + controller.PlayerIndex); // ini has one section for each pad (from Pad1 to Pad8)
+            {
+                int padSectionNumber = controller.PlayerIndex;
+                if (_multitap)
+                {
+                    padSectionNumber = multitapPadNb[controller.PlayerIndex];
+                }
+
+                string padNumber = "Pad" + padSectionNumber.ToString();
+
+                ConfigureInput(pcsx2ini, controller, padNumber); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
+            }
         }
 
         private void ConfigureInput(IniFile pcsx2ini, Controller controller, string padNumber)
@@ -502,6 +514,18 @@ namespace emulatorLauncher
             }
             return "None";
         }
+
+        static Dictionary<int, int> multitapPadNb = new Dictionary<int, int>()
+        {
+            { 1, 1 },
+            { 2, 3 },
+            { 3, 4 },
+            { 4, 5 },
+            { 5, 2 },
+            { 6, 6 },
+            { 7, 7 },
+            { 8, 8 },
+        };
 
         private void SetupGunQT(IniFile pcsx2ini, string path)
         {
