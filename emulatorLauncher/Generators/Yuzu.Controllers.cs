@@ -69,7 +69,7 @@ namespace emulatorLauncher
             if (cfg == null)
                 return;
 
-            var guid = controller.GetSdlGuid(SdlVersion.SDL2_0_X);
+            var guid = controller.GetSdlGuid(SdlVersion.SDL2_0_X, true);
 
             // Yuzu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
@@ -191,6 +191,13 @@ namespace emulatorLauncher
             }
 
             bool revertButtons = Features.IsSupported("yuzu_gamepadbuttons") && SystemConfig.isOptSet("yuzu_gamepadbuttons") && SystemConfig.getOptBoolean("yuzu_gamepadbuttons");
+            if (controller.VendorID == USB_VENDOR.NINTENDO)
+            {
+                if (revertButtons)
+                    revertButtons = false;
+                else
+                    revertButtons = true;
+            }
 
             foreach (var map in Mapping)
             {
