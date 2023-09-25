@@ -70,7 +70,6 @@ namespace emulatorLauncher
             SetupConfig(path, machineType);
 
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-
             _resolution = resolution;
 
             return new ProcessStartInfo()

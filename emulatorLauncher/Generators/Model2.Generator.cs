@@ -11,71 +11,17 @@ namespace emulatorLauncher
 {
     partial class Model2Generator : Generator
     {
-        static Dictionary<string, string> parentRoms = new Dictionary<string, string>()
-        { 
-            // Daytona USA
-            { "dayton93", "daytona" },
-            { "daytonam", "daytona" },
-            { "daytonas", "daytona" },
-            { "daytonase", "daytona" },
-            { "daytonat", "daytona" },
-            { "daytonata", "daytona" },
-            { "daytonagtx", "daytona" },
-            // Dead Or Alive
-            { "doaa", "doa" },
-            // Dynamite Cop
-            { "dynmcopb", "dynamcop" },
-            { "dynmcopc", "dynamcop" },
-            { "dyndeka2", "dynamcop" },
-            { "dyndek2b", "dynamcop" },
-            // Indianapolis 500
-            { "indy500d", "indy500" },
-            { "indy500to", "indy500" },
-            // Last Bronx
-            { "lastbrnxj", "lastbrnx" },
-            { "lastbrnxu", "lastbrnx" },
-            // Pilot Kids
-            { "pltkidsa", "pltkids" },            
-            // Over Rev
-            { "overrevb", "overrev" }, 
-            // Sega Rally Championship
-            { "srallycb", "srallyc" },
-            { "srallyp", "srallyc" },
-            // Sega Touring Car Championship
-            { "stcca", "stcc" },
-            { "stccb", "stcc" },
-            // Top Skater
-            { "topskatrj", "topskatr" },
-            { "topskatru", "topskatr" },
-            // Sonic The Fighters
-            { "sfight", "schamp" },            
-            // Virtua Cop
-            { "vcopa", "vcop" },            
-            // Virtua Fighter 2
-            { "vf2o", "vf2" },
-            { "vf2a", "vf2" },
-            { "vf2b", "vf2" },
-            // Virtua Striker
-            { "vstrikro", "vstriker" },
-            // Virtual On Cybertroopers
-            { "vonj", "von" },
-            // Zero Gunner
-            { "zerogunaj", "zerogun" },
-            { "zerogunj", "zerogun" },
-            { "zeroguna", "zerogun" },
-        };
-
+        
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _dinput;
+        private string _destFile;
+        private string _destParent;
 
         public Model2Generator()
         {
             DependsOnDesktopResolution = false;
         }
-
-        private string _destFile;
-        private string _destParent;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -329,6 +275,60 @@ namespace emulatorLauncher
 
             return -1;
         }
+
+        static Dictionary<string, string> parentRoms = new Dictionary<string, string>()
+        { 
+            // Daytona USA
+            { "dayton93", "daytona" },
+            { "daytonam", "daytona" },
+            { "daytonas", "daytona" },
+            { "daytonase", "daytona" },
+            { "daytonat", "daytona" },
+            { "daytonata", "daytona" },
+            { "daytonagtx", "daytona" },
+            // Dead Or Alive
+            { "doaa", "doa" },
+            // Dynamite Cop
+            { "dynmcopb", "dynamcop" },
+            { "dynmcopc", "dynamcop" },
+            { "dyndeka2", "dynamcop" },
+            { "dyndek2b", "dynamcop" },
+            // Indianapolis 500
+            { "indy500d", "indy500" },
+            { "indy500to", "indy500" },
+            // Last Bronx
+            { "lastbrnxj", "lastbrnx" },
+            { "lastbrnxu", "lastbrnx" },
+            // Pilot Kids
+            { "pltkidsa", "pltkids" },            
+            // Over Rev
+            { "overrevb", "overrev" }, 
+            // Sega Rally Championship
+            { "srallycb", "srallyc" },
+            { "srallyp", "srallyc" },
+            // Sega Touring Car Championship
+            { "stcca", "stcc" },
+            { "stccb", "stcc" },
+            // Top Skater
+            { "topskatrj", "topskatr" },
+            { "topskatru", "topskatr" },
+            // Sonic The Fighters
+            { "sfight", "schamp" },            
+            // Virtua Cop
+            { "vcopa", "vcop" },            
+            // Virtua Fighter 2
+            { "vf2o", "vf2" },
+            { "vf2a", "vf2" },
+            { "vf2b", "vf2" },
+            // Virtua Striker
+            { "vstrikro", "vstriker" },
+            // Virtual On Cybertroopers
+            { "vonj", "von" },
+            // Zero Gunner
+            { "zerogunaj", "zerogun" },
+            { "zerogunj", "zerogun" },
+            { "zeroguna", "zerogun" },
+        };
 
         static Dictionary<string, int> byteLength = new Dictionary<string, int>()
         {

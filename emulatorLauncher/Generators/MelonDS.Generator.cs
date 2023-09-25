@@ -30,10 +30,17 @@ namespace emulatorLauncher
             SetupConfiguration(path, rom, bootToDSINand);
 
             // command line parameters
-            var commandArray = new List<string>
+            var commandArray = new List<string>();
+
+            commandArray.Add("-f");
+
+            if (bootToDSINand)
             {
-                "-f"
-            };
+                commandArray.Add("-b");
+                commandArray.Add("always");
+            }
+            else
+                commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
 
@@ -41,30 +48,10 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments =
-                    bootToDSINand ?
-                        args + " -b always" :
-                        args + " \"" + rom + "\"",
+                Arguments = args,
             };
         }
 
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            if (ret == 1)
-                return 0;
-
-            return ret;
-        }
 
         private void SetupConfiguration(string path, string rom, bool bootToDSINand = false)
         {
@@ -178,6 +165,24 @@ namespace emulatorLauncher
                 BindIniFeature(ini, "", "ScreenGap", "melonds_screengap", "0");
                 BindIniFeature(ini, "", "ScreenRotation", "melonds_rotate", "0");
             }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
     }
 }

@@ -21,58 +21,6 @@ namespace emulatorLauncher
         private bool _triforce = false;
         private Rectangle _windowRect = Rectangle.Empty;
 
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = 0;
-
-            if (_windowRect.IsEmpty)
-                ret = base.RunAndWait(path);
-            else
-            {
-                var process = Process.Start(path);
-
-                while (process != null)
-                {
-                    try
-                    {
-                        var hWnd = process.MainWindowHandle;
-                        if (hWnd != IntPtr.Zero)
-                        {
-                            User32.SetWindowPos(hWnd, IntPtr.Zero, _windowRect.Left, _windowRect.Top, _windowRect.Width, _windowRect.Height, SWP.NOZORDER);
-                            break;
-                        }
-                    }
-                    catch { }
-                    
-                    if (process.WaitForExit(1))
-                    {
-                        try { ret = process.ExitCode; }
-                        catch { }
-                        process = null;
-                        break;
-                    }
-
-                }
-
-                if (process != null)
-                {
-                    process.WaitForExit();
-                    try { ret = process.ExitCode; }
-                    catch { }
-                }
-            }
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            return ret;
-        }
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             _triforce = (emulator == "dolphin-triforce" || core == "dolphin-triforce" || emulator == "triforce" || core == "triforce");
@@ -589,7 +537,6 @@ namespace emulatorLauncher
                     //ini.AppendValue("AutoUpdate", "UpdateTrack", "");
                 }
             }
-
             catch { }
         }
 
@@ -605,6 +552,58 @@ namespace emulatorLauncher
 
             ini.WriteValue("General", "ISOPaths", (isoPathsCount + 1).ToString());
             ini.WriteValue("General", "ISOPath" + isoPathsCount, romPath);
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = 0;
+
+            if (_windowRect.IsEmpty)
+                ret = base.RunAndWait(path);
+            else
+            {
+                var process = Process.Start(path);
+
+                while (process != null)
+                {
+                    try
+                    {
+                        var hWnd = process.MainWindowHandle;
+                        if (hWnd != IntPtr.Zero)
+                        {
+                            User32.SetWindowPos(hWnd, IntPtr.Zero, _windowRect.Left, _windowRect.Top, _windowRect.Width, _windowRect.Height, SWP.NOZORDER);
+                            break;
+                        }
+                    }
+                    catch { }
+
+                    if (process.WaitForExit(1))
+                    {
+                        try { ret = process.ExitCode; }
+                        catch { }
+                        process = null;
+                        break;
+                    }
+
+                }
+
+                if (process != null)
+                {
+                    process.WaitForExit();
+                    try { ret = process.ExitCode; }
+                    catch { }
+                }
+            }
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            return ret;
         }
     }
 }

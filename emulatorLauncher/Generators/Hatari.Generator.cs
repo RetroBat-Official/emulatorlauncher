@@ -34,6 +34,9 @@ namespace emulatorLauncher
             string disk = "--disk-a";
             bool diskImage = false;
 
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _resolution = resolution;
+
             var commandArray = new List<string>();
             commandArray.Add("-c");
             commandArray.Add("\"" + cfgFile + "\"");
@@ -64,12 +67,9 @@ namespace emulatorLauncher
                 commandArray.Add("\"" + rom + "\"");
             }
 
-            SetupHatari(cfgFile, rom, path, diskImage);
-
             string args = string.Join(" ", commandArray);
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-            _resolution = resolution;
+            SetupHatari(cfgFile, rom, path, diskImage);
 
             return new ProcessStartInfo()
             {

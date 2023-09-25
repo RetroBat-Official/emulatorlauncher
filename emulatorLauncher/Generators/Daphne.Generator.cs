@@ -47,7 +47,7 @@ namespace emulatorLauncher
                     commandArray.Add("-ignore_aspect_ratio");
                 else
                     commandArray.Add("-force_aspect_ratio");
-/*
+                /*
                 if (SystemConfig.isOptSet("hypseus_scanlines") && SystemConfig["hypseus_scanlines"] == "scanlines")
                     commandArray.Add("-scanlines");
 
@@ -81,10 +81,7 @@ namespace emulatorLauncher
                         return ret;
                 }                
             }
-            catch
-            {
-                
-            }
+            catch { }
 
             return null;
         }
