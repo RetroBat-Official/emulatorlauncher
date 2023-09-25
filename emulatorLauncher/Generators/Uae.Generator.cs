@@ -28,14 +28,110 @@ namespace emulatorLauncher
                 };
             }
 
-            winUAEConfigureIni(path, rom, system);
-
             var disks = DetectDiscs(rom);
             if (disks.Count == 0)
                 return null;
 
+            winUAEConfigureIni(path, rom, system);
+            string fn = WriteGameUaeFile(system, path, rom, disks);
+
+            return new ProcessStartInfo()
+            {
+                FileName = exe,
+                Arguments = fn,
+                WorkingDirectory = path,
+            };
+        }
+
+        private static List<string> DetectDiscs(string disk)
+        {
+            string dskPath = Path.GetDirectoryName(disk);
+
+            List<string> disks = new List<string>();
+
+            if (Path.GetExtension(disk).ToLower() == ".m3u")
+            {
+                foreach (var line in File.ReadAllLines(disk))
+                {
+                    string dsk = Path.Combine(dskPath, line);
+                    if (File.Exists(dsk))
+                        disks.Add(dsk);
+                }
+
+                return disks;
+            }
+
+            disks.Add(disk);
+
+            string dskName = Path.GetFileNameWithoutExtension(disk);
+
+            for (int i = 2; i < 10; i++)
+            {
+                string dskI = dskName.Replace("-1", "-" + i);
+                if (dskI == dskName)
+                    dskI = dskName.Replace("_1", "_" + i);
+
+                if (dskI == dskName)
+                    dskI = dskName.Replace("Disk 1", "Disk " + i);
+
+                if (dskI == dskName)
+                    dskI = dskName.Replace("Disk1", "Disk" + i);
+
+                if (dskI == dskName && dskI.EndsWith("1"))
+                    dskI = dskName.Substring(0, dskName.Length - 1) + i;
+
+                if (dskI == dskName)
+                    break;
+
+                string dsk = Path.Combine(dskPath, dskI + ".adf");
+                if (!File.Exists(dsk))
+                    dsk = Path.Combine(dskPath, dskI + ".adz");
+
+                if (!File.Exists(dsk))
+                    dsk = Path.Combine(dskPath, dskI + ".ad_");
+
+                if (!File.Exists(dsk))
+                    dsk = Path.Combine(dskPath, dskI + ".ad" + i);
+
+                if (!File.Exists(dsk))
+                    break;
+
+                disks.Add(dsk);
+            }
+
+            return disks;
+        }
+
+        private void winUAEConfigureIni(string path, string rom, string system)
+        {
+            string settingsFile = Path.Combine(path, "winuae.ini");
+
+            using (IniFile ini = new IniFile(settingsFile))
+            {
+                // Write paths
+                string biosPath = AppConfig.GetFullPath("bios");
+                ini.WriteValue("WinUAE", "KickstartPath", biosPath);
+
+                ini.WriteValue("WinUAE", "PathMode", "WinUAE");
+                ini.WriteValue("WinUAE", "SaveImageOriginalPath", "0");
+                ini.WriteValue("WinUAE", "RecursiveROMScan", "0");
+                ini.WriteValue("WinUAE", "RelativePaths", "0");
+
+                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "winuae");
+                ini.WriteValue("WinUAE", "ScreenshotPath", screenshotPath);
+
+                string savestatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "winuae");
+                ini.WriteValue("WinUAE", "StatefilePath", savestatePath);
+
+                string videoPath = Path.Combine(AppConfig.GetFullPath("records"), "winuae");
+                ini.WriteValue("WinUAE", "VideoPath", videoPath);
+            }
+        }
+
+        private string WriteGameUaeFile(string system, string path, string rom, List<string> disks)
+        {
             StringBuilder sb = new StringBuilder();
-            
+
             // GUI options
             sb.AppendLine(@"; common");
             sb.AppendLine("use_gui=no");
@@ -172,11 +268,11 @@ namespace emulatorLauncher
                 sb.AppendLine("cpu_compatible=true");
                 sb.AppendLine("cpu_24bit_addressing=true");
             }
-            
+
             else if (system == "amigacd32")
             {
                 disk = disks.First();
-                
+
                 string bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.060 (1993-05)(Commodore)(CD32)[!].rom");
                 if (!File.Exists(bios))
                     bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.60 (1993)(Commodore)(CD32).rom");
@@ -209,7 +305,7 @@ namespace emulatorLauncher
                 sb.AppendLine("cpu_compatible=true");
                 sb.AppendLine("cpu_data_cache=false");
                 sb.AppendLine("cpu_multiplier=4");
-                
+
                 if (SystemConfig.isOptSet("amiga_jit") && SystemConfig.getOptBoolean("amiga_jit"))
                 {
                     sb.AppendLine("cpu_24bit_addressing=false");
@@ -442,7 +538,7 @@ namespace emulatorLauncher
                 else
                 {
                     sb.AppendLine("cpu_24bit_addressing=true");
-                    
+
                     if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
                     {
                         sb.AppendLine("cpu_type=68ec020/68881");
@@ -454,7 +550,7 @@ namespace emulatorLauncher
                         sb.AppendLine("cpu_type=68ec020");
                         sb.AppendLine("fpu_strict=false");
                     }
-                    
+
                     sb.AppendLine("cachesize=0");
                 }
 
@@ -496,7 +592,7 @@ namespace emulatorLauncher
                 sb.AppendLine("chipmem_size=4");
                 sb.AppendLine("cpu_type=68040");
                 sb.AppendLine("cpu_model=68040");
-                
+
                 if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
                 {
                     sb.AppendLine("fpu_model=68040");
@@ -533,100 +629,10 @@ namespace emulatorLauncher
                 }
             }
 
-            string fn = Path.Combine(path, "game.uae");
-            File.WriteAllText(fn, sb.ToString());
-        
-            return new ProcessStartInfo()
-            {
-                FileName = exe,
-                Arguments = fn,
-                WorkingDirectory = path,
-            };
-        }
+            string gameUae = Path.Combine(path, "game.uae");
+            File.WriteAllText(gameUae, sb.ToString());
 
-        private static List<string> DetectDiscs(string disk)
-        {
-            string dskPath = Path.GetDirectoryName(disk);
-
-            List<string> disks = new List<string>();
-
-            if (Path.GetExtension(disk).ToLower() == ".m3u")
-            {
-                foreach (var line in File.ReadAllLines(disk))
-                {
-                    string dsk = Path.Combine(dskPath, line);
-                    if (File.Exists(dsk))
-                        disks.Add(dsk);
-                }
-
-                return disks;
-            }
-
-            disks.Add(disk);
-
-            string dskName = Path.GetFileNameWithoutExtension(disk);
-
-            for (int i = 2; i < 10; i++)
-            {
-                string dskI = dskName.Replace("-1", "-" + i);
-                if (dskI == dskName)
-                    dskI = dskName.Replace("_1", "_" + i);
-
-                if (dskI == dskName)
-                    dskI = dskName.Replace("Disk 1", "Disk " + i);
-
-                if (dskI == dskName)
-                    dskI = dskName.Replace("Disk1", "Disk" + i);
-
-                if (dskI == dskName && dskI.EndsWith("1"))
-                    dskI = dskName.Substring(0, dskName.Length - 1) + i;
-
-                if (dskI == dskName)
-                    break;
-
-                string dsk = Path.Combine(dskPath, dskI + ".adf");
-                if (!File.Exists(dsk))
-                    dsk = Path.Combine(dskPath, dskI + ".adz");
-
-                if (!File.Exists(dsk))
-                    dsk = Path.Combine(dskPath, dskI + ".ad_");
-
-                if (!File.Exists(dsk))
-                    dsk = Path.Combine(dskPath, dskI + ".ad" + i);
-
-                if (!File.Exists(dsk))
-                    break;
-
-                disks.Add(dsk);
-            }
-
-            return disks;
-        }
-
-        private void winUAEConfigureIni(string path, string rom, string system)
-        {
-            string settingsFile = Path.Combine(path, "winuae.ini");
-
-            using (IniFile ini = new IniFile(settingsFile))
-            {
-                // Write paths
-                string biosPath = AppConfig.GetFullPath("bios");
-                ini.WriteValue("WinUAE", "KickstartPath", biosPath);
-
-                ini.WriteValue("WinUAE", "PathMode", "WinUAE");
-                ini.WriteValue("WinUAE", "SaveImageOriginalPath", "0");
-                ini.WriteValue("WinUAE", "RecursiveROMScan", "0");
-                ini.WriteValue("WinUAE", "RelativePaths", "0");
-
-                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "winuae");
-                ini.WriteValue("WinUAE", "ScreenshotPath", screenshotPath);
-
-                string savestatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "winuae");
-                ini.WriteValue("WinUAE", "StatefilePath", savestatePath);
-
-                string videoPath = Path.Combine(AppConfig.GetFullPath("records"), "winuae");
-                ini.WriteValue("WinUAE", "VideoPath", videoPath);
-            }
+            return gameUae;
         }
     }
 }

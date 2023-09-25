@@ -58,6 +58,7 @@ namespace emulatorLauncher
             string firmware = Path.Combine(path, "dev_flash", "vsh", "etc", "version.txt");
             string biosPath = AppConfig.GetFullPath("bios");
             string biosPs3 = Path.Combine(biosPath, "PS3UPDAT.PUP");
+            
             if (!File.Exists(firmware) && File.Exists(biosPs3))
             {
                 List<string> commandArrayfirmware = new List<string>();

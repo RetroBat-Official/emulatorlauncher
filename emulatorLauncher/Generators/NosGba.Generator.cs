@@ -27,6 +27,7 @@ namespace emulatorLauncher
             if (system == "gba2players" && (!SystemConfig.isOptSet("gba_nbplayers") || SystemConfig["gba_nbplayers"] == "-Two Machines"))
                     commandArray.Add("/2");
 
+            commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
 
@@ -34,7 +35,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args + " " + "\"" + rom + "\"",
+                Arguments = args,
             };
         }
 

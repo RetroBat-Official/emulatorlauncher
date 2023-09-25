@@ -26,11 +26,18 @@ namespace emulatorLauncher
 
             _resolution = resolution;
 
+            var commandArray = new List<string>();
+            
+            commandArray.Add("-fullscreen=yes");
+            commandArray.Add("\"" + rom + "\"");
+            
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-fullscreen=yes \"" + rom + "\"",
+                Arguments = args,
             };
         }
 
