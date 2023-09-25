@@ -26,17 +26,27 @@ namespace emulatorLauncher
                 string sp = Path.Combine(AppConfig.GetFullPath("saves"), system);
                 if (!Directory.Exists(sp)) try { Directory.CreateDirectory(sp); } catch { }
 
-                savePath = " --save-path \"" + sp + "\"";
+                savePath = "--save-path \"" + sp + "\"";
             }
 
             if (Path.GetExtension(rom) == ".zip")
                 rom = rom + "/" + Path.GetFileNameWithoutExtension(rom);
 
+            // Command lines
+            var commandArray = new List<string>();
+
+            commandArray.Add("--project-path");
+            commandArray.Add("\"" + rom + "\"");
+            commandArray.Add("--fullscreen");
+            commandArray.Add(savePath);
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "--project-path \"" + rom + "\" --fullscreen" + savePath,
+                Arguments = args,
             };
         }
     }

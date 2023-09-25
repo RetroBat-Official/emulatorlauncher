@@ -116,6 +116,7 @@ namespace emulatorLauncher
 
             return "1";
         }
+
         /// <summary>
         /// Configure emulator features (settings.xml)
         /// </summary>

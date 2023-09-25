@@ -22,12 +22,11 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            var commandArray = new List<string>();
-
             string grp = Path.GetFileName(rom);
-            string romdir = Path.GetDirectoryName(rom);
 
             SetupConfiguration(path, grp, resolution);
+
+            var commandArray = new List<string>();
 
             commandArray.Add("-gamegrp");
             commandArray.Add("\"" + grp + "\"");

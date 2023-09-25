@@ -28,11 +28,18 @@ namespace emulatorLauncher
 
             SetupConfiguration(path, rom, system);
 
+            var commandArray = new List<string>();
+
+            commandArray.Add("-f");
+            commandArray.Add("\"" + rom + "\"");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-f \"" + rom + "\"",
+                Arguments = args,
             };
         }
 

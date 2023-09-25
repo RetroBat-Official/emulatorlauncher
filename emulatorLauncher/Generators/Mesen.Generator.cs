@@ -29,6 +29,7 @@ namespace emulatorLauncher
             // command line parameters
             var commandArray = new List<string>();
 
+            commandArray.Add("\"" + rom + "\"");
             commandArray.Add("/fullscreen");
 
             string args = string.Join(" ", commandArray);
@@ -37,7 +38,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "\"" + rom + "\"" + " " + args,
+                Arguments = args,
             };
         }
 
