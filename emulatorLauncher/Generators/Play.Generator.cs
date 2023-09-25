@@ -18,24 +18,8 @@ namespace emulatorLauncher
         }
 
         private bool _isArcade = false;
-
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            return ret;
-        }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -181,6 +165,21 @@ namespace emulatorLauncher
             }
 
             catch { }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            return ret;
         }
     }
 }

@@ -43,10 +43,17 @@ namespace emulatorLauncher
 
             SetupConfiguration(path);
 
+            var commandArray = new List<string>();
+
+            commandArray.Add("--fullscreen");
+            commandArray.Add("\"" + rom + "\"");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "--fullscreen \"" + rom + "\"",
+                Arguments = args,
                 WorkingDirectory = path,
             };
         }

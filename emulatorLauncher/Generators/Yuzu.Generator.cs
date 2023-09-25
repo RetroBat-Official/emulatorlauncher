@@ -33,11 +33,19 @@ namespace emulatorLauncher
             
             SetupConfiguration(path, rom);
 
+            var commandArray = new List<string>();
+
+            commandArray.Add("-f");
+            commandArray.Add("-g");
+            commandArray.Add("\"" + rom + "\"");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-f -g \"" + rom + "\"",
+                Arguments = args,
             };
         }
 

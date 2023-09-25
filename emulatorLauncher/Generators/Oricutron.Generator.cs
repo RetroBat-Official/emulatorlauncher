@@ -38,25 +38,32 @@ namespace emulatorLauncher
                 cfg["rendermode"] = "opengl";
                 cfg.Save(Path.Combine(path, "oricutron.cfg"), true);
             }
-            
+
+            List<string> commandArray = new List<string>();
+            commandArray.Add("--fullscreen");
+            commandArray.Add("--rendermode");
+            commandArray.Add("opengl");
+
             if (Path.GetExtension(rom).ToLower() == ".dsk")
+                commandArray.Add("--disk");
+            else
             {
-                return new ProcessStartInfo()
-                {
-                    FileName = exe,
-                    WorkingDirectory = path,
-                    Arguments = "--fullscreen --rendermode opengl --disk \"" + rom + "\"",
-                };
+                commandArray.Add("--turbotape");
+                commandArray.Add("on");
+                commandArray.Add("--tape");
             }
+
+            commandArray.Add("\"" + rom + "\"");
+
+            string args = string.Join(" ", commandArray);
 
 			return new ProcessStartInfo()
 				{
 					FileName = exe,
 					WorkingDirectory = path,
-                    Arguments = "--fullscreen --rendermode opengl --turbotape on --tape \"" + rom + "\"",
+                    Arguments = args,
 				};
         }
-
 
         public override int RunAndWait(ProcessStartInfo path)
         {

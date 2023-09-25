@@ -40,11 +40,20 @@ namespace emulatorLauncher
 
             SetupSettings();
 
+            var commandArray = new List<string>();
+            
+            commandArray.Add("-n");
+            commandArray.Add("-fs");
+            commandArray.Add("1");
+            commandArray.Add("\"" + rom + "\"");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = _path,
-                Arguments = "-n -fs 1 \"" + rom + "\"",
+                Arguments = args,
             };
         }
 

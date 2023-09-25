@@ -21,7 +21,6 @@ namespace emulatorLauncher
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-
         private bool _isPcsx17;
         private bool _isPcsxqt;
 
@@ -157,6 +156,8 @@ namespace emulatorLauncher
                     commandArray.Add("--fullboot");
             }
 
+            commandArray.Add("\"" + rom + "\"");
+
             string args = string.Join(" ", commandArray);
 
             //start emulator
@@ -164,7 +165,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = _path,
-                Arguments = args + " \"" + rom + "\"",
+                Arguments = args,
             };
         }
 
