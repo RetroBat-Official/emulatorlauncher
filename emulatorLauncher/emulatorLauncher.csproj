@@ -119,7 +119,7 @@
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Eka2l1.Generator.cs" />    
+    <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\Mupen64.Generator.cs" />
     <Compile Include="Generators\Mupen64.Controllers.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
@@ -228,11 +228,17 @@
     <Compile Include="Generators\Dolphin.Controllers.cs">
       <DependentUpon>Dolphin.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Dolphin.SaveStatesMonitor.cs">
+      <DependentUpon>Dolphin.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Ppsspp.Generator.cs" />
     <Compile Include="Generators\DosBox.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Controllers.cs">
+      <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Pcsx2.SaveStatesMonitor.cs">
       <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Pico8.Generator.cs" />
@@ -274,7 +280,7 @@
     <Compile Include="PadToKey\JoystickListener.cs" />
     <Compile Include="PadToKey\Joysticks.cs" />
     <Compile Include="PadToKey\PadToKey.cs" />
-    <Compile Include="PadToKey\SendKeys.cs" />
+    <Compile Include="PadToKey\SendKeys.cs" />    
     <Compile Include="Properties\Resources.fr.Designer.cs">
       <DependentUpon>Resources.fr.resx</DependentUpon>
       <AutoGen>True</AutoGen>

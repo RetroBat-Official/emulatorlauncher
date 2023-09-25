@@ -119,6 +119,14 @@ namespace emulatorLauncher
         public static EsFeatures Features { get; private set; }
         public static Game CurrentGame { get; private set; }
 
+        public static bool HasEsSaveStates
+        {
+            get
+            {
+                return File.Exists(Path.Combine(Program.LocalPath, ".emulationstation", "es_savestates.cfg"));
+            }
+        }
+
         public static bool EnableHotKeyStart
         {
             get
