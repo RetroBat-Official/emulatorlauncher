@@ -101,8 +101,8 @@ namespace emulatorLauncher.Tools
             }
             return null;
         }
-        
-        static Bitmap CaptureScreen()
+
+        public static Bitmap CaptureScreen()
         {
             var bmpScreenshot = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, PixelFormat.Format32bppArgb);
 
@@ -112,5 +112,10 @@ namespace emulatorLauncher.Tools
             return bmpScreenshot;
         }
 
+        public static void CaptureScreen(string filename)
+        {
+            using (Image img = CaptureScreen())
+                img.Save(filename);
+        }
     }
 }

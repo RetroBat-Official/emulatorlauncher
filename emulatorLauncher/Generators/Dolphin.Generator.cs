@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Drawing;
 using emulatorLauncher.Tools;
+using System.Threading;
 
 namespace emulatorLauncher
 {
@@ -14,6 +15,19 @@ namespace emulatorLauncher
         public DolphinGenerator()
         {
             DependsOnDesktopResolution = true;
+        }
+
+        private DolphinSaveStatesMonitor _saveStateHandler;
+
+        public override void Cleanup()
+        {
+            if (_saveStateHandler != null)
+            {
+                _saveStateHandler.Dispose();
+                _saveStateHandler = null;
+            }
+
+            base.Cleanup();
         }
 
         private BezelFiles _bezelFileInfo;
@@ -62,19 +76,46 @@ namespace emulatorLauncher
             
             SetupGeneralConfig(path, system, emulator, rom);
             SetupGfxConfig(path);
+            // SetupStateSlotConfig(path);
 
             DolphinControllers.WriteControllersConfig(path, system, rom, _triforce);
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
 
+            string saveState = "";
+            if (File.Exists(SystemConfig["state_file"]))
+            {
+                // Dolphin always starts on slot 1, then copy to slot 1 so it can be reloaded
+                if (_saveStateHandler != null)
+                    _saveStateHandler.CopyToPhysicalSlot(SystemConfig["state_file"], _saveStateHandler.IncrementalMode ? 1 : -1);
+
+                saveState = " --save_state=\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"";
+            }
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-b -e \"" + rom + "\"",
+                Arguments = "-b -e \"" + rom + "\"" + saveState,
                 WorkingDirectory = path,
                 WindowStyle = (_bezelFileInfo == null ? ProcessWindowStyle.Normal : ProcessWindowStyle.Maximized)
             };
+        }
+
+        /// <summary>
+        /// Unfortunately, it does not work when launching in fullscreen...
+        /// PR Opened : https://github.com/dolphin-emu/dolphin/pull/12201
+        /// </summary>
+        /// <param name="path"></param>
+        private void SetupStateSlotConfig(string path)
+        {
+            var slot = SystemConfig["state_slot"] ?? "1";
+
+            int id = Math.Max(1, ((slot.ToInteger() - 1) % 10) + 1);
+
+            string iniFile = Path.Combine(path, "User", "Config", "QT.ini");
+            using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
+                ini.WriteValue("Emulation", "StateSlot", id.ToString());
         }
 
         private void SetupGfxConfig(string path)
@@ -399,10 +440,10 @@ namespace emulatorLauncher
                         ini.WriteValue("Core", "SkipIPL", "True");
 
                     // OSD Messages
-                    if (SystemConfig.isOptSet("OnScreenDisplayMessages") && SystemConfig.getOptBoolean("OnScreenDisplayMessages"))
-                        ini.WriteValue("Interface", "OnScreenDisplayMessages", "True");
-                    else
+                    if (SystemConfig.isOptSet("OnScreenDisplayMessages") && !SystemConfig.getOptBoolean("OnScreenDisplayMessages"))
                         ini.WriteValue("Interface", "OnScreenDisplayMessages", "False");
+                    else
+                        ini.WriteValue("Interface", "OnScreenDisplayMessages", "True");
 
                     // don't ask about statistics
                     ini.WriteValue("Analytics", "PermissionAsked", "True");
@@ -497,6 +538,13 @@ namespace emulatorLauncher
 
                         ini.WriteValue("General", "LoadPath", dolphinLoadPath);
                         ini.WriteValue("General", "ResourcePackPath", dolphinResourcesPath);
+
+                        if (Program.HasEsSaveStates)
+                        {
+                            _saveStateHandler = new DolphinSaveStatesMonitor(rom, Path.Combine(path, "User", "StateSaves"), Path.Combine(savesPath, system, "dolphin"));
+                            _saveStateHandler.IncrementalMode = (string.IsNullOrEmpty(SystemConfig["incrementalsavestates"]) ? "1" : SystemConfig["incrementalsavestates"]) == "1";
+                            _saveStateHandler.Slot = (SystemConfig["state_slot"] ?? "1").ToInteger();
+                        }
                     }
 
                     // Add rom path to isopath
