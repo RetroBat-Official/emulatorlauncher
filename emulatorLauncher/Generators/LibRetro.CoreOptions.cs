@@ -2142,11 +2142,18 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "bsnes_hotfixes", "bsnes_hotfixes", "OFF");
             BindFeature(coreSettings, "bsnes_cpu_fastmath", "bsnes_cpu_fastmath", "OFF");
             BindFeature(coreSettings, "bsnes_run_ahead_frames", "bsnes_run_ahead_frames", "OFF");
+            BindBoolFeature(coreSettings, "bsnes_ppu_no_sprite_limit", "bsnes_ppu_no_sprite_limit", "ON", "OFF");
+
+            // Overclock (1 setting for all)
+            BindFeature(coreSettings, "bsnes_cpu_overclock", "bsnes_overclock", "100");
+            BindFeature(coreSettings, "bsnes_cpu_sa1_overclock", "bsnes_overclock", "100");
+            BindFeature(coreSettings, "bsnes_cpu_sfx_overclock", "bsnes_overclock", "100");
 
             // bsnes only features
             if (core == "bsnes")
             {
                 BindFeature(coreSettings, "bsnes_aspect_ratio", "bsnes_aspect_ratio", "Auto");
+                BindFeature(coreSettings, "bsnes_video_filter", "bsnes_video_filter", "None");
             }
 
             // Controls
@@ -2696,6 +2703,47 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "mesen_palette", "palette", "Default");
             BindFeature(coreSettings, "mesen_shift_buttons_clockwise", "shift_buttons", "disabled");
             BindFeature(coreSettings, "mesen_fake_stereo", "fake_stereo", "disabled");
+            BindBoolFeature(coreSettings, "mesen_nospritelimit", "mesen_nospritelimit", "enabled", "disabled");
+            BindFeature(coreSettings, "mesen_overclock", "mesen_overclock", "None");
+            BindBoolFeature(coreSettings, "mesen_fdsautoinsertdisk", "mesen_fdsautoinsertdisk", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "mesen_fdsfastforwardload", "mesen_fdsfastforwardload", "enabled", "disabled");
+
+            bool overscan = SystemConfig.isOptSet("mesen_overscan_pixels") && !string.IsNullOrEmpty(SystemConfig["mesen_overscan_pixels"]);
+
+            if (overscan && SystemConfig.isOptSet("mesen_crop_area") && !string.IsNullOrEmpty(SystemConfig["mesen_crop_area"]) && SystemConfig["mesen_crop_area"] != "none")
+            {
+                string overscanArea = SystemConfig["mesen_crop_area"];
+                bool cropLimitHorizontal = (SystemConfig["mesen_overscan_pixels"] == "20px" || SystemConfig["mesen_overscan_pixels"] == "24px");
+
+                switch (overscanArea)
+                {
+                    case "all":
+                        coreSettings["mesen_overscan_down"] = SystemConfig["mesen_overscan_pixels"];
+                        coreSettings["mesen_overscan_left"] = cropLimitHorizontal ? "16px" : SystemConfig["mesen_overscan_pixels"];
+                        coreSettings["mesen_overscan_right"] = cropLimitHorizontal ? "16px" : SystemConfig["mesen_overscan_pixels"];
+                        coreSettings["mesen_overscan_up"] = SystemConfig["mesen_overscan_pixels"];
+                        break;
+                    case "topbottom":
+                        coreSettings["mesen_overscan_down"] = SystemConfig["mesen_overscan_pixels"];
+                        coreSettings["mesen_overscan_up"] = SystemConfig["mesen_overscan_pixels"];
+                        coreSettings["mesen_overscan_right"] = "None";
+                        coreSettings["mesen_overscan_left"] = "None";
+                        break;
+                    case "leftright":
+                        coreSettings["mesen_overscan_right"] = cropLimitHorizontal ? "16px" : SystemConfig["mesen_overscan_pixels"];
+                        coreSettings["mesen_overscan_left"] = cropLimitHorizontal ? "16px" : SystemConfig["mesen_overscan_pixels"];
+                        coreSettings["mesen_overscan_down"] = "None";
+                        coreSettings["mesen_overscan_up"] = "None";
+                        break;
+                }
+            }
+            else
+            {
+                coreSettings["mesen_overscan_down"] = "None";
+                coreSettings["mesen_overscan_left"] = "None";
+                coreSettings["mesen_overscan_right"] = "None";
+                coreSettings["mesen_overscan_up"] = "None";
+            }   
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "mesen_controller1", "1");
