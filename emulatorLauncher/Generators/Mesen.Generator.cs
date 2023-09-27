@@ -165,7 +165,7 @@ namespace emulatorLauncher
             BindBoolFeature(input, "HidePointerForLightGuns", "mesen_target", "false", "true");
 
             // Controllers configuration
-            SetupControllers(systemSection, mesenSystem);
+            SetupControllers(preference, systemSection, mesenSystem);
             SetupGuns(systemSection, mesenSystem);
 
             // Save json file

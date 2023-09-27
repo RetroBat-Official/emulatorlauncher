@@ -19,7 +19,7 @@ namespace emulatorLauncher
 {
     partial class MesenGenerator : Generator
     {
-        private void SetupControllers(DynamicJson systemSection, string mesenSystem)
+        private void SetupControllers(DynamicJson pref, DynamicJson systemSection, string mesenSystem)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -64,10 +64,10 @@ namespace emulatorLauncher
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
-                ConfigureInput(systemSection, controller, mesenSystem);
+                ConfigureInput(pref, systemSection, controller, mesenSystem);
         }
 
-        private void ConfigureInput(DynamicJson systemSection, Controller controller, string mesenSystem)
+        private void ConfigureInput(DynamicJson pref, DynamicJson systemSection, Controller controller, string mesenSystem)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -75,10 +75,10 @@ namespace emulatorLauncher
             if (controller.IsKeyboard)
                 return;
             else
-                ConfigureJoystick(systemSection, controller, mesenSystem);
+                ConfigureJoystick(pref, systemSection, controller, mesenSystem);
         }
 
-        private void ConfigureJoystick(DynamicJson systemSection, Controller ctrl, string mesenSystem)
+        private void ConfigureJoystick(DynamicJson pref, DynamicJson systemSection, Controller ctrl, string mesenSystem)
         {
             if (ctrl == null)
                 return;
@@ -163,6 +163,9 @@ namespace emulatorLauncher
                 mapping["Start"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString();
                 mapping["Select"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             }
+
+            if (playerIndex == 1)
+                WriteHotkeys(pref, index, isXInput);
         }
 
         private string DefinePortToUse(int playerIndex, string mesenSystem)
@@ -324,7 +327,7 @@ namespace emulatorLauncher
                     }
                 }
             }
-            else if (mesenSystem == "GameBoy")
+            else if (mesenSystem == "Gameboy")
             {
                 return "Controller";
             }
@@ -376,6 +379,101 @@ namespace emulatorLauncher
             }
         }
 
+        private void WriteHotkeys(DynamicJson pref, int index, bool isXInput)
+        {
+            pref.Remove("ShortcutKeys");
+            var shortcuts = new List<DynamicJson>();
+            
+            var ffshortcut = new DynamicJson();
+            ffshortcut["Shortcut"] = "FastForward";
+            var ffkeys = ffshortcut.GetOrCreateContainer("KeyCombination2");
+            ffkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            ffkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString();
+            ffkeys["Key3"] = "0";
+            shortcuts.Add(ffshortcut);
+
+            var rewshortcut = new DynamicJson();
+            rewshortcut["Shortcut"] = "Rewind";
+            var rewkeys = rewshortcut.GetOrCreateContainer("KeyCombination2");
+            rewkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            rewkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.left])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.left])).ToString();
+            rewkeys["Key3"] = "0";
+            shortcuts.Add(rewshortcut);
+
+            var shotshortcut = new DynamicJson();
+            shotshortcut["Shortcut"] = "TakeScreenshot";
+            var shotkeys = shotshortcut.GetOrCreateContainer("KeyCombination2");
+            shotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            shotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.r2])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.r2])).ToString();
+            shotkeys["Key3"] = "0";
+            shortcuts.Add(shotshortcut);
+
+            var pauseshortcut = new DynamicJson();
+            pauseshortcut["Shortcut"] = "Pause";
+            var pausekeys = pauseshortcut.GetOrCreateContainer("KeyCombination2");
+            pausekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            pausekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString();
+            pausekeys["Key3"] = "0";
+            shortcuts.Add(pauseshortcut);
+
+            var nextslotshortcut = new DynamicJson();
+            nextslotshortcut["Shortcut"] = "MoveToNextStateSlot";
+            var nextslotkeys = nextslotshortcut.GetOrCreateContainer("KeyCombination2");
+            nextslotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            nextslotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.up])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.up])).ToString();
+            nextslotkeys["Key3"] = "0";
+            shortcuts.Add(nextslotshortcut);
+
+            var prevslotshortcut = new DynamicJson();
+            prevslotshortcut["Shortcut"] = "MoveToPreviousStateSlot";
+            var prevslotkeys = prevslotshortcut.GetOrCreateContainer("KeyCombination2");
+            prevslotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            prevslotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.down])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.down])).ToString();
+            prevslotkeys["Key3"] = "0";
+            shortcuts.Add(prevslotshortcut);
+
+            var savestateshortcut = new DynamicJson();
+            savestateshortcut["Shortcut"] = "SaveState";
+            var savekeys = savestateshortcut.GetOrCreateContainer("KeyCombination2");
+            savekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            savekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString();
+            savekeys["Key3"] = "0";
+            shortcuts.Add(savestateshortcut);
+
+            var loadstateshortcut = new DynamicJson();
+            loadstateshortcut["Shortcut"] = "LoadState";
+            var loadkeys = loadstateshortcut.GetOrCreateContainer("KeyCombination2");
+            loadkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            loadkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString();
+            loadkeys["Key3"] = "0";
+            shortcuts.Add(loadstateshortcut);
+
+            var toggleffshortcut = new DynamicJson();
+            toggleffshortcut["Shortcut"] = "ToggleFastForward";
+            var fftogglekeys = toggleffshortcut.GetOrCreateContainer("KeyCombination2");
+            fftogglekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            fftogglekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])).ToString();
+            fftogglekeys["Key3"] = "0";
+            shortcuts.Add(toggleffshortcut);
+
+            var togglerewshortcut = new DynamicJson();
+            togglerewshortcut["Shortcut"] = "ToggleRewind";
+            var rewtogglekeys = togglerewshortcut.GetOrCreateContainer("KeyCombination2");
+            rewtogglekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            rewtogglekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])).ToString();
+            rewtogglekeys["Key3"] = "0";
+            shortcuts.Add(togglerewshortcut);
+
+            var exitshortcut = new DynamicJson();
+            exitshortcut["Shortcut"] = "Exit";
+            var exitkeys = exitshortcut.GetOrCreateContainer("KeyCombination2");
+            exitkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            exitkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString();
+            exitkeys["Key3"] = "0";
+            shortcuts.Add(exitshortcut);
+
+            pref.SetObject("ShortcutKeys", shortcuts);
+        }
 
         static List<string> xbuttonNames = new List<string>() { "Up", "Down", "Left", "Right", "Start", "Select", "L3", "R3", "L1", "R1", "?", "?", "South", "East", "West", "North", "L2", "R2", "RT Up", "RT Down", "RT Left", "RT Right", "LT Up", "LT Down", "LT Left", "LT Right" };
         static List<string> dibuttonNames = new List<string>() { "LT Up", "LT Down", "LT Left", "LT Right", "RT Up", "RT Down", "RT Left", "RT Right", "Z+", "Z-", "Z2+", "Z2-", "Up", "Down", "Right", "Left", "West", "South", "East", "North", "L1", "R1", "L2", "R2", "Select", "Start", "L3", "R3", "Guide" };
