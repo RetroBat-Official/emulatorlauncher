@@ -109,7 +109,7 @@ namespace emulatorLauncher
 
             port["Type"] = controllerType;
 
-            if (mesenSystem == "Nes")
+            if (mesenSystem == "Nes" || mesenSystem == "Gameboy")
             {
                 if (revertButtons)
                 {
