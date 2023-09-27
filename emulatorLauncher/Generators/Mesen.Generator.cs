@@ -14,8 +14,12 @@ using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
-   partial class MesenGenerator : Generator
+    partial class MesenGenerator : Generator
     {
+
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("mesen");
@@ -26,6 +30,9 @@ namespace emulatorLauncher
 
             // settings (xml configuration)
             SetupJsonConfiguration(path, system, rom);
+
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _resolution = resolution;
 
             // command line parameters
             var commandArray = new List<string>();
@@ -200,6 +207,8 @@ namespace emulatorLauncher
         {
             if (system != "snes")
                 return;
+
+            BindFeature(section, "Region", "mesen_region", "Auto");
         }
 
         private void SetupGuns(DynamicJson section, string mesenSystem)
@@ -216,6 +225,23 @@ namespace emulatorLauncher
                     mapping.SetObject("ZapperButtons", mouseID);
 
                     portSection["Type"] = "Zapper";
+                }
+            }
+
+            else if (mesenSystem == "Snes")
+            {
+                if (SystemConfig.isOptSet("mesen_superscope") && !string.IsNullOrEmpty(SystemConfig["mesen_superscope"]) && SystemConfig["mesen_superscope"] != "none")
+                {
+                    var portSection = section.GetOrCreateContainer(SystemConfig["mesen_superscope"]);
+                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    List<int> mouseID = new List<int>();
+                    mouseID.Add(512);
+                    mouseID.Add(513);
+                    mouseID.Add(514);
+                    mouseID.Add(6);
+                    mapping.SetObject("SuperScopeButtons", mouseID);
+
+                    portSection["Type"] = "SuperScope";
                 }
             }
         }
@@ -236,6 +262,24 @@ namespace emulatorLauncher
                     return "PcEngine";
             }
             return "none";
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
     }
 }
