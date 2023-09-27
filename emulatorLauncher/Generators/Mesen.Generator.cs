@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Threading;
 using System.Xml.Linq;
 using System.Drawing;
+using emulatorLauncher.Tools;
 
 namespace emulatorLauncher
 {
@@ -24,13 +25,13 @@ namespace emulatorLauncher
                 return null;
 
             // settings (xml configuration)
-            SetupConfiguration(path, rom);
+            SetupJsonConfiguration(path, system, rom);
 
             // command line parameters
             var commandArray = new List<string>();
 
             commandArray.Add("\"" + rom + "\"");
-            commandArray.Add("/fullscreen");
+            commandArray.Add("--fullscreen");
 
             string args = string.Join(" ", commandArray);
 
@@ -42,69 +43,92 @@ namespace emulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path, string rom)
+        private void SetupJsonConfiguration(string path, string system, string rom)
         {
-            string settingsFile = Path.Combine(path, "settings.xml");
+            string settingsFile = Path.Combine(path, "settings.json");
+            if (!File.Exists(settingsFile))
+                File.WriteAllText(settingsFile, "{}");
 
-            var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("Configuration");
-            BindFeature(xdoc, "Region", "mesen_region", "Auto");
+            var json = DynamicJson.Load(settingsFile);
+
+            string mesenSystem = GetMesenSystem(system);
+            if (mesenSystem == "none")
+                return;
+
+            json["FirstRun"] = "false";
+
+            // System preferences
+            var systemSection = json.GetOrCreateContainer(mesenSystem);
+            ConfigureNes(systemSection, system, rom);
+            ConfigurePCEngine(systemSection, system, rom);
+            ConfigureSnes(systemSection, system, rom);
+            ConfigureGameboy(systemSection, system, rom);
 
             // Emulator preferences
-            var preference = xdoc.GetOrCreateElement("PreferenceInfo");
-            preference.SetElementValue("DisplayLanguage", "SystemDefault");
-            preference.SetElementValue("SingleInstance", "true");
-            preference.SetElementValue("PauseWhenInBackground", "true");
-            preference.SetElementValue("PauseWhenInMenusAndConfig", "true");
-            preference.SetElementValue("PauseWhenInDebuggingTools", "true");
-            preference.SetElementValue("AutoLoadIpsPatches", "true");
+            var preference = json.GetOrCreateContainer("Preferences");
+
+            preference["AutomaticallyCheckForUpdates"] = "false";
+            preference["SingleInstance"] = "true";
+            preference["AutoLoadPatches"] = "true";
+            preference["PauseWhenInBackground"] = "true";
+            preference["PauseWhenInMenusAndConfig"] = "true";
+            preference["AllowBackgroundInput"] = "true";
+            preference["ConfirmExitResetPower"] = "false";
+            preference["AssociateSnesRomFiles"] = "false";
+            preference["AssociateSnesMusicFiles"] = "false";
+            preference["AssociateNesRomFiles"] = "false";
+            preference["AssociateNesMusicFiles"] = "false";
+            preference["AssociateGbRomFiles"] = "false";
+            preference["AssociateGbMusicFiles"] = "false";
+            preference["AssociatePceRomFiles"] = "false";
+            preference["AssociatePceMusicFiles"] = "false";
 
             if (SystemConfig.isOptSet("mesen_autosave") && SystemConfig["mesen_autosave"] != "false")
             {
-                preference.SetElementValue("AutoSave", "true");
-                preference.SetElementValue("AutoSaveDelay", SystemConfig["mesen_autosave"]);
+                preference["EnableAutoSaveState"] = "true";
+                preference["AutoSaveStateDelay"] = SystemConfig["mesen_autosave"];
             }
             else
-                preference.SetElementValue("AutoSave", "false");
+                preference["EnableAutoSaveState"] = "false";
 
-            preference.SetElementValue("AutomaticallyCheckForUpdates", "false");
-
-            if (SystemConfig.isOptSet("mesen_osd") && SystemConfig.getOptBoolean("mesen_osd"))
-            {
-                preference.SetElementValue("DisableOsd", "false");
-                preference.SetElementValue("AutoSaveNotify", "true");
-            }
-            else
-                preference.SetElementValue("DisableOsd", "true");
-
+            BindBoolFeature(preference, "EnableRewind", "rewind", "true", "false");
+            BindBoolFeature(preference, "DisableOsd", "mesen_osd", "false", "true");
             BindBoolFeature(preference, "ShowGameTimer", "mesen_timecounter", "true", "false");
-            preference.SetElementValue("ConfirmExitResetPower", "false");
+            BindBoolFeature(preference, "ShowFps", "mesen_fps", "true", "false");
 
             // define folders
+            string gamesFolder = Path.GetDirectoryName(rom);
+            if (!string.IsNullOrEmpty(gamesFolder) && Directory.Exists(gamesFolder))
+            {
+                preference["OverrideGameFolder"] = "true";
+                preference["GameFolder"] = gamesFolder;
+            }
+
             string recordsFolder = Path.Combine(AppConfig.GetFullPath("records"), "output", "mesen");
             if (!Directory.Exists(recordsFolder)) try { Directory.CreateDirectory(recordsFolder); }
                 catch { }
             if (!string.IsNullOrEmpty(recordsFolder) && Directory.Exists(recordsFolder))
             {
-                preference.SetElementValue("OverrideAviFolder", "true");
-                preference.SetElementValue("AviFolder", recordsFolder);
+                preference["OverrideAviFolder"] = "true";
+                preference["AviFolder"] = recordsFolder;
             }
 
-            string savesFolder = Path.Combine(AppConfig.GetFullPath("saves"), "nes", "mesen");
+            string savesFolder = Path.Combine(AppConfig.GetFullPath("saves"), system, "mesen");
             if (!Directory.Exists(savesFolder)) try { Directory.CreateDirectory(savesFolder); }
                 catch { }
             if (!string.IsNullOrEmpty(savesFolder) && Directory.Exists(savesFolder))
             {
-                preference.SetElementValue("OverrideSaveDataFolder", "true");
-                preference.SetElementValue("SaveDataFolder", savesFolder);
+                preference["OverrideSaveDataFolder"] = "true";
+                preference["SaveDataFolder"] = savesFolder;
             }
 
-            string saveStateFolder = Path.Combine(AppConfig.GetFullPath("saves"), "nes", "mesen", "SaveStates");
+            string saveStateFolder = Path.Combine(AppConfig.GetFullPath("saves"), system, "mesen", "SaveStates");
             if (!Directory.Exists(saveStateFolder)) try { Directory.CreateDirectory(saveStateFolder); }
                 catch { }
             if (!string.IsNullOrEmpty(saveStateFolder) && Directory.Exists(saveStateFolder))
             {
-                preference.SetElementValue("OverrideSaveStateFolder", "true");
-                preference.SetElementValue("SaveStateFolder", saveStateFolder);
+                preference["OverrideSaveStateFolder"] = "true";
+                preference["SaveStateFolder"] = saveStateFolder;
             }
 
             string screenshotsFolder = Path.Combine(AppConfig.GetFullPath("screenshots"), "mesen");
@@ -112,31 +136,106 @@ namespace emulatorLauncher
                 catch { }
             if (!string.IsNullOrEmpty(screenshotsFolder) && Directory.Exists(screenshotsFolder))
             {
-                preference.SetElementValue("OverrideScreenshotFolder", "true");
-                preference.SetElementValue("ScreenshotFolder", screenshotsFolder);
+                preference["OverrideScreenshotFolder"] = "true";
+                preference["ScreenshotFolder"] = screenshotsFolder;
             }
 
             // Video menu
-            var video = xdoc.GetOrCreateElement("VideoInfo");
-            BindBoolFeature(video, "ShowFPS", "mesen_fps", "true", "false");
+            var video = json.GetOrCreateContainer("Video");
             BindFeature(video, "VideoFilter", "mesen_filter", "None");
-            BindBoolFeature(video, "UseBilinearInterpolation", "bilinear_filtering", "true", "false");
             BindFeature(video, "AspectRatio", "mesen_ratio", "Auto");
+            BindBoolFeature(video, "UseBilinearInterpolation", "bilinear_filtering", "true", "false");
             BindBoolFeature(video, "VerticalSync", "mesen_vsync", "false", "true");
-            BindBoolFeature(video, "UseHdPacks", "mesen_customtextures", "true", "false");
             BindFeature(video, "ScanlineIntensity", "mesen_scanlines", "0");
-            BindBoolFeature(video, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
             BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale", "true", "false");
 
             // Emulation menu
-            var emulation = xdoc.GetOrCreateElement("EmulationInfo");
+            var emulation = json.GetOrCreateContainer("Emulation");
             BindFeature(emulation, "RunAheadFrames", "mesen_runahead", "0");
 
-            // Controllers configuration
-            SetupControllers(xdoc);
+            // Input menu
+            var input = json.GetOrCreateContainer("Input");
+            BindBoolFeature(input, "HidePointerForLightGuns", "mesen_target", "false", "true");
 
-            // Save xml file
-            xdoc.Save(settingsFile);
+            // Controllers configuration
+            SetupControllers(systemSection, mesenSystem);
+            SetupGuns(systemSection, mesenSystem);
+
+            // Save json file
+            json.Save();
+        }
+
+        private void ConfigureNes(DynamicJson section, string system, string rom)
+        {
+            if (system != "nes" && system != "fds")
+                return;
+
+            BindBoolFeature(section, "EnableHdPacks", "mesen_customtextures", "true", "false");
+            BindFeature(section, "Region", "mesen_region", "Auto");
+            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
+
+            if (system == "fds")
+            {
+                BindBoolFeature(section, "FdsAutoInsertDisk", "mesen_fdsautoinsertdisk", "true", "false");
+                BindBoolFeature(section, "FdsFastForwardOnLoad", "mesen_fdsfastforwardload", "true", "false");
+                section["FdsAutoLoadDisk"] = "true";
+            }
+        }
+
+        private void ConfigurePCEngine(DynamicJson section, string system, string rom)
+        {
+            if (system != "pcengine")
+                return;
+
+            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
+        }
+
+        private void ConfigureGameboy(DynamicJson section, string system, string rom)
+        {
+            if (system != "gb" && system != "gbc")
+                return;
+        }
+
+        private void ConfigureSnes(DynamicJson section, string system, string rom)
+        {
+            if (system != "snes")
+                return;
+        }
+
+        private void SetupGuns(DynamicJson section, string mesenSystem)
+        {
+            if (mesenSystem == "Nes")
+            {
+                if (SystemConfig.isOptSet("mesen_zapper") && !string.IsNullOrEmpty(SystemConfig["mesen_zapper"]) && SystemConfig["mesen_zapper"] != "none")
+                {
+                    var portSection = section.GetOrCreateContainer(SystemConfig["mesen_zapper"]);
+                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    List<int> mouseID = new List<int>();
+                    mouseID.Add(512);
+                    mouseID.Add(513);
+                    mapping.SetObject("ZapperButtons", mouseID);
+
+                    portSection["Type"] = "Zapper";
+                }
+            }
+        }
+
+        private string GetMesenSystem(string System)
+        {
+            switch (System)
+            {
+                case "nes":
+                case "fds":
+                    return "Nes";
+                case "snes":
+                    return "Snes";
+                case "gb":
+                case "gbc":
+                    return "Gameboy";
+                case "pcengine":
+                    return "PcEngine";
+            }
+            return "none";
         }
     }
 }
