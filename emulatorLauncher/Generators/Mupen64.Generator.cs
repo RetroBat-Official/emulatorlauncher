@@ -58,9 +58,27 @@ namespace emulatorLauncher
                 if (File.Exists(n64ddrom))
                 {
                     commandArray.Add("--disk");
-                    commandArray.Add(" \"" + n64ddrom + "\"");
+                    commandArray.Add("\"" + n64ddrom + "\"");
                 }
+
+                commandArray.Add("\"" + rom + "\"");
             }
+
+            else if (system == "n64dd" && Path.GetExtension(rom).ToLowerInvariant() == ".ndd")
+            {
+                string romPath = Path.GetDirectoryName(rom);
+                string n64rom = Path.Combine(romPath, Path.GetFileNameWithoutExtension(rom));
+                if (File.Exists(n64rom))
+                {
+                    commandArray.Add("--disk");
+                    commandArray.Add("\"" + rom + "\"");
+                }
+
+                commandArray.Add("\"" + n64rom + "\"");
+            }
+
+            else
+                commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
 
@@ -68,7 +86,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args + " \"" + rom + "\"",
+                Arguments = args,
             };
         }
 
@@ -106,8 +124,13 @@ namespace emulatorLauncher
                 ini.WriteValue("Rosalie's Mupen GUI", "ShowVerboseLogMessages", "False");
                 ini.WriteValue("Rosalie's Mupen GUI", "CheckForUpdates", "False");
 
-                // CPU Emulator
-                if (SystemConfig.isOptSet("cpucore") && !string.IsNullOrEmpty(SystemConfig["cpucore"]))
+                // CPU Emulator (n64dd does not worked with dynamic recompiler)
+                if (system == "n64dd" && (!SystemConfig.isOptSet("cpucore") || SystemConfig["cpucore"] == "2"))
+                {
+                    ini.WriteValue("Core", "R4300Emulator", "0");
+                    ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", "0");
+                }
+                else if (SystemConfig.isOptSet("cpucore") && !string.IsNullOrEmpty(SystemConfig["cpucore"]))
                 {
                     ini.WriteValue("Core", "R4300Emulator", SystemConfig["cpucore"]);
                     ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", SystemConfig["cpucore"]);

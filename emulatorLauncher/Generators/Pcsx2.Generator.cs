@@ -710,7 +710,6 @@ namespace emulatorLauncher
                     ini.WriteValue("Folders", "Bios", biosPath);
 
                 string biosPcsx2Path = Path.Combine(biosPath, "pcsx2");
-
                 if (!Directory.Exists(biosPcsx2Path))
                     try { Directory.CreateDirectory(biosPcsx2Path); }
                     catch { }
@@ -725,66 +724,26 @@ namespace emulatorLauncher
                 ini.WriteValue("Filenames", "BIOS", biosFile);
 
                 // Cheats Path
-                string cheatsPath = AppConfig.GetFullPath("cheats");
-
-                if (string.IsNullOrEmpty(cheatsPath))
-                {
-                    cheatsPath = Path.GetFullPath(Path.Combine("home", "..", "..", "cheats"));
-                    if (!Directory.Exists(cheatsPath))
-                        try { Directory.CreateDirectory(cheatsPath); }
-                        catch { }
-                }
-
-                if (!string.IsNullOrEmpty(cheatsPath))
-                {
-                    string cheatsPcsx2Path = Path.Combine(cheatsPath, "pcsx2");
-
-                    if (!Directory.Exists(cheatsPcsx2Path))
-                        try { Directory.CreateDirectory(cheatsPcsx2Path); }
-                        catch { }
-
-                    ini.WriteValue("Folders", "Cheats", Path.Combine(cheatsPcsx2Path, "cheats"));
-                    ini.WriteValue("Folders", "CheatsWS", Path.Combine(cheatsPcsx2Path, "cheats_ws"));
-                    ini.WriteValue("Folders", "CheatsNI", Path.Combine(cheatsPcsx2Path, "cheats_ni"));
-                }
+                string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "pcsx2", "cheats");
+                string cheatswsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "pcsx2", "cheats_ws");
+                string cheatsniPath = Path.Combine(AppConfig.GetFullPath("cheats"), "pcsx2", "cheats_ni");
+                SetIniPath(ini, "Folders", "Cheats", cheatsPath);
+                SetIniPath(ini, "Folders", "CheatsWS", cheatswsPath);
+                SetIniPath(ini, "Folders", "CheatsNI", cheatsniPath);
 
                 // Snapshots path
-                string screenShotsPath = AppConfig.GetFullPath("screenshots");
-                if (!string.IsNullOrEmpty(screenShotsPath))
-                    ini.WriteValue("Folders", "Snapshots", screenShotsPath + "\\" + "pcsx2");
+                string screenShotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "pcsx2");
+                SetIniPath(ini, "Folders", "Snapshots", screenShotsPath);
 
                 // Savestates path
-                string savesPath = AppConfig.GetFullPath("saves");
-                string memcardsPath = AppConfig.GetFullPath("saves");
-                if (!string.IsNullOrEmpty(savesPath))
-                {
-                    savesPath = Path.Combine(savesPath, "ps2", "pcsx2", "sstates");
-                    memcardsPath = Path.Combine(memcardsPath, "ps2", "pcsx2", "memcards");
-
-                    if (!Directory.Exists(savesPath))
-                        try { Directory.CreateDirectory(savesPath); }
-                        catch { }
-
-                    if (!Directory.Exists(memcardsPath))
-                        try { Directory.CreateDirectory(memcardsPath); }
-                        catch { }
-
-                    ini.WriteValue("Folders", "Savestates", savesPath);
-                    ini.WriteValue("Folders", "MemoryCards", memcardsPath);
-                }
+                string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "sstates");
+                string memcardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "memcards");
+                SetIniPath(ini, "Folders", "Savestates", savesPath);
+                SetIniPath(ini, "Folders", "MemoryCards", memcardsPath);
 
                 //Custom textures path
-                string texturePath = AppConfig.GetFullPath("bios");
-                if (!string.IsNullOrEmpty(texturePath))
-                {
-                    texturePath = Path.Combine(texturePath, "pcsx2", "textures");
-
-                    if (!Directory.Exists(texturePath))
-                        try { Directory.CreateDirectory(texturePath); }
-                        catch { }
-
-                    ini.WriteValue("Folders", "Textures", texturePath);
-                }
+                string texturePath = Path.Combine(AppConfig.GetFullPath("bios"), "pcsx2", "textures");
+                SetIniPath(ini, "Folders", "Textures", texturePath);
 
                 // UI section
                 ini.WriteValue("UI", "ConfirmShutdown", "false");
@@ -842,10 +801,7 @@ namespace emulatorLauncher
                     ini.WriteValue("EmuCore/GS", "linear_present_mode", "1");
                 }
 
-                if (SystemConfig.isOptSet("texture_preloading") && !string.IsNullOrEmpty(SystemConfig["texture_preloading"]))
-                    ini.WriteValue("EmuCore/GS", "texture_preloading", SystemConfig["texture_preloading"]);
-                else if (Features.IsSupported("texture_preloading"))
-                    ini.WriteValue("EmuCore/GS", "texture_preloading", "2");
+                BindIniFeature(ini, "EmuCore/GS", "texture_preloading", "texture_preloading", "2");
 
                 // User hacks
                 BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks", "UserHacks", "true", "false");

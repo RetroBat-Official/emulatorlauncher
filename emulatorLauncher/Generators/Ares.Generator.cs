@@ -24,7 +24,7 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool fullscreen = !IsEmulationStationWindowed(out _);
+            bool fullscreen = !IsEmulationStationWindowed();
 
             //Applying bezels
             if (!fullscreen)
@@ -318,40 +318,40 @@ namespace emulatorLauncher
 
         private static Dictionary<string, string> aresSystems = new Dictionary<string, string>
         {
-            { "Atari2600", "Atari 2600" },
+            { "Atari2600", "Atari2600" },
             { "WonderSwan", "WonderSwan" },
-            { "WonderSwanColor", "WonderSwan Color" },
-            { "PocketChallengeV2", "Pocket Challenge V2" },
+            { "WonderSwanColor", "WonderSwanColor" },
+            { "PocketChallengeV2", "PocketChallengeV2" },
             { "ColecoVision", "ColecoVision" },
             { "MyVision", "MyVision" },
             { "MSX", "MSX" },
             { "MSX2", "MSX2" },
-            { "PCEngine", "PC Engine" },
-            { "PCEngineCD", "PC Engine CD" },
+            { "PCEngine", "PCEngine" },
+            { "PCEngineCD", "PCEngineCD" },
             { "SuperGrafx", "SuperGrafx" },
-            { "SuperGrafxCD", "SuperGrafx CD" },
+            { "SuperGrafxCD", "SuperGrafxCD" },
             { "Famicom", "Famicom" },
-            { "FamicomDiskSystem", "Famicom Disk System" },
-            { "SuperFamicom", "Super Famicom" },
-            { "Nintendo64", "Nintendo 64" },
-            { "Nintendo64DD", "Nintendo 64DD" },
-            { "GameBoy", "Game Boy" },
-            { "GameBoyColor", "Game Boy Color" },
-            { "GameBoyAdvance", "Game Boy Advance" },
+            { "FamicomDiskSystem", "FamicomDiskSystem" },
+            { "SuperFamicom", "SuperFamicom" },
+            { "Nintendo64", "Nintendo64" },
+            { "Nintendo64DD", "Nintendo64DD" },
+            { "GameBoy", "GameBoy" },
+            { "GameBoyColor", "GameBoyColor" },
+            { "GameBoyAdvance", "GameBoyAdvance" },
             { "SG-1000", "SG-1000" },
-            { "MasterSystem", "Master System" },
-            { "GameGear", "Game Gear" },
-            { "MegaDrive", "Mega Drive" },
-            { "Mega32X", "Mega 32X" },
-            { "MegaCD", "Mega CD" },
-            { "MegaCD32X", "Mega CD 32X" },
-            { "NeoGeoAES", "Neo Geo AES" },
-            { "NeoGeoMVS", "Neo Geo MVS" },
-            { "NeoGeoPocket", "Neo Geo Pocket" },
-            { "NeoGeoPocketColor", "Neo Geo Pocket Color" },
+            { "MasterSystem", "MasterSystem" },
+            { "GameGear", "GameGear" },
+            { "MegaDrive", "MegaDrive" },
+            { "Mega32X", "Mega32X" },
+            { "MegaCD", "MegaCD" },
+            { "MegaCD32X", "MegaCD32X" },
+            { "NeoGeoAES", "NeoGeoAES" },
+            { "NeoGeoMVS", "NeoGeoMVS" },
+            { "NeoGeoPocket", "NeoGeoPocket" },
+            { "NeoGeoPocketColor", "NeoGeoPocketColor" },
             { "PlayStation", "PlayStation" },
-            { "ZXSpectrum", "ZX Spectrum" },
-            { "ZXSpectrum128", "ZX Spectrum 128" }
+            { "ZXSpectrum", "ZXSpectrum" },
+            { "ZXSpectrum128", "ZXSpectrum128" }
         };
     }
 }

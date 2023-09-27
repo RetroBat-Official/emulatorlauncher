@@ -676,12 +676,12 @@ namespace emulatorLauncher
             {
                 commandArray.Add("-ioport");
                 commandArray.Add("peb");
-                if (!SystemConfig.isOptSet("ti99_32kram") || SystemConfig.getOptBoolean("ti99_32kram"))
+                if (SystemConfig.isOptSet("ti99_32kram") && SystemConfig.getOptBoolean("ti99_32kram"))
                 { 
                     commandArray.Add("-ioport:peb:slot2");
                     commandArray.Add("32kmem");
                 }
-                if (!SystemConfig.isOptSet("ti99_speech") || SystemConfig.getOptBoolean("ti99_speech"))
+                if (SystemConfig.isOptSet("ti99_speech") && SystemConfig.getOptBoolean("ti99_speech"))
                 {
                     commandArray.Add("-ioport:peb:slot3");
                     commandArray.Add("speech");
