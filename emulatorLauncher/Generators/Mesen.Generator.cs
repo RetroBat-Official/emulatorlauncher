@@ -25,14 +25,13 @@ namespace emulatorLauncher
                 return null;
 
             // settings (xml configuration)
-            SetupConfiguration(path, rom);
-            //SetupJsonConfiguration(path, system, rom);
+            SetupJsonConfiguration(path, system, rom);
 
             // command line parameters
             var commandArray = new List<string>();
 
             commandArray.Add("\"" + rom + "\"");
-            commandArray.Add("/fullscreen");
+            commandArray.Add("--fullscreen");
 
             string args = string.Join(" ", commandArray);
 
@@ -42,103 +41,6 @@ namespace emulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args,
             };
-        }
-
-        private void SetupConfiguration(string path, string rom)
-        {
-            string settingsFile = Path.Combine(path, "settings.xml");
-
-            var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("Configuration");
-            BindFeature(xdoc, "Region", "mesen_region", "Auto");
-
-            // Emulator preferences
-            var preference = xdoc.GetOrCreateElement("PreferenceInfo");
-            preference.SetElementValue("DisplayLanguage", "SystemDefault");
-            preference.SetElementValue("SingleInstance", "true");
-            preference.SetElementValue("PauseWhenInBackground", "true");
-            preference.SetElementValue("PauseWhenInMenusAndConfig", "true");
-            preference.SetElementValue("PauseWhenInDebuggingTools", "true");
-            preference.SetElementValue("AutoLoadIpsPatches", "true");
-
-            if (SystemConfig.isOptSet("mesen_autosave") && SystemConfig["mesen_autosave"] != "false")
-            {
-                preference.SetElementValue("AutoSave", "true");
-                preference.SetElementValue("AutoSaveDelay", SystemConfig["mesen_autosave"]);
-            }
-            else
-                preference.SetElementValue("AutoSave", "false");
-
-            preference.SetElementValue("AutomaticallyCheckForUpdates", "false");
-
-            if (SystemConfig.isOptSet("mesen_osd") && SystemConfig.getOptBoolean("mesen_osd"))
-            {
-                preference.SetElementValue("DisableOsd", "false");
-                preference.SetElementValue("AutoSaveNotify", "true");
-            }
-            else
-                preference.SetElementValue("DisableOsd", "true");
-
-            BindBoolFeature(preference, "ShowGameTimer", "mesen_timecounter", "true", "false");
-            preference.SetElementValue("ConfirmExitResetPower", "false");
-
-            // define folders
-            string recordsFolder = Path.Combine(AppConfig.GetFullPath("records"), "output", "mesen");
-            if (!Directory.Exists(recordsFolder)) try { Directory.CreateDirectory(recordsFolder); }
-                catch { }
-            if (!string.IsNullOrEmpty(recordsFolder) && Directory.Exists(recordsFolder))
-            {
-                preference.SetElementValue("OverrideAviFolder", "true");
-                preference.SetElementValue("AviFolder", recordsFolder);
-            }
-
-            string savesFolder = Path.Combine(AppConfig.GetFullPath("saves"), "nes", "mesen");
-            if (!Directory.Exists(savesFolder)) try { Directory.CreateDirectory(savesFolder); }
-                catch { }
-            if (!string.IsNullOrEmpty(savesFolder) && Directory.Exists(savesFolder))
-            {
-                preference.SetElementValue("OverrideSaveDataFolder", "true");
-                preference.SetElementValue("SaveDataFolder", savesFolder);
-            }
-
-            string saveStateFolder = Path.Combine(AppConfig.GetFullPath("saves"), "nes", "mesen", "SaveStates");
-            if (!Directory.Exists(saveStateFolder)) try { Directory.CreateDirectory(saveStateFolder); }
-                catch { }
-            if (!string.IsNullOrEmpty(saveStateFolder) && Directory.Exists(saveStateFolder))
-            {
-                preference.SetElementValue("OverrideSaveStateFolder", "true");
-                preference.SetElementValue("SaveStateFolder", saveStateFolder);
-            }
-
-            string screenshotsFolder = Path.Combine(AppConfig.GetFullPath("screenshots"), "mesen");
-            if (!Directory.Exists(screenshotsFolder)) try { Directory.CreateDirectory(screenshotsFolder); }
-                catch { }
-            if (!string.IsNullOrEmpty(screenshotsFolder) && Directory.Exists(screenshotsFolder))
-            {
-                preference.SetElementValue("OverrideScreenshotFolder", "true");
-                preference.SetElementValue("ScreenshotFolder", screenshotsFolder);
-            }
-
-            // Video menu
-            var video = xdoc.GetOrCreateElement("VideoInfo");
-            BindBoolFeature(video, "ShowFPS", "mesen_fps", "true", "false");
-            BindFeature(video, "VideoFilter", "mesen_filter", "None");
-            BindBoolFeature(video, "UseBilinearInterpolation", "bilinear_filtering", "true", "false");
-            BindFeature(video, "AspectRatio", "mesen_ratio", "Auto");
-            BindBoolFeature(video, "VerticalSync", "mesen_vsync", "false", "true");
-            BindBoolFeature(video, "UseHdPacks", "mesen_customtextures", "true", "false");
-            BindFeature(video, "ScanlineIntensity", "mesen_scanlines", "0");
-            BindBoolFeature(video, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
-            BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale", "true", "false");
-
-            // Emulation menu
-            var emulation = xdoc.GetOrCreateElement("EmulationInfo");
-            BindFeature(emulation, "RunAheadFrames", "mesen_runahead", "0");
-
-            // Controllers configuration
-            SetupControllers(xdoc);
-
-            // Save xml file
-            xdoc.Save(settingsFile);
         }
 
         private void SetupJsonConfiguration(string path, string system, string rom)
@@ -157,6 +59,10 @@ namespace emulatorLauncher
 
             // System preferences
             var systemSection = json.GetOrCreateContainer(mesenSystem);
+            ConfigureNes(systemSection, system, rom);
+            ConfigurePCEngine(systemSection, system, rom);
+            ConfigureSnes(systemSection, system, rom);
+            ConfigureGameboy(systemSection, system, rom);
 
             // Emulator preferences
             var preference = json.GetOrCreateContainer("Preferences");
@@ -191,7 +97,7 @@ namespace emulatorLauncher
             BindBoolFeature(preference, "ShowFps", "mesen_fps", "true", "false");
 
             // define folders
-            string gamesFolder = AppConfig.GetFullPath(rom);
+            string gamesFolder = Path.GetDirectoryName(rom);
             if (!string.IsNullOrEmpty(gamesFolder) && Directory.Exists(gamesFolder))
             {
                 preference["OverrideGameFolder"] = "true";
@@ -247,14 +153,13 @@ namespace emulatorLauncher
             var emulation = json.GetOrCreateContainer("Emulation");
             BindFeature(emulation, "RunAheadFrames", "mesen_runahead", "0");
 
-            // System configuration
-            ConfigureNes(systemSection, system, rom);
-            ConfigurePCEngine(systemSection, system, rom);
-            ConfigureSnes(systemSection, system, rom);
-            ConfigureGameboy(systemSection, system, rom);
+            // Input menu
+            var input = json.GetOrCreateContainer("Input");
+            BindBoolFeature(input, "HidePointerForLightGuns", "mesen_target", "false", "true");
 
             // Controllers configuration
-            //SetupControllers(systemSection, system);
+            SetupControllers(systemSection, mesenSystem);
+            SetupGuns(systemSection, mesenSystem);
 
             // Save json file
             json.Save();
@@ -268,6 +173,13 @@ namespace emulatorLauncher
             BindBoolFeature(section, "EnableHdPacks", "mesen_customtextures", "true", "false");
             BindFeature(section, "Region", "mesen_region", "Auto");
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
+
+            if (system == "fds")
+            {
+                BindBoolFeature(section, "FdsAutoInsertDisk", "mesen_fdsautoinsertdisk", "true", "false");
+                BindBoolFeature(section, "FdsFastForwardOnLoad", "mesen_fdsfastforwardload", "true", "false");
+                section["FdsAutoLoadDisk"] = "true";
+            }
         }
 
         private void ConfigurePCEngine(DynamicJson section, string system, string rom)
@@ -290,6 +202,24 @@ namespace emulatorLauncher
                 return;
         }
 
+        private void SetupGuns(DynamicJson section, string mesenSystem)
+        {
+            if (mesenSystem == "Nes")
+            {
+                if (SystemConfig.isOptSet("mesen_zapper") && !string.IsNullOrEmpty(SystemConfig["mesen_zapper"]) && SystemConfig["mesen_zapper"] != "none")
+                {
+                    var portSection = section.GetOrCreateContainer(SystemConfig["mesen_zapper"]);
+                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    List<int> mouseID = new List<int>();
+                    mouseID.Add(512);
+                    mouseID.Add(513);
+                    mapping.SetObject("ZapperButtons", mouseID);
+
+                    portSection["Type"] = "Zapper";
+                }
+            }
+        }
+
         private string GetMesenSystem(string System)
         {
             switch (System)
@@ -302,6 +232,8 @@ namespace emulatorLauncher
                 case "gb":
                 case "gbc":
                     return "Gameboy";
+                case "pcengine":
+                    return "PcEngine";
             }
             return "none";
         }
