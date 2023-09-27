@@ -69,7 +69,7 @@ namespace emulatorLauncher
             ConfigureNes(systemSection, system, rom);
             ConfigurePCEngine(systemSection, system, rom);
             ConfigureSnes(systemSection, system, rom);
-            ConfigureGameboy(systemSection, system, rom);
+            ConfigureGameboy(systemSection, system, rom, path);
 
             // Emulator preferences
             var preference = json.GetOrCreateContainer("Preferences");
@@ -197,10 +197,39 @@ namespace emulatorLauncher
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
         }
 
-        private void ConfigureGameboy(DynamicJson section, string system, string rom)
+        private void ConfigureGameboy(DynamicJson section, string system, string rom, string path)
         {
-            if (system != "gb" && system != "gbc")
+            if (system != "gb" && system != "gbc" && system != "sgb")
                 return;
+
+            if (system == "gb")
+                section["Model"] = "Gameboy";
+            else if (system == "gbc")
+                section["Model"] = "GameboyColor";
+            else if (system == "sgb")
+            {
+                section["Model"] = "SuperGameboy";
+                BindBoolFeature(section, "UseSgb2", "mesen_sgb2", "false", "true");
+                BindBoolFeature(section, "HideSgbBorders", "mesen_hidesgbborders", "true", "false");
+
+                // Firmwares for sgb need to be copied to emulator folder
+                string targetFirmwarePath = Path.Combine(path, "Firmware");
+                if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
+                    catch { }
+                string targetFirmware1 = Path.Combine(targetFirmwarePath, "SGB1.sfc");
+                string targetFirmware2 = Path.Combine(targetFirmwarePath, "SGB2.sfc");
+
+                string sourceFirmware1 = Path.Combine(AppConfig.GetFullPath("bios"), "SGB1.sfc");
+                string sourceFirmware2 = Path.Combine(AppConfig.GetFullPath("bios"), "SGB2.sfc");
+
+                if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
+                    File.Copy(sourceFirmware1, targetFirmware1);
+                if (File.Exists(sourceFirmware2) && !File.Exists(targetFirmware2) && Directory.Exists(targetFirmwarePath))
+                    File.Copy(sourceFirmware2, targetFirmware2);
+
+                if (!File.Exists(sourceFirmware1) && !File.Exists(sourceFirmware2))
+                    throw new ApplicationException("Super Gameboy firmware is missing (SGB1.sfc and/or SGB2.sfc)");
+            }
         }
 
         private void ConfigureSnes(DynamicJson section, string system, string rom)
@@ -257,6 +286,7 @@ namespace emulatorLauncher
                     return "Snes";
                 case "gb":
                 case "gbc":
+                case "sgb":
                     return "Gameboy";
                 case "pcengine":
                     return "PcEngine";
