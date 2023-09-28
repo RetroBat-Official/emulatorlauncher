@@ -18,12 +18,23 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private Pcsx2SaveStatesMonitor _saveStatesMonitor;
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-
         private bool _isPcsx17;
         private bool _isPcsxqt;
+
+        public override void Cleanup()
+        {
+            if (_saveStatesMonitor != null)
+            {
+                _saveStatesMonitor.Dispose();
+                _saveStatesMonitor = null;
+            }
+
+            base.Cleanup();
+        }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -99,7 +110,7 @@ namespace emulatorLauncher
             // Configuration files
             // QT version has now only 1 ini file versus multiple for wxwidgets version
             if (_isPcsxqt)
-                SetupConfigurationQT(path, rom);
+                SetupConfigurationQT(path, rom, system);
 
             else
             {
@@ -157,6 +168,20 @@ namespace emulatorLauncher
                     commandArray.Add("--fullboot");
             }
 
+            commandArray.Add("\"" + rom + "\"");
+
+            if (File.Exists(SystemConfig["state_file"]))
+            {
+                if (_saveStatesMonitor != null)
+                {
+                    // Pcsx2 always starts on slot 1, then copy to slot 1 so it can be reloaded
+                    _saveStatesMonitor.CopyToPhysicalSlot(SystemConfig["state_file"], _saveStatesMonitor.IncrementalMode ? 1 : -1);
+
+                    commandArray.Add("-statefile");
+                    commandArray.Add("\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"");                    
+                }
+            }
+
             string args = string.Join(" ", commandArray);
 
             //start emulator
@@ -164,7 +189,7 @@ namespace emulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = _path,
-                Arguments = args + " \"" + rom + "\"",
+                Arguments = args,
             };
         }
 
@@ -208,8 +233,9 @@ namespace emulatorLauncher
                             catch { }
 
                         ini.WriteValue("Folders", "UseDefaultSavestates", "disabled");
-                        ini.WriteValue("Folders", "UseDefaultMemoryCards", "disabled");
                         ini.WriteValue("Folders", "Savestates", savesPath.Replace("\\", "\\\\") + "\\\\" + "sstates");
+
+                        ini.WriteValue("Folders", "UseDefaultMemoryCards", "disabled");
                         ini.WriteValue("Folders", "MemoryCards", savesPath.Replace("\\", "\\\\") + "\\\\" + "memcards");
                     }
 
@@ -633,10 +659,10 @@ namespace emulatorLauncher
                             ini.WriteValue("Settings", "OsdShowSpeed", "0");
                         }
 
-                        if (SystemConfig.isOptSet("Notifications") && SystemConfig.getOptBoolean("Notifications"))
-                            ini.WriteValue("Settings", "OsdShowMessages", "1");
-                        else
+                        if (SystemConfig.isOptSet("Notifications") && !SystemConfig.getOptBoolean("Notifications"))
                             ini.WriteValue("Settings", "OsdShowMessages", "0");
+                        else
+                            ini.WriteValue("Settings", "OsdShowMessages", "1");
                     }
 
                 }
@@ -651,7 +677,7 @@ namespace emulatorLauncher
         /// Setup Configuration of PCSX2.ini file for New PCSX2 QT version
         /// </summary>
         /// <param name="path"></param>
-        private void SetupConfigurationQT(string path, string rom)
+        private void SetupConfigurationQT(string path, string rom, string system)
         {
             var biosList = new string[] {
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC",
@@ -735,11 +761,30 @@ namespace emulatorLauncher
                 string screenShotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "pcsx2");
                 SetIniPath(ini, "Folders", "Snapshots", screenShotsPath);
 
-                // Savestates path
-                string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "sstates");
-                string memcardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "memcards");
-                SetIniPath(ini, "Folders", "Savestates", savesPath);
+                // Memory cards path
+                string memcardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "memcards");                
                 SetIniPath(ini, "Folders", "MemoryCards", memcardsPath);
+
+                // SaveStates path
+                string savesPath = AppConfig.GetFullPath("saves");
+                if (!string.IsNullOrEmpty(savesPath))
+                {                    
+                    savesPath = Path.Combine(savesPath, system, "pcsx2", "sstates");
+                    try { Directory.CreateDirectory(savesPath); } catch { }
+
+                    if (Program.HasEsSaveStates)
+                    {
+                        // Keep the original folder, we'll listen to it, and inject in our custom folder
+                        ini.WriteValue("Folders", "Savestates", "sstates");
+
+                        _saveStatesMonitor = new Pcsx2SaveStatesMonitor(rom, Path.Combine(path, "sstates"), savesPath);
+                        _saveStatesMonitor.IncrementalMode = (string.IsNullOrEmpty(SystemConfig["incrementalsavestates"]) ? "1" : SystemConfig["incrementalsavestates"]) == "1";
+                        _saveStatesMonitor.Slot = (SystemConfig["state_slot"] ?? "1").ToInteger();
+                                               
+                    }
+                    else
+                        ini.WriteValue("Folders", "Savestates", savesPath);
+                }
 
                 //Custom textures path
                 string texturePath = Path.Combine(AppConfig.GetFullPath("bios"), "pcsx2", "textures");
@@ -754,6 +799,8 @@ namespace emulatorLauncher
                 ini.Remove("UI", "DisplayWindowGeometry");
 
                 // Emucore section
+                ini.WriteValue("EmuCore", "SavestateZstdCompression", "true");
+                ini.WriteValue("EmuCore", "SaveStateOnShutdown", "false");
 
                 //Enable cheats automatically on load if Retroachievements-hardcore is not set only
                 if (SystemConfig.isOptSet("enable_cheats") && !SystemConfig.getOptBoolean("retroachievements.hardcore") && !string.IsNullOrEmpty(SystemConfig["enable_cheats"]))
@@ -950,7 +997,7 @@ namespace emulatorLauncher
                 }
 
                 // OSD information
-                BindIniFeature(ini, "EmuCore/GS", "OsdShowMessages", "Notifications", "false");
+                BindIniFeature(ini, "EmuCore/GS", "OsdShowMessages", "Notifications", "true");
 
                 if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
                 {

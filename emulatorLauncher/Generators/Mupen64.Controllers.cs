@@ -326,12 +326,12 @@ namespace emulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor300_Data", "");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor300_ExtraData", "");
             ini.WriteValue(iniSection, "Hotkey_SaveState_InputType", "0;0");
-            ini.WriteValue(iniSection, "Hotkey_SaveState_Name", "back;y");
-            ini.WriteValue(iniSection, "Hotkey_SaveState_Data", "4;3");
+            ini.WriteValue(iniSection, "Hotkey_SaveState_Name", "back;x");
+            ini.WriteValue(iniSection, "Hotkey_SaveState_Data", "4;2");
             ini.WriteValue(iniSection, "Hotkey_SaveState_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_LoadState_InputType", "0;0");
-            ini.WriteValue(iniSection, "Hotkey_LoadState_Name", "back;x");
-            ini.WriteValue(iniSection, "Hotkey_LoadState_Data", "4;2");
+            ini.WriteValue(iniSection, "Hotkey_LoadState_Name", "back;y");
+            ini.WriteValue(iniSection, "Hotkey_LoadState_Data", "4;3");
             ini.WriteValue(iniSection, "Hotkey_LoadState_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_GSButton_InputType", "");
             ini.WriteValue(iniSection, "Hotkey_GSButton_Name", "");

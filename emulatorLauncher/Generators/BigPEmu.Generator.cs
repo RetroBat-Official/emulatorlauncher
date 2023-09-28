@@ -50,24 +50,6 @@ namespace emulatorLauncher
             };
         }
 
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            if (bezel != null)
-                bezel.Dispose();
-
-            if (ret == 1)
-                return 0;
-
-            return ret;
-        }
-
         //Configuration file in json format "BigPEmuConfig.bigpcfg"
         private void SetupConfiguration(string path, string system, ScreenResolution resolution = null)
         {
@@ -160,6 +142,23 @@ namespace emulatorLauncher
                 json.Save();
             }
         }
-    }
 
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            if (bezel != null)
+                bezel.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
+        }
+    }
 }

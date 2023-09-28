@@ -400,6 +400,53 @@ namespace emulatorLauncher
             }
         }
 
+        private static string GetSDLMappingName(Controller pad, InputKey key)
+        {
+            var input = pad.GetSdlMapping(key);
+            if (input == null)
+                return null;
+
+            if (input.Type == "button")
+            {
+                if (input.Id == 0) // invert A&B
+                    return "`Button 1`";
+                
+                if (input.Id == 1) // invert A&B
+                    return "`Button 0`";
+                
+                return "`Button " + input.Id.ToString() + "`";
+            }
+            
+            if (input.Type == "axis")
+            {
+                Func<Input, bool, string> axisValue = (inp, revertAxis) =>
+                {
+                    string axis = "`Axis ";
+
+                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
+                        axis += inp.Id;
+
+                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))
+                        axis += "+";
+                    else
+                        axis += "-";
+
+                    if (inp.Id == 4 || inp.Id == 5)
+                        axis = "`Full Axis " + inp.Id + "+";
+
+                    return axis + "`";
+                };
+
+                return axisValue(input, false);
+                /*
+                string reverseAxis;
+                if (anyReverseAxes.TryGetValue(value, out reverseAxis))
+                    ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));*/
+            }
+
+            return null;
+        }
+
         private static void generateControllerConfig_any(string path, string filename, string anyDefKey, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> anyReplacements, bool triforce = false, Dictionary<string, string> extraOptions = null)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
@@ -618,7 +665,6 @@ namespace emulatorLauncher
                                 else
                                     ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
                             }
-
                             else if (input.Type == "axis")
                             {
                                 Func<Input, bool, string> axisValue = (inp, revertAxis) =>
@@ -896,41 +942,57 @@ namespace emulatorLauncher
                     }
                 }
 
+                var ssss = "@(" + (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.y) ?? "") + ")";
+
+                ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "F1");
+                ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "@(Shift+F1)");
+
                 if (tech == "XInput")
                 {
                     ini.WriteValue("Hotkeys", "Device", tech + "/" + "0" + "/" + deviceName);
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", "Back&`Button B`");
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Back&`Button A`");
                     ini.WriteValue("Hotkeys", "General/Exit", "Back&Start");
-                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "Back&`Button Y`");
-                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Back&`Button X`");
-                    ini.WriteValue("Hotkeys", "General/Take Screenshot", "Back&`Trigger R`");
+                                        
+                    // SaveStates
+                    ini.WriteValue("Hotkeys", "General/Take Screenshot", "@(Back+`Button X`)"); // Use Same value as SaveState....
+                    ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", "@(Back+`Button X`)");
+                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "@(Back+`Button Y`)");                    
+                    ini.WriteValue("Hotkeys", "Other State Hotkeys/Increase Selected State Slot", "@(Back+`Pad N`)");
+                    ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "@(Back+`Pad S`)");
+
                     ini.WriteValue("Hotkeys", "General/Eject Disc", "Back&`Shoulder L`");
                     ini.WriteValue("Hotkeys", "General/Change Disc", "Back&`Shoulder R`");
                 }
-
                 else if (tech == "SDL")
                 {
                     bool revert = c1.VendorID == USB_VENDOR.NINTENDO;
                     ini.WriteValue("Hotkeys", "Device", tech + "/" + "0" + "/" + deviceName);
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", revert ? "`Button 4`&`Button 0`" : "`Button 4`&`Button 1`");
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", revert ? "`Button 4`&`Button 1`" : "`Button 4`&`Button 0`");
+
                     ini.WriteValue("Hotkeys", "General/Exit", "`Button 4`&`Button 6`");
-                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", revert ? "`Button 4`&`Button 2`" : "`Button 4`&`Button 3`");
-                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", revert ? "`Button 4`&`Button 3`" : "`Button 4`&`Button 2`");
+
+                    var save = "@(" + (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.y) ?? "") + ")";
+                    ini.WriteValue("Hotkeys", "General/Take Screenshot", save); // Use Same value as SaveState....
+                    ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", save);
+                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "@(" + (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.x) ?? "") + ")");                    
+
+                    // Save State/Save to Selected Slot = @(`Button 6`+`Button 2`)
+
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "`Button 4`&`Full Axis 5+`");
+
                     ini.WriteValue("Hotkeys", "General/Eject Disc", "`Button 4`&`Button 9`");
                     ini.WriteValue("Hotkeys", "General/Change Disc", "`Button 4`&`Button 10`");
                 }
-
                 else        // Keyboard
                 {
                     ini.WriteValue("Hotkeys", "Device", "DInput/0/Keyboard Mouse");
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", "`F10`");
-                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Alt&RETURN");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "@(Alt+RETURN)");
                     ini.WriteValue("Hotkeys", "General/Exit", "ESCAPE");
-                    ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "`F1`");
-                    ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Alt&`F1");
+                 //   ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "`F1`");
+                 //   ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Alt&`F1");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "`F9`");
                     ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt&E");
                     ini.WriteValue("Hotkeys", "General/Change Disc", "Alt&S");

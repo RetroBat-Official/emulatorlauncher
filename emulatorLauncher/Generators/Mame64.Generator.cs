@@ -12,6 +12,7 @@ namespace emulatorLauncher
     partial class Mame64Generator : Generator
     {
         private bool _multigun;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             bool hbmame = system == "hbmame";

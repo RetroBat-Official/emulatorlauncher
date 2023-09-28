@@ -106,10 +106,8 @@ namespace emulatorLauncher
                     commandArray.Add("\"" + disks[1] + "\"");
                 }
             }
-
             else
             {
-
                 commandArray.Add("-d1");
                 commandArray.Add("\"" + rom + "\"");
             }
