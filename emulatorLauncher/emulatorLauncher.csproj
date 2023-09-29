@@ -112,6 +112,7 @@
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Generators\Xm6pro.Generator.cs" />
     <Compile Include="Generators\Flycast.Generator.cs" />
     <Compile Include="Generators\Flycast.Controllers.cs">
       <DependentUpon>Flycast.Generator.cs</DependentUpon>
@@ -280,7 +281,7 @@
     <Compile Include="PadToKey\JoystickListener.cs" />
     <Compile Include="PadToKey\Joysticks.cs" />
     <Compile Include="PadToKey\PadToKey.cs" />
-    <Compile Include="PadToKey\SendKeys.cs" />    
+    <Compile Include="PadToKey\SendKeys.cs" />
     <Compile Include="Properties\Resources.fr.Designer.cs">
       <DependentUpon>Resources.fr.resx</DependentUpon>
       <AutoGen>True</AutoGen>
