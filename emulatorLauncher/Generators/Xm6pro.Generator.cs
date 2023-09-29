@@ -37,7 +37,7 @@ namespace emulatorLauncher
 
 			_resolution = resolution;
 
-			//SetupConfiguration(path, rom, system);
+			SetupConfiguration(path, rom, system);
 
 			return new ProcessStartInfo()
 			{
@@ -52,35 +52,73 @@ namespace emulatorLauncher
         {
             FakeBezelFrm bezel = null;
 
-            var process = Process.Start(path);
-
-            while (process != null)
-            {
-                if (process.WaitForExit(50))
-                {
-                    process = null;
-                    break;
-                }
-
-                //get emulator window and set to fullscreen with ALT+ENTER
-                var hWnd = User32.FindHwnd(process.Id);
-                if (hWnd == IntPtr.Zero)
-                    continue;
-                System.Threading.Thread.Sleep(500);
-                SendKeys.SendWait("%"+"{ENTER}");
-                break;
-            }
-
             if (_bezelFileInfo != null)
                 bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-            if (process != null)
-                process.WaitForExit();
+
+            int ret = base.RunAndWait(path);
+
             if (bezel != null)
                 bezel.Dispose();
 
-            process.WaitForExit();
-            int exitCode = process.ExitCode;
-            return exitCode;
+            if (ret == 1)
+                return 0;
+
+            return ret;
+        }
+
+        private void SetupConfiguration(string path, string rom, string system)
+        {
+            string iniFile = Path.Combine(path, "XM6.ini");
+
+            try
+            {
+                using (var ini = new IniFile(iniFile))
+                {
+
+                    if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+                    {
+                        ini.WriteValue("Window", "Full", "1");
+                        ini.WriteValue("Resume", "Screen", "1");
+                    }
+
+                    BindBoolIniFeature(ini, "Window", "StatusBar", "68k_statusbar", "1", "0");
+
+                    // MIDI output
+                    if (SystemConfig.isOptSet("68k_midi") && !string.IsNullOrEmpty("68k_midi"))
+                    {
+                        ini.WriteValue("MIDI", "ID", "1");
+                        ini.WriteValue("MIDI", "IntLevel", "0");
+                       
+                        if (SystemConfig["68k_midi"] == "munt")
+                        {
+                            // Emulated Roland MT-32
+                            ini.WriteValue("MIDI", "ResetCmd", "3");
+                            ini.WriteValue("MIDI", "OutDevice", "4");
+                        }
+                        else if (SystemConfig["68k_midi"] == "virtual")
+                        {
+                            // Virtual MIDI
+                            ini.WriteValue("MIDI", "ResetCmd", "1");
+                            ini.WriteValue("MIDI", "OutDevice", "2");
+                        }
+                        else if (SystemConfig["68k_midi"] == "wave")
+                        {
+                            // Microsoft GS Wavetable
+                            ini.WriteValue("MIDI", "ResetCmd", "1");
+                            ini.WriteValue("MIDI", "OutDevice", "3");
+                        }
+                    }
+                    else
+                    {
+                        // Microsoft GS Wavetable
+                        ini.WriteValue("MIDI", "ID", "1");
+                        ini.WriteValue("MIDI", "IntLevel", "0");
+                        ini.WriteValue("MIDI", "ResetCmd", "1");
+                        ini.WriteValue("MIDI", "OutDevice", "3");
+                    }
+                }
+            }
+            catch { }
         }
 
     }
