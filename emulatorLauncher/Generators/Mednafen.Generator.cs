@@ -257,7 +257,7 @@ namespace emulatorLauncher
             if (mednafenCore != "pce")
                 return;
 
-            BindMednafenBoolFeature(cfg, "mednafen_nes_multitap", mednafenCore + ".input.multitap", "1", "0");
+            BindMednafenBoolFeature(cfg, "mednafen_pce_multitap", mednafenCore + ".input.multitap", "1", "0");
         }
 
         private void ConfigureMednafenPSX(MednafenConfigFile cfg, string mednafenCore, string system)
