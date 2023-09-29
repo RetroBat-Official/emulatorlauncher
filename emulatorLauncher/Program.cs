@@ -109,7 +109,8 @@ namespace emulatorLauncher
             { "ruffle", () => new RuffleGenerator() },
             { "zesarux", () => new ZEsarUXGenerator() },
             { "jynx", () => new JynxGenerator() },
-            { "hatari", () => new HatariGenerator() }
+            { "hatari", () => new HatariGenerator() },
+            { "xm6pro", () => new Xm6proGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
