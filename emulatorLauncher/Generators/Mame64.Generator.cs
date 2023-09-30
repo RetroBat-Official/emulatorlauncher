@@ -168,7 +168,7 @@ namespace emulatorLauncher
             }
             else
             {
-                var commandArray = messMode.GetMameCommandLineArguments(system, rom, true, emulator);
+                var commandArray = messMode.GetMameCommandLineArguments(system, rom, true);
                 commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, resolution));
 
                 args = commandArray.JoinArguments();

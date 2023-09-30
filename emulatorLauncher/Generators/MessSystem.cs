@@ -524,7 +524,7 @@ namespace emulatorLauncher
             return path;
         }
         
-        public List<string> GetMameCommandLineArguments(string system, string rom, bool injectCfgDirectory = true, string emulator = "libretro")
+        public List<string> GetMameCommandLineArguments(string system, string rom, bool standalone = false)
         {
             List<string> commandArray = new List<string>();
 
@@ -547,7 +547,8 @@ namespace emulatorLauncher
                 messModel = MachineName;
             }
 
-            commandArray.Add("-skip_gameinfo");
+            if (standalone)
+                commandArray.Add("-skip_gameinfo");
 
             // Cleanup previous ini file
             // This is required, else there might be multiple image devices listed and MAME might autoload the wrong one
@@ -567,7 +568,7 @@ namespace emulatorLauncher
                 File.Delete(inipath);
 
             // Additional arguments for libretro:mame
-            if (emulator == "libretro")
+            if (!standalone)
             {
                if (SystemConfig.isOptSet("libretro_mame_rotate") && !string.IsNullOrEmpty(SystemConfig["libretro_mame_rotate"]) && SystemConfig["libretro_mame_rotate"] != "off")
                    commandArray.Add("-" + SystemConfig["libretro_mame_rotate"]);
@@ -599,17 +600,23 @@ namespace emulatorLauncher
                 commandArray.Add(pluginJoin);
             }
 
-            if (injectCfgDirectory)
+            if (standalone)
             {
                 commandArray.Add("-cfg_directory");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "cfg")));
 
                 commandArray.Add("-inipath");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "ini")));
-            }
 
-            commandArray.Add("-hashpath");
-            commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
+                commandArray.Add("-hashpath");
+                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
+
+                if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
+                {
+                    commandArray.Add("-snapshot_directory");
+                    commandArray.Add(AppConfig.GetFullPath("screenshots"));
+                }
+            }
 
             // Artwork path
             commandArray.Add("-artpath");
@@ -623,12 +630,6 @@ namespace emulatorLauncher
             else
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
             
-            if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
-            {
-                commandArray.Add("-snapshot_directory");
-                commandArray.Add(AppConfig.GetFullPath("screenshots"));
-            }
-
             // Specific modules for some systems
             // Apple 2
             if (system == "apple2")
@@ -686,7 +687,7 @@ namespace emulatorLauncher
                 commandArray.AddRange(autoRunCommand.Arguments);
 
             //Specific autostart for Camputers lynx based on hashfile (for now only for MAME standalone)
-            if (emulator == "mame64" && system == "camplynx" && SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
+            if (standalone && system == "camplynx" && SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
             {
                 string hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", SystemConfig["force_softlist"] + ".xml");
                 if (File.Exists(hashfile))
