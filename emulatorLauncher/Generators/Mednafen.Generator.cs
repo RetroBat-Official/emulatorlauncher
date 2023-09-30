@@ -120,22 +120,6 @@ namespace emulatorLauncher
             return ret;
         }
 
-        private void BindMednafenFeature(MednafenConfigFile cfg, string featureName, string settingName, string defaultValue)
-        {
-            if (SystemConfig.isOptSet(featureName) && !string.IsNullOrEmpty(SystemConfig[featureName]))
-                cfg[settingName] = SystemConfig[featureName];
-            else
-                cfg[settingName] = defaultValue;
-        }
-
-        private void BindMednafenBoolFeature(MednafenConfigFile cfg, string featureName, string settingName, string trueValue, string falseValue)
-        {
-            if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
-                cfg[settingName] = trueValue;
-            else
-                cfg[settingName] = falseValue;
-        }
-
         private void SetupConfig(string path, MednafenConfigFile cfg, string mednafenCore, string system)
         {          
             // Inject path loop
@@ -384,6 +368,22 @@ namespace emulatorLauncher
                 return;
 
             BindMednafenFeature(cfg, "mednafen_wswan_lang", mednafenCore + ".language", "english");
+        }
+
+        private void BindMednafenFeature(MednafenConfigFile cfg, string featureName, string settingName, string defaultValue)
+        {
+            if (SystemConfig.isOptSet(featureName) && !string.IsNullOrEmpty(SystemConfig[featureName]))
+                cfg[settingName] = SystemConfig[featureName];
+            else
+                cfg[settingName] = defaultValue;
+        }
+
+        private void BindMednafenBoolFeature(MednafenConfigFile cfg, string featureName, string settingName, string trueValue, string falseValue)
+        {
+            if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                cfg[settingName] = trueValue;
+            else
+                cfg[settingName] = falseValue;
         }
 
         private string GetMednafenCoreName(string core)
