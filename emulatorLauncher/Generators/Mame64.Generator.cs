@@ -168,7 +168,7 @@ namespace emulatorLauncher
             }
             else
             {
-                var commandArray = messMode.GetMameCommandLineArguments(system, rom, true, emulator);
+                var commandArray = messMode.GetMameCommandLineArguments(system, rom, true);
                 commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, resolution));
 
                 args = commandArray.JoinArguments();
@@ -393,15 +393,6 @@ namespace emulatorLauncher
             }
 
             // Add plugins
-
-            string pluginspath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "plugins");
-            if (!Directory.Exists(pluginspath)) try { Directory.CreateDirectory(pluginspath); }
-                catch { }
-            if (Directory.Exists(pluginspath))
-            {
-                retList.Add("-pluginspath");
-                retList.Add(pluginspath);
-            }
 
             List<string> pluginList = new List<string>();
             if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))

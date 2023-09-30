@@ -712,9 +712,9 @@ namespace emulatorLauncher
         {
             { "cursor", "mouse 0x0 button_right" },
             { "offscreen_shot", "keyboard 0x0 44" },    //space
-            { "pause", "mouse 0x0 button_middle" },
+            { "pause", "keyboard 0x0 77" },
             { "trigger", "mouse 0x0 button_left" },
-            { "turbo", "keyboard 0x0 77" },
+            { "turbo", "mouse 0x0 button_middle" },
             { "x_axis", "mouse 0x0 cursor_x-+" },
             { "y_axis", "mouse 0x0 cursor_y-+" },
         };
