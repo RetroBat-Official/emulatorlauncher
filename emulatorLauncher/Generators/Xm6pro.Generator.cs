@@ -29,17 +29,21 @@ namespace emulatorLauncher
 			string exe = Path.Combine(path, "XM6.exe");
 
 			if (!File.Exists(exe))
-				return null;
-
-			//Applying bezels
-			if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-				_bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-
-			_resolution = resolution;
+				return null;           
 
 			SetupConfiguration(path, rom, system);
 
-			return new ProcessStartInfo()
+            bool fullscreen = !IsEmulationStationWindowed();
+
+            if (SystemConfig.isOptSet("68k_stretch") && SystemConfig["68k_stretch"] == "true")
+                SystemConfig["bezel"] = "none";
+
+            if (fullscreen)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            _resolution = resolution;
+
+            return new ProcessStartInfo()
 			{
 				FileName = exe,
 				WorkingDirectory = path,
@@ -81,6 +85,10 @@ namespace emulatorLauncher
                         ini.WriteValue("Resume", "Screen", "1");
                     }
 
+                    BindBoolIniFeature(ini, "Display", "FullScreenMaximum", "68k_stretch", "1", "0");
+                    BindBoolIniFeature(ini, "Display", "FullScreenRescale", "68k_stretch", "1", "0");
+                    BindBoolIniFeature(ini, "Display", "Scanlines", "68k_scanlines", "1", "0");
+                    BindBoolIniFeature(ini, "Display", "Smoothing", "68k_smooth", "1", "0");
                     BindBoolIniFeature(ini, "Window", "StatusBar", "68k_statusbar", "1", "0");
 
                     // MIDI output
