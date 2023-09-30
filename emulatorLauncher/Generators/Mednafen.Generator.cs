@@ -120,14 +120,6 @@ namespace emulatorLauncher
             return ret;
         }
 
-        private void SetPath(MednafenConfigFile cfg, string settingName, string pathName)
-        {
-            if (!Directory.Exists(pathName)) try { Directory.CreateDirectory(pathName); }
-                catch { }
-            if (!string.IsNullOrEmpty(pathName))
-                cfg[settingName] = pathName;
-        }
-
         private void BindMednafenFeature(MednafenConfigFile cfg, string featureName, string settingName, string defaultValue)
         {
             if (SystemConfig.isOptSet(featureName) && !string.IsNullOrEmpty(SystemConfig[featureName]))
@@ -146,24 +138,23 @@ namespace emulatorLauncher
 
         private void SetupConfig(string path, MednafenConfigFile cfg, string mednafenCore, string system)
         {          
-            // Path
-            var biosPath = AppConfig.GetFullPath("bios");
-            SetPath(cfg, "filesys.path_firmware", biosPath);
-
-            var cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "mednafen");
-            SetPath(cfg, "filesys.path_cheat", cheatsPath);
-
-            var savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen");
-            SetPath(cfg, "filesys.path_sav", savesPath);
-
-            var backupPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen", "backup");
-            SetPath(cfg, "filesys.path_savbackup", backupPath);
-
-            var saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen", "sstates");
-            SetPath(cfg, "filesys.path_state", saveStatePath);
-
-            var screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "mednafen");
-            SetPath(cfg, "filesys.path_snap", screenshotsPath);
+            // Inject path loop
+            Dictionary<string, string> userPath = new Dictionary<string, string>
+                {
+                    { "filesys.path_firmware", AppConfig.GetFullPath("bios") },
+                    { "filesys.path_cheat", Path.Combine(AppConfig.GetFullPath("cheats"), "mednafen") },
+                    { "filesys.path_sav", Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen") },
+                    { "filesys.path_savbackup", Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen", "backup") },
+                    { "filesys.path_state", Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen", "sstates") },
+                    { "filesys.path_snap", Path.Combine(AppConfig.GetFullPath("screenshots"), "mednafen") }
+                };
+            foreach (KeyValuePair<string, string> pair in userPath)
+            {
+                if (!Directory.Exists(pair.Value)) try { Directory.CreateDirectory(pair.Value); }
+                    catch { }
+                if (!string.IsNullOrEmpty(pair.Value) && Directory.Exists(pair.Value))
+                    cfg[pair.Key] = pair.Value;
+            }
 
             // General Settings
             cfg[mednafenCore + ".enable"] = "1";
