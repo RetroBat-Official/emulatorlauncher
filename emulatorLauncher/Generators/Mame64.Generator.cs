@@ -103,16 +103,6 @@ namespace emulatorLauncher
                     }
                 }
 
-                // NVRAM directory
-                string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "nvram");
-                if (!Directory.Exists(nvramPath)) try { Directory.CreateDirectory(nvramPath); }
-                    catch { }
-                if (!string.IsNullOrEmpty(nvramPath) && Directory.Exists(nvramPath))
-                {
-                    commandArray.Add("-nvram_directory");
-                    commandArray.Add(nvramPath);
-                }
-
                 // cfg directory
                 string cfgPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "cfg") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg");
                 if (!Directory.Exists(cfgPath)) try { Directory.CreateDirectory(cfgPath); }
@@ -393,15 +383,6 @@ namespace emulatorLauncher
             }
 
             // Add plugins
-
-            string pluginspath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "plugins");
-            if (!Directory.Exists(pluginspath)) try { Directory.CreateDirectory(pluginspath); }
-                catch { }
-            if (Directory.Exists(pluginspath))
-            {
-                retList.Add("-pluginspath");
-                retList.Add(pluginspath);
-            }
 
             List<string> pluginList = new List<string>();
             if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
