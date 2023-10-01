@@ -18,6 +18,14 @@ namespace emulatorLauncher.Tools
             Systems = new List<EsSystem>();
         }
 
+        public EsSystem this[string key]
+        {
+            get
+            {
+                return Systems.FirstOrDefault(sys => sys.Name == key);
+            }
+        }
+
         [XmlElement("system")]
         public List<EsSystem> Systems { get; set; }
         
@@ -49,6 +57,10 @@ namespace emulatorLauncher.Tools
         [XmlText]
         public string Name { get; set; }
 
+        [XmlAttribute("default")]
+        [DefaultValue(false)]
+        public bool Default { get; set; }
+
         [XmlIgnore]
         public string EmulatorName { get; set; }
     }
@@ -79,6 +91,61 @@ namespace emulatorLauncher.Tools
                 return FullName;
 
             return Name;
+        }
+
+        [XmlIgnore]
+        public string DefaultEmulator
+        {
+            get
+            {
+                if (Emulators == null || Emulators.Count == 0)
+                    return null;
+
+                // Seeking default="true" attribute
+	            foreach (var emul in Emulators)
+                {
+                    if (emul.Cores == null)
+                        continue;
+
+                    foreach (var core in emul.Cores)
+			            if (core.Default)
+				            return emul.Name;
+                }
+
+                return Emulators.FirstOrDefault().Name;
+            }
+        }
+
+        [XmlIgnore]
+        public string DefaultCore
+        {
+            get 
+            {   
+                if (Emulators == null || Emulators.Count == 0)
+                    return null;
+
+	            var emul = DefaultEmulator;
+	            if (string.IsNullOrEmpty(emul))
+		            return null;
+	
+	            foreach (var it in Emulators)
+	            {
+                    if (it.Name != emul)
+                        continue;
+
+                    if (it.Cores == null || it.Cores.Count == 0)
+                        continue;
+
+			        foreach (var core in it.Cores)
+				        if (core.Default)
+					        return core.Name;
+
+
+                    return it.Cores.FirstOrDefault().Name;
+	            }	
+
+	            return "";
+            }
         }
 
         [XmlElement("name")]

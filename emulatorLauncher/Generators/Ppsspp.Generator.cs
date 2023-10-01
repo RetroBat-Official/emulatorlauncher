@@ -7,11 +7,24 @@ using System.Diagnostics;
 
 namespace emulatorLauncher
 {
-    class PpssppGenerator : Generator
+    partial class PpssppGenerator : Generator
     {
         public PpssppGenerator()
         {
             DependsOnDesktopResolution = true;
+        }
+
+        PpssppSaveStatesMonitor _saveStatesMonitor;
+
+        public override void Cleanup()
+        {
+            if (_saveStatesMonitor != null)
+            {
+                _saveStatesMonitor.Dispose();
+                _saveStatesMonitor = null;
+            }
+
+            base.Cleanup();
         }
         
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -25,12 +38,33 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            if (Program.HasEsSaveStates)
+            {
+                string savesPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+
+                _saveStatesMonitor = new PpssppSaveStatesMonitor(rom, Path.Combine(path, "memstick", "PSP", "PPSSPP_STATE"), savesPath);
+                _saveStatesMonitor.IncrementalMode = Program.EsSaveStates.IsIncremental(emulator);
+                _saveStatesMonitor.Slot = (SystemConfig["state_slot"] ?? "0").ToInteger();
+
+                if (_saveStatesMonitor.IncrementalMode)
+                {
+                    _saveStatesMonitor.Slot = 0;
+                    _saveStatesMonitor.CopyToPhysicalSlot(SystemConfig["state_file"], 0);
+                }
+                else
+                    _saveStatesMonitor.SyncPhysicalPath();                    
+            }
+
             SetupConfig(path);
+            CreateControllerConfiguration(path);
 
             var commandArray = new List<string>();
             //commandArray.Add("--escape-exit");
             commandArray.Add("-fullscreen");
             commandArray.Add("\"" + rom + "\"");
+
+            if (File.Exists(SystemConfig["state_file"]))
+                commandArray.Add("--state=\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"");
 
             string args = string.Join(" ", commandArray);
 
@@ -62,6 +96,13 @@ namespace emulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
+                    ini.WriteValue("General", "CheckForNewVersion", "false");
+                    ini.WriteValue("General", "FirstRun", "false");
+
+                    // Make it complex for the user to run another game using the UI ( related to the way the savestates monitor works )
+                    ini.WriteValue("General", "CurrentDirectory", path);
+                    ini.ClearSection("Recent");
+
                     // Retroachievements
                     if (cheevosEnable)
                     {
@@ -208,6 +249,15 @@ namespace emulatorLauncher
                         ini.WriteValue("PostShaderList", "PostShader1", SystemConfig["ppsspp_shader"]);
                     else if (Features.IsSupported("ppsspp_shader"))
                         ini.ClearSection("PostShaderList");
+
+                    // Savestates                                                            
+                    ini.WriteValue("General", "AutoLoadSaveState", "0");
+                    ini.WriteValue("General", "EnableStateUndo", "false");
+                    ini.WriteValue("General", "ScreenshotsAsPNG", "false");
+
+                    if (_saveStatesMonitor != null)
+                        ini.WriteValue("General", "StateSlot", _saveStatesMonitor.Slot.ToString());
+
                 }
             }
             catch { }

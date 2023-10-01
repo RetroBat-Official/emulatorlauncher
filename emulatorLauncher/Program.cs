@@ -16,6 +16,7 @@ using System.ComponentModel;
 using Microsoft.Win32;
 using System.Text;
 using System.Security.Principal;
+using System.Xml.Linq;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -119,6 +120,33 @@ namespace emulatorLauncher
         public static List<Controller> Controllers { get; private set; }
         public static EsFeatures Features { get; private set; }
         public static Game CurrentGame { get; private set; }
+
+        private static EsSystems _esSystems;
+
+        public static EsSystems EsSystems
+        {
+            get
+            {
+                if (_esSystems == null)
+                    _esSystems = EsSystems.Load(Path.Combine(Program.LocalPath, ".emulationstation", "es_systems.cfg"));
+
+                return _esSystems;
+            }
+        }
+
+        private static EsSaveStates _esSaveStates;
+
+        public static EsSaveStates EsSaveStates
+        {
+            get
+            {
+                if (_esSaveStates == null)
+                    _esSaveStates = EsSaveStates.Load(Path.Combine(Program.LocalPath, ".emulationstation", "es_savestates.cfg"));
+
+                return _esSaveStates;
+            }
+        }
+        
 
         public static bool HasEsSaveStates
         {

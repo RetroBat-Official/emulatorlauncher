@@ -74,7 +74,7 @@ namespace emulatorLauncher
                     writeWiiSysconfFile(sysconf);
             }
             
-            SetupGeneralConfig(path, system, emulator, rom);
+            SetupGeneralConfig(path, system, emulator, core, rom);
             SetupGfxConfig(path);
             // SetupStateSlotConfig(path);
 
@@ -341,7 +341,7 @@ namespace emulatorLauncher
             File.WriteAllBytes(path, bytes);
         }
 
-        private void SetupGeneralConfig(string path, string system, string emulator, string rom)
+        private void SetupGeneralConfig(string path, string system, string emulator, string core, string rom)
         {
             string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
             
@@ -453,8 +453,10 @@ namespace emulatorLauncher
 
                         if (Program.HasEsSaveStates)
                         {
-                            _saveStateHandler = new DolphinSaveStatesMonitor(rom, Path.Combine(path, "User", "StateSaves"), Path.Combine(savesPath, system, "dolphin"));
-                            _saveStateHandler.IncrementalMode = (string.IsNullOrEmpty(SystemConfig["incrementalsavestates"]) ? "1" : SystemConfig["incrementalsavestates"]) == "1";
+                            string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+
+                            _saveStateHandler = new DolphinSaveStatesMonitor(rom, Path.Combine(path, "User", "StateSaves"), localPath);
+                            _saveStateHandler.IncrementalMode = Program.EsSaveStates.IsIncremental(emulator);
                             _saveStateHandler.Slot = (SystemConfig["state_slot"] ?? "1").ToInteger();
                         }
                     }

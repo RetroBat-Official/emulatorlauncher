@@ -114,7 +114,7 @@ namespace emulatorLauncher
 
             else
             {
-                SetupPaths(emulator, core);
+                SetupPaths(system, emulator, core);
                 SetupVM();
                 SetupLilyPad();
                 SetupGSDx(resolution);
@@ -194,7 +194,7 @@ namespace emulatorLauncher
         }
 
         #region wxwidgets version
-        private void SetupPaths(string emulator, string core)
+        private void SetupPaths(string system, string emulator, string core)
         {
             var biosList = new string[] { 
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
@@ -766,7 +766,10 @@ namespace emulatorLauncher
                 SetIniPath(ini, "Folders", "MemoryCards", memcardsPath);
 
                 // SaveStates path
-                string savesPath = AppConfig.GetFullPath("saves");
+                string savesPath = Program.HasEsSaveStates ?
+                    Program.EsSaveStates.GetSavePath(system, "pcsx2", "pcsx2") :
+                    Path.Combine(AppConfig.GetFullPath("saves"), system, "pcsx2", "sstates");
+
                 if (!string.IsNullOrEmpty(savesPath))
                 {                    
                     savesPath = Path.Combine(savesPath, system, "pcsx2", "sstates");
@@ -778,7 +781,7 @@ namespace emulatorLauncher
                         ini.WriteValue("Folders", "Savestates", "sstates");
 
                         _saveStatesMonitor = new Pcsx2SaveStatesMonitor(rom, Path.Combine(path, "sstates"), savesPath);
-                        _saveStatesMonitor.IncrementalMode = (string.IsNullOrEmpty(SystemConfig["incrementalsavestates"]) ? "1" : SystemConfig["incrementalsavestates"]) == "1";
+                        _saveStatesMonitor.IncrementalMode = Program.EsSaveStates.IsIncremental("pcsx2");
                         _saveStatesMonitor.Slot = (SystemConfig["state_slot"] ?? "1").ToInteger();
                                                
                     }

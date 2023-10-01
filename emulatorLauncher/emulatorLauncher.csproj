@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BezelFiles.cs" />
+    <Compile Include="Common\EsSaveStates.cs" />
     <Compile Include="Common\Joysticks\HidToDirectInput.cs" />
     <Compile Include="Common\Joysticks\DirectInputInfo.cs" />
     <Compile Include="Common\DynamicJson.cs" />
@@ -124,7 +125,7 @@
     <Compile Include="Generators\Mupen64.Generator.cs" />
     <Compile Include="Generators\Mupen64.Controllers.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
-    </Compile>
+    </Compile>    
     <Compile Include="Generators\Simple64.Generator.cs" />
     <Compile Include="Generators\Simple64.Controllers.cs">
       <DependentUpon>Simple64.Generator.cs</DependentUpon>
@@ -233,6 +234,12 @@
       <DependentUpon>Dolphin.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Ppsspp.Generator.cs" />
+    <Compile Include="Generators\Ppsspp.Controllers.cs">
+      <DependentUpon>Ppsspp.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Ppsspp.SaveStatesMonitor.cs">
+      <DependentUpon>Ppsspp.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\DosBox.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Generator.cs" />
