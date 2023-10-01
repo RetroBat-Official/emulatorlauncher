@@ -157,10 +157,7 @@ namespace emulatorLauncher
                         ini.Remove("Settings", "wideScreenHack");
 
                     // draw or not FPS
-                    if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
-                        ini.WriteValue("Settings", "ShowFPS", "True");
-                    else
-                        ini.WriteValue("Settings", "ShowFPS", "False");
+                    BindBoolIniFeature(ini, "Settings", "ShowFPS", "DrawFramerate", "True", "False");
 
                     if (_bezelFileInfo != null)
                         ini.WriteValue("Settings", "BorderlessFullscreen", "True");
@@ -170,33 +167,17 @@ namespace emulatorLauncher
                     ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
 
                     // internal resolution
-                    if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
-                        ini.WriteValue("Settings", "InternalResolution", SystemConfig["internal_resolution"]);
-                    else
-                        ini.WriteValue("Settings", "InternalResolution", "0");
+                    BindIniFeature(ini, "Settings", "InternalResolution", "internal_resolution", "0");
 
                     // HiResTextures
-                    if (SystemConfig.isOptSet("hires_textures") && SystemConfig.getOptBoolean("hires_textures"))
-                        ini.WriteValue("Settings", "HiresTextures", "True");
-                    else
-                        ini.WriteValue("Settings", "HiresTextures", "False");
-
-                    if (SystemConfig.isOptSet("CacheHiresTextures") && SystemConfig.getOptBoolean("CacheHiresTextures"))
-                        ini.WriteValue("Settings", "CacheHiresTextures", "True");
-                    else
-                        ini.WriteValue("Settings", "CacheHiresTextures", "False");
+                    BindBoolIniFeature(ini, "Settings", "HiresTextures", "hires_textures", "True", "False");
+                    BindBoolIniFeature(ini, "Settings", "CacheHiresTextures", "CacheHiresTextures", "True", "False");
 
                     // anisotropic filtering - Auto 0
-                    if (SystemConfig.isOptSet("anisotropic_filtering"))                    
-                        ini.WriteValue("Enhancements", "MaxAnisotropy", SystemConfig["anisotropic_filtering"]);
-                    else
-                        ini.WriteValue("Enhancements", "MaxAnisotropy", "0");
+                    BindIniFeature(ini, "Enhancements", "MaxAnisotropy", "anisotropic_filtering", "0");
 
                     // antialiasing (new dolhpin version adds SSAA)
-                    if (SystemConfig.isOptSet("ssaa") && SystemConfig.getOptBoolean("ssaa"))
-                        ini.WriteValue("Settings", "SSAA", SystemConfig["ssaa"]);
-                    else
-                        ini.WriteValue("Settings", "SSAA", "false");
+                    BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "true", "false");
                     
                     if (SystemConfig.isOptSet("antialiasing"))
                         ini.WriteValue("Settings", "MSAA", "0x0000000" + SystemConfig["antialiasing"]);
@@ -230,48 +211,17 @@ namespace emulatorLauncher
                     }
 
                     // shaders compilation
-                    if (Features.IsSupported("WaitForShadersBeforeStarting"))
-                    {
-                        if (SystemConfig.isOptSet("WaitForShadersBeforeStarting"))
-                            ini.WriteValue("Settings", "WaitForShadersBeforeStarting", SystemConfig["WaitForShadersBeforeStarting"]);
-                        else
-                            ini.WriteValue("Settings", "WaitForShadersBeforeStarting", "False");
-                    }
-
-                    if (Features.IsSupported("ShaderCompilationMode"))
-                    {
-                        if (SystemConfig.isOptSet("ShaderCompilationMode"))
-                            ini.WriteValue("Settings", "ShaderCompilationMode", SystemConfig["ShaderCompilationMode"]);
-                        else
-                            ini.WriteValue("Settings", "ShaderCompilationMode", "2");
-                    }
+                    BindBoolIniFeature(ini, "Settings", "WaitForShadersBeforeStarting", "WaitForShadersBeforeStarting", "True", "False");
+                    BindIniFeature(ini, "Settings", "ShaderCompilationMode", "ShaderCompilationMode", "2");
 
                     // Skip EFB Access
-                    if (Features.IsSupported("EFBAccessEnable"))
-                    {
-                        if (SystemConfig.isOptSet("EFBAccessEnable"))
-                            ini.WriteValue("Hacks", "EFBAccessEnable", SystemConfig["EFBAccessEnable"]);
-                        else
-                            ini.WriteValue("Hacks", "EFBAccessEnable", "False");
-                    }
+                    BindIniFeature(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False");
 
                     // Scaled EFB copy
-                    if (Features.IsSupported("EFBScaledCopy"))
-                    {
-                        if (SystemConfig.isOptSet("EFBScaledCopy"))
-                            ini.WriteValue("Hacks", "EFBScaledCopy", SystemConfig["EFBScaledCopy"]);
-                        else
-                            ini.WriteValue("Hacks", "EFBScaledCopy", "True");
-                    }
+                    BindIniFeature(ini, "Hacks", "EFBScaledCopy", "EFBScaledCopy", "True");
 
                     // EFB emulate format
-                    if (Features.IsSupported("EFBEmulateFormatChanges"))
-                    {
-                        if (SystemConfig.isOptSet("EFBEmulateFormatChanges"))
-                            ini.WriteValue("Hacks", "EFBEmulateFormatChanges", SystemConfig["EFBEmulateFormatChanges"]);
-                        else
-                            ini.WriteValue("Hacks", "EFBEmulateFormatChanges", "True");
-                    }
+                    BindIniFeature(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True");
 
                     // Store EFB Copies
                     if (Features.IsSupported("EFBCopies"))
@@ -299,13 +249,7 @@ namespace emulatorLauncher
                     }
 
                     // Force texture filtering
-                    if (Features.IsSupported("ForceFiltering"))
-                    {
-                        if (SystemConfig.isOptSet("ForceFiltering"))
-                            ini.WriteValue("Enhancements", "ForceFiltering", SystemConfig["ForceFiltering"]);
-                        else
-                            ini.WriteValue("Enhancements", "ForceFiltering", "False");
-                    }
+                    BindIniFeature(ini, "Enhancements", "ForceFiltering", "ForceFiltering", "False");
 
                     // Shaders
                     BindIniFeature(ini, "Enhancements", "PostProcessingShader", "dolphin_shaders", "(off)");
@@ -428,22 +372,13 @@ namespace emulatorLauncher
                     }
 
                     // Discord
-                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
-                        ini.WriteValue("General", "UseDiscordPresence", "True");
-                    else
-                        ini.WriteValue("General", "UseDiscordPresence", "False");
+                    BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "True", "False");
 
                     // Skip BIOS
-                    if (SystemConfig.isOptSet("skip_bios") && !SystemConfig.getOptBoolean("skip_bios"))
-                        ini.WriteValue("Core", "SkipIPL", "False");
-                    else
-                        ini.WriteValue("Core", "SkipIPL", "True");
+                    BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "False", "True");
 
                     // OSD Messages
-                    if (SystemConfig.isOptSet("OnScreenDisplayMessages") && !SystemConfig.getOptBoolean("OnScreenDisplayMessages"))
-                        ini.WriteValue("Interface", "OnScreenDisplayMessages", "False");
-                    else
-                        ini.WriteValue("Interface", "OnScreenDisplayMessages", "True");
+                    BindBoolIniFeature(ini, "Interface", "OnScreenDisplayMessages", "OnScreenDisplayMessages", "False", "True");
 
                     // don't ask about statistics
                     ini.WriteValue("Analytics", "PermissionAsked", "True");
@@ -479,46 +414,23 @@ namespace emulatorLauncher
                         ini.WriteValue("DSP", "EnableJIT", "False");
                     }
 
-                    if (SystemConfig.isOptSet("audiobackend") && !string.IsNullOrEmpty(SystemConfig["audiobackend"]))
-                        ini.WriteValue("DSP", "Backend", SystemConfig["audiobackend"]);
-                    else
-                        ini.WriteValue("DSP", "Backend", "Cubeb");
+                    BindIniFeature(ini, "DSP", "Backend", "audiobackend", "Cubeb");
 
                     // Video backend - Default
-                    if (SystemConfig.isOptSet("gfxbackend"))
-                        ini.WriteValue("Core", "GFXBackend", SystemConfig["gfxbackend"]);
-                    else
-                        ini.WriteValue("Core", "GFXBackend", "Vulkan");
+                    BindIniFeature(ini, "Core", "GFXBackend", "gfxbackend", "Vulkan");
 
                     // Cheats - default false
-                    if (!_triforce && SystemConfig.isOptSet("enable_cheats"))
-                    {
-                        if (SystemConfig.getOptBoolean("enable_cheats"))
-                            ini.WriteValue("Core", "EnableCheats", "True");
-                        else
-                            ini.WriteValue("Core", "EnableCheats", "False");
-                    }
+                    if (!_triforce)
+                        BindBoolIniFeature(ini, "Core", "EnableCheats", "enable_cheats", "True", "False");
 
                     // Fast Disc Speed - Default Off
-                    if (SystemConfig.isOptSet("enable_fastdisc"))
-                    {
-                        if (SystemConfig.getOptBoolean("enable_fastdisc"))
-                            ini.WriteValue("Core", "FastDiscSpeed", "True");
-                        else
-                            ini.WriteValue("Core", "FastDiscSpeed", "False");
-                    }
+                    BindBoolIniFeature(ini, "Core", "FastDiscSpeed", "enable_fastdisc", "True", "False");
 
                     // Enable MMU - Default On
-                    if (SystemConfig.isOptSet("enable_mmu") && SystemConfig.getOptBoolean("enable_mmu"))
-                        ini.WriteValue("Core", "MMU", "True");
-                    else
-                        ini.WriteValue("Core", "MMU", "False");
+                    BindBoolIniFeature(ini, "Core", "MMU", "enable_mmu", "True", "False");
 
                     // CPU Thread (Dual Core)
-                    if (SystemConfig.isOptSet("CPUThread") && SystemConfig.getOptBoolean("CPUThread"))
-                        ini.WriteValue("Core", "CPUThread", "True");
-                    else
-                        ini.WriteValue("Core", "CPUThread", "False");
+                    BindBoolIniFeature(ini, "Core", "CPUThread", "CPUThread", "True", "False");
 
                     // gamecube pads forced as standard pad
                     bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));

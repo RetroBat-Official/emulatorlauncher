@@ -99,6 +99,7 @@ namespace emulatorLauncher
                 string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "citra");
                 if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
                     catch { }
+                ini.WriteValue("UI", "Paths\\screenshotPath\\default", "false");
                 ini.WriteValue("UI", "Paths\\screenshotPath", screenshotPath.Replace("\\", "/"));
 
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
