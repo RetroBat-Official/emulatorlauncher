@@ -178,11 +178,11 @@ namespace emulatorLauncher.libRetro
                 retroarchConfig["cache_directory"] = cacheDirectory;
             }
             catch { }
-            
+
             // Savestates
-            if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig["saves"]))
+            var savePath = Program.EsSaveStates.GetSavePath(system, "libretro", core);
+            if (!string.IsNullOrEmpty(savePath))
             {
-                string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
                 if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
                     catch { }
 
@@ -1065,7 +1065,7 @@ namespace emulatorLauncher.libRetro
                     string[] supportedCores = null;
 
                     // Load supported core list from es_systems.cfg
-                    var esSystems = EsSystems.Load(Path.Combine(Program.LocalPath, ".emulationstation", "es_systems.cfg"));
+                    var esSystems = Program.EsSystems;
                     if (esSystems != null)
                     {
                         supportedCores = esSystems.Systems

@@ -37,6 +37,9 @@ namespace emulatorLauncher
 
         public bool CopyToPhysicalSlot(string state_file, int slot = -1)
         {
+            if (string.IsNullOrEmpty(state_file))
+                return false;
+
             if (slot < 0)
                 slot = this.Slot;
 
@@ -142,5 +145,6 @@ namespace emulatorLauncher
                 _fsw = null;
             }
         }
+
     }
 }
