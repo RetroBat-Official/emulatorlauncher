@@ -12,6 +12,9 @@ namespace emulatorLauncher
         // see. github.com/batocera-linux/batocera.linux/blob/master/package/batocera/core/batocera-configgen/configgen/configgen/generators/ppsspp/ppssppControllers.py
         private void CreateControllerConfiguration(string path)
         {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
             string iniFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "controls.ini");
 
             try
@@ -43,11 +46,19 @@ namespace emulatorLauncher
 
         private void GenerateControllerConfig(IniFile ini, Controller controller)
         {
-            // Disabled for now
-            return;
-
-            if (controller == null || controller.IsXInputDevice)
+            if (controller == null)
                 return;
+
+            var DEVICE_ID = 10 + controller.DeviceIndex;
+
+            if (controller.IsKeyboard)
+            {
+                // TODO
+                DEVICE_ID = 1;
+                return;
+            }
+            else if (controller.IsXInputDevice)
+                DEVICE_ID = 20 + controller.DeviceIndex;
             
             foreach (Input input in controller.Config.Input)
             {
@@ -59,20 +70,22 @@ namespace emulatorLauncher
                 if (!map.TryGetValue(input.Type, out name))
                     continue;
 
-                var DEVICE_ID_PAD_0 = 10;
-
                 switch (input.Type)
-                {                
+                {         
+                    case "key":
+                        // TODO
+                        break;
+
                     case "button":
                         if (SDLNameToNKCode.ContainsKey(input.Name))
-                            SetOption(ini, name, (DEVICE_ID_PAD_0 + controller.DeviceIndex), (int)SDLNameToNKCode[input.Name]);                       
+                            SetOption(ini, name, DEVICE_ID, (int)SDLNameToNKCode[input.Name]);                       
                         break;
                     
                     case "axis":
                         if (SDLJoyAxisMap.ContainsKey(input.Id))
                         {
                             var pspcode = AxisToCode(SDLJoyAxisMap[input.Id], input.Value);
-                            SetOption(ini, name, (DEVICE_ID_PAD_0 + controller.DeviceIndex), pspcode);
+                            SetOption(ini, name, DEVICE_ID, pspcode);
 
                             string revertAxisName;
 
@@ -84,14 +97,14 @@ namespace emulatorLauncher
                                 break;
 
                             pspcode = AxisToCode(SDLJoyAxisMap[input.Id], -input.Value);
-                            SetOption(ini, revertAxisName, (DEVICE_ID_PAD_0 + controller.DeviceIndex), pspcode);
+                            SetOption(ini, revertAxisName, DEVICE_ID, pspcode);
                         }
                         break;
                     case "hat":         
                         if (SDLHatMap.ContainsKey(input.Name))
                         {
                             var pspcode = (int) SDLHatMap[input.Name];
-                            SetOption(ini, name, (DEVICE_ID_PAD_0 + controller.DeviceIndex), pspcode);
+                            SetOption(ini, name, DEVICE_ID, pspcode);
                         }
                         break;
                 }
