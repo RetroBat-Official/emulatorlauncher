@@ -140,9 +140,7 @@ namespace emulatorLauncher
 
                 //Fulscreen Management
                 if (_isUsingCxBxLoader)
-                {
                     ini.WriteValue("video", "FullScreen", "false");
-                }
                 else
                 {
                     string videoResolution = res.Width + " x " + res.Height + " 32bit x8r8g8b8 (" + (res.DisplayFrequency <= 0 ? 60 : res.DisplayFrequency).ToString() + " hz)";
@@ -163,32 +161,15 @@ namespace emulatorLauncher
                     ini.WriteValue("video", "MaintainAspect", "true");
 
                 //Internal resolution
-                if (Features.IsSupported("internalresolution") && SystemConfig.isOptSet("internalresolution") && !string.IsNullOrEmpty(SystemConfig["internalresolution"]))
-                    ini.WriteValue("video", "RenderResolution", SystemConfig["internalresolution"]);
-                else
-                    ini.WriteValue("video", "RenderResolution", "3");
+                BindIniFeature(ini, "video", "RenderResolution", "internalresolution", "3");
 
                 //XBE signature
-                if (SystemConfig.isOptSet("xbeSignature") && SystemConfig.getOptBoolean("xbeSignature"))
-                    ini.WriteValue("gui", "IgnoreInvalidXbeSig", "true");
-                else if (Features.IsSupported("xbeSignature"))
-                    ini.WriteValue("gui", "IgnoreInvalidXbeSig", "false");
+                BindBoolIniFeature(ini, "gui", "IgnoreInvalidXbeSig", "xbeSignature", "true", "false");
 
                 //hacks
-                if (SystemConfig.isOptSet("disablePixelShaders") && SystemConfig.getOptBoolean("disablePixelShaders"))
-                    ini.WriteValue("hack", "DisablePixelShaders", "true");
-                else if (Features.IsSupported("disablePixelShaders"))
-                    ini.WriteValue("hack", "DisablePixelShaders", "false");
-
-                if (SystemConfig.isOptSet("useallcores") && SystemConfig.getOptBoolean("useallcores"))
-                    ini.WriteValue("hack", "UseAllCores", "true");
-                else if (Features.IsSupported("useallcores"))
-                    ini.WriteValue("hack", "UseAllCores", "false");
-
-                if (SystemConfig.isOptSet("rdtscPatching") && SystemConfig.getOptBoolean("rdtscPatching"))
-                    ini.WriteValue("hack", "SkipRdtscPatching", "true");
-                else if (Features.IsSupported("rdtscPatching"))
-                    ini.WriteValue("hack", "SkipRdtscPatching", "false");
+                BindBoolIniFeature(ini, "hack", "DisablePixelShaders", "disablePixelShaders", "true", "false");
+                BindBoolIniFeature(ini, "hack", "UseAllCores", "useallcores", "true", "false");
+                BindBoolIniFeature(ini, "hack", "SkipRdtscPatching", "rdtscPatching", "true", "false");
 
                 ConfigureControllers(ini);
             }
