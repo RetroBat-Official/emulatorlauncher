@@ -188,14 +188,6 @@ namespace emulatorLauncher
             }
         }
 
-        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
-        {
-            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
-                return mapping;
-
-            return PadToKey.AddOrUpdateKeyMapping(mapping, "flycast", InputKey.hotkey | InputKey.start, "(%{F4})");
-        }
-
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
