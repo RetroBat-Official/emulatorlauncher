@@ -17,14 +17,14 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private DolphinSaveStatesMonitor _saveStateHandler;
+        private SaveStatesWatcher _saveStatesWatcher;
 
         public override void Cleanup()
         {
-            if (_saveStateHandler != null)
+            if (_saveStatesWatcher != null)
             {
-                _saveStateHandler.Dispose();
-                _saveStateHandler = null;
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
             }
 
             base.Cleanup();
@@ -76,7 +76,7 @@ namespace emulatorLauncher
             
             SetupGeneralConfig(path, system, emulator, core, rom);
             SetupGfxConfig(path);
-            // SetupStateSlotConfig(path);
+            SetupStateSlotConfig(path);
 
             DolphinControllers.WriteControllersConfig(path, system, rom, _triforce);
 
@@ -85,13 +85,7 @@ namespace emulatorLauncher
 
             string saveState = "";
             if (File.Exists(SystemConfig["state_file"]))
-            {
-                // Dolphin always starts on slot 1, then copy to slot 1 so it can be reloaded
-                if (_saveStateHandler != null)
-                    _saveStateHandler.CopyToPhysicalSlot(SystemConfig["state_file"], _saveStateHandler.IncrementalMode ? 1 : -1);
-
                 saveState = " --save_state=\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"";
-            }
 
             return new ProcessStartInfo()
             {
@@ -103,15 +97,17 @@ namespace emulatorLauncher
         }
 
         /// <summary>
-        /// Unfortunately, it does not work when launching in fullscreen...
-        /// PR Opened : https://github.com/dolphin-emu/dolphin/pull/12201
+        /// Works since to this PR : https://github.com/dolphin-emu/dolphin/pull/12201
         /// </summary>
         /// <param name="path"></param>
         private void SetupStateSlotConfig(string path)
         {
-            var slot = SystemConfig["state_slot"] ?? "1";
+            if (_saveStatesWatcher == null)
+                return;
 
-            int id = Math.Max(1, ((slot.ToInteger() - 1) % 10) + 1);
+            var slot = _saveStatesWatcher.Slot;
+
+            int id = Math.Max(1, ((slot - 1) % 10) + 1);
 
             string iniFile = Path.Combine(path, "User", "Config", "QT.ini");
             using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
@@ -451,13 +447,12 @@ namespace emulatorLauncher
                         ini.WriteValue("General", "LoadPath", dolphinLoadPath);
                         ini.WriteValue("General", "ResourcePackPath", dolphinResourcesPath);
 
-                        if (Program.HasEsSaveStates)
+                        if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
                         {
                             string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
 
-                            _saveStateHandler = new DolphinSaveStatesMonitor(rom, Path.Combine(path, "User", "StateSaves"), localPath);
-                            _saveStateHandler.IncrementalMode = Program.EsSaveStates.IsIncremental(emulator);
-                            _saveStateHandler.Slot = (SystemConfig["state_slot"] ?? "1").ToInteger();
+                            _saveStatesWatcher = new DolphinSaveStatesMonitor(rom, Path.Combine(path, "User", "StateSaves"), localPath);
+                            _saveStatesWatcher.PrepareEmulatorRepository();
                         }
                     }
 

@@ -7,152 +7,58 @@ using System.Threading;
 
 namespace emulatorLauncher
 {
-    class DolphinSaveStatesMonitor : IDisposable
+    class DolphinSaveStatesMonitor : SaveStatesWatcher
     {
-        public bool IncrementalMode { get; set; }
-        public int Slot { get; set; }
-
-        private string _rom;
-        private string _sharedPath;
-        private string _dolphinPath;
-
-        private FileSystemWatcher _fsw;
-
-        public DolphinSaveStatesMonitor(string romfile, string dolphinPath, string sharedPath)
-        {
-            _rom = romfile;
-            _sharedPath = sharedPath;
-            _dolphinPath = dolphinPath;
-
-            try { Directory.CreateDirectory(dolphinPath); }
-            catch { }
-            try { Directory.CreateDirectory(sharedPath); }
-            catch { }
-
-            _fsw = new FileSystemWatcher(dolphinPath);
-            _fsw.Renamed += OnFileRenamed;
-            _fsw.EnableRaisingEvents = true;
+        public DolphinSaveStatesMonitor(string romfile, string emulatorPath, string sharedPath)
+            : base(romfile, emulatorPath, sharedPath) 
+        { 
         }
 
-        public void Dispose()
-        {
-            if (_fsw != null)
-            {
-                _fsw.Dispose();
-                _fsw = null;
-            }
-        }
+        protected override string FilePattern { get { return "{{romfilename}}.s{{slot2d}}"; } }
+        protected override string ImagePattern { get { return "{{romfilename}}.s{{slot2d}}.png"; } }
 
-        public bool CopyToPhysicalSlot(string state_file, int slot = -1)
-        {
-            if (slot < 0)
-                slot = this.Slot;
+        protected override int FirstSlot { get { return 1; } }
+        protected override int LastSlot { get { return 10; } }
 
+        protected override void SaveScreenshot(string saveState, string destScreenShot)
+        {
             try
             {
-                string stem = Path.GetFileNameWithoutExtension(state_file);
+                Thread.Sleep(350);
 
-                string txt = Path.Combine(Path.GetDirectoryName(state_file), stem + ".txt");
-                if (!File.Exists(txt))
-                    return false;
+                var dt = new FileInfo(saveState).LastWriteTime;
 
-                stem = File.ReadAllText(txt);
+                var shots = Directory.GetFiles(Path.Combine(Path.GetDirectoryName(EmulatorPath), "ScreenShots", Path.GetFileNameWithoutExtension(saveState)));
+                var shot = shots
+                    .Where(s => Math.Abs((new FileInfo(s).LastWriteTime - dt).Seconds) < 3)
+                    .OrderByDescending(s => new FileInfo(s).LastWriteTime)
+                    .FirstOrDefault();
 
-                string destFileName = Path.Combine(
-                    _dolphinPath,
-                    stem + ".s" + slot.ToString().PadLeft(2, '0'));
-
-                File.Copy(state_file, destFileName, true);
-            }
-            catch { return false; }
-            return true;
-        }
-
-        private void OnFileRenamed(object sender, RenamedEventArgs e)
-        {
-            if (e.ChangeType != WatcherChangeTypes.Renamed)
-                return;
-
-            var ext = Path.GetExtension(e.FullPath);
-            if (ext == ".sav")
-                return;
-
-            if (Path.GetExtension(e.OldName) != ".tmp")
-                return;
-
-            if (IncrementalMode)
-            {
-                ext = ".s" + Slot.ToString().PadLeft(2, '0');
-
-                if (File.Exists(Path.Combine(_sharedPath, Path.GetFileNameWithoutExtension(_rom) + ext)))
+                if (File.Exists(shot))
                 {
-                    Slot = GetNextFreeSlot();
-                    ext = ".s" + Slot.ToString().PadLeft(2, '0');
-                }
+                    int cnt = 0;
 
-                Slot = GetNextFreeSlot();
-            }
-
-            string newFn = Path.Combine(_sharedPath, Path.GetFileNameWithoutExtension(_rom) + ext);
-
-            try { File.Copy(e.FullPath, newFn, true); }
-            catch { }
-
-            File.WriteAllText(Path.ChangeExtension(newFn, ".txt"), Path.GetFileNameWithoutExtension(e.FullPath));
-
-            // Get screenshot
-            Thread.Sleep(350);
-
-            var dt = new FileInfo(e.FullPath).LastWriteTime;
-
-            var shots = Directory.GetFiles(Path.Combine(Path.GetDirectoryName(_dolphinPath), "ScreenShots", Path.GetFileNameWithoutExtension(e.FullPath)));
-            var shot = shots
-                .Where(s => Math.Abs((new FileInfo(s).LastWriteTime - dt).Seconds) < 3)
-                .OrderByDescending(s => new FileInfo(s).LastWriteTime)
-                .FirstOrDefault();
-
-            if (File.Exists(shot))
-            {
-            retry:
-                int cnt = 0;
-
-                try
-                {
-                    Thread.Sleep(250);
-
-                    File.Copy(shot, newFn + ".png", true);
-                    File.Delete(shot);
-                }
-                catch (IOException)
-                {
-                    cnt++;
-                    if (cnt < 3)
+                retry:
+                    try
                     {
-                        Thread.Sleep(200);
-                        goto retry;
+                        while (FileTools.IsFileLocked(shot))
+                            Thread.Sleep(20);
+
+                        File.Copy(shot, destScreenShot, true);
+                        File.Delete(shot);
+                    }
+                    catch (IOException)
+                    {
+                        cnt++;
+                        if (cnt < 3)
+                        {
+                            Thread.Sleep(200);
+                            goto retry;
+                        }
                     }
                 }
             }
-        }
-
-        private int GetNextFreeSlot()
-        {
-            var slots = new HashSet<int>();
-            foreach (var sav in Directory.GetFiles(_sharedPath, Path.GetFileNameWithoutExtension(_rom) + ".s*"))
-            {
-                if (!Path.GetExtension(sav).StartsWith(".s"))
-                    continue;
-
-                slots.Add(Path.GetExtension(sav).Substring(2).ToInteger());
-            }
-
-            for (int i = 99999; i >= 0; i--)
-            {
-                if (slots.Contains(i))
-                    return i + 1;
-            }
-
-            return 1;
+            catch { }
         }
     }
 }

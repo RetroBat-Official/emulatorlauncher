@@ -14,14 +14,14 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        PpssppSaveStatesMonitor _saveStatesMonitor;
+        private SaveStatesWatcher _saveStatesWatcher;
 
         public override void Cleanup()
         {
-            if (_saveStatesMonitor != null)
+            if (_saveStatesWatcher != null)
             {
-                _saveStatesMonitor.Dispose();
-                _saveStatesMonitor = null;
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
             }
 
             base.Cleanup();
@@ -38,21 +38,12 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            if (Program.HasEsSaveStates)
+            if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
             {
                 string savesPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
 
-                _saveStatesMonitor = new PpssppSaveStatesMonitor(rom, Path.Combine(path, "memstick", "PSP", "PPSSPP_STATE"), savesPath);
-                _saveStatesMonitor.IncrementalMode = Program.EsSaveStates.IsIncremental(emulator);
-                _saveStatesMonitor.Slot = (SystemConfig["state_slot"] ?? "0").ToInteger();
-
-                if (_saveStatesMonitor.IncrementalMode)
-                {
-                    _saveStatesMonitor.Slot = 0;
-                    _saveStatesMonitor.CopyToPhysicalSlot(SystemConfig["state_file"], 0);
-                }
-                else
-                    _saveStatesMonitor.SyncPhysicalPath();                    
+                _saveStatesWatcher = new PpssppSaveStatesMonitor(rom, Path.Combine(path, "memstick", "PSP", "PPSSPP_STATE"), savesPath);
+                _saveStatesWatcher.PrepareEmulatorRepository();
             }
 
             SetupConfig(path);
@@ -255,8 +246,8 @@ namespace emulatorLauncher
                     ini.WriteValue("General", "EnableStateUndo", "false");
                     ini.WriteValue("General", "ScreenshotsAsPNG", "false");
 
-                    if (_saveStatesMonitor != null)
-                        ini.WriteValue("General", "StateSlot", _saveStatesMonitor.Slot.ToString());
+                    if (_saveStatesWatcher != null)
+                        ini.WriteValue("General", "StateSlot", _saveStatesWatcher.Slot.ToString());
 
                 }
             }
