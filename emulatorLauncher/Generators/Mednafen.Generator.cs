@@ -68,16 +68,22 @@ namespace emulatorLauncher
                 commandArray.Add("-" + mednafenCore + ".videoip 0");
 
             // Aspect ratio correction
-            if (Features.IsSupported("mednafen_ratio_correction") && SystemConfig.isOptSet("mednafen_ratio_correction") && !SystemConfig.getOptBoolean("mednafen_ratio_correction"))
-                commandArray.Add("-" + mednafenCore + ".correct_aspect 0");
-            else
-                commandArray.Add("-" + mednafenCore + ".correct_aspect 1");
+            if (mednafenCore != "sms" && mednafenCore != "pce" && mednafenCore != "apple2" && mednafenCore != "lynx" && mednafenCore != "wswan")
+            {
+                if (Features.IsSupported("mednafen_ratio_correction") && SystemConfig.isOptSet("mednafen_ratio_correction") && !SystemConfig.getOptBoolean("mednafen_ratio_correction"))
+                    commandArray.Add("-" + mednafenCore + ".correct_aspect 0");
+                else
+                    commandArray.Add("-" + mednafenCore + ".correct_aspect 1");
+            }
 
             // Force mono
-            if (Features.IsSupported("forcemono") && SystemConfig.isOptSet("forcemono") && SystemConfig.getOptBoolean("forcemono"))
-                commandArray.Add("-" + mednafenCore + ".forcemono 1");
-            else
-                commandArray.Add("-" + mednafenCore + ".forcemono 0");
+            if (mednafenCore != "nes" && mednafenCore != "apple2")
+            {
+                if (Features.IsSupported("forcemono") && SystemConfig.isOptSet("forcemono") && SystemConfig.getOptBoolean("forcemono"))
+                    commandArray.Add("-" + mednafenCore + ".forcemono 1");
+                else
+                    commandArray.Add("-" + mednafenCore + ".forcemono 0");
+            }
 
             // Shader & Bezel
             var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);

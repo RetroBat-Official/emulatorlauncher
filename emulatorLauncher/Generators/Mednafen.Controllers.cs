@@ -165,6 +165,8 @@ namespace emulatorLauncher
             
             // apple2 only accepts atari joystick in port 2
             if (mednafenCore == "apple2" && playerIndex == 2)
+            {
+                if (SystemConfig["mednafen_controller_type"] == "atari")
                 {
                     cfg[mednafenCore + ".input.port" + 2] = "atari";
                     foreach (var entry in apple2atari)
@@ -175,6 +177,9 @@ namespace emulatorLauncher
                         cfg[mednafenCore + ".input.port" + 2 + ".atari." + entry.Key] = "joystick " + deviceID + " " + value;
                     }
                 }
+                else
+                    cfg[mednafenCore + ".input.port" + 2] = "paddle";
+            }
 
             else if (mednafenCore == "lynx")
             {
@@ -310,6 +315,9 @@ namespace emulatorLauncher
                         WriteKeyboardMapping(mednafenCore, 1, padType, entry.Key, entry.Value);
                 }
             }
+
+            if (mednafenCore == "apple2")
+                    cfg[mednafenCore + ".input.port" + 2] = "paddle";
 
             if (mednafenCore == "lynx")
             {
@@ -1063,7 +1071,7 @@ namespace emulatorLauncher
         private void CleanUpConfigFile(string core, MednafenConfigFile cfg)
         {
             for (int i = 1; i <= inputPortCleanupNb[core]; i++)
-                cfg[core + ".input.port" + i] = "none";
+                cfg[core + ".input.port" + i] = core == "apple2" ? "paddle" : "none";
         }
 
         static Dictionary<string, int> inputPortCleanupNb = new Dictionary<string, int>()
