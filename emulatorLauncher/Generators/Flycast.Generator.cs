@@ -9,7 +9,6 @@ using emulatorLauncher.Tools;
 using System.Text.RegularExpressions;
 using System.Drawing;
 using SharpDX.XInput;
-using emulatorLauncher.PadToKeyboard;
 
 namespace emulatorLauncher
 {
