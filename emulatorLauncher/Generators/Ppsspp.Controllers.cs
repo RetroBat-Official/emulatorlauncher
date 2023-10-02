@@ -29,7 +29,7 @@ namespace emulatorLauncher
                     ini.WriteValue("ControlMapping", "Load State", "1-134,20-109:20-100,10-109:10-100");
                     ini.WriteValue("ControlMapping", "Save State", "1-133,20-109:20-99,10-109:10-99");
 
-                    if (_saveStatesMonitor != null && _saveStatesMonitor.IncrementalMode)
+                    if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
                     {
                         ini.WriteValue("ControlMapping", "Previous Slot", "");
                         ini.WriteValue("ControlMapping", "Next Slot", "");

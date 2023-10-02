@@ -103,6 +103,7 @@
     <Compile Include="Common\Joysticks\RawLightGun.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
     <Compile Include="Common\Joysticks\SdlJoystickGuid.cs" />
+    <Compile Include="Common\SaveStatesWatcher.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
     <Compile Include="Common\Joysticks\WinmmJoystick.cs" />
@@ -112,7 +113,7 @@
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="FakeBezelFrm.cs">
       <SubType>Form</SubType>
-    </Compile>
+    </Compile>    
     <Compile Include="Generators\Xm6pro.Generator.cs" />
     <Compile Include="Generators\Flycast.Generator.cs" />
     <Compile Include="Generators\Flycast.Controllers.cs">
@@ -125,7 +126,10 @@
     <Compile Include="Generators\Mupen64.Generator.cs" />
     <Compile Include="Generators\Mupen64.Controllers.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
-    </Compile>    
+    </Compile>
+    <Compile Include="Generators\Mupen64.SaveStatesMonitor.cs">
+      <DependentUpon>Mupen64.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Simple64.Generator.cs" />
     <Compile Include="Generators\Simple64.Controllers.cs">
       <DependentUpon>Simple64.Generator.cs</DependentUpon>
@@ -430,6 +434,9 @@
     <None Include="..\.emulationstation\es_features.cfg">
       <Link>es_features.cfg</Link>
     </None>
+    <None Include="..\.emulationstation\es_savestates.cfg">
+      <Link>es_savestates.cfg</Link>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -467,6 +474,7 @@
     <PostBuildEvent>if $(ConfigurationName) == Debug (
 ECHO Copy es_features.cfg to "$(TargetDir).emulationstation"
 xcopy /Y /Q "$(SolutionDir).emulationstation\es_features.cfg" "$(TargetDir).emulationstation\"
+xcopy /Y /Q "$(SolutionDir).emulationstation\es_savestates.cfg" "$(TargetDir).emulationstation\"
 )
 
 if $(ConfigurationName) == Release (
