@@ -9,6 +9,7 @@ using emulatorLauncher.Tools;
 using System.Text.RegularExpressions;
 using System.Drawing;
 using SharpDX.XInput;
+using emulatorLauncher.PadToKeyboard;
 
 namespace emulatorLauncher
 {
@@ -185,6 +186,14 @@ namespace emulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return mapping;
+
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "flycast", InputKey.hotkey | InputKey.start, "(%{F4})");
         }
 
         public override int RunAndWait(ProcessStartInfo path)

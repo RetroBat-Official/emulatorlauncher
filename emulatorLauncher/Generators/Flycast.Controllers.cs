@@ -145,6 +145,7 @@ namespace emulatorLauncher
                     ctrlini.WriteValue("digital", "bind23", "92:axis2_left");                                       // right stick left (numpad 4)
                     ctrlini.WriteValue("digital", "bind24", "94:axis2_right");                                      // right stick right (numpad 6)
                     ctrlini.WriteValue("digital", "bind25", "96:axis2_up");                                         // right stick up (numpad 8)
+                    ctrlini.WriteValue("digital", "bind26", "41:btn_escape");
                     WriteKeyboardMapping(3, fightGame6Buttons ? InputKey.pagedown : InputKey.pageup, "btn_z");      // button 6
                     ctrlini.WriteValue("digital", "bind4", "12:btn_analog_up");                                     // analog stick up (i)
                     ctrlini.WriteValue("digital", "bind5", "13:btn_analog_left");                                   // analog stick up (j)
@@ -169,6 +170,7 @@ namespace emulatorLauncher
                     ctrlini.WriteValue("digital", "bind19", "94:btn_dpad2_right");                                  // right stick right (numpad 6)
                     WriteKeyboardMapping(2, InputKey.pageup, "btn_trigger_left");
                     ctrlini.WriteValue("digital", "bind20", "96:btn_dpad2_up");                                     // right stick up (numpad 8)
+                    ctrlini.WriteValue("digital", "bind21", "41:btn_escape");
                     ctrlini.WriteValue("digital", "bind3", "12:btn_analog_up");                                     // analog stick up (i)
                     ctrlini.WriteValue("digital", "bind4", "13:btn_analog_left");                                   // analog stick up (j)
                     ctrlini.WriteValue("digital", "bind5", "14:btn_analog_down");                                   // analog stick up (k)
@@ -377,6 +379,45 @@ namespace emulatorLauncher
                 ctrlini.WriteValue("emulator", "version", "3");
 
                 ctrlini.Save();
+            }
+
+            // Add keyboard shortcuts for player 1
+            if (playerIndex == 1)
+            {
+                string kbMappingFile = Path.Combine(mappingPath, "SDL_Keyboard.cfg");
+                if (isArcade)
+                    kbMappingFile = Path.Combine(mappingPath, "SDL_Keyboard_arcade.cfg");
+
+                if (File.Exists(kbMappingFile))
+                    File.Delete(kbMappingFile);
+
+                using (var ctrlini = new IniFile(kbMappingFile, IniOptions.UseSpaces))
+                {
+                    ctrlini.WriteValue("digital", "bind0", "4:btn_d");
+                    ctrlini.WriteValue("digital", "bind1", "6:btn_b");
+                    ctrlini.WriteValue("digital", "bind10", "27:btn_a");
+                    ctrlini.WriteValue("digital", "bind11", "40:btn_start");
+                    ctrlini.WriteValue("digital", "bind12", "41:btn_escape");
+                    ctrlini.WriteValue("digital", "bind13", "43:btn_menu");
+                    ctrlini.WriteValue("digital", "bind14", "44:btn_fforward");
+                    ctrlini.WriteValue("digital", "bind15", "79:btn_dpad1_right");
+                    ctrlini.WriteValue("digital", "bind16", "80:btn_dpad1_left");
+                    ctrlini.WriteValue("digital", "bind17", "81:btn_dpad1_down");
+                    ctrlini.WriteValue("digital", "bind18", "82:btn_dpad1_up");
+                    ctrlini.WriteValue("digital", "bind2", "7:btn_y");
+                    ctrlini.WriteValue("digital", "bind3", "9:btn_trigger_left");
+                    ctrlini.WriteValue("digital", "bind4", "12:btn_analog_up");
+                    ctrlini.WriteValue("digital", "bind5", "13:btn_analog_left");
+                    ctrlini.WriteValue("digital", "bind6", "14:btn_analog_down");
+                    ctrlini.WriteValue("digital", "bind7", "15:btn_analog_right");
+                    ctrlini.WriteValue("digital", "bind8", "22:btn_x");
+                    ctrlini.WriteValue("digital", "bind9", "25:btn_trigger_right");
+                    ctrlini.WriteValue("emulator", "dead_zone", "10");
+                    ctrlini.WriteValue("emulator", "mapping_name", "Keyboard");
+                    ctrlini.WriteValue("emulator", "rumble_power", "100");
+                    ctrlini.WriteValue("emulator", "version", "3");
+                    ctrlini.Save();
+                }
             }
         }
 
