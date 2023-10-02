@@ -817,6 +817,8 @@ namespace emulatorLauncher.libRetro
             });
 
             var lang = SystemConfig["Language"];
+            if (string.IsNullOrEmpty(lang))
+                lang = "en";
             bool foundLang = false;
 
             retro_language rl = (retro_language)9999999;
