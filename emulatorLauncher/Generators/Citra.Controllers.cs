@@ -32,7 +32,7 @@ namespace emulatorLauncher
             if (cfg == null)
                 return;
 
-            var guid = controller.GetSdlGuid(_sdlVersion);
+            var guid = controller.GetSdlGuid(SdlVersion.SDL2_26, true);
             var citraGuid = guid.ToString().ToLowerInvariant();
 
             //only 1 player so profile is fixed to 1
