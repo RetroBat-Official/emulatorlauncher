@@ -34,6 +34,9 @@ namespace emulatorLauncher
 
             commandArray.Add("-f");
 
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
+                commandArray.Add("-a");
+
             if (bootToDSINand)
             {
                 commandArray.Add("-b");
@@ -160,8 +163,8 @@ namespace emulatorLauncher
                 BindBoolIniFeature(ini, "", "ScreenSwap", "melonds_swapscreen", "1", "0");
                 BindIniFeature(ini, "", "ScreenSizing", "melonds_screen_sizing", "0");
                 BindBoolIniFeature(ini, "", "IntegerScaling", "integerscale", "1", "0");
-                BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "3");
-                BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "3");
+                BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "0");
+                BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "0");
                 BindIniFeature(ini, "", "ScreenGap", "melonds_screengap", "0");
                 BindIniFeature(ini, "", "ScreenRotation", "melonds_rotate", "0");
             }
