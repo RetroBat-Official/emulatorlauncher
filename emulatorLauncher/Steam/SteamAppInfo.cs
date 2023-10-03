@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using Steam_Library_Manager.Framework;
+using Microsoft.Win32;
 
 namespace emulatorLauncher
 {
@@ -17,29 +18,63 @@ namespace emulatorLauncher
     {
         public static SteamGame FindGameInformations(int steamAppId)
         {
+            string path = null;
             string gameInstallationPath = null;
 
             try
             {
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node\\Valve\\Steam"))
+                {
+                    if (key != null)
+                    {
+                        Object o = key.GetValue("InstallPath");
+                        if (o != null)
+                        {
+                            path = o as string;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                throw new ApplicationException("Can not find Steam installation folder in registry.");
+            }
+
+            string libraryfoldersPath = Path.Combine(path, "config", "libraryfolders.vdf");
+            string appinfoPath = Path.Combine(path, "appcache", "appinfo.vdf");
+
+            if (!File.Exists(appinfoPath))
+                SimpleLogger.Instance.Info("[WARNING] Missing file " + appinfoPath);
+
+            try
+            {
                 var libraryfolders = new KeyValue();
-                libraryfolders.ReadFileAsText(@"C:\Program Files (x86)\Steam\config\libraryfolders.vdf");
+                libraryfolders.ReadFileAsText(libraryfoldersPath);
+
+                SimpleLogger.Instance.Info("[INFO] Reading Steam file 'libraryfolders.vdf'");
 
                 gameInstallationPath = libraryfolders.Children
                     .Where(t => t.Traverse(x => x.Children).Any(v => v.Name == steamAppId.ToString()))
                     .SelectMany(t => t.Children.Where(x => x.Name == "path" && x.Value != null))
                     .Select(x => x.Value.ToString())
                     .FirstOrDefault();
+
+                SimpleLogger.Instance.Info("[INFO] Game installation folder found \"" + gameInstallationPath + "\"");
             }
             catch{}
 
             try 
             {
                 var reader = new SteamAppInfoReader();
-                reader.Read(@"C:\Program Files (x86)\Steam\appcache\appinfo.vdf");
+                reader.Read(appinfoPath);
+
+                SimpleLogger.Instance.Info("[INFO] Reading Steam file 'appinfo.vdf'");
 
                 var app = reader.Apps.FirstOrDefault(a => a.AppID == steamAppId);
                 if (app == null)
                     return null;
+
+                SimpleLogger.Instance.Info("[INFO] Found Game \"" + steamAppId + "\" in 'appinfo.vdf'");
 
                 SteamGame g = new SteamGame();
                 g.InstallDir = app.Data
@@ -52,6 +87,8 @@ namespace emulatorLauncher
                 if (gameInstallationPath != null && g.InstallDir != null)
                     g.InstallDir = Path.Combine(gameInstallationPath, g.InstallDir);
 
+                SimpleLogger.Instance.Info("[INFO] Found install directory \"" + g.InstallDir + "\" in 'appinfo.vdf'");
+
                 var executables = app.Data.Traverse(d => d.Children).Where(d => d.Children.Any(c => c.Name == "executable")).ToArray();
                 foreach (var exe in executables)
                 {
@@ -61,11 +98,16 @@ namespace emulatorLauncher
 
                     var type = exe.Children.Where(c => c.Name == "type" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
                     if (type != "default")
-                        continue;
+                        SimpleLogger.Instance.Info("[INFO] No 'type' found, using first executable found.");
 
                     g.Executable = exe.Children.Where(c => c.Name == "executable" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
                     if (!string.IsNullOrEmpty(g.Executable))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Game executable " + g.Executable + " found.");
                         return g;
+                    }
+
+                    SimpleLogger.Instance.Info("[WARNING] No game executable found, cannot put ES in Wait-mode.");
                 }
             }
             catch { }

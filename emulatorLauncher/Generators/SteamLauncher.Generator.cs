@@ -28,7 +28,11 @@ namespace emulatorLauncher
                 SteamGame game = SteamAppInfoReader.FindGameInformations(steamAppId);
 
                 if (game == null || game.Executable == null)
-                    throw new ApplicationException("There is a problem: Game is not installed");
+                {
+                    SimpleLogger.Instance.Info("[WARNING] Cannot find STEAM game executable");
+                    return null;
+                }
+
                 else
                     return Path.GetFileNameWithoutExtension(game.Executable);
             }
