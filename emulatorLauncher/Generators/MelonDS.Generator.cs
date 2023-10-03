@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
+using System.Linq;
 
 namespace emulatorLauncher
 {
@@ -9,6 +10,7 @@ namespace emulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private bool _bezelsEnabled = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -23,6 +25,8 @@ namespace emulatorLauncher
             //Applying bezels
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            else
+                _bezelsEnabled = true;
 
             _resolution = resolution;
 
@@ -33,6 +37,18 @@ namespace emulatorLauncher
             var commandArray = new List<string>();
 
             commandArray.Add("-f");
+
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
+            {
+                var entries = Zip.ListEntries(rom).Where(e => !e.IsDirectory).Select(e => e.Filename).ToArray();
+                string ndsFile = entries.Where(e => Path.GetExtension(e).ToLowerInvariant() == ".nds").FirstOrDefault();
+
+                if (ndsFile != null)
+                {
+                    commandArray.Add("-a");
+                    commandArray.Add("\"" + ndsFile + "\"");
+                }
+            }
 
             if (bootToDSINand)
             {
@@ -160,8 +176,17 @@ namespace emulatorLauncher
                 BindBoolIniFeature(ini, "", "ScreenSwap", "melonds_swapscreen", "1", "0");
                 BindIniFeature(ini, "", "ScreenSizing", "melonds_screen_sizing", "0");
                 BindBoolIniFeature(ini, "", "IntegerScaling", "integerscale", "1", "0");
-                BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "3");
-                BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "3");
+                
+                if (_bezelsEnabled)
+                {
+                    BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "3");
+                    BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "3");
+                }
+                else
+                {
+                    BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "0");
+                    BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "0");
+                }
                 BindIniFeature(ini, "", "ScreenGap", "melonds_screengap", "0");
                 BindIniFeature(ini, "", "ScreenRotation", "melonds_rotate", "0");
             }
