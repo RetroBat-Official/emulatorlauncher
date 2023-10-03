@@ -17,7 +17,6 @@ namespace emulatorLauncher
     {
         private string _systemName;
         private string _exename;
-        private bool _isGamepassShortcut;
 
         private GameLauncher _gameLauncher;
 
@@ -36,7 +35,6 @@ namespace emulatorLauncher
 
             string path = Path.GetDirectoryName(rom);
             string arguments = null;
-            _isGamepassShortcut = false;
 
             string extension = Path.GetExtension(rom);
 
@@ -56,25 +54,6 @@ namespace emulatorLauncher
                     SetCustomError(ex.Message);
                     SimpleLogger.Instance.Error("[ExeLauncherGenerator] " + ex.Message, ex);
                     return null;
-                }
-            }
-
-            if (extension == ".lnk")
-            {
-                string linkTarget = FileTools.GetLnkTargetPath(rom);
-
-                if (linkTarget == "")
-                    throw new Exception("Invalid shortcut");
-
-                else
-                {
-                    string xManifestFile = Path.Combine(Path.GetDirectoryName(linkTarget), "appxmanifest.xml");
-                    _isGamepassShortcut = File.Exists(xManifestFile);
-                    if (_isGamepassShortcut)
-                    {
-                        rom = linkTarget;
-                        path = Path.GetDirectoryName(linkTarget);
-                    }
                 }
             }
 
@@ -173,10 +152,7 @@ namespace emulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_isGamepassShortcut)
-                return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
-
-            else if (_gameLauncher != null) 
+            if (_gameLauncher != null) 
                 return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
             else if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
@@ -215,32 +191,7 @@ namespace emulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            if (_isGamepassShortcut)
-            {
-                Process process = Process.Start(path);
-
-                int i = 1;
-                Process[] gamelist = Process.GetProcessesByName(_exename);
-
-                while (i <= 3 && gamelist.Length == 0)
-                {
-                    gamelist = Process.GetProcessesByName(_exename);
-                    Thread.Sleep(8000);
-                    i++;
-                }
-
-                if (gamelist.Length == 0)
-                    return 0;
-
-                else
-                {
-                    Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
-                    game.WaitForExit();
-                }
-                return 0;
-            }
-
-            else if (_systemName == "windows" || _gameLauncher != null)
+            if (_systemName == "windows" || _gameLauncher != null)
             {
                 using (var frm = new System.Windows.Forms.Form())
                 {
