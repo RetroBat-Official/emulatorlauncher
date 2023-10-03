@@ -77,6 +77,12 @@ namespace emulatorLauncher
             return (emul != null && emul.Incremental);
         }
 
+        public bool IsEmulatorSupported(string emulator)
+        {
+            var emul = this[emulator];
+            return this[emulator] != null;
+        }
+
         public string GetSavePath(string system, string emulator, string core)
         {
             var saves = Program.AppConfig.GetFullPath("saves");

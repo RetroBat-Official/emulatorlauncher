@@ -47,6 +47,62 @@ namespace emulatorLauncher
             return null;
         }
 
+        public static void TryCreateDirectory(string path)
+        {
+            if (Directory.Exists(path))
+                return;
+
+            try { Directory.CreateDirectory(path); }
+            catch { }
+        }
+
+        public static void TryDeleteFile(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            try { File.Delete(path); }
+            catch { }
+        }
+
+        #region Apis
+        const uint GENERIC_READ = 0x80000000;
+        const uint GENERIC_WRITE = 0x40000000;
+        const uint OPEN_EXISTING = 3;
+        const uint FILE_SHARE_READ = 1;
+        const uint FILE_SHARE_WRITE = 2;
+
+        static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr CreateFile(
+            string lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+            IntPtr lpSecurityAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
+            IntPtr hTemplateFile
+        );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool CloseHandle(IntPtr hObject);
+        #endregion
+
+        public static bool IsFileLocked(string path)
+        {
+            if (!File.Exists(path))
+                return false;
+
+            IntPtr handle = CreateFile(path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+            if (handle == INVALID_HANDLE_VALUE)
+                return true;
+
+            CloseHandle(handle);
+            return false;
+        }
+
         public static void CopyDirectory(string sourceDir, string destinationDir, bool recursive)
         {
             // Get information about the source directory
