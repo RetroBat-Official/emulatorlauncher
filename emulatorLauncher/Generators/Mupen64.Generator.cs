@@ -19,6 +19,19 @@ namespace emulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
+        private SaveStatesWatcher _saveStatesWatcher;
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
+        }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("mupen64");
@@ -29,7 +42,7 @@ namespace emulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupConfiguration(path, rom, system);
+            SetupConfiguration(path, rom, system, emulator, core);
             
             if (!SystemConfig.isOptSet("gfxplugin") || SystemConfig["gfxplugin"] == "glide")
                 SetupGFX(path);
@@ -80,6 +93,14 @@ namespace emulatorLauncher
             else
                 commandArray.Add("\"" + rom + "\"");
 
+            /*
+            if (File.Exists(SystemConfig["state_file"]))
+            {
+                commandArray.Add("--savestate");
+                commandArray.Add(Path.GetFullPath(SystemConfig["state_file"]));
+            }
+            */
+
             string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
@@ -90,7 +111,7 @@ namespace emulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path, string rom, string system)
+        private void SetupConfiguration(string path, string rom, string system, string emulator, string core)
         {
             string conf = Path.Combine(path, "Config", "mupen64plus.cfg");
 
@@ -100,23 +121,36 @@ namespace emulatorLauncher
                 ini.WriteValue("Rosalie's Mupen GUI RomBrowser", "Directory", Path.GetDirectoryName(rom).Replace("\\", "/"));
 
                 // Other paths
-                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "Mupen64");
-                if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
-                    catch { }
+                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "mupen64");
+                FileTools.TryCreateDirectory(screenshotPath);                
                 ini.WriteValue("Core", "ScreenshotPath", screenshotPath.Replace("\\", "/"));
 
-                string saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "sstates");
-                if (!Directory.Exists(saveStatePath)) try { Directory.CreateDirectory(saveStatePath); }
-                    catch { }
-                ini.WriteValue("Core", "SaveStatePath", saveStatePath.Replace("\\", "/"));
+                if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
+                {
+                    string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
 
-                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "games");
-                if (!Directory.Exists(saveSRAMPath)) try { Directory.CreateDirectory(saveSRAMPath); }
-                    catch { }
+                    _saveStatesWatcher = new Mupen64SaveStatesMonitor(rom, Path.Combine(path, "Save", "State"), localPath);
+                    _saveStatesWatcher.PrepareEmulatorRepository();
+
+                    ini.WriteValue("Core", "SaveStatePath", "Save/State");
+                    ini.WriteValue("Core", "CurrentStateSlot", _saveStatesWatcher.Slot.ToString());
+                    ini.WriteValue("Core", "SaveFilenameFormat", "1");
+                    ini.WriteValue("Core", "AutoStateSlotIncrement", "False");
+                }
+                else
+                {
+                    string saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mupen64");
+                    FileTools.TryCreateDirectory(saveStatePath);
+
+                    ini.WriteValue("Core", "SaveStatePath", saveStatePath.Replace("\\", "/"));
+                    ini.WriteValue("Core", "AutoStateSlotIncrement", "True");
+                }
+
+                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mupen64", "games");
+                FileTools.TryCreateDirectory(saveSRAMPath);                
                 ini.WriteValue("Core", "SaveSRAMPath", saveSRAMPath.Replace("\\", "/"));
 
-                // Default settings
-                ini.WriteValue("Core", "AutoStateSlotIncrement", "True");
+                // Default settings                
                 ini.WriteValue("Rosalie's Mupen GUI", "HideCursorInFullscreenEmulation", "True");
                 ini.WriteValue("Rosalie's Mupen GUI", "PauseEmulationOnFocusLoss", "True");
                 ini.WriteValue("Rosalie's Mupen GUI", "ResumeEmulationOnFocus", "True");
@@ -141,7 +175,7 @@ namespace emulatorLauncher
                     ini.WriteValue("Rosalie's Mupen GUI Core Overlay", "CPU_Emulator", "2");
                 }
 
-                // Discord
+                // Discord                
                 if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                     ini.WriteValue("Rosalie's Mupen GUI", "DiscordRpc", "True");
                 else

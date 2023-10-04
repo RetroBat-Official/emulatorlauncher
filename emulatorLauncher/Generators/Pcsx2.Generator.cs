@@ -18,7 +18,7 @@ namespace emulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private Pcsx2SaveStatesMonitor _saveStatesMonitor;
+        private SaveStatesWatcher _saveStatesWatcher;
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -27,10 +27,10 @@ namespace emulatorLauncher
 
         public override void Cleanup()
         {
-            if (_saveStatesMonitor != null)
+            if (_saveStatesWatcher != null)
             {
-                _saveStatesMonitor.Dispose();
-                _saveStatesMonitor = null;
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
             }
 
             base.Cleanup();
@@ -172,14 +172,8 @@ namespace emulatorLauncher
 
             if (File.Exists(SystemConfig["state_file"]))
             {
-                if (_saveStatesMonitor != null)
-                {
-                    // Pcsx2 always starts on slot 1, then copy to slot 1 so it can be reloaded
-                    _saveStatesMonitor.CopyToPhysicalSlot(SystemConfig["state_file"], _saveStatesMonitor.IncrementalMode ? 1 : -1);
-
-                    commandArray.Add("-statefile");
-                    commandArray.Add("\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"");                    
-                }
+                commandArray.Add("-statefile");
+                commandArray.Add("\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"");
             }
 
             string args = string.Join(" ", commandArray);
@@ -765,28 +759,28 @@ namespace emulatorLauncher
                 string memcardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "memcards");                
                 SetIniPath(ini, "Folders", "MemoryCards", memcardsPath);
 
+                bool newSaveStates = Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported("pcsx2");
+
                 // SaveStates path
-                string savesPath = Program.HasEsSaveStates ?
+                string savesPath = newSaveStates ?
                     Program.EsSaveStates.GetSavePath(system, "pcsx2", "pcsx2") :
                     Path.Combine(AppConfig.GetFullPath("saves"), system, "pcsx2", "sstates");
 
                 if (!string.IsNullOrEmpty(savesPath))
-                {                    
-                    savesPath = Path.Combine(savesPath, system, "pcsx2", "sstates");
-                    try { Directory.CreateDirectory(savesPath); } catch { }
-
-                    if (Program.HasEsSaveStates)
+                {
+                    if (newSaveStates)
                     {
                         // Keep the original folder, we'll listen to it, and inject in our custom folder
                         ini.WriteValue("Folders", "Savestates", "sstates");
 
-                        _saveStatesMonitor = new Pcsx2SaveStatesMonitor(rom, Path.Combine(path, "sstates"), savesPath);
-                        _saveStatesMonitor.IncrementalMode = Program.EsSaveStates.IsIncremental("pcsx2");
-                        _saveStatesMonitor.Slot = (SystemConfig["state_slot"] ?? "1").ToInteger();
-                                               
+                        _saveStatesWatcher = new Pcsx2SaveStatesMonitor(rom, Path.Combine(path, "sstates"), savesPath);
+                        _saveStatesWatcher.PrepareEmulatorRepository();
                     }
                     else
+                    {
+                        FileTools.TryCreateDirectory(savesPath);
                         ini.WriteValue("Folders", "Savestates", savesPath);
+                    }
                 }
 
                 //Custom textures path

@@ -10,6 +10,9 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Data.SQLite;
 using System.IO.Compression;
+using System.Net;
+using System.Windows.Documents;
+using System.Security.Cryptography;
 
 namespace emulatorLauncher
 {
@@ -17,6 +20,7 @@ namespace emulatorLauncher
     {
         private string _systemName;
         private string _exename;
+        private bool _isGameExePath;
 
         private GameLauncher _gameLauncher;
 
@@ -35,8 +39,21 @@ namespace emulatorLauncher
 
             string path = Path.GetDirectoryName(rom);
             string arguments = null;
-
+            _isGameExePath = false;
             string extension = Path.GetExtension(rom);
+
+            if (extension == ".lnk")
+            {
+                string target = FileTools.GetShortcutTarget(rom);
+                if (target != "" && target != null)
+                    _isGameExePath = File.Exists(target);
+
+                if (_isGameExePath)
+                {
+                    rom = target;
+                    path = Path.GetDirectoryName(target);
+                }
+            }
 
             // Define if shortcut is an EpicGame or Steam shortcut
             if (extension == ".url")
@@ -54,6 +71,28 @@ namespace emulatorLauncher
                     SetCustomError(ex.Message);
                     SimpleLogger.Instance.Error("[ExeLauncherGenerator] " + ex.Message, ex);
                     return null;
+                }
+            }
+
+            if (extension == ".game")
+            {
+                string linkTarget = null;
+                string [] lines = File.ReadAllLines(rom);
+
+                if (lines.Length == 0)
+                    throw new Exception("No path specified in .gamepass file.");
+                else
+                    linkTarget = lines[0];
+
+                if (!File.Exists(linkTarget))
+                    throw new Exception("Target file " + linkTarget + " does not exist.");
+
+                _isGameExePath = File.Exists(linkTarget);
+                
+                if (_isGameExePath)
+                {
+                    rom = linkTarget;
+                    path = Path.GetDirectoryName(linkTarget);
                 }
             }
 
@@ -152,7 +191,10 @@ namespace emulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_gameLauncher != null) 
+            if (_isGameExePath)
+                return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
+
+            else if (_gameLauncher != null) 
                 return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
             else if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
@@ -191,7 +233,32 @@ namespace emulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            if (_systemName == "windows" || _gameLauncher != null)
+            if (_isGameExePath)
+            {
+                Process process = Process.Start(path);
+
+                int i = 1;
+                Process[] gamelist = Process.GetProcessesByName(_exename);
+
+                while (i <= 3 && gamelist.Length == 0)
+                {
+                    gamelist = Process.GetProcessesByName(_exename);
+                    Thread.Sleep(8000);
+                    i++;
+                }
+
+                if (gamelist.Length == 0)
+                    return 0;
+
+                else
+                {
+                    Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
+                    game.WaitForExit();
+                }
+                return 0;
+            }
+
+            else if (_systemName == "windows" || _gameLauncher != null)
             {
                 using (var frm = new System.Windows.Forms.Form())
                 {
