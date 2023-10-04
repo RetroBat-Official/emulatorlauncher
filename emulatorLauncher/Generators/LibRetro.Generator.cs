@@ -299,6 +299,8 @@ namespace emulatorLauncher.libRetro
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
             BindFeature(retroarchConfig, "crt_switch_resolution_super", "CRTSuperRes", "0"); // CRT Resolution
 
+            BindFeature(retroarchConfig, "input_poll_type_behavior", "input_poll_type_behavior", "2");
+
 
             if ((systemGameFocus.Contains(system) && !SystemConfig.isOptSet("GameFocus")) || SystemConfig.getOptBoolean("GameFocus"))
                 retroarchConfig["input_auto_game_focus"] = "1";
