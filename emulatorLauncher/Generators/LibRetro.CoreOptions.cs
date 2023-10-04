@@ -1141,6 +1141,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "picodrive_input2", "picodrive_input2", "3 button pad");
             BindFeature(coreSettings, "picodrive_smsfm", "picodrive_smsfm", "off");
             BindFeature(coreSettings, "picodrive_smsmapper", "picodrive_smsmapper", "Auto");
+            BindBoolFeature(coreSettings, "picodrive_sprlim", "picodrive_nospritelimit", "enabled", "disabled");
 
             if (system == "mastersystem")
                 coreSettings["picodrive_smstype"] = "Master System";
@@ -2199,6 +2200,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "genesis_plus_gx_no_sprite_limit", "genesis_plus_gx_no_sprite_limit", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_add_on", "genesis_plus_gx_add_on", "auto");
+            BindFeature(coreSettings, "genesis_plus_gx_left_border", "genesis_plus_gx_left_border", "disabled");
 
             // Audio Filter
             if (Features.IsSupported("audio_filter"))
@@ -2289,6 +2291,7 @@ namespace emulatorLauncher.libRetro
             BindFeature(coreSettings, "genesis_plus_gx_wide_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_add_on", "genesis_plus_gx_add_on", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_wide_h40_extra_columns", "h40_extra_columns", "10");
+            BindFeature(coreSettings, "genesis_plus_gx_left_border", "genesis_plus_gx_left_border", "disabled");
 
             // Audio Filter
             if (Features.IsSupported("audio_filter"))
