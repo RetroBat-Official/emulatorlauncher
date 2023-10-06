@@ -16,7 +16,9 @@ namespace emulatorLauncher
         }
 
         private BezelFiles _bezelFileInfo;
+        private string _destRom;
         private ScreenResolution _resolution;
+        private List<string> extensions = new List<string>() { ".nex", ".pzx", ".rzx", ".sna", ".snx", ".sp", ".spg", ".tap", ".tzx", ".z80", ".zsf", ".zx", };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -29,6 +31,32 @@ namespace emulatorLauncher
             _resolution = resolution;
 
             string configFile = Path.Combine(path, ".zesaruxrc");
+
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
+            {
+                var entries = Zip.ListEntries(rom).Where(e => !e.IsDirectory).Select(e => e.Filename).ToArray();
+
+                bool stop = false;
+                string romFile = null;
+
+                foreach(var ext in extensions)
+                {
+                    if (stop)
+                        break;
+
+                    romFile = entries.Where(e => Path.GetExtension(e).ToLowerInvariant() == ext).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(romFile))
+                        stop = true;
+                }
+
+                _destRom = Path.Combine(Path.GetTempPath(), Path.GetFileName(romFile));
+
+                Zip.Extract(rom, Path.GetTempPath(), romFile);
+                if (!File.Exists(_destRom))
+                    return null;
+
+                rom = _destRom;
+            }
 
             // Configure cfg file
             SetupConfig(path, configFile, system);
@@ -103,6 +131,18 @@ namespace emulatorLauncher
             CreateControllerConfiguration(cfg);
 
             cfg.Save();
+        }
+
+        public override void Cleanup()
+        {
+            base.Cleanup();
+
+            try
+            {
+                if (!string.IsNullOrEmpty(_destRom) && File.Exists(_destRom))
+                    File.Delete(_destRom);
+            }
+            catch { }
         }
     }
     
