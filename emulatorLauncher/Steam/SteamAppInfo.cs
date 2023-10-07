@@ -93,18 +93,33 @@ namespace emulatorLauncher
                 foreach (var exe in executables)
                 {
                     var config = exe.Children.Where(c => c.Name == "config").SelectMany(c => c.Children).Where(c => c.Name == "oslist" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                    if (!"windows".Equals(config))
-                        continue;
-
-                    var type = exe.Children.Where(c => c.Name == "type" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                    if (type != "default")
-                        SimpleLogger.Instance.Info("[INFO] No 'type' found, using first executable found.");
-
-                    g.Executable = exe.Children.Where(c => c.Name == "executable" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                    if (!string.IsNullOrEmpty(g.Executable))
+                    if ("windows".Equals(config))
                     {
-                        SimpleLogger.Instance.Info("[INFO] Game executable " + g.Executable + " found.");
-                        return g;
+                        var type = exe.Children.Where(c => c.Name == "type" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
+                        if (type != "default")
+                            SimpleLogger.Instance.Info("[INFO] No default 'type' found, using first executable found.");
+
+                        g.Executable = exe.Children.Where(c => c.Name == "executable" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
+                        if (!string.IsNullOrEmpty(g.Executable))
+                        {
+                            SimpleLogger.Instance.Info("[INFO] Game executable " + g.Executable + " found.");
+                            return g;
+                        }
+                    }
+                    else
+                    {
+                        SimpleLogger.Instance.Info("[INFO] No 'windows' specific config found, using first executable found.");
+
+                        var type = exe.Children.Where(c => c.Name == "type" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
+                        if (type != "default")
+                            SimpleLogger.Instance.Info("[INFO] No default 'type' found, using first executable found.");
+
+                        g.Executable = exe.Children.Where(c => c.Name == "executable" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
+                        if (!string.IsNullOrEmpty(g.Executable))
+                        {
+                            SimpleLogger.Instance.Info("[INFO] Game executable " + g.Executable + " found.");
+                            return g;
+                        }
                     }
 
                     SimpleLogger.Instance.Info("[WARNING] No game executable found, cannot put ES in Wait-mode.");
@@ -184,22 +199,6 @@ namespace emulatorLauncher
 
                     Apps.Add(app);
                 } while (true);
-            }
-
-            var zacc = Apps.FirstOrDefault(a => a.AppID == 444930);
-
-            var executables = zacc.Data.Traverse(d => d.Children).Where(d => d.Children.Any(c => c.Name == "executable")).ToArray();
-            foreach (var exe in executables)
-            {
-                var config = exe.Children.Where(c => c.Name == "config").SelectMany(c => c.Children).Where(c => c.Name == "oslist" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                if (!"windows".Equals(config))
-                    continue;
-
-                var type = exe.Children.Where(c => c.Name == "type" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                if (type != "default")
-                    continue;
-
-                var exeName = exe.Children.Where(c => c.Name == "executable" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
             }
         }
 
