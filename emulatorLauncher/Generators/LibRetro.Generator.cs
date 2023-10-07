@@ -1328,6 +1328,10 @@ namespace emulatorLauncher.libRetro
                 string romPath = Path.GetDirectoryName(rom);
                 var romToLaunch = Directory.EnumerateFiles(romPath, "*.nds")
                     .FirstOrDefault();
+
+                if (romToLaunch == null)
+                    throw new ApplicationException("Libretro:melonDS requires a '.nds' game file to load a nand file.");
+
                 rom = romToLaunch;
             }
 
