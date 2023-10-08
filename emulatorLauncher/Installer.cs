@@ -89,7 +89,8 @@ namespace emulatorLauncher
             { new Installer("zesarux", "zesarux", "zesarux.exe") },
             { new Installer("jynx", "jynx", "Jynx-Windows-64bit.exe") },
             { new Installer("hatari", "hatari", "hatari.exe") },
-            { new Installer("xm6pro", "xm6pro", "XM6.exe") }
+            { new Installer("xm6pro", "xm6pro", "XM6.exe") },
+            { new Installer("stella", "stella", "Stella.exe") }
         };
 
         #region Properties
