@@ -2381,7 +2381,8 @@ namespace emulatorLauncher.libRetro
             coreSettings["mupen64plus-parallel-rdp-synchronous"] = "True";
 
             BindFeature(coreSettings, "mupen64plus-cpucore", "mupen64plus-cpucore", "pure_interpreter"); // CPU core
-            BindFeature(coreSettings, "mupen64plus-rdp-plugin", "RDP_Plugin", "gliden64"); // Plugin selection           
+            BindFeature(coreSettings, "mupen64plus-rdp-plugin", "RDP_Plugin", "gliden64"); // Plugin selection
+            BindFeature(coreSettings, "mupen64plus-Framerate", "mupen64plus_framerate", "Original");
 
             // Set RSP plugin: HLE for Glide, LLE for Parallel
             if (SystemConfig.isOptSet("RDP_Plugin") && coreSettings["mupen64plus-rdp-plugin"] == "parallel")
