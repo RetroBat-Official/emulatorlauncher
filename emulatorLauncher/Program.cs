@@ -111,7 +111,8 @@ namespace emulatorLauncher
             { "zesarux", () => new ZEsarUXGenerator() },
             { "jynx", () => new JynxGenerator() },
             { "hatari", () => new HatariGenerator() },
-            { "xm6pro", () => new Xm6proGenerator() }
+            { "xm6pro", () => new Xm6proGenerator() },
+            { "stella", () => new StellaGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
