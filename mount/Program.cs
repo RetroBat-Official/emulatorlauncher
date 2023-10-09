@@ -9,6 +9,7 @@ using System.Threading;
 using System.Collections.Generic;
 using DokanNet;
 using DokanNet.Logging;
+using EmulatorLauncher.Common.Compression;
 
 namespace Mount
 {

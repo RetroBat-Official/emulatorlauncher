@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.Windows.Forms;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class ZincGenerator : Generator
     {

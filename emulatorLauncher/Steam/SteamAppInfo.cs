@@ -5,8 +5,9 @@ using System.Text;
 using System.IO;
 using Steam_Library_Manager.Framework;
 using Microsoft.Win32;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class SteamGame
     {

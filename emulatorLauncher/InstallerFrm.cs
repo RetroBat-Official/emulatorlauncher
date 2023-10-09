@@ -6,12 +6,13 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
 using System.IO;
 using System.Globalization;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.PadToKeyboard;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class InstallerFrm : Form
     {

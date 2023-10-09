@@ -10,8 +10,10 @@ using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 using System.ComponentModel;
 using System.Xml;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class Mame64Generator : Generator
     {
@@ -49,40 +51,23 @@ namespace emulatorLauncher
             bool checkVerticalGame = !infos.IsValid() || !Path.GetFileNameWithoutExtension(rom).Equals(Path.GetFileNameWithoutExtension(bezelInfo.PngFile), StringComparison.InvariantCultureIgnoreCase);
 
             if (!infos.IsValid())
+                infos = BezelInfo.FromImage(pngFile);
+            
+            if (!infos.IsValid())
             {
-                PngBezelInfo pngInfo = PngBezelInfo.FromFile(pngFile);
-                if (pngInfo != null)
-                {
-                    infos.width = pngInfo.Size.Width;
-                    infos.height = pngInfo.Size.Height;
-                }
-                else
-                {
-                    infos.width = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-                    infos.height = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
-                }
+                // BezelInfo is not valid ? Assume the Viewport is 4:3
+                infos.width = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
+                infos.height = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+                infos.left = 0;
+                infos.right = 0;
+                infos.top = 0;
+                infos.bottom = 0;
                 
-                if (pngInfo != null && !pngInfo.ViewPort.IsEmpty)
+                int width = (int)((infos.height * 4) / 3);
+                if (width > 0 && width < infos.width)
                 {
-                    infos.left = pngInfo.ViewPort.Left;
-                    infos.right = pngInfo.Size.Width - pngInfo.ViewPort.Right;
-                    infos.top = pngInfo.ViewPort.Top;
-                    infos.bottom = pngInfo.Size.Height - pngInfo.ViewPort.Bottom;
-                }
-                else
-                {
-                    infos.left = 0;
-                    infos.right = 0;
-                    infos.top = 0;
-                    infos.bottom = 0;
-
-                    // Assume it's 4:3
-                    int width = (int)((infos.height * 4) / 3);
-                    if (width > 0 && width < infos.width)
-                    {
-                        infos.left = (int)((infos.width - width) / 2);
-                        infos.right = infos.left;
-                    }
+                    infos.left = (int)((infos.width - width) / 2);
+                    infos.right = infos.left;
                 }
             }
 
@@ -123,8 +108,6 @@ namespace emulatorLauncher
                 }
             }
 
-
-
             string xml = xmlString
                 .Replace("{image}", Path.GetFileName(pngFile))
                 .Replace("{width}", infos.width.ToString())
@@ -155,96 +138,6 @@ namespace emulatorLauncher
                 try { Directory.Delete(tmpPath, true); }
                 catch { }
             }
-        }
-
-        class PngBezelInfo
-        {
-            private PngBezelInfo() { }
-
-            const byte MIN_ALPHA = 235;
-
-            public static PngBezelInfo FromFile(string fileName)
-            {
-                var ret = new PngBezelInfo();
-
-                try
-                {
-                    using (Image img = Image.FromFile(fileName))
-                    {
-                        RECT bounds = new RECT(-1, -1, -1, -1);
-
-                        // Detect transparency in png file
-                        using (var bmp = new Bitmap(img))
-                        {
-                            BitmapData dstData = bmp.LockBits(new Rectangle(0, 0, bmp.Size.Width, bmp.Size.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-
-                            int y1 = bmp.Height / 2;
-
-                            for (int x = 4; x < bmp.Size.Width; x++)
-                            {
-                                UInt32 color = (UInt32)Marshal.ReadInt32(dstData.Scan0, (dstData.Stride * y1) + (4 * x));
-                                byte a = (byte)(color >> 24);
-                                if (a < MIN_ALPHA)
-                                {
-                                    bounds.left = x;
-                                    break;
-                                }
-                            }
-
-                            for (int x = bmp.Size.Width - 4; x >= 0; x--)
-                            {
-                                UInt32 color = (UInt32)Marshal.ReadInt32(dstData.Scan0, (dstData.Stride * y1) + (4 * x));
-                                byte a = (byte)(color >> 24);
-                                if (a < MIN_ALPHA)
-                                {
-                                    bounds.right = x + 1;
-                                    break;
-                                }
-                            }
-
-                            int x1 = bmp.Width / 2;
-                            for (int y = 0; y < bmp.Size.Height; y++)
-                            {
-                                UInt32 color = (UInt32)Marshal.ReadInt32(dstData.Scan0, (dstData.Stride * y) + (4 * x1));
-                                byte a = (byte)(color >> 24);
-                                if (a < MIN_ALPHA)
-                                {
-                                    bounds.top = y;
-                                    break;
-                                }
-                            }
-
-                            for (int y = bmp.Size.Height - 1; y >= 0; y--)
-                            {
-                                UInt32 color = (UInt32)Marshal.ReadInt32(dstData.Scan0, (dstData.Stride * y) + (4 * x1));
-                                byte a = (byte)(color >> 24);
-                                if (a < MIN_ALPHA)
-                                {
-                                    bounds.bottom = y + 1;
-                                    break;
-                                }
-                            }
-
-                            bmp.UnlockBits(dstData);
-                        }
-
-                        ret.Size = img.Size;
-
-                        if (bounds.left < 0 || bounds.right < 0 || bounds.top < 0 || bounds.right < 0)
-                            ret.ViewPort = Rectangle.Empty;
-                        else
-                            ret.ViewPort = Rectangle.FromLTRB(bounds.left, bounds.top, bounds.right, bounds.bottom);
-                    }
-
-                    return ret;
-                }
-                catch { }
-
-                return null;
-            }
-
-            public Size Size { get; set; }
-            public Rectangle ViewPort { get; set; }
         }
 
         class MameGameInfo

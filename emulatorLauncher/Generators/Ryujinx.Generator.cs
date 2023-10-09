@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class RyujinxGenerator : Generator
     {

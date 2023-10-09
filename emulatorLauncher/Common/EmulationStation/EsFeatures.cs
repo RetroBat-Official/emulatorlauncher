@@ -6,8 +6,9 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.EmulationStation
 {
     [System.Xml.Serialization.XmlTypeAttribute("features")]
     [System.Xml.Serialization.XmlRootAttribute("features")]

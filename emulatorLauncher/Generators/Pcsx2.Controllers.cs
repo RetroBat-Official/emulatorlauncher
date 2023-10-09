@@ -7,9 +7,11 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Management;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class Pcsx2Generator : Generator
     {

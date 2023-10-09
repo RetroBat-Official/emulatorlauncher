@@ -5,7 +5,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
     public class Job : IDisposable
     {

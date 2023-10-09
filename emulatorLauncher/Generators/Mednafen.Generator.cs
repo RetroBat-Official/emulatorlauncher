@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
 using System.IO;
-using emulatorLauncher.Tools;
 using System.Drawing;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
 using Microsoft.Win32;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -13,8 +11,12 @@ using System.IO.Compression;
 using System.Net;
 using System.Windows.Documents;
 using System.Security.Cryptography;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.PadToKeyboard;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class ExeLauncherGenerator : Generator
     {

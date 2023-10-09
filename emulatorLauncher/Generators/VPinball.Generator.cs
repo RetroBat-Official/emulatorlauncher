@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using VPinballLauncher;
+using EmulatorLauncher.VPinballLauncher;
 using System.Xml;
 using System.Drawing;
-using emulatorLauncher.Tools;
 using Microsoft.Win32;
 using System.Windows.Forms;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class VPinballGenerator : Generator
     {

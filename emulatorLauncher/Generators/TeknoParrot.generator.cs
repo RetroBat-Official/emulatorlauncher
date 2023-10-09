@@ -8,13 +8,15 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Threading;
 using TeknoParrotUi.Common;
-using emulatorLauncher.Tools;
-using emulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.PadToKeyboard;
 using System.Management;
 using System.Text.RegularExpressions;
-using VPinballLauncher;
+using EmulatorLauncher.VPinballLauncher;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class TeknoParrotGenerator : Generator
     {        

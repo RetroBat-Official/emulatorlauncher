@@ -9,6 +9,8 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using emulatorLauncher;
 using System.Threading;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 
 namespace Mount
 {

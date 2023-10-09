@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
-
     class InputKeyMapping : List<KeyValuePair<InputKey, string>>
     {
         public InputKeyMapping() { }

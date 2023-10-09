@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using SharpDX.XInput;
 using System.Windows;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Joysticks;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class Model2Generator : Generator
     {

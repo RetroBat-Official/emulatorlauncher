@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
 using System.Xml;
 using System.Xml.Linq;
+using EmulatorLauncher.Common.Lightguns;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.PadToKeyboard;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class Mame64Generator
     {

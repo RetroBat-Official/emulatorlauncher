@@ -5,10 +5,11 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Drawing;
-using emulatorLauncher.Tools;
 using System.Threading;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class DolphinGenerator : Generator
     {

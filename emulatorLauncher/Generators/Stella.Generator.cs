@@ -8,8 +8,10 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Data.SQLite;
 using System.Diagnostics.Eventing.Reader;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class StellaGenerator : Generator
     {

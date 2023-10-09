@@ -8,7 +8,7 @@
     <ProjectGuid>{BD82A5AA-00AD-40BF-BAE6-EF29FA1FC7C1}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>emulatorLauncher</RootNamespace>
+    <RootNamespace>EmulatorLauncher</RootNamespace>
     <AssemblyName>emulatorLauncher</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -80,38 +80,39 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BezelFiles.cs" />
-    <Compile Include="Common\EsSaveStates.cs" />
+    <Compile Include="Bezels\BezelFiles.cs" />
+    <Compile Include="Common\EmulationStation\EsSaveStates.cs" />
     <Compile Include="Common\Joysticks\HidToDirectInput.cs" />
     <Compile Include="Common\Joysticks\DirectInputInfo.cs" />
-    <Compile Include="Common\DynamicJson.cs" />
-    <Compile Include="Common\GunGames.cs" />
+    <Compile Include="Common\FileFormats\DynamicJson.cs" />
+    <Compile Include="Common\EmulationStation\GunGames.cs" />
     <Compile Include="Common\Joysticks\HdiGameDevice.cs" />
-    <Compile Include="Common\InputDevices.cs" />
+    <Compile Include="Common\Joysticks\InputDevices.cs" />
     <Compile Include="Common\Joysticks\XInputDevice.cs" />
-    <Compile Include="Common\MountFile.cs" />
+    <Compile Include="Common\Compression\MountFile.cs" />
     <Compile Include="Common\EnumerableExtensions.cs" />
-    <Compile Include="Common\EsSystems.cs" />
+    <Compile Include="Common\EmulationStation\EsSystems.cs" />
     <Compile Include="Common\FileTools.cs" />
-    <Compile Include="Common\IsoFile.cs" />
+    <Compile Include="Common\FileFormats\IsoFile.cs" />
     <Compile Include="Common\Job.cs" />
-    <Compile Include="Common\MultiDiskImageFile.cs" />
+    <Compile Include="Common\FileFormats\MultiDiskImageFile.cs" />
     <Compile Include="Common\OrderedDictionary.cs" />
-    <Compile Include="Common\PortableZip.cs" />
+    <Compile Include="Common\Compression\PortableZip.cs" />
     <Compile Include="Common\ProcessExtensions.cs" />
     <Compile Include="Common\ProgressInformation.cs" />
-    <Compile Include="Common\Joysticks\RawLightGun.cs" />
+    <Compile Include="Common\Lightguns\RawLightGun.cs" />
     <Compile Include="Common\ReflectionHelper.cs" />
     <Compile Include="Common\Joysticks\SdlJoystickGuid.cs" />
     <Compile Include="Common\SaveStatesWatcher.cs" />
+    <Compile Include="Common\Lightguns\SindenLightgunConfiguration.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\WebTools.cs" />
     <Compile Include="Common\Joysticks\WinmmJoystick.cs" />
-    <Compile Include="Common\XmlExtensions.cs" />
-    <Compile Include="Common\XmlDeserializer.cs" />
+    <Compile Include="Common\FileFormats\XmlExtensions.cs" />
+    <Compile Include="Common\FileFormats\XmlDeserializer.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
-    <Compile Include="FakeBezelFrm.cs">
+    <Compile Include="Bezels\FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Generators\Xm6pro.Generator.cs" />
@@ -142,8 +143,8 @@
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
     <Compile Include="Generators\vita3k.Generator.cs" />
-    <Compile Include="Imapi\BurnData.cs" />
-    <Compile Include="Imapi\Imapi2Interop.cs" />
+    <Compile Include="Common\Imapi\BurnData.cs" />
+    <Compile Include="Common\Imapi\Imapi2Interop.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Common\InputKeyMapping.cs" />
     <Compile Include="Generators\Nes3d.Generator.cs" />
@@ -353,22 +354,22 @@
     <Compile Include="Teknoparrot\GameProfile.cs" />
     <Compile Include="Teknoparrot\JoystickHelper.cs" />
     <Compile Include="Teknoparrot\JoystickMapping.cs" />
-    <Compile Include="Common\ConfigFile.cs" />
-    <Compile Include="Common\EsFeatures.cs" />
-    <Compile Include="Common\EsGameList.cs" />
-    <Compile Include="Common\EsInput.cs" />
-    <Compile Include="Common\JsonSerializer.cs" />
-    <Compile Include="Common\KeyboardManager.cs" />
+    <Compile Include="Common\FileFormats\ConfigFile.cs" />
+    <Compile Include="Common\EmulationStation\EsFeatures.cs" />
+    <Compile Include="Common\EmulationStation\EsGameList.cs" />
+    <Compile Include="Common\EmulationStation\EsInput.cs" />
+    <Compile Include="Common\FileFormats\JsonSerializer.cs" />
+    <Compile Include="VPinball\KeyboardManager.cs" />
     <Compile Include="Common\HighPerformancePowerScheme.cs" />
     <Compile Include="Common\RegistryApi.cs" />
     <Compile Include="Common\ScreenCapture.cs" />
     <Compile Include="Common\ScreenResolution.cs" />
-    <Compile Include="Common\IniFile.cs" />
+    <Compile Include="Common\FileFormats\IniFile.cs" />
     <Compile Include="Common\SDL2.cs" />
     <Compile Include="Common\Joysticks\SdlGameController.cs" />
     <Compile Include="Common\SimpleLogger.cs" />
-    <Compile Include="Common\SimpleBml.cs" />
-    <Compile Include="Common\SimpleYml.cs" />
+    <Compile Include="Common\FileFormats\SimpleBml.cs" />
+    <Compile Include="Common\FileFormats\SimpleYml.cs" />
     <Compile Include="Common\SystemDefaults.cs" />
     <Compile Include="Common\Generator.cs" />
     <Compile Include="Generators\LibRetro.Generator.cs" />
@@ -403,7 +404,7 @@
     <Compile Include="Common\SystemShaders.cs" />
     <Compile Include="Common\Tools.cs" />
     <Compile Include="Common\User32.cs" />
-    <Compile Include="Common\ZipFile.cs" />
+    <Compile Include="Common\Compression\ZipFile.cs" />
     <Compile Include="InstallerFrm.cs">
       <SubType>Form</SubType>
     </Compile>

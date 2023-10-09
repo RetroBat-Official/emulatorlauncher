@@ -3,7 +3,7 @@
 // by Eric Haddan
 //
 
-namespace emulatorLauncher.imapi2
+namespace EmulatorLauncher.Common.IMapi2
 {
     public enum BURN_MEDIA_TASK
     {

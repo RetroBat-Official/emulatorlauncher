@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using emulatorLauncher.Tools;
 using System.Globalization;
 using System.Management;
 using System.Windows.Documents;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Lightguns;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class FlycastGenerator
     {

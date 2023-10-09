@@ -2,12 +2,13 @@
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.Threading;
 using System.Data.SQLite;
 using System.IO.Compression;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class ExeLauncherGenerator : Generator
     {

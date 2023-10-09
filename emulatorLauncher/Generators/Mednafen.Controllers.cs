@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using emulatorLauncher.Tools;
 using System.Globalization;
 using SharpDX.DirectInput;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Joysticks;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {

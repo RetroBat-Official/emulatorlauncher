@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
-using VPinballLauncher;
 using System.Windows.Forms;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.VPinballLauncher;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class ScummVmGenerator : Generator
     {

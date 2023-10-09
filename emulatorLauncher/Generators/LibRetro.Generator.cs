@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Globalization;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher.libRetro
+namespace EmulatorLauncher.Libretro
 {
     // -system nes -emulator libretro -core fceumm -rom "H:\[Emulz]\roms\nes\Arkanoid.nes" -state_slot 1 -autosave 1
     // -system nes -emulator libretro -core fceumm -rom "H:\[Emulz]\roms\nes\Arkanoid.nes" -state_slot 1 -state_file "H:/[Emulz]/saves/nes/Arkanoid.state"
@@ -907,7 +908,7 @@ namespace emulatorLauncher.libRetro
 
                 if (!SystemConfig.isOptSet("ratio"))
                 {
-                    if (systemName == "mame")
+                    if (systemName == "mame" || infos.IsEstimated)
                         retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
                     else
                         retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file                
@@ -1085,10 +1086,18 @@ namespace emulatorLauncher.libRetro
                             supportedCores = null;
                     }
 
-                    var bestCore = MameVersionDetector.FindBestMameCore(rom, supportedCores);
+                    var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Replace("-", "_")).ToList();
+                    var bestCore = compatibleCores.FirstOrDefault();
                     if (!string.IsNullOrEmpty(bestCore))
                     {
-                        core = bestCore.Replace("-", "_");
+                        core = bestCore;
+
+                        if (SystemConfig.getOptBoolean("use_guns") && core == "mame2003" && compatibleCores.Contains("mame2003_plus"))
+                        {
+                            // mame2003 is not working fine with lightgun games -> prefer mame2003_plus if it's compatible
+                            core = "mame2003_plus";
+                        }
+
                         SimpleLogger.Instance.Info("[FindBestMameCore] Detected compatible mame core : " + core);
                     }
                     else

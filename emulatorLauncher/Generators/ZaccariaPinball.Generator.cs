@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.PadToKeyboard;
 using System.Threading;
 using Microsoft.Win32;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class ZaccariaPinballGenerator : Generator
     {

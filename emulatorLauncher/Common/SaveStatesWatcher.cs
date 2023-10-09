@@ -7,7 +7,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
     abstract class SaveStatesWatcher : IDisposable
     {

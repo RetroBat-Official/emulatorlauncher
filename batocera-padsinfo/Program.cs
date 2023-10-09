@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using emulatorLauncher;
-using emulatorLauncher.Tools;
 using System.Management;
 using System.Runtime.InteropServices;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace batocera_padsinfo
 {

@@ -56,8 +56,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\emulatorLauncher\Common\PortableZip.cs">
+    <Compile Include="..\emulatorLauncher\Common\Compression\PortableZip.cs">
       <Link>Common\PortableZip.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\FileFormats\XmlExtensions.cs">
+      <Link>Common\XmlExtensions.cs</Link>
     </Compile>
     <Compile Include="..\emulatorLauncher\Common\ReflectionHelper.cs">
       <Link>Common\ReflectionHelper.cs</Link>
@@ -73,9 +76,6 @@
     </Compile>
     <Compile Include="..\emulatorLauncher\Common\WebTools.cs">
       <Link>Common\WebTools.cs</Link>
-    </Compile>
-    <Compile Include="..\emulatorLauncher\Common\XmlExtensions.cs">
-      <Link>Common\XmlExtensions.cs</Link>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

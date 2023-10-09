@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class Controller
     {

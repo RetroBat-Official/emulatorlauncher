@@ -5,9 +5,11 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class CxbxGenerator : Generator
     {

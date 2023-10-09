@@ -2,14 +2,14 @@
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.Xml.Linq;
 using System.Windows.Forms;
-using emulatorLauncher.PadToKeyboard;
 using System.Security.Cryptography;
-using emulatorLauncher;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class PhoenixGenerator : Generator
     {

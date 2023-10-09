@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common.Joysticks
 {
     /// <summary>
     /// This class allows convertion of HID joystick codes to DirectInput codes

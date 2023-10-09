@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Specialized;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
     public class OrderedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary
     {

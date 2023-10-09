@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.Joysticks
 {
     // Controllers known by SDL2 & Retroarch
     class SdlGameController

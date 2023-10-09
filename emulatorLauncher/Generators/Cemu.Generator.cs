@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.Xml.Linq;
 using System.Xml;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class CemuGenerator : Generator
     {

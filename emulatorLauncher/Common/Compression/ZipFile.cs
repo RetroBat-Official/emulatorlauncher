@@ -6,9 +6,8 @@ using System.IO;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
-//using emulatorLauncher.Tools;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common.Compression
 {
     class Zip
     {

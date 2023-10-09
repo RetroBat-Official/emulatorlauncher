@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.Joysticks
 {
     class XInputDevice
     {

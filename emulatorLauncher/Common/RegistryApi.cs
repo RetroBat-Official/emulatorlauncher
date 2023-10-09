@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
     /// <summary>
     /// Classe permettant de lire les branches x86 et x64 (pas possible dans RegistryKey avec DotNet 4.0 et moins)

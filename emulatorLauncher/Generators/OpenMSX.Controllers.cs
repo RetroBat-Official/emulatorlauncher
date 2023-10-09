@@ -6,9 +6,9 @@ using System.IO;
 using System.Diagnostics;
 using System.Xml.Linq;
 using System.Xml;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.Joysticks;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class OpenMSXGenerator : Generator
     {

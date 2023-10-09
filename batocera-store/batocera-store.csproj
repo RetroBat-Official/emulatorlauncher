@@ -43,14 +43,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\emulatorLauncher\Common\ConfigFile.cs">
-      <Link>Common\ConfigFile.cs</Link>
+    <Compile Include="..\emulatorLauncher\Common\Compression\ZipFile.cs">
+      <Link>Common\ZipFile.cs</Link>
     </Compile>
-    <Compile Include="..\emulatorLauncher\Common\EsGameList.cs">
+    <Compile Include="..\emulatorLauncher\Common\EmulationStation\EsGameList.cs">
       <Link>Common\EsGameList.cs</Link>
     </Compile>
-    <Compile Include="..\emulatorLauncher\Common\IniFile.cs">
+    <Compile Include="..\emulatorLauncher\Common\FileFormats\ConfigFile.cs">
+      <Link>Common\ConfigFile.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\FileFormats\IniFile.cs">
       <Link>Common\IniFile.cs</Link>
+    </Compile>
+    <Compile Include="..\emulatorLauncher\Common\FileFormats\XmlExtensions.cs">
+      <Link>Common\XmlExtensions.cs</Link>
     </Compile>
     <Compile Include="..\emulatorLauncher\Common\OrderedDictionary.cs">
       <Link>Common\OrderedDictionary.cs</Link>
@@ -78,12 +84,6 @@
     </Compile>
     <Compile Include="..\emulatorLauncher\Common\WebTools.cs">
       <Link>Common\WebTools.cs</Link>
-    </Compile>
-    <Compile Include="..\emulatorLauncher\Common\XmlExtensions.cs">
-      <Link>Common\XmlExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\emulatorLauncher\Common\ZipFile.cs">
-      <Link>Common\ZipFile.cs</Link>
     </Compile>
     <Compile Include="Model\InstalledPackages.cs" />
     <Compile Include="Model\InstalledPackage.cs" />

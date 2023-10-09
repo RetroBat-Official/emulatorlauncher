@@ -5,8 +5,11 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 using System.IO.Compression;
+using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     static class MameVersionDetector
     {
@@ -14,8 +17,13 @@ namespace emulatorLauncher
 
         public static string FindBestMameCore(string rom, string[] supportedCores = null)
         {
+            return FindCompatibleMameCores(rom, supportedCores).FirstOrDefault();
+        }
+
+        public static string[] FindCompatibleMameCores(string rom, string[] supportedCores = null)
+        {
             if (string.IsNullOrEmpty(rom) || Path.GetExtension(rom).ToLowerInvariant() != ".zip")
-                return null;
+                return new string[] { };
 
             try
             {
@@ -29,22 +37,23 @@ namespace emulatorLauncher
                 }
 
                 if (games == null || games.Games == null)
-                    return null;
+                    return new string[] { };
 
                 var game = games.Games.FirstOrDefault(ff => ff.Name == Path.GetFileNameWithoutExtension(rom).ToLowerInvariant());
                 if (game == null)
-                    return null;
+                    return new string[] { };
 
                 if (!string.IsNullOrEmpty(game.Core))
-                    return game.Core;
+                    return new string[] { game.Core }; 
 
                 HashSet<string> cores = supportedCores == null ? null : new HashSet<string>(supportedCores.Select(c => c.Replace("_", "-")));
+                var ret = new List<string>();
 
                 using (var zip = ZipArchive.OpenRead(rom))
                 {
                     var entries = zip.Entries.ToList();
                     var entriesCrcs = entries.Select(e => e.HexCrc).ToArray();
-
+                    
                     // Exact match
                     foreach (var mm in game.Cores)
                     {
@@ -55,7 +64,7 @@ namespace emulatorLauncher
                         var gameCrcs = mm.Crcs.ToArray();
 
                         if (entriesCrcs.Length == gameCrcs.Length && entriesCrcs.All(c => gameCrcs.Contains(c)))
-                            return mm.Core;
+                            ret.Add(mm.Core);
                     }
 
                     // All required CRCs are present
@@ -64,11 +73,14 @@ namespace emulatorLauncher
                         if (cores != null && !cores.Contains(mm.Core))
                             continue;
 
+                        if (ret.Contains(mm.Core))
+                            continue;
+
                         int crcCount = mm.Crcs.Length;
                         var gameCrcs = mm.Crcs.ToArray();
 
                         if (gameCrcs.Except(entriesCrcs).Count() == 0)
-                            return mm.Core;
+                            ret.Add(mm.Core);
                     }
 
                     // Some crcs are missing....
@@ -77,12 +89,17 @@ namespace emulatorLauncher
                         if (cores != null && !cores.Contains(mm.Core))
                             continue;
 
+                        if (ret.Contains(mm.Core))
+                            continue;
+
                         int crcCount = mm.Crcs.Length;
                         var gameCrcs = mm.Crcs.ToArray();
 
                         if (gameCrcs.Except(entriesCrcs).Count() == gameCrcs.Length - entriesCrcs.Length)
-                            return mm.Core;
+                            ret.Add(mm.Core);
                     }
+
+                    return ret.ToArray();
                 }
             }
             catch (Exception ex)
@@ -92,8 +109,8 @@ namespace emulatorLauncher
 #endif
             }
 
-            return null;
-        }   
+            return new string[] { }; 
+        }
  
         static string ReadGZipFile(string file)
         {

@@ -6,7 +6,7 @@ using System.IO;
 using System.Xml.Linq;
 using System.Dynamic;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common.FileFormats
 {
     class ConfigFile : DynamicObject, IEnumerable<ConfigItem>
     {

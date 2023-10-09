@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common.EmulationStation
 {
     class EsSaveStates
     {

@@ -6,11 +6,28 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using System.IO;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common
 {
     class ScreenCapture
     {
+        public static Bitmap CaptureScreen()
+        {
+            var bmpScreenshot = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, PixelFormat.Format32bppArgb);
+
+            using (var gfxScreenshot = Graphics.FromImage(bmpScreenshot))
+                gfxScreenshot.CopyFromScreen(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y, 0, 0, Screen.PrimaryScreen.Bounds.Size, CopyPixelOperation.SourceCopy);
+
+            return bmpScreenshot;
+        }
+
+        public static void CaptureScreen(string filename)
+        {
+            using (Image img = CaptureScreen())
+                img.Save(filename);
+        }
+
         public static void AddImageToGameList(string rom, string imagePath, bool resizeTo43 = true)
         {
             if (string.IsNullOrEmpty(rom))
@@ -102,20 +119,5 @@ namespace emulatorLauncher.Tools
             return null;
         }
 
-        public static Bitmap CaptureScreen()
-        {
-            var bmpScreenshot = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, PixelFormat.Format32bppArgb);
-
-            using (var gfxScreenshot = Graphics.FromImage(bmpScreenshot))
-                gfxScreenshot.CopyFromScreen(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y, 0, 0, Screen.PrimaryScreen.Bounds.Size, CopyPixelOperation.SourceCopy);
-
-            return bmpScreenshot;
-        }
-
-        public static void CaptureScreen(string filename)
-        {
-            using (Image img = CaptureScreen())
-                img.Save(filename);
-        }
     }
 }

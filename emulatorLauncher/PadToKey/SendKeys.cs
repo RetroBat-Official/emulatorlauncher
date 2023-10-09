@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Diagnostics;
 
-namespace emulatorLauncher.PadToKeyboard
+namespace EmulatorLauncher.PadToKeyboard
 {
     class SendKey
     {

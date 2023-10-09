@@ -5,7 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
-using emulatorLauncher;
+using EmulatorLauncher.Common;
 
 namespace TeknoParrotUi.Common
 {

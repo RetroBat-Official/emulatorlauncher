@@ -5,25 +5,14 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 using System.Windows.Forms;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.EmulationStation
 {
     [XmlRoot("systems")]
     [XmlType("systems")]
     public class GunGames
     {
-        public static GunGame GetGameInformation(string system, string romName)
-        {
-            if (string.IsNullOrEmpty(romName) || string.IsNullOrEmpty(system))
-                return null;
-
-            var gungames = GunGames.Load(Path.Combine(Program.AppConfig.GetFullPath("resources"), "gungames.xml"));
-            if (gungames != null)
-                return gungames.FindGame(system, romName);
-
-            return null;
-        }
-
         private GunGames()
         {
             Systems = new List<GunSystem>();
@@ -59,7 +48,7 @@ namespace emulatorLauncher.Tools
                 SimpleLogger.Instance.Error("[GunGames] Load error : " + ex.Message);
             }
 
-            return null;
+            return new GunGames();
         }
 
         private Dictionary<string, List<GunGame>> _cache;

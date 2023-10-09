@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using emulatorLauncher;
-using emulatorLauncher.Tools;
 using System.Xml.Linq;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Compression;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class MessSystem
     {

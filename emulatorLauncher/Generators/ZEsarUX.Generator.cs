@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.IO;
-using emulatorLauncher.Tools;
 using System.Windows.Documents;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class ZEsarUXGenerator : Generator
     {

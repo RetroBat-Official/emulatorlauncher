@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using emulatorLauncher.Tools;
 using System.IO;
 using System.Windows.Forms;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class EsFeaturesPoBuilder
     {
