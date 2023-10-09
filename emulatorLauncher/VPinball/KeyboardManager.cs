@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.VPinballLauncher
 {
     public class KeyboardManager : IDisposable
     {

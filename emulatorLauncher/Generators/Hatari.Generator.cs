@@ -6,9 +6,10 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
 using Microsoft.Win32;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class HatariGenerator : Generator
     {

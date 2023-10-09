@@ -6,10 +6,13 @@ using System.IO;
 using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class XEmuGenerator : Generator
     {

@@ -5,9 +5,11 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Lightguns;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class Model2Generator : Generator
     {

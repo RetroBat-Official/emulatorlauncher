@@ -15,67 +15,10 @@ using System.ComponentModel;
 using System.Management;
 using System.Runtime.InteropServices.ComTypes;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common
 {
     static class Misc
-    {
-        /*
-        public static int GetLightGunCount()
-        {
-            var guns = RawLightgun.GetRawLightguns();
-
-            int sindenLightGun = guns.Count(g => g.Type == RawLighGunType.SindenLightgun);
-            int wiiMote = guns.Count(g => g.Type == RawLighGunType.MayFlashWiimote);
-            int mice = guns.Count(g => g.Type == RawLighGunType.Mouse);
-
-            return mice;
-            
-            string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
-
-            int mouses = 0;
-            int sindenLightGun = 0;
-            int wiimotes = 0;
-
-            var searcher = new ManagementObjectSearcher("select * from Win32_PointingDevice");
-            foreach (var obj in searcher.Get())
-            {
-                object pnpDeviceID = obj.GetPropertyValue("PNPDeviceID");
-                if (pnpDeviceID == null)
-                    continue;
-
-                string deviceId = pnpDeviceID.ToString();
-                if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
-                    continue;
-
-                object pointingType = obj.GetPropertyValue("PointingType");
-                if (pointingType is ushort && ((ushort)pointingType) == 2)
-                    mouses++;
-            }
-
-            // Count connected Sinden Guns 
-            foreach (ManagementObject obj1 in new ManagementObjectSearcher("Select * from WIN32_SerialPort").Get())
-            {
-                object pnpDeviceID = obj1.GetPropertyValue("PNPDeviceID");
-                if (pnpDeviceID == null)
-                    continue;
-
-                string deviceId = pnpDeviceID.ToString();
-
-                if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
-                    sindenLightGun++;
-            }
-
-            if (IsSindenLightGunConnected())
-            {
-                if (HasWiimoteGun(WiiModeGunMode.Mouse) && sindenLightGun > 0)
-                    return Math.Max(mouses, sindenLightGun + 1);
-
-                return Math.Max(mouses, sindenLightGun);
-            }
-
-            return mouses;
-        }
-        */
+    {        
         /// <summary>
         /// Detects if WiimoteGun is running in gamepad mode
         /// </summary>
@@ -90,35 +33,6 @@ namespace emulatorLauncher.Tools
 
                 int wndMode = (int)User32.GetProp(hWndWiimoteGun, "mode");
                 return wndMode == (int)mode;
-            }
-
-            return false;
-        }
-
-        public static bool IsSindenLightGunConnected()
-        {
-            // Find Sinden process
-            var px = Process.GetProcessesByName("Lightgun").FirstOrDefault();
-            if (px == null)
-                return false;
-
-            // When Sinden Lightgun app is running & Start is pressed, there's an ActiveMovie window in the process, with the class name "FilterGraphWindow"
-            if (!User32.FindHwnds(px.Id, hWnd => User32.GetClassName(hWnd) == "FilterGraphWindow", false).Any())
-                return false;
-
-            // Check if any Sinden Gun is connected
-            string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
-
-            foreach (ManagementObject obj1 in new ManagementObjectSearcher("Select * from WIN32_SerialPort").Get())
-            {
-                object pnpDeviceID = obj1.GetPropertyValue("PNPDeviceID");
-                if (pnpDeviceID == null)
-                    continue;
-
-                string deviceId = pnpDeviceID.ToString();
-
-                if (sindenDeviceIds.Any(d => deviceId.Contains(d)))
-                    return true;
             }
 
             return false;
@@ -189,6 +103,68 @@ namespace emulatorLauncher.Tools
             }
 
             return false;
+        }
+
+        public static bool NetworkHasPublicIP()
+        {
+            try
+            {
+                if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                    return false;
+
+                var networkInterfaces = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+
+                foreach (var netInterface in networkInterfaces)
+                {
+                    // Filter out loopback and non-operational interfaces
+                    if (netInterface.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Loopback ||
+                        netInterface.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up)
+                    {
+                        continue;
+                    }
+
+                    // Get the IP properties of the network interface
+                    var ipProps = netInterface.GetIPProperties();
+
+                    foreach (var ipInfo in ipProps.UnicastAddresses)
+                    {
+                        if (ipInfo.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {
+                            if (ipInfo.Address.ToString() == "::1")
+                                continue;
+
+                            bool isPublic = IsPublicIP(ipInfo.Address);
+                            if (isPublic)
+                                return true;
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+        public static bool IsPublicIP(IPAddress address) { return !IsPrivateIP(address); }
+
+        public static bool IsPrivateIP(IPAddress address)
+        {
+            if (address.ToString() == "::1") 
+                return true;
+
+            byte[] ip = address.GetAddressBytes();
+            switch (ip[0])
+            {
+                case 10:
+                case 127:
+                    return true;
+                case 172:
+                    return ip[1] >= 16 && ip[1] < 32;
+                case 192:
+                    return ip[1] == 168;
+                default:
+                    return false;
+            }
         }
 
         public static Image Base64ToImage(string data)

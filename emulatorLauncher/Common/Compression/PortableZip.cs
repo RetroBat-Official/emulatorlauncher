@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common.Compression
 {
     class ZipArchiveFileEntry
     {

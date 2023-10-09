@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using emulatorLauncher.Tools;
 using System.Globalization;
 using System.IO;
 using SharpDX.DirectInput;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher.libRetro
+namespace EmulatorLauncher.Libretro
 {
     class LibretroControllers
     {
@@ -146,16 +148,16 @@ namespace emulatorLauncher.libRetro
                             config[string.Format("input_{0}", specialkey.Value)] = GetConfigValue(input);
                     }
 
-                    var wiiMoteHotKey = GetInputCode(keyB, Tools.InputKey.hotkey);
+                    var wiiMoteHotKey = GetInputCode(keyB, InputKey.hotkey);
                     if (wiiMoteHotKey == null)
-                        wiiMoteHotKey = GetInputCode(keyB, Tools.InputKey.select);
+                        wiiMoteHotKey = GetInputCode(keyB, InputKey.select);
 
                     if (wiiMoteHotKey != null && wiiMoteHotKey.Type == "key")
                         config["input_enable_hotkey"] = GetConfigValue(wiiMoteHotKey);
                 }
             }
 
-            var hotKey = GetInputCode(c0, Tools.InputKey.hotkey);
+            var hotKey = GetInputCode(c0, InputKey.hotkey);
             if (hotKey != null && hotKey.Type != "key")                    
                 config[string.Format("input_enable_hotkey_{0}", typetoname[hotKey.Type])] = GetConfigValue(hotKey);            
         }

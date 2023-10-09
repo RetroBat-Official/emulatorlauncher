@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Management;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.Joysticks
 {
     class HdiGameDevice
     {

@@ -5,8 +5,9 @@ using System.Text;
 using System.Xml.Serialization;
 using System.ComponentModel;
 using System.IO;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.EmulationStation
 {
     public interface IRelativePath
     {
@@ -567,14 +568,14 @@ namespace emulatorLauncher.Tools
         [XmlIgnore]
         public object Tag { get; set; }
     }
-}
-
-public enum MetadataType
-{
-    Image = 0,
-    Thumbnail = 1,
-    Marquee = 2,
-    Fanart = 3,
-    TitleShot = 4,
-    Video = 5
+    
+    public enum MetadataType
+    {
+        Image = 0,
+        Thumbnail = 1,
+        Marquee = 2,
+        Fanart = 3,
+        TitleShot = 4,
+        Video = 5
+    }
 }

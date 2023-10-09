@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using System.Runtime.Serialization.Json;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.FileFormats
 {
     static class JsonSerializer
     {

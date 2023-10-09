@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.Joysticks
 {   
     /// <summary>
     /// This GUID fits the standard form:

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Linq;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common.FileFormats
 {
     [Flags]
     public enum IniOptions

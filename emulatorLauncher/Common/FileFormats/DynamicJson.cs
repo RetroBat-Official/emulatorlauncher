@@ -22,7 +22,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Globalization;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.FileFormats
 {
     public class DynamicJson : DynamicObject
     {        

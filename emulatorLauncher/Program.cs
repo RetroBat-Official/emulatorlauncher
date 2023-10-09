@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using emulatorLauncher.libRetro;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.Text.RegularExpressions;
 using System.Management;
 using System.Globalization;
-using emulatorLauncher.PadToKeyboard;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.ComponentModel;
@@ -17,6 +14,13 @@ using Microsoft.Win32;
 using System.Text;
 using System.Security.Principal;
 using System.Xml.Linq;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Libretro;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -32,7 +36,7 @@ using System.Xml.Linq;
 
 /// -p1index 0 -p1guid 03000000b50700000399000000000000 -p1name "2 axis 12 bouton boÃ®tier de commande" -p1nbbuttons 12 -p1nbhats 0 -p1nbaxes 2  -system atari2600 -emulator libretro -core stella -rom "H:\[Emulz]\roms\atari2600\Asteroids (USA).7z"
 /// 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     static class Program
     {
@@ -147,7 +151,19 @@ namespace emulatorLauncher
                 return _esSaveStates;
             }
         }
-        
+
+        private static GunGames _gunGames;
+
+        public static GunGames GunGames
+        {
+            get
+            {
+                if (_gunGames == null)
+                    _gunGames = GunGames.Load(Path.Combine(Program.AppConfig.GetFullPath("resources"), "gungames.xml"));
+
+                return _gunGames;
+            }
+        }
 
         public static bool HasEsSaveStates
         {
@@ -208,6 +224,8 @@ namespace emulatorLauncher
 
             if (args.Length == 0)
                 return;
+
+            var cccc = DirectInputInfo.Controllers;
 
             AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
 
@@ -738,18 +756,6 @@ namespace emulatorLauncher
                     }
 
                     Controllers.RemoveAll(c => c.Config == null);
-
-#if DEBUG
-                    /*
-                    foreach (var c in Controllers)
-                    {
-                        var dinput = c.DirectInput;
-                        var xinput = c.XInput;
-                        var winmm = c.WinmmJoystick;
-                        var sdl = c.SdlController;
-                    }
-                    */
-#endif
 
                     if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || Misc.HasWiimoteGun())
                     {

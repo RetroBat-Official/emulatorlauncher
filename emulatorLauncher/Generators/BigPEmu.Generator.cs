@@ -5,11 +5,12 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
-using emulatorLauncher.Tools;
 using System.Text.RegularExpressions;
 using System.Drawing;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class BigPEmuGenerator : Generator
     {

@@ -33,7 +33,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 #endregion
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
     public static class SDL
     {

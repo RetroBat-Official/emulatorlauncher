@@ -7,9 +7,12 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Linq.Expressions;
 using SharpDX.XInput;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.Lightguns;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class Model3Generator : Generator
     {
@@ -97,9 +100,9 @@ namespace emulatorLauncher
                 tech = "xinput";
             
             //Check if controllers are NINTENDO, will be used to revert buttons for sdl
-            if (c1.VendorID == Tools.USB_VENDOR.NINTENDO)
+            if (c1.VendorID == USB_VENDOR.NINTENDO)
                 n1 = "nintendo";
-            if (c2 != null && c2.Config != null && c2.VendorID == Tools.USB_VENDOR.NINTENDO)
+            if (c2 != null && c2.Config != null && c2.VendorID == USB_VENDOR.NINTENDO)
                 n2 = "nintendo";
 
             // Override tech if option is set in es_features

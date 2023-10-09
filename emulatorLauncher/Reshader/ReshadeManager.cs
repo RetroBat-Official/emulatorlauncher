@@ -5,12 +5,13 @@ using System.Text;
 using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.IO.Compression;
 using System.ComponentModel;
 using System.Reflection;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class ReshadeManager
     {
@@ -56,10 +57,10 @@ namespace emulatorLauncher
                 Directory.CreateDirectory(effectSearchPaths);
 
                 if (!File.Exists(Path.Combine(effectSearchPaths, "ReShade.fxh")))
-                    File.WriteAllBytes(Path.Combine(effectSearchPaths, "ReShade.fxh"), Properties.Resources.ReShade);
+                    File.WriteAllBytes(Path.Combine(effectSearchPaths, "ReShade.fxh"), EmulatorLauncher.Properties.Resources.ReShade);
 
                 if (!File.Exists(Path.Combine(effectSearchPaths, "ReShadeUI.fxh")))
-                    File.WriteAllBytes(Path.Combine(effectSearchPaths, "ReShadeUI.fxh"), Properties.Resources.ReShadeUI);
+                    File.WriteAllBytes(Path.Combine(effectSearchPaths, "ReShadeUI.fxh"), EmulatorLauncher.Properties.Resources.ReShadeUI);
                 
                 using (var reShadePreset = new IniFile(Path.Combine(path, ReshadeFolder, "ReShadePreset.ini")))
                 {                 

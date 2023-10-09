@@ -5,17 +5,18 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using emulatorLauncher.PadToKeyboard;
 using System.Windows.Forms;
 using System.Threading;
 using System.Xml.Linq;
 using System.Drawing;
 using System.Collections;
-using emulatorLauncher.Tools;
 using System.Runtime.InteropServices.ComTypes;
 using SharpDX.XInput;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class MesenGenerator : Generator
     {

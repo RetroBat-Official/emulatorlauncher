@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 
-namespace emulatorLauncher.imapi2
+namespace EmulatorLauncher.Common.IMapi2
 {
     #region IMAPI2 Enums
 

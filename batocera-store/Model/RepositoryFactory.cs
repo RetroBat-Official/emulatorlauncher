@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using emulatorLauncher;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace batocera_store
 {

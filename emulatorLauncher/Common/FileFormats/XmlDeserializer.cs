@@ -10,7 +10,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common.FileFormats
 {
     public class XmlDeserializer
     {

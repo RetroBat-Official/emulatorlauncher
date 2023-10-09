@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Drawing;
 using System.IO;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
     public static class User32
     {

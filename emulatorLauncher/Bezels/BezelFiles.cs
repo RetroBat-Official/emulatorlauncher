@@ -5,11 +5,15 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Drawing;
-using emulatorLauncher.Tools;
 using System.Runtime.Serialization.Json;
 using System.Runtime.Serialization;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Lightguns;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class BezelFiles
     {
@@ -268,7 +272,6 @@ namespace emulatorLauncher
             int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
             int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
 
-
             string overlayUser = Program.AppConfig.GetFullPath("decorations");
 
             string overlaySystem = Program.AppConfig.GetFullPath("system.decorations");
@@ -282,7 +285,16 @@ namespace emulatorLauncher
             else if (!Program.SystemConfig.isOptSet("bezel"))
             {
                 if (!string.IsNullOrEmpty(Program.CurrentGame.Bezel) && File.Exists(Program.CurrentGame.Bezel))
-                    return new BezelFiles() { PngFile = Program.CurrentGame.Bezel };
+                {
+                    var customBz = new BezelFiles() { PngFile = Program.CurrentGame.Bezel };
+
+                    if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
+                        return CreateSindenBorderBezel(customBz);
+                    else
+                        customBz.BezelInfos = BezelInfo.FromImage(customBz.PngFile);
+
+                    return customBz;
+                }
 
                 bezel = "thebezelproject";
             }
@@ -293,7 +305,7 @@ namespace emulatorLauncher
             float screenRatio = (float)resX / (float)resY;
             if (screenRatio < 1.4)
             {
-                if (Program.SystemConfig.isOptSet("use_guns") && Program.SystemConfig.getOptBoolean("use_guns") && Misc.IsSindenLightGunConnected())
+                if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
                     return CreateSindenBorderBezel(null, resolution);
 
                 return null;
@@ -302,7 +314,7 @@ namespace emulatorLauncher
             string overlay_png_file = FindBezel(overlayUser, overlaySystem, bezel, systemName, Path.GetFileNameWithoutExtension(rom));
             if (string.IsNullOrEmpty(overlay_png_file))
             {
-                if (Program.SystemConfig.isOptSet("use_guns") && Program.SystemConfig.getOptBoolean("use_guns") && Misc.IsSindenLightGunConnected())
+                if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
                     return CreateSindenBorderBezel(null, resolution);
 
                 return null;
@@ -314,12 +326,14 @@ namespace emulatorLauncher
 
             var ret = new BezelFiles() { PngFile = overlay_png_file, InfoFile = overlay_info_file };
 
-            if (Program.SystemConfig.isOptSet("use_guns") && Program.SystemConfig.getOptBoolean("use_guns") && Misc.IsSindenLightGunConnected())
+            if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
                 return CreateSindenBorderBezel(ret);
+            else if (overlay_info_file == null)
+                ret.BezelInfos = BezelInfo.FromImage(ret.PngFile);
 
             return ret;
         }
-
+        
         public static BezelFiles CreateSindenBorderBezel(BezelFiles input, ScreenResolution resolution = null)
         {
             if (input == null)
@@ -330,51 +344,14 @@ namespace emulatorLauncher
 
             try
             {
-                Dictionary<string, string> LightgunOptions = new Dictionary<string, string>();
+                var conf = SindenLightgunConfiguration.GetConfiguration();
 
-                var px = System.Diagnostics.Process.GetProcessesByName("Lightgun").FirstOrDefault();
-                if (px != null)
-                {
-                    var cmd = px.GetProcessCommandline().SplitCommandLine().FirstOrDefault();
-                    if (cmd != null)
-                    {
-                        cmd = cmd.Replace("\"", "") + ".config";
-                        if (File.Exists(cmd))
-                        {
-                            foreach (var setting in File.ReadAllText(cmd).ExtractStrings("<add ", "/>"))
-                            {
-                                var key = setting.ExtractString("key=\"", "\"");
-                                var value = setting.ExtractString("value=\"", "\"");
-
-                                LightgunOptions[key] = value;
-                            }
-                        }
-                    }
-                }
-
-                bool showPrimaryBorder = LightgunOptions.ContainsKey("chkShowPrimaryBorder") ? LightgunOptions["chkShowPrimaryBorder"].ToInteger() != 0 : true;
-                bool showSecondaryBorder = LightgunOptions.ContainsKey("chkShowSecondaryBorder") ? LightgunOptions["chkShowSecondaryBorder"].ToInteger() != 0 : false;
-
-                float primaryBorderWidth = LightgunOptions.ContainsKey("txtPrimaryBorderWidth") ? LightgunOptions["txtPrimaryBorderWidth"].ToFloat() : 2.0f;
-                float secondaryBorderWidth = LightgunOptions.ContainsKey("txtSecondaryBorderWidth") ? LightgunOptions["txtSecondaryBorderWidth"].ToFloat() : 0.0f;
-
-                Color primaryColor = Color.White;
-
-                try
-                {
-                    if (LightgunOptions.ContainsKey("txtColorPrimaryR"))
-                        primaryColor = Color.FromArgb(LightgunOptions["txtColorPrimaryR"].ToInteger(), LightgunOptions["txtColorPrimaryG"].ToInteger(), LightgunOptions["txtColorPrimaryB"].ToInteger());
-                }
-                catch { }
-
-                Color secondaryColor = Color.Black;
-
-                try
-                {
-                    if (LightgunOptions.ContainsKey("txtColorSecondaryR"))
-                        secondaryColor = Color.FromArgb(LightgunOptions["txtColorSecondaryR"].ToInteger(), LightgunOptions["txtColorSecondaryG"].ToInteger(), LightgunOptions["txtColorSecondaryB"].ToInteger());
-                }
-                catch { }
+                bool showPrimaryBorder = conf.ShowPrimaryBorder;
+                bool showSecondaryBorder = conf.ShowSecondaryBorder;
+                float primaryBorderWidth = conf.PrimaryBorderWidth;
+                float secondaryBorderWidth = conf.SecondaryBorderWidth;
+                Color primaryColor = conf.PrimaryColor;
+                Color secondaryColor = conf.SecondaryColor;
 
                 using (Image img = File.Exists(input.PngFile) ? Image.FromFile(input.PngFile) : null)
                 {
@@ -439,8 +416,11 @@ namespace emulatorLauncher
                         input.PngFile = output_png_file;
                     }
 
-                    if (input.BezelInfos == null)
-                        input.BezelInfos = new BezelInfo();
+                    if (input.BezelInfos == null || !input.BezelInfos.IsValid())
+                    {
+                        input.BezelInfos = BezelInfo.FromImage(input.PngFile);
+                        return input;
+                    }
 
                     input.BezelInfos.opacity = 1;
 
@@ -449,9 +429,6 @@ namespace emulatorLauncher
 
                     if (input.BezelInfos.height.GetValueOrDefault() == 0)
                         input.BezelInfos.height = resY;
-
-                    if (input.BezelInfos.top.GetValueOrDefault() < borderSize)
-                        input.BezelInfos.top = borderSize;
 
                     if (input.BezelInfos.top.GetValueOrDefault() < borderSize)
                         input.BezelInfos.top = borderSize;
@@ -470,7 +447,7 @@ namespace emulatorLauncher
 
             return input;
         }
-        
+
         public static string GetStretchedBezel(string overlay_png_file, int resX, int resY)
         {
             var f = Path.GetFileNameWithoutExtension(overlay_png_file);
@@ -519,6 +496,96 @@ namespace emulatorLauncher
     [DataContract]
     class BezelInfo
     {
+        public static BezelInfo FromImage(string fileName)
+        {
+            if (!File.Exists(fileName))
+                return new BezelInfo();
+
+            const byte MIN_ALPHA = 235;
+
+            var ret = new BezelInfo();
+
+            try
+            {
+                using (Image img = Image.FromFile(fileName))
+                {
+                    RECT bounds = new RECT(-1, -1, -1, -1);
+
+                    // Detect transparency in png file
+                    using (var bmp = new Bitmap(img))
+                    {
+                        BitmapData dstData = bmp.LockBits(new Rectangle(0, 0, bmp.Size.Width, bmp.Size.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+
+                        int y1 = bmp.Height / 2;
+
+                        for (int x = 4; x < bmp.Size.Width; x++)
+                        {
+                            UInt32 color = (UInt32)Marshal.ReadInt32(dstData.Scan0, (dstData.Stride * y1) + (4 * x));
+                            byte a = (byte)(color >> 24);
+                            if (a < MIN_ALPHA)
+                            {
+                                bounds.left = x;
+                                break;
+                            }
+                        }
+
+                        for (int x = bmp.Size.Width - 4; x >= 0; x--)
+                        {
+                            UInt32 color = (UInt32)Marshal.ReadInt32(dstData.Scan0, (dstData.Stride * y1) + (4 * x));
+                            byte a = (byte)(color >> 24);
+                            if (a < MIN_ALPHA)
+                            {
+                                bounds.right = x + 1;
+                                break;
+                            }
+                        }
+
+                        int x1 = bmp.Width / 2;
+                        for (int y = 0; y < bmp.Size.Height; y++)
+                        {
+                            UInt32 color = (UInt32)Marshal.ReadInt32(dstData.Scan0, (dstData.Stride * y) + (4 * x1));
+                            byte a = (byte)(color >> 24);
+                            if (a < MIN_ALPHA)
+                            {
+                                bounds.top = y;
+                                break;
+                            }
+                        }
+
+                        for (int y = bmp.Size.Height - 1; y >= 0; y--)
+                        {
+                            UInt32 color = (UInt32)Marshal.ReadInt32(dstData.Scan0, (dstData.Stride * y) + (4 * x1));
+                            byte a = (byte)(color >> 24);
+                            if (a < MIN_ALPHA)
+                            {
+                                bounds.bottom = y + 1;
+                                break;
+                            }
+                        }
+
+                        bmp.UnlockBits(dstData);
+                    }
+
+                    if (bounds.left < 0 || bounds.right < 0 || bounds.top < 0 || bounds.right < 0)
+                        return new BezelInfo();
+
+                    ret.width = img.Size.Width;
+                    ret.height = img.Size.Height;
+                    ret.left = bounds.left;
+                    ret.top = bounds.top;
+                    ret.bottom = img.Size.Height - bounds.bottom;
+                    ret.right = img.Size.Width - bounds.right;
+                    ret.opacity = 1;
+                    ret.IsEstimated = true;
+                }
+
+                return ret;
+            }
+            catch { }
+
+            return new BezelInfo();
+        }
+
         public bool IsValid()
         {
             return (width.HasValue && height.HasValue && top.HasValue && left.HasValue && bottom.HasValue && right.HasValue);
@@ -542,5 +609,7 @@ namespace emulatorLauncher
         public float? messagex { get; set; }
         [DataMember]
         public float? messagey { get; set; }
+
+        public bool IsEstimated { get; private set; }
     }
 }

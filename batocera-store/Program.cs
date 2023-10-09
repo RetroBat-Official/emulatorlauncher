@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using emulatorLauncher;
 using System.IO;
 using System.Xml.Serialization;
-using emulatorLauncher.Tools;
 using System.Net;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Compression;
 
 namespace batocera_store
 {
