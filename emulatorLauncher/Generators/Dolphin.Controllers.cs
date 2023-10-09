@@ -453,8 +453,8 @@ namespace emulatorLauncher
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
             bool forceSDL = false;
-            if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
-                forceSDL = true;
+            /*if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
+                forceSDL = true;*/
 
             int nsamepad = 0;
             bool gc = anyDefKey == "GCPad";
