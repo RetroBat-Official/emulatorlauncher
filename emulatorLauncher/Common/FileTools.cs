@@ -8,7 +8,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.IO.Compression;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
     static class FileTools
     {

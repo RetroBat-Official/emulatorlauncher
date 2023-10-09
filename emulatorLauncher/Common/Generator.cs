@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
 using System.IO;
 using System.Drawing;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     abstract class Generator
     {
@@ -191,7 +194,7 @@ namespace emulatorLauncher
                 {
                     using (var frm = new InstallerFrm())
                     {
-                        frm.SetLabel(Properties.Resources.KeepUncompressedFile);
+                        frm.SetLabel(EmulatorLauncher.Properties.Resources.KeepUncompressedFile);
                         if (frm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                         {
                             try { Directory.Delete(_unzip.UncompressedPath, true); }

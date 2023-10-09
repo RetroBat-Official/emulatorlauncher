@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class MelonDSGenerator
     {

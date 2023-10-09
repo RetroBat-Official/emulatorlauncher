@@ -5,11 +5,12 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using emulatorLauncher.PadToKeyboard;
 using System.Windows.Forms;
 using System.Threading;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.PadToKeyboard;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class PinballFX3Generator : Generator
     {

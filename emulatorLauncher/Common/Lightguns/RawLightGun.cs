@@ -3,12 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.Lightguns
 {
     public class RawLightgun
     {
-        #region Factory
+        #region Public Factory
+        public static RawLightgun[] GetRawLightguns()
+        {
+            if (_cache == null)
+                _cache = GetRawLightgunsInternal();
+
+            return _cache;
+        }
+
         public static int GetUsableLightGunCount()
         {
             var guns = RawLightgun.GetRawLightguns();
@@ -20,8 +29,49 @@ namespace emulatorLauncher.Tools
             int mice = guns.Count(g => g.Type == RawLighGunType.Mouse);
             return mice;
         }
-                
-        public static RawLightgun[] GetRawLightguns()
+
+        public static bool IsSindenLightGunConnected()
+        {
+            // Find Sinden process
+            var px = Process.GetProcessesByName("Lightgun").FirstOrDefault();
+            if (px == null)
+                return false;
+
+            // When Sinden Lightgun app is running & Start is pressed, there's an ActiveMovie window in the process, with the class name "FilterGraphWindow"
+            if (!User32.FindHwnds(px.Id, hWnd => User32.GetClassName(hWnd) == "FilterGraphWindow", false).Any())
+                return false;
+
+            // Check if any Sinden Gun is connected
+            return RawLightgun.GetRawLightguns().Any(gun => gun.Type == RawLighGunType.SindenLightgun);
+        }
+        #endregion
+
+        #region Private methods
+        private RawLightgun() { }
+
+        private static RawLighGunType ExtractRawLighGunType(string devicePath)
+        {
+            if (!string.IsNullOrEmpty(devicePath))
+            {
+                string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
+                if (sindenDeviceIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.SindenLightgun;
+
+                string[] gun4irDeviceIds = new string[] { "VID_2341&PID_8042" };
+                if (gun4irDeviceIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.Gun4Ir;
+
+                string[] mayFlashWiimoteIds = new string[] { "VID_0079&PID_1802" };  // Mayflash Wiimote, using mode 1
+                if (mayFlashWiimoteIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.MayFlashWiimote;
+            }
+
+            return RawLighGunType.Mouse;
+        }
+
+        private static RawLightgun[] _cache;
+
+        private static RawLightgun[] GetRawLightgunsInternal()
         {
             var mouseNames = new List<RawLightgun>();
 
@@ -64,7 +114,7 @@ namespace emulatorLauncher.Tools
                         buf.Clear();
 
                         if (HidD_GetProductString(hhid, buf, 255))
-                            mouseNames.Add(new RawLightgun() { Name = buf.ToString(), DevicePath = deviceName, Index = index });
+                            mouseNames.Add(new RawLightgun() { Name = buf.ToString(), DevicePath = deviceName, Index = index, Type = ExtractRawLighGunType(deviceName) });
 
                         CloseHandle(hhid);
                     }
@@ -78,9 +128,10 @@ namespace emulatorLauncher.Tools
 
             return mouseNames.ToArray();
         }
+
         #endregion
 
-        #region Apis
+        #region Win32 Apis
         enum RawInputDeviceType : uint
         {
             MOUSE = 0,
@@ -120,6 +171,7 @@ namespace emulatorLauncher.Tools
         public int Index { get; set; }
         public string Name { get; set; }
         public string DevicePath { get; set; }
+        public RawLighGunType Type { get; private set; }
 
         private int GetGunPriority()
         {
@@ -147,25 +199,6 @@ namespace emulatorLauncher.Tools
             return 10000 + Index;
         }
 
-        public RawLighGunType Type
-        {
-            get
-            {
-                string[] sindenDeviceIds = new string[] { "VID_16C0&PID_0F01", "VID_16C0&PID_0F02", "VID_16C0&PID_0F38", "VID_16C0&PID_0F39" };
-                if (sindenDeviceIds.Any(d => DevicePath.Contains(d)))
-                    return RawLighGunType.SindenLightgun;
-
-                string[] gun4irDeviceIds = new string[] { "VID_2341&PID_8042" };
-                if (gun4irDeviceIds.Any(d => DevicePath.Contains(d)))
-                    return RawLighGunType.Gun4Ir;
-
-                string[] mayFlashWiimoteIds = new string[] { "VID_0079&PID_1802" };  // Mayflash Wiimote, using mode 1
-                if (mayFlashWiimoteIds.Any(d => DevicePath.Contains(d)))
-                    return RawLighGunType.MayFlashWiimote;
-
-                return RawLighGunType.Mouse;
-            }
-        }
         public override string ToString()
         {
             return Name + " [" + Type + "] [" + Index + "] [" + DevicePath + "]";

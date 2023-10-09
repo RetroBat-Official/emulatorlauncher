@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class NosGbaGenerator : Generator
     {

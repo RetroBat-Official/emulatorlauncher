@@ -42,7 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\emulatorLauncher\Common\InputDevices.cs">
+    <Compile Include="..\emulatorLauncher\Common\Joysticks\InputDevices.cs">
       <Link>Common\InputDevices.cs</Link>
     </Compile>
     <Compile Include="..\emulatorLauncher\Common\SDL2.cs">

@@ -6,8 +6,10 @@ using System.IO;
 using System.Diagnostics;
 using System.Xml.Linq;
 using System.Xml;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class OpenMSXGenerator : Generator
     {

@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class SimCoupeGenerator : Generator
     {

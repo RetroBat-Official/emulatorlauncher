@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
-using emulatorLauncher.imapi2;
 using System.Runtime.InteropServices.ComTypes;
 using System.Management;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using EmulatorLauncher.Common.IMapi2;
+using EmulatorLauncher.Common.Compression;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.FileFormats
 {
     class IsoFile : IDisposable
     {

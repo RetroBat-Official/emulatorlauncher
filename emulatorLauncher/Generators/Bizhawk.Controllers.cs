@@ -7,12 +7,15 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Management;
-using emulatorLauncher.Tools;
 using System.Reflection;
 using System.Collections;
 using ValveKeyValue;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Joysticks;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {

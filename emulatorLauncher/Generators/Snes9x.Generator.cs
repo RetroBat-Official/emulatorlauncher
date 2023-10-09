@@ -5,12 +5,13 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
 	class Snes9xGenerator : Generator
 	{
-
 		private BezelFiles _bezelFileInfo;
 		private ScreenResolution _resolution;
 

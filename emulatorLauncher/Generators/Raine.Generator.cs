@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class RaineGenerator : Generator
     {
-
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;

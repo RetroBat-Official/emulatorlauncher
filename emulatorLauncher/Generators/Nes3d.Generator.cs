@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.PadToKeyboard;
 using System.Windows.Forms;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class Nes3dGenerator : Generator
     {

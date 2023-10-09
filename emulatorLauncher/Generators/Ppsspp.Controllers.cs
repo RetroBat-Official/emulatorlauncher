@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class PpssppGenerator
     {

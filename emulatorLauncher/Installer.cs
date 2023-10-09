@@ -6,12 +6,14 @@ using System.IO;
 using System.Net;
 using System.ComponentModel;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.Xml.Serialization;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Compression;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     public class Installer
     {

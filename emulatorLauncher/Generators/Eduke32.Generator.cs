@@ -2,8 +2,10 @@
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Media.Media3D;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class EDukeGenerator : Generator
     {

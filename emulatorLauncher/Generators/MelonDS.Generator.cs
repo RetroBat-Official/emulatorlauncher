@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using System.Linq;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Compression;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
    partial class MelonDSGenerator : Generator
     {

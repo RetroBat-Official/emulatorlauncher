@@ -5,10 +5,12 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Media;
-using emulatorLauncher.Tools;
 using System.Windows.Media.Effects;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Joysticks;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class RedreamGenerator : Generator
     {

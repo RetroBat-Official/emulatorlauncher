@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace emulatorLauncher.libRetro
+namespace EmulatorLauncher.Libretro
 {
     class LibRetroStateFileManager : IDisposable
     {

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class Pcsx2SaveStatesMonitor : SaveStatesWatcher
     {

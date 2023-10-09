@@ -6,7 +6,7 @@ using System.IO;
 using System.Xml.Serialization;
 using System.Xml;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common.FileFormats
 {
     static class XmlExtensions
     {

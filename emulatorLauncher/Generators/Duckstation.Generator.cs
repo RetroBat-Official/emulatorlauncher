@@ -6,8 +6,10 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class DuckstationGenerator : Generator
     {

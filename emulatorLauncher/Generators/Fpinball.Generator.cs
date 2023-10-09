@@ -6,11 +6,12 @@ using System.IO;
 using System.Diagnostics;
 using Microsoft.Win32;
 using System.Windows.Forms;
-using emulatorLauncher.Tools;
 using System.Threading;
-using VPinballLauncher;
+using EmulatorLauncher.VPinballLauncher;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class FpinballGenerator : Generator
     {

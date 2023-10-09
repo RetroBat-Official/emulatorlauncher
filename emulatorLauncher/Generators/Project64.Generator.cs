@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class Project64Generator : Generator
     {

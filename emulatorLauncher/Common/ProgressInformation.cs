@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
-
     class ProgressInformation : IDisposable
     {
         System.Windows.Forms.Form _frm;

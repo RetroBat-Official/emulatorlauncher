@@ -4,9 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     // Generator for Rosalie's Mupen64Plus GUI
     partial class Mupen64Generator : Generator

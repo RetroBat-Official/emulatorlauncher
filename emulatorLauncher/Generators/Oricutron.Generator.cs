@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.PadToKeyboard;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     class OricutronGenerator : Generator
     {

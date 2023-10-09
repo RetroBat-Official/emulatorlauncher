@@ -6,8 +6,10 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Diagnostics;
 using System.ComponentModel;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.EmulationStation
 {
     [XmlRoot("systemList")]
     [XmlType("systemList")]

@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.EmulationStation;
 
-namespace emulatorLauncher.PadToKeyboard
+namespace EmulatorLauncher.PadToKeyboard
 {
-
     class JoyInputState
     {
         public JoyInputState()

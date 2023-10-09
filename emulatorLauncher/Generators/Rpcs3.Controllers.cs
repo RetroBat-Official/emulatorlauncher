@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
 using System.Xml.Linq;
 using System.Xml;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class Rpcs3Generator
     {

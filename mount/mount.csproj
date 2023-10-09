@@ -52,6 +52,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\emulatorLauncher\Common\Compression\ZipFile.cs">
+      <Link>Common\ZipFile.cs</Link>
+    </Compile>
     <Compile Include="..\emulatorLauncher\Common\EnumerableExtensions.cs">
       <Link>Common\EnumerableExtensions.cs</Link>
     </Compile>
@@ -69,9 +72,6 @@
     </Compile>
     <Compile Include="..\emulatorLauncher\Common\StringExtensions.cs">
       <Link>Common\StringExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\emulatorLauncher\Common\ZipFile.cs">
-      <Link>Common\ZipFile.cs</Link>
     </Compile>
     <Compile Include="DokanNet\BufferPool.cs" />
     <Compile Include="DokanNet\Dokan.cs" />

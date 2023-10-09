@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Joysticks;
 
-namespace emulatorLauncher.PadToKeyboard
+namespace EmulatorLauncher.PadToKeyboard
 {
     class Joystick
     {

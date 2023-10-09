@@ -9,8 +9,9 @@ using System.Management;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Diagnostics;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.EmulationStation
 {
     [XmlRoot("inputList")]
     [XmlType("inputList")]

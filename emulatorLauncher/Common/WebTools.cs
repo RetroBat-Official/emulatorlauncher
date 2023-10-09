@@ -6,7 +6,7 @@ using System.Net;
 using System.IO;
 using System.ComponentModel;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher.Common
 {
     static class WebTools
     {

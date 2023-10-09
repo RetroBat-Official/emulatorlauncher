@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Xml.Linq;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
-namespace emulatorLauncher.libRetro
+namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
@@ -1814,6 +1815,9 @@ namespace emulatorLauncher.libRetro
             // Controller type
             BindFeature(retroarchConfig, "input_libretro_device_p1", "mame_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "mame_controller2", "1");
+
+            // Lightguns
+            coreSettings["mame2003-plus_xy_device"] = HasMultipleGuns() ? "mouse" : "lightgun";
         }
 
         private void ConfigureMame2010(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1821,7 +1825,7 @@ namespace emulatorLauncher.libRetro
             if (core != "mame2010")
                 return;
 
-            BindFeature(coreSettings, "mame_current_xy_type", "mame_xy_type", "mouse");
+            BindFeature(coreSettings, "mame_current_xy_type", "mame_xy_type", HasMultipleGuns() ? "mouse" : "lightgun");
         }
 
         private void ConfigureMame2014(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2120,7 +2124,7 @@ namespace emulatorLauncher.libRetro
             {
                 string gunId = "260";
 
-                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                var gunInfo = Program.GunGames.FindGame(system, SystemConfig["rom"]);
                 if (gunInfo != null && gunInfo.GunType == "justifier")
                     gunId = "516";
 
@@ -2166,7 +2170,7 @@ namespace emulatorLauncher.libRetro
             {
                 string gunId = "260";
 
-                var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                var gunInfo = Program.GunGames.FindGame(system, SystemConfig["rom"]);
                 if (gunInfo != null && gunInfo.GunType == "justifier")
                     gunId = "516";
 
@@ -2244,7 +2248,7 @@ namespace emulatorLauncher.libRetro
                 {
                     var gunId = "516";
 
-                    var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                    var gunInfo = Program.GunGames.FindGame(system, SystemConfig["rom"]);
                     if (gunInfo != null && gunInfo.GunType == "justifier")
                         gunId = "772";
 
@@ -2323,7 +2327,7 @@ namespace emulatorLauncher.libRetro
                 {
                     var gunId = "516";
 
-                    var gunInfo = GunGames.GetGameInformation(system, SystemConfig["rom"]);
+                    var gunInfo = Program.GunGames.FindGame(system, SystemConfig["rom"]);
                     if (gunInfo != null && gunInfo.GunType == "justifier")
                         gunId = "772";
 

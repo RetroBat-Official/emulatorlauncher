@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
-using emulatorLauncher.Tools;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
 
-
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class ZincGenerator : Generator
     {

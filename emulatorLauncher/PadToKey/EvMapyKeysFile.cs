@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.Serialization;
-using emulatorLauncher.Tools;
 using System.IO;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher.PadToKeyboard
+namespace EmulatorLauncher.PadToKeyboard
 {
     [DataContract]
     public class EvMapyKeysFile : IEnumerable<List<EvMapyAction>>

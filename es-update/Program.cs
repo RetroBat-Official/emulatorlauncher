@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using emulatorLauncher;
 using System.Security.Cryptography;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 
 namespace RetrobatUpdater
 {

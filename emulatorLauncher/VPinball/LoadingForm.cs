@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
-namespace VPinballLauncher
+namespace EmulatorLauncher.VPinballLauncher
 {
     public partial class LoadingForm : Form
     {

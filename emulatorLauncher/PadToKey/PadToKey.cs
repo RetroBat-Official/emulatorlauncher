@@ -5,11 +5,13 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 using System.Windows.Forms;
-using emulatorLauncher.Tools;
 using System.Reflection;
 using System.Diagnostics;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher.PadToKeyboard
+namespace EmulatorLauncher.PadToKeyboard
 {
     [XmlRoot("padToKey")]
     [XmlType("padToKey")]

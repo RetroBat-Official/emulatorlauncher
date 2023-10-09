@@ -5,9 +5,9 @@ using System.Text;
 using System.IO;
 using System.Dynamic;
 
-namespace emulatorLauncher.Tools
+namespace EmulatorLauncher.Common.FileFormats
 {
-    class YmlFile : YmlContainer
+    class BmlFile : BmlContainer
     {
         public override string ToString()
         {        
@@ -23,25 +23,25 @@ namespace emulatorLauncher.Tools
                 Save(_path);
         }
 
-        public void Save(string ymlFile)
+        public void Save(string bmlFile)
         {
-            File.WriteAllText(ymlFile, ToString());
+            File.WriteAllText(bmlFile, ToString());
         }
 
         private string _path;
 
-        public static YmlFile Parse(string yml)
+        public static BmlFile Parse(string bml)
         {
-            var root = new YmlFile() { Name = "root", Indent = -1 };
-            if (string.IsNullOrEmpty(yml))
+            var root = new BmlFile() { Name = "root", Indent = -1 };
+            if (string.IsNullOrEmpty(bml))
                 return root;
 
-            YmlContainer current = root;
+            BmlContainer current = root;
 
-            Stack<YmlContainer> stack = new Stack<YmlContainer>();
+            Stack<BmlContainer> stack = new Stack<BmlContainer>();
             stack.Push(root);
 
-            var lines = yml.Replace("\r\n", "\n").Replace("\r", "").Split(new char[] { '\n' }, StringSplitOptions.None);
+            var lines = bml.Replace("\r\n", "\n").Replace("\r", "").Split(new char[] { '\n' }, StringSplitOptions.None);
             for (int i = 0; i < lines.Length; i++)
             {
                 string line = lines[i];
@@ -62,19 +62,25 @@ namespace emulatorLauncher.Tools
                 }
 
                 int idx = tmp.IndexOf(":");
-                if (idx >= 0)
+                if (idx >= 0 || idx == -1)
                 {
-                    string name = tmp.Substring(0, idx).Trim();
-                    string value = tmp.Substring(idx + 1).Trim();
-
-                    if (string.IsNullOrEmpty(value))
+                    if (idx >= 0)
                     {
-                        var folder = new YmlContainer() { Name = name, Indent = indent };
+                        string name = tmp.Substring(0, idx).Trim();
+                        string value = tmp.Substring(idx + 1).Trim();
+                        var item = new BmlElement() { Name = name, Value = value };
+                        current.Elements.Add(item);
+                    }
+
+                    if (idx == -1)
+                    {
+                        string name = tmp.Trim();
+                        var folder = new BmlContainer() { Name = name, Indent = indent };
                         current.Elements.Add(folder);
                         stack.Push(folder);
                         current = folder;
                     }
-                    else
+                    /*else
                     {
                         if (value == "|" || value == ">")
                         {
@@ -117,15 +123,11 @@ namespace emulatorLauncher.Tools
 
                             i--;
                             value = sbValue.ToString();
-                        }
-
-                        var item = new YmlElement() { Name = name, Value = value };
-                        current.Elements.Add(item);
-                    }
+                        }*/
                 }
                 else if (!string.IsNullOrEmpty(tmp))
                 {
-                    var item = new YmlElement() { Name = "", Value = tmp };
+                    var item = new BmlElement() { Name = "", Value = tmp };
                     current.Elements.Add(item);
                 }
             }
@@ -146,27 +148,27 @@ namespace emulatorLauncher.Tools
             return indent;
         }
 
-        public static YmlFile Load(string ymlFile)
+        public static BmlFile Load(string bmlFile)
         {
-            var root = new YmlFile() { Name = "root", Indent = -1 };
-            root._path = ymlFile;
-            if (!File.Exists(ymlFile))
+            var root = new BmlFile() { Name = "root", Indent = -1 };
+            root._path = bmlFile;
+            if (!File.Exists(bmlFile))
                 return root;
 
-            string yml = File.ReadAllText(ymlFile);
+            string bml = File.ReadAllText(bmlFile);
 
-            YmlFile file = Parse(yml);
-            file._path = ymlFile;
+            BmlFile file = Parse(bml);
+            file._path = bmlFile;
             return file;
         }
     }
 
-    interface IYmlElement
+    interface IBmlElement
     {
         string Name { get; set; }
     }
     
-    class YmlElement : IYmlElement
+    class BmlElement : IBmlElement
     {
         public string Name { get; set; }
         public string Value { get; set; }
@@ -177,7 +179,7 @@ namespace emulatorLauncher.Tools
         }
     }
 
-    class YmlContainer : DynamicObject, IYmlElement, IEnumerable<IYmlElement>
+    class BmlContainer : DynamicObject, IBmlElement, IEnumerable<IBmlElement>
     {        
         #region DynamicObject
         public override IEnumerable<string> GetDynamicMemberNames()
@@ -193,7 +195,7 @@ namespace emulatorLauncher.Tools
 
             if (element != null)
             {
-                YmlElement elt = element as YmlElement;
+                BmlElement elt = element as BmlElement;
                 if (elt != null)
                     result = elt.Value;
                 else
@@ -206,9 +208,9 @@ namespace emulatorLauncher.Tools
             return true;
         }
 
-        class YmlSetMemberBinder : SetMemberBinder
+        class BmlSetMemberBinder : SetMemberBinder
         {
-            public YmlSetMemberBinder(string name, bool ignoreCase) : base(name, ignoreCase) { }
+            public BmlSetMemberBinder(string name, bool ignoreCase) : base(name, ignoreCase) { }
             public override DynamicMetaObject FallbackSetMember(DynamicMetaObject target, DynamicMetaObject value, DynamicMetaObject errorSuggestion) { return null; }
         }
 
@@ -242,14 +244,14 @@ namespace emulatorLauncher.Tools
             }
             else
             {
-                YmlContainer container = GetOrCreateContainer(binder.Name);
+                BmlContainer container = GetOrCreateContainer(binder.Name);
 
                 foreach (var item in value.GetType()
                     .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
                     .Select(pi => new { Name = pi.Name, Value = pi.GetValue(value, null) }))
                 {
                     if (item.Value != null)
-                        container.TrySetMember(new YmlSetMemberBinder(item.Name, binder.IgnoreCase), item.Value);
+                        container.TrySetMember(new BmlSetMemberBinder(item.Name, binder.IgnoreCase), item.Value);
                 }
                     
             }
@@ -258,16 +260,16 @@ namespace emulatorLauncher.Tools
         }
         #endregion
 
-        public YmlContainer()
+        public BmlContainer()
         {
-            Elements = new List<IYmlElement>();
+            Elements = new List<IBmlElement>();
         }
 
         public string Name { get; set; }
 
-        private void AddElement(IYmlElement element)
+        private void AddElement(IBmlElement element)
         {
-            YmlElement last = (Elements.Count > 0 ? Elements[Elements.Count - 1] : null) as YmlElement;
+            BmlElement last = (Elements.Count > 0 ? Elements[Elements.Count - 1] : null) as BmlElement;
             if (last != null && string.IsNullOrEmpty(last.Name) && last.Value == "...")
             {
                 Elements.Insert(Elements.Count - 1, element);
@@ -277,20 +279,20 @@ namespace emulatorLauncher.Tools
             Elements.Add(element);
         }
 
-        public YmlContainer GetContainer(string key)
+        public BmlContainer GetContainer(string key)
         {
-            return Elements.OfType<YmlContainer>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+            return Elements.OfType<BmlContainer>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        public YmlContainer GetOrCreateContainer(string key)
+        public BmlContainer GetOrCreateContainer(string key)
         {
             var element = GetContainer(key);
             if (element == null)
             {
-                element = new YmlContainer() { Name = key };
+                element = new BmlContainer() { Name = key };
 
                 // Convert Element to Container
-                var item = Elements.FirstOrDefault(e => !(e is YmlContainer) && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                var item = Elements.FirstOrDefault(e => !(e is BmlContainer) && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (item != null)
                 {
                     int pos = Elements.IndexOf(item);
@@ -308,7 +310,7 @@ namespace emulatorLauncher.Tools
         {
             get
             {
-                var element = Elements.OfType<YmlElement>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                var element = Elements.OfType<BmlElement>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (element != null)
                     return element.Value;
 
@@ -316,13 +318,13 @@ namespace emulatorLauncher.Tools
             }
             set
             {
-                var element = Elements.OfType<YmlElement>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                var element = Elements.OfType<BmlElement>().FirstOrDefault(e => key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                 if (element == null)
                 {
-                    element = new YmlElement() { Name = key };
+                    element = new BmlElement() { Name = key };
 
                     // Convert Container to Element
-                    var container = Elements.FirstOrDefault(e => e is YmlContainer && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
+                    var container = Elements.FirstOrDefault(e => e is BmlContainer && key.Equals(e.Name, StringComparison.InvariantCultureIgnoreCase));
                     if (container != null)
                     {
                         int pos = Elements.IndexOf(container);
@@ -344,14 +346,14 @@ namespace emulatorLauncher.Tools
                 Elements.Remove(element);
         }
 
-        public List<IYmlElement> Elements { get; private set; }
+        public List<IBmlElement> Elements { get; private set; }
 
         public override string ToString()
         {
             return "[Folder] " + (Name ?? "");
         }
 
-        public IEnumerator<IYmlElement> GetEnumerator()
+        public IEnumerator<IBmlElement> GetEnumerator()
         {
             return Elements.GetEnumerator();
         }
@@ -365,14 +367,14 @@ namespace emulatorLauncher.Tools
         {
             foreach (var item in Elements)
             {
-                YmlContainer container = item as YmlContainer;
+                BmlContainer container = item as BmlContainer;
                 if (container != null)
                 {
                     if (container.Elements.Count > 0)
                     {
                         sb.Append(new string(' ', indent * 2));
                         sb.Append(item.Name);
-                        sb.AppendLine(":");
+                        sb.AppendLine();
 
                         container.SerializeTo(sb, indent + 1);
                     }
@@ -380,7 +382,7 @@ namespace emulatorLauncher.Tools
                     continue;
                 }
 
-                YmlElement element = item as YmlElement;
+                BmlElement element = item as BmlElement;
                 if (element == null)
                     continue;
 
@@ -417,26 +419,26 @@ namespace emulatorLauncher.Tools
         internal int Indent;
     }
 
-    class SimpleYml<T> : IEnumerable<T> where T : new()
+    class SimpleBml<T> : IEnumerable<T> where T : new()
     {
         private List<T> _values;
 
-        private static List<T> FillElements(object obj, YmlContainer ymlElements)
+        private static List<T> FillElements(object obj, BmlContainer bmlElements)
         {
             List<T> ret = null; 
 
-            foreach (var ymlEntry in ymlElements.Elements)
+            foreach (var bmlEntry in bmlElements.Elements)
             {
-                YmlContainer container = ymlEntry as YmlContainer;
+                BmlContainer container = bmlEntry as BmlContainer;
                 if (container != null)
                 {
                     if (typeof(T).Equals(obj))
                     {
                         T current = Activator.CreateInstance<T>();
 
-                        var ymlNameProperty = typeof(T).GetProperties().FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(YmlNameAttribute)));
-                        if (ymlNameProperty != null)
-                            ymlNameProperty.SetValue(current, container.Name, null);
+                        var bmlNameProperty = typeof(T).GetProperties().FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(BmlNameAttribute)));
+                        if (bmlNameProperty != null)
+                            bmlNameProperty.SetValue(current, container.Name, null);
                        
                         FillElements(current, container);
 
@@ -448,14 +450,14 @@ namespace emulatorLauncher.Tools
                     else
                     {
                         var propertyType = (obj is Type) ? (Type)obj : obj.GetType();
-                        var objectProperty = propertyType.GetProperty(ymlEntry.Name);
+                        var objectProperty = propertyType.GetProperty(bmlEntry.Name);
                         if (objectProperty != null && !objectProperty.PropertyType.IsValueType && objectProperty.PropertyType != typeof(string))
                         {
                             object child = Activator.CreateInstance(objectProperty.PropertyType);
 
-                            var ymlNameProperty = objectProperty.PropertyType.GetProperties().FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(YmlNameAttribute)));
-                            if (ymlNameProperty != null)
-                                ymlNameProperty.SetValue(obj, container.Name, null);
+                            var bmlNameProperty = objectProperty.PropertyType.GetProperties().FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(BmlNameAttribute)));
+                            if (bmlNameProperty != null)
+                                bmlNameProperty.SetValue(obj, container.Name, null);
 
                             FillElements(child, container);
                             objectProperty.SetValue(obj, child, null);
@@ -466,18 +468,18 @@ namespace emulatorLauncher.Tools
 
                 var type = (obj is Type) ? (Type)obj : obj.GetType();
 
-                var property = type.GetProperty(ymlEntry.Name);
-                if (property != null && ymlEntry is YmlElement)
-                    property.SetValue(obj, ((YmlElement)ymlEntry).Value, null);
+                var property = type.GetProperty(bmlEntry.Name);
+                if (property != null && bmlEntry is BmlElement)
+                    property.SetValue(obj, ((BmlElement)bmlEntry).Value, null);
             }
 
             return ret;
         }
 
-        public static SimpleYml<T> Parse(string yml)
+        public static SimpleBml<T> Parse(string bml)
         {
-            var ret = new SimpleYml<T>();
-            ret._values = FillElements(typeof(T), YmlFile.Parse(yml));
+            var ret = new SimpleBml<T>();
+            ret._values = FillElements(typeof(T), BmlFile.Parse(bml));
             return ret;
         }
 
@@ -492,5 +494,5 @@ namespace emulatorLauncher.Tools
         }
     }
 
-    class YmlNameAttribute : Attribute { }
+    class BmlNameAttribute : Attribute { }
 }

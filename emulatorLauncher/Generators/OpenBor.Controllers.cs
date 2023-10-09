@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using emulatorLauncher.Tools;
 using System.Globalization;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
 
-namespace emulatorLauncher
+namespace EmulatorLauncher
 {
     partial class OpenBorGenerator : Generator
     {
