@@ -225,8 +225,6 @@ namespace EmulatorLauncher
             if (args.Length == 0)
                 return;
 
-            var cccc = DirectInputInfo.Controllers;
-
             AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
 
             SimpleLogger.Instance.Info("--------------------------------------------------------------");

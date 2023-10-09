@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A51ED514-5156-42D4-AD7E-82BCA96FEE05}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>EmulatorLauncher.Common</RootNamespace>
+    <AssemblyName>EmulatorLauncher.Common</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="SharpDX, Version=3.0.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DirectInput">
+      <HintPath>..\SharpDX.DirectInput.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Compression\MountFile.cs" />
+    <Compile Include="Compression\PortableZip.cs" />
+    <Compile Include="Compression\ZipFile.cs" />
+    <Compile Include="EmulationStation\EsFeatures.cs" />
+    <Compile Include="EmulationStation\EsGameList.cs" />
+    <Compile Include="EmulationStation\EsInput.cs" />
+    <Compile Include="EmulationStation\EsSaveStates.cs" />
+    <Compile Include="EmulationStation\EsSystems.cs" />
+    <Compile Include="EmulationStation\GunGames.cs" />
+    <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="FileFormats\ConfigFile.cs" />
+    <Compile Include="FileFormats\DynamicJson.cs" />
+    <Compile Include="FileFormats\IniFile.cs" />
+    <Compile Include="FileFormats\IsoFile.cs" />
+    <Compile Include="FileFormats\JsonSerializer.cs" />
+    <Compile Include="FileFormats\MultiDiskImageFile.cs" />
+    <Compile Include="FileFormats\SimpleBml.cs" />
+    <Compile Include="FileFormats\SimpleYml.cs" />
+    <Compile Include="FileFormats\XmlDeserializer.cs" />
+    <Compile Include="FileFormats\XmlExtensions.cs" />
+    <Compile Include="FileTools.cs" />
+    <Compile Include="HighPerformancePowerScheme.cs" />
+    <Compile Include="Imapi\BurnData.cs" />
+    <Compile Include="Imapi\Imapi2Interop.cs" />
+    <Compile Include="InputKeyMapping.cs" />
+    <Compile Include="Job.cs" />
+    <Compile Include="Joysticks\DirectInputInfo.cs" />
+    <Compile Include="Joysticks\HdiGameDevice.cs" />
+    <Compile Include="Joysticks\HidToDirectInput.cs" />
+    <Compile Include="Joysticks\InputDevices.cs" />
+    <Compile Include="Joysticks\SdlGameController.cs" />
+    <Compile Include="Joysticks\SdlJoystickGuid.cs" />
+    <Compile Include="Joysticks\WinmmJoystick.cs" />
+    <Compile Include="Joysticks\XInputDevice.cs" />
+    <Compile Include="Lightguns\RawLightGun.cs" />
+    <Compile Include="Lightguns\SindenLightgunConfiguration.cs" />
+    <Compile Include="OrderedDictionary.cs" />
+    <Compile Include="ProcessExtensions.cs" />
+    <Compile Include="ProgressInformation.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ReflectionHelper.cs" />
+    <Compile Include="RegistryApi.cs" />
+    <Compile Include="ScreenCapture.cs" />
+    <Compile Include="ScreenResolution.cs" />
+    <Compile Include="SDL2.cs" />
+    <Compile Include="SimpleLogger.cs" />
+    <Compile Include="StringExtensions.cs" />
+    <Compile Include="Tools.cs" />
+    <Compile Include="User32.cs" />
+    <Compile Include="WebTools.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\hidtodinput.cfg" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if $(ConfigurationName) == Release (
+"$(SolutionDir)ILMerge.exe" /out:"$(TargetDir)$(TargetFileName)" "$(TargetDir)$(TargetFileName)" /ndebug /wildcards "$(TargetDir)SharpDX.dll" "$(TargetDir)SharpDX.DirectInput.dll"  /targetplatform:v4,%25systemroot%25\Microsoft.NET\Framework\v4.0.30319
+)</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

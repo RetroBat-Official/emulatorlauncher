@@ -88,7 +88,7 @@ namespace EmulatorLauncher
                     .GroupBy(c => c.Guid.ToLowerInvariant())
                     .Where(c => c.Key == controller.Guid.ToLowerInvariant())
                     .SelectMany(c => c)
-                    .OrderBy(c => SdlGameController.GetControllerIndex(c))
+                    .OrderBy(c => c.GetSdlControllerIndex())
                     .ToList()
                     .IndexOf(controller);
 

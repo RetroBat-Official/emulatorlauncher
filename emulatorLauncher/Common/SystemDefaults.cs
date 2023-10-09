@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using EmulatorLauncher.Common.FileFormats;
 
-namespace EmulatorLauncher.Common
+namespace EmulatorLauncher
 {
     class SystemDefaults
     {

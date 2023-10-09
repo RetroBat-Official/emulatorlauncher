@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using DokanNet;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
-using emulatorLauncher;
 using System.Threading;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Compression;
