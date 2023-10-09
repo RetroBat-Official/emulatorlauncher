@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
-using emulatorLauncher;
 using System.Threading;
 using System.Collections.Generic;
 using DokanNet;

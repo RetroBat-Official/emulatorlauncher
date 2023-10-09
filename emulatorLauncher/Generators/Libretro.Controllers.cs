@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Globalization;
 using System.IO;
-using SharpDX.DirectInput;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;

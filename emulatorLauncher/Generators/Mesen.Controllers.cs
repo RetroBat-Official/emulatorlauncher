@@ -11,7 +11,6 @@ using System.Xml.Linq;
 using System.Drawing;
 using System.Collections;
 using System.Runtime.InteropServices.ComTypes;
-using SharpDX.XInput;
 using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;

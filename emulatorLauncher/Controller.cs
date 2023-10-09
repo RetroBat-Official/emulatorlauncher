@@ -460,5 +460,12 @@ namespace EmulatorLauncher
 
             return key;
         }
+
+        public static int GetSdlControllerIndex(this Controller ctrl)
+        {
+            var sdlDev = SdlGameController.GetGameControllerByPath(ctrl.DevicePath);
+            return sdlDev != null ? sdlDev.Index : ctrl.DeviceIndex;
+        }
+
     }
 }

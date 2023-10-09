@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Management;
-using SharpDX.DirectInput;
 using System.Diagnostics.Eventing.Reader;
 using EmulatorLauncher.Common.FileFormats;
 
