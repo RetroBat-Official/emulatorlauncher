@@ -59,7 +59,9 @@ namespace EmulatorLauncher.Common.EmulationStation
 
         public GameList()
         {
-            DeletionRepository = new HashSet<string>();
+            this.DeletionRepository = new HashSet<string>();
+            this.Games = new BindingList<Game>();
+            this.Folders = new List<Folder>();
         }
 
         public static GameList Load(string xmlFile)
@@ -265,7 +267,7 @@ namespace EmulatorLauncher.Common.EmulationStation
             if (_romExists.HasValue)
                 return _romExists.Value;
 
-            if (string.IsNullOrEmpty(this.path))
+            if (string.IsNullOrEmpty(this.Path))
                 _romExists = false;
             else
             {
@@ -278,10 +280,10 @@ namespace EmulatorLauncher.Common.EmulationStation
 
         public string GetRomFile()
         {
-            if (string.IsNullOrEmpty(this.path))
+            if (string.IsNullOrEmpty(this.Path))
                 return null;
 
-            return GameList.FormatPath(this.path, GameList);
+            return GameList.FormatPath(this.Path, GameList);
         }
 
         public override string ToString()
@@ -295,7 +297,7 @@ namespace EmulatorLauncher.Common.EmulationStation
         private string _path;
 
         [XmlElement("path")]
-        public string path
+        public string Path
         {
             get { return _path; }
             set { _path = value; _romExists = null; }
@@ -335,12 +337,12 @@ namespace EmulatorLauncher.Common.EmulationStation
 
             if (!s.StartsWith(".") && !s.StartsWith("\\") && !s.StartsWith("/"))
             {
-                s = Path.GetFullPath(s).Replace("\\", "/");
+                s = System.IO.Path.GetFullPath(s).Replace("\\", "/");
 
                 if (GameList != null)
                 {
-                    string root = Path.GetFullPath(GameList.FilePath);
-                    root = Path.GetDirectoryName(root).Replace("\\", "/");
+                    string root = System.IO.Path.GetFullPath(GameList.FilePath);
+                    root = System.IO.Path.GetDirectoryName(root).Replace("\\", "/");
 
                     if (s.StartsWith(root))
                     {

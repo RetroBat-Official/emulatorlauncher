@@ -47,6 +47,21 @@ namespace EmulatorLauncher.Common
             return null;
         }
 
+        private static void TryMoveFile(string sourceFileName, string destFileName)
+        {
+            if (File.Exists(sourceFileName))
+            {
+                if (File.Exists(destFileName))
+                {
+                    try { File.Delete(destFileName); }
+                    catch { }
+                }
+
+                try { File.Move(sourceFileName, destFileName); }
+                catch { }
+            }
+        }
+
         public static void TryCreateDirectory(string path)
         {
             if (Directory.Exists(path))

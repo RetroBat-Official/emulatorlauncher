@@ -118,6 +118,13 @@ namespace batocera_store
 
             Uri uri = new Uri(!string.IsNullOrEmpty(package.DownloadUrl) ? package.DownloadUrl : repo.Url + "/" + package.Name + ".7z");
 
+            if (!string.IsNullOrEmpty(package.DownloadUrl))
+            {
+                string ext = Path.GetExtension(package.DownloadUrl).ToLowerInvariant();
+                if (ext.Length == 4)
+                    localFile = Path.ChangeExtension(localFile, ext);
+            }
+
             if (uri.Scheme == "file")
             {
                 File.Copy(uri.AbsoluteUri, localFile, true);

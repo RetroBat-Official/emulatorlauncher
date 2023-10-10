@@ -5,11 +5,32 @@ using System.Text;
 using System.Net;
 using System.IO;
 using System.ComponentModel;
+using System.Reflection;
 
 namespace EmulatorLauncher.Common
 {
     public static class WebTools
     {
+        static WebTools()
+        {
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+            // Existe à partir de .net 4.5
+            var tls11 = typeof(SecurityProtocolType).GetField("Tls11", BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public);
+            if (tls11 != null)
+                ServicePointManager.SecurityProtocol |= (SecurityProtocolType)tls11.GetValue(null);
+
+            // Existe à partir de .net 4.5
+            var tls12 = typeof(SecurityProtocolType).GetField("Tls12", BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public);
+            if (tls12 != null)
+                ServicePointManager.SecurityProtocol |= (SecurityProtocolType)tls12.GetValue(null);
+
+            // Existe à partir de .net 4.8
+            var tls13 = typeof(SecurityProtocolType).GetField("Tls13", BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public);
+            if (tls13 != null)
+                ServicePointManager.SecurityProtocol |= (SecurityProtocolType)tls13.GetValue(null);
+        }
+
         private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0";
         private static Dictionary<string, bool> _urlExistsCache;
 

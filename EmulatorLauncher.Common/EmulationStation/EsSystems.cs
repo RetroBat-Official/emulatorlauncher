@@ -201,7 +201,7 @@ namespace EmulatorLauncher.Common.EmulationStation
         {
             get
             {
-                return GameList.FormatPath(Path, RelativePath);                
+                return System.IO.Path.GetFullPath(GameList.FormatPath(Path, RelativePath));               
             }
         }
     }
