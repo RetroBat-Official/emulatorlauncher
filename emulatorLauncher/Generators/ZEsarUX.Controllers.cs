@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
-using SharpDX.DirectInput;
 using System.Windows.Input;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;

@@ -344,7 +344,7 @@ namespace EmulatorLauncher
 
             try
             {
-                var conf = SindenLightgunConfiguration.GetConfiguration();
+                var conf = SindenLightgunConfiguration.GetConfiguration(Program.SystemConfig);
 
                 bool showPrimaryBorder = conf.ShowPrimaryBorder;
                 bool showSecondaryBorder = conf.ShowSecondaryBorder;

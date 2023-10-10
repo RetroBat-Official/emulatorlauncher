@@ -6,7 +6,6 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Linq.Expressions;
-using SharpDX.XInput;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
