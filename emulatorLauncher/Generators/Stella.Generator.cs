@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
-using System.Windows.Forms;
-using Microsoft.Win32;
 using System.Data.SQLite;
-using System.Diagnostics.Eventing.Reader;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-    class StellaGenerator : Generator
+    partial class StellaGenerator : Generator
     {
         public StellaGenerator()
         {
@@ -120,6 +115,8 @@ namespace EmulatorLauncher
                         ForceStellaSetting(db, "autofire", "1");
                         ForceStellaSetting(db, "autofirerate", SystemConfig["stella_autofire"]);
                     }
+
+                    CreateControllerConfiguration(db, path);
 
                     db.Close();
                 }

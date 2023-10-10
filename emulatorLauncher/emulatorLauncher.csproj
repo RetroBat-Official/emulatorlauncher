@@ -120,6 +120,9 @@
     <Compile Include="Generators\Jynx.Generator.cs" />
     <Compile Include="Generators\Ruffle.Generator.cs" />
     <Compile Include="Generators\Stella.Generator.cs" />
+    <Compile Include="Generators\Stella.Controllers.cs">
+      <DependentUpon>Stella.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Cemu.Generator.cs" />
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
