@@ -10,6 +10,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Compression;
+using System.Reflection;
 
 namespace batocera_store
 {
@@ -412,7 +413,7 @@ namespace batocera_store
                 if (string.IsNullOrEmpty(gp.Key))
                     continue;
 
-                var gamelist = new GameList() { Games = new System.ComponentModel.BindingList<Game>() };
+                var gamelist = new GameList();
                 foreach (var game in gp)
                 {
                     try { gamelist.Games.Add(game.ToXml().FromXmlString<Game>()); }
