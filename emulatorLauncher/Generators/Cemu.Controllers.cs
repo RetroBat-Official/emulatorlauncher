@@ -288,7 +288,7 @@ namespace EmulatorLauncher
                 .ToList()
                 .IndexOf(ctrl);
 
-            string uuid = index + "_" + ctrl.GetSdlGuid(_sdlVersion).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
+            string uuid = index + "_" + ctrl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
             // Define type of controller
             // Players 1 & 2 defaults to WIIU Gamepad but can be changed to pro controller in features for some multiplayer games compatibility
