@@ -396,7 +396,7 @@ namespace EmulatorLauncher
             {
                 CurrentGame = new Game()
                 {
-                    path = SystemConfig.GetFullPath("rom"),
+                    Path = SystemConfig.GetFullPath("rom"),
                     Name = Path.GetFileNameWithoutExtension(SystemConfig["rom"]),
                     Tag = "missing"
                 };
