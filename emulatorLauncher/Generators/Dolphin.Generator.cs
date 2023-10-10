@@ -443,7 +443,11 @@ namespace EmulatorLauncher
                     {
                         string savesPath = AppConfig.GetFullPath("saves");
                         string dolphinLoadPath = Path.Combine(savesPath, "gamecube", "User", "Load");
+                        if (!Directory.Exists(dolphinLoadPath)) try { Directory.CreateDirectory(dolphinLoadPath); }
+                            catch { }
                         string dolphinResourcesPath = Path.Combine(savesPath, "gamecube", "User", "ResourcePacks");
+                        if (!Directory.Exists(dolphinResourcesPath)) try { Directory.CreateDirectory(dolphinResourcesPath); }
+                            catch { }
 
                         ini.WriteValue("General", "LoadPath", dolphinLoadPath);
                         ini.WriteValue("General", "ResourcePackPath", dolphinResourcesPath);
