@@ -114,6 +114,25 @@ namespace EmulatorLauncher
                 video["Shader"] = pathShader;
             }
 
+            BindBoolFeature(video, "ColorBleed", "ares_colobleed", "true", "false");
+            BindBoolFeature(video, "ColorEmulation", "ares_coloremulation", "false", "true");
+            BindBoolFeature(video, "InterframeBlending", "ares_interframe_blend", "false", "true");
+            BindBoolFeature(video, "Overscan", "ares_overscan", "true", "false");
+            BindBoolFeature(video, "PixelAccuracy", "ares_pixel_accurate", "true", "false");
+            BindFeature(video, "Quality", "ares_n64_quality", "SD");
+
+            if (!SystemConfig.isOptSet("ares_n64_quality") || SystemConfig["ares_n64_quality"] == "SD")
+                    video["Supersampling"] = "false";
+            else
+                BindBoolFeature(video, "Supersampling", "ares_supersampling", "true", "false");
+            
+            bool supersample = SystemConfig.isOptSet("ares_supersampling") && SystemConfig.getOptBoolean("ares_supersampling");
+
+            if (!supersample)
+                BindBoolFeature(video, "WeaveDeinterlacing", "ares_weavedeinterlacing", "false", "true");
+            else
+                video["WeaveDeinterlacing"] = "false";
+
             // Audio
             var audio = bml.GetOrCreateContainer("Audio");
             BindFeature(audio, "Driver", "ares_audio_renderer", "WASAPI");
@@ -123,6 +142,11 @@ namespace EmulatorLauncher
             BindBoolFeature(general, "Rewind", "rewind", "true", "false");
             BindBoolFeature(general, "RunAhead", "ares_runahead", "true", "false");
             BindBoolFeature(general, "AutoSaveMemory", "autosave", "true", "false");
+
+            // Boot
+            var boot = bml.GetOrCreateContainer("Boot");
+            BindFeature(boot, "Prefer", "ares_region", "PAL");
+            BindBoolFeature(boot, "Fast", "ares_fastboot", "true", "false");
 
             // Paths
             var paths = bml.GetOrCreateContainer("Paths");
