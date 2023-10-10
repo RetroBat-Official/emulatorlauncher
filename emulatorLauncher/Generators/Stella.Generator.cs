@@ -39,10 +39,17 @@ namespace EmulatorLauncher
 
             ConfigureSQL(path);
 
-            if (SystemConfig["stella_renderer"] != "opengl")
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            bool stretch = SystemConfig.isOptSet("stella_stretch") && SystemConfig.getOptBoolean("stella_stretch");
+
+            if (!stretch)
+            {
+                if (SystemConfig["stella_renderer"] != "opengl")
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                else
+                    ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
+            }
             else
-                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
+                SystemConfig["forceNoBezel"] = "1";
 
             _resolution = resolution;
 
@@ -73,18 +80,47 @@ namespace EmulatorLauncher
                     db.Open();
 
                     ForceStellaSetting(db, "grabmouse", "1");
-                    ForceStellaSetting(db, "usemouse", "analog");
+                    ForceStellaSetting(db, "confirmexit", "0");
 
                     string snapDir = Path.Combine(AppConfig.GetFullPath("screenshots"), "stella");
                     if (!Directory.Exists(snapDir)) try { Directory.CreateDirectory(snapDir); }
                         catch { }
                     ForceStellaSetting(db, "snapsavedir", snapDir);
                     ForceStellaSetting(db, "snapname", "rom");
+                    ForceStellaSetting(db, "autoslot", "1");
 
+                    SetStellaSetting(db, "tia.correct_aspect", "stella_correct_aspect", "1");
+                    SetStellaSetting(db, "tia.fs_stretch", "stella_stretch", "0");
+                    SetStellaSetting(db, "tia.fs_refresh", "stella_adapt_refresh", "0");
+                    SetStellaSetting(db, "tia.fs_overscan", "stella_overscan", "Off");
+                    SetStellaSetting(db, "tia.inter", "stella_interpolation", "0");
+                    SetStellaSetting(db, "tv.filter", "stella_tvfilter", "0");
+                    SetStellaSetting(db, "tv.scanlines", "stella_scanlines", "Off");
                     SetStellaSetting(db, "video", "stella_renderer", "direct3d");
                     SetStellaSetting(db, "vsync", "stella_vsync", "1");
                     SetStellaSetting(db, "display", "stella_monitor", "0");
-                    
+                    SetStellaSetting(db, "audio.preset", "stella_audio_quality", "3");
+                    SetStellaSetting(db, "audio.stereo", "stella_force_stereo", "0");
+                    SetStellaSetting(db, "threads", "stella_multithread", "0");
+                    SetStellaSetting(db, "fastscbios", "stella_fastload", "1");
+                    SetStellaSetting(db, "uimessages", "stella_uimessages", "1");
+                    SetStellaSetting(db, "saveonexit", "stella_autosave", "none");
+                    SetStellaSetting(db, "usemouse", "stella_mouse", "analog");
+                    SetStellaSetting(db, "cursor", "stella_cursor", "2");
+                    SetStellaSetting(db, "adeadzone", "stella_deadzone", "3");
+                    SetStellaSetting(db, "joyallow4", "stella_fourway", "1");
+
+                    if (!SystemConfig.isOptSet("stella_autofire") || SystemConfig["stella_autofire"] == "0")
+                    {
+                        ForceStellaSetting(db, "autofire", "0");
+                        ForceStellaSetting(db, "autofirerate", "0");
+                    }
+                    else
+                    {
+                        ForceStellaSetting(db, "autofire", "1");
+                        ForceStellaSetting(db, "autofirerate", SystemConfig["stella_autofire"]);
+                    }
+
                     db.Close();
                 }
             }
