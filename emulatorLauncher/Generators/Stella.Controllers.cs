@@ -74,11 +74,6 @@ namespace EmulatorLauncher
 
             // Common part
             var kCommonMode = new List<DynamicJson>();
-            
-            var optionMenu = new DynamicJson();
-            optionMenu["button"] = GetInputKeyName(c, InputKey.select, isxinput);
-            optionMenu["event"] = "OptionsMenuMode";
-            kCommonMode.Add(optionMenu);
 
             var leftDiff = new DynamicJson();
             leftDiff["button"] = GetInputKeyName(c, InputKey.pageup, isxinput);
