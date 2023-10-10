@@ -27,7 +27,7 @@ namespace EmulatorLauncher.Common
             using (Image img = CaptureScreen())
                 img.Save(filename);
         }
-
+        
         public static void AddImageToGameList(string rom, string imagePath, bool resizeTo43 = true)
         {
             if (string.IsNullOrEmpty(rom))
@@ -44,7 +44,7 @@ namespace EmulatorLauncher.Common
                     return;
 
                 string romName = Path.GetFileName(rom);
-                var game = gameList.Games.FirstOrDefault(g => Path.GetFileName(g.path).Equals(romName, StringComparison.InvariantCultureIgnoreCase));
+                var game = gameList.Games.FirstOrDefault(g => Path.GetFileName(g.Path).Equals(romName, StringComparison.InvariantCultureIgnoreCase));
                 if (game != null && game.ImageExists())
                     return;
 
@@ -56,7 +56,7 @@ namespace EmulatorLauncher.Common
                 {
                     game = new Game();
                     game.Name = Path.GetFileNameWithoutExtension(romName);
-                    game.path = ".\\" + Path.GetFileName(romName);
+                    game.Path = ".\\" + Path.GetFileName(romName);
                     gameList.Games.Add(game);
                 }
 
@@ -65,7 +65,7 @@ namespace EmulatorLauncher.Common
                 {
                     if (!resizeTo43)
                     {
-                        var codecInfo = GetEncoderInfo("image/jpeg");
+                        var codecInfo = GetJpegEncoderInfo();
                         if (codecInfo == null)
                             return;
 
@@ -83,7 +83,7 @@ namespace EmulatorLauncher.Common
                                 g.DrawImage(img, rect);
                             }
 
-                            var codecInfo = GetEncoderInfo("image/jpeg");
+                            var codecInfo = GetJpegEncoderInfo();
                             if (codecInfo == null)
                                 return;
 
@@ -100,10 +100,15 @@ namespace EmulatorLauncher.Common
             }
             catch { }
         }
-
+        
         public static void AddScreenCaptureToGameList(string rom)
         {
             AddImageToGameList(rom, null);
+        }
+
+        static ImageCodecInfo GetJpegEncoderInfo()
+        {
+            return GetEncoderInfo("image/jpeg");
         }
 
         static ImageCodecInfo GetEncoderInfo(String mimeType)
