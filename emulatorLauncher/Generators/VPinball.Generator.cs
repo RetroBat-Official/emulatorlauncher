@@ -460,6 +460,16 @@ namespace EmulatorLauncher
                 SetOption(regKeyc, "FullScreen", resolution == null ? 0 : 1);
                 SetOption(regKeyc, "AdaptiveVSync", SystemConfig["VSync"] != "false" ? 1 : 0);
                 SetOption(regKeyc, "BGSet", SystemConfig["arcademode"] == "1" ? 1 : 0);
+                SetOption(regKeyc, "LRAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 1);
+                SetOption(regKeyc, "UDAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 2);
+                SetOption(regKeyc, "PlungerAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 3);
+
+                int deadzone = 15;
+
+                if (SystemConfig.isOptSet("joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["joy_deadzone"]))
+                    deadzone = SystemConfig["joy_deadzone"].ToInteger();
+                
+                SetOption(regKeyc, "DeadZone", deadzone);
 
                 regKeyc.Close();
             }
