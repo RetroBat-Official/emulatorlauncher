@@ -101,6 +101,7 @@
       <DependentUpon>ZEsarUX.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\ScummVm.Generator.cs" />
+    <Compile Include="Generators\ForceEngine.Generator.cs" />
     <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\MessSystem.cs" />
     <Compile Include="Generators\vita3k.Generator.cs" />

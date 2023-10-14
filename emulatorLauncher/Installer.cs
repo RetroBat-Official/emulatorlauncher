@@ -92,7 +92,8 @@ namespace EmulatorLauncher
             { new Installer("jynx", "jynx", "Jynx-Windows-64bit.exe") },
             { new Installer("hatari", "hatari", "hatari.exe") },
             { new Installer("xm6pro", "xm6pro", "XM6.exe") },
-            { new Installer("stella", "stella", "Stella.exe") }
+            { new Installer("stella", "stella", "Stella.exe") },
+            { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") }
         };
 
         #region Properties

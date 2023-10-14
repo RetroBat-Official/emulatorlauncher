@@ -116,7 +116,8 @@ namespace EmulatorLauncher
             { "jynx", () => new JynxGenerator() },
             { "hatari", () => new HatariGenerator() },
             { "xm6pro", () => new Xm6proGenerator() },
-            { "stella", () => new StellaGenerator() }
+            { "stella", () => new StellaGenerator() },
+            { "theforceengine", () => new ForceEngineGenerator() },
         };
 
         public static ConfigFile AppConfig { get; private set; }
