@@ -78,6 +78,10 @@ namespace EmulatorLauncher.Libretro
 
             if (resolution == null)
             {
+                var res = ScreenResolution.CurrentResolution;
+                retroarchConfig["video_fullscreen_x"] = res.Width.ToString();
+                retroarchConfig["video_fullscreen_y"] = res.Height.ToString();
+
                 if (!SystemConfig.isOptSet("MonitorIndex"))
                 {
                     Rectangle emulationStationBounds;
@@ -85,8 +89,7 @@ namespace EmulatorLauncher.Libretro
                     {
                         int width = emulationStationBounds.Width;
                         int height = emulationStationBounds.Height;
-                        var res = ScreenResolution.CurrentResolution;
-
+                        
                         if (emulationStationBounds.Left == 0 && emulationStationBounds.Top == 0)
                         {
                             emulationStationBounds.X = (res.Width - width) / 2 - SystemInformation.FrameBorderSize.Width;
