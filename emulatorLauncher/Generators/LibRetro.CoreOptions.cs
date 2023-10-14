@@ -1345,6 +1345,12 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "kronos_videocoretype", "videocoretype", "opengl");
             BindFeature(coreSettings, "kronos_videoformattype", "videoformattype", "auto");
 
+            if (system == "segastv")
+            {
+                BindFeature(coreSettings, "kronos_stv_favorite_region", "kronos_stv_favorite_region", "EU");
+                BindFeature(coreSettings, "kronos_service_enabled", "kronos_service_enabled", "disabled");
+            }
+
             // Controls
             if (SystemConfig.isOptSet("kronos_controller") && !string.IsNullOrEmpty(SystemConfig["kronos_controller"]))
             {
