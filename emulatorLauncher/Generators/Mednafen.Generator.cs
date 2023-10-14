@@ -405,6 +405,7 @@ namespace EmulatorLauncher
                 case "supergrafx":
                     return "pce";
                 case "saturn":
+                case "segastv":
                     return "ss";
             }
 

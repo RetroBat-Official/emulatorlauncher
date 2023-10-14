@@ -1345,6 +1345,12 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "kronos_videocoretype", "videocoretype", "opengl");
             BindFeature(coreSettings, "kronos_videoformattype", "videoformattype", "auto");
 
+            if (system == "segastv")
+            {
+                BindFeature(coreSettings, "kronos_stv_favorite_region", "kronos_stv_favorite_region", "EU");
+                BindFeature(coreSettings, "kronos_service_enabled", "kronos_service_enabled", "disabled");
+            }
+
             // Controls
             if (SystemConfig.isOptSet("kronos_controller") && !string.IsNullOrEmpty(SystemConfig["kronos_controller"]))
             {
@@ -2874,6 +2880,9 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["pcsx_rearmed_multitap"] = "port 1 only";
             else
                 coreSettings["pcsx_rearmed_multitap"] = "disabled";
+
+            BindFeature(coreSettings, "pcsx_rearmed_crosshair1", "pcsx_rearmed_crosshair1", "disabled");
+            BindFeature(coreSettings, "pcsx_rearmed_crosshair2", "pcsx_rearmed_crosshair2", "disabled");
 
             if (SystemConfig.isOptSet("psx_gunport2") && SystemConfig.getOptBoolean("psx_gunport2"))
                 SetupLightGuns(retroarchConfig, "260", core, 2);

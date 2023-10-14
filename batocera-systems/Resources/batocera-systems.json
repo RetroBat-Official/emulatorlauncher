@@ -971,7 +971,11 @@
       {
         "md5": "af5828fdff51384f99b3c4926be27762",
         "file": "bios/saturn_bios.bin"
-      }
+      },
+      {
+        "md5": "af5828fdff51384f99b3c4926be27762",
+        "file": "bios/kronos/saturn_bios.bin"
+      },
     ]
   },
 
@@ -1021,6 +1025,16 @@
       {
         "md5": "278a9397d192149e84e820ac621a8edd",
         "file": "bios/bios_CD_J.bin"
+      }
+    ]
+  },
+
+  "segastv": {
+    "name": "Sega ST-V",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/kronos/stvbios.zip"
       }
     ]
   },
