@@ -114,7 +114,7 @@ namespace EmulatorLauncher
                         var bezelEffect = reShadePreset.GetOrCreateSection("Bezel.fx");
 
                         BezelInfo infos = bezel.BezelInfos;
-                        if (infos != null && infos.IsValid())
+                        if (infos != null && infos.IsValid() && !infos.IsEstimated)
                         {
                             displayW = ((float)infos.width.Value - (float)infos.right.Value - (float)infos.left.Value) / (float)infos.width.Value;
                             displayH = ((float)infos.height.Value - (float)infos.bottom.Value - (float)infos.top.Value) / (float)infos.height.Value;
