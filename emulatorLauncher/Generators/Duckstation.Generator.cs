@@ -120,11 +120,24 @@ namespace EmulatorLauncher
                     if (!string.IsNullOrEmpty(biosPath))
                         ini.WriteValue("BIOS", "SearchDirectory", biosPath.Replace("\\", "\\\\"));
 
-                    ini.WriteValue("MemoryCards", "Card1Type", "PerGameTitle");
+                    if (SystemConfig.isOptSet("duckstation_memcardtype") && !string.IsNullOrEmpty(SystemConfig["duckstation_memcardtype"]))
+                    {
+                        ini.WriteValue("MemoryCards", "Card1Type", SystemConfig["duckstation_memcardtype"]);
+                        ini.WriteValue("MemoryCards", "Card2Type", SystemConfig["duckstation_memcardtype"]);
+                    }
+                    else
+                    {
+                        ini.WriteValue("MemoryCards", "Card1Type", "PerGameTitle");
+                        ini.WriteValue("MemoryCards", "Card2Type", "PerGameTitle");
+                    }
                     string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "memcards");
                     if (!string.IsNullOrEmpty(savesPath))
                         ini.WriteValue("MemoryCards", "Directory", savesPath.Replace("\\", "\\\\"));
-                    ini.WriteValue("MemoryCards", "Card1Path", "shared_card_1.mcd");
+                    if (SystemConfig["duckstation_memcardtype"] == "Shared")
+                    {
+                        ini.WriteValue("MemoryCards", "Card1Path", "shared_card_1.mcd");
+                        ini.WriteValue("MemoryCards", "Card2Path", "shared_card_2.mcd");
+                    }
 
                     string saveStatesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "sstates");
                     if (!string.IsNullOrEmpty(saveStatesPath))

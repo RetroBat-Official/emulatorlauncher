@@ -2875,6 +2875,9 @@ namespace EmulatorLauncher.Libretro
             else
                 coreSettings["pcsx_rearmed_multitap"] = "disabled";
 
+            BindFeature(coreSettings, "pcsx_rearmed_crosshair1", "pcsx_rearmed_crosshair1", "disabled");
+            BindFeature(coreSettings, "pcsx_rearmed_crosshair2", "pcsx_rearmed_crosshair2", "disabled");
+
             if (SystemConfig.isOptSet("psx_gunport2") && SystemConfig.getOptBoolean("psx_gunport2"))
                 SetupLightGuns(retroarchConfig, "260", core, 2);
             else
