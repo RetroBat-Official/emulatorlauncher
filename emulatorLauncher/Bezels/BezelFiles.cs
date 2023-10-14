@@ -299,8 +299,16 @@ namespace EmulatorLauncher
                 bezel = "thebezelproject";
             }
 
-            if (string.IsNullOrEmpty(bezel) || bezel == "none")
+            if (string.IsNullOrEmpty(bezel))
                 return null;
+
+            if (bezel == "none")
+            {
+                if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
+                    return CreateSindenBorderBezel(null, resolution);
+
+                return null;
+            }
 
             float screenRatio = (float)resX / (float)resY;
             if (screenRatio < 1.4)
