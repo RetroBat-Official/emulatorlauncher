@@ -15,12 +15,6 @@ namespace EmulatorLauncher
         { 
         }
 
-        protected override string FilePattern { get { return "{{romfilename}}.s{{slot2d}}"; } }
-        protected override string ImagePattern { get { return "{{romfilename}}.s{{slot2d}}.png"; } }
-
-        protected override int FirstSlot { get { return 1; } }
-        protected override int LastSlot { get { return 10; } }
-
         protected override void SaveScreenshot(string saveState, string destScreenShot)
         {
             try

@@ -784,6 +784,12 @@ namespace EmulatorLauncher
                     }
                 }
 
+                // autosave
+                if (_saveStatesWatcher != null)
+                    ini.WriteValue("EmuCore", "SaveStateOnShutdown", _saveStatesWatcher.IsLaunchingAutoSave() || SystemConfig.getOptBoolean("autosave") ? "true" : "false");
+                else
+                    ini.WriteValue("EmuCore", "SaveStateOnShutdown", "false");
+
                 //Custom textures path
                 string texturePath = Path.Combine(AppConfig.GetFullPath("bios"), "pcsx2", "textures");
                 SetIniPath(ini, "Folders", "Textures", texturePath);

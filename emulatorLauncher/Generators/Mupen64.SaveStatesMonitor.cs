@@ -13,11 +13,5 @@ namespace EmulatorLauncher
         { 
 
         }
-
-        protected override string FilePattern { get { return "{{romfilename}}.st{{slot0}}"; } }
-        protected override string ImagePattern { get { return "{{romfilename}}.st{{slot0}}.png"; } }
-
-        protected override int FirstSlot { get { return 0; } }
-        protected override int LastSlot { get { return 9; } }
     }
 }

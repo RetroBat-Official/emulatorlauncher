@@ -5,7 +5,6 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 using EmulatorLauncher.Common.FileFormats;
 using System.Windows.Media.Media3D;
 
