@@ -138,7 +138,7 @@ namespace EmulatorLauncher
                 string tosfile = Path.Combine(AppConfig.GetFullPath("bios"), "tos.img");
 
                 if (SystemConfig.isOptSet("hatari_tos") && !string.IsNullOrEmpty(SystemConfig["hatari_tos"]))
-                    tosfile = Path.Combine(AppConfig.GetFullPath("bios"), SystemConfig["hatari_tos"]);
+                    tosfile = Path.Combine(AppConfig.GetFullPath("bios"), "hatari", "tos", SystemConfig["hatari_tos"]);
 
                 string tosName = Path.GetFileName(tosfile);
 
