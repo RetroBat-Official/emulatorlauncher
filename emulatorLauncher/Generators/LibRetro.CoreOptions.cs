@@ -3274,6 +3274,36 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "hatarib")
                 return;
+
+            if (SystemConfig.isOptSet("hatarib_tos") && !string.IsNullOrEmpty(SystemConfig["hatarib_tos"]))
+            {
+                if (SystemConfig["hatarib_tos"] == "tosimg")
+                {
+                    string tosImg = Path.Combine(AppConfig.GetFullPath("bios"), "tos.img");
+                    if (File.Exists(tosImg))
+                        coreSettings["hatarib_tos"] = "<tos.img>";
+                }
+
+                else if (SystemConfig["hatarib_tos"].StartsWith("etos"))
+                {
+                    coreSettings["hatarib_tos"] = "<" + SystemConfig["hatarib_tos"] + ">";
+                }
+
+                else
+                {
+                    string tosFile = "hatarib/" + SystemConfig["hatarib_tos"] + ".img";
+                    string tosPath = Path.Combine(AppConfig.GetFullPath("bios"), "hatarib", SystemConfig["hatarib_tos"] + ".img");
+
+                    if (!File.Exists(tosPath))
+                        coreSettings["hatarib_tos"] = tosFile;
+                }
+            }
+
+            else if (File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "tos.img")))
+                coreSettings["hatarib_tos"] = "<tos.img>";
+
+            else
+                coreSettings["hatarib_tos"] = "<etos1024k>";
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
