@@ -80,6 +80,15 @@ namespace EmulatorLauncher.Common
             catch { }
         }
 
+        public static void TryCopyFile(string sourceFileName, string destFileName, bool overwrite = true)
+        {
+            if (!File.Exists(sourceFileName))
+                return;
+
+            try { File.Copy(sourceFileName, destFileName, overwrite); }
+            catch { }
+        }
+
         #region Apis
         const uint GENERIC_READ = 0x80000000;
         const uint GENERIC_WRITE = 0x40000000;

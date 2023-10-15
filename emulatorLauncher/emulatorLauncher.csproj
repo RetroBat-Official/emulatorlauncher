@@ -75,7 +75,7 @@
     <Compile Include="Bezels\FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EsSaveStatesExtensions.cs" />
+    <Compile Include="EsSaveStatesExtensions.cs" />    
     <Compile Include="Generators\Xm6pro.Generator.cs" />
     <Compile Include="Generators\Flycast.Generator.cs" />
     <Compile Include="Generators\Flycast.Controllers.cs">
@@ -129,6 +129,9 @@
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
     <Compile Include="Generators\Duckstation.Controllers.cs">
+      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\DuckStation.SaveStatesMonitor.cs">
       <DependentUpon>Duckstation.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\KegaFusion.Generator.cs" />
