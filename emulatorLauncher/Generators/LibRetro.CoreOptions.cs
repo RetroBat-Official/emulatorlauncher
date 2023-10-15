@@ -100,6 +100,7 @@ namespace EmulatorLauncher.Libretro
                 { "gw", "Game & Watch" },
                 { "handy", "Handy" },
                 { "hatari", "Hatari" },
+                { "hatarib", "Hatarib" },
                 { "hbmame", "HBMAME (Git)" },
                 { "higan_sfc_balanced", "nSide (Super Famicom Balanced)" },
                 { "higan_sfc", "nSide (Super Famicom Accuracy)" },
@@ -340,6 +341,8 @@ namespace EmulatorLauncher.Libretro
             ConfigureFrodo(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureGong(retroarchConfig, coreSettings, system, core);
+            ConfigureHatari(retroarchConfig, coreSettings, system, core);
+            ConfigureHatariB(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
@@ -3259,6 +3262,75 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "gong_player2", "gong_player2", "CPU");
+        }
+
+        private void ConfigureHatari(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "hatari")
+                return;
+
+            if (SystemConfig.isOptSet("hatari_tos") && !string.IsNullOrEmpty(SystemConfig["hatari_tos"]))
+                coreSettings["hatari_tosimage"] = SystemConfig["hatari_tos"];
+            else
+                coreSettings["hatari_tosimage"] = "default";
+
+            BindFeature(coreSettings, "hatari_machinetype", "hatari_machinetype", "st");
+            BindFeature(coreSettings, "hatari_ramsize", "hatari_ramsize", "1");
+
+            BindBoolFeature(coreSettings, "hatari_video_crop_overscan", "hatari_video_crop_overscan", "false", "true");
+            BindBoolFeature(coreSettings, "hatari_fastboot", "hatari_fastboot", "true", "false");
+            BindBoolFeature(coreSettings, "hatari_twojoy", "hatari_twojoy", "false", "true");
+            BindBoolFeature(coreSettings, "hatari_led_status_display", "hatari_led_status_display", "false", "true");
+        }
+
+        private void ConfigureHatariB(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "hatarib")
+                return;
+
+            if (SystemConfig.isOptSet("hatarib_tos") && !string.IsNullOrEmpty(SystemConfig["hatarib_tos"]))
+            {
+                if (SystemConfig["hatarib_tos"] == "tosimg")
+                {
+                    string tosImg = Path.Combine(AppConfig.GetFullPath("bios"));
+                    if (File.Exists(tosImg))
+                        coreSettings["hatarib_tos"] = "<tos.img>";
+                }
+
+                else if (SystemConfig["hatarib_tos"].StartsWith("etos"))
+                {
+                    coreSettings["hatarib_tos"] = "<" + SystemConfig["hatarib_tos"] + ">";
+                }
+
+                else
+                {
+                    string tosFile = "hatarib/" + SystemConfig["hatarib_tos"];
+                    string tosPath = Path.Combine(AppConfig.GetFullPath("bios"), "hatarib", SystemConfig["hatarib_tos"]);
+
+                    if (!File.Exists(tosPath))
+                        coreSettings["hatarib_tos"] = tosFile;
+                }
+            }
+
+            else if (File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "tos.img")))
+                coreSettings["hatarib_tos"] = "<tos.img>";
+
+            else
+                coreSettings["hatarib_tos"] = "<etos1024k>";
+
+            BindFeature(coreSettings, "hatarib_aspect", "hatarib_aspect", "0");
+            BindFeature(coreSettings, "hatarib_monitor", "hatarib_monitor", "1");
+            BindFeature(coreSettings, "hatarib_samplerate", "hatarib_samplerate", "48000");
+            BindFeature(coreSettings, "hatarib_lpf", "hatarib_lpf", "3");
+            BindFeature(coreSettings, "hatarib_machine", "hatarib_machine", "0");
+            BindFeature(coreSettings, "hatarib_memory", "hatarib_memory", "1024");
+            BindFeature(coreSettings, "hatarib_cpu_clock", "hatarib_cpu_clock", "-1");
+            BindFeature(coreSettings, "hatarib_fast_floppy", "hatarib_fast_floppy", "1");
+            BindFeature(coreSettings, "hatarib_cycle_exact", "hatarib_cycle_exact", "1");
+            BindFeature(coreSettings, "hatarib_mouse_port", "hatarib_mouse_port", "1");
+            BindFeature(coreSettings, "hatarib_statusbar", "hatarib_statusbar", "1");
+            BindFeature(coreSettings, "hatarib_emutos_framerate", "hatarib_emutos_framerate", "-1");
+            BindFeature(coreSettings, "hatarib_emutos_region", "hatarib_emutos_region", "-1");
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
