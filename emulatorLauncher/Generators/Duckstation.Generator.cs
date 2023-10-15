@@ -15,10 +15,22 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private SaveStatesWatcher _saveStatesWatcher;
 
         public DuckstationGenerator()
         {
             DependsOnDesktopResolution = true;
+        }
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
         }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -32,7 +44,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupSettings(path);
+            SetupSettings(path, rom, system);
 
             //Applying bezels
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
@@ -53,6 +65,12 @@ namespace EmulatorLauncher
 
             if (!SystemConfig.getOptBoolean("disable_fullscreen"))
                 commandArray.Add("-fullscreen");
+
+            if (File.Exists(SystemConfig["state_file"]))
+            {
+                commandArray.Add("-statefile");
+                commandArray.Add("\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"");
+            }
 
             commandArray.Add("--");
             commandArray.Add("\"" + rom + "\"");
@@ -108,7 +126,7 @@ namespace EmulatorLauncher
             return "en";
         }
 
-        private void SetupSettings(string path)
+        private void SetupSettings(string path, string rom, string system)
         {
             string iniFile = Path.Combine(path, "settings.ini");
 
@@ -130,18 +148,45 @@ namespace EmulatorLauncher
                         ini.WriteValue("MemoryCards", "Card1Type", "PerGameTitle");
                         ini.WriteValue("MemoryCards", "Card2Type", "PerGameTitle");
                     }
-                    string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "memcards");
-                    if (!string.IsNullOrEmpty(savesPath))
-                        ini.WriteValue("MemoryCards", "Directory", savesPath.Replace("\\", "\\\\"));
+
+                    string memCardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "memcards");
+                    if (!string.IsNullOrEmpty(memCardsPath))
+                        ini.WriteValue("MemoryCards", "Directory", memCardsPath.Replace("\\", "\\\\"));
+
                     if (SystemConfig["duckstation_memcardtype"] == "Shared")
                     {
                         ini.WriteValue("MemoryCards", "Card1Path", "shared_card_1.mcd");
                         ini.WriteValue("MemoryCards", "Card2Path", "shared_card_2.mcd");
                     }
 
-                    string saveStatesPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "sstates");
-                    if (!string.IsNullOrEmpty(saveStatesPath))
-                        ini.WriteValue("Folders", "SaveStates", saveStatesPath.Replace("\\", "\\\\"));
+                    // SaveStates
+                    bool newSaveStates = Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported("duckstation");
+                    
+                    string savesPath = newSaveStates ?
+                        Program.EsSaveStates.GetSavePath(system, "duckstation", "duckstation") :
+                        Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "sstates");
+
+                    FileTools.TryCreateDirectory(savesPath);
+
+                    if (!string.IsNullOrEmpty(savesPath))
+                    {
+                        if (newSaveStates)
+                        {
+                            // Keep the original folder, we'll listen to it, and inject in our custom folder
+                            ini.WriteValue("Folders", "SaveStates", "savestates");
+
+                            _saveStatesWatcher = new DuckStationSaveStatesMonitor(rom, Path.Combine(path, "savestates"), savesPath);
+                            _saveStatesWatcher.PrepareEmulatorRepository();
+                        }
+                        else
+                            ini.WriteValue("Folders", "SaveStates", savesPath.Replace("\\", "\\\\"));
+                    }
+
+                    // autosave
+                    if (_saveStatesWatcher != null)
+                        ini.WriteValue("Main", "SaveStateOnExit", _saveStatesWatcher.IsLaunchingAutoSave() || SystemConfig.getOptBoolean("autosave") ? "true" : "false");
+                    else
+                        ini.WriteValue("Main", "SaveStateOnExit", "false");
 
                     string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "duckstation");
                     if (!string.IsNullOrEmpty(cheatsPath))

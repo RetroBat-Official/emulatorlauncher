@@ -41,7 +41,15 @@ namespace EmulatorLauncher.Common.EmulationStation
                             Name = ElementOrAttribute(emulatorElement, "name"),
                             Directory = ElementOrAttribute(emulatorElement, "directory"),
                             DefaultCoreDirectory = ElementOrAttribute(emulatorElement, "defaultCoreDirectory"),
-                            Incremental = ElementOrAttribute(emulatorElement, "incremental") == "true"
+                            Incremental = ElementOrAttribute(emulatorElement, "incremental") == "true",
+                            AutoSave = ElementOrAttribute(emulatorElement, "autosave") == "true",
+                            FirstSlot = ElementOrAttribute(emulatorElement, "firstslot").ToInteger(),
+                            LastSlot = ElementOrAttribute(emulatorElement, "lastslot", "999999").ToInteger(),
+
+                            FilePattern = ElementOrAttribute(emulatorElement, "file"),
+                            ImagePattern = ElementOrAttribute(emulatorElement, "image"),
+                            AutoFilePattern = ElementOrAttribute(emulatorElement, "autosave_file"),
+                            AutoImagePattern = ElementOrAttribute(emulatorElement, "autosave_image")
                         };
                         emulators.Add(emulator);
                     }
@@ -79,7 +87,16 @@ namespace EmulatorLauncher.Common.EmulationStation
         public string Name { get; set; }
         public string Directory { get; set; }
         public string DefaultCoreDirectory { get; set; }
+        
         public bool Incremental { get; set; }
+        public bool AutoSave { get; set; }
+        public int FirstSlot { get; set; }
+        public int LastSlot { get; set; }
+
+        public string FilePattern { get; set; }
+        public string ImagePattern { get; set; }
+        public string AutoFilePattern { get; set; }
+        public string AutoImagePattern { get; set; }
 
         public override string ToString()
         {
