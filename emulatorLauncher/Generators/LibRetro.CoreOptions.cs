@@ -100,6 +100,7 @@ namespace EmulatorLauncher.Libretro
                 { "gw", "Game & Watch" },
                 { "handy", "Handy" },
                 { "hatari", "Hatari" },
+                { "hatarib", "Hatarib" },
                 { "hbmame", "HBMAME (Git)" },
                 { "higan_sfc_balanced", "nSide (Super Famicom Balanced)" },
                 { "higan_sfc", "nSide (Super Famicom Accuracy)" },
@@ -340,6 +341,8 @@ namespace EmulatorLauncher.Libretro
             ConfigureFrodo(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureGong(retroarchConfig, coreSettings, system, core);
+            ConfigureHatari(retroarchConfig, coreSettings, system, core);
+            ConfigureHatariB(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
@@ -3259,6 +3262,18 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "gong_player2", "gong_player2", "CPU");
+        }
+
+        private void ConfigureHatari(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "hatari")
+                return;
+        }
+
+        private void ConfigureHatariB(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "hatarib")
+                return;
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
