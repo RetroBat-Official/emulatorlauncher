@@ -6,17 +6,17 @@ using System.Management;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
-    public class HdiGameDevice
+    public class HidGameDevice
     {
-        public class UsbGameDevice : HdiGameDevice
+        public class UsbGameDevice : HidGameDevice
         {
-            public UsbGameDevice(ManagementObject mo, HdiGameDevice dev)
+            public UsbGameDevice(ManagementObject mo, HidGameDevice dev)
                 : base(mo)
             {
                 HdiGameDevice = dev;
             }
 
-            public HdiGameDevice HdiGameDevice { get; set; }
+            public HidGameDevice HdiGameDevice { get; set; }
 
             public void Enable(bool enable)
             {
@@ -26,7 +26,7 @@ namespace EmulatorLauncher.Common.Joysticks
             }
         }
 
-        private static List<HdiGameDevice> _devices;
+        private static List<HidGameDevice> _devices;
 
         public static UsbGameDevice[] GetUsbGameDevices()
         {
@@ -65,11 +65,11 @@ namespace EmulatorLauncher.Common.Joysticks
             return _usbDevice;            
         }
 
-        public static HdiGameDevice[] GetGameDevices()
+        public static HidGameDevice[] GetGameDevices()
         {
             if (_devices == null)
             {
-                var devices = new List<HdiGameDevice>();
+                var devices = new List<HidGameDevice>();
 
                 try
                 {
@@ -84,7 +84,7 @@ namespace EmulatorLauncher.Common.Joysticks
                             if (!"OK".Equals(PnpDevice.Properties["Status"].Value))
                                 continue;
 
-                            devices.Add(new HdiGameDevice(PnpDevice));
+                            devices.Add(new HidGameDevice(PnpDevice));
                         }
                     }
                 }
@@ -102,7 +102,7 @@ namespace EmulatorLauncher.Common.Joysticks
             {
                 foreach (ManagementObject item in myDevices.Get())
                 {
-                    var dev = new HdiGameDevice(item);
+                    var dev = new HidGameDevice(item);
                     if (dev.PNPDeviceID == name)
                         return item;
                 }
@@ -111,7 +111,7 @@ namespace EmulatorLauncher.Common.Joysticks
             return null;
         }
 
-        protected HdiGameDevice(ManagementBaseObject PnpDevice)
+        protected HidGameDevice(ManagementBaseObject PnpDevice)
         {
             DeviceId = (string)PnpDevice.Properties["DeviceID"].Value;
             Caption = (string)PnpDevice.Properties["Caption"].Value;

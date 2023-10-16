@@ -75,52 +75,11 @@ namespace EmulatorLauncher.Common.Lightguns
         {
             var mouseNames = new List<RawLightgun>();
 
-            uint RIDI_DEVICENAME = 0x20000007;
-            uint deviceCount = 0;
-            uint dwSize = (uint)Marshal.SizeOf(typeof(RAWINPUTDEVICELIST));
-
-            uint retValue = GetRawInputDeviceList(null, ref deviceCount, dwSize);
-            if (retValue == 0)
+            int index = 0;
+            foreach (var device in RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.Mouse))
             {
-                // Now allocate an array of the specified number of entries
-                RAWINPUTDEVICELIST[] deviceList = new RAWINPUTDEVICELIST[deviceCount];
-
-                // Now make the call again, using the array
-                retValue = GetRawInputDeviceList(deviceList, ref deviceCount, dwSize);
-
-                var miceList = deviceList.Where(d => d.Type == RawInputDeviceType.MOUSE).ToList();
-
-                int index = 0;
-                foreach (var mouse in miceList)
-                {
-                    uint pcbSize = 0;
-                    string deviceName = "";
-                    GetRawInputDeviceInfo(mouse.hDevice, RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
-                    if (pcbSize <= 0)
-                        continue;
-
-                    IntPtr pData = Marshal.AllocHGlobal((int)pcbSize);
-                    GetRawInputDeviceInfo(mouse.hDevice, RIDI_DEVICENAME, pData, ref pcbSize);
-                    deviceName = Marshal.PtrToStringAnsi(pData);
-                    Marshal.FreeHGlobal(pData);
-
-                    if (string.IsNullOrEmpty(deviceName))
-                        continue;
-
-                    IntPtr hhid = CreateFile(deviceName, 0, 3, IntPtr.Zero, 3, 0x00000080, IntPtr.Zero);
-                    if (hhid != new IntPtr(-1))
-                    {
-                        StringBuilder buf = new StringBuilder(255);
-                        buf.Clear();
-
-                        if (HidD_GetProductString(hhid, buf, 255))
-                            mouseNames.Add(new RawLightgun() { Name = buf.ToString(), DevicePath = deviceName, Index = index, Type = ExtractRawLighGunType(deviceName) });
-
-                        CloseHandle(hhid);
-                    }
-
-                    index++;
-                }
+                 mouseNames.Add(new RawLightgun() { Name = device.Name, DevicePath = device.DevicePath, Index = index, Type = ExtractRawLighGunType(device.DevicePath) });
+                 index++;
             }
 
             // Sort by, (sinden) lightgun, thenby wiimotes, then by physical index
@@ -129,43 +88,6 @@ namespace EmulatorLauncher.Common.Lightguns
             return mouseNames.ToArray();
         }
 
-        #endregion
-
-        #region Win32 Apis
-        enum RawInputDeviceType : uint
-        {
-            MOUSE = 0,
-            KEYBOARD = 1,
-            HID = 2
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct RAWINPUTDEVICELIST
-        {
-            public IntPtr hDevice;
-            public RawInputDeviceType Type;
-        }
-
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern uint GetRawInputDeviceList
-        (
-            [In, Out] RAWINPUTDEVICELIST[] RawInputDeviceList,
-            ref uint NumDevices,
-            uint Size /* = (uint)Marshal.SizeOf(typeof(RawInputDeviceList)) */
-        );
-
-        [DllImport("User32.dll")]
-        static extern uint GetRawInputDeviceInfo(IntPtr hDevice, uint uiCommand, IntPtr pData, ref uint pcbSize);
-
-        [DllImport("hid.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern bool HidD_GetProductString(IntPtr HidDeviceObject, StringBuilder Buffer, uint BufferLength);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern IntPtr CreateFile(String lpFileName, UInt32 dwDesiredAccess, UInt32 dwShareMode, IntPtr lpSecurityAttributes, UInt32 dwCreationDisposition, UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool CloseHandle(IntPtr hObject);
         #endregion
 
         public int Index { get; set; }
