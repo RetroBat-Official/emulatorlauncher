@@ -208,7 +208,7 @@ namespace EmulatorLauncher.Common.Joysticks
             // Used to grab the VID/PID components from the device ID string.                
             // Iterate over all PNP devices.                
 
-            foreach (var device in HdiGameDevice.GetGameDevices())
+            foreach (var device in HidGameDevice.GetGameDevices())
             {
                 var DeviceId = device.DeviceId;
                 if (DeviceId.Contains("IG_"))

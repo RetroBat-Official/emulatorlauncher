@@ -47,6 +47,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mount", "mount\mount.csproj", "{FE4B5BD2-D1BE-4B31-B9D8-B8060BA2174A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".emulationstation", ".emulationstation", "{2BEB480F-A324-4861-AAFF-C36BE928631B}"
+	ProjectSection(SolutionItems) = preProject
+		.emulationstation\es_features.cfg = .emulationstation\es_features.cfg
+		.emulationstation\es_savestates.cfg = .emulationstation\es_savestates.cfg
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "es-checkversion", "es-checkversion\es-checkversion.csproj", "{F7712D7C-5B06-4C9E-B5F1-543A0207444E}"
 EndProject
