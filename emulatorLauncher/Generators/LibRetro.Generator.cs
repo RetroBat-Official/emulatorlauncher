@@ -1215,6 +1215,18 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
+            // When using .ipf extension, ensure capsimg.dll is present in RetroArch folder
+            if (capsimgCore.Contains(core) && Path.GetExtension(rom).ToLowerInvariant() == ".ipf")
+            {
+                string sourceDll = Path.Combine(AppConfig.GetFullPath("bios"), "capsimg.dll");
+                string targetDll = Path.Combine(AppConfig.GetFullPath("retroarch"), "capsimg.dll");
+                if (!File.Exists(targetDll) && File.Exists(sourceDll))
+                {
+                    try { File.Copy(sourceDll, targetDll); }
+                    catch { }
+                }
+            }
+
             Configure(system, core, rom, resolution);            
 
             List<string> commandArray = new List<string>();
@@ -1434,6 +1446,7 @@ namespace EmulatorLauncher.Libretro
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn" };
         static List<string> systemGameFocus = new List<string>() { "dos", "amiga1200", "amiga4000", "amiga500", "amstradcpc", "bbcmicro", "camplynx", "fm7", "fmtowns", "ti99", "archimedes", "adam", "atom", "apple2", "atari800", "oricatmos", "thomson", "tutor", "coco", "atarist" };
         static List<string> coreNoPreemptiveFrames = new List<string>() { "2048", "4do", "81", "atari800", "bluemsx", "bsnes", "bsnes_hd_beta", "cannonball", "cap32", "citra", "craft", "crocods", "desmume", "desmume2015", "dolphin", "dosbox_pure", "easyrpg", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "flycast", "frodo", "gw", "handy", "hatari", "hatarib", "imageviewer", "kronos", "lutro", "mame2000", "mame2003", "mame2003_plus", "mame2003_midway", "mame2010", "mame2014", "mame2016", "mednafen_psx_hw", "mednafen_snes", "mupen64plus_next", "nekop2", "nestopia", "np2kai", "nxengine", "o2em", "opera", "parallel_n64", "pcsx2", "ppsspp", "prboom", "prosystem", "puae", "px68k", "race", "retro8", "sameduck", "same_cdi", "scummvm", "swanstation", "theodore", "tic80", "tyrquake", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vecx", "virtualjaguar" };
+        static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
 
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
