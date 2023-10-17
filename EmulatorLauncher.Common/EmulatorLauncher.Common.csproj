@@ -72,12 +72,13 @@
     <Compile Include="FileFormats\XmlExtensions.cs" />
     <Compile Include="FileTools.cs" />
     <Compile Include="HighPerformancePowerScheme.cs" />
+    <Compile Include="HtmlElement.cs" />
     <Compile Include="Imapi\BurnData.cs" />
     <Compile Include="Imapi\Imapi2Interop.cs" />
     <Compile Include="InputKeyMapping.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="Joysticks\DirectInputInfo.cs" />
-    <Compile Include="Joysticks\HdiGameDevice.cs" />
+    <Compile Include="Joysticks\HidGameDevice.cs" />
     <Compile Include="Joysticks\HidToDirectInput.cs" />
     <Compile Include="Joysticks\InputDevices.cs" />
     <Compile Include="Joysticks\SdlGameController.cs" />
@@ -95,6 +96,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Joysticks\RawInputDevice.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="RegistryApi.cs" />
     <Compile Include="ScreenCapture.cs" />

@@ -259,7 +259,7 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    var dd = HdiGameDevice.GetUsbGameDevices();
+                    var dd = HidGameDevice.GetUsbGameDevices();
                     if (dd.Length > 1)
                     {
                         try
