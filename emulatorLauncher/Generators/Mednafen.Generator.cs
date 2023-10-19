@@ -62,13 +62,14 @@ namespace EmulatorLauncher
             commandArray.Add("-" + mednafenCore + ".shader.goat.hdiv 1");
             commandArray.Add("-" + mednafenCore + ".shader.goat.vdiv 1");
 
+            // Bilinear filtering
             if (Features.IsSupported("smooth") && SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
                 commandArray.Add("-" + mednafenCore + ".videoip 1");
             else
                 commandArray.Add("-" + mednafenCore + ".videoip 0");
 
             // Aspect ratio correction
-            if (mednafenCore != "sms" && mednafenCore != "pce" && mednafenCore != "apple2" && mednafenCore != "lynx" && mednafenCore != "wswan")
+            if (mednafenCore != "sms" && mednafenCore != "pce" && mednafenCore != "apple2" && mednafenCore != "lynx" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba")
             {
                 if (Features.IsSupported("mednafen_ratio_correction") && SystemConfig.isOptSet("mednafen_ratio_correction") && !SystemConfig.getOptBoolean("mednafen_ratio_correction"))
                     commandArray.Add("-" + mednafenCore + ".correct_aspect 0");
@@ -159,6 +160,8 @@ namespace EmulatorLauncher
 
             // Core Specific settings
             ConfigureMednafenApple2(cfg, mednafenCore, system);
+            ConfigureMednafenGB(cfg, mednafenCore, system);
+            ConfigureMednafenGBA(cfg, mednafenCore, system);
             ConfigureMednafenLynx(cfg, mednafenCore, system);
             ConfigureMednafenMasterSystem(cfg, mednafenCore, system);
             ConfigureMednafenMegadrive(cfg, mednafenCore, system);
@@ -183,6 +186,32 @@ namespace EmulatorLauncher
             cfg["apple2.input.port1.gamepad.resistance_select.defpos"] = "2";
             cfg["apple2.input.port1.joystick.resistance_select.defpos"] = "2";
             cfg["apple2.input.port1.joystick.axis_scale"] = "1.00";
+        }
+
+        private void ConfigureMednafenGBA(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "gba")
+                return;
+
+            if (SystemConfig.isOptSet("mednafen_gba_bios") && SystemConfig.getOptBoolean("mednafen_gba_bios"))
+            {
+                string gbaBios = Path.Combine(AppConfig.GetFullPath("bios"), "gba_bios.bin");
+                if (File.Exists(gbaBios))
+                    cfg["gba.bios"] = gbaBios;
+            }
+            else
+                cfg["gba.bios"] = string.Empty;
+        }
+
+        private void ConfigureMednafenGB(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "gb")
+                return;
+
+            if (system == "gb")
+                cfg["gb.system_type"] = "dmg";
+            else if (system == "gbc")
+                cfg["gb.system_type"] = "cgb";
         }
 
         private void ConfigureMednafenLynx(MednafenConfigFile cfg, string mednafenCore, string system)
@@ -396,6 +425,9 @@ namespace EmulatorLauncher
         {
             switch (core)
             {
+                case "gb":
+                case "gbc":
+                    return "gb";
                 case "mastersystem":
                     return "sms";
                 case "megadrive":

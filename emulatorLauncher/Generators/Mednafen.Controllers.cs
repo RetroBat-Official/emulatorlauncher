@@ -10,13 +10,15 @@ namespace EmulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "lynx", "md", "nes", "pce", "psx", "sms", "snes", "ss", "wswan" };
+        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "gb", "gba", "lynx", "md", "nes", "pce", "psx", "sms", "snes", "ss", "wswan" };
         static List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
         
         static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
         {
             { "apple2", "gamepad" },
             { "lynx", "builtin.gamepad"},
+            { "gb", "builtin.gamepad"},
+            { "gba", "builtin.gamepad"},
             { "md", "gamepad6" },
             { "nes", "gamepad" },
             { "pce", "gamepad" },
@@ -32,6 +34,8 @@ namespace EmulatorLauncher
             { "apple2", 2 },
             { "lynx", 1 },
             { "md", 8 },
+            { "gb", 1 },
+            { "gba", 1 },
             { "nes", 4 },
             { "pce", 5 },
             { "psx", 8 },
@@ -49,7 +53,7 @@ namespace EmulatorLauncher
                 return;
 
             // First, set all controllers to none
-            if (mednafenCore != "lynx" && mednafenCore !="sms" && mednafenCore != "wswan")
+            if (mednafenCore != "lynx" && mednafenCore !="sms" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba")
                 CleanUpConfigFile(mednafenCore, cfg);
 
             // Define maximum pads accepted by mednafen core
@@ -193,6 +197,36 @@ namespace EmulatorLauncher
                 }
             }
 
+            else if (mednafenCore == "gba")
+            {
+                foreach (var entry in gbamapping)
+                {
+                    InputKey joyButton = entry.Value;
+                    string value = buttonMapping[joyButton];
+
+                    cfg["gba.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
+                }
+            }
+
+            else if (mednafenCore == "gb")
+            {
+                foreach (var entry in gbmapping)
+                {
+                    InputKey joyButton = entry.Value;
+                    string value = buttonMapping[joyButton];
+
+                    cfg["gb.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
+                }
+
+                foreach (var entry in gbtiltmapping)
+                {
+                    InputKey joyButton = entry.Value;
+                    string value = buttonMapping[joyButton];
+
+                    cfg["gb.input.tilt.tilt." + entry.Key] = "joystick " + deviceID + " " + value;
+                }
+            }
+
             else if (mednafenCore == "wswan")
             {
                 cfg["wswan.input.builtin"] = padType;
@@ -320,7 +354,7 @@ namespace EmulatorLauncher
             if (mednafenCore == "apple2")
                     cfg[mednafenCore + ".input.port" + 2] = "paddle";
 
-            if (mednafenCore == "lynx")
+            else if (mednafenCore == "lynx")
             {
                 foreach (var entry in lynxmapping)
                 {
@@ -338,6 +372,50 @@ namespace EmulatorLauncher
                         int mednafenKey = mednafenKeyCodes[keycode];
 
                         cfg["lynx.input.builtin.gamepad." + entry.Key] = "keyboard 0x0 " + mednafenKey;
+                    }
+                }
+            }
+
+            else if (mednafenCore == "gba")
+            {
+                foreach (var entry in gbamapping)
+                {
+                    var a = keyboard[entry.Value];
+                    if (a != null)
+                    {
+                        int id = (int)a.Id;
+
+                        SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                        List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                        if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                            keycode = azertyLayoutMapping[keycode];
+
+                        int mednafenKey = mednafenKeyCodes[keycode];
+
+                        cfg["gba.input.builtin.gamepad." + entry.Key] = "keyboard 0x0 " + mednafenKey;
+                    }
+                }
+            }
+
+            else if (mednafenCore == "gb")
+            {
+                foreach (var entry in gbmapping)
+                {
+                    var a = keyboard[entry.Value];
+                    if (a != null)
+                    {
+                        int id = (int)a.Id;
+
+                        SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                        List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                        if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                            keycode = azertyLayoutMapping[keycode];
+
+                        int mednafenKey = mednafenKeyCodes[keycode];
+
+                        cfg["gb.input.builtin.gamepad." + entry.Key] = "keyboard 0x0 " + mednafenKey;
                     }
                 }
             }
@@ -388,6 +466,44 @@ namespace EmulatorLauncher
         #endregion
 
         #region controller Mapping
+
+        static Dictionary<string, InputKey> gbmapping = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "b", InputKey.a },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "rapid_a", InputKey.x },
+            { "rapid_b", InputKey.y },
+            { "right", InputKey.right },
+            { "select", InputKey.select },
+            { "start", InputKey.start },
+            { "up", InputKey.up }
+        };
+
+        static Dictionary<string, InputKey> gbtiltmapping = new Dictionary<string, InputKey>()
+        {
+            { "down", InputKey.rightanalogdown },
+            { "left", InputKey.rightanalogleft },
+            { "right", InputKey.rightanalogright },
+            { "up", InputKey.rightanalogup }
+        };
+
+        static Dictionary<string, InputKey> gbamapping = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "b", InputKey.a },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "rapid_a", InputKey.x },
+            { "rapid_b", InputKey.y },
+            { "right", InputKey.right },
+            { "select", InputKey.select },
+            { "shoulder_l", InputKey.pageup },
+            { "shoulder_r", InputKey.pagedown },
+            { "start", InputKey.start },
+            { "up", InputKey.up }
+        };
 
         static Dictionary<string, InputKey> lynxmapping = new Dictionary<string, InputKey>()
         {
