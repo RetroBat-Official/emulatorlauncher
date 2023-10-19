@@ -69,7 +69,7 @@ namespace EmulatorLauncher
                 commandArray.Add("-" + mednafenCore + ".videoip 0");
 
             // Aspect ratio correction
-            if (mednafenCore != "sms" && mednafenCore != "pce" && mednafenCore != "apple2" && mednafenCore != "lynx" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba")
+            if (mednafenCore != "sms" && mednafenCore != "pce" && mednafenCore != "apple2" && mednafenCore != "lynx" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba" && mednafenCore != "ngp")
             {
                 if (Features.IsSupported("mednafen_ratio_correction") && SystemConfig.isOptSet("mednafen_ratio_correction") && !SystemConfig.getOptBoolean("mednafen_ratio_correction"))
                     commandArray.Add("-" + mednafenCore + ".correct_aspect 0");
@@ -166,6 +166,7 @@ namespace EmulatorLauncher
             ConfigureMednafenMasterSystem(cfg, mednafenCore, system);
             ConfigureMednafenMegadrive(cfg, mednafenCore, system);
             ConfigureMednafenNES(cfg, mednafenCore, system);
+            ConfigureMednafenNGP(cfg, mednafenCore, system);
             ConfigureMednafenPCE(cfg, mednafenCore, system);
             ConfigureMednafenPSX(cfg, mednafenCore, system);
             ConfigureMednafenSaturn(cfg, mednafenCore, system);
@@ -260,6 +261,14 @@ namespace EmulatorLauncher
             BindMednafenBoolFeature(cfg, "mednafen_nes_106bs", mednafenCore + ".n106bs", "1", "0");
             BindMednafenBoolFeature(cfg, "mednafen_nes_pal50", mednafenCore + ".pal", "1", "0");
             BindMednafenBoolFeature(cfg, "mednafen_nes_multitap", mednafenCore + ".input.fcexp", "4player", "none");
+        }
+
+        private void ConfigureMednafenNGP(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "ngp")
+                return;
+
+            BindMednafenFeature(cfg, "mednafen_ngp_language", "ngp.language", "english");
         }
 
         private void ConfigureMednafenPCE(MednafenConfigFile cfg, string mednafenCore, string system)

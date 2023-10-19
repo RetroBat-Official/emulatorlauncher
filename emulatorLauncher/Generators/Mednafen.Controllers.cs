@@ -10,7 +10,7 @@ namespace EmulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "gb", "gba", "lynx", "md", "nes", "pce", "psx", "sms", "snes", "ss", "wswan" };
+        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "gb", "gba", "lynx", "md", "nes", "ngp", "pce", "psx", "sms", "snes", "ss", "wswan" };
         static List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
         
         static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
@@ -21,6 +21,7 @@ namespace EmulatorLauncher
             { "gba", "builtin.gamepad"},
             { "md", "gamepad6" },
             { "nes", "gamepad" },
+            { "ngp", "builtin.gamepad"},
             { "pce", "gamepad" },
             { "psx", "dualshock" },
             { "sms", "gamepad" },
@@ -37,6 +38,7 @@ namespace EmulatorLauncher
             { "gb", 1 },
             { "gba", 1 },
             { "nes", 4 },
+            { "ngp", 1 },
             { "pce", 5 },
             { "psx", 8 },
             { "sms", 2 },
@@ -53,7 +55,7 @@ namespace EmulatorLauncher
                 return;
 
             // First, set all controllers to none
-            if (mednafenCore != "lynx" && mednafenCore !="sms" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba")
+            if (mednafenCore != "lynx" && mednafenCore !="sms" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba" && mednafenCore != "ngp")
                 CleanUpConfigFile(mednafenCore, cfg);
 
             // Define maximum pads accepted by mednafen core
@@ -224,6 +226,17 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     cfg["gb.input.tilt.tilt." + entry.Key] = "joystick " + deviceID + " " + value;
+                }
+            }
+
+            else if (mednafenCore == "ngp")
+            {
+                foreach (var entry in ngpmapping)
+                {
+                    InputKey joyButton = entry.Value;
+                    string value = buttonMapping[joyButton];
+
+                    cfg["ngp.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
             }
 
@@ -420,6 +433,28 @@ namespace EmulatorLauncher
                 }
             }
 
+            else if (mednafenCore == "ngp")
+            {
+                foreach (var entry in ngpmapping)
+                {
+                    var a = keyboard[entry.Value];
+                    if (a != null)
+                    {
+                        int id = (int)a.Id;
+
+                        SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                        List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                        if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                            keycode = azertyLayoutMapping[keycode];
+
+                        int mednafenKey = mednafenKeyCodes[keycode];
+
+                        cfg["ngp.input.builtin.gamepad." + entry.Key] = "keyboard 0x0 " + mednafenKey;
+                    }
+                }
+            }
+
             else if (mednafenCore == "wswan")
             {
                 if (mappingToUsekb.ContainsKey(mapping))
@@ -576,6 +611,19 @@ namespace EmulatorLauncher
             { "select", InputKey.select },
             { "start", InputKey.start },
             { "up", InputKey.up },
+        };
+
+        static Dictionary<string, InputKey> ngpmapping = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.b },
+            { "b", InputKey.a },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "option", InputKey.start },
+            { "rapid_a", InputKey.x },
+            { "rapid_b", InputKey.y },
+            { "right", InputKey.right },
+            { "up", InputKey.up }
         };
 
         static Dictionary<string, InputKey> pcegamepad = new Dictionary<string, InputKey>()
