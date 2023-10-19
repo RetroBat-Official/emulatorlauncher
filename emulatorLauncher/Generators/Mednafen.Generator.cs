@@ -69,7 +69,7 @@ namespace EmulatorLauncher
                 commandArray.Add("-" + mednafenCore + ".videoip 0");
 
             // Aspect ratio correction
-            if (mednafenCore != "sms" && mednafenCore != "pce" && mednafenCore != "apple2" && mednafenCore != "lynx" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba")
+            if (mednafenCore != "sms" && mednafenCore != "pce" && mednafenCore != "apple2" && mednafenCore != "lynx" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba" && mednafenCore != "ngp" && mednafenCore != "gg" && mednafenCore != "pcfx")
             {
                 if (Features.IsSupported("mednafen_ratio_correction") && SystemConfig.isOptSet("mednafen_ratio_correction") && !SystemConfig.getOptBoolean("mednafen_ratio_correction"))
                     commandArray.Add("-" + mednafenCore + ".correct_aspect 0");
@@ -166,7 +166,9 @@ namespace EmulatorLauncher
             ConfigureMednafenMasterSystem(cfg, mednafenCore, system);
             ConfigureMednafenMegadrive(cfg, mednafenCore, system);
             ConfigureMednafenNES(cfg, mednafenCore, system);
+            ConfigureMednafenNGP(cfg, mednafenCore, system);
             ConfigureMednafenPCE(cfg, mednafenCore, system);
+            ConfigureMednafenPCFX(cfg, mednafenCore, system);
             ConfigureMednafenPSX(cfg, mednafenCore, system);
             ConfigureMednafenSaturn(cfg, mednafenCore, system);
             ConfigureMednafenSnes(cfg, mednafenCore, system);
@@ -262,12 +264,55 @@ namespace EmulatorLauncher
             BindMednafenBoolFeature(cfg, "mednafen_nes_multitap", mednafenCore + ".input.fcexp", "4player", "none");
         }
 
+        private void ConfigureMednafenNGP(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "ngp")
+                return;
+
+            BindMednafenFeature(cfg, "mednafen_ngp_language", "ngp.language", "english");
+        }
+
         private void ConfigureMednafenPCE(MednafenConfigFile cfg, string mednafenCore, string system)
         {
             if (mednafenCore != "pce")
                 return;
 
             BindMednafenBoolFeature(cfg, "mednafen_pce_multitap", mednafenCore + ".input.multitap", "1", "0");
+        }
+
+        private void ConfigureMednafenPCFX(MednafenConfigFile cfg, string mednafenCore, string system)
+        {
+            if (mednafenCore != "pcfx")
+                return;
+
+            BindMednafenFeature(cfg, "mednafen_pcfx_cpu", "pcfx.cpu_emulation", "auto");
+            
+            for(int i=1; i<9; i++)
+            {
+                BindMednafenFeature(cfg, "mednafen_pcfx_mode1", "pcfx.input.port" + i + ".gamepad.mode1.defpos", "auto");
+                BindMednafenFeature(cfg, "mednafen_pcfx_mode2", "pcfx.input.port" + i + ".gamepad.mode2.defpos", "auto");
+            }
+
+            if (SystemConfig.isOptSet("mednafen_pcfx_multitap") && SystemConfig["mednafen_pcfx_multitap"] == "1")
+            {
+                cfg["pcfx.input.port1.multitap"] = "1";
+                cfg["pcfx.input.port2.multitap"] = "0";
+            }
+            else if (SystemConfig.isOptSet("mednafen_pcfx_multitap") && SystemConfig["mednafen_pcfx_multitap"] == "2")
+            {
+                cfg["pcfx.input.port1.multitap"] = "0";
+                cfg["pcfx.input.port2.multitap"] = "1";
+            }
+            else if (SystemConfig.isOptSet("mednafen_pcfx_multitap") && SystemConfig["mednafen_pcfx_multitap"] == "both")
+            {
+                cfg["pcfx.input.port1.multitap"] = "1";
+                cfg["pcfx.input.port2.multitap"] = "1";
+            }
+            else
+            {
+                cfg["pcfx.input.port1.multitap"] = "0";
+                cfg["pcfx.input.port2.multitap"] = "0";
+            }
         }
 
         private void ConfigureMednafenPSX(MednafenConfigFile cfg, string mednafenCore, string system)
