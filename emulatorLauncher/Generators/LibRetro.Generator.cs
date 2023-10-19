@@ -1108,6 +1108,7 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
+            // specific management for some extensions
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
                 core = Path.GetFileNameWithoutExtension(rom);
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
@@ -1128,6 +1129,7 @@ namespace EmulatorLauncher.Libretro
                 rom = Path.Combine(Path.GetDirectoryName(rom), croftSubPath);
             }
             
+            // Exit if no core is provided
             if (string.IsNullOrEmpty(core))
             {
                 ExitCode = ExitCodes.MissingCore;
@@ -1180,6 +1182,7 @@ namespace EmulatorLauncher.Libretro
                 rom = Path.GetFullPath(datadir + "/roms/" + romName + ".zip");
             }
 
+            // dosbox core specifics
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
                 string bat = Path.Combine(rom, "dosbox.bat");
@@ -1281,6 +1284,7 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
+            // Netplay mode
             if (!string.IsNullOrEmpty(SystemConfig["netplaymode"]))
             {
                 // Netplay mode
@@ -1323,13 +1327,14 @@ namespace EmulatorLauncher.Libretro
 
             string args = string.Join(" ", commandArray);
 
+            // Special case : .atari800.cfg is loaded from path in 'HOME' environment variable
             if (core == "atari800")
             {
-                // Special case : .atari800.cfg is loaded from path in 'HOME' environment variable
                 CurrentHomeDirectory = Environment.GetEnvironmentVariable("HOME");
                 Environment.SetEnvironmentVariable("HOME", RetroarchPath);
             }
 
+            // manage MESS systems (MAME core)
             MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
             if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
             {
