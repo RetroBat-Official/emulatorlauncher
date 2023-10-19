@@ -10,7 +10,7 @@ namespace EmulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "gb", "gba", "lynx", "md", "nes", "ngp", "pce", "psx", "sms", "snes", "ss", "wswan" };
+        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "gb", "gba", "gg", "lynx", "md", "nes", "ngp", "pce", "pcfx", "psx", "sms", "snes", "ss", "wswan" };
         static List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
         
         static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
@@ -19,10 +19,12 @@ namespace EmulatorLauncher
             { "lynx", "builtin.gamepad"},
             { "gb", "builtin.gamepad"},
             { "gba", "builtin.gamepad"},
+            { "gg", "builtin.gamepad"},
             { "md", "gamepad6" },
             { "nes", "gamepad" },
             { "ngp", "builtin.gamepad"},
             { "pce", "gamepad" },
+            { "pcfx", "gamepad" },
             { "psx", "dualshock" },
             { "sms", "gamepad" },
             { "snes", "gamepad" },
@@ -37,9 +39,11 @@ namespace EmulatorLauncher
             { "md", 8 },
             { "gb", 1 },
             { "gba", 1 },
+            { "gg", 1 },
             { "nes", 4 },
             { "ngp", 1 },
             { "pce", 5 },
+            { "pcfx", 8 },
             { "psx", 8 },
             { "sms", 2 },
             { "snes", 8 },
@@ -55,7 +59,7 @@ namespace EmulatorLauncher
                 return;
 
             // First, set all controllers to none
-            if (mednafenCore != "lynx" && mednafenCore !="sms" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba" && mednafenCore != "ngp")
+            if (mednafenCore != "lynx" && mednafenCore !="sms" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba" && mednafenCore != "ngp" && mednafenCore != "gg")
                 CleanUpConfigFile(mednafenCore, cfg);
 
             // Define maximum pads accepted by mednafen core
@@ -226,6 +230,17 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     cfg["gb.input.tilt.tilt." + entry.Key] = "joystick " + deviceID + " " + value;
+                }
+            }
+
+            else if (mednafenCore == "gg")
+            {
+                foreach (var entry in ggmapping)
+                {
+                    InputKey joyButton = entry.Value;
+                    string value = buttonMapping[joyButton];
+
+                    cfg["gg.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
             }
 
@@ -433,6 +448,28 @@ namespace EmulatorLauncher
                 }
             }
 
+            else if (mednafenCore == "gg")
+            {
+                foreach (var entry in ggmapping)
+                {
+                    var a = keyboard[entry.Value];
+                    if (a != null)
+                    {
+                        int id = (int)a.Id;
+
+                        SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                        List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                        if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                            keycode = azertyLayoutMapping[keycode];
+
+                        int mednafenKey = mednafenKeyCodes[keycode];
+
+                        cfg["gg.input.builtin.gamepad." + entry.Key] = "keyboard 0x0 " + mednafenKey;
+                    }
+                }
+            }
+
             else if (mednafenCore == "ngp")
             {
                 foreach (var entry in ngpmapping)
@@ -540,6 +577,19 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
+        static Dictionary<string, InputKey> ggmapping = new Dictionary<string, InputKey>()
+        {
+            { "button1", InputKey.a },
+            { "button2", InputKey.b },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "rapid_button1", InputKey.y },
+            { "rapid_button2", InputKey.x },
+            { "right", InputKey.right },
+            { "start", InputKey.start },
+            { "up", InputKey.up }
+        };
+
         static Dictionary<string, InputKey> lynxmapping = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
@@ -615,13 +665,13 @@ namespace EmulatorLauncher
 
         static Dictionary<string, InputKey> ngpmapping = new Dictionary<string, InputKey>()
         {
-            { "a", InputKey.b },
-            { "b", InputKey.a },
+            { "a", InputKey.a },
+            { "b", InputKey.b },
             { "down", InputKey.down },
             { "left", InputKey.left },
             { "option", InputKey.start },
-            { "rapid_a", InputKey.x },
-            { "rapid_b", InputKey.y },
+            { "rapid_a", InputKey.y },
+            { "rapid_b", InputKey.x },
             { "right", InputKey.right },
             { "up", InputKey.up }
         };
@@ -635,6 +685,24 @@ namespace EmulatorLauncher
             { "iv", InputKey.x },
             { "left", InputKey.left },
             { "mode_select", InputKey.l2 },
+            { "right", InputKey.right },
+            { "run", InputKey.start },
+            { "select", InputKey.select },
+            { "up", InputKey.up },
+            { "v", InputKey.pageup },
+            { "vi", InputKey.pagedown },
+        };
+
+        static Dictionary<string, InputKey> pcfxgamepad = new Dictionary<string, InputKey>()
+        {
+            { "down", InputKey.down },
+            { "i", InputKey.b },
+            { "ii", InputKey.a },
+            { "iii", InputKey.y },
+            { "iv", InputKey.x },
+            { "left", InputKey.left },
+            { "mode1", InputKey.r2 },
+            { "mode2", InputKey.l2 },
             { "right", InputKey.right },
             { "run", InputKey.start },
             { "select", InputKey.select },
@@ -913,6 +981,7 @@ namespace EmulatorLauncher
             { "md_gamepad2", mdgamepad2 },
             { "md_gamepad6", mdgamepad6 },
             { "pce_gamepad", pcegamepad },
+            { "pcfx_gamepad", pcfxgamepad },
             { "sms_gamepad", smsgamepad },
             { "ss_gamepad", ssgamepad },
             { "psx_gamepad", psxgamepad },
@@ -1245,6 +1314,7 @@ namespace EmulatorLauncher
             { "md", 8 },
             { "nes", 4 },
             { "pce", 5 },
+            { "pcfx", 8 },
             { "psx", 8 },
             { "snes", 2 },
             { "ss", 12 }
