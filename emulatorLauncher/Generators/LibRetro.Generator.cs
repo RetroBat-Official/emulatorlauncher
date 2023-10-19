@@ -1480,6 +1480,17 @@ namespace EmulatorLauncher.Libretro
             {"vi", retro_language.RETRO_LANGUAGE_VIETNAMESE},
             {"ar", retro_language.RETRO_LANGUAGE_ARABIC},
             {"el", retro_language.RETRO_LANGUAGE_GREEK},
+            {"ca", retro_language.RETRO_LANGUAGE_CATALAN},
+            {"cs", retro_language.RETRO_LANGUAGE_CZECH},
+            {"en_GB", retro_language.RETRO_LANGUAGE_BRITISH_ENGLISH},
+            {"fi", retro_language.RETRO_LANGUAGE_FINNISH},
+            {"hu", retro_language.RETRO_LANGUAGE_HUNGARIAN},
+            {"he", retro_language.RETRO_LANGUAGE_HEBREW},
+            {"id", retro_language.RETRO_LANGUAGE_INDONESIAN},
+            {"sk", retro_language.RETRO_LANGUAGE_SLOVAK},
+            {"sv", retro_language.RETRO_LANGUAGE_SWEDISH},
+            {"tr", retro_language.RETRO_LANGUAGE_TURKISH},
+            {"uk_UA", retro_language.RETRO_LANGUAGE_UKRAINIAN}
         };
     }
 
@@ -1508,7 +1519,16 @@ namespace EmulatorLauncher.Libretro
         RETRO_LANGUAGE_SLOVAK = 19,
         RETRO_LANGUAGE_PERSIAN = 20,
         RETRO_LANGUAGE_HEBREW = 21,
-        RETRO_LANGUAGE_ASTURIAN = 22//,
+        RETRO_LANGUAGE_ASTURIAN = 22,
+        RETRO_LANGUAGE_FINNISH = 23,
+        RETRO_LANGUAGE_INDONESIAN = 24,
+        RETRO_LANGUAGE_SWEDISH = 25,
+        RETRO_LANGUAGE_UKRAINIAN = 26,
+        RETRO_LANGUAGE_CZECH = 27,
+        RETRO_LANGUAGE_CATALAN_VALENCIA = 28,
+        RETRO_LANGUAGE_CATALAN = 29,
+        RETRO_LANGUAGE_BRITISH_ENGLISH = 30,
+        RETRO_LANGUAGE_HUNGARIAN = 31//,
         //      RETRO_LANGUAGE_LAST,
 
         /* Ensure sizeof(enum) == sizeof(int) */
