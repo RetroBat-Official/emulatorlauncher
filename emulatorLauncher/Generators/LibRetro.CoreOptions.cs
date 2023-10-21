@@ -1738,6 +1738,16 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mame_boot_from_cli", "boot_from_cli", "enabled", true);
             BindFeature(coreSettings, "mame_boot_to_bios", "boot_to_bios", "disabled", true);
             BindFeature(coreSettings, "mame_boot_to_osd", "boot_to_osd", "disabled", true);
+
+            // System specifics
+            if (system == "fmtowns")
+            {
+                if (!SystemConfig.isOptSet("pause_on_disconnect"))
+                    retroarchConfig["pause_on_disconnect"] = "false";
+
+                if (!SystemConfig.isOptSet("alternate_renderer"))
+                    coreSettings["mame_alternate_renderer"] = "enabled";
+            }
         }
 
         private void CleanupMameMessConfigFiles(MessSystem messSystem)

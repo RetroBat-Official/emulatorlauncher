@@ -50,7 +50,7 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["notification_show_remap_load"] = "false";
             retroarchConfig["driver_switch_enable"] = "true";
             retroarchConfig["input_driver"] = "dinput";
-            retroarchConfig["pause_on_disconnect"] = "true";
+            BindBoolFeature(retroarchConfig, "pause_on_disconnect", "pause_on_disconnect", "false", "true");
 
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
