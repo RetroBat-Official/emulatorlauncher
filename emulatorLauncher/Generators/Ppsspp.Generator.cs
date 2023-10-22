@@ -91,6 +91,7 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("General", "CheckForNewVersion", "false");
                     ini.WriteValue("General", "FirstRun", "false");
+                    ini.WriteValue("Control", "AllowMappingCombos", "True"); 
 
                     // Make it complex for the user to run another game using the UI ( related to the way the savestates monitor works )
                     ini.WriteValue("General", "CurrentDirectory", path);
