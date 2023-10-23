@@ -197,13 +197,17 @@ namespace EmulatorLauncher
                 commandArray.Add("2");
             }
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             commandArray.Add("-x");
             commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
 
             commandArray.Add("-y");
             commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
 
-            commandArray.Add("-fullscreen");
+            if (fullscreen)
+                commandArray.Add("-fullscreen");
+
             commandArray.Add("-opengl");            
             commandArray.Add("-fastboot");
             

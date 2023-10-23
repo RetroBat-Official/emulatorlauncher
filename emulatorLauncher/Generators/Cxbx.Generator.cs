@@ -114,6 +114,7 @@ namespace EmulatorLauncher
             rom = MountIso(rom);
 
             _resolution = resolution;
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             if (_isUsingCxBxLoader)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
@@ -147,7 +148,7 @@ namespace EmulatorLauncher
                 {
                     string videoResolution = res.Width + " x " + res.Height + " 32bit x8r8g8b8 (" + (res.DisplayFrequency <= 0 ? 60 : res.DisplayFrequency).ToString() + " hz)";
                     ini.WriteValue("video", "VideoResolution", videoResolution);
-                    ini.WriteValue("video", "FullScreen", "true");
+                    ini.WriteValue("video", "FullScreen", fullscreen ? "true" : "false");
                 }
 
                 //Vsync

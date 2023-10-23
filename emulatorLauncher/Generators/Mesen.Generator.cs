@@ -33,12 +33,15 @@ namespace EmulatorLauncher
 
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             // command line parameters
             var commandArray = new List<string>();
 
             commandArray.Add("\"" + rom + "\"");
-            commandArray.Add("--fullscreen");
+
+            if (fullscreen)
+                commandArray.Add("--fullscreen");
 
             string args = string.Join(" ", commandArray);
 

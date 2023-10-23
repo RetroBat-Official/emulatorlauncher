@@ -63,7 +63,7 @@ namespace EmulatorLauncher
             commandArray.Add("-batch");
             commandArray.Add("-portable");
 
-            if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+            if ((!SystemConfig.getOptBoolean("disable_fullscreen") && !IsEmulationStationWindowed()) || SystemConfig.getOptBoolean("forcefullscreen"))
                 commandArray.Add("-fullscreen");
 
             if (File.Exists(SystemConfig["state_file"]))
@@ -77,26 +77,13 @@ namespace EmulatorLauncher
 
             string args = string.Join(" ", commandArray);
 
-            if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+            return new ProcessStartInfo()
             {
-                return new ProcessStartInfo()
-                {
-                    FileName = exe,
-                    WorkingDirectory = path,
-                    Arguments = args,
-                    WindowStyle = ProcessWindowStyle.Minimized,
-                };
-            }
+                FileName = exe,
+                WorkingDirectory = path,
+                Arguments = args,
+            };
 
-            else
-            {
-                return new ProcessStartInfo()
-                {
-                    FileName = exe,
-                    WorkingDirectory = path,
-                    Arguments = args + " \"" + rom + "\"",
-                };
-            }
         }
 
         private string GetDefaultpsxLanguage()
@@ -377,7 +364,10 @@ namespace EmulatorLauncher
                     ini.WriteValue("Main", "ConfirmPowerOff", "false");
 
                     // fullscreen (disable fullscreen start option, workaround for people with multi-screen that cannot get emulator to start fullscreen on the correct monitor)
-                    if (SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
+
+                    bool fullscreen = (!IsEmulationStationWindowed() && !SystemConfig.getOptBoolean("disable_fullscreen")) || SystemConfig.getOptBoolean("forcefullscreen");
+
+                    if (!fullscreen)
                         ini.WriteValue("Main", "StartFullscreen", "false");
                     else
                         ini.WriteValue("Main", "StartFullscreen", "true");

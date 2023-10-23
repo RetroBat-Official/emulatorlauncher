@@ -28,6 +28,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             var versionInfo = FileVersionInfo.GetVersionInfo(exe);
             
             var version = versionInfo.ProductVersion;
@@ -35,7 +37,8 @@ namespace EmulatorLauncher
                 WriteApple2Option("Version", version.Replace(",", ".").Replace(" ", ""));
 
             var commandArray = new List<string>();
-            commandArray.Add("-f");
+            if (fullscreen)
+                commandArray.Add("-f");
             commandArray.Add("-no-printscreen-dlg");
             commandArray.Add("-alt-enter=toggle-full-screen");
 

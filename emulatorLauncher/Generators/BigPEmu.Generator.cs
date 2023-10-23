@@ -54,6 +54,8 @@ namespace EmulatorLauncher
         //Configuration file in json format "BigPEmuConfig.bigpcfg"
         private void SetupConfiguration(string path, string system, ScreenResolution resolution = null)
         {
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             //open userdata config file
             string folder = Path.Combine(path, "userdata");
             if (!Directory.Exists(folder))
@@ -89,7 +91,7 @@ namespace EmulatorLauncher
 
                 //video part
                 var video = bigpemucore.GetOrCreateContainer("Video");
-                BindFeature(video, "DisplayMode", "displaymode", "0");      //0 for borderless windows, 1 for windowed, 2 for fullscreen
+                BindFeature(video, "DisplayMode", "displaymode", fullscreen ? "0" : "1");      //0 for borderless windows, 1 for windowed, 2 for fullscreen
                 BindFeature(video, "VSync", "vsync", "1");                  // vsync on as default setting
                 BindFeature(video, "HDROutput", "enable_hdr", "0");
                 video["ShittyFreqWarn"] = "0";

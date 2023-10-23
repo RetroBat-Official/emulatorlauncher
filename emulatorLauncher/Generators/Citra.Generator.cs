@@ -29,6 +29,7 @@ namespace EmulatorLauncher
                 return null;
 
             bool isCitraCanary = folderName == "citra-canary";
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
@@ -38,10 +39,12 @@ namespace EmulatorLauncher
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
-            SetupConfiguration(path, isCitraCanary);
+            SetupConfiguration(path, isCitraCanary, fullscreen);
 
             List<string> commandArray = new List<string>();
-            commandArray.Add("-f");
+            if (fullscreen)
+                commandArray.Add("-f");
+            
             commandArray.Add("-g");
             commandArray.Add("\"" + rom + "\"");
 
@@ -55,7 +58,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path, bool isCitraCanary = false)
+        private void SetupConfiguration(string path, bool isCitraCanary = false, bool fullscreen = true)
         {
             string userconfigPath = Path.Combine(path, "user", "config");
             if (!Directory.Exists(userconfigPath))
@@ -107,8 +110,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");
 
-                ini.WriteValue("UI", "fullscreen\\default", "false");
-                ini.WriteValue("UI", "fullscreen", "true");
+                ini.WriteValue("UI", "fullscreen\\default", fullscreen ? "false" : "true");
+                ini.WriteValue("UI", "fullscreen", fullscreen ? "true" : "false");
 
                 ini.WriteValue("UI", "confirmClose\\default", "false");
                 ini.WriteValue("UI", "confirmClose", "false");

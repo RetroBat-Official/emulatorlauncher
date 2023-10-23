@@ -70,7 +70,12 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "Dark_Forces", "enableAutoaim", "forceengine_autoaim", "false", "true");
 
                 // Graphics
-                ini.WriteValue("Window", "fullscreen", "true");
+                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+                if (fullscreen)
+                    ini.WriteValue("Window", "fullscreen", "true");
+                else
+                    ini.WriteValue("Window", "fullscreen", "false");
+
                 BindBoolIniFeature(ini, "Graphics", "vsync", "vsync", "false", "true");
                 BindBoolIniFeature(ini, "Graphics", "widescreen", "forceengine_widescreen", "false", "true");
                 BindBoolIniFeature(ini, "Graphics", "show_fps", "forceengine_fps", "true", "false");
