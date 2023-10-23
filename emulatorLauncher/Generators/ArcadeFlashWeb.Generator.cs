@@ -23,7 +23,15 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            List<string> args = new List<string>();
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            List<string> commandArray = new List<string>();
+
+            if (fullscreen)
+                commandArray.Add("-fullscreen");
+
+            commandArray.Add("-nodatetime");
+            commandArray.Add("-source:\"" + rom + "\"");
 
             if (!string.IsNullOrEmpty(AppConfig["saves"]) && Directory.Exists(AppConfig.GetFullPath("saves")))
             {
@@ -31,17 +39,19 @@ namespace EmulatorLauncher
                 if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
                     catch { }
 
-                args.Add("-savedataflash:\"" + savePath + "\"");
+                commandArray.Add("-savedataflash:\"" + savePath + "\"");
             }
 
             if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
-                args.Add("-picturesfolder:\"" + AppConfig.GetFullPath("screenshots") + "\"");
+                commandArray.Add("-picturesfolder:\"" + AppConfig.GetFullPath("screenshots") + "\"");
+
+            string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "-fullscreen -nodatetime -source:\"" + rom + "\" " + string.Join(" ", args.ToArray()),
+                Arguments = args,
             };
         }
 

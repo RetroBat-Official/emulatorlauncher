@@ -83,7 +83,13 @@ namespace EmulatorLauncher
             using (var ini = IniFile.FromFile(iniFile))
             {
                 // VIDEO
-                ini.WriteValue("", "FullScreen", "1");
+                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+                if (fullscreen)
+                    ini.WriteValue("", "FullScreen", "1");
+                else
+                    ini.WriteValue("", "FullScreen", "0");
+
                 ini.WriteValue("", "DFixedAspect", "1");
                 ini.WriteValue("", "DFixedZoom", "0");
 

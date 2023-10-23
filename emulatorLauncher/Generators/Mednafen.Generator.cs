@@ -37,6 +37,7 @@ namespace EmulatorLauncher
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             // Configure cfg file
             SetupConfig(path, cfg, mednafenCore, system);
@@ -46,7 +47,12 @@ namespace EmulatorLauncher
             
             commandArray.Add("-fps.scale 0");
             commandArray.Add("-sound.volume 120");
-            commandArray.Add("-video.fs 1");
+
+            if (fullscreen)
+                commandArray.Add("-video.fs 1");
+            else
+                commandArray.Add("-video.fs 0");
+
 			commandArray.Add("-video.disable_composition 1");
             commandArray.Add("-video.driver opengl");
             

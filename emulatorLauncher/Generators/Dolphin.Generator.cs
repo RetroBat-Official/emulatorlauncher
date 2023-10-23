@@ -347,7 +347,7 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
                 {
                     Rectangle emulationStationBounds;
-                    if (IsEmulationStationWindowed(out emulationStationBounds, true))
+                    if (IsEmulationStationWindowed(out emulationStationBounds, true) && !SystemConfig.getOptBoolean("forcefullscreen"))
                     {
                         _windowRect = emulationStationBounds;
                         _bezelFileInfo = null;

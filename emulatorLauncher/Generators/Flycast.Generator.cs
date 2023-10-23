@@ -88,7 +88,11 @@ namespace EmulatorLauncher
                 ini.WriteValue("config", "Dreamcast.ContentPath", dcRomsPath + ";" + naomiRomsPath + ";" + naomi2RomsPath + ";" + atomiwaveRomsPath);
 
                 // video
-                ini.WriteValue("window", "fullscreen", "yes");
+                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+                if (fullscreen)
+                    ini.WriteValue("window", "fullscreen", "yes");
+                else
+                    ini.WriteValue("window", "fullscreen", "no");
 
                 if (SystemConfig.isOptSet("flycast_transparent_sorting") && SystemConfig["flycast_transparent_sorting"] == "triangle")
                 {

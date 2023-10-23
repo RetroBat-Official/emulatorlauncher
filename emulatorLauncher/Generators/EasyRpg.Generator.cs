@@ -18,6 +18,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             rom = this.TryUnZipGameIfNeeded(system, rom, true);
 
             string savePath = "";
@@ -38,7 +40,10 @@ namespace EmulatorLauncher
 
             commandArray.Add("--project-path");
             commandArray.Add("\"" + rom + "\"");
-            commandArray.Add("--fullscreen");
+
+            if (fullscreen)
+                commandArray.Add("--fullscreen");
+
             commandArray.Add(savePath);
 
             string args = string.Join(" ", commandArray);

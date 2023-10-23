@@ -52,20 +52,32 @@ namespace EmulatorLauncher
                 else
                     _sdlVersion = SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe);
             }
-            catch { }            
+            catch { }
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             //settings
-            SetupConfiguration(path, rom);
+            SetupConfiguration(path, rom, fullscreen);
 
             //controller configuration
             CreateControllerConfiguration(path);
 
             string romdir = Path.GetDirectoryName(rom);
 
+            var commandArray = new List<string>();
+
+            if (fullscreen)
+                commandArray.Add("-f");
+
+            commandArray.Add("-g");
+            commandArray.Add("\"" + rom +"\"");
+
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-f -g \"" + rom + "\"",
+                Arguments = args,
                 WorkingDirectory = path,
             };
         }
@@ -123,7 +135,7 @@ namespace EmulatorLauncher
         /// Configure emulator features (settings.xml)
         /// </summary>
         /// <param name="path"></param>
-        private void SetupConfiguration(string path, string rom)
+        private void SetupConfiguration(string path, string rom, bool fullscreen = true)
         {
             string settingsFile = Path.Combine(path, "settings.xml");
 
@@ -136,6 +148,9 @@ namespace EmulatorLauncher
 
             xdoc.SetElementValue("check_update", "false");
             BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());
+
+            if (!fullscreen)
+                xdoc.SetElementValue("fullscreen", "false");
 
             // Graphic part of settings file
             var graphic = xdoc.GetOrCreateElement("Graphic");

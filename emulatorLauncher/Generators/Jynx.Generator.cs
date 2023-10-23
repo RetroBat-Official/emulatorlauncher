@@ -57,7 +57,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            _fullscreen = !SystemConfig.getOptBoolean("jynx_fullscreen");
+            _fullscreen = (!IsEmulationStationWindowed() && !SystemConfig.getOptBoolean("jynx_fullscreen")) || SystemConfig.getOptBoolean("forcefullscreen");
 
             var commandArray = new List<string>();
             commandArray.Add("--settings");

@@ -89,9 +89,15 @@ namespace EmulatorLauncher
                     machineType = SystemConfig["hatari_machine"];
 
                 ini.WriteValue("Log", "bConfirmQuit", "FALSE");
-                
+
                 // SCREEN
-                ini.WriteValue("Screen", "bFullScreen", "TRUE");
+                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+                if (fullscreen)
+                    ini.WriteValue("Screen", "bFullScreen", "TRUE");
+                else
+                    ini.WriteValue("Screen", "bFullScreen", "FALSE");
+
                 ini.WriteValue("Screen", "bKeepResolution", "TRUE");
                 ini.WriteValue("Screen", "bShowStatusbar", "FALSE");
                 ini.WriteValue("Screen", "bShowDriveLed", "FALSE");

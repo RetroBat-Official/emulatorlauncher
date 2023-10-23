@@ -32,6 +32,7 @@ namespace EmulatorLauncher
                 _bezelsEnabled = true;
 
             _resolution = resolution;
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             // settings
             SetupConfiguration(path, rom, bootToDSINand);
@@ -39,7 +40,8 @@ namespace EmulatorLauncher
             // command line parameters
             var commandArray = new List<string>();
 
-            commandArray.Add("-f");
+            if (fullscreen)
+                commandArray.Add("-f");
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
             {
