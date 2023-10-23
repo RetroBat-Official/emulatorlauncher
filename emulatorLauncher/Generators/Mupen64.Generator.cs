@@ -43,14 +43,17 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupConfiguration(path, rom, system, emulator, core);
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            SetupConfiguration(path, rom, system, emulator, core, fullscreen);
             
             if (!SystemConfig.isOptSet("gfxplugin") || SystemConfig["gfxplugin"] == "glide")
                 SetupGFX(path);
 
             List<string> commandArray = new List<string>();
             
-            commandArray.Add("-f");
+            if (fullscreen)
+                commandArray.Add("-f");
             
             if (!SystemConfig.isOptSet("show_gui") || !SystemConfig.getOptBoolean("show_gui"))
                 commandArray.Add("-n");
@@ -112,7 +115,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path, string rom, string system, string emulator, string core)
+        private void SetupConfiguration(string path, string rom, string system, string emulator, string core, bool fullscreen)
         {
             string conf = Path.Combine(path, "Config", "mupen64plus.cfg");
 
@@ -155,7 +158,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Rosalie's Mupen GUI", "HideCursorInFullscreenEmulation", "True");
                 ini.WriteValue("Rosalie's Mupen GUI", "PauseEmulationOnFocusLoss", "True");
                 ini.WriteValue("Rosalie's Mupen GUI", "ResumeEmulationOnFocus", "True");
-                ini.WriteValue("Rosalie's Mupen GUI", "AutomaticFullscreen", "True");
+                ini.WriteValue("Rosalie's Mupen GUI", "AutomaticFullscreen", fullscreen ? "True" : "False");
                 ini.WriteValue("Rosalie's Mupen GUI", "ShowVerboseLogMessages", "False");
                 ini.WriteValue("Rosalie's Mupen GUI", "CheckForUpdates", "False");
 

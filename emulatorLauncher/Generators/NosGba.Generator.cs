@@ -21,10 +21,14 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             SetupConfiguration(path, system);
 
             var commandArray = new List<string>();
-            commandArray.Add("/f");
+            
+            if (fullscreen)    
+                commandArray.Add("/f");
 
             if (system == "gba2players" && (!SystemConfig.isOptSet("gba_nbplayers") || SystemConfig["gba_nbplayers"] == "-Two Machines"))
                     commandArray.Add("/2");

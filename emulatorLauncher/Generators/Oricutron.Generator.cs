@@ -41,8 +41,13 @@ namespace EmulatorLauncher
                 cfg.Save(Path.Combine(path, "oricutron.cfg"), true);
             }
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             List<string> commandArray = new List<string>();
-            commandArray.Add("--fullscreen");
+            
+            if (fullscreen)
+                commandArray.Add("--fullscreen");
+
             commandArray.Add("--rendermode");
             commandArray.Add("opengl");
 

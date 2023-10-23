@@ -97,11 +97,13 @@ namespace EmulatorLauncher
         {
             string iniFile = Path.Combine(path, "Emulator.ini");
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             try
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    if (_bezelFileInfo == null)
+                    if (_bezelFileInfo == null && fullscreen)
                     {
                         ini.WriteValue("Renderer", "FullMode", "4");
                         ini.WriteValue("Renderer", "AutoFull", "1");
