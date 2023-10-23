@@ -41,13 +41,16 @@ namespace EmulatorLauncher
             _resolution = resolution;
 
             bool wideScreen = SystemConfig["widescreen"] == "1" || SystemConfig["widescreen"] == "2" || (!SystemConfig.isOptSet("widescreen") && isWideScreen);
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             if (wideScreen)
             {
                 SystemConfig["forceNoBezel"] = "1";
 
                 ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
 
-                commandArray.Add("-fullscreen");
+                if (fullscreen)
+                    commandArray.Add("-fullscreen");
 
                 if (SystemConfig["widescreen"] == "2")
                     commandArray.Add("-stretch");
@@ -61,7 +64,7 @@ namespace EmulatorLauncher
                 else
                 {
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-                    if (_bezelFileInfo == null)
+                    if (_bezelFileInfo == null && fullscreen)
                         commandArray.Add("-fullscreen");
                 }
             }
@@ -79,7 +82,7 @@ namespace EmulatorLauncher
                 commandArray.Add("-force-feedback");
 
             //Write config in supermodel.ini
-            SetupConfiguration(path, wideScreen);
+            SetupConfiguration(path, wideScreen, fullscreen);
 
             if (SystemConfig["VSync"] != "false")
                 commandArray.Add("-vsync");
@@ -140,7 +143,7 @@ namespace EmulatorLauncher
             }
             return -1;
         }
-        private void SetupConfiguration(string path, bool wideScreen)
+        private void SetupConfiguration(string path, bool wideScreen, bool fullscreen)
         {
             try
             {
@@ -150,7 +153,11 @@ namespace EmulatorLauncher
                     using (IniFile ini = new IniFile(iniPath, IniOptions.UseSpaces))
                     {
                         //Fullscreen and widescreen values (should we keep these as commandline take precedent ?
-                        ini.WriteValue(" Global ", "FullScreen", _bezelFileInfo == null ? "1" : "0");
+                        if (fullscreen)
+                            ini.WriteValue(" Global ", "FullScreen", "1");
+                        else
+                            ini.WriteValue(" Global ", "FullScreen", "0");
+
                         ini.WriteValue(" Global ", "WideScreen", wideScreen ? "1" : "0");
                         
                         //throttle - default on

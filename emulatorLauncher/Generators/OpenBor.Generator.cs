@@ -114,8 +114,15 @@ namespace EmulatorLauncher
             if (!File.Exists(ini) && !_isCustomRetrobatOpenBor)
                 return false;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             var conf = ConfigFile.FromFile(ini);
-            conf["fullscreen"] = "1";
+            
+            if (fullscreen)
+                conf["fullscreen"] = "1";
+            else
+                conf["fullscreen"] = "0";
+
             conf["vsync"] = SystemConfig["VSync"] != "false" ? "1" : "0";
             conf["usegl"] = "1";
             conf["stretch"] = SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1" ? "1" : "0";

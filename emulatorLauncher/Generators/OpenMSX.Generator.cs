@@ -249,8 +249,8 @@ namespace EmulatorLauncher
                 vsync.SetValue(vsyncoff ? "false" : "true");
 
             // Fullscreen
-            bool disablefs = SystemConfig.getOptBoolean("msx_fullscreen");
-            
+            bool disablefs = (SystemConfig.getOptBoolean("msx_fullscreen") || IsEmulationStationWindowed()) && !SystemConfig.getOptBoolean("forcefullscreen");
+
             XElement fullscreen = xdoc.Descendants()
             .Where(x => (string)x.Attribute("id") == "fullscreen").FirstOrDefault();
             
