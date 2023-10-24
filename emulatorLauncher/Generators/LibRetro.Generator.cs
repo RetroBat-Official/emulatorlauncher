@@ -63,6 +63,8 @@ namespace EmulatorLauncher.Libretro
             SetupUIMode(retroarchConfig);
 
             // Resolution & monitor
+            bool forcefs = SystemConfig.getOptBoolean("forcefullscreen");
+
             if (Features.IsSupported("MonitorIndex"))
             {
                 if (SystemConfig.isOptSet("MonitorIndex"))
@@ -86,7 +88,7 @@ namespace EmulatorLauncher.Libretro
                 if (!SystemConfig.isOptSet("MonitorIndex"))
                 {
                     Rectangle emulationStationBounds;
-                    if (IsEmulationStationWindowed(out emulationStationBounds))
+                    if (IsEmulationStationWindowed(out emulationStationBounds) && !forcefs)
                     {
                         int width = emulationStationBounds.Width;
                         int height = emulationStationBounds.Height;
@@ -112,7 +114,7 @@ namespace EmulatorLauncher.Libretro
                 else
                     retroarchConfig["video_windowed_fullscreen"] = "true";
             }
-            else
+            else if (!forcefs)
             {
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
