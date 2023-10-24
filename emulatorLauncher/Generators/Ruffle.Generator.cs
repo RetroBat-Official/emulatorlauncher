@@ -25,7 +25,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool fullscreen = true;
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             var commandArray = new List<string>();
 
@@ -45,7 +45,7 @@ namespace EmulatorLauncher
                 commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
                 fullscreen = false;
             }
-            else
+            else if (fullscreen)
                 commandArray.Add("--fullscreen");
 
             commandArray.Add("-q");

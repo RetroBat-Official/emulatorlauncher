@@ -22,6 +22,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             bool wideScreen = SystemConfig["redream_aspect"] == "16:9" || SystemConfig["redream_aspect"] == "stretch";
             if (wideScreen)
                 SystemConfig["forceNoBezel"] = "1";
@@ -32,7 +33,7 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            SetupConfiguration(path);
+            SetupConfiguration(path, fullscreen);
 
             return new ProcessStartInfo()
             {
@@ -42,14 +43,14 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, bool fullscreen)
         {
             string conf = Path.Combine(path, "redream.cfg");
 
             using (var ini = IniFile.FromFile(conf))
             {
-                ini.WriteValue("", "fullmode", "borderless fullscreen");
-                ini.WriteValue("", "mode", "borderless fullscreen");
+                ini.WriteValue("", "fullmode", fullscreen ? "borderless fullscreen" : "windowed");
+                ini.WriteValue("", "mode", fullscreen ? "borderless fullscreen" : "windowed");
                 ini.WriteValue("", "gamedir", "./../../roms/dreamcast");
 
                 BindIniFeature(ini, "", "cable", "redream_cable", "rgb");

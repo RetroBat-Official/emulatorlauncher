@@ -90,7 +90,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("Core", "AutoStateSlotIncrement", "True");
 
                 // Parallel options
-                ini.WriteValue("Video-Parallel", "Fullscreen", "True");
+                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+                ini.WriteValue("Video-Parallel", "Fullscreen", fullscreen ? "True" : "False");
 
                 // Vsync
                 if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))

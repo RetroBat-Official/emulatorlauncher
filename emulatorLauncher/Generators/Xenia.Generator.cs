@@ -42,11 +42,15 @@ namespace EmulatorLauncher
                     rom = Path.Combine(romdir, rom.Substring(1));
                 }
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             SetupConfiguration(path);
 
             var commandArray = new List<string>();
 
-            commandArray.Add("--fullscreen");
+            if (fullscreen)
+                commandArray.Add("--fullscreen");
+
             commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);

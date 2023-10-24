@@ -48,12 +48,17 @@ namespace EmulatorLauncher
                 _saveStatesWatcher.PrepareEmulatorRepository();
             }
 
-            SetupConfig(path);
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            SetupConfig(path, fullscreen);
             CreateControllerConfiguration(path);
 
             var commandArray = new List<string>();
             //commandArray.Add("--escape-exit");
-            commandArray.Add("-fullscreen");
+            
+            if (fullscreen)
+                commandArray.Add("-fullscreen");
+
             commandArray.Add("\"" + rom + "\"");
 
             if (File.Exists(SystemConfig["state_file"]))
@@ -69,7 +74,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfig(string path)
+        private void SetupConfig(string path, bool fullscreen = true)
         {
             string iniFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "ppsspp.ini");
             bool cheevosEnable = Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements");
@@ -120,7 +125,7 @@ namespace EmulatorLauncher
                     }
                     
                     // Graphics
-                    ini.WriteValue("Graphics", "FullScreen", "True");
+                    ini.WriteValue("Graphics", "FullScreen", fullscreen ? "True" : "False");
 
                     if (SystemConfig.isOptSet("ppsspp_resolution") && !string.IsNullOrEmpty(SystemConfig["ppsspp_resolution"]))
                         ini.WriteValue("Graphics", "InternalResolution", SystemConfig["ppsspp_resolution"]);

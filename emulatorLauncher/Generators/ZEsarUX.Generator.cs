@@ -31,6 +31,8 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             string configFile = Path.Combine(path, ".zesaruxrc");
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
@@ -68,7 +70,10 @@ namespace EmulatorLauncher
             commandArray.Add("--configfile");
             commandArray.Add("\"" + configFile + "\"");
             commandArray.Add("--saveconf-on-exit");
-            commandArray.Add("--fullscreen");
+
+            if (fullscreen)
+                commandArray.Add("--fullscreen");
+
             commandArray.Add("--disable-xanniversary-logo");
             commandArray.Add("--nosplash");
             commandArray.Add("--stats-disable-check-updates");

@@ -70,7 +70,9 @@ namespace EmulatorLauncher
 			if (!File.Exists(conf))
 				return;
 
-			using (var ini = IniFile.FromFile(conf, IniOptions.KeepEmptyLines))
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            using (var ini = IniFile.FromFile(conf, IniOptions.KeepEmptyLines))
 			{
 
 				// Inject path loop
@@ -101,8 +103,8 @@ namespace EmulatorLauncher
 				ini.WriteValue(@"Display\Win", "OutputMethod", "2"); // Force OpenGL renderer to get bezel and shader to work
 				ini.WriteValue(@"Display\Win", "HideMenu", "TRUE"); // Hide menu at startup, ESC to toggle
 				ini.WriteValue(@"Display\Win", "FullscreenOnOpen", "FALSE");
-				ini.WriteValue(@"Display\Win", "Fullscreen:Enabled", "TRUE");
-				ini.WriteValue(@"Display\Win", "Fullscreen:EmulateFullscreen", "TRUE");
+				ini.WriteValue(@"Display\Win", "Fullscreen:Enabled", fullscreen ? "TRUE" : "FALSE");
+				ini.WriteValue(@"Display\Win", "Fullscreen:EmulateFullscreen", fullscreen ? "TRUE" : "FALSE");
 				ini.WriteValue(@"Display\Win", "Window:Maximized", "TRUE");
 				ini.WriteValue(@"Display\Win", "BlendHiRes", "TRUE");
 
