@@ -108,14 +108,16 @@ namespace EmulatorLauncher
             
             String path = AppConfig.GetFullPath(emulator);
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             // Configuration files
             // QT version has now only 1 ini file versus multiple for wxwidgets version
             if (_isPcsxqt)
-                SetupConfigurationQT(path, rom, system);
+                SetupConfigurationQT(path, rom, system, fullscreen);
 
             else
             {
-                SetupPaths(system, emulator, core);
+                SetupPaths(system, emulator, core, fullscreen);
                 SetupVM();
                 SetupLilyPad();
                 SetupGSDx(resolution);
@@ -128,7 +130,7 @@ namespace EmulatorLauncher
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
-            
+
             //setting up command line parameters
             var commandArray = new List<string>();
 
@@ -151,7 +153,7 @@ namespace EmulatorLauncher
 
                 if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
                 {
-                    if (!SystemConfig.getOptBoolean("disable_fullscreen"))
+                    if (!SystemConfig.getOptBoolean("disable_fullscreen") || SystemConfig.getOptBoolean("forcefullscreen"))
                         commandArray.Add("-fullscreen");
                     commandArray.Add("-bigpicture");
                 }
@@ -162,7 +164,10 @@ namespace EmulatorLauncher
             else 
             {
                 commandArray.Add("--portable");
-                commandArray.Add("--fullscreen");
+
+                if (fullscreen)
+                    commandArray.Add("--fullscreen");
+
                 commandArray.Add("--nogui");
 
                 if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
@@ -189,7 +194,7 @@ namespace EmulatorLauncher
         }
 
         #region wxwidgets version
-        private void SetupPaths(string system, string emulator, string core)
+        private void SetupPaths(string system, string emulator, string core, bool fullscreen)
         {
             var biosList = new string[] { 
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
@@ -253,7 +258,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("GSWindow", "FMVAspectRatioSwitch", "Off");
 
                     ini.WriteValue("ProgramLog", "Visible", "disabled");
-                    ini.WriteValue("GSWindow", "IsFullscreen", "enabled");
+                    ini.WriteValue("GSWindow", "IsFullscreen", fullscreen ? "enabled" : "disabled");
 
                     if (Features.IsSupported("negdivhack") && SystemConfig.isOptSet("negdivhack") && SystemConfig.getOptBoolean("negdivhack"))
                         ini.WriteValue(null, "EnablePresets", "disabled");
@@ -672,7 +677,7 @@ namespace EmulatorLauncher
         /// Setup Configuration of PCSX2.ini file for New PCSX2 QT version
         /// </summary>
         /// <param name="path"></param>
-        private void SetupConfigurationQT(string path, string rom, string system)
+        private void SetupConfigurationQT(string path, string rom, string system, bool fullscreen)
         {
             var biosList = new string[] {
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC",
@@ -796,7 +801,17 @@ namespace EmulatorLauncher
 
                 // UI section
                 ini.WriteValue("UI", "ConfirmShutdown", "false");
-                BindBoolIniFeature(ini, "UI", "StartFullscreen", "disable_fullscreen", "false", "true");
+
+                // fullscreen management
+                
+                if (SystemConfig.getOptBoolean("forcefullscreen"))
+                    ini.WriteValue("UI", "StartFullscreen", "true");
+                else if (SystemConfig.getOptBoolean("disable_fullscreen"))
+                    ini.WriteValue("UI", "StartFullscreen", "false");
+                else if (fullscreen)
+                    ini.WriteValue("UI", "StartFullscreen", "true");
+                else
+                    ini.WriteValue("UI", "StartFullscreen", "false");
 
                 ini.Remove("UI", "MainWindowGeometry");
                 ini.Remove("UI", "MainWindowState");

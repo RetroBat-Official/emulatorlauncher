@@ -29,11 +29,11 @@ namespace EmulatorLauncher
 			string exe = Path.Combine(path, "XM6.exe");
 
 			if (!File.Exists(exe))
-				return null;           
+				return null;
 
-			SetupConfiguration(path, rom, system);
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            bool fullscreen = !IsEmulationStationWindowed();
+            SetupConfiguration(path, rom, system, fullscreen);
 
             if (SystemConfig.isOptSet("68k_stretch") && SystemConfig["68k_stretch"] == "true")
                 SystemConfig["bezel"] = "none";
@@ -70,7 +70,7 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        private void SetupConfiguration(string path, string rom, string system)
+        private void SetupConfiguration(string path, string rom, string system, bool fullscreen)
         {
             string iniFile = Path.Combine(path, "XM6.ini");
 
@@ -79,11 +79,8 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(iniFile))
                 {
 
-                    if (!SystemConfig.getOptBoolean("disable_fullscreen"))
-                    {
-                        ini.WriteValue("Window", "Full", "1");
-                        ini.WriteValue("Resume", "Screen", "1");
-                    }
+                    ini.WriteValue("Window", "Full", fullscreen ? "1" : "0");  
+                    ini.WriteValue("Resume", "Screen", "1");
 
                     ini.WriteValue("Basic", "AutoMemSw", "1");
                     ini.WriteValue("MIDI", "ID", "1");

@@ -33,19 +33,31 @@ namespace EmulatorLauncher
                 rom = Path.GetFileNameWithoutExtension(rom);
             }
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             //Applying bezels
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, _path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             _resolution = resolution;
 
-            SetupSettings();
+            SetupSettings(fullscreen);
 
             var commandArray = new List<string>();
             
             commandArray.Add("-n");
-            commandArray.Add("-fs");
-            commandArray.Add("1");
+
+            if (fullscreen)
+            {
+                commandArray.Add("-fs");
+                commandArray.Add("1");
+            }
+            else
+            {
+                commandArray.Add("-fs");
+                commandArray.Add("0");
+            }
+
             commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
@@ -76,7 +88,7 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        private void SetupSettings()
+        private void SetupSettings(bool fullscreen)
         {
             string iniFile = Path.Combine(_path, "config", "raine32_sdl.cfg");
 
@@ -117,6 +129,8 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Display", "ogl_shader", "None");
                     */
+
+                    ini.WriteValue("Display", "fullscreen", fullscreen ? "1" : "0");
 
                     if (SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
                         ini.WriteValue("Display", "fix_aspect_ratio", SystemConfig["ratio"]);

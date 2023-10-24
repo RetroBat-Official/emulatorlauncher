@@ -37,6 +37,7 @@ namespace EmulatorLauncher
                 return null;
 
             _isArcade = system == "namco2x6";
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             //settings
             SetupConfiguration(path, rom);
@@ -61,7 +62,8 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + rom + "\"");
             }
 
-            commandArray.Add("--fullscreen");
+            if (fullscreen)
+             commandArray.Add("--fullscreen");
 
             string args = string.Join(" ", commandArray);
 

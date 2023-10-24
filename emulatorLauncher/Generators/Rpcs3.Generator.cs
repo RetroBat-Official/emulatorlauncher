@@ -51,8 +51,12 @@ namespace EmulatorLauncher
             // If game was uncompressed, say we are going to launch, so the deletion will not be silent
             ValidateUncompressedGame();
 
+            // Fullscreen
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            // Configuration
             SetupGuiConfiguration(path);
-            SetupConfiguration(path);
+            SetupConfiguration(path, fullscreen);
             CreateControllerConfiguration(path);
 
             // Check if firmware is installed in emulator, if not and if firmware is available in \bios path then install it instead of running the game
@@ -115,7 +119,7 @@ namespace EmulatorLauncher
         /// Setup config.yml file
         /// </summary>
         /// <param name="path"></param>
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, bool fullscreen)
         {
             var yml = YmlFile.Load(Path.Combine(path, "config.yml"));
 
@@ -255,7 +259,7 @@ namespace EmulatorLauncher
 
             // Handle Miscellaneous part of yml file
             var misc = yml.GetOrCreateContainer("Miscellaneous");
-            BindFeature(misc, "Start games in fullscreen mode", "startfullscreen", "true");
+            misc["Start games in fullscreen mode"] = fullscreen ? "true" : "false";
             BindFeature(misc, "Show trophy popups", "show_trophy", "true");
             misc["Automatically start games after boot"] = "true";
             misc["Exit RPCS3 when process finishes"] = "true";

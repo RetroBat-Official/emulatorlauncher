@@ -58,8 +58,11 @@ namespace EmulatorLauncher
 
         private void ConfigureCommandLineArguments(List<string> commandArray)
         {
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             commandArray.Add("-fullscreen");
-            commandArray.Add("1");
+            commandArray.Add(fullscreen ? "1" : "0");
+
         }
 
         private void ConfigureSQL(string path)

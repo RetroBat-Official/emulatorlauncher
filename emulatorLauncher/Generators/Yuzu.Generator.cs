@@ -32,12 +32,16 @@ namespace EmulatorLauncher
             string sdl2 = Path.Combine(path, "SDL2.dll");
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
-            
-            SetupConfiguration(path, rom);
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            SetupConfiguration(path, rom, fullscreen);
 
             var commandArray = new List<string>();
 
-            commandArray.Add("-f");
+            if (fullscreen)
+                commandArray.Add("-f");
+
             commandArray.Add("-g");
             commandArray.Add("\"" + rom + "\"");
 
@@ -109,7 +113,7 @@ namespace EmulatorLauncher
         }
 
 
-        private void SetupConfiguration(string path, string rom)
+        private void SetupConfiguration(string path, string rom, bool fullscreen)
         {
             if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
@@ -195,8 +199,8 @@ namespace EmulatorLauncher
                 }
 
                 //launch in fullscreen
-                ini.WriteValue("UI", "fullscreen\\default", "false");
-                ini.WriteValue("UI", "fullscreen", "true");
+                ini.WriteValue("UI", "fullscreen\\default", fullscreen ? "false" : "true");
+                ini.WriteValue("UI", "fullscreen", fullscreen ? "true" : "false");
 
                 //Hide mouse when inactive
                 ini.WriteValue("UI", "hideInactiveMouse\\default", "true");

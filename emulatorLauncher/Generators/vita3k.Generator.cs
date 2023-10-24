@@ -43,10 +43,14 @@ namespace EmulatorLauncher
             //Define command-line arguments
             List<string> commandArray = new List<string>();
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             //-w, -f is used to avoid vita3k regenerating the config file as it is very fussy with it !
             //-c to specify the configfile to use
             //-r for game rom/ID
-            commandArray.Add("-F");
+            if (fullscreen)
+                commandArray.Add("-F");
+
             commandArray.Add("-w");
             commandArray.Add("-f");
             

@@ -32,6 +32,8 @@ namespace EmulatorLauncher
 
         private void SetupConfiguration(string path)
         {
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             // Delete interfering files
             string gameSettingsPath = Path.Combine(path, "Setting", "Saturn");
             if (Directory.Exists(gameSettingsPath))
@@ -55,7 +57,10 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("Peripheral", "SaturnBIOS", "\"" + "" + "\"");
 
-                ini.WriteValue("Other", "ScreenMode", "\"" + "1" + "\"");
+                if (fullscreen)
+                    ini.WriteValue("Other", "ScreenMode", "\"" + "1" + "\"");
+                else
+                    ini.WriteValue("Other", "ScreenMode", "\"" + "0" + "\"");
 
                 if (SystemConfig.isOptSet("saturn_region") && !string.IsNullOrEmpty(SystemConfig["saturn_region"]))
                 {

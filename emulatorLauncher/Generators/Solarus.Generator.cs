@@ -27,9 +27,15 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             var commandArray = new List<string>();
             
-            commandArray.Add("-fullscreen=yes");
+            if (fullscreen)
+                commandArray.Add("-fullscreen=yes");
+            else
+                commandArray.Add("-fullscreen=no");
+
             commandArray.Add("\"" + rom + "\"");
             
             string args = string.Join(" ", commandArray);

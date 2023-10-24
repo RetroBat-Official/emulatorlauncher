@@ -136,6 +136,8 @@ namespace EmulatorLauncher
             
             var process = Process.Start(path);
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             while (process != null)
             {
                 if (process.WaitForExit(50))
@@ -156,7 +158,10 @@ namespace EmulatorLauncher
                 SendKeys.SendWait("{RIGHT}");
                 SendKeys.SendWait("{ENTER}");
                 System.Threading.Thread.Sleep(1000);
-                SendKeys.SendWait("{F11}");
+                
+                if (fullscreen)
+                    SendKeys.SendWait("{F11}");
+                
                 break;
             }
 

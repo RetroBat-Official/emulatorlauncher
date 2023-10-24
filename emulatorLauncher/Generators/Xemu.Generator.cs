@@ -118,13 +118,15 @@ namespace EmulatorLauncher
             // Command line arguments
             List<string> commandArray = new List<string>();
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             Rectangle emulationStationBounds;
             if (IsEmulationStationWindowed(out emulationStationBounds, true))
             {
                 _windowRect = emulationStationBounds;
                 _bezelFileInfo = null;
             }
-            else
+            else if (fullscreen)
                 commandArray.Add("-full-screen");
 
             commandArray.Add("-dvd_path");

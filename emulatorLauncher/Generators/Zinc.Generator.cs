@@ -41,8 +41,10 @@ namespace EmulatorLauncher
             else
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             SetupConfiguration(path, rom);
-            SetupRendererCfg(path, rom, resolution);
+            SetupRendererCfg(path, rom, resolution, fullscreen);
 
             // Add config path command line
             string cfgFile = "--use-config-file=" + "\"" + Path.Combine(path, "zinc.cfg") + "\"";
@@ -115,7 +117,7 @@ namespace EmulatorLauncher
             cfgFile.Save(cfg, false);
         }
 
-        private void SetupRendererCfg(string path, string rom, ScreenResolution resolution = null)
+        private void SetupRendererCfg(string path, string rom, ScreenResolution resolution = null, bool fullscreen = true)
         {
             // renderer.cfg file
             string cfg = Path.Combine(path, "renderer.cfg");
@@ -123,7 +125,7 @@ namespace EmulatorLauncher
             var cfgFile = ConfigFile.FromFile(cfg, new ConfigFileOptions() { UseSpaces = true, KeepComments = true });
             cfgFile["XSize"] = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString();
             cfgFile["YSize"] = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString();
-            cfgFile["FullScreen"] = "1";
+            cfgFile["FullScreen"] = fullscreen ? "1" : "0";
             
             BindFeature(cfgFile, "ColorDepth", "zinc_colordepth", "32");
             BindFeature(cfgFile, "ScanLines", "zinc_scanlines", "0");
@@ -282,5 +284,4 @@ namespace EmulatorLauncher
             { 71, "71 Heaven's Gate_controller.cfg" }
         };
     }
-
 }

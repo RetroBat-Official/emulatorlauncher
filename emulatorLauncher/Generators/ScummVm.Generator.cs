@@ -41,13 +41,15 @@ namespace EmulatorLauncher
             
             _resolution = resolution;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             string iniPath = Path.ChangeExtension(exe, ".ini");
 
-            SetupConfiguration(iniPath, system);
+            SetupConfiguration(iniPath, system, fullscreen);
 
             List<string> commandArray = new List<string>();
 
-            if (_bezelFileInfo == null)
+            if (_bezelFileInfo == null && fullscreen)
                 commandArray.Add("--fullscreen");
 
             commandArray.Add("--no-console");
@@ -74,7 +76,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string iniPath, string system)
+        private void SetupConfiguration(string iniPath, string system, bool fullscreen = true)
         {
             using (IniFile ini = new IniFile(iniPath))
             {
@@ -98,7 +100,7 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("scummvm", "discord_rpc", "false");
 
-                if (_bezelFileInfo != null)
+                if (_bezelFileInfo != null || !fullscreen)
                     ini.WriteValue("scummvm", "fullscreen", "false");
                 else
                     ini.WriteValue("scummvm", "fullscreen", "true");

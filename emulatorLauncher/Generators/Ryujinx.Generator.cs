@@ -75,13 +75,15 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             var json = DynamicJson.Load(Path.Combine(path, "portable", "Config.json"));
 
             //Perform conroller configuration
             CreateControllerConfiguration(json);
 
             //Set fullscreen
-            json["start_fullscreen"] = "true";
+            json["start_fullscreen"] = fullscreen ? "true" : "false";
 
             //General Settings
             json["check_updates_on_start"] = "false";
