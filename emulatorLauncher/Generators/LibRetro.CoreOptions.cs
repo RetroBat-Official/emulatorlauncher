@@ -2042,7 +2042,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "virtualjaguar")
                 return;
 
-            BindFeature(coreSettings, "virtualjaguar_usefastblitter", "usefastblitter", "enabled");
+            BindFeature(coreSettings, "virtualjaguar_usefastblitter", "usefastblitter", "disabled");
             BindFeature(coreSettings, "virtualjaguar_bios", "bios_vj", "enabled");
             BindFeature(coreSettings, "virtualjaguar_doom_res_hack", "doom_res_hack", "disabled");
             BindFeature(coreSettings, "virtualjaguar_pal", "vj_pal", "disabled");
