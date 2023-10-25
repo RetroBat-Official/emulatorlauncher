@@ -129,6 +129,8 @@ namespace EmulatorLauncher
                 FileTools.TryCreateDirectory(screenshotPath);                
                 ini.WriteValue("Core", "ScreenshotPath", screenshotPath.Replace("\\", "/"));
 
+                bool incrementSlot = SystemConfig["incrementalsavestates"] != "2";
+
                 if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
                 {
                     string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
@@ -147,7 +149,7 @@ namespace EmulatorLauncher
                     FileTools.TryCreateDirectory(saveStatePath);
 
                     ini.WriteValue("Core", "SaveStatePath", saveStatePath.Replace("\\", "/"));
-                    ini.WriteValue("Core", "AutoStateSlotIncrement", "True");
+                    ini.WriteValue("Core", "AutoStateSlotIncrement", incrementSlot ? "True" : "False");
                 }
 
                 string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mupen64", "games");
