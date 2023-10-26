@@ -146,17 +146,32 @@ namespace EmulatorLauncher
                 if (_xInputDeviceKnown == false)
                 {
                     _xInputDeviceKnown = true;
-
-
+                    
                     if (Name == "Keyboard" || !IsXInputDevice)
                         return null;
+                    
+                    var devices = XInputDevice.GetDevices();
+                    foreach (var dev in devices)
+                    {
+                        if (dev.Path == this.DevicePath || InputDevices.GetInputDeviceParent(dev.Path) == this.DevicePath)
+                        {
+                            _xInputDevice = dev;
+                            return _xInputDevice;
+                        }
+                    }
+
+                    if (devices.Length == 1 && Program.Controllers.Count(c => c.IsXInputDevice) == 1)
+                    {
+                        _xInputDevice = devices[0];
+                        return _xInputDevice;
+                    }
 
                     var xinputindex = Program.Controllers
                         .Where(c => c == this || c.IsXInputDevice)
                         .OrderBy(c => c.DirectInput != null ? c.DirectInput.DeviceIndex : c.DeviceIndex)
                         .ToList()
                         .IndexOf(this);
-                    
+
                     _xInputDevice = new XInputDevice(xinputindex);
                 }
                 return _xInputDevice;

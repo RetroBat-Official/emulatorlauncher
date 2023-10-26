@@ -30,6 +30,24 @@ namespace EmulatorLauncher.Common
 
         private static RawInputDevice[] _cache;
 
+        public static string GetRawInputDeviceName(IntPtr hDevice)
+        {
+            uint RIDI_DEVICENAME = 0x20000007;
+
+            uint pcbSize = 0;
+            string deviceName = "";
+            GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
+            if (pcbSize <= 0)
+                return null;
+
+            IntPtr pData = Marshal.AllocHGlobal((int)pcbSize);
+            GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, pData, ref pcbSize);
+            deviceName = Marshal.PtrToStringAnsi(pData);
+            Marshal.FreeHGlobal(pData);
+
+            return deviceName;
+        }
+
         private static RawInputDevice[] GetRawInputDeviceInternal()
         {
             var mouseNames = new List<RawInputDevice>();

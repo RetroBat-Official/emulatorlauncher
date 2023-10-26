@@ -3,19 +3,144 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
     public class XInputDevice
     {
+        private static XInputDevice[] _cache;
+
+        public static XInputDevice[] GetDevices(bool skipIfDebuggerAttached = false)
+        {
+            if (_cache == null)
+                _cache = GetDevicesInternal(skipIfDebuggerAttached);
+
+            return _cache;
+        }
+
+        private static XInputDevice[] GetDevicesInternal(bool skipIfDebuggerAttached = true)
+        {
+            if (Debugger.IsAttached)
+                return GetDevicesInternalWithDebuggerAttached(skipIfDebuggerAttached);
+
+            var devices = new List<XInputDevice>();
+
+            try
+            {
+                using (_createFileWHook = new APIHook("api-ms-win-core-file-l1-1-0.dll", "CreateFileW", new CreateFileWDelegate(CustomCreateFileW)))
+                using (_deviceIoControlHook = new APIHook("api-ms-win-core-io-l1-1-0.dll", "DeviceIoControl", new DeviceIoControlDelegate(CustomDeviceIoControl)))
+                using (_duplicateHandleHook = new APIHook("api-ms-win-core-handle-l1-1-0.dll", "DuplicateHandle", new DuplicateHandleDelegate(CustomDuplicateHandle))) // This one hangs if the debugger is attached
+                {
+                    _deviceToName.Clear();
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var dev = new XInputDevice(i);
+
+                        _hidPath = null;
+
+                        using (var xInput = new NativeXInput(i))
+                        {
+                            dev.Connected = xInput.IsConnected;
+                            if (!dev.Connected)
+                                continue;
+
+                            dev.SubType = (XINPUT_DEVSUBTYPE)xInput.SubType;
+                        }
+
+                        dev.Path = _hidPath;
+                        devices.Add(dev);
+                    }
+                }
+            }
+            catch { }
+
+            return devices.ToArray();
+        }
+
+        private static XInputDevice[] GetDevicesInternalWithDebuggerAttached(bool skipIfDebuggerAttached = true)
+        {
+            var devices = new List<XInputDevice>();
+
+            var dddc = new int[] { 0, 1, 2, 3 }.Select(i => new NativeXInput(i)).Where(x => x.IsConnected).ToArray();
+            if (dddc.Length == 0)
+                return devices.ToArray();
+
+            var indexToPath = new Dictionary<int, string>();
+
+            if (dddc.Length > 1 && !skipIfDebuggerAttached)
+            {
+                try
+                {
+                    string path = System.IO.Path.GetTempFileName();
+                    FileTools.TryDeleteFile(path);
+
+                    var psi = new ProcessStartInfo();
+                    psi.FileName = System.Reflection.Assembly.GetEntryAssembly().Location;
+                    if (System.IO.Path.GetFileNameWithoutExtension(psi.FileName).ToLowerInvariant() == "emulatorlauncher")
+                    {
+                        psi.Arguments = "-queryxinputinfo \"" + path + "\"";
+                        psi.UseShellExecute = false;
+
+                        var process = Process.Start(psi);
+                        process.WaitForExit();
+
+                        if (System.IO.File.Exists(path))
+                        {
+                            string xml = System.IO.File.ReadAllText(path);
+                            FileTools.TryDeleteFile(path);
+
+                            foreach (var xin in xml.ExtractStrings("<xinput ", "/>"))
+                            {
+                                var index = xin.ExtractString("index=\"", "\"").ToInteger();
+                                var hidpath = xin.ExtractString("path=\"", "\"");
+                                indexToPath[index] = hidpath;
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                var dev = new XInputDevice(i);
+
+                using (var xInput = new NativeXInput(i))
+                {
+                    dev.Connected = xInput.IsConnected;
+                    if (!dev.Connected)
+                        continue;
+
+                    dev.SubType = (XINPUT_DEVSUBTYPE)xInput.SubType;
+
+                    string path;
+                    if (indexToPath.TryGetValue(i, out path))
+                        dev.Path = path;
+                }
+
+                devices.Add(dev);
+            }
+
+            return devices.ToArray();
+        }
+
         public XInputDevice(int index)
         {
             DeviceIndex = index;
             Name = "Input Pad #" + (DeviceIndex + 1).ToString();
         }
 
+        public bool Connected { get; set; }
+        public string Path { get; set; }
+        public XINPUT_DEVSUBTYPE SubType { get; set; }
+
         public override string ToString()
         {
+            if (!string.IsNullOrEmpty(Path))
+                return Name + " @ " + Path;
+
             return Name;
         }
 
@@ -179,28 +304,190 @@ namespace EmulatorLauncher.Common.Joysticks
 
         #endregion
 
-        XINPUT_DEVSUBTYPE? _subType;
+        #region Api Hooking
+        static Dictionary<IntPtr, string> _deviceToName = new Dictionary<IntPtr, string>();
+        static string _hidPath;
 
-        public XINPUT_DEVSUBTYPE SubType
+        #region DuplicateHandle
+        [DllImport("api-ms-win-core-handle-l1-1-0.dll", CallingConvention = CallingConvention.StdCall)]
+        static extern bool DuplicateHandle(
+            IntPtr hSourceProcessHandle,
+            IntPtr hSourceHandle,
+            IntPtr hTargetProcessHandle, 
+            ref IntPtr lpTargetHandle,
+            UInt32 dwDesiredAccess, 
+            bool bInheritHandle, 
+            UInt32 dwOptions);
+
+        delegate bool DuplicateHandleDelegate(
+            IntPtr hSourceProcessHandle,
+            IntPtr hSourceHandle,
+            IntPtr hTargetProcessHandle, 
+            ref IntPtr lpTargetHandle,
+            UInt32 dwDesiredAccess,
+            bool bInheritHandle, 
+            UInt32 dwOptions);
+
+        [DebuggerStepThrough]
+        static bool CustomDuplicateHandle(
+            IntPtr hSourceProcessHandle,
+            IntPtr hSourceHandle,
+            IntPtr hTargetProcessHandle, 
+            ref IntPtr lpTargetHandle,
+            UInt32 dwDesiredAccess,
+            bool bInheritHandle, 
+            UInt32 dwOptions)
         {
-            get
+            _duplicateHandleHook.Suspend();
+
+            var ret = DuplicateHandle(hSourceProcessHandle, hSourceHandle, hTargetProcessHandle, ref lpTargetHandle, dwDesiredAccess, bInheritHandle, dwOptions);
+            if (ret)
             {
-                if (!_subType.HasValue)
-                {
-                    _subType = XINPUT_DEVSUBTYPE.GAMEPAD;
-
-                    try
-                    {
-                        using (var xInput = new NativeXInput(DeviceIndex))
-                            if (xInput.IsConnected)
-                                _subType = (XINPUT_DEVSUBTYPE)xInput.SubType;
-                    }
-                    catch { }
-                }
-
-                return _subType.Value;
+                string value;
+                if (_deviceToName.TryGetValue(hSourceHandle, out value))
+                    _deviceToName[lpTargetHandle] = value;
             }
+
+            _duplicateHandleHook.Resume();
+
+            return ret;
         }
+
+        private static APIHook _duplicateHandleHook;
+        #endregion
+
+        #region CreateFileW
+        [DllImport("api-ms-win-core-file-l1-1-0.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
+        static extern IntPtr CreateFileW(
+            IntPtr lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+            IntPtr SecurityAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
+            IntPtr hTemplateFile
+        );
+
+        delegate IntPtr CreateFileWDelegate(
+            IntPtr lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+            IntPtr SecurityAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
+            IntPtr hTemplateFile
+            );
+
+        [DebuggerStepThrough]
+        static IntPtr CustomCreateFileW(
+            IntPtr lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+            IntPtr SecurityAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
+            IntPtr hTemplateFile
+            )
+        {
+            _createFileWHook.Suspend();
+
+            int i = 0;
+            while(true)
+            {
+                var data = Marshal.ReadInt16(lpFileName, i);
+                if (data == 0)
+                    break;
+
+                i += 2;
+            }
+
+            byte[] bufferIn = new byte[i];
+            Marshal.Copy(lpFileName, bufferIn, 0, i);
+            var fileName = System.Text.Encoding.Unicode.GetString(bufferIn).Replace("\0", "");
+
+            var ret = CreateFileW(
+                lpFileName,
+                dwDesiredAccess,
+                dwShareMode,
+                SecurityAttributes,
+                dwCreationDisposition,
+                dwFlagsAndAttributes,
+                hTemplateFile);
+
+            if (ret != (IntPtr)(-1)/* && fileName.IndexOf("&IG_", StringComparison.InvariantCultureIgnoreCase) >= 0*/)
+                _deviceToName[ret] = fileName;
+
+            _createFileWHook.Resume();
+
+            return ret;
+        }
+
+        private static APIHook _createFileWHook;
+        #endregion
+
+        #region DeviceIoControl
+
+        [DllImport("api-ms-win-core-io-l1-1-0.dll", SetLastError = true)]
+        static extern bool DeviceIoControl(
+            IntPtr hDevice,
+            int IoControlCode,
+            IntPtr InBuffer,
+            int nInBufferSize,
+            IntPtr OutBuffer,
+            int nOutBufferSize,
+            out int pBytesReturned,
+            IntPtr Overlapped
+        );
+
+        delegate bool DeviceIoControlDelegate(
+            IntPtr hDevice,
+            int IoControlCode,
+            IntPtr InBuffer,
+            int nInBufferSize,
+            IntPtr OutBuffer,
+            int nOutBufferSize,
+            out int pBytesReturned,
+            IntPtr Overlapped
+            );
+
+        private static APIHook _deviceIoControlHook;
+
+        [DebuggerStepThrough]
+        static bool CustomDeviceIoControl(
+            IntPtr hDevice,
+            int IoControlCode,
+            IntPtr InBuffer,
+            int nInBufferSize,
+            IntPtr OutBuffer,
+            int nOutBufferSize,
+            out int pBytesReturned,
+            IntPtr Overlapped
+            )
+        {
+            _deviceIoControlHook.Suspend();
+
+            var ret = DeviceIoControl(hDevice,
+                IoControlCode,
+                InBuffer,
+                nInBufferSize,
+                OutBuffer,
+                nOutBufferSize,
+                out pBytesReturned,
+                Overlapped);
+
+            if (IoControlCode == -2147426292 && ret) // 0x8000e00c
+            {
+                string value;
+                if (_deviceToName.TryGetValue(hDevice, out value))
+                    _hidPath = value;
+            }
+
+            _deviceIoControlHook.Resume();
+
+            return ret;
+        }
+        #endregion
+        #endregion
 
         private static bool IsXInputDevice(string vendorId, string productId)
         {
@@ -208,9 +495,10 @@ namespace EmulatorLauncher.Common.Joysticks
             // Used to grab the VID/PID components from the device ID string.                
             // Iterate over all PNP devices.                
 
-            foreach (var device in HidGameDevice.GetGameDevices())
+            var devices = RawInputDevice.GetRawInputControllers();
+            foreach (var device in devices)// HidGameDevice.GetGameDevices())
             {
-                var DeviceId = device.DeviceId;
+                var DeviceId = device.DevicePath;
                 if (DeviceId.Contains("IG_"))
                 {
                     // Check the VID/PID components against the joystick's.                            

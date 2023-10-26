@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="APIHook.cs" />
     <Compile Include="Compression\MountFile.cs" />
     <Compile Include="Compression\PortableZip.cs" />
     <Compile Include="Compression\ZipFile.cs" />
