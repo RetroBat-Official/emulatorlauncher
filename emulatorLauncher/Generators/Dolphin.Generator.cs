@@ -372,7 +372,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "True", "False");
 
                     // Skip BIOS
-                    BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "False", "True");
+                    BindBoolIniFeature(ini, "Core", "SkipIPL", "skip_bios", "False", "True");
 
                     // OSD Messages
                     BindBoolIniFeature(ini, "Interface", "OnScreenDisplayMessages", "OnScreenDisplayMessages", "False", "True");
