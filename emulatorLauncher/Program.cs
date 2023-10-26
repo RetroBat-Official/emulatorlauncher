@@ -226,6 +226,14 @@ namespace EmulatorLauncher
             if (args.Length == 0)
                 return;
 
+            // Used by XInputDevice.GetDevices
+            if (args.Length == 2 && args[0] == "-queryxinputinfo")
+            {
+                var all = XInputDevice.GetDevices(true);
+                File.WriteAllText(args[1], string.Join("\r\n", all.Where(d => d.Connected).Select(d => "<xinput index=\"" + d.DeviceIndex + "\" path=\"" + d.Path + "\"/>").ToArray()));
+                return;
+            }
+
             AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
 
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
