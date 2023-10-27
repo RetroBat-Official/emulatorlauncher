@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.IMapi2;
 using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
@@ -75,7 +77,18 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "DeviceNum", index.ToString());
             ini.WriteValue(iniSection, "Deadzone", deadzone);
             ini.WriteValue(iniSection, "Sensitivity", sensitivity);
-            ini.WriteValue(iniSection, "Pak", "0");
+
+            if (SystemConfig.isOptSet("mupen64_pak" + playerIndex) && !string.IsNullOrEmpty(SystemConfig["mupen64_pak" + playerIndex]))
+                ini.WriteValue(iniSection, "Pak", SystemConfig["mupen64_pak" + playerIndex]);
+            else
+                ini.WriteValue(iniSection, "Pak", "3");
+
+            ini.WriteValue(iniSection, "GameboyRom", "\"" + "\"");
+            ini.WriteValue(iniSection, "GameboySave", "\"" + "\"");
+
+            if (SystemConfig["mupen64_pak1"] == "2" && playerIndex == 1)
+                SearchTransferPackFiles(ini, iniSection);
+
             ini.WriteValue(iniSection, "RemoveDuplicateMappings", "True");
             ini.WriteValue(iniSection, "FilterEventsForButtons", "True");
             ini.WriteValue(iniSection, "FilterEventsForAxis", "True");
@@ -382,6 +395,50 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_Fullscreen_Name", "");
             ini.WriteValue(iniSection, "Hotkey_Fullscreen_Data", "");
             ini.WriteValue(iniSection, "Hotkey_Fullscreen_ExtraData", "");
+        }
+
+        private void SearchTransferPackFiles(IniFile ini, string iniSection)
+        {
+            string pakSystem = "gb";
+            if (SystemConfig.isOptSet("mupen64_pak_system") && !string.IsNullOrEmpty(SystemConfig["mupen64_pak_system"]))
+                pakSystem = SystemConfig["mupen64_pak_system"];
+
+            string romFolder = Path.Combine(AppConfig.GetFullPath("roms"), pakSystem);
+            string saveFolder = Path.Combine(AppConfig.GetFullPath("saves"), pakSystem);
+
+            if (SystemConfig.isOptSet("mupen64_pak_rom") && !string.IsNullOrEmpty(SystemConfig["mupen64_pak_rom"]))
+            {
+                if (SystemConfig.isOptSet("mupen64_pak_save") && !string.IsNullOrEmpty(SystemConfig["mupen64_pak_save"]))
+                {
+                    string romStart = SystemConfig["mupen64_pak_rom"];
+                    string saveStart = SystemConfig["mupen64_pak_save"];
+
+                    if (Directory.Exists(romFolder) && Directory.Exists(saveFolder))
+                    {
+                        DirectoryInfo romDirectory = new DirectoryInfo(romFolder);
+                        DirectoryInfo saveDirectory = new DirectoryInfo(saveFolder);
+
+                        var romFileList = romDirectory.GetFiles(pakSystem == "gbc" ? "*.gbc" : "*.gb", SearchOption.AllDirectories).Where(x => x.Name.StartsWith(romStart));
+                        var saveFileListsav = saveDirectory.GetFiles("*.sav", SearchOption.AllDirectories).Where(x => x.Name.StartsWith(saveStart));
+                        var saveFileListram = saveDirectory.GetFiles("*.ram", SearchOption.AllDirectories).Where(x => x.Name.StartsWith(saveStart));
+
+                        if (!romFileList.Any())
+                            return;
+                        if (!saveFileListsav.Any() && !saveFileListram.Any())
+                            return;
+
+                        string romFile = romFileList.FirstOrDefault().FullName;
+                        string saveFile = null;
+                        if (saveFileListsav.Any())
+                            saveFile = saveFileListsav.FirstOrDefault().FullName;
+                        else
+                            saveFile = saveFileListram.FirstOrDefault().FullName;
+
+                        ini.WriteValue(iniSection, "GameboyRom", "\"" + romFile.Replace("\\", "/") + "\"");
+                        ini.WriteValue(iniSection, "GameboySave", "\"" + saveFile.Replace("\\", "/") + "\"");
+                    }
+                }
+            }
         }
     }
 }
