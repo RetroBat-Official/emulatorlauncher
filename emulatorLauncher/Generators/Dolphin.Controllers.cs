@@ -482,6 +482,7 @@ namespace EmulatorLauncher
 
                     string tech = "XInput";
                     string deviceName = "Gamepad";
+                    int xIndex = 0;
 
                     if (pad.Config.Type == "keyboard")
                     {
@@ -509,7 +510,13 @@ namespace EmulatorLauncher
 
                     double_pads[tech + "/" + deviceName] = nsamepad + 1;
 
-                    ini.WriteValue(gcpad, "Device", tech + "/" + nsamepad.ToString() + "/" + deviceName);
+                    if (pad.IsXInputDevice)
+                        xIndex = pad.XInput != null ? pad.XInput.DeviceIndex : pad.DeviceIndex; 
+
+                    if (tech == "XInput")
+                        ini.WriteValue(gcpad, "Device", tech + "/" + xIndex + "/" + deviceName);
+                    else
+                        ini.WriteValue(gcpad, "Device", tech + "/" + nsamepad.ToString() + "/" + deviceName);
 
                     if (extraOptions != null)
                        foreach(var xtra in extraOptions)
