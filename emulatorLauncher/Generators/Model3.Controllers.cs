@@ -150,6 +150,7 @@ namespace EmulatorLauncher
                 j2index = SystemConfig["model3_p2index"].ToInteger();
 
             bool multiplayer = j2index != -1;
+            bool enableServiceMenu = SystemConfig.isOptSet("m3_service") && SystemConfig.getOptBoolean("m3_service");
 
             //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT)
             if (tech == "sdl")
@@ -160,18 +161,19 @@ namespace EmulatorLauncher
                     ini.WriteValue(" Global ", "InputSystem", "sdl");
 
                 //common - start to start and select to input coins
-                //service menu and test menu can be accessed via L3 and R3 buttons
+                //service menu and test menu can be accessed via L3 and R3 buttons if option is enabled
+
                 ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,JOY" + j1index + "_BUTTON7\"");
                 ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3,JOY" + j1index + "_BUTTON5\"");
-                ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5,JOY" + j1index + "_BUTTON8\"");
-                ini.WriteValue(" Global ", "InputTestA", "\"KEY_6,JOY" + j1index + "_BUTTON9\"");
+                ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_5,JOY" + j1index + "_BUTTON8\"" : "\"KEY_5\"");
+                ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_6,JOY" + j1index + "_BUTTON9\"" : "\"KEY_6\"");
 
                 if (multiplayer)
                 {
                     ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON7\"");
                     ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON5\"");
-                    ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7,JOY" + j2index + "_BUTTON8\"");
-                    ini.WriteValue(" Global ", "InputTestB", "\"KEY_8,JOY" + j2index + "_BUTTON9\"");
+                    ini.WriteValue(" Global ", "InputServiceB", enableServiceMenu ? "\"KEY_7,JOY" + j2index + "_BUTTON8\"" : "\"KEY_7\"");
+                    ini.WriteValue(" Global ", "InputTestB", enableServiceMenu ? "\"KEY_8,JOY" + j2index + "_BUTTON9\"" : "\"KEY_8\"");
                 }
                 else
                 {
@@ -461,15 +463,15 @@ namespace EmulatorLauncher
                 //common - L3 and R3 will be used to navigate service menu
                 ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,JOY" + j1index + "_BUTTON8\"");
                 ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3,JOY" + j1index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5,JOY" + j1index + "_BUTTON9\"");
-                ini.WriteValue(" Global ", "InputTestA", "\"KEY_6,JOY" + j1index + "_BUTTON10\"");
+                ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_5,JOY" + j1index + "_BUTTON9\"" : "\"KEY_5\"");
+                ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_6,JOY" + j1index + "_BUTTON10\"" : "\"KEY_6\"");
 
                 if (multiplayer)
                 {
                     ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON8\"");
                     ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON7\"");
-                    ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7,JOY" + j2index + "_BUTTON9\"");
-                    ini.WriteValue(" Global ", "InputTestB", "\"KEY_8,JOY" + j2index + "_BUTTON10\"");
+                    ini.WriteValue(" Global ", "InputServiceB", enableServiceMenu ? "\"KEY_7,JOY" + j2index + "_BUTTON9\"" : "\"KEY_7\"");
+                    ini.WriteValue(" Global ", "InputTestB", enableServiceMenu ? "\"KEY_8,JOY" + j2index + "_BUTTON10\"" : "\"KEY_8\"");
                 }
                 else
                 {
