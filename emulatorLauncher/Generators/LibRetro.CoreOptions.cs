@@ -2656,6 +2656,7 @@ namespace EmulatorLauncher.Libretro
                 SystemConfig["bezel"] = "none";
             }
 
+            BindFeature(coreSettings, "reicast_texture_filtering", "reicast_texture_filtering", "0");
             BindFeature(coreSettings, "reicast_anisotropic_filtering", "anisotropic_filtering", "off");
             BindFeature(coreSettings, "reicast_texupscale", "texture_upscaling", "1");
             BindFeature(coreSettings, "reicast_render_to_texture_upscaling", "render_to_texture_upscaling", "1x");
@@ -2678,8 +2679,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "disabled");
             BindFeature(coreSettings, "reicast_pvr2_filtering", "reicast_pvr2_filtering", "disabled");
             BindFeature(coreSettings, "reicast_fog", "reicast_fog", "enabled");
-
-            // toadd
+            BindBoolFeature(coreSettings, "reicast_digital_triggers", "reicast_digital_triggers", "enabled", "disabled");
             BindFeature(coreSettings, "reicast_threaded_rendering", "reicast_threaded_rendering", "enabled");
 
             if (SystemConfig.isOptSet("reicast_frame_skipping") && SystemConfig["reicast_frame_skipping"] != "disabled")
@@ -2691,6 +2691,9 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["reicast_frame_skipping"] = "disabled";
 
             // Controls
+            BindFeature(coreSettings, "reicast_trigger_deadzone", "reicast_trigger_deadzone", "0%");
+            BindFeature(coreSettings, "reicast_analog_stick_deadzone", "reicast_analog_stick_deadzone", "15%");
+
             if (SystemConfig.isOptSet("flycast_controller") && !string.IsNullOrEmpty(SystemConfig["flycast_controller"]))
             {
                 for (int i = 1; i < 9; i++)
