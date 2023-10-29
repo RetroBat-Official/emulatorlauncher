@@ -37,7 +37,7 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            SetupConfiguration(path, system);
+            SetupConfiguration(path, system, resolution);
 
             List<string> commandArray = new List<string>();
 
@@ -54,7 +54,7 @@ namespace EmulatorLauncher
         }
 
         //Configuration file emu.cfg
-        private void SetupConfiguration(string path, string system)
+        private void SetupConfiguration(string path, string system, ScreenResolution resolution = null)
         {
             string configfile = Path.Combine(path, "emu.cfg");
 
@@ -92,7 +92,20 @@ namespace EmulatorLauncher
                 if (fullscreen)
                     ini.WriteValue("window", "fullscreen", "yes");
                 else
+                {
                     ini.WriteValue("window", "fullscreen", "no");
+                    if (resolution == null)
+                    {
+                        var res = ScreenResolution.CurrentResolution;
+                        ini.WriteValue("window", "height", res.Height.ToString());
+                        ini.WriteValue("window", "width", res.Width.ToString());
+                    }
+                    else
+                    {
+                        ini.WriteValue("window", "height", resolution.Height.ToString());
+                        ini.WriteValue("window", "width", resolution.Width.ToString());
+                    }
+                }
 
                 if (SystemConfig.isOptSet("flycast_transparent_sorting") && SystemConfig["flycast_transparent_sorting"] == "triangle")
                 {
