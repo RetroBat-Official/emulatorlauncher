@@ -72,7 +72,11 @@ namespace EmulatorLauncher
                 ConfigureKeyboard(ini, controller.Config, mappingPath, system);
 
             else
+            {
                 ConfigureJoystick(ini, controller, mappingPath, system, double_pads, nsamepad);
+                ConfigureKeyboard(ini, controller.Config, mappingPath, system);
+            }
+
         }
 
         private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, string mappingPath, string system)
@@ -149,7 +153,9 @@ namespace EmulatorLauncher
                     ctrlini.WriteValue("digital", "bind23", "92:axis2_left");                                       // right stick left (numpad 4)
                     ctrlini.WriteValue("digital", "bind24", "94:axis2_right");                                      // right stick right (numpad 6)
                     ctrlini.WriteValue("digital", "bind25", "96:axis2_up");                                         // right stick up (numpad 8)
-                    ctrlini.WriteValue("digital", "bind26", "41:btn_escape");
+                    ctrlini.WriteValue("digital", "bind26", "41:btn_escape");                               
+                    ctrlini.WriteValue("digital", "bind27", "60:btn_jump_state");                                   // F3 load state
+                    ctrlini.WriteValue("digital", "bind28", "61:btn_quick_save");                                   // F4 save state
                     WriteKeyboardMapping(3, fightGame6Buttons ? InputKey.pagedown : InputKey.pageup, "btn_z");      // button 6
                     ctrlini.WriteValue("digital", "bind4", "12:btn_analog_up");                                     // analog stick up (i)
                     ctrlini.WriteValue("digital", "bind5", "13:btn_analog_left");                                   // analog stick up (j)
@@ -175,6 +181,8 @@ namespace EmulatorLauncher
                     WriteKeyboardMapping(2, InputKey.pageup, "btn_trigger_left");
                     ctrlini.WriteValue("digital", "bind20", "96:btn_dpad2_up");                                     // right stick up (numpad 8)
                     ctrlini.WriteValue("digital", "bind21", "41:btn_escape");
+                    ctrlini.WriteValue("digital", "bind22", "60:btn_jump_state");                                   // F3 load state
+                    ctrlini.WriteValue("digital", "bind23", "61:btn_quick_save");                                   // F4 save state
                     ctrlini.WriteValue("digital", "bind3", "12:btn_analog_up");                                     // analog stick up (i)
                     ctrlini.WriteValue("digital", "bind4", "13:btn_analog_left");                                   // analog stick up (j)
                     ctrlini.WriteValue("digital", "bind5", "14:btn_analog_down");                                   // analog stick up (k)
