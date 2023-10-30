@@ -72,10 +72,11 @@ namespace EmulatorLauncher
                 ConfigureKeyboard(ini, controller.Config, mappingPath, system);
 
             else
-            {
                 ConfigureJoystick(ini, controller, mappingPath, system, double_pads, nsamepad);
-                ConfigureKeyboard(ini, controller.Config, mappingPath, system);
-            }
+
+            var keyboard = Program.Controllers.FirstOrDefault(c => c.IsKeyboard);
+            if (keyboard != null)
+                ConfigureKeyboard(ini, keyboard.Config, mappingPath, system);
 
         }
 
