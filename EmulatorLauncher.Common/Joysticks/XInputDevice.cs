@@ -28,29 +28,27 @@ namespace EmulatorLauncher.Common.Joysticks
 
             try
             {
-                using (_createFileWHook = new APIHook("api-ms-win-core-file-l1-1-0.dll", "CreateFileW", new CreateFileWDelegate(CustomCreateFileW)))
-                using (_deviceIoControlHook = new APIHook("api-ms-win-core-io-l1-1-0.dll", "DeviceIoControl", new DeviceIoControlDelegate(CustomDeviceIoControl)))
-                using (_duplicateHandleHook = new APIHook("api-ms-win-core-handle-l1-1-0.dll", "DuplicateHandle", new DuplicateHandleDelegate(CustomDuplicateHandle))) // This one hangs if the debugger is attached
+                using (_createFileWHook = new APIHook<CreateFileWDelegate>("api-ms-win-core-file-l1-1-0.dll", "CreateFileW", CustomCreateFileW))
+                using (_deviceIoControlHook = new APIHook<DeviceIoControlDelegate>("api-ms-win-core-io-l1-1-0.dll", "DeviceIoControl", CustomDeviceIoControl))
+                using (_coCreateInstanceHook = new APIHook<CoCreateInstanceDelegate>("api-ms-win-core-com-l1-1-0.dll", "CoCreateInstance", CustomCoCreateInstance)) // This one hangs if the debugger is attached
+                using (_duplicateHandleHook = new APIHook<DuplicateHandleDelegate>("api-ms-win-core-handle-l1-1-0.dll", "DuplicateHandle", CustomDuplicateHandle)) // This one hangs if the debugger is attached
                 {
                     _deviceToName.Clear();
 
                     for (int i = 0; i < 4; i++)
                     {
-                        var dev = new XInputDevice(i);
-
                         _hidPath = null;
 
-                        using (var xInput = new NativeXInput(i))
-                        {
-                            dev.Connected = xInput.IsConnected;
-                            if (!dev.Connected)
-                                continue;
+                        var dev = new XInputDevice(i);
+                        if (!dev.Connected)
+                            continue;
 
-                            dev.SubType = (XINPUT_DEVSUBTYPE)xInput.SubType;
-                        }
+                        _duplicateHandleHook.Resume();
 
                         dev.Path = _hidPath;
                         devices.Add(dev);
+
+                        _duplicateHandleHook.Suspend();
                     }
                 }
             }
@@ -106,19 +104,12 @@ namespace EmulatorLauncher.Common.Joysticks
             for (int i = 0; i < 4; i++)
             {
                 var dev = new XInputDevice(i);
+                if (!dev.Connected)
+                    continue;
 
-                using (var xInput = new NativeXInput(i))
-                {
-                    dev.Connected = xInput.IsConnected;
-                    if (!dev.Connected)
-                        continue;
-
-                    dev.SubType = (XINPUT_DEVSUBTYPE)xInput.SubType;
-
-                    string path;
-                    if (indexToPath.TryGetValue(i, out path))
-                        dev.Path = path;
-                }
+                string path;
+                if (indexToPath.TryGetValue(i, out path))
+                    dev.Path = path;
 
                 devices.Add(dev);
             }
@@ -130,6 +121,13 @@ namespace EmulatorLauncher.Common.Joysticks
         {
             DeviceIndex = index;
             Name = "Input Pad #" + (DeviceIndex + 1).ToString();
+
+            using (var xInput = new NativeXInput(index))
+            {
+                Connected = xInput.IsConnected;
+                if (Connected)
+                    SubType = (XINPUT_DEVSUBTYPE)xInput.SubType;
+            }
         }
 
         public bool Connected { get; set; }
@@ -305,20 +303,17 @@ namespace EmulatorLauncher.Common.Joysticks
         #endregion
 
         #region Api Hooking
+
+        private static APIHook<CreateFileWDelegate> _createFileWHook;
+        private static APIHook<DeviceIoControlDelegate> _deviceIoControlHook;
+        private static APIHook<DuplicateHandleDelegate> _duplicateHandleHook;
+        private static APIHook<CoCreateInstanceDelegate> _coCreateInstanceHook;
+        
+
         static Dictionary<IntPtr, string> _deviceToName = new Dictionary<IntPtr, string>();
         static string _hidPath;
 
         #region DuplicateHandle
-        [DllImport("api-ms-win-core-handle-l1-1-0.dll", CallingConvention = CallingConvention.StdCall)]
-        static extern bool DuplicateHandle(
-            IntPtr hSourceProcessHandle,
-            IntPtr hSourceHandle,
-            IntPtr hTargetProcessHandle, 
-            ref IntPtr lpTargetHandle,
-            UInt32 dwDesiredAccess, 
-            bool bInheritHandle, 
-            UInt32 dwOptions);
-
         delegate bool DuplicateHandleDelegate(
             IntPtr hSourceProcessHandle,
             IntPtr hSourceHandle,
@@ -340,7 +335,10 @@ namespace EmulatorLauncher.Common.Joysticks
         {
             _duplicateHandleHook.Suspend();
 
-            var ret = DuplicateHandle(hSourceProcessHandle, hSourceHandle, hTargetProcessHandle, ref lpTargetHandle, dwDesiredAccess, bInheritHandle, dwOptions);
+            var ret = _duplicateHandleHook.NativeMethod(hSourceProcessHandle, hSourceHandle, hTargetProcessHandle, ref lpTargetHandle, dwDesiredAccess, bInheritHandle, dwOptions);
+
+            _duplicateHandleHook.Resume();
+
             if (ret)
             {
                 string value;
@@ -348,26 +346,34 @@ namespace EmulatorLauncher.Common.Joysticks
                     _deviceToName[lpTargetHandle] = value;
             }
 
-            _duplicateHandleHook.Resume();
-
             return ret;
         }
-
-        private static APIHook _duplicateHandleHook;
         #endregion
 
-        #region CreateFileW
-        [DllImport("api-ms-win-core-file-l1-1-0.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
-        static extern IntPtr CreateFileW(
-            IntPtr lpFileName,
-            uint dwDesiredAccess,
-            uint dwShareMode,
-            IntPtr SecurityAttributes,
-            uint dwCreationDisposition,
-            uint dwFlagsAndAttributes,
-            IntPtr hTemplateFile
-        );
 
+        #region CoCreateInstance
+        delegate int CoCreateInstanceDelegate(ref Guid ClassGuid, IntPtr pUnkOuter, int dwClsContext, ref Guid InterfaceGuid, ref IntPtr Result);
+
+        private static Guid CLSID_DeviceBroker = new Guid("acc56a05-e277-4b1e-a43e-7a73e3cd6e6c");
+        private static Guid IID_IDeviceBroker = new Guid("8604b268-34a6-4b1a-a59f-cdbd8379fd98");
+
+        static int CustomCoCreateInstance(ref Guid ClassGuid, IntPtr pUnkOuter, int dwClsContext, ref Guid InterfaceGuid, ref IntPtr Result)
+        {
+            if (InterfaceGuid == IID_IDeviceBroker)
+            {
+                Result = IntPtr.Zero;
+                return -1;
+            }
+
+            _coCreateInstanceHook.Suspend();            
+            var ret = _coCreateInstanceHook.NativeMethod(ref ClassGuid, pUnkOuter, dwClsContext, ref InterfaceGuid, ref Result);
+            _coCreateInstanceHook.Resume();
+            return ret;
+        }
+        #endregion
+
+
+        #region CreateFileW
         delegate IntPtr CreateFileWDelegate(
             IntPtr lpFileName,
             uint dwDesiredAccess,
@@ -378,7 +384,6 @@ namespace EmulatorLauncher.Common.Joysticks
             IntPtr hTemplateFile
             );
 
-        [DebuggerStepThrough]
         static IntPtr CustomCreateFileW(
             IntPtr lpFileName,
             uint dwDesiredAccess,
@@ -391,21 +396,7 @@ namespace EmulatorLauncher.Common.Joysticks
         {
             _createFileWHook.Suspend();
 
-            int i = 0;
-            while(true)
-            {
-                var data = Marshal.ReadInt16(lpFileName, i);
-                if (data == 0)
-                    break;
-
-                i += 2;
-            }
-
-            byte[] bufferIn = new byte[i];
-            Marshal.Copy(lpFileName, bufferIn, 0, i);
-            var fileName = System.Text.Encoding.Unicode.GetString(bufferIn).Replace("\0", "");
-
-            var ret = CreateFileW(
+            var ret = _createFileWHook.NativeMethod(
                 lpFileName,
                 dwDesiredAccess,
                 dwShareMode,
@@ -414,31 +405,20 @@ namespace EmulatorLauncher.Common.Joysticks
                 dwFlagsAndAttributes,
                 hTemplateFile);
 
-            if (ret != (IntPtr)(-1)/* && fileName.IndexOf("&IG_", StringComparison.InvariantCultureIgnoreCase) >= 0*/)
-                _deviceToName[ret] = fileName;
-
             _createFileWHook.Resume();
+
+            if (ret != (IntPtr)(-1))
+            {
+                var fileName = APIHook.ReadWideStringPtr(lpFileName);
+                if (!string.IsNullOrEmpty(fileName) && fileName.IndexOf("&IG_", StringComparison.InvariantCultureIgnoreCase) >= 0)
+                    _deviceToName[ret] = fileName;
+            }
 
             return ret;
         }
-
-        private static APIHook _createFileWHook;
         #endregion
 
         #region DeviceIoControl
-
-        [DllImport("api-ms-win-core-io-l1-1-0.dll", SetLastError = true)]
-        static extern bool DeviceIoControl(
-            IntPtr hDevice,
-            int IoControlCode,
-            IntPtr InBuffer,
-            int nInBufferSize,
-            IntPtr OutBuffer,
-            int nOutBufferSize,
-            out int pBytesReturned,
-            IntPtr Overlapped
-        );
-
         delegate bool DeviceIoControlDelegate(
             IntPtr hDevice,
             int IoControlCode,
@@ -450,9 +430,6 @@ namespace EmulatorLauncher.Common.Joysticks
             IntPtr Overlapped
             );
 
-        private static APIHook _deviceIoControlHook;
-
-        [DebuggerStepThrough]
         static bool CustomDeviceIoControl(
             IntPtr hDevice,
             int IoControlCode,
@@ -466,7 +443,7 @@ namespace EmulatorLauncher.Common.Joysticks
         {
             _deviceIoControlHook.Suspend();
 
-            var ret = DeviceIoControl(hDevice,
+            var ret = _deviceIoControlHook.NativeMethod(hDevice,
                 IoControlCode,
                 InBuffer,
                 nInBufferSize,
@@ -475,14 +452,14 @@ namespace EmulatorLauncher.Common.Joysticks
                 out pBytesReturned,
                 Overlapped);
 
+            _deviceIoControlHook.Resume();
+
             if (IoControlCode == -2147426292 && ret) // 0x8000e00c
             {
                 string value;
                 if (_deviceToName.TryGetValue(hDevice, out value))
                     _hidPath = value;
             }
-
-            _deviceIoControlHook.Resume();
 
             return ret;
         }
