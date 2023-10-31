@@ -466,7 +466,7 @@ namespace EmulatorLauncher
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
-                foreach (var pad in Program.Controllers)
+                foreach (var pad in Program.Controllers.OrderBy(i => i.PlayerIndex))
                 {
                     string gcpad = anyDefKey + pad.PlayerIndex;
                     ini.ClearSection(gcpad);
