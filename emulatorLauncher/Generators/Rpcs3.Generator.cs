@@ -13,7 +13,9 @@ namespace EmulatorLauncher
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string path = AppConfig.GetFullPath("rpcs3");
+            string path = AppConfig.GetFullPath(emulator);
+            if (string.IsNullOrEmpty(path) && emulator != "rpcs3")
+                path = AppConfig.GetFullPath("rpcs3");
 
             string exe = Path.Combine(path, "rpcs3.exe");
             if (!File.Exists(exe))

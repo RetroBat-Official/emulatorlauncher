@@ -54,6 +54,7 @@
     <Compile Include="Compression\MountFile.cs" />
     <Compile Include="Compression\PortableZip.cs" />
     <Compile Include="Compression\ZipFile.cs" />
+    <Compile Include="EmulationStation\EmulationStationServices.cs" />
     <Compile Include="EmulationStation\EsFeatures.cs" />
     <Compile Include="EmulationStation\EsGameList.cs" />
     <Compile Include="EmulationStation\EsInput.cs" />

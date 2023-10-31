@@ -103,9 +103,8 @@ namespace EmulatorLauncher
         string _rom;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
-        {            
+        {
             string path = AppConfig.GetFullPath("fpinball");
-            
             string exe = Path.Combine(path, "Future Pinball.exe");
             if (!File.Exists(exe))
             {
@@ -210,11 +209,11 @@ namespace EmulatorLauncher
                 _splash = null;
             }
 
-            PerformBamCapture();
+            ManageBamCapture();
             base.Cleanup();
         }
 
-        private void PerformBamCapture()
+        private void ManageBamCapture()
         {
             if (_bam == null || !File.Exists(_bam))
                 return;
@@ -222,7 +221,7 @@ namespace EmulatorLauncher
             string bamPng = Path.Combine(Path.GetDirectoryName(_bam), Path.ChangeExtension(Path.GetFileName(_rom), ".png"));
             if (File.Exists(bamPng))
             {
-                ScreenCapture.AddImageToGameList(_rom, bamPng, false);
+                EmulationStationServices.AddImageToGameListIfMissing(Program.SystemConfig["system"], _rom, File.ReadAllBytes(bamPng), "image/png");
 
                 try { File.Delete(bamPng); }
                 catch { }
