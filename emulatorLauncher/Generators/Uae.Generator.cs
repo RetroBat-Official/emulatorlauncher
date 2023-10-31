@@ -129,6 +129,64 @@ namespace EmulatorLauncher
             }
         }
 
+        private void WriteKickstartRom(StringBuilder sb, string system)
+        {
+            string bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40068.A1200");
+
+            if (SystemConfig.isOptSet("a500_machine") && SystemConfig["a500_machine"] == "amiga500+")
+            {
+                bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v2.04 r37.175 (1991-05)(Commodore)(A500+)[!].rom");
+                if (!File.Exists(bios))
+                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick37175.A500");
+                sb.AppendLine("kickstart_rom_file=" + bios);
+            }
+
+            else
+            {
+                switch (system)
+                {
+                    case "amiga500":
+                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v2.04 r37.175 (1991-05)(Commodore)(A500+)[!].rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick37175.A500");
+                        sb.AppendLine("kickstart_rom_file=" + bios);
+                        break;
+                    case "amiga1200":
+                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.068 (1993-12)(Commodore)(A1200)[!].rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart - 391774-01 (USA, Europe) (v3.1 Rev 40.068) (A1200).rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40068.A1200");
+                        sb.AppendLine("kickstart_rom_file=" + bios);
+                        break;
+                    case "amiga4000":
+                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.068 (1993-12)(Commodore)(A4000)[!].rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40068.A4000");
+                        sb.AppendLine("kickstart_rom_file=" + bios);
+                        break;
+                    case "amigacd32":
+                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.060 (1993-05)(Commodore)(CD32)[!].rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.60 (1993)(Commodore)(CD32).rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40060.CD32");
+                        sb.AppendLine("kickstart_rom_file=" + bios);
+                        break;
+                    case "amigacdtv":
+                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v1.3 r34.005 (1987-12)(Commodore)(A500-A1000-A2000-CDTV)[!].rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v1.3 r34.005 (1987-12)(Commodore)(A500-A1000-A2000-CDTV)[o].rom");
+                        if (!File.Exists(bios))
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick34005.CDTV");
+                        sb.AppendLine("kickstart_rom_file=" + bios);
+                        break;
+                }
+            }
+        }
+
         private string WriteGameUaeFile(string system, string path, string rom, List<string> disks)
         {
             StringBuilder sb = new StringBuilder();
@@ -247,11 +305,10 @@ namespace EmulatorLauncher
 
             string disk = rom;
 
+            WriteKickstartRom(sb, system);
+
             if (Path.GetExtension(disk).ToLower() == ".lha")
             {
-                string bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.68 (1993)(Commodore)(A1200)[!].rom");
-                sb.AppendLine("kickstart_rom_file=" + bios);
-
                 string WHDLoad = Path.Combine(path, "WHDLoad");
 
                 sb.AppendLine("cpu_type=68ec020");
@@ -273,13 +330,6 @@ namespace EmulatorLauncher
             else if (system == "amigacd32")
             {
                 disk = disks.First();
-
-                string bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.060 (1993-05)(Commodore)(CD32)[!].rom");
-                if (!File.Exists(bios))
-                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.60 (1993)(Commodore)(CD32).rom");
-                if (!File.Exists(bios))
-                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40060.CD32");
-                sb.AppendLine("kickstart_rom_file=" + bios);
 
                 string extension = Path.Combine(AppConfig.GetFullPath("bios"), "CD32 Extended-ROM r40.60 (1993)(Commodore)(CD32).rom");
                 if (!File.Exists(extension))
@@ -367,15 +417,6 @@ namespace EmulatorLauncher
             {
                 disk = disks.First();
 
-                string bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom");
-                if (!File.Exists(bios))
-                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v1.3 r34.005 (1987-12)(Commodore)(A500-A1000-A2000-CDTV)[!].rom");
-                if (!File.Exists(bios))
-                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v1.3 r34.005 (1987-12)(Commodore)(A500-A1000-A2000-CDTV)[o].rom");
-                if (!File.Exists(bios))
-                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick34005.CDTV");
-                sb.AppendLine("kickstart_rom_file=" + bios);
-
                 string extension = Path.Combine(AppConfig.GetFullPath("bios"), "CDTV Extended-ROM v1.0 (1991)(Commodore)(CDTV)[!].rom");
                 if (!File.Exists(extension))
                     extension = Path.Combine(AppConfig.GetFullPath("bios"), "CDTV Extended-ROM v2.7 (1992)(Commodore)(CDTV).rom");
@@ -411,29 +452,6 @@ namespace EmulatorLauncher
 
             else if (system == "amiga500")
             {
-                if (SystemConfig.isOptSet("a500_machine") && SystemConfig["a500_machine"] == "amiga500+")
-                {
-                    string bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v2.04 r37.175 (1991-05)(Commodore)(A500+)[!].rom");
-                    if (!File.Exists(bios))
-                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick37175.A500");
-                    sb.AppendLine("kickstart_rom_file=" + bios);
-                }
-                else
-                {
-                    string bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.063 (1993-07)(Commodore)(A500-A600-A2000)[!].rom");
-                    if (!File.Exists(bios))
-                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom");
-                    if (!File.Exists(bios))
-                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[o].rom");
-                    if (!File.Exists(bios))
-                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick34005.A500");
-                    if (!File.Exists(bios))
-                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick37175.A500");
-                    if (!File.Exists(bios))
-                        bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick33180.A500");
-                    sb.AppendLine("kickstart_rom_file=" + bios);
-                }
-
                 for (int i = 0; i < disks.Count; i++)
                 {
                     sb.AppendLine("floppy" + i + "=" + disks[i]);
@@ -475,13 +493,6 @@ namespace EmulatorLauncher
 
             else if (system == "amiga1200")
             {
-                string bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.068 (1993-12)(Commodore)(A1200)[!].rom");
-                if (!File.Exists(bios))
-                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart - 391774-01 (USA, Europe) (v3.1 Rev 40.068) (A1200).rom");
-                if (!File.Exists(bios))
-                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40068.A1200");
-                sb.AppendLine("kickstart_rom_file=" + bios);
-
                 sb.AppendLine("pcmcia_mb_rom_file=:ENABLED");
                 sb.AppendLine("ide_mb_rom_file=:ENABLED");
 
@@ -563,11 +574,6 @@ namespace EmulatorLauncher
 
             else if (system == "amiga4000")
             {
-                string bios = Path.Combine(AppConfig.GetFullPath("bios"), "Kickstart v3.1 r40.068 (1993-12)(Commodore)(A4000)[!].rom");
-                if (!File.Exists(bios))
-                    bios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40068.A4000");
-                sb.AppendLine("kickstart_rom_file=" + bios);
-
                 sb.AppendLine("ide_mb_rom_file=:ENABLED");
 
                 for (int i = 0; i < disks.Count; i++)
