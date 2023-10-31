@@ -126,7 +126,6 @@ namespace EmulatorLauncher
 
         #region XInput
         private XInputDevice _xInputDevice;
-        private bool _xInputDeviceKnown;
 
         public bool IsXInputDevice
         {
@@ -139,41 +138,40 @@ namespace EmulatorLauncher
             }
         }
 
+        private static bool _xInputDevicesKnown;
+
+        private static void EnsureXInputControllers()
+        {
+            if (_xInputDevicesKnown)
+                return;
+
+            _xInputDevicesKnown = true;
+
+            var devices = XInputDevice.GetDevices();
+            var xInputControllers = Program.Controllers.Where(c => c.Name != "Keyboard" && c.Config != null && XInputDevice.IsXInputDevice(c.Config.DeviceGUID)).ToArray();
+            
+            foreach (var c in xInputControllers)
+            {
+                var inst = devices.FirstOrDefault(dev => dev.Path == c.DevicePath || InputDevices.GetInputDeviceParent(dev.Path) == c.DevicePath);
+                if (inst != null)
+                    c._xInputDevice = inst;
+            }
+
+            foreach (var c in xInputControllers.Where(dev => dev._xInputDevice == null).OrderBy(c => c.SdlController != null ? c.SdlController.Index : c.PlayerIndex))
+            {
+                int idx = 0;
+                while (xInputControllers.Any(dev => dev._xInputDevice != null && dev._xInputDevice.DeviceIndex == idx))
+                    idx++;
+
+                c._xInputDevice = new XInputDevice(idx);
+            }
+        }
+
         public XInputDevice XInput
         {
             get
-            {
-                if (_xInputDeviceKnown == false)
-                {
-                    _xInputDeviceKnown = true;
-                    
-                    if (Name == "Keyboard" || !IsXInputDevice)
-                        return null;
-                    
-                    var devices = XInputDevice.GetDevices();
-                    foreach (var dev in devices)
-                    {
-                        if (dev.Path == this.DevicePath || InputDevices.GetInputDeviceParent(dev.Path) == this.DevicePath)
-                        {
-                            _xInputDevice = dev;
-                            return _xInputDevice;
-                        }
-                    }
-
-                    if (devices.Length == 1 && Program.Controllers.Count(c => c.IsXInputDevice) == 1)
-                    {
-                        _xInputDevice = devices[0];
-                        return _xInputDevice;
-                    }
-
-                    var xinputindex = Program.Controllers
-                        .Where(c => c == this || c.IsXInputDevice)
-                        .OrderBy(c => c.DirectInput != null ? c.DirectInput.DeviceIndex : c.DeviceIndex)
-                        .ToList()
-                        .IndexOf(this);
-
-                    _xInputDevice = new XInputDevice(xinputindex);
-                }
+            {                    
+                EnsureXInputControllers();
                 return _xInputDevice;
             }
         }

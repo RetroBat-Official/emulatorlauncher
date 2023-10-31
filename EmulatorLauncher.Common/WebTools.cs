@@ -103,6 +103,34 @@ namespace EmulatorLauncher.Common
             return null;
         }
 
+        public static string PostBytes(string url, byte[] data, string contentType)
+        {
+            var req = WebRequest.Create(url) as HttpWebRequest;
+            req.Method = "POST";
+            req.UserAgent = UserAgent;
+            req.KeepAlive = false;
+            req.ContentLength = data.Length;
+            if (contentType != null)
+                req.ContentType = contentType;
+
+            using (var newStream = req.GetRequestStream())
+            {
+                newStream.Write(data, 0, data.Length);
+                newStream.Close();
+            }
+
+            var resp = req.GetResponse() as HttpWebResponse;
+            if (resp != null)
+            {
+                if (resp.StatusCode == HttpStatusCode.OK)
+                    return resp.ReadResponseString();
+
+                resp.Close();
+            }
+
+            return null;
+        }
+
         public static string DownloadString(string url)
         {
             var req = WebRequest.Create(url) as HttpWebRequest;

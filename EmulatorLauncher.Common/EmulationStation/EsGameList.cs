@@ -294,6 +294,8 @@ namespace EmulatorLauncher.Common.EmulationStation
             return Name;
         }
 
+        public string id { get; set; }
+
         private string _path;
 
         [XmlElement("path")]
