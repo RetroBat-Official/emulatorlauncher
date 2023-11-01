@@ -140,7 +140,7 @@ namespace EmulatorLauncher
                 {
                     { "filesys.path_firmware", AppConfig.GetFullPath("bios") },
                     { "filesys.path_cheat", Path.Combine(AppConfig.GetFullPath("cheats"), "mednafen") },
-                    { "filesys.path_sav", Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen") },
+                    { "filesys.path_sav", Path.Combine(AppConfig.GetFullPath("saves"), system) },
                     { "filesys.path_savbackup", Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen", "backup") },
                     { "filesys.path_state", Path.Combine(AppConfig.GetFullPath("saves"), system, "mednafen", "sstates") },
                     { "filesys.path_snap", Path.Combine(AppConfig.GetFullPath("screenshots"), "mednafen") }

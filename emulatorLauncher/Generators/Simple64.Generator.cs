@@ -29,7 +29,7 @@ namespace EmulatorLauncher
 
             // Configure the emulator
             SetupGUIConfig(path, rom);
-            SetupConfiguration(path);
+            SetupConfiguration(path, system);
             CreateControllerConfiguration(path);
 
             List<string> commandArray = new List<string>();
@@ -63,7 +63,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, string system)
         {
             string conf = Path.Combine(path, "mupen64plus.cfg");
 
@@ -75,12 +75,12 @@ namespace EmulatorLauncher
                     catch { }
                 ini.WriteValue("Core", "ScreenshotPath", screenshotPath.Replace("\\", "/"));
 
-                string saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "sstates");
+                string saveStatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "state");
                 if (!Directory.Exists(saveStatePath)) try { Directory.CreateDirectory(saveStatePath); }
                     catch { }
                 ini.WriteValue("Core", "SaveStatePath", saveStatePath.Replace("\\", "/"));
 
-                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "games");
+                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "sram");
                 if (!Directory.Exists(saveSRAMPath)) try { Directory.CreateDirectory(saveSRAMPath); }
                     catch { }
                 ini.WriteValue("Core", "SaveSRAMPath", saveSRAMPath.Replace("\\", "/"));

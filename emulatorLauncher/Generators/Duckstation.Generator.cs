@@ -136,7 +136,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("MemoryCards", "Card2Type", "PerGameTitle");
                     }
 
-                    string memCardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "psx", "duckstation", "memcards");
+                    string memCardsPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "duckstation", "memcards");
                     if (!string.IsNullOrEmpty(memCardsPath))
                         ini.WriteValue("MemoryCards", "Directory", memCardsPath.Replace("\\", "\\\\"));
 

@@ -123,7 +123,7 @@ namespace EmulatorLauncher
                 preference["AviFolder"] = recordsFolder;
             }
 
-            string savesFolder = Path.Combine(AppConfig.GetFullPath("saves"), system, "mesen");
+            string savesFolder = Path.Combine(AppConfig.GetFullPath("saves"), system);
             if (!Directory.Exists(savesFolder)) try { Directory.CreateDirectory(savesFolder); }
                 catch { }
             if (!string.IsNullOrEmpty(savesFolder) && Directory.Exists(savesFolder))

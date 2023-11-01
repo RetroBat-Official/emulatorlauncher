@@ -149,6 +149,12 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
             }
 
+            // Saves
+            string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
+            if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
+                catch { }
+            retroarchConfig["savefile_directory"] = savePath;
+
             // Cheats folder
             string cheatspath = Path.Combine(AppConfig.GetFullPath("cheats"), "retroarch");
             if (!string.IsNullOrEmpty(cheatspath))
@@ -187,15 +193,13 @@ namespace EmulatorLauncher.Libretro
             catch { }
 
             // Savestates
-            var savePath = Program.EsSaveStates.GetSavePath(system, "libretro", core);
-            if (!string.IsNullOrEmpty(savePath))
+            var saveStatePath = Program.EsSaveStates.GetSavePath(system, "libretro", core);
+            if (!string.IsNullOrEmpty(saveStatePath))
             {
-                if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
+                if (!Directory.Exists(saveStatePath)) try { Directory.CreateDirectory(saveStatePath); }
                     catch { }
 
-                retroarchConfig["savestate_directory"] = savePath;
-                retroarchConfig["savefile_directory"] = savePath;
-
+                retroarchConfig["savestate_directory"] = saveStatePath;
                 retroarchConfig["savestate_thumbnail_enable"] = "true";
                 retroarchConfig["savestates_in_content_dir"] = "false";
                 retroarchConfig["savefiles_in_content_dir"] = "false";
