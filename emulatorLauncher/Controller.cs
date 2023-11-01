@@ -152,7 +152,7 @@ namespace EmulatorLauncher
             
             foreach (var c in xInputControllers)
             {
-                var inst = devices.FirstOrDefault(dev => dev.Path == c.DevicePath || InputDevices.GetInputDeviceParent(dev.Path) == c.DevicePath);
+                var inst = devices.FirstOrDefault(dev => dev.Path == c.DevicePath || dev.ParentPath == c.DevicePath);
                 if (inst != null)
                     c._xInputDevice = inst;
             }

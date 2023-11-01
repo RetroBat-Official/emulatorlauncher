@@ -43,18 +43,49 @@ namespace EmulatorLauncher.Common.Joysticks
                         if (!dev.Connected)
                             continue;
 
-                        _duplicateHandleHook.Resume();
-
-                        dev.Path = _hidPath;
-                        devices.Add(dev);
-
-                        _duplicateHandleHook.Suspend();
+                        if (_hidPath != null)
+                        {
+                            var pidvid = VidPid.Parse(_hidPath);
+                            if (pidvid != null && pidvid.ProductId == dev.ProductId && pidvid.VendorId == dev.VendorId && !devices.Any(d => d.Path == _hidPath))
+                            {
+                                dev.Path = _hidPath;
+                                dev.ParentPath = InputDevices.GetInputDeviceParent(_hidPath);
+                            }
+                        }
+                        
+                        devices.Add(dev);                        
                     }
                 }
+
+                FixMissingPaths(devices);
             }
             catch { }
 
             return devices.ToArray();
+        }
+
+        private static void FixMissingPaths(List<XInputDevice> devices)
+        {
+            var rawInput = RawInputDevice.GetRawInputControllers()
+                .Where(r => r.DevicePath.Contains("IG_"))
+                .OrderBy(r => InputDevices.GetInputDeviceParent(r.DevicePath))
+                .ToArray();
+
+            foreach (var dev in devices.Where(d => d.Path == null))
+            {
+                foreach (var ri in rawInput)
+                {
+                    if (ri.VendorId != dev.VendorId || ri.ProductId != dev.ProductId)
+                        continue;
+
+                    if (devices.Any(d => d.Path != null && InputDevices.GetInputDeviceParent(d.Path) == InputDevices.GetInputDeviceParent(ri.DevicePath)))
+                        continue;
+
+                    dev.Path = ri.DevicePath;
+                    dev.ParentPath = InputDevices.GetInputDeviceParent(dev.Path);
+                    break;
+                }
+            }
         }
 
         private static XInputDevice[] GetDevicesInternalWithDebuggerAttached(bool skipIfDebuggerAttached = true)
@@ -67,6 +98,7 @@ namespace EmulatorLauncher.Common.Joysticks
 
             var indexToPath = new Dictionary<int, string>();
 
+#if DEBUG
             if (dddc.Length > 1 && !skipIfDebuggerAttached)
             {
                 try
@@ -100,6 +132,7 @@ namespace EmulatorLauncher.Common.Joysticks
                 }
                 catch { }
             }
+#endif
 
             for (int i = 0; i < 4; i++)
             {
@@ -109,11 +142,15 @@ namespace EmulatorLauncher.Common.Joysticks
 
                 string path;
                 if (indexToPath.TryGetValue(i, out path))
+                {
                     dev.Path = path;
+                    dev.ParentPath = InputDevices.GetInputDeviceParent(dev.Path);
+                }
 
                 devices.Add(dev);
             }
 
+            FixMissingPaths(devices);
             return devices.ToArray();
         }
 
@@ -122,17 +159,22 @@ namespace EmulatorLauncher.Common.Joysticks
             DeviceIndex = index;
             Name = "Input Pad #" + (DeviceIndex + 1).ToString();
 
-            using (var xInput = new NativeXInput(index))
-            {
-                Connected = xInput.IsConnected;
-                if (Connected)
-                    SubType = (XINPUT_DEVSUBTYPE)xInput.SubType;
-            }
+            var xInput = new NativeXInput(index);
+            Connected = xInput.IsConnected;
+            if (!Connected)
+                return;
+
+            SubType = (XINPUT_DEVSUBTYPE)xInput.SubType;
+            VendorId = xInput.VendorId;
+            ProductId = xInput.ProductId;
         }
 
-        public bool Connected { get; set; }
-        public string Path { get; set; }
-        public XINPUT_DEVSUBTYPE SubType { get; set; }
+        public bool Connected { get; private set; }
+        public string Path { get; private set; }
+        public string ParentPath { get; set; }
+        public XINPUT_DEVSUBTYPE SubType { get; private set; }
+        public USB_VENDOR VendorId { get; set; }
+        public USB_PRODUCT ProductId { get; set; }
 
         public override string ToString()
         {
@@ -146,67 +188,73 @@ namespace EmulatorLauncher.Common.Joysticks
         public string Name { get; private set; }
 
         #region Native XInput
-        class NativeXInput : IDisposable
+        class NativeXInput
         {
-            IntPtr _hModule;
-            XInputGetState _xInputGetState;
-            XInputGetCapabilities _xInputGetCapabilities;
             int _deviceIndex;
 
             public NativeXInput(int deviceIndex)
             {
                 _deviceIndex = deviceIndex;
 
-                _hModule = LoadLibrary("xinput1_4.dll");
-                if (_hModule == IntPtr.Zero)
-                    _hModule = LoadLibrary("xinput1_3.dll");
-                if (_hModule == IntPtr.Zero)
-                    _hModule = LoadLibrary("xinput9_1_0.dll");
+                var hModule = LoadLibrary("xinput1_4.dll");
+                if (hModule == IntPtr.Zero)
+                    hModule = LoadLibrary("xinput1_3.dll");
+                if (hModule == IntPtr.Zero)
+                    hModule = LoadLibrary("xinput9_1_0.dll");
 
-                if (_hModule != IntPtr.Zero)
+                if (hModule == IntPtr.Zero)
+                    return;
+
+                XInputGetState xInputGetStatePtr = (XInputGetState)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "XInputGetState"), typeof(XInputGetState));
+                if (xInputGetStatePtr != null)
                 {
-                    _xInputGetState = (XInputGetState)Marshal.GetDelegateForFunctionPointer(GetProcAddress(_hModule, "XInputGetState"), typeof(XInputGetState));
-                    _xInputGetCapabilities = (XInputGetCapabilities)Marshal.GetDelegateForFunctionPointer(GetProcAddress(_hModule, "XInputGetCapabilities"), typeof(XInputGetCapabilities));
+                    XInputState stateRef;
+                    IsConnected = xInputGetStatePtr(_deviceIndex, out stateRef) == 0;
                 }
-            }
 
-            public void Dispose()
-            {
-                if (_hModule != IntPtr.Zero)
+                if (IsConnected)
                 {
-                    FreeLibrary(_hModule);
-                    _hModule = IntPtr.Zero;
-                }
-            }
-
-            public bool IsConnected
-            {
-                get
-                {
-                    if (_xInputGetState != null)
+                    var procAddress = GetProcAddress(hModule, (IntPtr)108);
+                    if (procAddress != IntPtr.Zero)
                     {
-                        XInputState stateRef;
-                        return _xInputGetState(_deviceIndex, out stateRef) == 0;
+                        XInputGetCapabilitiesEx xInputGetCapabilitiesExPtr = (XInputGetCapabilitiesEx)Marshal.GetDelegateForFunctionPointer(procAddress, typeof(XInputGetCapabilitiesEx));
+                        if (xInputGetCapabilitiesExPtr != null)
+                        {
+                            var temp = new XInputCapabilitiesEx();
+                            if (xInputGetCapabilitiesExPtr(1, _deviceIndex, 0, out temp) == 0)
+                                _caps = temp;
+                        }
                     }
 
-                    return false;
-                }
-            }
-
-            public byte SubType
-            {
-                get
-                {
-                    if (_xInputGetCapabilities != null)
+                    if (!_caps.HasValue)
                     {
-                        XInputCapabilities temp;
-                        if (_xInputGetCapabilities(_deviceIndex, 0, out temp) == 0)
-                            return temp.SubType;
-                    }
+                        XInputGetCapabilities xInputGetCapabilitiesPtr = (XInputGetCapabilities)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "XInputGetCapabilities"), typeof(XInputGetCapabilities));
+                        if (xInputGetCapabilitiesPtr != null)
+                        {
+                            XInputCapabilities temp;
+                            if (xInputGetCapabilitiesPtr(_deviceIndex, 0, out temp) == 0)
+                            {
+                                XInputCapabilitiesEx caps = new XInputCapabilitiesEx();
+                                caps.vendorId = 0x045E;
+                                caps.productId = 0x02A1;
+                                caps.Capabilities = temp;
 
-                    return 0;
+                                _caps = caps;
+                            }
+                        }
+                    }
                 }
-            }
+
+                FreeLibrary(hModule);                
+            }            
+
+            private XInputCapabilitiesEx? _caps;
+
+            public bool IsConnected { get; private set; }        
+    
+            public byte SubType { get { return _caps.HasValue ? _caps.Value.Capabilities.SubType : (byte) 0; } }
+            public USB_VENDOR VendorId { get { return (USB_VENDOR) (_caps.HasValue ? _caps.Value.vendorId : (short)0); } }
+            public USB_PRODUCT ProductId { get { return (USB_PRODUCT) (_caps.HasValue ? _caps.Value.productId : (short)0); } }
 
             #region Apis
             [DllImport("kernel32.dll")]
@@ -214,6 +262,9 @@ namespace EmulatorLauncher.Common.Joysticks
 
             [DllImport("kernel32.dll")]
             static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
+
+            [DllImport("kernel32.dll")]
+            static extern IntPtr GetProcAddress(IntPtr hModule, IntPtr procedureName);
 
             [DllImport("kernel32.dll")]
             static extern bool FreeLibrary(IntPtr hModule);
@@ -292,8 +343,22 @@ namespace EmulatorLauncher.Common.Joysticks
                 public XInputVibration Vibration;
             }
 
+            struct XInputCapabilitiesEx
+            {
+                public XInputCapabilities Capabilities;
+                public short vendorId;
+                public short productId;
+                public short revisionId;
+                public short VersionNumber;
+                public short unk1;
+                public UInt32 unk2;
+            };
+
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             delegate int XInputGetCapabilities(int dwUserIndex, int dwFlags, out XInputCapabilities capabilitiesRef);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            delegate int XInputGetCapabilitiesEx(int unk1, int dwUserIndex, int dwFlags, out XInputCapabilitiesEx capabilitiesRef);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             delegate int XInputGetState(int dwUserIndex, out XInputState capabilitiesRef);
@@ -349,8 +414,7 @@ namespace EmulatorLauncher.Common.Joysticks
             return ret;
         }
         #endregion
-
-
+        
         #region CoCreateInstance
         delegate int CoCreateInstanceDelegate(ref Guid ClassGuid, IntPtr pUnkOuter, int dwClsContext, ref Guid InterfaceGuid, ref IntPtr Result);
 
@@ -362,7 +426,7 @@ namespace EmulatorLauncher.Common.Joysticks
             if (InterfaceGuid == IID_IDeviceBroker)
             {
                 Result = IntPtr.Zero;
-                return -1;
+                return -2147467262; // E_NOINTERFACE
             }
 
             _coCreateInstanceHook.Suspend();            

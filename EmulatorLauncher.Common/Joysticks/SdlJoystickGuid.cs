@@ -429,6 +429,7 @@ namespace EmulatorLauncher.Common.Joysticks
         XBOX360_XUSB_CONTROLLER = 0x02a1,
         XBOX360_WIRED_CONTROLLER = 0x028e,
         XBOX360_WIRELESS_RECEIVER = 0x0719,
+        XBOX_WIRELESS = 0x02d1,
         XBOX_ONE_ADAPTIVE = 0x0b0a,
         XBOX_ONE_ADAPTIVE_BLUETOOTH = 0x0b0c,
         XBOX_ONE_ADAPTIVE_BLE = 0x0b21,
