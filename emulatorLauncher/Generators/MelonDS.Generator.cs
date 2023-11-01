@@ -93,7 +93,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("", "ConsoleType", "0");
 
                 // Define paths
-                string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "nds", "melonds");
+                string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "nds");
                 if (!Directory.Exists(savesPath)) try { Directory.CreateDirectory(savesPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(savesPath) && Directory.Exists(savesPath))

@@ -91,7 +91,7 @@ namespace EmulatorLauncher
                 if (!string.IsNullOrEmpty(screenshotPath) && Directory.Exists(screenshotPath))
                     ini.WriteValue("ports.qt", "screenshotPath", screenshotPath);
 
-                string savegamePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mgba");
+                string savegamePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
                 if (!Directory.Exists(savegamePath)) try { Directory.CreateDirectory(savegamePath); }
                     catch { }
                 if (!string.IsNullOrEmpty(savegamePath) && Directory.Exists(savegamePath))

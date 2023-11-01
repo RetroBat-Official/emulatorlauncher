@@ -152,7 +152,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Core", "AutoStateSlotIncrement", incrementSlot ? "True" : "False");
                 }
 
-                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mupen64", "games");
+                string saveSRAMPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "sram");
                 FileTools.TryCreateDirectory(saveSRAMPath);                
                 ini.WriteValue("Core", "SaveSRAMPath", saveSRAMPath.Replace("\\", "/"));
 
