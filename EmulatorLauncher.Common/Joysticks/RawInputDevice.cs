@@ -3,15 +3,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher.Common
 {
     public class RawInputDevice
     {
-        public string Name { get; private set; }
-        public string DevicePath { get; private set; }
+        public string Name { get; private set; }        
         public RawInputDeviceType Type { get; private set; }
         public IntPtr Handle { get; private set; }
+
+        public USB_VENDOR VendorId { get; set; }
+        public USB_PRODUCT ProductId { get; set; }
+
+        public string DevicePath
+        {
+            get { return _devicePath; }
+            private set
+            {
+                if (_devicePath == value)
+                    return;
+
+                _devicePath = value;
+
+                var vidpid = VidPid.Parse(_devicePath);
+                if (vidpid != null)
+                {
+                    VendorId = vidpid.VendorId;
+                    ProductId = vidpid.ProductId;
+                }
+            }
+        }
+
+        private string _devicePath;
 
         public static RawInputDevice[] GetRawInputDevices()
         {
