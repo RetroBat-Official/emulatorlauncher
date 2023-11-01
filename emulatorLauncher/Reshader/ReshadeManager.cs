@@ -46,6 +46,7 @@ namespace EmulatorLauncher
                 reShadeIni.WriteValue("GENERAL", "TextureSearchPaths", @".\" + ReshadeFolder  +@"\Textures");
                 reShadeIni.WriteValue("GENERAL", "PresetFiles", @".\" + ReshadeFolder + @"\ReShadePreset.ini");
                 reShadeIni.WriteValue("GENERAL", "PresetPath", @".\" + ReshadeFolder + @"\ReShadePreset.ini");
+                reShadeIni.WriteValue("GENERAL", "ShowPresetTransitionMessage", "0");
 
                 if (!string.IsNullOrEmpty(Program.AppConfig["screenshots"]))
                 {
