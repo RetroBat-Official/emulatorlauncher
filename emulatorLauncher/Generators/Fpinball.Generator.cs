@@ -10,13 +10,15 @@ using System.Threading;
 using EmulatorLauncher.VPinballLauncher;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
     class FpinballGenerator : Generator
     {
+        private ScreenShotsWatcher _sswatch;
         private LoadingForm _splash;
-
+        
         public static int JoystickValue(InputKey key, Controller c)
         {
             var a = c.GetDirectInputMapping(key);
@@ -133,6 +135,7 @@ namespace EmulatorLauncher
 
             ScreenResolution.SetHighDpiAware(exe);
 
+            SetupBamConfig();
             SetupOptions(resolution);
             SetupControllers();
 
@@ -164,6 +167,34 @@ namespace EmulatorLauncher
                 ret.Verb = "runas";
 
             return ret;
+        }
+
+        private void SetupBamConfig()
+        {
+            if (_bam == null || !File.Exists(_bam))
+                return;
+
+            string screenShotPath = AppConfig.GetFullPath("screenshots");
+            if (string.IsNullOrEmpty(screenShotPath))
+                return;
+
+            string folder = Path.GetDirectoryName(_bam);
+            string path = Path.Combine(Path.GetDirectoryName(_bam), "bam.cfg");
+            if (!File.Exists(path))
+                return;
+
+            string relativeSSPath = "..\\" + FileTools.GetRelativePath(folder, screenShotPath);
+
+            var lines = File.ReadAllLines(path).ToList();
+            lines.RemoveWhere(l => l != null && l.StartsWith("SnapShotPath"));
+            lines.RemoveWhere(l => l != null && l.StartsWith("SnapShotBackboxPath"));
+
+            lines.Add("SnapShotPath = " + relativeSSPath);
+            lines.Add("SnapShotBackboxPath = " + relativeSSPath);
+
+            File.WriteAllLines(path, lines.ToArray());
+
+            _sswatch = new ScreenShotsWatcher(screenShotPath, SystemConfig["system"], SystemConfig["rom"]);
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -209,23 +240,13 @@ namespace EmulatorLauncher
                 _splash = null;
             }
 
-            ManageBamCapture();
-            base.Cleanup();
-        }
-
-        private void ManageBamCapture()
-        {
-            if (_bam == null || !File.Exists(_bam))
-                return;
-
-            string bamPng = Path.Combine(Path.GetDirectoryName(_bam), Path.ChangeExtension(Path.GetFileName(_rom), ".png"));
-            if (File.Exists(bamPng))
+            if (_sswatch != null)
             {
-                EmulationStationServices.AddImageToGameListIfMissing(Program.SystemConfig["system"], _rom, File.ReadAllBytes(bamPng), "image/png");
-
-                try { File.Delete(bamPng); }
-                catch { }
+                _sswatch.Dispose();
+                _sswatch = null;
             }
+            
+            base.Cleanup();
         }
 
         private void SetupOptions(ScreenResolution resolution)

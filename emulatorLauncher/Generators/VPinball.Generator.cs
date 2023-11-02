@@ -97,8 +97,10 @@ namespace EmulatorLauncher
             {
                 var px = Process.Start(path);
 
-                using (new KeyboardManager(() => KillProcess(px, _rom)))
+                using (var kb = new KeyboardManager(() => KillProcess(px)))
                 {
+                    kb.RegisterKeyboardAction(() => SaveScreenshot(), (vkCode, scanCode) => vkCode == 44 && scanCode == 55);
+
                     while (!px.HasExited)
                     {
                         if (px.WaitForExit(10))
@@ -147,13 +149,31 @@ namespace EmulatorLauncher
             base.Cleanup();
         }
 
-        private static void KillProcess(Process px, string rom)
+        private static void SaveScreenshot()
         {
-            try
+            if (!ScreenCapture.AddScreenCaptureToGameList(Program.SystemConfig["system"], Program.SystemConfig["rom"]))
             {
-                ScreenCapture.AddScreenCaptureToGameList(rom);
-                px.Kill();
+                string path = Program.AppConfig.GetFullPath("screenshots");
+                if (!Directory.Exists(path))
+                    return;
+
+                int index = 0;
+                string fn;
+
+                do
+                {
+                    fn = Path.Combine(path, Path.GetFileNameWithoutExtension(Program.SystemConfig["rom"]) + (index == 0 ? "" : "_" + index.ToString()) + ".jpg");
+                    index++;
+                } 
+                while (File.Exists(fn));
+
+                ScreenCapture.CaptureScreen(fn);
             }
+        }
+
+        private static void KillProcess(Process px)
+        {
+            try { px.Kill(); }
             catch { }
         }
 

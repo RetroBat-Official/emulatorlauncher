@@ -70,12 +70,13 @@
   <ItemGroup>
     <Compile Include="Bezels\BezelFiles.cs" />
     <Compile Include="Common\SaveStatesWatcher.cs" />
+    <Compile Include="Common\ScreenShotsWatcher.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="Bezels\FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EsSaveStatesExtensions.cs" />    
+    <Compile Include="EsSaveStatesExtensions.cs" />
     <Compile Include="Generators\Xm6pro.Generator.cs" />
     <Compile Include="Generators\Flycast.Generator.cs" />
     <Compile Include="Generators\Flycast.Controllers.cs">

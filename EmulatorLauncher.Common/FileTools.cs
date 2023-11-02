@@ -36,6 +36,17 @@ namespace EmulatorLauncher.Common
             return false;
         }
 
+        public static string GetRelativePath(string basePath, string targetPath)
+        {
+            Uri baseUri = new Uri(basePath);
+            Uri targetUri = new Uri(targetPath);
+
+            Uri relativeUri = baseUri.MakeRelativeUri(targetUri);
+            string relativePath = Uri.UnescapeDataString(relativeUri.ToString());
+
+            return relativePath.Replace('/', '\\');
+        }
+
         public static string FindFreeDriveLetter()
         {
             var drives = DriveInfo.GetDrives();
