@@ -27,7 +27,17 @@ namespace EmulatorLauncher.Common
             using (Image img = CaptureScreen())
                 img.Save(filename);
         }
-        
+
+        public static bool AddScreenCaptureToGameList(string system, string rom)
+        {
+            using (var img = CaptureScreen())
+            {
+                var bytes = ConvertImageToJpegBytes(img);
+                return EmulationStationServices.AddImageToGameListIfMissing(system, rom, bytes, "image/jpg");
+            }
+        }
+
+        /*
         public static void AddImageToGameList(string rom, string imagePath, bool resizeTo43 = true)
         {
             if (string.IsNullOrEmpty(rom))
@@ -100,11 +110,21 @@ namespace EmulatorLauncher.Common
             }
             catch { }
         }
-        
-        public static void AddScreenCaptureToGameList(string rom)
+        */
+        public static byte[] ConvertImageToJpegBytes(Image image)
         {
-            AddImageToGameList(rom, null);
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                var encoderParameters = new EncoderParameters(1);
+                encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 75L);
+
+                var codecInfo = GetJpegEncoderInfo();
+                image.Save(memoryStream, codecInfo, encoderParameters);
+
+                return memoryStream.ToArray();
+            }
         }
+
 
         static ImageCodecInfo GetJpegEncoderInfo()
         {

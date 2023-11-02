@@ -25,6 +25,7 @@ namespace EmulatorLauncher.Libretro
         public string CurrentHomeDirectory { get; set; }
 
         private LibRetroStateFileManager _stateFileManager;
+        private ScreenShotsWatcher _screenShotWatcher;
 
         public LibRetroGenerator()
         {
@@ -144,7 +145,10 @@ namespace EmulatorLauncher.Libretro
             if (!string.IsNullOrEmpty(AppConfig["screenshots"]))
             {
                 if (Directory.Exists(AppConfig["screenshots"]))
+                {
                     retroarchConfig["screenshot_directory"] = AppConfig.GetFullPath("screenshots");
+                    _screenShotWatcher = new ScreenShotsWatcher(AppConfig.GetFullPath("screenshots"), SystemConfig["system"], SystemConfig["rom"]);
+                }
                 else if (retroarchConfig["screenshot_directory"] != @":\screenshots" && !Directory.Exists(retroarchConfig["screenshot_directory"]))
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
             }
@@ -1038,6 +1042,12 @@ namespace EmulatorLauncher.Libretro
                 var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
                 retroarchConfig["video_driver"] = _video_driver;
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+            }
+
+            if (_screenShotWatcher != null)
+            {
+                _screenShotWatcher.Dispose();
+                _screenShotWatcher = null;
             }
 
             if (_stateFileManager != null)
