@@ -149,11 +149,11 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["screenshot_directory"] = @":\screenshots";
             }
 
-            // Saves
+            // Save Files
             string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
-            if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
-                catch { }
+            FileTools.TryCreateDirectory(savePath);                
             retroarchConfig["savefile_directory"] = savePath;
+            retroarchConfig["savefiles_in_content_dir"] = "false";
 
             // Cheats folder
             string cheatspath = Path.Combine(AppConfig.GetFullPath("cheats"), "retroarch");
@@ -184,25 +184,20 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["recording_output_directory"] = @":\records\output";
             }
 
-            try 
-            {
-                string cacheDirectory = Path.Combine(Path.GetTempPath(), "retroarch");
-                Directory.CreateDirectory(cacheDirectory);
-                retroarchConfig["cache_directory"] = cacheDirectory;
-            }
-            catch { }
+            // Cache
+            string cacheDirectory = Path.Combine(Path.GetTempPath(), "retroarch");
+            FileTools.TryCreateDirectory(cacheDirectory);                
+            retroarchConfig["cache_directory"] = cacheDirectory;
 
             // Savestates
             var saveStatePath = Program.EsSaveStates.GetSavePath(system, "libretro", core);
             if (!string.IsNullOrEmpty(saveStatePath))
             {
-                if (!Directory.Exists(saveStatePath)) try { Directory.CreateDirectory(saveStatePath); }
-                    catch { }
+                FileTools.TryCreateDirectory(saveStatePath);
 
                 retroarchConfig["savestate_directory"] = saveStatePath;
                 retroarchConfig["savestate_thumbnail_enable"] = "true";
-                retroarchConfig["savestates_in_content_dir"] = "false";
-                retroarchConfig["savefiles_in_content_dir"] = "false";
+                retroarchConfig["savestates_in_content_dir"] = "false";                
             }
 
             if (SystemConfig.isOptSet("incrementalsavestates") && !SystemConfig.getOptBoolean("incrementalsavestates"))
