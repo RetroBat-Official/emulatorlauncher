@@ -51,6 +51,7 @@ namespace EmulatorLauncher
                 if (!string.IsNullOrEmpty(Program.AppConfig["screenshots"]))
                 {
                     reShadeIni.WriteValue("GENERAL", "ScreenshotPath", Program.AppConfig.GetFullPath("screenshots"));
+                    reShadeIni.WriteValue("SCREENSHOT", "SavePath", Program.AppConfig.GetFullPath("screenshots"));
                     reShadeIni.WriteValue("SCREENSHOTS", "SavePath", Program.AppConfig.GetFullPath("screenshots"));
                 }
 

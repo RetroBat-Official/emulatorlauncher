@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher.VPinballLauncher
 {
@@ -110,10 +111,7 @@ namespace EmulatorLauncher.VPinballLauncher
 
             if (Image != null)
             {
-                Size sz = new System.Drawing.Size(1024, 768);
-
-                Rectangle zz = ClientRectangle;
-                Rectangle rc = new Rectangle(zz.Width / 2 - sz.Width / 2, zz.Height / 2 - sz.Height / 2, sz.Width, sz.Height);
+                var rc = Misc.GetPictureRect(Image.Size, ClientRectangle);
                 e.Graphics.DrawImage(Image, rc);
             }
 
