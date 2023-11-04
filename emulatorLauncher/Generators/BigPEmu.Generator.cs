@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Drawing;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -116,16 +117,16 @@ namespace EmulatorLauncher
                 BindFeature(video, "MSAAPref", "bigpemu_antialiasing", "0");
                 BindFeature(video, "ScreenFilter", "smooth", "0");
 
-                if (_bezelFileInfo == null && SystemConfig.isOptSet("ratio") && !string.IsNullOrEmpty(SystemConfig["ratio"]))
+                if (_bezelFileInfo == null && SystemConfig.isOptSet("bigpemu_ratio") && !string.IsNullOrEmpty(SystemConfig["bigpemu_ratio"]))
                 {
-                    if (SystemConfig["ratio"] == "stretch")                 // Stretch only if bezels are empty and ratio = STRETCH
+                    if (SystemConfig["bigpemu_ratio"] == "stretch")                 // Stretch only if bezels are empty and ratio = STRETCH
                     {
                         video["ScreenScaling"] = "6";
                     }
                     else
                     {
                         video["ScreenScaling"] = "0";                       // else do not stretch and apply selected ratio
-                        video["ScreenAspect"] = SystemConfig["ratio"];
+                        video["ScreenAspect"] = SystemConfig["bigpemu_ratio"];
                     }
 
                 }
