@@ -140,6 +140,14 @@ namespace EmulatorLauncher
             { InputKey.a,               "Buttons/B" }
         };
 
+        static InputKeyMapping reversedButtonsRotate = new InputKeyMapping()
+        {
+            { InputKey.b,               "Buttons/A" },
+            { InputKey.y,               "Buttons/B" },
+            { InputKey.x,               "Buttons/Y" },
+            { InputKey.a,               "Buttons/X" }
+        };
+
         static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string,string>()
         {
             { "Main Stick/Up",   "Main Stick/Down" },
@@ -524,6 +532,7 @@ namespace EmulatorLauncher
 
                     bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
                     bool revertButtonsAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
+                    bool revertRotate = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_rotate";
                     bool rumble = !Program.SystemConfig.getOptBoolean("input_rumble");
 
                     foreach (var x in anyMapping)
@@ -535,6 +544,9 @@ namespace EmulatorLauncher
 
                         if (revertButtonsAB && reversedButtonsAB.ContainsKey(x.Key))
                             value = reversedButtonsAB[x.Key];
+
+                        if (revertRotate && reversedButtonsRotate.ContainsKey(x.Key))
+                            value = reversedButtonsRotate[x.Key];
 
                         if (pad.Config.Type == "keyboard")
                         {
