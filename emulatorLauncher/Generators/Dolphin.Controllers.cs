@@ -102,6 +102,12 @@ namespace EmulatorLauncher
             { InputKey.hotkey,          "Buttons/Hotkey" },
         };
 
+        static InputKeyMapping vs4mapping = new InputKeyMapping()
+        {
+            { InputKey.joystick1left,  "Main Stick/Down" },
+            { InputKey.joystick1up,    "Main Stick/Left" },
+        };
+
         static InputKeyMapping gamecubeWiiMapping = new InputKeyMapping()
         { 
             { InputKey.l3,              "Main Stick/Modifier"},
@@ -140,12 +146,28 @@ namespace EmulatorLauncher
             { InputKey.a,               "Buttons/B" }
         };
 
+        static InputKeyMapping reversedButtonsRotate = new InputKeyMapping()
+        {
+            { InputKey.b,               "Buttons/A" },
+            { InputKey.y,               "Buttons/B" },
+            { InputKey.x,               "Buttons/Y" },
+            { InputKey.a,               "Buttons/X" }
+        };
+
         static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string,string>()
         {
             { "Main Stick/Up",   "Main Stick/Down" },
             { "Main Stick/Left", "Main Stick/Right" },
             { "C-Stick/Up",      "C-Stick/Down" },
             { "C-Stick/Left",    "C-Stick/Right" }
+        };
+
+        static Dictionary<string, string> vs4ReverseAxes = new Dictionary<string, string>()
+        {
+            { "Main Stick/Down",   "Main Stick/Up" },
+            { "Main Stick/Left",   "Main Stick/Right" },
+            { "C-Stick/Up",        "C-Stick/Down" },
+            { "C-Stick/Left",      "C-Stick/Right" }
         };
 
         // if joystick1up is missing on the pad, use up instead
@@ -356,7 +378,9 @@ namespace EmulatorLauncher
 
         private static void generateControllerConfig_gamecube(string path, string rom, InputKeyMapping anyMapping, bool triforce = false)
         {
-            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, gamecubeReverseAxes, gamecubeReplacements, triforce);        
+            bool vs4axis = triforce && Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4";
+
+            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, vs4axis ? vs4ReverseAxes : gamecubeReverseAxes, gamecubeReplacements, triforce);     
         }
 
         static Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()
@@ -524,6 +548,7 @@ namespace EmulatorLauncher
 
                     bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
                     bool revertButtonsAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
+                    bool revertRotate = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_rotate";
                     bool rumble = !Program.SystemConfig.getOptBoolean("input_rumble");
 
                     foreach (var x in anyMapping)
@@ -535,6 +560,15 @@ namespace EmulatorLauncher
 
                         if (revertButtonsAB && reversedButtonsAB.ContainsKey(x.Key))
                             value = reversedButtonsAB[x.Key];
+
+                        if (revertRotate && reversedButtonsRotate.ContainsKey(x.Key))
+                            value = reversedButtonsRotate[x.Key];
+
+                        if (triforce && Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4")
+                        {
+                            if (vs4mapping.ContainsKey(x.Key))
+                                value = vs4mapping[x.Key];
+                        }
 
                         if (pad.Config.Type == "keyboard")
                         {
