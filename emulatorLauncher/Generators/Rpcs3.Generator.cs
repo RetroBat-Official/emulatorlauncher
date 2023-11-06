@@ -175,7 +175,35 @@ namespace EmulatorLauncher
             BindFeature(video, "Strict Rendering Mode", "strict_rendering", "false");
             BindFeature(video, "Disable Vertex Cache", "disablevertex", "false");
             BindFeature(video, "Multithreaded RSX", "multithreadedrsx", "false");
-            BindFeature(video, "Enable 3D", "enable3d", "false");
+            
+            if (SystemConfig.isOptSet("enable3d") && !string.IsNullOrEmpty(SystemConfig["enable3d"]))
+            {
+                switch(SystemConfig["enable3d"])
+                {
+                    case "disabled":
+                        video["Enable 3D"] = "false";
+                        video["3D Display Mode"] = "Disabled";
+                        break;
+                    case "anaglyph":
+                        video["Enable 3D"] = "false";
+                        video["3D Display Mode"] = "Anaglyph";
+                        break;
+                    case "sidebyside":
+                        video["Enable 3D"] = "false";
+                        video["3D Display Mode"] = "Side-by-Side";
+                        break;
+                    case "overunder":
+                        video["Enable 3D"] = "false";
+                        video["3D Display Mode"] = "Over-Under";
+                        break;
+                }
+            }
+            else
+            {
+                video["Enable 3D"] = "false";
+                video["3D Display Mode"] = "Disabled";
+            }
+            
             BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
             BindFeature(video, "Shader Precision", "shader_quality", "Auto");
             BindFeature(video, "Driver Wake-Up Delay", "driver_wake", "1");
