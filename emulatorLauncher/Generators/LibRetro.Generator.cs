@@ -1140,7 +1140,15 @@ namespace EmulatorLauncher.Libretro
                 string croftSubPath = croftSubFile[0];
                 rom = Path.Combine(Path.GetDirectoryName(rom), croftSubPath);
             }
-            
+            else if (Path.GetExtension(rom).ToLowerInvariant() == ".boom3")
+            {
+                string[] pakFile = File.ReadAllLines(rom);
+                string pakSubPath = pakFile[0];
+                if (pakSubPath.StartsWith("d3xp"))
+                    core = "boom3_xp";
+                rom = Path.Combine(Path.GetDirectoryName(rom), pakSubPath);
+            }
+
             // Exit if no core is provided
             if (string.IsNullOrEmpty(core))
             {

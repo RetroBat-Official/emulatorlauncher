@@ -57,7 +57,7 @@ namespace EmulatorLauncher.Common.Lightguns
                 if (sindenDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.SindenLightgun;
 
-                string[] gun4irDeviceIds = new string[] { "VID_2341&PID_8042" };
+                string[] gun4irDeviceIds = new string[] { "VID_2341&PID_8042", "VID_2341&PID_8043", "VID_2341&PID_8044", "VID_2341&PID_8045" };
                 if (gun4irDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.Gun4Ir;
 
