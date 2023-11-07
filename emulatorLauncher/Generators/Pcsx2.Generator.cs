@@ -846,7 +846,6 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "EmuCore/GS", "TriFilter", "trilinear_filtering", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "MaxAnisotropy", "anisotropic_filtering", "0");
                 BindIniFeature(ini, "EmuCore/GS", "dithering_ps2", "dithering", "2");
-                BindIniFeature(ini, "EmuCore/GS", "crc_hack_level", "crc_hack_level", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "accurate_blending_unit", "blending_accuracy", "1");
                 BindBoolIniFeature(ini, "EmuCore/GS", "fxaa", "fxaa", "true", "false");
                 BindIniFeature(ini, "EmuCore/GS", "TVShader", "TVShader", "0");
@@ -871,14 +870,6 @@ namespace EmulatorLauncher
 
                 // User hacks
                 BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks", "UserHacks", "true", "false");
-
-                if (SystemConfig.isOptSet("UserHacks_Half_Bottom_Override") && !string.IsNullOrEmpty(SystemConfig["UserHacks_Half_Bottom_Override"]))
-                {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_Half_Bottom_Override", SystemConfig["UserHacks_Half_Bottom_Override"]);
-                    ini.WriteValue("EmuCore/GS", "UserHacks", "true");
-                }
-                else if (Features.IsSupported("Offset"))
-                    ini.WriteValue("EmuCore/GS", "UserHacks_Half_Bottom_Override", "-1");
 
                 // User hacks Skipdraw range
                 if (SystemConfig.isOptSet("skipdraw") && !string.IsNullOrEmpty(SystemConfig["skipdraw"]))
