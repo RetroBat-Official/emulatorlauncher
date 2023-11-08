@@ -17,6 +17,44 @@
     ]
   },
 
+  "adam": {
+    "name": "Coleco Adam",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/adam.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/adam_ddp.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/adam_fdc.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/adam_kb.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/adam_prn.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/adam_cart.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/adam_cass.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/adam_flop.xml"
+      }
+    ]
+  },
+
   "advision": {
     "name": "Adventure Vision",
     "biosFiles": [
@@ -111,12 +149,114 @@
     ]
   },
 
+  "apple2": {
+    "name": "Apple II",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/apple2.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/apple2e.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/apple2ee.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/apple2p.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/a2diskiing.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/votrsc01a.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/votrsc01.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/d2fdc.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/AppleIIe_DiskII.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/AppleIIe.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/apple2-int-auto.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/apple2-asoft-auto.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/disk2-13boot.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/disk2-13seq.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/disk2-16boot.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/disk2-16seq.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2_cass.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2_flop_clcracked.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2_flop_misc.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2_flop_orig.xml"
+      }
+    ]
+  },
+
   "apple2gs": {
     "name": "Apple II GS",
     "biosFiles": [
       {
         "md5": "20a0334c447cb069a040ae5be1d938df",
         "file": "bios/APPLE2GS.ROM"
+      },
+      {
+        "md5": "",
+        "file": "bios/apple2gs.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2gs_flop_clcracked.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2gs_flop_misc.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2gs_flop_orig.xml"
       }
     ]
   },
@@ -225,8 +365,70 @@
     "name": "Atari ST",
     "biosFiles": [
       {
-        "md5": "c1c57ce48e8ee4135885cee9e63a68a2",
+        "md5": "",
         "file": "bios/tos.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatari/tos/emutos.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatari/tos/tos102.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatari/tos/tos106.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatari/tos/tos104.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatari/tos/tos206.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatarib/emutos.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatarib/tos102.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatarib/tos106.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatarib/tos104.img"
+      },
+      {
+        "md5": "",
+        "file": "bios/hatarib/tos206.img"
+      }
+    ]
+  },
+
+  "atom": {
+    "name": "Acorn Atom",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/atom.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/atom_cass.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/atom_flop.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/atom_rom.xml"
       }
     ]
   },
@@ -237,6 +439,10 @@
       {
         "md5": "0ec5ae5b5a5c4959fa8b43fcf8687f7c",
         "file": "bios/dc/awbios.zip"
+      },
+      {
+        "md5": "0ec5ae5b5a5c4959fa8b43fcf8687f7c",
+        "file": "../emulators/flycast/data/awbios.zip"
       }
     ]
   },
@@ -279,6 +485,38 @@
       {
         "md5": "",
         "file": "bios/mame/samples/bbc.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/bbc_cass.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/bbc_rom.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/bbcb_flop.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/bbcb_flop_orig.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/bbcb_flop_us.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/bbcm_cart.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/bbcm_flop.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/bbcmc_flop.xml"
       }
     ]
   },
@@ -441,6 +679,16 @@
     ]
   },
 
+  "ecwolf": {
+    "name": "ECWolf",
+    "biosFiles": [
+      {
+        "md5": "f1c29d2dc0a1a48a0c007dbb38801950",
+        "file": "bios/ecwolf.pk3"
+      }
+    ]
+  },
+
   "fm7": {
     "name": "FM-7",
     "biosFiles": [
@@ -451,6 +699,18 @@
       {
         "md5": "",
         "file": "bios/fm77av.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/fm7_cass.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/fm7_disk.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/fm77av.xml"
       }
     ]
   },
@@ -465,6 +725,42 @@
       {
         "md5": "",
         "file": "bios/fmtownsux.zip"
+      },
+      {
+        "md5": "8fa4e553f28cfc0c30a0a1e589799942",
+        "file": "bios/fmtowns/FMT_DIC.ROM"
+      },
+      {
+        "md5": "0585b19930d4a7f4c71bcc8a33746588",
+        "file": "bios/fmtowns/FMT_DOS.ROM"
+      },
+      {
+        "md5": "ac0c7021e9bf48ca84b51ab651169a88",
+        "file": "bios/fmtowns/FMT_F20.ROM"
+      },
+      {
+        "md5": "b91300e55b70227ce98b59c5f02fa8dd",
+        "file": "bios/fmtowns/FMT_FNT.ROM"
+      },
+      {
+        "md5": "86fb6f7280689259f0ca839dd3dd6cde",
+        "file": "bios/fmtowns/FMT_SYS.ROM"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/fmtowns_cd.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/fmtowns_flop_cracked.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/fmtowns_flop_misc.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/fmtowns_flop_orig.xml"
       }
     ]
   },
@@ -617,12 +913,52 @@
     ]
   },
 
-  "lynx48k": {
+  "camplynx": {
     "name": "Camputers Lynx",
     "biosFiles": [
       {
-        "md5": "85ae78a20ffaff388dd09c75d9e1ec0e",
+        "md5": "",
         "file": "bios/lynx48k.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/lynx96k.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/lynx128k.zip"
+      },
+      {
+        "md5": "",
+        "file": "../emulators/jynx/lynx48-1.rom"
+      },
+      {
+        "md5": "",
+        "file": "../emulators/jynx/lynx48-2.rom"
+      },
+      {
+        "md5": "",
+        "file": "../emulators/jynx/lynx96-1.rom"
+      },
+      {
+        "md5": "",
+        "file": "../emulators/jynx/lynx96-2.rom"
+      },
+      {
+        "md5": "",
+        "file": "../emulators/jynx/lynx96-3.rom"
+      },
+      {
+        "md5": "",
+        "file": "../emulators/jynx/lynx96-3-scorpion.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/camplynx_cass.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/camplynx_flop.xml"
       }
     ]
   },
@@ -667,6 +1003,34 @@
       {
         "md5": "febe8782b466d7c3b16de6d104826b34",
         "file": "bios/KANJI.ROM"
+      },
+      {
+        "md5": "f873f1260b14f1468fa118778ae1c3d2",
+        "file": "bios/openMSX/share/systemroms/cf-3300_basic-bios1.rom"
+      },
+      {
+        "md5": "318b6aa76da71c54ccad7734356e1902",
+        "file": "bios/openMSX/share/systemroms/cf-3300_disk.rom"
+      },
+      {
+        "md5": "a0452dbf5ace7d2e49d0a8029efed09a",
+        "file": "bios/openMSX/share/systemroms/vg8020_basic-bios1.rom"
+      },
+      {
+        "md5": "9218f6dd89f7ba01e3090d44721b4260",
+        "file": "bios/openMSX/share/systemroms/px-7_basic-bios1.rom"
+      },
+      {
+        "md5": "281809cafe63437fc4bffb3033fbd0db",
+        "file": "bios/openMSX/share/systemroms/px-7_pbasic.rom"
+      },
+      {
+        "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
+        "file": "bios/openMSX/share/systemroms/fmpac.rom"
+      },
+      {
+        "md5": "42af93619160ef2116416f74a6cb12f2",
+        "file": "bios/openMSX/share/systemroms/yrw801.rom"
       }
     ]
   },
@@ -681,6 +1045,54 @@
       {
         "md5": "2183c2aff17cf4297bdb496de78c2e8a",
         "file": "bios/MSX2EXT.ROM"
+      },
+      {
+        "md5": "5bf4fdfd3c3ffea3e573b386550cb3fa",
+        "file": "bios/openMSX/share/systemroms/fs-5500_basic-bios2.rom"
+      },
+      {
+        "md5": "86269da485e852d9f581ac27f4ba32ff",
+        "file": "bios/openMSX/share/systemroms/fs-5500_disk.rom"
+      },
+      {
+        "md5": "afbe6ba903453902540ae988cc89dc7b",
+        "file": "bios/openMSX/share/systemroms/fs-5500_kanjibasic.rom"
+      },
+      {
+        "md5": "090539674630c1338a90a1df943a93e2",
+        "file": "bios/openMSX/share/systemroms/fs-5500_kanjifont.rom"
+      },
+      {
+        "md5": "dcd5e2388115172f2fb48875b2089dbf",
+        "file": "bios/openMSX/share/systemroms/fs-5500_msx2sub.rom"
+      },
+      {
+        "md5": "7eb6ae0fbe9736b20dda8dcbd5064f67",
+        "file": "bios/openMSX/share/systemroms/fs-5500_superimp.rom"
+      },
+      {
+        "md5": "ec3a01c91f24fbddcbcab0ad301bc9ef",
+        "file": "bios/openMSX/share/systemroms/nms8245_basic-bios2.rom"
+      },
+      {
+        "md5": "3525ea046ddedc66991790eeae32acfd",
+        "file": "bios/openMSX/share/systemroms/nms8245_disk.rom"
+      },
+      {
+        "md5": "57509815f93e2817d3eb57e20286c7fb",
+        "file": "bios/openMSX/share/systemroms/nms8245_disk_1.06.rom"
+      },
+      {
+        "md5": "248514aba82a0ec7fe2a9106862b05cd",
+        "file": "bios/openMSX/share/systemroms/nms8245_msx2sub.rom"
+      },
+      {
+        "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
+        "file": "bios/openMSX/share/systemroms/fmpac.rom"
+      },
+      {
+        "md5": "42af93619160ef2116416f74a6cb12f2",
+        "file": "bios/openMSX/share/systemroms/yrw801.rom"
       }
     ]
   },
@@ -695,6 +1107,64 @@
       {
         "md5": "7c8243c71d8f143b2531f01afa6a05dc",
         "file": "bios/MSX2PEXT.ROM"
+      },
+      {
+        "md5": "c5c26c3e8bc6c485424818057f0507b9",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_basic-bios2p.rom"
+      },
+      {
+        "md5": "00aa02b6077de40a0b51d71a3c3e1d5f",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_disk.rom"
+      },
+      {
+        "md5": "fa8e7d4b999af058fe2864a5f2e014ec",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_firmware.rom"
+      },
+      {
+        "md5": "0c40e7db1c1fcc2405e4d0cdd215adb4",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_fmbasic.rom"
+      },
+      {
+        "md5": "9dfdebfaa6b547222a40aab8bb2e29f8",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_kanjibasic.rom"
+      },
+      {
+        "md5": "acf53887c2d2783dc059a9b442c86b90",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_kanjifont.rom"
+      },
+      {
+        "md5": "7c8243c71d8f143b2531f01afa6a05dc",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_msx2psub.rom"
+      },
+      {
+        "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
+        "file": "bios/openMSX/share/systemroms/fmpac.rom"
+      },
+      {
+        "md5": "42af93619160ef2116416f74a6cb12f2",
+        "file": "bios/openMSX/share/systemroms/yrw801.rom"
+      }
+    ]
+  },
+
+  "msxturbor": {
+    "name": "MSX Turbo R",
+    "biosFiles": [
+      {
+        "md5": "af17a344bcc177b97a4888c4c559f3ae",
+        "file": "bios/openMSX/share/systemroms/fs-a1gt_firmware.rom"
+      },
+      {
+        "md5": "acf53887c2d2783dc059a9b442c86b90",
+        "file": "bios/openMSX/share/systemroms/fs-a1gt_kanjifont.rom"
+      },
+      {
+        "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
+        "file": "bios/openMSX/share/systemroms/fmpac.rom"
+      },
+      {
+        "md5": "42af93619160ef2116416f74a6cb12f2",
+        "file": "bios/openMSX/share/systemroms/yrw801.rom"
       }
     ]
   },
@@ -723,6 +1193,10 @@
       {
         "md5": "eb4099aeb42ef089cfe94f8fe95e51f6",
         "file": "bios/dc/naomi.zip"
+      },
+      {
+        "md5": "eb4099aeb42ef089cfe94f8fe95e51f6",
+        "file": "../emulators/flycast/data/naomi.zip"
       }
     ]
   },
@@ -733,6 +1207,10 @@
       {
         "md5": "",
         "file": "bios/dc/naomi2.zip"
+      },
+      {
+        "md5": "",
+        "file": "../emulators/flycast/data/naomi2.zip"
       }
     ]
   },
@@ -751,12 +1229,34 @@
       {
         "md5": "a392174eb3e572fed6447e956bde4b25",
         "file": "bios/bios9.bin"
+      },
+      {
+        "md5": "",
+        "file": "bios/dsi_bios9.bin"
+      },
+      {
+        "md5": "",
+        "file": "bios/dsi_bios7.bin"
+      },
+      {
+        "md5": "",
+        "file": "bios/dsi_firmware.bin"
       }
     ]
   },
 
   "neogeo": {
     "name": "NeoGeo",
+    "biosFiles": [
+      {
+        "md5": "dffb72f116d36d025068b23970a4f6df",
+        "file": "bios/neogeo.zip"
+      }
+    ]
+  },
+
+  "neogeo64": {
+    "name": "Hyper NeoGeo 64",
     "biosFiles": [
       {
         "md5": "dffb72f116d36d025068b23970a4f6df",
@@ -815,6 +1315,26 @@
       {
         "md5": "",
         "file": "bios/neocd/uni-bioscd.rom"
+      }
+    ]
+  },
+
+  "ngp": {
+    "name": "Neo Geo Pocket",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp"
+      }
+    ]
+  },
+
+  "ngpc": {
+    "name": "Neo Geo Pocket Color",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp"
       }
     ]
   },
