@@ -31,17 +31,9 @@
     ]
   },
 
-  "amiga": {
-    "name": "Amiga",
+  "amiga500": {
+    "name": "Amiga 500",
     "biosFiles": [
-      {
-        "md5": "bb72565701b1b6faece07d68ea5da639",
-        "file": "bios/kick40060.CD32.ext"
-      },
-      {
-        "md5": "89da1838a24460e4b93f4f0c5d92d48d",
-        "file": "bios/kick34005.CDTV"
-      },
       {
         "md5": "85ad74194e87c08904327de1a9443b7a",
         "file": "bios/kick33180.A500"
@@ -53,18 +45,54 @@
       {
         "md5": "dc10d7bdd1b6f450773dfb558477c230",
         "file": "bios/kick37175.A500"
+      }
+    ]
+  },
+
+  "amiga1200": {
+    "name": "Amiga 1200",
+    "biosFiles": [
+      {
+        "md5": "646773759326fbac3b2311fd8c8793ee",
+        "file": "bios/kick40068.A1200"
+      }
+    ]
+  },
+
+  "amiga4000": {
+    "name": "Amiga 4000",
+    "biosFiles": [
+      {
+        "md5": "9bdedde6a4f33555b4a270c8ca53297d",
+        "file": "bios/kick40068.A4000"
+      }
+    ]
+  },
+
+  "amigacdtv": {
+    "name": "Amiga CDTV",
+    "biosFiles": [
+      {
+        "md5": "bb72565701b1b6faece07d68ea5da639",
+        "file": "bios/kick40060.CD32.ext"
+      },
+      {
+        "md5": "89da1838a24460e4b93f4f0c5d92d48d",
+        "file": "bios/kick34005.CDTV"
+      }
+    ]
+  },
+
+  "amigacd32": {
+    "name": "Amiga CD32",
+    "biosFiles": [
+      {
+        "md5": "bb72565701b1b6faece07d68ea5da639",
+        "file": "bios/kick40060.CD32.ext"
       },
       {
         "md5": "5f8924d013dd57a89cf349f4cdedc6b1",
         "file": "bios/kick40060.CD32"
-      },
-      {
-        "md5": "646773759326fbac3b2311fd8c8793ee",
-        "file": "bios/kick40068.A1200"
-      },
-      {
-        "md5": "9bdedde6a4f33555b4a270c8ca53297d",
-        "file": "bios/kick40068.A4000"
       }
     ]
   },
@@ -185,6 +213,10 @@
       {
         "md5": "ce6a86574d0c9de9075705f14e99d090",
         "file": "bios/ProSystem.dat"
+      },
+      {
+        "md5": "",
+        "file": "bios/A78_highscore.bin"
       }
     ]
   },
@@ -343,6 +375,10 @@
       {
         "md5": "2c66f5911e5b42b8ebe113403548eee7",
         "file": "bios/colecovision.rom"
+      },
+      {
+        "md5": "2c66f5911e5b42b8ebe113403548eee7",
+        "file": "bios/openMSX/share/systemroms/coleco.rom"
       }
     ]
   },
@@ -375,6 +411,18 @@
       {
         "md5": "",
         "file": "bios/dc/dc.zip"
+      },
+      {
+        "md5": "e10c53c2f8b90bab96ead2d368858623",
+        "file": "../emulators/flycast/data/dc_boot.bin"
+      },
+      {
+        "md5": "0a93f7940c455905bea6e392dfde92a4",
+        "file": "../emulators/flycast/data/dc_flash.bin"
+      },
+      {
+        "md5": "",
+        "file": "../emulators/flycast/data/dc.zip"
       }
     ]
   },
@@ -575,6 +623,20 @@
       {
         "md5": "85ae78a20ffaff388dd09c75d9e1ec0e",
         "file": "bios/lynx48k.zip"
+      }
+    ]
+  },
+
+  "mastersystem": {
+    "name": "Master System",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/[BIOS] Sega Master System (USA, Europe) (v1.3).sms"
+      },
+      {
+        "md5": "",
+        "file": "bios/[BIOS] Sega Master System (Japan) (v2.1).sms"
       }
     ]
   },
@@ -849,12 +911,26 @@
     ]
   },
 
+    "pcenginecd": {
+    "name": "PC Engine CD",
+    "biosFiles": [
+      {
+        "md5": "38179df8f4ac870017db21ebcbf53114",
+        "file": "bios/syscard3.pce"
+      }
+    ]
+  },
+
   "pcfx": {
     "name": "PC-FX",
     "biosFiles": [
       {
         "md5": "08e36edbea28a017f79f8d4f7ff9b6d7",
         "file": "bios/pcfx.rom"
+      },
+      {
+        "md5": "",
+        "file": "bios/fx-scsi.rom"
       }
     ]
   },
@@ -929,6 +1005,16 @@
     ]
   },
 
+  "pv1000": {
+    "name": "PV-1000",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/mame/hash/pv1000.xml"
+      }
+    ]
+  },
+
   "satellaview": {
     "name": "Satellaview",
     "biosFiles": [
@@ -997,6 +1083,24 @@
       {
         "md5": "",
         "file": "bios/mame/hash/scv.xml"
+      }
+    ]
+  },
+
+  "sega32x": {
+    "name": "Sega 32X",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/32X_G_BIOS.BIN"
+      },
+      {
+        "md5": "",
+        "file": "bios/32X_M_BIOS.BIN"
+      },
+      {
+        "md5": "",
+        "file": "bios/32X_S_BIOS.BIN"
       }
     ]
   },
@@ -1077,6 +1181,10 @@
       {
         "md5": "3bd04a2e4edcc77fa0e62ff79a99b569",
         "file": "bios/supracan.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/supracan.xml"
       }
     ]
   },
@@ -1113,12 +1221,38 @@
     ]
   },
 
+  "vectrex": {
+    "name": "Vectrex",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/Vectrex_Bios.bin"
+      }
+    ]
+  },
+
   "vsmile": {
     "name": "V. Smile",
     "biosFiles": [
       {
         "md5": "",
         "file": "bios/vsmile.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/vsmile_cart.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/vsmile_cd.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/vsmilem_cart.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/vsmileb_cart.xml"
       }
     ]
   },
@@ -1171,6 +1305,10 @@
       {
         "md5": "",
         "file": "bios/xegs.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/xegs.xml"
       }
     ]
   }
