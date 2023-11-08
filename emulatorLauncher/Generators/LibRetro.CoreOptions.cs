@@ -329,6 +329,7 @@ namespace EmulatorLauncher.Libretro
             Configure81(retroarchConfig, coreSettings, system, core);
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
+            ConfigureBoom3(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
@@ -3434,6 +3435,14 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mrboom-levelselect", "mrboom_levelselect", "Normal");
             BindFeature(coreSettings, "mrboom-nomonster", "mrboom_nomonster", "ON");
             BindFeature(coreSettings, "mrboom-teammode", "mrboom_teammode", "Selfie");
+        }
+
+        private void ConfigureBoom3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "boom3" && core != "boom3_xp")
+                return;
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "Doom3ControllerP1", "1");
         }
 
         private void ConfigurePrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
