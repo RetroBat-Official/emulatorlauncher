@@ -65,9 +65,13 @@ namespace EmulatorLauncher
             string firmware = Path.Combine(path, "dev_flash", "vsh", "etc", "version.txt");
             string biosPath = AppConfig.GetFullPath("bios");
             string biosPs3 = Path.Combine(biosPath, "PS3UPDAT.PUP");
+
+            if (!File.Exists(firmware) && !File.Exists(biosPs3))
+                throw new ApplicationException("PS3 firmware is not installed in rpcs3 emulator, either place it in \\bios folder, or launch the emulator and install the firware.");
             
-            if (!File.Exists(firmware) && File.Exists(biosPs3))
+            else if (!File.Exists(firmware) && File.Exists(biosPs3))
             {
+                SimpleLogger.Instance.Info("[INFO] Firmware not installed, launching RPCS3 with 'installfirmware' command.");
                 List<string> commandArrayfirmware = new List<string>();
                 commandArrayfirmware.Add("--installfw");
                 commandArrayfirmware.Add(biosPs3);

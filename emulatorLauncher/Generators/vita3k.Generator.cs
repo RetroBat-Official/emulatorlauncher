@@ -21,6 +21,11 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            // Check if firmware is intalled
+            string firmware = Path.Combine(path, "vs0", "vsh", "initialsetup");
+            if (!Directory.Exists(firmware))
+                throw new ApplicationException("PSVita firmware is not installed in Vita3K emulator, launch the emulator and install the firware.");
+
             //Check extension of rom
             /*
              * .m3u is used for games already installed in vita3k emulator

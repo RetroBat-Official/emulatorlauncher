@@ -903,16 +903,6 @@
     ]
   },
 
-  "ps3": {
-    "name": "PS3",
-    "biosFiles": [
-      {
-        "md5": "05fe32f5dc8c78acbcd84d36ee7fdc5b",
-        "file": "bios/PS3UPDAT.PUP"
-      }
-    ]
-  },
-
   "psx": {
     "name": "PSX",
     "biosFiles": [
