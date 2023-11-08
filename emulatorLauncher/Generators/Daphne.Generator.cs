@@ -29,9 +29,6 @@ namespace EmulatorLauncher
 
             if (_executableName == "daphne")
             {
-                //if (!SystemConfig.isOptSet("smooth"))
-                //    commandArray.Add("-nolinear_scale");
-
                 if (SystemConfig["ratio"] == "16/9")
                     commandArray.Add("-ignore_aspect_ratio");
 
@@ -49,9 +46,6 @@ namespace EmulatorLauncher
                 else
                     commandArray.Add("-force_aspect_ratio");
                 /*
-                if (SystemConfig.isOptSet("hypseus_scanlines") && SystemConfig["hypseus_scanlines"] == "scanlines")
-                    commandArray.Add("-scanlines");
-
                 if (SystemConfig.isOptSet("hypseus_renderer") && SystemConfig["hypseus_renderer"] == "vulkan")
                 {
                     commandArray.Remove("-opengl");
