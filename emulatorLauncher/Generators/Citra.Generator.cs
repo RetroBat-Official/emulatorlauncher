@@ -17,7 +17,7 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private SdlVersion _sdlVersion = SdlVersion.Unknown;
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {

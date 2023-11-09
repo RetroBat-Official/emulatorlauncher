@@ -35,6 +35,9 @@ namespace EmulatorLauncher
             if (cfg == null)
                 return;
 
+            if (_sdlVersion == SdlVersion.SDL2_26)
+                controller.Name = sdlControllerNameMap[controller.Name];
+
             var guid = controller.GetSdlGuid(SdlVersion.SDL2_26, true);
             var citraGuid = guid.ToString().ToLowerInvariant();
 
@@ -101,8 +104,29 @@ namespace EmulatorLauncher
             ProcessStick(controller, profile, "c_stick", ini, citraGuid);
             
             //motion
-            ini.WriteValue("Controls", profile + "motion_device" + "\\default", "false");
-            ini.WriteValue("Controls", profile + "motion_device", "engine:sdl");
+            if (SystemConfig.isOptSet("citra_motion") && !string.IsNullOrEmpty(SystemConfig["citra_motion"]))
+            {
+                switch (SystemConfig["citra_motion"])
+                {
+                    case "cemuhook":
+                        ini.WriteValue("Controls", profile + "motion_device" + "\\default", "false");
+                        ini.WriteValue("Controls", profile + "motion_device", "\"engine:cemuhookudp\"");
+                        break;
+                    case "mouse":
+                        ini.WriteValue("Controls", profile + "motion_device" + "\\default", "false");
+                        ini.WriteValue("Controls", profile + "motion_device", "\"engine:motion_emu,update_period:100,sensitivity:0.01,tilt_clamp:90.0\"");
+                        break;
+                    case "sdl":
+                        ini.WriteValue("Controls", profile + "motion_device" + "\\default", "false");
+                        ini.WriteValue("Controls", profile + "motion_device", "\"engine:sdl,guid:" + citraGuid + ",port:0\"");
+                        break;
+                }
+            }
+            else
+            {
+                ini.WriteValue("Controls", profile + "motion_device" + "\\default", "true");
+                ini.WriteValue("Controls", profile + "motion_device", "\"engine:motion_emu,update_period:100,sensitivity:0.01,tilt_clamp:90.0\"");
+            }
             ini.WriteValue("Controls", profile + "touch_device" + "\\default", "true");
             ini.WriteValue("Controls", profile + "touch_device", "engine:emu_window");
             
@@ -306,6 +330,11 @@ namespace EmulatorLauncher
         {
             { InputKey.l2,               "button_zl" },
             { InputKey.r2,               "button_zr" },
+        };
+
+        static Dictionary<string, string> sdlControllerNameMap = new Dictionary<string, string>()
+        {
+            { "DualSense Wireless Controller", "PS5 Controller" },
         };
     }
 }
