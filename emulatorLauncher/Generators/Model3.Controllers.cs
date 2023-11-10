@@ -141,7 +141,10 @@ namespace EmulatorLauncher
             if (!multigun)
             {
                 mouse1 = mouse2 = "MOUSE";
+                ini.WriteValue(" Global ", "Crosshairs", "1");
             }
+            else
+                ini.WriteValue(" Global ", "Crosshairs", "3");
 
             // Force player index if option is set in es_features
             if (SystemConfig.isOptSet("model3_p1index") && !string.IsNullOrEmpty(SystemConfig["model3_p1index"]))
@@ -786,7 +789,10 @@ namespace EmulatorLauncher
             if (!multigun)
             {
                 mouse1 = mouse2 = "MOUSE";
+                ini.WriteValue(" Global ", "Crosshairs", "1");
             }
+            else
+                ini.WriteValue(" Global ", "Crosshairs", "3");
 
             //common
             ini.WriteValue(" Global ", "InputStart1", "\"KEY_1\"");
