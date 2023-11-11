@@ -289,7 +289,7 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "1");
 
                 // Asynchronous shaders compilation (hack)
-                BindQtIniFeature(ini, "Renderer", "use_asynchronous_shaders", "use_asynchronous_shaders", "false");
+                BindQtIniFeature(ini, "Renderer", "use_asynchronous_shaders", "use_asynchronous_shaders", "true");
 
                 // ASTC Compression (non compressed by default, use medium for videocards with 6GB of VRAM and low for 2-4GB VRAM)
                 BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");

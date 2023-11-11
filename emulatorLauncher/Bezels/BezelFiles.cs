@@ -154,14 +154,14 @@ namespace EmulatorLauncher
         static string[] bezelPaths =
         {            
             // Bezels with exact rom name -> Uses {rom} for rom name
-            "{userpath}\\{bezel}\\games\\{system}\\{rom}.png",
-            "{systempath}\\{bezel}\\games\\{system}\\{rom}.png",
+            "{userpath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",
+            "{systempath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",
             "{userpath}\\{bezel}\\games\\{rom}.png",
             "{systempath}\\{bezel}\\games\\{rom}.png",
 
             // Bezels with same IndexedRomName -> Uses * instead of rom name
-            "{userpath}\\{bezel}\\games\\{system}\\*.png",
-            "{systempath}\\{bezel}\\games\\{system}\\*.png",
+            "{userpath}\\{bezel}\\games\\{gamesystem}\\*.png",
+            "{systempath}\\{bezel}\\games\\{gamesystem}\\*.png",
             "{userpath}\\{bezel}\\games\\*.png",
             "{systempath}\\{bezel}\\games\\*.png",
 
@@ -200,7 +200,7 @@ namespace EmulatorLauncher
             return false;
         }
 
-        private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName)
+        private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName, string perGameSystem)
         {
             string indexedRomName = romName.AsIndexedRomName();
 
@@ -216,6 +216,7 @@ namespace EmulatorLauncher
                     .Replace("{userpath}", overlayUser ?? "")
                     .Replace("{systempath}", overlaySystem ?? "")
                     .Replace("{bezel}", bezel ?? "")
+                    .Replace("{gamesystem}", perGameSystem ?? "")
                     .Replace("{system}", systemName ?? "")
                     .Replace("{rom}", romName ?? "");
 
@@ -319,7 +320,13 @@ namespace EmulatorLauncher
                 return null;
             }
 
-            string overlay_png_file = FindBezel(overlayUser, overlaySystem, bezel, systemName, Path.GetFileNameWithoutExtension(rom));
+            string perGameSystem = systemName;
+
+            // Special case for FBNEO with TheBezelProject : Use mame decorations if installed
+            if (systemName == "fbneo" && bezel == "thebezelproject" && Directory.Exists(Path.Combine(overlayUser, bezel, "games", "mame")) && !Directory.Exists(Path.Combine(overlayUser, bezel, "games", "fbneo")))
+                perGameSystem = "mame";
+
+            string overlay_png_file = FindBezel(overlayUser, overlaySystem, bezel, systemName, Path.GetFileNameWithoutExtension(rom), perGameSystem);
             if (string.IsNullOrEmpty(overlay_png_file))
             {
                 if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
