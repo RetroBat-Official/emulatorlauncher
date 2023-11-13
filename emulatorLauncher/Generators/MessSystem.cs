@@ -526,6 +526,8 @@ namespace EmulatorLauncher
         
         public List<string> GetMameCommandLineArguments(string system, string rom, bool standalone = false)
         {
+            bool useSoftList = SystemConfig.isOptSet("force_softlist") && SystemConfig["force_softlist"] != "none";
+
             List<string> commandArray = new List<string>();
 
             // Alternate system for machines that have different configs (ie computers with different hardware)
@@ -755,22 +757,25 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Alternate ROM type for systems with mutiple media (ie cassette & floppy)
-            if (SystemConfig.isOptSet("altromtype") && Path.GetExtension(rom).ToLower() != ".m3u")
-                commandArray.Add("-" + SystemConfig["altromtype"]);
-            
-            else if (Path.GetExtension(rom).ToLower() != ".m3u")
+            // Alternate ROM type for systems with mutiple media (ie cassette & floppy) / only if softlist not set
+            if (!useSoftList)
             {
-                if (Directory.Exists(rom))
-                {
-                    var cueFile = Directory.GetFiles(rom, "*.cue").FirstOrDefault();
-                    if (!string.IsNullOrEmpty(cueFile))
-                        rom = cueFile;
-                }
+                if (SystemConfig.isOptSet("altromtype") && Path.GetExtension(rom).ToLower() != ".m3u")
+                    commandArray.Add("-" + SystemConfig["altromtype"]);
 
-                var romType = this.GetRomType(rom);
-                if (!string.IsNullOrEmpty(romType))
-                    commandArray.Add("-" + romType);
+                else if (Path.GetExtension(rom).ToLower() != ".m3u")
+                {
+                    if (Directory.Exists(rom))
+                    {
+                        var cueFile = Directory.GetFiles(rom, "*.cue").FirstOrDefault();
+                        if (!string.IsNullOrEmpty(cueFile))
+                            rom = cueFile;
+                    }
+
+                    var romType = this.GetRomType(rom);
+                    if (!string.IsNullOrEmpty(romType))
+                        commandArray.Add("-" + romType);
+                }
             }
 
             // Specific cases for some systems
@@ -801,6 +806,10 @@ namespace EmulatorLauncher
                 else if (disks.Count == 1)
                 {
                     var romType = this.GetRomType(disks[0]);
+
+                    if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]))
+                        romType = SystemConfig["altromtype"];
+
                     if (!string.IsNullOrEmpty(romType))
                         commandArray.Add("-" + romType);
                     commandArray.Add(disks[0]);
@@ -809,14 +818,17 @@ namespace EmulatorLauncher
                 else if (disks.Count > 1 && system == "apple2gs")
                 {
                     var romType = this.GetRomType(disks[0]);
-                    if (romType == "flop3")
+                    if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]))
+                        romType = SystemConfig["altromtype"];
+                    
+                    if (romType == "flop3" || romType == "flop4")
                     {
                         commandArray.Add("-flop3");
                         commandArray.Add(disks[0]);
                         commandArray.Add("-flop4");
                         commandArray.Add(disks[1]);
                     }
-                    else if (romType == "flop1")
+                    else if (romType == "flop1" || romType == "flop2")
                     {
                         commandArray.Add("-flop1");
                         commandArray.Add(disks[0]);
