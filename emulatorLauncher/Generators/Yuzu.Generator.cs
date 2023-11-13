@@ -237,6 +237,8 @@ namespace EmulatorLauncher
                 //remove exit confirmation
                 ini.WriteValue("UI", "confirmClose\\default", "false");
                 ini.WriteValue("UI", "confirmClose", "false");
+                ini.WriteValue("UI", "confirmStop\\default", "false");
+                ini.WriteValue("UI", "confirmStop", "2");
 
                 //get path for roms
                 string romPath = Path.GetDirectoryName(rom);
@@ -289,7 +291,16 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "1");
 
                 // Asynchronous shaders compilation (hack)
-                BindQtIniFeature(ini, "Renderer", "use_asynchronous_shaders", "use_asynchronous_shaders", "true");
+                if (SystemConfig.isOptSet("use_asynchronous_shaders") && !SystemConfig.getOptBoolean("use_asynchronous_shaders"))
+                {
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "true");
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders", "false");
+                }
+                else
+                {
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "false");
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders", "true");
+                }
 
                 // ASTC Compression (non compressed by default, use medium for videocards with 6GB of VRAM and low for 2-4GB VRAM)
                 BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
