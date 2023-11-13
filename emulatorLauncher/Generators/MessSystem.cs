@@ -6,6 +6,7 @@ using System.IO;
 using System.Xml.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -160,7 +161,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
                         }),
 
-                new MessSystem("fm7av"          ,"fm7av"      , new MessRomType[]
+                new MessSystem("fm77av"          ,"fm77av"      , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "t77", "wav" }, "LOADM\\\"\\\",,R\\n", "5"),
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
@@ -631,10 +632,20 @@ namespace EmulatorLauncher
             }   
             else
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
+
+            // Specific modules for some systems (manage system slots)
             
-            // Specific modules for some systems
+            Action<string, string> addSlot = (v, w) =>
+            {
+                if (SystemConfig.isOptSet(v) && SystemConfig.getOptBoolean(v))
+                {
+                    commandArray.Add(w);
+                    commandArray.Add(v);
+                }
+            };
+
             // Apple 2
-            if (system == "apple2")
+            if (system == "apple2" || system == "apple2gs")
             {
                 if (SystemConfig.isOptSet("gameio") && SystemConfig["gameio"] != "none")
                 {
@@ -646,6 +657,12 @@ namespace EmulatorLauncher
                         commandArray.Add(SystemConfig["gameio"]);
                     }
                 }
+
+                addSlot("4play", "-sl1");
+                addSlot("midi", "-sl2");
+
+                if (system == "apple2gs")
+                    addSlot("mockingboard", "-sl4");
             }
 
             //BBC Micro Joystick
