@@ -439,6 +439,13 @@ namespace EmulatorLauncher.Libretro
                 _video_driver = retroarchConfig["video_driver"];
                 retroarchConfig["video_driver"] = "d3d11";
             }
+
+            // Set default video driver per core
+            if (!SystemConfig.isOptSet("video_driver") && defaultVideoDriver.ContainsKey(core))
+            {
+                _video_driver = defaultVideoDriver[core];
+                retroarchConfig["video_driver"] = defaultVideoDriver[core];
+            }
         }
 
         private void ConfigureGPUIndex(ConfigFile retroarchConfig)
@@ -1475,6 +1482,11 @@ namespace EmulatorLauncher.Libretro
 
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
+
+        static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
+        { 
+            { "flycast", "vulkan" }
+        };
 
         static Dictionary<string, retro_language> Languages = new Dictionary<string, retro_language>()
         {
