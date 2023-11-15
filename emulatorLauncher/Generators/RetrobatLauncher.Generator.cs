@@ -26,18 +26,20 @@ namespace EmulatorLauncher
 
             rom = lines[0];
             string folder = rom.ExtractString("\\", "\\");
-
-            string fullPath = AppConfig.GetFullPath(folder);
-            if (string.IsNullOrEmpty(fullPath))
+            if (string.IsNullOrEmpty(folder))
                 return null;
-
+            
             Installer installer = Installer.GetInstaller(folder);
             if (installer != null && !installer.IsInstalled() && installer.CanInstall())
             {
                 using (InstallerFrm frm = new InstallerFrm(installer))
                     if (frm.ShowDialog() != DialogResult.OK)
-                        return null;
+                        return null;            
             }
+
+            string fullPath = AppConfig.GetFullPath(folder);
+            if (string.IsNullOrEmpty(fullPath))
+                return null;
 
             string path = Path.GetDirectoryName(fullPath) + rom;
             if (!File.Exists(path))
