@@ -1683,6 +1683,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mame_cheats_enable", "cheats_enable", "disabled");
             BindFeature(coreSettings, "mame_mame_4way_enable", "4way_enable", "disabled");
             BindFeature(coreSettings, "mame_lightgun_mode", "lightgun_mode", "lightgun");
+            BindFeature(coreSettings, "mame_rotation_mode", "mame_rotation_mode", "internal");
 
             BindFeature(coreSettings, "mame_boot_from_cli", "boot_from_cli", "enabled", true);
             BindFeature(coreSettings, "mame_boot_to_bios", "boot_to_bios", "disabled", true);

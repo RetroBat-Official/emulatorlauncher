@@ -423,6 +423,14 @@ namespace EmulatorLauncher
                     ini.WriteValue(anyDefKey + i.ToString(), "Source", "2");
                 }
 
+                // Balance board
+                if (Program.SystemConfig.isOptSet("wii_balanceboard") && Program.SystemConfig.getOptBoolean("wii_balanceboard"))
+                {
+                    ini.WriteValue("BalanceBoard", "Source", "2");
+                }
+                else
+                    ini.WriteValue("BalanceBoard", "Source", "0");
+
                 ini.Save();
             }
         }
