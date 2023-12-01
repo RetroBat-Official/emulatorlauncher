@@ -207,6 +207,7 @@ namespace EmulatorLauncher
 
                 // Skip Boot anim
                 BindBoolIniFeature(ini, "general", "skip_boot_anim", "show_boot", "false", "true");
+                BindBoolIniFeature(ini, "display.ui", "show_notifications", "xemu_notifications", "true", "false");
 
                 // Controllers
                 if (!SystemConfig.getOptBoolean("disableautocontrollers"))
@@ -229,12 +230,17 @@ namespace EmulatorLauncher
                 // Resolution
                 BindIniFeature(ini, "display.quality", "surface_scale", "render_scale", "1");
 
-                // Aspect Ratio
-                if (SystemConfig.isOptSet("scale") && !string.IsNullOrEmpty(SystemConfig["scale"]))
-                    ini.WriteValue("display.ui", "fit", "'" + SystemConfig["scale"] + "'");                
-                else if (Features.IsSupported("scale"))
+                // Aspect Ratio and scaling
+                if (SystemConfig.isOptSet("xemu_scale") && !string.IsNullOrEmpty(SystemConfig["xemu_scale"]))
+                    ini.WriteValue("display.ui", "fit", "'" + SystemConfig["xemu_scale"] + "'");                
+                else if (Features.IsSupported("xemu_scale"))
                     ini.WriteValue("display.ui", "fit", "'scale'");
-                
+
+                if (SystemConfig.isOptSet("xemu_ratio") && !string.IsNullOrEmpty(SystemConfig["xemu_ratio"]))
+                    ini.WriteValue("display.ui", "aspect_ratio", "'" + SystemConfig["xemu_ratio"] + "'");
+                else
+                    ini.Remove("display.ui", "aspect_ratio");
+
                 // Menu Bar
                 if (SystemConfig.isOptSet("menubar") && !string.IsNullOrEmpty(SystemConfig["menubar"]))
                     ini.WriteValue("display.ui", "show_menubar", SystemConfig["menubar"]);
