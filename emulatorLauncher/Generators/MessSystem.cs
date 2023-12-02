@@ -583,6 +583,14 @@ namespace EmulatorLauncher
             else
                 commandArray.Add(Path.GetDirectoryName(rom));
 
+            // Cheats
+            string cheatPath = Path.Combine(AppConfig.GetFullPath("cheats"), "mame");
+            if (!string.IsNullOrEmpty(cheatPath) && Directory.Exists(cheatPath))
+            {
+                commandArray.Add("-cheatpath");
+                commandArray.Add(cheatPath);
+            }
+
             List<string> pluginList = new List<string>();
             if (SystemConfig.isOptSet("cheats_enable") && SystemConfig.getOptBoolean("cheats_enable"))
                 pluginList.Add("cheat");
