@@ -66,9 +66,18 @@ namespace EmulatorLauncher
         }
 
         public bool SelectBezel(string bitmapPath, int resX, int resY)
-        {            
-            var bitmap = new Bitmap(System.Drawing.Bitmap.FromFile(bitmapPath), resX, resY);
-            return SelectBitmap(bitmap, 255);
+        {
+            try
+            {
+                var bitmap = new Bitmap(System.Drawing.Bitmap.FromFile(bitmapPath), resX, resY);
+                return SelectBitmap(bitmap, 255);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("Error loading " + (bitmapPath ?? "[null]"), ex);
+            }
+
+            return false;
         }
 
         private bool SelectBitmap(Bitmap bitmap, int opacity)
@@ -115,7 +124,10 @@ namespace EmulatorLauncher
 
                 return true;
             }
-            catch { }
+            catch 
+            {
+                throw;
+            }
             finally
             {
                 // Release device context.
@@ -127,8 +139,6 @@ namespace EmulatorLauncher
                 }
                 Gdi32.DeleteDC(memDc);
             }
-
-            return false;
         }
 
         #region Native Methods and Structures
