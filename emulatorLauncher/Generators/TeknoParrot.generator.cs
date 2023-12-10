@@ -374,6 +374,20 @@ namespace EmulatorLauncher
                 if (profile == null)
                     continue;
 
+                if (string.IsNullOrEmpty(profile.GameName))
+                {
+                    try
+                    {
+                        string json = Path.Combine(path, "Metadata", Path.GetFileNameWithoutExtension(file) + ".json");
+                        if (File.Exists(json))
+                        {
+                            var js = DynamicJson.Load(json);
+                            profile.GameName = js["game_name"];
+                        }
+                    }
+                    catch { }
+                }
+
                 if (gameName.Equals(profile.GameName, StringComparison.InvariantCultureIgnoreCase))
                     return profile;
 
