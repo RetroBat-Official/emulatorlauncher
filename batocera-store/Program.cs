@@ -39,6 +39,8 @@ namespace batocera_store
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
 
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
             AppConfig = ConfigFile.FromFile(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "emulatorLauncher.cfg"));
             AppConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
@@ -171,7 +173,7 @@ namespace batocera_store
 
             var store = new StorePackages() { Packages = items.ToArray() };
             var xml = store.ToXml();
-
+            
             Console.WriteLine(xml);
         }
 
