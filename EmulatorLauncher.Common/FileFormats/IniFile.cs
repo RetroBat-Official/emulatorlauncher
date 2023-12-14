@@ -128,7 +128,7 @@ namespace EmulatorLauncher.Common.FileFormats
         {
             var section = _sections.Get(sectionName);
             if (section != null)
-                section.Select(k => k.Name).ToArray();
+                return section.Select(k => k.Name).ToArray();
 
             return new string[] { };
         }

@@ -45,6 +45,18 @@ namespace EmulatorLauncher
 
             UpdateSdlControllersWithHints(ini);
 
+            // Cleanup control part first
+            for (int i=0; i<10; i++)
+            {
+                var controlLines = ini.EnumerateKeys("Controls").Where(k => k.StartsWith("player_" + i)).ToList();
+
+                if (controlLines.Count >0 && controlLines != null)
+                {
+                    foreach (var line in controlLines)
+                        ini.Remove("Controls", line);
+                }
+            }
+
             // Hotkeys
             WriteShortcuts(ini);
 
@@ -94,7 +106,7 @@ namespace EmulatorLauncher
 
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 
-            // player_0_type=1 Pro controller
+            // player_0_type=0 Pro controller
             // player_0_type=1 Dual joycon
             // player_0_type=2 Left joycon
             // player_0_type=3 Right joycon
@@ -125,6 +137,8 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", player + "right_vibration_device" + "\\default", "true");
             ini.WriteValue("Controls", "enable_accurate_vibrations" + "\\default", "false");
             ini.WriteValue("Controls", "enable_accurate_vibrations", "true");
+            ini.Remove("Controls", player + "left_vibration_device");
+            ini.Remove("Controls", player + "right_vibration_device");
 
             //vibration strength for XInput = 70
             if (controller.IsXInputDevice)
