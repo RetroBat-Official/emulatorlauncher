@@ -214,18 +214,18 @@ namespace EmulatorLauncher
             //define strings
             string filepath = Path.GetDirectoryName(filename);
             string filenamenoext = Path.GetFileNameWithoutExtension(filename);
-            string filemd5Hash = getMD5Hash(filename);
-            string filesha1Hash = GetSha1Hash(filename);
-            string fileSize = GetFileSize(filename);
+            string filemd5Hash = FileTools.GetMD5(filename);
+            string filesha1Hash = FileTools.GetSHA1(filename);
+            string fileSize = FileTools.GetFileSize(filename).ToString();
 
             //phoenix does not accept .cue format, so we will read cue file to get the actual image in iso, img or bin format
             if (Path.GetExtension(filename).ToLower() == ".cue")
             {
                 var fromcue = MultiDiskImageFile.FromFile(filename);
                 var cuefile = fromcue.Files[0];
-                string binmd5hash = getMD5Hash(cuefile);
-                string binsha1Hash = GetSha1Hash(cuefile);
-                string binSize = GetFileSize(cuefile);
+                string binmd5hash = FileTools.GetMD5(cuefile);
+                string binsha1Hash = FileTools.GetSHA1(cuefile);
+                string binSize = FileTools.GetFileSize(cuefile).ToString();
 
                 //write library settings for cue files
                 var elem = platformConfig.Element(type.ToString());
@@ -281,44 +281,6 @@ namespace EmulatorLauncher
                 dump.SetAttributeValue("md5", filemd5Hash);
                 dump.SetAttributeValue("sh1", filesha1Hash);
             }
-        }
-
-        /// <summary>
-        /// Get MD5 hash
-        /// </summary>
-        /// <param name="file"></param>
-        private string getMD5Hash(string file)
-        {
-            using (var md5 = MD5.Create())
-            {
-                using (var stream = File.OpenRead(file))
-                {
-                    return BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", string.Empty).ToLower();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get SHA-1 hash
-        /// </summary>
-        /// <param name="file"></param>
-        private string GetSha1Hash(string file)
-        {
-            using (FileStream fs = File.OpenRead(file))
-            {
-                SHA1 sha = new SHA1Managed();
-                return BitConverter.ToString(sha.ComputeHash(fs)).Replace("-", string.Empty).ToLower();
-            }
-        }
-
-        /// <summary>
-        /// Get File size
-        /// </summary>
-        /// <param name="file"></param>
-        private string GetFileSize(string file)
-        {
-            FileInfo fi = new FileInfo(file);
-            return fi.Length.ToString();
         }
     }
 }

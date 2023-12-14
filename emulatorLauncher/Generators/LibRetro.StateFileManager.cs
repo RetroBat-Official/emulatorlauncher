@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -27,7 +28,7 @@ namespace EmulatorLauncher.Libretro
             {
                 IsAutoFile = true;
                 return;
-            }
+            }         
 
             // Copy to state.auto file, dispose will restore the file
             if (File.Exists(autoFilename))
@@ -51,10 +52,16 @@ namespace EmulatorLauncher.Libretro
             }
 
             File.Copy(state_file, autoFilename, true);
+
+            mAutoFileToDelete = autoFilename;
+            mAutoFileHash = FileTools.GetMD5(mAutoFileToDelete);
         }
 
         private string mAutoImageBackup;
         private string mAutoFileBackup;
+
+        private string mAutoFileToDelete;
+        private string mAutoFileHash;
 
         private string GetAutoFilename(string state_file)
         {
@@ -67,6 +74,12 @@ namespace EmulatorLauncher.Libretro
 
         public void Dispose()
         {
+            if (!string.IsNullOrEmpty(mAutoFileToDelete) && mAutoFileHash == FileTools.GetMD5(mAutoFileToDelete))
+            {
+                try { File.Delete(mAutoFileToDelete); }
+                catch { }             
+            }
+
             if (!string.IsNullOrEmpty(mAutoFileBackup))
             {
                 try { File.Delete(mAutoFileBackup); }

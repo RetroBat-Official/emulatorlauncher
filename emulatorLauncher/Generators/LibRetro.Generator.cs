@@ -220,6 +220,10 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["savestate_auto_load"] = "true";
                 retroarchConfig["savestate_auto_save"] = _stateFileManager.IsAutoFile ? "true" : "false";
+
+                // Security : hardcore mode disables save states, which would kill netplay.
+                // If we're launching from a savestate, then disable hardcore mode
+                retroarchConfig["cheevos_hardcore_mode_enable"] = "false";
             }
             else
             {
