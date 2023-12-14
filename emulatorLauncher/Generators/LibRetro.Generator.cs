@@ -220,10 +220,6 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["savestate_auto_load"] = "true";
                 retroarchConfig["savestate_auto_save"] = _stateFileManager.IsAutoFile ? "true" : "false";
-
-                // Security : hardcore mode disables save states, which would kill netplay.
-                // If we're launching from a savestate, then disable hardcore mode
-                retroarchConfig["cheevos_hardcore_mode_enable"] = "false";
             }
             else
             {
@@ -664,7 +660,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["cheevos_enable"] = "true";
                 retroarchConfig["cheevos_username"] = SystemConfig["retroachievements.username"];
                 retroarchConfig["cheevos_password"] = SystemConfig["retroachievements.password"];
-                retroarchConfig["cheevos_hardcore_mode_enable"] = SystemConfig["retroachievements.hardcore"] == "true" ? "true" : "false";
+                retroarchConfig["cheevos_hardcore_mode_enable"] = SystemConfig["retroachievements.hardcore"] == "true" && _stateFileManager == null ? "true" : "false";
                 retroarchConfig["cheevos_leaderboards_enable"] = SystemConfig["retroachievements.leaderboards"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_verbose_enable"] = SystemConfig["retroachievements.verbose"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_auto_screenshot"] = SystemConfig["retroachievements.screenshot"] == "true" ? "true" : "false";
