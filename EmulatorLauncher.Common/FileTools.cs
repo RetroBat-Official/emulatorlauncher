@@ -7,11 +7,54 @@ using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.IO.Compression;
+using System.Security.Cryptography;
 
 namespace EmulatorLauncher.Common
 {
     public static class FileTools
     {
+        /// <summary>
+        /// Get MD5 hash
+        /// </summary>
+        /// <param name="file"></param>
+        public static string GetMD5(string file)
+        {
+            if (!File.Exists(file))
+                return null;
+
+            using (var md5 = MD5.Create())
+                using (var stream = File.OpenRead(file))
+                    return BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", string.Empty).ToLower();
+        }
+
+        /// <summary>
+        /// Get SHA-1 hash
+        /// </summary>
+        /// <param name="file"></param>
+        public static string GetSHA1(string file)
+        {
+            if (!File.Exists(file))
+                return null;
+
+            using (FileStream fs = File.OpenRead(file))
+            {
+                SHA1 sha = new SHA1Managed();
+                return BitConverter.ToString(sha.ComputeHash(fs)).Replace("-", string.Empty).ToLower();
+            }
+        }
+
+        /// <summary>
+        /// Get File size
+        /// </summary>
+        /// <param name="file"></param>
+        public static long GetFileSize(string file)
+        {
+            if (!File.Exists(file))
+                return 0;
+
+            return new FileInfo(file).Length;            
+        }
+
         public static bool ExtractGZipBytes(byte[] bytes, string fileName)
         {
             try
