@@ -165,7 +165,8 @@ namespace EmulatorLauncher
             // Handle Video part of yml file
             var video = yml.GetOrCreateContainer("Video");
             BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
-            BindFeature(video, "Resolution", "rpcs3_internal_resolution", "1280x720");
+            video["Resolution"] = "1280x720";
+            BindFeature(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
             BindFeature(video, "Aspect ratio", "ratio", "16:9");
             BindFeature(video, "Frame limit", "framelimit", "Auto");
             BindFeature(video, "MSAA", "msaa", "Auto");
@@ -179,7 +180,8 @@ namespace EmulatorLauncher
             BindFeature(video, "Strict Rendering Mode", "strict_rendering", "false");
             BindFeature(video, "Disable Vertex Cache", "disablevertex", "false");
             BindFeature(video, "Multithreaded RSX", "multithreadedrsx", "false");
-            
+            BindFeature(video, "Output Scaling Mode", "rpcs3_scaling_filter", "Nearest");
+
             if (SystemConfig.isOptSet("enable3d") && !string.IsNullOrEmpty(SystemConfig["enable3d"]))
             {
                 switch(SystemConfig["enable3d"])
