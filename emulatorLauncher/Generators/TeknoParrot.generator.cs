@@ -251,12 +251,18 @@ namespace EmulatorLauncher
             _exename = Path.GetFileNameWithoutExtension(userProfile.GamePath);
             _gameProfile = userProfile;
 
+            List<string> commandArray = new List<string>();
+            commandArray.Add("--profile=" + profileName);
+            if (!SystemConfig.isOptSet("tp_minimize") || SystemConfig.getOptBoolean("tp_minimize"))
+                commandArray.Add("--startMinimized");
+            string args = string.Join(" ", commandArray);
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 Verb = userProfile.RequiresAdmin ? "runas" : null,
                 WorkingDirectory = path,
-                Arguments = "--profile=" + profileName // + " --startMinimized",
+                Arguments = args,
             };
         }
 
