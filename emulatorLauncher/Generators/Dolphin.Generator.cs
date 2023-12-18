@@ -496,7 +496,9 @@ namespace EmulatorLauncher
                         }
                     }
                     // Disable auto updates
-                    ini.AppendValue("AutoUpdate", "UpdateTrack", "\"\"");
+                    string updateTrack = ini.GetValue("AutoUpdate", "UpdateTrack");
+                    if (updateTrack != "")
+                        ini.WriteValue("AutoUpdate", "UpdateTrack", "\"\"");
                 }
             }
             catch { }
