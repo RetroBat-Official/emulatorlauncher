@@ -60,6 +60,9 @@ namespace EmulatorLauncher
 
         private void SetupConfiguration(string path, bool isCitraCanary = false, bool fullscreen = true)
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             string userconfigPath = Path.Combine(path, "user", "config");
             if (!Directory.Exists(userconfigPath))
                 Directory.CreateDirectory(userconfigPath);
