@@ -102,6 +102,9 @@ namespace EmulatorLauncher
         //Setup toml configuration file (using AppendValue because config file is very sensitive to values that do not exist and both emulators are still under heavy development)
         private void SetupConfiguration(string path)
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             try
             {
                 using (IniFile ini = new IniFile(Path.Combine(path, _canary ? "xenia-canary.config.toml" : "xenia.config.toml"), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))

@@ -196,6 +196,9 @@ namespace EmulatorLauncher
         #region wxwidgets version
         private void SetupPaths(string system, string emulator, string core, bool fullscreen)
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             var biosList = new string[] { 
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
                             "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
@@ -320,6 +323,9 @@ namespace EmulatorLauncher
 
         private void SetupLilyPad()
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             if (_isPcsx17)
                 return; // Keyboard Mode 1 is not supported anymore
 
@@ -336,6 +342,9 @@ namespace EmulatorLauncher
         //Setup PCSX2_vm.ini file (both 1.6 & 1.7)
         private void SetupVM()
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             string iniFile = Path.Combine(_path, "inis", "PCSX2_vm.ini");
 
             try
@@ -372,6 +381,9 @@ namespace EmulatorLauncher
         //Setup GS.ini (v1.7) and GSdx.ini (v1.6) 
         private void SetupGSDx(ScreenResolution resolution)
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             string iniFile = Path.Combine(_path, "inis", _isPcsx17 ? "GS.ini" : "GSdx.ini");
 
             try
@@ -679,6 +691,9 @@ namespace EmulatorLauncher
         /// <param name="path"></param>
         private void SetupConfigurationQT(string path, string rom, string system, bool fullscreen)
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             var biosList = new string[] {
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC",
                             "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };

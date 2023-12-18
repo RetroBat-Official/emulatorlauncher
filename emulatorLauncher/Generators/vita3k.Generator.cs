@@ -144,6 +144,9 @@ namespace EmulatorLauncher
         //Configure config.yml file
         private void SetupConfiguration(string path)
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             var yml = YmlFile.Load(Path.Combine(path, "config.yml"));
             
             //First tackle the GUI stuff

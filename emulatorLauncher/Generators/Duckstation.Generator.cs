@@ -115,6 +115,9 @@ namespace EmulatorLauncher
 
         private void SetupSettings(string path, string rom, string system)
         {
+            if (SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
             string iniFile = Path.Combine(path, "settings.ini");
 
             try
