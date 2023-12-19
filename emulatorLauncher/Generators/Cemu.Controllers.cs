@@ -68,7 +68,7 @@ namespace EmulatorLauncher
             else
             {
                 // Create a single controllerprofile file for each controller
-                foreach (var controller in this.Controllers)
+                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
                 {
                     if (controller.Config == null)
                         continue;
@@ -291,10 +291,11 @@ namespace EmulatorLauncher
             string uuid = index + "_" + ctrl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
             // Define type of controller
-            // Players 1 & 2 defaults to WIIU Gamepad but can be changed to pro controller in features for some multiplayer games compatibility
-            // Players 3 and 4 default to pro controllers
+            // Players 1 defaults to WIIU Gamepad but can be changed in features
+            // Player 2 defaults to Pro controller but can be changed in features
+            // Players 3 and 4 default to pro controllers and cannot be changed
             bool procontroller = false;
-            if (playerIndex == 0 || playerIndex == 1)
+            if (playerIndex == 0)
             {
                 string cemuController = "cemu_controllerp" + playerIndex;
                 if (Program.SystemConfig.isOptSet(cemuController) && (Program.SystemConfig[cemuController] == "procontroller"))
@@ -303,7 +304,25 @@ namespace EmulatorLauncher
                     procontroller = true;
                 }
                 else
+                {
                     type = "Wii U GamePad";
+                    procontroller = false;
+                }
+            }
+
+            else if (playerIndex == 1)
+            {
+                string cemuController = "cemu_controllerp" + playerIndex;
+                if (Program.SystemConfig.isOptSet(cemuController) && (Program.SystemConfig[cemuController] == "gamepad"))
+                {
+                    type = "Wii U GamePad";
+                    procontroller = false;
+                }
+                else
+                {
+                    type = "Wii U Pro Controller";
+                    procontroller = true;
+                }
             }
 
             else
