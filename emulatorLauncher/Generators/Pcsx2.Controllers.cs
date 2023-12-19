@@ -532,8 +532,7 @@ namespace EmulatorLauncher
 
         private void SetupGunQT(IniFile pcsx2ini, string path)
         {
-            bool gun = SystemConfig["pcsx2_gun"] == "USB1" || SystemConfig["pcsx2_gun"] == "USB2";
-            if (!gun)
+            if (!SystemConfig.getOptBoolean("use_guns"))
                 return;
 
             Controller ctrl = null;
@@ -548,7 +547,10 @@ namespace EmulatorLauncher
                 return;
 
             // Initialize USB sections
-            string usbSection = SystemConfig["pcsx2_gun"].ToUpperInvariant();
+            string usbSection = "USB1";
+            if (SystemConfig.isOptSet("pcsx2_gun") && SystemConfig["pcsx2_gun"] == "USB2")
+                usbSection = "USB2";
+            
             pcsx2ini.ClearSection("USB1");
             pcsx2ini.ClearSection("USB2");
 
