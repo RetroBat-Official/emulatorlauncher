@@ -16,10 +16,8 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private BezelFiles _bezelFileInfo;
         private string _destRom;
-        private ScreenResolution _resolution;
-        private List<string> extensions = new List<string>() { ".nex", ".pzx", ".rzx", ".sna", ".snx", ".sp", ".spg", ".tap", ".tzx", ".z80", ".zsf", ".zx", };
+        private readonly List<string> extensions = new List<string>() { ".nex", ".pzx", ".rzx", ".sna", ".snx", ".sp", ".spg", ".tap", ".tzx", ".z80", ".zsf", ".zx", };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -28,8 +26,6 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "zesarux.exe");
             if (!File.Exists(exe))
                 return null;
-
-            _resolution = resolution;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -62,7 +58,7 @@ namespace EmulatorLauncher
             }
 
             // Configure cfg file
-            SetupConfig(path, configFile, system);
+            SetupConfig(configFile, system);
 
             // Command line arguments
             List<string> commandArray = new List<string>();
@@ -98,7 +94,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfig(string path, string confgifile, string system)
+        private void SetupConfig(string confgifile, string system)
         {
             var cfg = ZEsarUXConfigFile.FromFile(confgifile);
 

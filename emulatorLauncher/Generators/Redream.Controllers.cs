@@ -54,9 +54,6 @@ namespace EmulatorLauncher
 
             string portNr = "port" + (playerIndex - 1);
             string profileNr = "profile" + (playerIndex - 1);
-            string deviceType = "controller";
-            string deadzone = "12";
-            string crosshair = "1";
 
             ini.WriteValue("", portNr, "dev:2,desc:keyboard,type:controller");
 
@@ -104,9 +101,6 @@ namespace EmulatorLauncher
 
             string portNr = "port" + (playerIndex - 1);
             string profileNr = "profile" + (playerIndex - 1);
-            string deviceType = "controller";
-            string deadzone = "12";
-            string crosshair = "1";
 
             string tech = "xinput";
             if (ctrl.VendorID == USB_VENDOR.NINTENDO)

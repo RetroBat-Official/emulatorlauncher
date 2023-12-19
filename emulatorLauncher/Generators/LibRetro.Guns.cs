@@ -201,7 +201,7 @@ namespace EmulatorLauncher.Libretro
 
             // ... or configure core specific mappings            
             else
-                ConfigureGunsCore(retroarchConfig, playerIndex, core, deviceType, multigun, guninvert, useOneGun);
+                ConfigureGunsCore(retroarchConfig, playerIndex, core, deviceType, guninvert, useOneGun);
         }
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace EmulatorLauncher.Libretro
 
         /// <summary>
         /// Dedicated core mappings for lightgun games
-        private void ConfigureGunsCore(ConfigFile retroarchConfig, int playerIndex, string core, string deviceType, bool multigun = false, bool guninvert = false, bool useOneGun = false)
+        private void ConfigureGunsCore(ConfigFile retroarchConfig, int playerIndex, string core, string deviceType, bool guninvert = false, bool useOneGun = false)
         {
             // Some systems offer multiple type of guns (justifier, guncon...). Option must be available in es_features.cfg
             if (SystemConfig.isOptSet("gun_type") && !string.IsNullOrEmpty(SystemConfig["gun_type"]) && SystemConfig["gun_type"] != "justifiers")
@@ -448,7 +448,7 @@ namespace EmulatorLauncher.Libretro
         }
 
         // List of retroarch.cfg gun input lines (used to clean up)
-        static List<string> gunButtons = new List<string>()
+        static readonly List<string> gunButtons = new List<string>()
         {
             "_mouse_index",
             "_gun_aux_a",

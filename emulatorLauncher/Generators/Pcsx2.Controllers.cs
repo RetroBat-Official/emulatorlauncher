@@ -559,20 +559,17 @@ namespace EmulatorLauncher
 
             string techPadNumber = null;
             string tech = "";
-            bool gamepad = false;
             bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
             
             if (!ctrl.IsKeyboard && ctrl.IsXInputDevice && !_forceSDL)
             {
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
                 tech = "XInput";
-                gamepad = true;
             }
             else if (!ctrl.IsKeyboard)
             {
                 techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
                 tech = "SDL";
-                gamepad = true;
             }
             else
                 techPadNumber = "Keyboard/";
