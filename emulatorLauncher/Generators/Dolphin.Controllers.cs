@@ -42,6 +42,12 @@ namespace EmulatorLauncher
                     removeControllerConfig_gamecube(path, "Dolphin.ini"); // because pads will already be used as emulated wiimotes
                     return true;
                 }
+
+                else if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] != "0" && Program.SystemConfig["emulatedwiimotes"] != "1")
+                {
+                    generateControllerConfig_realEmulatedwiimotes(path, "WiimoteNew.ini", "Wiimote");
+                    return true;
+                }
                 else
                     generateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");
 
@@ -433,6 +439,45 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        private static void generateControllerConfig_realEmulatedwiimotes(string path, string filename, string anyDefKey)
+        {
+            string iniFile = Path.Combine(path, "User", "Config", filename);
+
+            using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
+            {
+                for (int i = 1; i < 5; i++)
+                {
+                    string btDevice = (i-1).ToString();
+                    ini.ClearSection(anyDefKey + i.ToString());
+                    ini.WriteValue(anyDefKey + i.ToString(), "Source", "1");
+                    ini.WriteValue(anyDefKey + i.ToString(), "Device", "Bluetooth/" + btDevice + "/Wii Remote" );
+                    
+                    foreach (KeyValuePair<string, string> x in realEmulatedWiimote)
+                        ini.WriteValue(anyDefKey + i.ToString(), x.Key, x.Value);
+
+                    if (Program.SystemConfig["emulatedwiimotes"] == "3")
+                        ini.WriteValue(anyDefKey + i.ToString(), "Extension", "Nunchuk");
+                    else if (Program.SystemConfig["emulatedwiimotes"] == "4")
+                        ini.WriteValue(anyDefKey + i.ToString(), "Extension", "Classic");
+                }
+
+                // Balance board
+                if (Program.SystemConfig.isOptSet("wii_balanceboard") && Program.SystemConfig.getOptBoolean("wii_balanceboard"))
+                {
+                    ini.WriteValue("BalanceBoard", "Source", "2");
+                }
+                else
+                    ini.WriteValue("BalanceBoard", "Source", "0");
+
+                ini.Save();
+            }
+
+            // Set hotkeys
+            string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
+            if (File.Exists(hotkeyini))
+                SetWiimoteHotkeys(hotkeyini);
         }
 
         private static string GetSDLMappingName(Controller pad, InputKey key)
@@ -1059,6 +1104,24 @@ namespace EmulatorLauncher
             }
         }
 
+        private static void SetWiimoteHotkeys(string iniFile)
+        {
+            using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
+            {
+                ini.WriteValue("Hotkeys", "Device", "Bluetooth/0/Wii Remote");
+                ini.WriteValue("Hotkeys", "General/Toggle Pause", "B&`-`");
+                ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "A&`-`");
+                ini.WriteValue("Hotkeys", "General/Exit", "HOME&`-`");
+
+                // SaveStates
+                ini.WriteValue("Hotkeys", "General/Take Screenshot", "`-`&`1`"); // Use Same value as SaveState....
+                ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", "`-`&`1`");
+                ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "`-`&`2`");
+                ini.WriteValue("Hotkeys", "Other State Hotkeys/Increase Selected State Slot", "Up&`-`");
+                ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "Down&`-`");
+            }
+        }
+
         private static void removeControllerConfig_gamecube(string path, string filename)
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
@@ -1161,5 +1224,86 @@ namespace EmulatorLauncher
 
             return null;
         }
+
+        static Dictionary<string, string> realEmulatedWiimote = new Dictionary<string, string>()
+        {
+            { "Tilt/Modifier/Range", "50." },
+            { "Nunchuk/Stick/Modifier/Range", "50." },
+            { "Nunchuk/Tilt/Modifier/Range", "50." },
+            { "Classic/Left Stick/Modifier/Range", "50." },
+            { "Classic/Right Stick/Modifier/Range", "50." },
+            { "Guitar/Stick/Modifier/Range", "50." },
+            { "Drums/Stick/Modifier/Range", "50." },
+            { "Turntable/Stick/Modifier/Range", "50." },
+            { "uDraw/Stylus/Modifier/Range", "50." },
+            { "Drawsome/Stylus/Modifier/Rangee", "50." },
+            { "Buttons/A", "`A`" },
+            { "Buttons/B", "`B`" },
+            { "Buttons/1", "`1`" },
+            { "Buttons/2", "`2`" },
+            { "Buttons/-", "`-`" },
+            { "Buttons/+", "`+`" },
+            { "Buttons/Home", "`HOME`" },
+            { "D-Pad/Up", "`Up`" },
+            { "D-Pad/Down", "`Down`" },
+            { "D-Pad/Left", "`Left`" },
+            { "D-Pad/Right", "`Right`" },
+            { "IMUAccelerometer/Up", "`Accel Up`" },
+            { "IMUAccelerometer/Down", "`Accel Down`" },
+            { "IMUAccelerometer/Left", "`Accel Left`" },
+            { "IMUAccelerometer/Right", "`Accel Right`" },
+            { "IMUAccelerometer/Forward", "`Accel Forward`" },
+            { "IMUAccelerometer/Backward", "`Accel Backward`" },
+            { "IMUGyroscope/Dead Zone", "3." },
+            { "IMUGyroscope/Pitch Up", "`Gyro Pitch Up`" },
+            { "IMUGyroscope/Pitch Down", "`Gyro Pitch Down`" },
+            { "IMUGyroscope/Roll Left", "`Gyro Roll Left`" },
+            { "IMUGyroscope/Roll Right", "`Gyro Roll Right`" },
+            { "IMUGyroscope/Yaw Left", "`Gyro Yaw Left`" },
+            { "IMUGyroscope/Yaw Right", "`Gyro Yaw Right`" },
+            { "Extension/Attach MotionPlus", "`Attached MotionPlus`" },
+            { "Nunchuk/Buttons/C", "`Nunchuk C`" },
+            { "Nunchuk/Buttons/Z", "`Nunchuk Z`" },
+            { "Nunchuk/Stick/Up", "`Nunchuk Y+`" },
+            { "Nunchuk/Stick/Down", "`Nunchuk Y-`" },
+            { "Nunchuk/Stick/Left", "`Nunchuk X-`" },
+            { "Nunchuk/Stick/Right", "`Nunchuk X+`" },
+            { "Nunchuk/Stick/Calibration", "100.00 100.00 100.00 100.00 100.00 100.00 100.00 100.00" },
+            { "Nunchuk/IMUAccelerometer/Up", "`Nunchuk Accel Up`" },
+            { "Nunchuk/IMUAccelerometer/Down", "`Nunchuk Accel Down`" },
+            { "Nunchuk/IMUAccelerometer/Left", "`Nunchuk Accel Left`" },
+            { "Nunchuk/IMUAccelerometer/Right", "`Nunchuk Accel Right`" },
+            { "Nunchuk/IMUAccelerometer/Forward", "`Nunchuk Accel Forward`" },
+            { "Nunchuk/IMUAccelerometer/Backward", "`Nunchuk Accel Backward`" },
+            { "Classic/Buttons/A", "`Classic A`" },
+            { "Classic/Buttons/B", "`Classic B`" },
+            { "Classic/Buttons/X", "`Classic X`" },
+            { "Classic/Buttons/Y", "`Classic Y`" },
+            { "Classic/Buttons/ZL", "`Classic ZL`" },
+            { "Classic/Buttons/ZR", "`Classic ZR`" },
+            { "Classic/Buttons/-", "`Classic -`" },
+            { "Classic/Buttons/+", "`Classic +`" },
+            { "Classic/Buttons/Home", "`Classic HOME`" },
+            { "Classic/Left Stick/Up", "`Classic Left Y+`" },
+            { "Classic/Left Stick/Down", "`Classic Left Y-`" },
+            { "Classic/Left Stick/Left", "`Classic Left X-`" },
+            { "Classic/Left Stick/Right", "`Classic Left X+`" },
+            { "Classic/Left Stick/Calibration", "100.00 100.00 100.00 100.00 100.00 100.00 100.00 100.00" },
+            { "Classic/Right Stick/Up", "`Classic Right Y+`" },
+            { "Classic/Right Stick/Down", "`Classic Right Y-`" },
+            { "Classic/Right Stick/Left", "`Classic Right X-`" },
+            { "Classic/Right Stick/Right", "`Classic Right X+`" },
+            { "Classic/Right Stick/Calibration", "100.00 100.00 100.00 100.00 100.00 100.00 100.00 100.00" },
+            { "Classic/Triggers/L", "`Classic L`" },
+            { "Classic/Triggers/R", "`Classic R`" },
+            { "Classic/Triggers/L-Analog", "`Classic L-Analog`" },
+            { "Classic/Triggers/R-Analog", "`Classic R-Analog`" },
+            { "Classic/D-Pad/Up", "`Classic Up`" },
+            { "Classic/D-Pad/Down", "`Classic Down`" },
+            { "Classic/D-Pad/Left", "`Classic Left`" },
+            { "Classic/D-Pad/Right", "`Classic Right`" },
+            { "Rumble/Motor", "`Motor`" },
+            { "Options/Battery", "`Battery`" },
+        };
     }
 }
