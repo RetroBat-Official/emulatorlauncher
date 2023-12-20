@@ -431,12 +431,19 @@ namespace EmulatorLauncher
 
                     // gamecube pads forced as standard pad
                     bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
+                    bool realWiimoteAsEmulated = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] != "0" && Program.SystemConfig["emulatedwiimotes"] != "1");
                     
                     // wiimote scanning
                     if (emulatedWiiMote || system == "gamecube" || _triforce)
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "False");
                     else
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
+
+                    // Real wiimote as emulated
+                    if (realWiimoteAsEmulated)
+                        ini.WriteValue("Core", "WiimoteControllerInterface", "True");
+                    else
+                        ini.WriteValue("Core", "WiimoteControllerInterface", "False");
 
                     // Write texture paths
                     if (!_triforce)
