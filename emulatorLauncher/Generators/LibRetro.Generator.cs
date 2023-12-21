@@ -293,6 +293,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "audio_volume", "audio_volume", "0.000000");
             BindFeature(retroarchConfig, "audio_mixer_volume", "audio_mixer_volume", "0.000000");
             BindFeature(retroarchConfig, "audio_dsp_plugin", "audio_dsp_plugin", "");
+            BindBoolFeature(retroarchConfig, "audio_sync", "audio_sync", "false", "true");
 
             // Misc
             BindBoolFeature(retroarchConfig, "video_smooth", "smooth", "true", "false");
