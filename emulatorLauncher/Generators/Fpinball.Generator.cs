@@ -251,14 +251,19 @@ namespace EmulatorLauncher
 
         private void SetupOptions(ScreenResolution resolution)
         {
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
             if (regKeyc != null)
                 regKeyc = regKeyc.CreateSubKey("Future Pinball").CreateSubKey("GamePlayer");
 
             if (regKeyc != null)
             {
-                regKeyc.SetValue("FullScreen", 1); 
-                 
+                if (fullscreen)
+                    regKeyc.SetValue("FullScreen", 1);
+                else
+                    regKeyc.SetValue("FullScreen", 0);
+
                 if (SystemConfig.isOptSet("arcademode") && SystemConfig["arcademode"] == "1")
                 {
                     if (Screen.PrimaryScreen.Bounds.Height > Screen.PrimaryScreen.Bounds.Width)
@@ -273,7 +278,7 @@ namespace EmulatorLauncher
                     regKeyc.SetValue("RotateDegrees", 0);
                     regKeyc.SetValue("ArcadeMode", 0);
                 }
-                
+
 
                 if (SystemConfig.isOptSet("ratio"))
                 {
@@ -284,6 +289,11 @@ namespace EmulatorLauncher
                 }
                 else
                     regKeyc.SetValue("AspectRatio", 169);
+
+                if (SystemConfig.isOptSet("fp_vsync") && SystemConfig["fp_vsync"] == "0")
+                    regKeyc.SetValue("VerticalSync", 0);
+                else
+                    regKeyc.SetValue("VerticalSync", 1);
 
                 if (resolution != null)
                 {
@@ -297,6 +307,11 @@ namespace EmulatorLauncher
                     regKeyc.SetValue("Width", Screen.PrimaryScreen.Bounds.Width);
                     regKeyc.SetValue("BitsPerPixel", Screen.PrimaryScreen.BitsPerPixel);
                 }
+
+                if (SystemConfig.isOptSet("MonitorIndex"))
+                    regKeyc.SetValue("PlayfieldMonitorID", "\\\\.\\DISPLAY" + SystemConfig["MonitorIndex"]);
+                else
+                    regKeyc.SetValue("PlayfieldMonitorID", "\\\\.\\DISPLAY1");
 
                 if (regKeyc.GetValue("DefaultCamera") == null)
                     regKeyc.SetValue("DefaultCamera", 0);
@@ -361,6 +376,27 @@ namespace EmulatorLauncher
                     regKeyc.SetValue("WireGuideSides", 0x14);
                     regKeyc.SetValue("HighQualityTextures", 1);
                 }
+
+                if (SystemConfig.isOptSet("fp_hide_gameroom") && SystemConfig.getOptBoolean("fp_hide_gameroom"))
+                    regKeyc.SetValue("RenderGameRoom", 0);
+
+                if (SystemConfig.isOptSet("fp_hide_ornaments") && SystemConfig.getOptBoolean("fp_hide_ornaments"))
+                    regKeyc.SetValue("RenderOrnaments", 0);
+
+                if (SystemConfig.isOptSet("fp_texture_filter"))
+                    regKeyc.SetValue("TextureFilter", SystemConfig["fp_texture_filter"]);
+                else
+                    regKeyc.SetValue("TextureFilter", "0");
+
+                if (SystemConfig.isOptSet("fp_anisotropic"))
+                    regKeyc.SetValue("AnisotropicFiltering", SystemConfig["fp_anisotropic"]);
+                else
+                    regKeyc.SetValue("AnisotropicFiltering", "1");
+
+                if (SystemConfig.isOptSet("fp_antialiasing"))
+                    regKeyc.SetValue("AntiAliasing", SystemConfig["fp_antialiasing"]);
+                else
+                    regKeyc.SetValue("AntiAliasing", "2");
 
                 regKeyc.Close();
             }
