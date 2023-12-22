@@ -242,6 +242,13 @@ namespace EmulatorLauncher
             else
                 userProfile.RequiresAdmin = requiresadmin;
 
+            // APM3ID - for online gaming
+            var apm3id = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "APM3ID");
+            if (apm3id != null && SystemConfig.isOptSet("apm3id") && !string.IsNullOrEmpty(SystemConfig["apm3id"]))
+                apm3id.FieldValue = SystemConfig["apm3id"].ToUpperInvariant();
+            else if (apm3id != null)
+                apm3id.FieldValue = string.Empty;
+
             ConfigureControllers(userProfile);
 
             JoystickHelper.SerializeGameProfile(userProfile, userProfilePath);

@@ -96,6 +96,11 @@ namespace EmulatorLauncher
             { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") }
         };
 
+        static List<string>noVersionExe = new List<string>()
+        {
+            "rmg", "play", "eduke32", "mesen"
+        };
+
         #region Properties
         public string Emulator { get; private set; }
         public string[] Folders { get; private set; }
@@ -218,13 +223,14 @@ namespace EmulatorLauncher
             try
             {
                 string exe = GetInstalledExecutable();
+                string shortExe = Path.GetFileNameWithoutExtension(exe).ToLower();
                 if (string.IsNullOrEmpty(exe))
                     return null;
 
                 var versionInfo = FileVersionInfo.GetVersionInfo(exe);
 
                 string version = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
-                if (version != "0.0.0.0")
+                if (version != "0.0.0.0" && !noVersionExe.Contains(shortExe))
                     return version;
 
                 // Retroarch specific
@@ -259,6 +265,15 @@ namespace EmulatorLauncher
                 {
                     var output = ProcessExtensions.RunWithOutput(exe, "--help");
                     output = StringExtensions.FormatVersionString(output.ExtractString("GSplus v", " "));
+
+                    Version ver = new Version();
+                    if (Version.TryParse(output, out ver))
+                        return ver.ToString();
+                }
+                else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "rmg")
+                {
+                    var output = ProcessExtensions.RunWithOutput(exe, "-v");
+                    output = StringExtensions.FormatVersionString(output.ExtractString("Rosalie's Mupen GUI v", "\r"));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
