@@ -123,8 +123,14 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
-					
-					if (SystemConfig.isOptSet("ratio"))
+                    // Fullscreen
+                    if (_bezelFileInfo != null)
+                        ini.WriteValue("Settings", "BorderlessFullscreen", "True");
+                    else
+                        ini.WriteValue("Settings", "BorderlessFullscreen", "False");
+
+                    // Ratio
+                    if (SystemConfig.isOptSet("ratio"))
 					{
 						if (SystemConfig["ratio"] == "4/3")
 						{
@@ -153,35 +159,13 @@ namespace EmulatorLauncher
                     else
                         ini.Remove("Settings", "wideScreenHack");
 
-                    // draw or not FPS
-                    BindBoolIniFeature(ini, "Settings", "ShowFPS", "DrawFramerate", "True", "False");
-
-                    if (_bezelFileInfo != null)
-                        ini.WriteValue("Settings", "BorderlessFullscreen", "True");
-                    else 
-                        ini.WriteValue("Settings", "BorderlessFullscreen", "False");
-
-                    ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
-
-                    // internal resolution
-                    BindIniFeature(ini, "Settings", "InternalResolution", "internal_resolution", "0");
-
-                    // HiResTextures
-                    BindBoolIniFeature(ini, "Settings", "HiresTextures", "hires_textures", "True", "False");
-                    BindBoolIniFeature(ini, "Settings", "CacheHiresTextures", "CacheHiresTextures", "True", "False");
-
-                    // anisotropic filtering - Auto 0
-                    BindIniFeature(ini, "Enhancements", "MaxAnisotropy", "anisotropic_filtering", "0");
-
-                    // antialiasing (new dolhpin version adds SSAA)
-                    BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "true", "false");
-                    
+                    // Anti-aliasing
                     if (SystemConfig.isOptSet("antialiasing"))
-                        ini.WriteValue("Settings", "MSAA", "0x0000000" + SystemConfig["antialiasing"]);
+                        ini.WriteValue("Settings", "MSAA", SystemConfig["antialiasing"]);
                     else
                     {
                         ini.WriteValue("Settings", "MSAA", "0x00000001");
-                        ini.WriteValue("Settings", "SSAA", "false");
+                        ini.WriteValue("Settings", "SSAA", "False");
                     }
 
                     // various performance hacks - Default Off
@@ -206,19 +190,6 @@ namespace EmulatorLauncher
                             ini.Remove("Enhancements", "ForceTrueColor");
                         }
                     }
-
-                    // shaders compilation
-                    BindBoolIniFeature(ini, "Settings", "WaitForShadersBeforeStarting", "WaitForShadersBeforeStarting", "True", "False");
-                    BindIniFeature(ini, "Settings", "ShaderCompilationMode", "ShaderCompilationMode", "2");
-
-                    // Skip EFB Access
-                    BindIniFeature(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False");
-
-                    // Scaled EFB copy
-                    BindIniFeature(ini, "Hacks", "EFBScaledCopy", "EFBScaledCopy", "True");
-
-                    // EFB emulate format
-                    BindIniFeature(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True");
 
                     // Store EFB Copies
                     if (Features.IsSupported("EFBCopies"))
@@ -245,16 +216,27 @@ namespace EmulatorLauncher
                         }
                     }
 
-                    // Force texture filtering
-                    BindIniFeature(ini, "Enhancements", "ForceFiltering", "ForceFiltering", "False");
+                    // HiResTextures
+                    BindBoolIniFeature(ini, "Settings", "HiresTextures", "hires_textures", "True", "False");
+                    BindBoolIniFeature(ini, "Settings", "CacheHiresTextures", "CacheHiresTextures", "True", "False");
 
-                    // Shaders
+                    // Other settings
+                    ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
+                    BindBoolIniFeature(ini, "Settings", "ShowFPS", "DrawFramerate", "True", "False");
+                    BindIniFeature(ini, "Settings", "InternalResolution", "internal_resolution", "0");
+                    BindIniFeature(ini, "Enhancements", "ForceTextureFiltering", "ForceFiltering", "0");
                     BindIniFeature(ini, "Enhancements", "PostProcessingShader", "dolphin_shaders", "(off)");
-
-                    // Hack vertex rounding
                     BindBoolIniFeature(ini, "Hacks", "VertexRounding", "VertexRounding", "True", "False");
                     BindBoolIniFeature(ini, "Hacks", "VISkip", "VISkip", "True", "False");
                     BindBoolIniFeature(ini, "Hacks", "FastTextureSampling", "manual_texture_sampling", "False", "True");
+                    BindBoolIniFeature(ini, "Settings", "WaitForShadersBeforeStarting", "WaitForShadersBeforeStarting", "True", "False");
+                    BindIniFeature(ini, "Settings", "ShaderCompilationMode", "ShaderCompilationMode", "2");
+                    BindIniFeature(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False");
+                    BindIniFeature(ini, "Hacks", "EFBScaledCopy", "EFBScaledCopy", "True");
+                    BindIniFeature(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True");
+                    BindIniFeature(ini, "Enhancements", "MaxAnisotropy", "anisotropic_filtering", "0");
+                    BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "True", "False");
+                    BindBoolIniFeature(ini, "Settings", "Crop", "dolphin_crop", "True", "False");
                 }
             }
             catch { }
