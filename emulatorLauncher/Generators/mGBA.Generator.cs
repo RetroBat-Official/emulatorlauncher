@@ -29,7 +29,7 @@ namespace EmulatorLauncher
             _resolution = resolution;
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            SetupConfiguration(path, rom, system);
+            SetupConfiguration(path, rom, system, fullscreen);
 
             var commandArray = new List<string>();
 
@@ -66,53 +66,56 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        private void SetupConfiguration(string path, string rom, string system)
+        private void SetupConfiguration(string path, string rom, string system, bool fullscreen)
         {
             string conf = Path.Combine(path, "config.ini");
 
             using (var ini = IniFile.FromFile(conf))
             {
+                if (!fullscreen)
+                    ini.WriteValue("ports.qt", "fullscreen", "0");
+
                 // Write Paths
                 string savestatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mgba", "sstates");
                 if (!Directory.Exists(savestatePath)) try { Directory.CreateDirectory(savestatePath); }
                     catch { }
                 if (!string.IsNullOrEmpty(savestatePath) && Directory.Exists(savestatePath))
-                    ini.WriteValue("ports.qt", "savestatePath", savestatePath);
+                    ini.WriteValue("ports.qt", "savestatePath", savestatePath.Replace("\\", "/"));
 
                 string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "mgba");
                 if (!Directory.Exists(cheatsPath)) try { Directory.CreateDirectory(cheatsPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(cheatsPath) && Directory.Exists(cheatsPath))
-                    ini.WriteValue("ports.qt", "cheatsPath", cheatsPath);
+                    ini.WriteValue("ports.qt", "cheatsPath", cheatsPath.Replace("\\", "/"));
 
                 string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "mgba");
                 if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(screenshotPath) && Directory.Exists(screenshotPath))
-                    ini.WriteValue("ports.qt", "screenshotPath", screenshotPath);
+                    ini.WriteValue("ports.qt", "screenshotPath", screenshotPath.Replace("\\", "/"));
 
                 string savegamePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
                 if (!Directory.Exists(savegamePath)) try { Directory.CreateDirectory(savegamePath); }
                     catch { }
                 if (!string.IsNullOrEmpty(savegamePath) && Directory.Exists(savegamePath))
-                    ini.WriteValue("ports.qt", "savegamePath", savegamePath);
+                    ini.WriteValue("ports.qt", "savegamePath", savegamePath.Replace("\\", "/"));
 
                 // Bios files
                 string gbBIOS = Path.Combine(AppConfig.GetFullPath("bios"), "gb_bios.bin");
                 if (File.Exists(gbBIOS))
-                    ini.WriteValue("ports.qt", "gb.bios", gbBIOS);
+                    ini.WriteValue("ports.qt", "gb.bios", gbBIOS.Replace("\\", "/"));
 
                 string sgbBIOS = Path.Combine(AppConfig.GetFullPath("bios"), "sgb2_boot.bin");
                 if (File.Exists(sgbBIOS))
-                    ini.WriteValue("ports.qt", "sgb.bios", sgbBIOS);
+                    ini.WriteValue("ports.qt", "sgb.bios", sgbBIOS.Replace("\\", "/"));
 
                 string gbcbBIOS = Path.Combine(AppConfig.GetFullPath("bios"), "gbc_bios.bin");
                 if (File.Exists(gbcbBIOS))
-                    ini.WriteValue("ports.qt", "gbc.bios", gbcbBIOS);
+                    ini.WriteValue("ports.qt", "gbc.bios", gbcbBIOS.Replace("\\", "/"));
 
                 string gbabBIOS = Path.Combine(AppConfig.GetFullPath("bios"), "gba_bios.bin");
                 if (File.Exists(gbabBIOS))
-                    ini.WriteValue("ports.qt", "gba.bios", gbabBIOS);
+                    ini.WriteValue("ports.qt", "gba.bios", gbabBIOS.Replace("\\", "/"));
 
                 // General Settings
                 ini.WriteValue("ports.qt", "pauseOnMinimize", "1");
@@ -155,12 +158,14 @@ namespace EmulatorLauncher
                 {
                     string shaderpath = Path.Combine(path, "shaders", SystemConfig["mgba_shader"]);
                     if (Directory.Exists(shaderpath))
-                        ini.WriteValue("ports.qt", "shader", shaderpath);
+                        ini.WriteValue("ports.qt", "shader", shaderpath.Replace("\\", "/"));
                     else
                         ini.WriteValue("ports.qt", "shader", "");
                 }
                 else
                     ini.WriteValue("ports.qt", "shader", "");
+
+                BindBoolIniFeature(ini, "ports.qt", "lockIntegerScaling", "integerscale", "1", "0");
 
             }
 
