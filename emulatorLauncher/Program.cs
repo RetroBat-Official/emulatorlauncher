@@ -118,6 +118,7 @@ namespace EmulatorLauncher
             { "xm6pro", () => new Xm6proGenerator() },
             { "stella", () => new StellaGenerator() },
             { "theforceengine", () => new ForceEngineGenerator() },
+            { "kronos", () => new KronosGenerator() },
         };
 
         public static ConfigFile AppConfig { get; private set; }

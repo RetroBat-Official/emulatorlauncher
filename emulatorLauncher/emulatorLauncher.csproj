@@ -254,6 +254,10 @@
       <DependentUpon>Zinc.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\SSF.Generator.cs" />
+    <Compile Include="Generators\Kronos.Generator.cs" />
+    <Compile Include="Generators\Kronos.Controllers.cs">
+      <DependentUpon>Kronos.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
