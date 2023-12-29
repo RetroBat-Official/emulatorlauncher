@@ -31,7 +31,7 @@ namespace EmulatorLauncher
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             _startBios = SystemConfig.getOptBoolean("saturn_startbios");
 
-            SetupConfig(path, system, exe, fullscreen);
+            SetupConfig(path, system, exe, rom, fullscreen);
 
             var commandArray = new List<string>();
 
@@ -79,7 +79,7 @@ namespace EmulatorLauncher
             return "0";
         }
 
-        private void SetupConfig(string path, string system, string exe, bool fullscreen = true)
+        private void SetupConfig(string path, string system, string exe, string rom, bool fullscreen = true)
         {
             string iniFile = Path.Combine(path, "kronos.ini");
 
@@ -129,9 +129,8 @@ namespace EmulatorLauncher
                         ini.WriteValue("1.0", "General\\Version", output.ToString());
                     
                     // Features
-                    ini.WriteValue("1.0", "General\\CdRom", "0");
-                    ini.WriteValue("1.0", "General\\CdRom", "0");
-                    ini.AppendValue("1.0", "General\\CdRomISO", string.Empty);
+                    ini.WriteValue("1.0", "General\\CdRom", "1");
+                    ini.AppendValue("1.0", "General\\CdRomISO", rom.Replace("\\", "/"));
                     ini.WriteValue("1.0", "View\\Toolbar", "1");
                     ini.WriteValue("1.0", "General\\EnableEmulatedBios", "false");
                     ini.WriteValue("1.0", "Video\\VideoCore", "2");
@@ -146,7 +145,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "1.0", "Video\\MeshMode", "kronos_mesh", "1", "0");
                     BindBoolIniFeature(ini, "1.0", "Video\\BandingMode", "kronos_bandingmode", "1", "0");
                     BindIniFeature(ini, "1.0", "Sound\\SoundCore", "kronos_audiocore", "1");
-                    BindIniFeature(ini, "1.0", "Cartridge\\Type", "kronos_cartridge", "6");
+                    BindIniFeature(ini, "1.0", "Cartridge\\Type", "kronos_cartridge", "7");
 
                     // CreateControllerConfiguration(path, ini); // TODO for controllers
                     ConfigureGun(path, ini);
