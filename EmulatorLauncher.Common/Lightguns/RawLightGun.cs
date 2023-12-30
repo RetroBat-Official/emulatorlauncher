@@ -82,7 +82,7 @@ namespace EmulatorLauncher.Common.Lightguns
                  index++;
             }
 
-            // Sort by, (sinden) lightgun, thenby wiimotes, then by physical index
+            // Sort by, gun4IR, thenby (sinden) lightgun, thenby wiimotes, then by physical index
             mouseNames.Sort((x, y) => x.GetGunPriority().CompareTo(y.GetGunPriority()));
 
             return mouseNames.ToArray();
@@ -100,10 +100,19 @@ namespace EmulatorLauncher.Common.Lightguns
             switch (Type)
             {
                 case RawLighGunType.Gun4Ir:
-                    return Index;
+                    if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8042"))
+                        return 1;
+                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8043"))
+                        return 2;
+                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8044"))
+                        return 3;
+                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8045"))
+                        return 4;
+                    else
+                        return 5 + Index;
 
                 case RawLighGunType.SindenLightgun:
-                    return 10 + Index;
+                    return 20 + Index;
 
                 case RawLighGunType.MayFlashWiimote:
                     return 100 + Index;
