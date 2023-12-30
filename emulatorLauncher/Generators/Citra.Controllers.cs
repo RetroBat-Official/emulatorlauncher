@@ -35,7 +35,7 @@ namespace EmulatorLauncher
             if (cfg == null)
                 return;
 
-            if (_sdlVersion == SdlVersion.SDL2_26)
+            if (_sdlVersion == SdlVersion.SDL2_26 && sdlControllerNameMap.ContainsKey(controller.Name))
                 controller.Name = sdlControllerNameMap[controller.Name];
 
             var guid = controller.GetSdlGuid(SdlVersion.SDL2_26, true);
