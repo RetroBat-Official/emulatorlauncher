@@ -1383,6 +1383,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "genesis_plus_gx_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_add_on", "genesis_plus_gx_add_on", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_left_border", "genesis_plus_gx_left_border", "disabled");
+            BindFeature(coreSettings, "genesis_plus_gx_region_detect", "genesis_plus_gx_region", "auto");
 
             // Audio Filter
             if (Features.IsSupported("audio_filter"))
@@ -1473,7 +1474,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "genesis_plus_gx_wide_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_add_on", "genesis_plus_gx_add_on", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_wide_h40_extra_columns", "h40_extra_columns", "10");
-            BindFeature(coreSettings, "genesis_plus_gx_left_border", "genesis_plus_gx_left_border", "disabled");
+            BindFeature(coreSettings, "genesis_plus_gx_wide_left_border", "genesis_plus_gx_left_border", "disabled");
+            BindFeature(coreSettings, "genesis_plus_gx_wide_region_detect", "genesis_plus_gx_region", "auto");
 
             // Audio Filter
             if (Features.IsSupported("audio_filter"))
