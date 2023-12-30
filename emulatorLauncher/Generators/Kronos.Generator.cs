@@ -34,39 +34,32 @@ namespace EmulatorLauncher
             var commandArray = new List<string>();
 
             // Manage .m3u files
-            List<string> disks = new List<string>();
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
-                string romPath = Path.GetDirectoryName(rom);
+                var fromm3u = MultiDiskImageFile.FromFile(rom);
 
-                foreach (var line in File.ReadAllLines(rom))
-                {
-                    string dsk = Path.Combine(romPath, line);
-                    if (File.Exists(dsk))
-                        disks.Add(dsk);
-                    else
-                        throw new ApplicationException("File '" + Path.Combine(romPath, line) + "' does not exist");
-                }
-
-                if (disks.Count == 0)
+                if (fromm3u.Files.Length == 0)
                     throw new ApplicationException("m3u file does not contain any game file.");
 
-                else if (disks.Count == 1)
-                    rom = disks[0];
+                else if (fromm3u.Files.Length == 1)
+                    rom = fromm3u.Files[0];
 
                 else
                 {
                     if (SystemConfig.isOptSet("saturn_discnumber") && !string.IsNullOrEmpty(SystemConfig["saturn_discnumber"]))
                     {
                         int discNumber = SystemConfig["saturn_discnumber"].ToInteger();
-                        if (discNumber >= 0 && discNumber <= disks.Count)
-                            rom = disks[discNumber];
+                        if (discNumber >= 0 && discNumber <= fromm3u.Files.Length)
+                            rom = fromm3u.Files[discNumber];
                         else
-                            rom = disks[0];
+                            rom = fromm3u.Files[0];
                     }
                     else
-                        rom = disks[0];
+                        rom = fromm3u.Files[0];
                 }
+
+                if (!File.Exists(rom))
+                    throw new ApplicationException("File '" + rom + "' does not exist");
             }
 
             SetupConfig(path, system, exe, rom, fullscreen);
