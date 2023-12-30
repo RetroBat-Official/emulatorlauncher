@@ -50,7 +50,7 @@ namespace EmulatorLauncher
             
             string mappingPath = Path.Combine(path, "mappings");
 
-            bool guns = SystemConfig["flycast_controller1"] == "7" || SystemConfig["flycast_controller2"] == "7";
+            bool guns = SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "7" || SystemConfig["flycast_controller2"] == "7";
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
             int nsamepad = 0;
@@ -436,8 +436,18 @@ namespace EmulatorLauncher
 
         private void ConfigureFlycastGuns(IniFile ini, string mappingPath)
         {
-            bool multigun = SystemConfig["flycast_controller1"] == "7" && SystemConfig["flycast_controller2"] == "7";
-            bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
+            bool useOneGun = SystemConfig.getOptBoolean("one_gun");
+            bool guninvert = SystemConfig.getOptBoolean("gun_invert");
+            bool gunindexrevert = SystemConfig.getOptBoolean("gun_index_revert");
+            bool multigun = false;
+            if (SystemConfig["flycast_controller1"] == "7" && SystemConfig["flycast_controller2"] == "7")
+                multigun = true;
+            
+            int gunCount = RawLightgun.GetUsableLightGunCount();
+            var guns = RawLightgun.GetRawLightguns();
+
+            if (gunCount > 1 && guns.Length > 1 && !useOneGun)
+                multigun = true;
 
             ini.WriteValue("input", "maple_sdl_mouse", "0");
 
@@ -460,54 +470,11 @@ namespace EmulatorLauncher
 
             if (multigun)
             {
-                RawLightgun lightgun1 = null;
-                RawLightgun lightgun2 = null;
-
-                int gunCount = RawLightgun.GetUsableLightGunCount();
-
                 if (gunCount <= 1) // If there's only one gun ( or just one sinden gun + one mouse ), then ignore multigun
                     return;
 
-                var guns = RawLightgun.GetRawLightguns();
-
-                var sindenguns = RawLightgun.GetRawLightguns()
-                    .Where(c => c.Type == RawLighGunType.SindenLightgun)
-                    .Take(2)
-                    .ToArray();
-
-                var wiimoteguns = RawLightgun.GetRawLightguns()
-                    .Where(c => c.Type == RawLighGunType.MayFlashWiimote)
-                    .Take(2)
-                    .ToArray();
-
-                if (sindenguns.Length > 1)
-                {
-                    lightgun1 = sindenguns[0];
-                    lightgun2 = sindenguns[1];
-                }
-                else if (sindenguns.Length > 0)
-                    lightgun1 = sindenguns[0];
-
-                if (wiimoteguns.Length > 1)
-                {
-                    if (lightgun1 == null)
-                    {
-                        lightgun1 = wiimoteguns[0];
-                        lightgun2 = wiimoteguns[1];
-                    }
-                }
-                else if (wiimoteguns.Length > 0)
-                {
-                    if (lightgun1 == null)
-                        lightgun1 = wiimoteguns[0];
-                    else if (lightgun2 == null)
-                        lightgun2 = wiimoteguns[1];
-                }
-
-                if (lightgun2 == null && gunCount > 1)
-                    lightgun2 = guns[1];
-                if (lightgun1 == null && gunCount > 0)
-                    lightgun1 = guns[0];
+                RawLightgun lightgun1 = gunindexrevert ? guns[1] : guns[0];
+                RawLightgun lightgun2 = gunindexrevert ? guns[0] : guns[1];
 
                 ini.WriteValue("input", "RawInput", "yes");
                 ini.WriteValue("input", "maple_raw_keyboard_" + lightgun1.DevicePath.Substring(8), "0");
