@@ -176,7 +176,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "1.0", "Sound\\SoundCore", "kronos_audiocore", "1");
                     BindIniFeature(ini, "1.0", "Cartridge\\Type", "kronos_cartridge", "7");
 
-                    // CreateControllerConfiguration(path, ini); // TODO for controllers
+                    // CreateControllerConfiguration(path, ini); // TODO for controllers, not possible yet as it does not support correctly SDL controllers
                     ConfigureGun(path, ini);
                 }
             }
