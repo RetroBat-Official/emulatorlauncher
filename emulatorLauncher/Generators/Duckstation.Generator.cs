@@ -262,7 +262,7 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("Scaled_Dithering"))
                         ini.WriteValue("GPU", "ScaledDithering", "false");
 
-                    if (SystemConfig.isOptSet("pgxp") && SystemConfig.getOptBoolean("pgxp"))
+                    if (SystemConfig.isOptSet("duck_pgxp") && SystemConfig.getOptBoolean("duck_pgxp"))
                     {
                         ini.WriteValue("GPU", "PGXPEnable", "true");
                         ini.WriteValue("GPU", "PGXPCulling", "true");

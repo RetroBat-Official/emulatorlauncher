@@ -1383,6 +1383,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "genesis_plus_gx_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_add_on", "genesis_plus_gx_add_on", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_left_border", "genesis_plus_gx_left_border", "disabled");
+            BindFeature(coreSettings, "genesis_plus_gx_region_detect", "genesis_plus_gx_region", "auto");
 
             // Audio Filter
             if (Features.IsSupported("audio_filter"))
@@ -1473,7 +1474,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "genesis_plus_gx_wide_bios", "genesis_plus_gx_bios", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_add_on", "genesis_plus_gx_add_on", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_wide_h40_extra_columns", "h40_extra_columns", "10");
-            BindFeature(coreSettings, "genesis_plus_gx_left_border", "genesis_plus_gx_left_border", "disabled");
+            BindFeature(coreSettings, "genesis_plus_gx_wide_left_border", "genesis_plus_gx_left_border", "disabled");
+            BindFeature(coreSettings, "genesis_plus_gx_wide_region_detect", "genesis_plus_gx_region", "auto");
 
             // Audio Filter
             if (Features.IsSupported("audio_filter"))
@@ -1904,17 +1906,15 @@ namespace EmulatorLauncher.Libretro
             }
 
             // PGXP
-            if (SystemConfig.isOptSet("pgxp") && SystemConfig.getOptBoolean("pgxp"))
+            if (SystemConfig.isOptSet("mednafen_pgxp") && SystemConfig.getOptBoolean("mednafen_pgxp"))
             {
                 coreSettings["beetle_psx_hw_pgxp_mode"] = "memory only";
                 coreSettings["beetle_psx_hw_pgxp_texture"] = "enabled";
-                coreSettings["beetle_psx_hw_pgxp_vertex"] = "enabled";
             }
             else
             {
                 coreSettings["beetle_psx_hw_pgxp_mode"] = "disabled";
                 coreSettings["beetle_psx_hw_pgxp_texture"] = "disabled";
-                coreSettings["beetle_psx_hw_pgxp_vertex"] = "disabled";
             }
 
             //Custom textures
@@ -3431,6 +3431,21 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "swanstation_GPU_ScaledDithering", "scaled_dithering", "true");
             BindFeature(coreSettings, "swanstation_GPU_TrueColor", "truecolor", "false");
             BindFeature(coreSettings, "swanstation_BIOS_PatchFastBoot", "skip_bios", "true");
+            BindFeature(coreSettings, "swanstation_CPU_ExecutionMode", "swanstation_cpucore", "Interpreter");
+
+            // PGXP
+            if (SystemConfig.isOptSet("swanstation_pgxp") && SystemConfig.getOptBoolean("swanstation_pgxp"))
+            {
+                coreSettings["swanstation_GPU_PGXPEnable"] = "true";
+                coreSettings["swanstation_GPU_PGXPCulling"] = "true";
+                coreSettings["swanstation_GPU_PGXPTextureCorrection"] = "true";
+            }
+            else
+            {
+                coreSettings["swanstation_GPU_PGXPEnable"] = "false";
+                coreSettings["swanstation_GPU_PGXPCulling"] = "false";
+                coreSettings["swanstation_GPU_PGXPTextureCorrection"] = "false";
+            }
 
             // Controls
             if (SystemConfig.isOptSet("swanstation_controller") && !string.IsNullOrEmpty(SystemConfig["swanstation_controller"]))
