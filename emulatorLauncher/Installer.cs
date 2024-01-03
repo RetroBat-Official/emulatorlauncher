@@ -94,7 +94,8 @@ namespace EmulatorLauncher
             { new Installer("xm6pro", "xm6pro", "XM6.exe") },
             { new Installer("stella", "stella", "Stella.exe") },
             { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") },
-            { new Installer("kronos", "kronos", "kronos.exe") }
+            { new Installer("kronos", "kronos", "kronos.exe") },
+            { new Installer("gzdoom", "gzdoom", "gzdoom.exe") }
         };
 
         static List<string>noVersionExe = new List<string>()
