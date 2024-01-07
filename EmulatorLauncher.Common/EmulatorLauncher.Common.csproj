@@ -100,6 +100,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Joysticks\RawInputDevice.cs" />
+    <Compile Include="Wheels\RawWheels.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="RegistryApi.cs" />
     <Compile Include="ScreenCapture.cs" />
