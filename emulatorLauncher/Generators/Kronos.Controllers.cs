@@ -7,7 +7,6 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using System.Globalization;
 using EmulatorLauncher.Common.Joysticks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace EmulatorLauncher
 {
