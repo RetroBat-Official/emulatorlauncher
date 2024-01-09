@@ -932,7 +932,7 @@ namespace EmulatorLauncher.Libretro
             coreSettings["dosbox_pure_savestate"] = "on";
             retroarchConfig["video_font_enable"] = "false"; // Disable OSD for dosbox_pure
 
-            BindFeature(coreSettings, "dosbox_pure_aspect_correction", "ratio", "true");
+            BindFeature(coreSettings, "dosbox_pure_aspect_correction", "dosbox_ratio", "true");
             BindFeature(coreSettings, "dosbox_pure_cga", "cga", "early_auto");
             BindFeature(coreSettings, "dosbox_pure_cpu_core", "cpu_core", "auto");
             BindFeature(coreSettings, "dosbox_pure_cpu_type", "cpu_type", "auto");
@@ -3533,7 +3533,7 @@ namespace EmulatorLauncher.Libretro
             coreSettings["vice_audio_options_display"] = "enabled";
             BindFeature(coreSettings, "vice_warp_boost", "warp_boost", "enabled");
             BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto");
-            BindFeature(coreSettings, "vice_crop", "vice_crop", "disabled");
+            BindFeature(coreSettings, "vice_crop", "vice_crop", "auto");
             BindFeature(coreSettings, "vice_crop_mode", "vice_crop_mode", "both");
             BindFeature(coreSettings, "vice_gfx_colors", "vice_gfx_colors", "16bit");
 
