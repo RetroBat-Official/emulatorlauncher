@@ -49,7 +49,6 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + rom + "\"");
             }
 
-            
             string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
@@ -87,6 +86,11 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "GlobalSettings", "vid_cropaspect", "gzdoom_cropaspect", "false", "true");
 
                     BindIniFeature(ini, "GlobalSettings", "snd_mididevice", "gzdoom_mididevice", "-5");
+
+                    string savePath = Path.Combine(AppConfig.GetFullPath("saves"), "gzdoom");
+                    if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
+                        catch { }
+                    ini.WriteValue("GlobalSettings", "save_dir", savePath.Replace("\\", "/"));
                 }
             }
             catch { }
