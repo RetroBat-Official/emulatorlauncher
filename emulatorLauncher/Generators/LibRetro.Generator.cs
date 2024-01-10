@@ -302,7 +302,6 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(retroarchConfig, "fps_show", "showFPS", "true", "false");
             BindBoolFeature(retroarchConfig, "video_frame_delay_auto", "video_frame_delay_auto", "true", "false"); // Auto frame delay (input delay reduction via frame timing)
             BindBoolFeature(retroarchConfig, "quit_press_twice", "PressTwice", "true", "false"); // Press hotkeys twice to exit
-            BindBoolFeature(retroarchConfig, "video_hdr_enable", "enable_hdr", "true", "false");
 
             BindFeature(retroarchConfig, "video_font_enable", "OnScreenMsg", "true"); // OSD notifications
             BindFeature(retroarchConfig, "video_rotation", "RotateVideo", "0"); // video rotation
@@ -384,6 +383,10 @@ namespace EmulatorLauncher.Libretro
             // Language
             SetLanguage(retroarchConfig);
 
+            if (hdrCompatibleVideoDrivers.Contains(_video_driver))
+                BindBoolFeature(retroarchConfig, "video_hdr_enable", "enable_hdr", "true", "false");
+            else
+                retroarchConfig["video_hdr_enable"] = "false";
 
             // Custom overrides : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
             foreach (var user_config in SystemConfig)
@@ -1480,6 +1483,7 @@ namespace EmulatorLauncher.Libretro
         static List<string> systemGameFocus = new List<string>() { "dos", "amiga1200", "amiga4000", "amiga500", "amstradcpc", "bbcmicro", "camplynx", "fm7", "fmtowns", "ti99", "archimedes", "adam", "atom", "apple2", "atari800", "oricatmos", "thomson", "tutor", "coco", "atarist" };
         static List<string> coreNoPreemptiveFrames = new List<string>() { "2048", "4do", "81", "atari800", "bluemsx", "bsnes", "bsnes_hd_beta", "cannonball", "cap32", "citra", "craft", "crocods", "desmume", "desmume2015", "dolphin", "dosbox_pure", "easyrpg", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "flycast", "frodo", "gw", "handy", "hatari", "hatarib", "imageviewer", "kronos", "lutro", "mame2000", "mame2003", "mame2003_plus", "mame2003_midway", "mame2010", "mame2014", "mame2016", "mednafen_psx_hw", "mednafen_snes", "mupen64plus_next", "nekop2", "nestopia", "np2kai", "nxengine", "o2em", "opera", "parallel_n64", "pcsx2", "ppsspp", "prboom", "prosystem", "puae", "px68k", "race", "retro8", "sameduck", "same_cdi", "scummvm", "swanstation", "theodore", "tic80", "tyrquake", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vecx", "virtualjaguar" };
         static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
+        static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11" };
 
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
