@@ -87,6 +87,24 @@ namespace EmulatorLauncher
 
                     BindIniFeature(ini, "GlobalSettings", "snd_mididevice", "gzdoom_mididevice", "-5");
 
+                    // hdr
+                    if (SystemConfig["gzdoom_renderer"] == "1" && SystemConfig.getOptBoolean("enable_hdr"))
+                    {
+                        ini.WriteValue("GlobalSettings", "vid_hdr", "false");
+                        ini.WriteValue("GlobalSettings", "vk_hdr", "true");
+                    }
+                    else if (SystemConfig.getOptBoolean("enable_hdr"))
+                    {
+                        ini.WriteValue("GlobalSettings", "vid_hdr", "true");
+                        ini.WriteValue("GlobalSettings", "vk_hdr", "false");
+                    }
+                    else
+                    {
+                        ini.WriteValue("GlobalSettings", "vid_hdr", "false");
+                        ini.WriteValue("GlobalSettings", "vk_hdr", "false");
+                    }
+                        
+
                     string savePath = Path.Combine(AppConfig.GetFullPath("saves"), "gzdoom");
                     if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
                         catch { }
