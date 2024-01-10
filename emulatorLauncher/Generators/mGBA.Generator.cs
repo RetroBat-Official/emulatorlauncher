@@ -75,6 +75,8 @@ namespace EmulatorLauncher
                 if (!fullscreen)
                     ini.WriteValue("ports.qt", "fullscreen", "0");
 
+                ini.WriteValue("ports.qt", "updateAutoCheck", "0");
+
                 // Write Paths
                 string savestatePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "mgba", "sstates");
                 if (!Directory.Exists(savestatePath)) try { Directory.CreateDirectory(savestatePath); }
