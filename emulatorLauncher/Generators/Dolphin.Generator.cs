@@ -221,7 +221,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Settings", "CacheHiresTextures", "CacheHiresTextures", "True", "False");
 
                     // Other settings
-                    ini.WriteValue("Hardware", "VSync", SystemConfig["VSync"] != "false" ? "True" : "False");
+                    BindIniFeature(ini, "Hardware", "VSync", "dolphin_vsync", "True");
                     BindBoolIniFeature(ini, "Settings", "ShowFPS", "DrawFramerate", "True", "False");
                     BindIniFeature(ini, "Settings", "InternalResolution", "internal_resolution", "0");
                     BindIniFeature(ini, "Enhancements", "ForceTextureFiltering", "ForceFiltering", "0");
