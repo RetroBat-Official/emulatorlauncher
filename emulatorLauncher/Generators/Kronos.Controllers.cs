@@ -52,8 +52,8 @@ namespace EmulatorLauncher
 
             ini.WriteValue("1.0", "Input\\PerCore", "3");
 
-            /* Configure hotkeys
-            ResetHotkeysToDefault(ini);*/
+            // Configure hotkeys
+            ResetHotkeysToDefault(ini);
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
@@ -333,6 +333,14 @@ namespace EmulatorLauncher
                 }
             }
             return ret;
+        }
+
+        private void ResetHotkeysToDefault(IniFile ini)
+        {
+            ini.WriteValue("1.0", "Shortcuts\\%26Quitter", "Ctrl+Q");
+            ini.WriteValue("1.0", "Shortcuts\\%26Pause", "F1");
+            ini.WriteValue("1.0", "Shortcuts\\Sc%26reenshot", "Ctrl+P");
+            ini.WriteValue("1.0", "Shortcuts\\%26Plein%20Ecran", "Alt+Return");
         }
     }
 }
