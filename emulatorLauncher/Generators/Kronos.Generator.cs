@@ -121,7 +121,7 @@ namespace EmulatorLauncher
                     {
                         { "General\\SaveStates", Path.Combine(AppConfig.GetFullPath("saves"), system, "kronos", "sstates") },
                         { "General\\ScreenshotsDirectory", Path.Combine(AppConfig.GetFullPath("screenshots"), "kronos") },
-                        { "Memory\\Path", Path.Combine(AppConfig.GetFullPath("saves"), system,  "kronos") }
+                        { "Memory\\Path", Path.Combine(AppConfig.GetFullPath("saves"), system,  "kronos", "bkram.bin") }
                     };
                     
                     foreach (KeyValuePair<string, string> pair in userPath)
@@ -176,7 +176,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "1.0", "Sound\\SoundCore", "kronos_audiocore", "1");
                     BindIniFeature(ini, "1.0", "Cartridge\\Type", "kronos_cartridge", "7");
 
-                    // CreateControllerConfiguration(path, ini); // TODO for controllers, not possible yet as it does not support correctly SDL controllers
+                    CreateControllerConfiguration(path, ini);
                     ConfigureGun(path, ini);
                 }
             }
