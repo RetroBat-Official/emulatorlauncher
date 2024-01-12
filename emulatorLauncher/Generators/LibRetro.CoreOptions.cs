@@ -706,7 +706,7 @@ namespace EmulatorLauncher.Libretro
             {
                 string gunId = "260";
 
-                var gunInfo = Program.GunGames.FindGame(system, SystemConfig["rom"]);
+                var gunInfo = Program.GunGames.FindGunGame(system, SystemConfig["rom"]);
                 if (gunInfo != null && gunInfo.GunType == "justifier")
                     gunId = "516";
 
@@ -1427,7 +1427,7 @@ namespace EmulatorLauncher.Libretro
                 {
                     var gunId = "516";
 
-                    var gunInfo = Program.GunGames.FindGame(system, SystemConfig["rom"]);
+                    var gunInfo = Program.GunGames.FindGunGame(system, SystemConfig["rom"]);
                     if (gunInfo != null && gunInfo.GunType == "justifier")
                         gunId = "772";
 
@@ -1507,7 +1507,7 @@ namespace EmulatorLauncher.Libretro
                 {
                     var gunId = "516";
 
-                    var gunInfo = Program.GunGames.FindGame(system, SystemConfig["rom"]);
+                    var gunInfo = Program.GunGames.FindGunGame(system, SystemConfig["rom"]);
                     if (gunInfo != null && gunInfo.GunType == "justifier")
                         gunId = "772";
 
@@ -3365,7 +3365,7 @@ namespace EmulatorLauncher.Libretro
             {
                 string gunId = "260";
 
-                var gunInfo = Program.GunGames.FindGame(system, SystemConfig["rom"]);
+                var gunInfo = Program.GunGames.FindGunGame(system, SystemConfig["rom"]);
                 if (gunInfo != null && gunInfo.GunType == "justifier")
                     gunId = "516";
 
