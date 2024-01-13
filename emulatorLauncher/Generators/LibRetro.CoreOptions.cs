@@ -137,6 +137,7 @@ namespace EmulatorLauncher.Libretro
                 { "mednafen_vb", "Beetle VB" },
                 { "mednafen_wswan", "Beetle WonderSwan" },
                 { "melonds", "melonDS" },
+                { "melondsds", "melonDS DS" },
                 { "mesen-s", "Mesen-S" },
                 { "mesen", "Mesen" },
                 { "mess2015", "MESS 2015 (0.160)" },
@@ -342,6 +343,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMesenS(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
+            ConfigureMelonDSds(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
@@ -2312,6 +2314,180 @@ namespace EmulatorLauncher.Libretro
 
                 }
             }
+        }
+
+        private void ConfigureMelonDSds(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "melondsds")
+                return;
+
+            // Audio
+            BindFeature(coreSettings, "melonds_audio_bitdepth", "melondsds_audio_depth", "auto");
+            BindFeature(coreSettings, "melonds_audio_interpolation", "melondsds_audio_interpolation", "disabled");
+            
+            // CPU
+            BindFeature(coreSettings, "melonds_jit_enable", "melondsds_jit", "enabled");
+            
+            // Screen
+            BindFeature(coreSettings, "melonds_show_cursor", "melondsds_cursor_mode", "touching");
+            coreSettings["melonds_cursor_timeout"] = "3";
+            BindFeature(coreSettings, "melonds_touch_mode", "melondsds_touch_mode", "auto");
+            BindFeature(coreSettings, "melonds_hybrid_ratio", "melondsds_hybrid_ratio", "2");
+            BindFeature(coreSettings, "melonds_hybrid_small_screen", "melondsds_hybrid_smallscreen", "both");
+            BindFeature(coreSettings, "melonds_screen_gap", "melondsds_screengap", "0");
+
+            coreSettings["melonds_number_of_screen_layouts"] = "8";
+
+            if (SystemConfig.isOptSet("melondsds_screen_layout") && !string.IsNullOrEmpty(SystemConfig["melondsds_screen_layout"]))
+            {
+                switch (SystemConfig["melondsds_screen_layout"])
+                {
+                    case "top-bottom":
+                        coreSettings["melonds_screen_layout1"] = "top-bottom";
+                        coreSettings["melonds_screen_layout2"] = "bottom-top";
+                        coreSettings["melonds_screen_layout3"] = "left-right";
+                        coreSettings["melonds_screen_layout4"] = "right-left";
+                        coreSettings["melonds_screen_layout5"] = "top";
+                        coreSettings["melonds_screen_layout6"] = "bottom";
+                        coreSettings["melonds_screen_layout7"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout8"] = "hybrid-bottom";
+                        break;
+                    case "bottom-top":
+                        coreSettings["melonds_screen_layout1"] = "bottom-top";
+                        coreSettings["melonds_screen_layout2"] = "top-bottom";
+                        coreSettings["melonds_screen_layout3"] = "left-right";
+                        coreSettings["melonds_screen_layout4"] = "right-left";
+                        coreSettings["melonds_screen_layout5"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout6"] = "hybrid-bottom";
+                        coreSettings["melonds_screen_layout7"] = "rotate-left";
+                        coreSettings["melonds_screen_layout8"] = "rotate-right";
+                        break;
+                    case "left-right":
+                        coreSettings["melonds_screen_layout1"] = "left-right";
+                        coreSettings["melonds_screen_layout2"] = "right-left";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "top";
+                        coreSettings["melonds_screen_layout6"] = "bottom";
+                        coreSettings["melonds_screen_layout7"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout8"] = "hybrid-bottom";
+                        break;
+                    case "right-left":
+                        coreSettings["melonds_screen_layout1"] = "right-left";
+                        coreSettings["melonds_screen_layout2"] = "left-right";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "top";
+                        coreSettings["melonds_screen_layout6"] = "bottom";
+                        coreSettings["melonds_screen_layout7"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout8"] = "hybrid-bottom";
+                        break;
+                    case "top":
+                        coreSettings["melonds_screen_layout1"] = "top";
+                        coreSettings["melonds_screen_layout2"] = "bottom";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "left-right";
+                        coreSettings["melonds_screen_layout6"] = "right-left";
+                        coreSettings["melonds_screen_layout7"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout8"] = "hybrid-bottom";
+                        break;
+                    case "bottom":
+                        coreSettings["melonds_screen_layout1"] = "bottom";
+                        coreSettings["melonds_screen_layout2"] = "top";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "right-left";
+                        coreSettings["melonds_screen_layout6"] = "left-right";
+                        coreSettings["melonds_screen_layout7"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout8"] = "hybrid-bottom";
+                        break;
+                    case "hybrid-top":
+                        coreSettings["melonds_screen_layout1"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout2"] = "hybrid-bottom";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "left-right";
+                        coreSettings["melonds_screen_layout6"] = "right-left";
+                        coreSettings["melonds_screen_layout7"] = "top";
+                        coreSettings["melonds_screen_layout8"] = "bottom";
+                        break;
+                    case "hybrid-bottom":
+                        coreSettings["melonds_screen_layout1"] = "hybrid-bottom";
+                        coreSettings["melonds_screen_layout2"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "left-right";
+                        coreSettings["melonds_screen_layout6"] = "right-left";
+                        coreSettings["melonds_screen_layout7"] = "top";
+                        coreSettings["melonds_screen_layout8"] = "bottom";
+                        break;
+                    case "rotate-left":
+                        coreSettings["melonds_screen_layout1"] = "rotate-left";
+                        coreSettings["melonds_screen_layout2"] = "rotate-right";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "left-right";
+                        coreSettings["melonds_screen_layout6"] = "right-left";
+                        coreSettings["melonds_screen_layout7"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout8"] = "hybrid-bottom";
+                        break;
+                    case "rotate-right":
+                        coreSettings["melonds_screen_layout1"] = "rotate-right";
+                        coreSettings["melonds_screen_layout2"] = "rotate-left";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "left-right";
+                        coreSettings["melonds_screen_layout6"] = "right-left";
+                        coreSettings["melonds_screen_layout7"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout8"] = "hybrid-bottom";
+                        break;
+                    case "rotate-180":
+                        coreSettings["melonds_screen_layout1"] = "rotate-180";
+                        coreSettings["melonds_screen_layout2"] = "rotate-right";
+                        coreSettings["melonds_screen_layout3"] = "rotate-left";
+                        coreSettings["melonds_screen_layout4"] = "top-bottom";
+                        coreSettings["melonds_screen_layout5"] = "left-right";
+                        coreSettings["melonds_screen_layout6"] = "top";
+                        coreSettings["melonds_screen_layout7"] = "hybrid-top";
+                        coreSettings["melonds_screen_layout8"] = "hybrid-bottom";
+                        break;
+                }
+            }
+            else
+            {
+                coreSettings["melonds_screen_layout1"] = "top-bottom";
+                coreSettings["melonds_screen_layout2"] = "left-right";
+                coreSettings["melonds_screen_layout3"] = "top";
+                coreSettings["melonds_screen_layout4"] = "bottom";
+                coreSettings["melonds_screen_layout5"] = "hybrid-top";
+                coreSettings["melonds_screen_layout6"] = "hybrid-bottom";
+                coreSettings["melonds_screen_layout7"] = "rotate-left";
+                coreSettings["melonds_screen_layout8"] = "rotate-right";
+            }
+
+            // Firmware
+            BindFeature(coreSettings, "melonds_firmware_language", "melondsds_language", "auto");
+            BindFeature(coreSettings, "melonds_console_mode", "melondsds_console", "DS");
+            BindFeature(coreSettings, "melonds_boot_mode", "melondsds_boot", "direct");
+
+            if (SystemConfig["melondsds_console"] == "dsi")
+                coreSettings["melonds_firmware_nds_path"] = "dsi_firmware.bin";
+            else
+                coreSettings["melonds_firmware_nds_path"] = "firmware.bin";
+
+            coreSettings["melonds_dsi_sdcard_readonly"] = "disabled";
+            coreSettings["melonds_dsi_sdcard_sync_sdcard_to_host"] = "disabled";
+            coreSettings["melonds_homebrew_sdcard"] = "enabled";
+            coreSettings["melonds_homebrew_readonly"] = "disabled";
+            coreSettings["melonds_homebrew_sync_sdcard_to_host"] = "disabled";
+
+            // VIDEO
+            BindFeature(coreSettings, "melonds_render_mode", "melondsds_renderer", "software");
+            BindFeature(coreSettings, "melonds_opengl_resolution", "melondsds_resolution", "1");
+            BindFeature(coreSettings, "melonds_opengl_better_polygons", "melondsds_polygon", "disabled");
+            BindFeature(coreSettings, "melonds_opengl_filtering", "melondsds_filter", "nearest");
+            BindFeature(coreSettings, "melonds_threaded_renderer", "melonds_threaded_renderer", "enabled");
         }
 
         private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
