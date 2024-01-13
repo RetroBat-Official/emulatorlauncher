@@ -155,14 +155,23 @@ namespace EmulatorLauncher
             }
         }
 
-        private static GunGames _gunGames;
+        private static GamesDB _gunGames;
 
-        public static GunGames GunGames
+        public static GamesDB GunGames
         {
             get
             {
                 if (_gunGames == null)
-                    _gunGames = GunGames.Load(Path.Combine(Program.AppConfig.GetFullPath("resources"), "gungames.xml"));
+                {
+                    string gamesDb = Path.Combine(Program.AppConfig.GetFullPath("resources"), "gamesdb.xml");
+                    if (File.Exists(gamesDb))
+                        _gunGames = GamesDB.Load(gamesDb);
+                    else
+                    {
+                        string gungamesDb = Path.Combine(Program.AppConfig.GetFullPath("resources"), "gungames.xml");
+                        _gunGames = GamesDB.Load(gungamesDb);
+                    }
+                }
 
                 return _gunGames;
             }
@@ -254,6 +263,11 @@ namespace EmulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"]));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
+
+
+            var test = GunGames.Systems;
+
+
 
             if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun"))
                 SystemConfig["use_guns"] = "true";
