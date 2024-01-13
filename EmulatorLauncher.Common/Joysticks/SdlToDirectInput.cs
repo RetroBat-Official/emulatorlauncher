@@ -1,4 +1,5 @@
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using System;
 using System.Collections.Generic;
 
@@ -62,4 +63,28 @@ public class SdlToDirectInput
             return null;
         }
     }
+
+    public static Dictionary<InputKey, string> SdlToGameControllerDB = new Dictionary<InputKey, string>()
+    {
+        { InputKey.a,               "a" },
+        { InputKey.b,               "b"},
+        { InputKey.select,          "back" },
+        { InputKey.down,            "dpdown" },
+        { InputKey.left,            "dpleft" },
+        { InputKey.right,           "dpright" },
+        { InputKey.up,              "dpup" },
+        { InputKey.pageup,          "leftshoulder" },
+        { InputKey.l3,              "leftstick" },
+        { InputKey.l2,              "lefttrigger" },
+        { InputKey.joystick1left,   "leftx" },
+        { InputKey.joystick1up,     "lefty" },
+        { InputKey.pagedown,        "rightshoulder" },
+        { InputKey.r3,              "rightstick" },
+        { InputKey.r2,              "righttrigger" },
+        { InputKey.joystick2left,   "rightx" },
+        { InputKey.joystick2up,     "righty" },
+        { InputKey.start,           "start" },
+        { InputKey.x,               "x" },
+        { InputKey.y,               "y" },
+    };
 }
