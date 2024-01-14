@@ -173,7 +173,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "1.0", "Video\\filter_type", "kronos_filtering", "0");
                     BindBoolIniFeature(ini, "1.0", "Video\\MeshMode", "kronos_mesh", "1", "0");
                     BindBoolIniFeature(ini, "1.0", "Video\\BandingMode", "kronos_bandingmode", "1", "0");
-                    BindIniFeature(ini, "1.0", "Sound\\SoundCore", "kronos_audiocore", "1");
+                    BindIniFeature(ini, "1.0", "Sound\\SoundCore", "kronos_audiocore", "2");
                     BindIniFeature(ini, "1.0", "Cartridge\\Type", "kronos_cartridge", "7");
 
                     CreateControllerConfiguration(path, ini);

@@ -222,12 +222,12 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("yuzu_undock") && SystemConfig.getOptBoolean("yuzu_undock"))
                 {
                     ini.WriteValue("System", "use_docked_mode\\default", "false");
-                    ini.WriteValue("System", "use_docked_mode", "false");
+                    ini.WriteValue("System", "use_docked_mode", "0");
                 }
                 else if (Features.IsSupported("yuzu_undock"))
                 {
                     ini.WriteValue("System", "use_docked_mode\\default", "true");
-                    ini.WriteValue("System", "use_docked_mode", "true");
+                    ini.WriteValue("System", "use_docked_mode", "1");
                 }
 
                 //disable telemetry

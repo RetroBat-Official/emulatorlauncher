@@ -127,8 +127,8 @@ namespace EmulatorLauncher
 
             ini.WriteValue("Controls", player + "type" + "\\default",  playerTypeId == 0 ? "true" : "false");
             ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
-            ini.WriteValue("Controls", player + "connected" + "\\default", "false");
-            ini.WriteValue("Controls", player + "connected", handheld ? "false" : "true");
+            ini.WriteValue("Controls", player + "connected" + "\\default", "true");
+            ini.WriteValue("Controls", player + "connected", "true");
 
             //Vibration settings
             ini.WriteValue("Controls", player + "vibration_enabled" + "\\default", "true");
@@ -352,8 +352,8 @@ namespace EmulatorLauncher
 
             ini.WriteValue("Controls", player + "type" + "\\default", playerTypeId == 0 ? "true" : "false");
             ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
-            ini.WriteValue("Controls", player + "connected" + "\\default", "false");
-            ini.WriteValue("Controls", player + "connected", handheld ? "false" : "true");
+            ini.WriteValue("Controls", player + "connected" + "\\default", "true");
+            ini.WriteValue("Controls", player + "connected", "true");
             ini.WriteValue("Controls", player + "vibration_enabled" + "\\default", "true");
             ini.WriteValue("Controls", player + "vibration_enabled", "true");
             ini.WriteValue("Controls", player + "left_vibration_device" + "\\default", "true");
