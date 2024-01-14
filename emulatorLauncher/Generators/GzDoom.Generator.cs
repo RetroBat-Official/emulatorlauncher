@@ -26,14 +26,15 @@ namespace EmulatorLauncher
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             string configFile = Path.Combine(path, "gzdoom_portable.ini");
-            SetupConfiguration(configFile, resolution, fullscreen);
+            string romPath = Path.GetDirectoryName(rom);
+            SetupConfiguration(configFile, romPath, resolution, fullscreen);
 
             var commandArray = new List<string>();
 
             commandArray.Add("-config");
             commandArray.Add("\"" + configFile + "\"");
 
-            if (Path.GetExtension(rom).ToLower() == ".gzdoom")
+            if (Path.GetExtension(rom).ToLower() == ".gzdoom" && File.Exists(rom))
             {
                 var lines = File.ReadAllLines(rom);
 
@@ -43,6 +44,27 @@ namespace EmulatorLauncher
                 foreach (var line in lines)
                     commandArray.Add(line);
             }
+            
+            else if (Path.GetExtension(rom).ToLower() == ".gzdoom" && Directory.Exists(rom))
+            {
+                string [] files = Directory.GetFiles(rom);
+                string mainIwad = files.FirstOrDefault(file => iwadList.Any(keyword => file.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0));
+                if (mainIwad == null)
+                    throw new ApplicationException("There is no iwad file in the folder");
+                else
+                {
+                    commandArray.Add("-iwad");
+                    commandArray.Add("\"" + mainIwad + "\"");
+                }
+                
+                var modFiles = files.Where(file => file != mainIwad).ToList();
+                if (modFiles.Count > 0)
+                {
+                    commandArray.Add("-file");
+                    commandArray.Add("\"" + string.Join("\" \"", modFiles) + "\"");
+                }
+            }
+            
             else
             {
                 commandArray.Add("-iwad");
@@ -60,7 +82,7 @@ namespace EmulatorLauncher
         }
 
         //Setup configuration file
-        private void SetupConfiguration(string configFile, ScreenResolution resolution, bool fullscreen)
+        private void SetupConfiguration(string configFile, string romPath, ScreenResolution resolution, bool fullscreen)
         {
             if (!File.Exists(configFile))
                 File.WriteAllText(configFile, "");
@@ -69,6 +91,8 @@ namespace EmulatorLauncher
             {
                 using (var ini = IniFile.FromFile(configFile, IniOptions.KeepEmptyLines))
                 {
+                    ini.WriteValue("IWADSearch.Directories", "Path", romPath.Replace("\\", "/"));
+
                     if (fullscreen)
                         ini.WriteValue("GlobalSettings", "vid_fullscreen", "true");
                     else
@@ -112,6 +136,61 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
-         }
+        }
+
+        private static List<string> iwadList = new List<string>()
+        {
+            // Doom
+            "doom.wad",
+            "doom1.wad",
+            "doomu.wad",
+            "bfgdoom.wad",
+            "doombfg.wad",
+            // Doom 2
+            "doom2.wad",
+            "bfgdoom2.wad",
+            "doom2bfg.wad",
+            "tnt.wad",
+            "plutonia.wad",
+            "doom2f.wad",
+            // Heretic
+            "heretic.wad",
+            "blasphem.wad",
+            "blasphemer.wad",
+            "heretic1.wad",
+            "hereticsr.wad",
+            // Hexen
+            "hexen.wad",
+            "hexdemo.wad",
+            "hexendemo.wad",
+            "hexdd.wad",
+            // Strife
+            "strife.wad",
+            "strife0.wad",
+            "strife1.wad",
+            "sve.wad",
+            // Chex Quest
+            "chex.wad",
+            "chex3.wad",
+            // Freedom
+            "freedoom1.wad",
+            "freedomu.wad",
+            "freedoom2.wad",
+            "freedom.wad",
+            "freedm.wad",
+            // Action Doom 2
+            "action2.wad",
+            // Harmony
+            "harm1.wad",
+            // Hacx
+            "hacx.wad",
+            "hacx2.wad",
+            // Square
+            "square1.pk3",
+            // Delaweare
+            "delaweare.wad",
+            // Rise of the wool ball
+            "rotwb.wad",
+        };
     }
 }
