@@ -112,10 +112,6 @@ namespace EmulatorLauncher
             if (ctrlrCfg == null)
                 return;
 
-            if (controller.DirectInput == null && controller.XInput == null)
-                return;
-
-            bool isXInput = controller.IsXInputDevice;
             bool monoplayer = systemMonoPlayer.Contains(system);
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
@@ -146,31 +142,9 @@ namespace EmulatorLauncher
                 controllerConfig = trollers.GetOrCreateContainer("Gameboy Controller H");
             }
 
-
             // Perform mapping
             int playerIndex = controller.PlayerIndex;
-            int index = 1;
-
-            if (!isXInput)
-            {
-                var list = new List<Controller>();
-                foreach (var c in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(c => c.DirectInput != null ? c.DirectInput.DeviceIndex : c.DeviceIndex))
-                {
-                    if (!c.IsXInputDevice)
-                        list.Add(c);
-                }
-                index = list.IndexOf(controller) + 1;
-            }
-            else
-            {
-                var list = new List<Controller>();
-                foreach (var c in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(c => c.WinmmJoystick != null ? c.WinmmJoystick.Index : c.DeviceIndex))
-                {
-                    if (c.IsXInputDevice)
-                        list.Add(c);
-                }
-                index = list.IndexOf(controller) + 1;
-            }
+            int index = controller.SdlController != null ? controller.SdlController.Index + 1 : controller.DeviceIndex + 1;
 
             foreach (var x in mapping)
             {
@@ -178,27 +152,9 @@ namespace EmulatorLauncher
                 InputKey key = x.Key;
 
                 if (!monoplayer)
-                {
-                    if (isXInput)
-                    {
-                        controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
-                    }
-                    else
-                    {
-                        controllerConfig["P" + playerIndex + " " + value] = "J" + index + " " + GetInputKeyName(controller, key);
-                    }
-                }
+                    controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
                 else
-                {
-                    if (isXInput)
-                    {
-                        controllerConfig[value] = "X" + index + " " + GetXInputKeyName(controller, key);
-                    }
-                    else
-                    {
-                        controllerConfig[value] = "J" + index + " " + GetInputKeyName(controller, key);
-                    }
-                }
+                    controllerConfig[value] = "X" + index + " " + GetXInputKeyName(controller, key);
             }
 
             // Specifics
@@ -206,14 +162,14 @@ namespace EmulatorLauncher
             {
                 controllerConfig["Reset"] = "";
                 controllerConfig["Power"] = "";
-                controllerConfig["Select"] = GetInputKeyName(controller, InputKey.start);
+                controllerConfig["Select"] = GetXInputKeyName(controller, InputKey.start);
                 controllerConfig["Toggle Left Difficulty"] = "";
                 controllerConfig["Toggle Right Difficulty"] = "";
 
                 if (system == "atari7800")
                 {
                     controllerConfig["BW"] = "";
-                    controllerConfig["Pause"] = GetInputKeyName(controller, InputKey.select);
+                    controllerConfig["Pause"] = GetXInputKeyName(controller, InputKey.select);
                 }
             }
 
@@ -257,11 +213,11 @@ namespace EmulatorLauncher
                 var xAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " X Axis");
                 var yAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " Y Axis");
 
-                xAxis["Value"] = isXInput ? "X" + index + " LeftThumbX" : "J" + index + " X";
+                xAxis["Value"] = "X" + index + " LeftThumbX Axis";
                 xAxis.SetObject("Mult", 1.0);
                 xAxis.SetObject("Deadzone", 0.1);
 
-                yAxis["Value"] = isXInput ? "X" + index + " LeftThumbY" : "J" + index + " Y";
+                yAxis["Value"] = "X" + index + " LeftThumbY Axis";
                 yAxis.SetObject("Mult", 1.0);
                 yAxis.SetObject("Deadzone", 0.1);
             }
@@ -289,34 +245,21 @@ namespace EmulatorLauncher
                 var rStickH = analogConfig.GetOrCreateContainer("P" + playerIndex + " Right Stick Left / Right");
                 var rStickV = analogConfig.GetOrCreateContainer("P" + playerIndex + " Right Stick Up / Down");
 
-                lStickH["Value"] = isXInput ? "X" + index + " LeftThumbX" : "J" + index + " X";
+                lStickH["Value"] = "X" + index + " LeftThumbX Axis";
                 lStickH.SetObject("Mult", 1.0);
                 lStickH.SetObject("Deadzone", 0.1);
 
-                lStickV["Value"] = isXInput ? "X" + index + " LeftThumbY" : "J" + index + " Y";
+                lStickV["Value"] = "X" + index + " LeftThumbY Axis";
                 lStickV.SetObject("Mult", 1.0);
                 lStickV.SetObject("Deadzone", 0.1);
 
-                if (controller.VendorID == USB_VENDOR.SONY)
-                {
-                    rStickH["Value"] = "J" + index + " Z";
-                    rStickH.SetObject("Mult", 1.0);
-                    rStickH.SetObject("Deadzone", 0.1);
+                rStickH["Value"] = "X" + index + " RightThumbX Axis";
+                rStickH.SetObject("Mult", 1.0);
+                rStickH.SetObject("Deadzone", 0.1);
 
-                    rStickV["Value"] = "J" + index + " RotationZ";
-                    rStickV.SetObject("Mult", 1.0);
-                    rStickV.SetObject("Deadzone", 0.1);
-                }
-                else
-                {
-                    rStickH["Value"] = isXInput ? "X" + index + " RightThumbX" : "J" + index + " RotationX";
-                    rStickH.SetObject("Mult", 1.0);
-                    rStickH.SetObject("Deadzone", 0.1);
-
-                    rStickV["Value"] = isXInput ? "X" + index + " RightThumbY" : "J" + index + " RotationY";
-                    rStickV.SetObject("Mult", 1.0);
-                    rStickV.SetObject("Deadzone", 0.1);
-                }
+                rStickV["Value"] = "X" + index + " RightThumbY Axis";
+                rStickV.SetObject("Mult", 1.0);
+                rStickV.SetObject("Deadzone", 0.1);
             }
 
             if (system == "tic80")
@@ -337,21 +280,24 @@ namespace EmulatorLauncher
 
             if (core == "Cygne")
             {
-                controllerConfig["P2 X1"] = GetInputKeyName(controller, InputKey.y);
-                controllerConfig["P2 X3"] = GetInputKeyName(controller, InputKey.b);
-                controllerConfig["P2 X4"] = GetInputKeyName(controller, InputKey.a);
-                controllerConfig["P2 X2"] = GetInputKeyName(controller, InputKey.x);
-                controllerConfig["P2 Y1"] = GetInputKeyName(controller, InputKey.left);
-                controllerConfig["P2 Y3"] = GetInputKeyName(controller, InputKey.right);
-                controllerConfig["P2 Y4"] = GetInputKeyName(controller, InputKey.down);
-                controllerConfig["P2 Y2"] = GetInputKeyName(controller, InputKey.up);
-                controllerConfig["P2 Start"] = GetInputKeyName(controller, InputKey.start);
+                controllerConfig["P2 X1"] = GetXInputKeyName(controller, InputKey.y);
+                controllerConfig["P2 X3"] = GetXInputKeyName(controller, InputKey.b);
+                controllerConfig["P2 X4"] = GetXInputKeyName(controller, InputKey.a);
+                controllerConfig["P2 X2"] = GetXInputKeyName(controller, InputKey.x);
+                controllerConfig["P2 Y1"] = GetXInputKeyName(controller, InputKey.left);
+                controllerConfig["P2 Y3"] = GetXInputKeyName(controller, InputKey.right);
+                controllerConfig["P2 Y4"] = GetXInputKeyName(controller, InputKey.down);
+                controllerConfig["P2 Y2"] = GetXInputKeyName(controller, InputKey.up);
+                controllerConfig["P2 Start"] = GetXInputKeyName(controller, InputKey.start);
             }
         }
 
         private static void ConfigureKeyboard(Controller controller, DynamicJson json, string system, string core, int playerindex)
         {
             if (controller == null)
+                return;
+
+            if (controller.PlayerIndex != 1)
                 return;
 
             InputConfig keyboard = controller.Config;
@@ -938,8 +884,9 @@ namespace EmulatorLauncher
         private static string GetXInputKeyName(Controller c, InputKey key)
         {
             Int64 pid = -1;
-
+            bool isxinput = c.IsXInputDevice;
             bool revertAxis = false;
+            
             key = key.GetRevertedAxis(out revertAxis);
 
             var input = c.Config[key];
@@ -950,17 +897,43 @@ namespace EmulatorLauncher
                     pid = input.Id;
                     switch (pid)
                     {
-                        case 0: return "A";
-                        case 1: return "B";
-                        case 2: return "Y";
-                        case 3: return "X";
-                        case 4: return "LeftShoulder";
-                        case 5: return "RightShoulder";
-                        case 6: return "Back";
-                        case 7: return "Start";
-                        case 8: return "LeftThumb";
-                        case 9: return "RightThumb";
-                        case 10: return "Guide";
+                        case 0: 
+                            return "A";
+                        case 1: 
+                            return "B";
+                        case 2:
+                            return "X";
+                        case 3:
+                            return "Y";
+                        case 4:
+                            if (isxinput) return "LeftShoulder";
+                            else return "Back";
+                        case 5:
+                            if (isxinput) return "RightShoulder";
+                            else return "Guide";
+                        case 6:
+                            if (isxinput) return "Back";
+                            else return "Start";
+                        case 7:
+                            if (isxinput) return "Start";
+                            else return "LeftThumb";
+                        case 8: 
+                            if (isxinput) return "LeftThumb";
+                            else return "RightThumb";
+                        case 9: 
+                            if (isxinput) return "RightThumb";
+                            else return "LeftShoulder";
+                        case 10: 
+                            if (isxinput) return "Guide";
+                            else return "RightShoulder";
+                        case 11:
+                            return "DpadUp";
+                        case 12:
+                            return "DpadDown";
+                        case 13:
+                            return "DpadLeft";
+                        case 14:
+                            return "DpadRight";
                     }
                 }
 
@@ -996,69 +969,6 @@ namespace EmulatorLauncher
                         case 4: return "DpadDown";
                         case 8: return "DpadLeft";
                     }
-                }
-            }
-            return "";
-        }
-
-        private static string GetInputKeyName(Controller c, InputKey key)
-        {
-            Int64 pid = -1;
-
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
-
-            var input = c.GetDirectInputMapping(key);
-            if (input == null)
-                return "\"\"";
-
-            long nb = input.Id + 1;
-
-
-            if (input.Type == "button")
-                return ("B" + nb);
-
-            if (input.Type == "hat")
-            {
-                pid = input.Value;
-                switch (pid)
-                {
-                    case 1: return "POV1U";
-                    case 2: return "POV1R";
-                    case 4: return "POV1D";
-                    case 8: return "POV1L";
-                }
-            }
-
-            if (input.Type == "axis")
-            {
-                pid = input.Id;
-                switch (pid)
-                {
-                    case 0:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "X+";
-                        else return "X-";
-                    case 1:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "Y+";
-                        else return "Y-";
-                    case 2:
-                        if (c.VendorID == USB_VENDOR.SONY && ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))) return "Z+";
-                        else if (c.VendorID == USB_VENDOR.SONY) return "Z-";
-                        else if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RotationX+";
-                        else return "RotationX-";
-                    case 3:
-                        if (c.VendorID == USB_VENDOR.SONY && ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))) return "RotationX+";
-                        else if (c.VendorID == USB_VENDOR.SONY) return "RotationX-";
-                        else if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RotationY+";
-                        else return "RotationY-";
-                    case 4:
-                        if (c.VendorID == USB_VENDOR.SONY && ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))) return "RotationY+";
-                        else if (c.VendorID == USB_VENDOR.SONY) return "RotationY-";
-                        else if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "Z+";
-                        else return "Z-";
-                    case 5:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "RotationZ+";
-                        else return "RotationZ-";
                 }
             }
             return "";

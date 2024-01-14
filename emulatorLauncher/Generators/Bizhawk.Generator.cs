@@ -125,6 +125,7 @@ namespace EmulatorLauncher
             json["SingleInstanceMode"] = "true";
             json["ShowContextMenu"] = "false";
             json["UpdateAutoCheckEnabled"] = "false";
+            json["HostInputMethod"] = "0";
 
             // Set Paths
             var pathEntries = json.GetOrCreateContainer("PathEntries");
