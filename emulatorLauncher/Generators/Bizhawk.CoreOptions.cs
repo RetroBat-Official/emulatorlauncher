@@ -366,10 +366,16 @@ namespace EmulatorLauncher
             BindFeature(mednafenValues, "ss.cart", "bizhawk_saturn_expansion", "auto");
             BindFeature(mednafenValues, "ss.smpc.autortc.lang", "bizhawk_saturn_language", "english");
 
+            var portDevices = saturnSync.GetOrCreateContainer("PortDevices");
+
+            for (int i = 0; i < 12; i++)
+            {
+                portDevices.Remove(i.ToString());
+            }
+
             if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
             {
                 string devicetype = "gun";
-                var portDevices = saturnSync.GetOrCreateContainer("PortDevices");
                 portDevices["0"] = "gun";
 
                 SetupLightGuns(json, devicetype, core, system);
