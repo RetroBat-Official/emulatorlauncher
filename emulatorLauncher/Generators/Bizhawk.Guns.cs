@@ -41,11 +41,11 @@ namespace EmulatorLauncher
 
                 p1X["Value"] = "WMouse X";
                 p1X.SetObject("Mult", 1.0);
-                p1X.SetObject("Deadzone", 0.0);
+                p1X.SetObject("Deadzone", 0.1);
 
                 p1Y["Value"] = "WMouse Y";
                 p1Y.SetObject("Mult", 1.0);
-                p1Y.SetObject("Deadzone", 0.0);
+                p1Y.SetObject("Deadzone", 0.1);
             }
 
             if (system == "nes")
@@ -60,11 +60,11 @@ namespace EmulatorLauncher
 
                 p2zapperX["Value"] = "WMouse X";
                 p2zapperX.SetObject("Mult", 1.0);
-                p2zapperX.SetObject("Deadzone", 0.0);
+                p2zapperX.SetObject("Deadzone", 0.1);
 
                 p2zapperY["Value"] = "WMouse Y";
                 p2zapperY.SetObject("Mult", 1.0);
-                p2zapperY.SetObject("Deadzone", 0.0);
+                p2zapperY.SetObject("Deadzone", 0.1);
             }
 
             if (system == "snes")
@@ -81,11 +81,32 @@ namespace EmulatorLauncher
 
                 p2scopeX["Value"] = "WMouse X";
                 p2scopeX.SetObject("Mult", 1.0);
-                p2scopeX.SetObject("Deadzone", 0.0);
+                p2scopeX.SetObject("Deadzone", 0.1);
 
                 p2scopeY["Value"] = "WMouse Y";
                 p2scopeY.SetObject("Mult", 1.0);
-                p2scopeY.SetObject("Deadzone", 0.0);
+                p2scopeY.SetObject("Deadzone", 0.1);
+            }
+
+            if (system == "saturn")
+            {
+                var saturnTroller = trollers.GetOrCreateContainer(systemController[system]);
+
+                saturnTroller["P" + playerIndex + " Trigger"] = "WMouse L";
+                saturnTroller["P" + playerIndex + " Offscreen Shot"] = "WMouse R";
+                saturnTroller["P" + playerIndex + " Start"] = "WMouse M";
+
+                var saturnAnalog = analogtrollers.GetOrCreateContainer(systemController[system]);
+                var p1X = saturnAnalog.GetOrCreateContainer("P2 X Axis");
+                var p1Y = saturnAnalog.GetOrCreateContainer("P2 Y Axis");
+
+                p1X["Value"] = "WMouse X";
+                p1X.SetObject("Mult", 1.0);
+                p1X.SetObject("Deadzone", 0.1);
+
+                p1Y["Value"] = "WMouse Y";
+                p1Y.SetObject("Mult", 1.0);
+                p1Y.SetObject("Deadzone", 0.1);
             }
         }
     }

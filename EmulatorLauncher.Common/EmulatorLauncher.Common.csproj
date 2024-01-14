@@ -85,6 +85,7 @@
     <Compile Include="Joysticks\InputDevices.cs" />
     <Compile Include="Joysticks\SdlGameController.cs" />
     <Compile Include="Joysticks\SdlJoystickGuid.cs" />
+    <Compile Include="Joysticks\SdlToDirectInput.cs" />
     <Compile Include="Joysticks\VidPid.cs" />
     <Compile Include="Joysticks\WinmmJoystick.cs" />
     <Compile Include="Joysticks\XInputDevice.cs" />
