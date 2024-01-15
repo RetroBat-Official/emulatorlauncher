@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -33,7 +34,7 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            SetupConfiguration(path, fullscreen);
+            SetupConfiguration(path, fullscreen, resolution);
 
             return new ProcessStartInfo()
             {
@@ -43,7 +44,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path, bool fullscreen)
+        private void SetupConfiguration(string path, bool fullscreen, ScreenResolution resolution)
         {
             string conf = Path.Combine(path, "redream.cfg");
 
@@ -53,6 +54,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("", "mode", fullscreen ? "borderless fullscreen" : "windowed");
                 ini.WriteValue("", "gamedir", "./../../roms/dreamcast");
 
+                BindIniFeature(ini, "", "res", "redream_res", "2");
                 BindIniFeature(ini, "", "cable", "redream_cable", "rgb");
                 BindIniFeature(ini, "", "broadcast", "redream_broadcast", "ntsc");
                 BindIniFeature(ini, "", "language", "redream_language", "english");
@@ -60,6 +62,11 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "", "vsync", "redream_vsync", "0", "1");
                 BindBoolIniFeature(ini, "", "frameskip", "redream_frameskip", "1", "0");
                 BindIniFeature(ini, "", "aspect", "redream_aspect", "4:3");
+
+                ini.WriteValue("", "fullwidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
+                ini.WriteValue("", "fullheight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
+                ini.WriteValue("", "width", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
+                ini.WriteValue("", "height", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
 
                 ConfigureControllers(ini);
             }

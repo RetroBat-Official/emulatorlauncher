@@ -1252,7 +1252,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "reicast_hle_bios", "reicast_hle_bios", "disabled");
             BindFeature(coreSettings, "reicast_per_content_vmus", "reicast_per_content_vmus", "disabled");
             BindFeature(coreSettings, "reicast_language", "reicast_language", "English");
-            BindFeature(coreSettings, "reicast_region", "reicast_region", "Japan");
+            BindFeature(coreSettings, "reicast_region", "reicast_region", "Default");
             BindFeature(coreSettings, "reicast_dump_textures", "reicast_dump_textures", "disabled");
             BindFeature(coreSettings, "reicast_custom_textures", "reicast_custom_textures", "disabled");
             BindFeature(coreSettings, "reicast_alpha_sorting", "reicast_alpha_sorting", "per-triangle (normal)");
