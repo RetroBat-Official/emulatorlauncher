@@ -155,6 +155,10 @@ namespace EmulatorLauncher.Libretro
 
             // Save Files
             string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
+            
+            if (core == "mame")
+                savePath = Path.Combine(AppConfig.GetFullPath("saves"));
+            
             FileTools.TryCreateDirectory(savePath);                
             retroarchConfig["savefile_directory"] = savePath;
             retroarchConfig["savefiles_in_content_dir"] = "false";
