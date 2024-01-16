@@ -84,7 +84,9 @@ namespace EmulatorLauncher
             //Write config in supermodel.ini
             SetupConfiguration(path, wideScreen, fullscreen);
 
-            if (SystemConfig["VSync"] != "false")
+            if (SystemConfig["m3_vsync"] == "false")
+                commandArray.Add("-no-vsync");
+            else
                 commandArray.Add("-vsync");
 
             commandArray.Add("\"" + rom + "\"");
