@@ -127,7 +127,32 @@ namespace EmulatorLauncher
                         ini.WriteValue("GlobalSettings", "vid_hdr", "false");
                         ini.WriteValue("GlobalSettings", "vk_hdr", "false");
                     }
-                        
+                    
+                    // crosshairs
+                    if (SystemConfig.isOptSet("gzdoom_crosshair") && SystemConfig["gzdoom_crosshair"] == "false")
+                    {
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshairon", "false");
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshairhealth", "0");
+                    }
+                    else if (SystemConfig.isOptSet("gzdoom_crosshair") && !string.IsNullOrEmpty(SystemConfig["gzdoom_crosshair"]))
+                    {
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshairon", "true");
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshair", SystemConfig["gzdoom_crosshair"]);
+                    }
+                    else
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshairon", "false");
+
+                    if (SystemConfig.isOptSet("gzdoom_crosshair_color") && SystemConfig["gzdoom_crosshair_color"] == "health")
+                    {
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshairhealth", "1");
+                    }
+                    else if (SystemConfig.isOptSet("gzdoom_crosshair_color") && !string.IsNullOrEmpty(SystemConfig["gzdoom_crosshair_color"]))
+                    {
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshairhealth", "0");
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshaircolor", SystemConfig["gzdoom_crosshair_color"].Replace("_", " "));
+                    }
+                    else
+                        ini.WriteValue("Doom.ConsoleVariables", "crosshairhealth", "1");
 
                     string savePath = Path.Combine(AppConfig.GetFullPath("saves"), "gzdoom");
                     if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
