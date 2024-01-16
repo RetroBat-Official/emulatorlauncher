@@ -84,7 +84,9 @@ namespace EmulatorLauncher
             //Write config in supermodel.ini
             SetupConfiguration(path, wideScreen, fullscreen);
 
-            if (SystemConfig["VSync"] != "false")
+            if (SystemConfig["m3_vsync"] == "false")
+                commandArray.Add("-no-vsync");
+            else
                 commandArray.Add("-vsync");
 
             commandArray.Add("\"" + rom + "\"");
@@ -159,18 +161,12 @@ namespace EmulatorLauncher
                             ini.WriteValue(" Global ", "FullScreen", "0");
 
                         ini.WriteValue(" Global ", "WideScreen", wideScreen ? "1" : "0");
-                        
-                        //throttle - default on
-                        if (SystemConfig.isOptSet("throttle") && SystemConfig.getOptBoolean("throttle"))
-                            ini.WriteValue(" Global ", "Throttle", SystemConfig["throttle"]);
-                        else if (Features.IsSupported("throttle"))
-                            ini.WriteValue(" Global ", "Throttle", "1");
 
-                        //New3DEngine - setting to OFF will use legacy 3D engine, fixes OpenGL error on older GPUs
-                        if (SystemConfig.isOptSet("new3Dengine") && SystemConfig["new3Dengine"] != "1")
-                            ini.WriteValue(" Global ", "New3DEngine", "0");
-                        else if (Features.IsSupported("new3Dengine"))
-                            ini.WriteValue(" Global ", "New3DEngine", "1");
+                        BindBoolIniFeature(ini, " Global ", "Throttle", "throttle", "0", "1");          //throttle - default on
+                        BindBoolIniFeature(ini, " Global ", "New3DEngine", "new3Dengine", "0", "1");    //New3DEngine - setting to OFF will use legacy 3D engine, fixes OpenGL error on older GPUs
+                        BindBoolIniFeature(ini, " Global ", "MultiThreaded", "m3_thread", "0", "1");
+                        BindIniFeature(ini, " Global ", "PowerPCFrequency", "m3_ppc_frequency", "50");
+                        BindBoolIniFeature(ini, " Global ", "ShowFrameRate", "m3_fps", "1", "0");
 
                         //force rompath in GUI
                         string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "model3");
