@@ -896,12 +896,12 @@ namespace EmulatorLauncher.Libretro
                 try
                 {
                     // use Dolphin.ini for options not available in retroarch-core-options.cfg
-                    string iniPath = Path.Combine(AppConfig.GetFullPath("saves"), "gamecube", "User", "Config", "Dolphin.ini");
+                    string iniPath = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin", "User", "Config", "Dolphin.ini");
                     if (File.Exists(iniPath))
                     {
                         using (var ini = new IniFile(iniPath, IniOptions.UseSpaces))
                         {
-                            // Skip BIOS or not (IPL.bin required in saves\gamecube\User\GC\<EUR, JAP or USA>)
+                            // Skip BIOS or not (IPL.bin required in saves\dolphin\User\GC\<EUR, JAP or USA>)
                             if (SystemConfig.isOptSet("skip_bios"))
                                 ini.WriteValue("Core", "SkipIPL", SystemConfig["skip_bios"]);
                             else

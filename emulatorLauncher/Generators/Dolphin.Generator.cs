@@ -432,10 +432,10 @@ namespace EmulatorLauncher
                     if (!_triforce)
                     {
                         string savesPath = AppConfig.GetFullPath("saves");
-                        string dolphinLoadPath = Path.Combine(savesPath, "gamecube", "User", "Load");
+                        string dolphinLoadPath = Path.Combine(savesPath, "dolphin", "User", "Load");
                         if (!Directory.Exists(dolphinLoadPath)) try { Directory.CreateDirectory(dolphinLoadPath); }
                             catch { }
-                        string dolphinResourcesPath = Path.Combine(savesPath, "gamecube", "User", "ResourcePacks");
+                        string dolphinResourcesPath = Path.Combine(savesPath, "dolphin", "User", "ResourcePacks");
                         if (!Directory.Exists(dolphinResourcesPath)) try { Directory.CreateDirectory(dolphinResourcesPath); }
                             catch { }
 
