@@ -155,6 +155,10 @@ namespace EmulatorLauncher.Libretro
 
             // Save Files
             string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
+            
+            if (core == "mame")
+                savePath = Path.Combine(AppConfig.GetFullPath("saves"));
+            
             FileTools.TryCreateDirectory(savePath);                
             retroarchConfig["savefile_directory"] = savePath;
             retroarchConfig["savefiles_in_content_dir"] = "false";
@@ -292,7 +296,12 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "audio_resampler_quality", "audio_resampler_quality", "3");
             BindFeature(retroarchConfig, "audio_volume", "audio_volume", "0.000000");
             BindFeature(retroarchConfig, "audio_mixer_volume", "audio_mixer_volume", "0.000000");
-            BindFeature(retroarchConfig, "audio_dsp_plugin", "audio_dsp_plugin", "");
+            
+            if (SystemConfig["audio_dsp_plugin"] == "none")
+                retroarchConfig["audio_dsp_plugin"] = "";
+            else
+                BindFeature(retroarchConfig, "audio_dsp_plugin", "audio_dsp_plugin", "");
+
             BindBoolFeature(retroarchConfig, "audio_sync", "audio_sync", "false", "true");
 
             // Misc
