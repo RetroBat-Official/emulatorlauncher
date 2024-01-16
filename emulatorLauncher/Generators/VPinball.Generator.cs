@@ -10,6 +10,7 @@ using System.Drawing;
 using Microsoft.Win32;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
+using System.Threading;
 
 namespace EmulatorLauncher
 {
@@ -475,11 +476,68 @@ namespace EmulatorLauncher
             if (regKeyc != null)
             {
                 SetOption(regKeyc, "DisableESC", 1);
+
+                // Resolution and fullscreen
                 SetOption(regKeyc, "Width", resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
                 SetOption(regKeyc, "Height", resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
                 SetOption(regKeyc, "FullScreen", resolution == null ? 0 : 1);
-                SetOption(regKeyc, "AdaptiveVSync", SystemConfig["VSync"] != "false" ? 1 : 0);
+                
+                // Vertical sync
+                if (SystemConfig.isOptSet("video_vsync") && SystemConfig["video_vsync"] == "adaptative")
+                    SetOption(regKeyc, "AdaptiveVSync", 2);
+                else if (SystemConfig.isOptSet("video_vsync") && SystemConfig["video_vsync"] == "false")
+                    SetOption(regKeyc, "AdaptiveVSync", 0);
+                else
+                    SetOption(regKeyc, "AdaptiveVSync", 1);
+
+                // Monitor index is 1-based
+                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                {
+                    int monitor = SystemConfig["MonitorIndex"].ToInteger() - 1;
+                    SetOption(regKeyc, "Display", monitor);
+                }
+                else
+                    SetOption(regKeyc, "Display", 0);
+
+                // Video options
+                SetOption(regKeyc, "BallReflection", SystemConfig["vp_ballreflection"] == "1" ? 1 : 0);
+
+                if (SystemConfig.isOptSet("vp_ambient_occlusion") && SystemConfig["vp_ambient_occlusion"] == "dynamic")
+                {
+                    SetOption(regKeyc, "DisableAO", 0);
+                    SetOption(regKeyc, "DynamicAO", 1);
+                }
+                else
+                {
+                    SetOption(regKeyc, "DisableAO", SystemConfig["vp_ambient_occlusion"] == "0" ? 1 : 0);
+                    SetOption(regKeyc, "DynamicAO", 0);
+                }
+
+                if (SystemConfig.isOptSet("vp_antialiasing") && !string.IsNullOrEmpty(SystemConfig["vp_antialiasing"]))
+                {
+                    int fxaa = SystemConfig["vp_antialiasing"].ToInteger();
+                    SetOption(regKeyc, "FXAA", fxaa);
+                }
+                else
+                    SetOption(regKeyc, "FXAA", 0);
+
+                if (SystemConfig.isOptSet("vp_sharpen") && !string.IsNullOrEmpty(SystemConfig["vp_sharpen"]))
+                {
+                    int sharpen = SystemConfig["vp_sharpen"].ToInteger();
+                    SetOption(regKeyc, "Sharpen", sharpen);
+                }
+                else
+                    SetOption(regKeyc, "FXAA", 0);
+
                 SetOption(regKeyc, "BGSet", SystemConfig["arcademode"] == "1" ? 1 : 0);
+                SetOption(regKeyc, "ForceAnisotropicFiltering", SystemConfig.getOptBoolean("vp_anisotropic_filtering") ? 0 : 1);
+                SetOption(regKeyc, "UseNVidiaAPI", SystemConfig.getOptBoolean("vp_nvidia") ? 1 : 0);
+                SetOption(regKeyc, "SoftwareVertexProcessing", SystemConfig.getOptBoolean("vp_vertex") ? 1 : 0);
+
+                // Audio
+                SetOption(regKeyc, "PlayMusic", SystemConfig.getOptBoolean("vp_music_off") ? 0 : 1);
+
+                // Controls
                 SetOption(regKeyc, "LRAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 1);
                 SetOption(regKeyc, "UDAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 2);
                 SetOption(regKeyc, "PlungerAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 3);
