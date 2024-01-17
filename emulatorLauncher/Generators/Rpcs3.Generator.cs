@@ -11,6 +11,11 @@ namespace EmulatorLauncher
 {
     partial class Rpcs3Generator : Generator
     {
+        public Rpcs3Generator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath(emulator);
