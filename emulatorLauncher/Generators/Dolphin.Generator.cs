@@ -70,7 +70,7 @@ namespace EmulatorLauncher
 
             if (system == "wii")
             {
-                string sysconf = Path.Combine(path, "User", "Wii", "shared2", "sys", "SYSCONF");
+                string sysconf = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin", "User", "Wii", "shared2", "sys", "SYSCONF");
                 if (File.Exists(sysconf))
                     writeWiiSysconfFile(sysconf);
             }
