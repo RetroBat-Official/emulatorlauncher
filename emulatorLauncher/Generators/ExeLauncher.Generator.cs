@@ -185,6 +185,8 @@ namespace EmulatorLauncher
             else
                 _exename = Path.GetFileNameWithoutExtension(rom);
 
+            SimpleLogger.Instance.Info("[INFO] Executable name : " + _exename);
+
             // If game was uncompressed, say we are going to launch, so the deletion will not be silent
             ValidateUncompressedGame();
 
@@ -238,22 +240,29 @@ namespace EmulatorLauncher
             if (_isGameExePath)
             {
                 Process process = Process.Start(path);
-
+                SimpleLogger.Instance.Info("Process started : " + _exename);
+                
+                Thread.Sleep(8000);
+                
                 int i = 1;
                 Process[] gamelist = Process.GetProcessesByName(_exename);
 
                 while (i <= 3 && gamelist.Length == 0)
                 {
                     gamelist = Process.GetProcessesByName(_exename);
-                    Thread.Sleep(8000);
+                    Thread.Sleep(10000);
                     i++;
                 }
 
                 if (gamelist.Length == 0)
+                {
+                    SimpleLogger.Instance.Info("Process : " + _exename + " not running");
                     return 0;
+                }
 
                 else
                 {
+                    SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
                     Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
                     game.WaitForExit();
                 }
