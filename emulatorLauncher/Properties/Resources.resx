@@ -208,12 +208,6 @@ Install now ?</value>
   <data name="reshader_x86_gz" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\reshader.x86.gz;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="SQLite_Interop_x64_gz" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\SQLite.Interop.x64.gz;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="SQLite_Interop_x86_gz" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\SQLite.Interop.x86.gz;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="libretrocoreguns" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\libretrocoreguns.yml;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>

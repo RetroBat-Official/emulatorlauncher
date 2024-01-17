@@ -69,5 +69,25 @@ namespace EmulatorLauncher.Common.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] SQLite_Interop_x64 {
+            get {
+                object obj = ResourceManager.GetObject("SQLite_Interop_x64", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] SQLite_Interop_x86 {
+            get {
+                object obj = ResourceManager.GetObject("SQLite_Interop_x86", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

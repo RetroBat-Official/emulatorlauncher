@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Security.Policy;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Launchers;
 
 namespace EmulatorLauncher
 {
@@ -17,24 +18,7 @@ namespace EmulatorLauncher
         {
             public SteamGameLauncher(Uri uri)
             {
-                LauncherExe = GetSteamGameExecutableName(uri);
-            }
-
-            private string GetSteamGameExecutableName(Uri uri)
-            {
-                string shorturl = uri.AbsolutePath.Substring(1);
-                int steamAppId = shorturl.ToInteger();
-
-                SteamGame game = SteamAppInfoReader.FindGameInformations(steamAppId);
-
-                if (game == null || game.Executable == null)
-                {
-                    SimpleLogger.Instance.Info("[WARNING] Cannot find STEAM game executable");
-                    return null;
-                }
-
-                else
-                    return Path.GetFileNameWithoutExtension(game.Executable);
+                LauncherExe = SteamLibrary.GetSteamGameExecutableName(uri);
             }
 
             public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)

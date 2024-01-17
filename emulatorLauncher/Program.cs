@@ -264,10 +264,12 @@ namespace EmulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
-
-            var test = GunGames.Systems;
-
-
+            /*
+            var games = new List<EmulatorLauncher.Common.Launchers.LauncherGameInfo>();
+            games.AddRange(EmulatorLauncher.Common.Launchers.SteamLibrary.GetInstalledGames());
+            games.AddRange(EmulatorLauncher.Common.Launchers.EpicLibrary.GetInstalledGames());
+            games.AddRange(EmulatorLauncher.Common.Launchers.AmazonLibrary.GetInstalledGames());
+            */
 
             if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun"))
                 SystemConfig["use_guns"] = "true";

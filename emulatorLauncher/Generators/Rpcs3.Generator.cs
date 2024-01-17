@@ -47,20 +47,23 @@ namespace EmulatorLauncher
                     rom = Path.Combine(path, rom.Substring(1));
             }
 
-            List<string> commandArray = new List<string>();
-            commandArray.Add("\"" + rom + "\"");
+            // Fullscreen
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            if (SystemConfig.isOptSet("gui") && !SystemConfig.getOptBoolean("gui"))
+            var commandArray = new List<string>();
+            commandArray.Add("\"" + rom + "\"");
+            
+            if (fullscreen)
+            {
                 commandArray.Add("--no-gui");
+                commandArray.Add("--fullscreen");
+            }
 
             string args = string.Join(" ", commandArray);
             
             // If game was uncompressed, say we are going to launch, so the deletion will not be silent
             ValidateUncompressedGame();
-
-            // Fullscreen
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-
+            
             // Configuration
             if (!SystemConfig.getOptBoolean("disableautoconfig"))
             {
@@ -96,9 +99,28 @@ namespace EmulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args,                
-                WindowStyle = ProcessWindowStyle.Minimized
+                Arguments = args,
+                WindowStyle = args.Contains("--fullscreen") ? ProcessWindowStyle.Maximized : ProcessWindowStyle.Minimized
             };
+        }
+
+        public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
+        {
+            foreach (var px in Process.GetProcessesByName("rpcs3"))
+            {
+                try { px.Kill(); }
+                catch { }
+            }
+
+            var process = Process.Start(path);
+            process.WaitForExit();
+
+            // In some cases, the process seems to be launched again by the main one
+            process = Process.GetProcessesByName("rpcs3").FirstOrDefault();
+            if (process != null)
+                process.WaitForExit();
+
+            return 0;
         }
 
         /// <summary>

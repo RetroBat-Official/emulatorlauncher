@@ -41,6 +41,10 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite, Version=1.0.60.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\System.Data.SQLite.dll</HintPath>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
@@ -89,6 +93,10 @@
     <Compile Include="Joysticks\VidPid.cs" />
     <Compile Include="Joysticks\WinmmJoystick.cs" />
     <Compile Include="Joysticks\XInputDevice.cs" />
+    <Compile Include="Launchers\AmazonLibrary.cs" />
+    <Compile Include="Launchers\EpicLibrary.cs" />
+    <Compile Include="Launchers\LauncherGameInfo.cs" />
+    <Compile Include="Launchers\SteamLibrary.cs" />
     <Compile Include="Lightguns\RawLightGun.cs" />
     <Compile Include="Lightguns\SindenLightgunConfiguration.cs" />
     <Compile Include="OrderedDictionary.cs" />
@@ -101,6 +109,40 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Joysticks\RawInputDevice.cs" />
+    <Compile Include="SQLiteInteropManager.cs" />
+    <Compile Include="Steam\KeyValue.cs" />
+    <Compile Include="Steam\SteamAppInfo.cs" />
+    <Compile Include="Steam\ValveKeyValue\Abstraction\IParsingVisitationListener.cs" />
+    <Compile Include="Steam\ValveKeyValue\Abstraction\IVisitationListener.cs" />
+    <Compile Include="Steam\ValveKeyValue\Abstraction\KVObjectVisitor.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\IVisitingReader.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KeyValues1\KV1BinaryReader.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KeyValues1\KV1TextReader.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KeyValues1\KV1TextReaderState.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KeyValues1\KV1TextReaderStateMachine.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KeyValues1\KV1TokenReader.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KVAppendingObjectBuilder.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KVMergingObjectBuilder.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KVObjectBuilder.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KVPartialState.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KVPartialState{TState}.cs" />
+    <Compile Include="Steam\ValveKeyValue\IIncludedFileLoader.cs" />
+    <Compile Include="Steam\ValveKeyValue\KeyValueException.cs" />
+    <Compile Include="Steam\ValveKeyValue\KeyValues1\KV1BinaryNodeType.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVCollectionValue.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVConditionEvaluator.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVObject.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVObjectValue.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVObject_IEnumerable.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVSerializationFormat.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVSerializer.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVSerializerOptions.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVToken.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVTokenType.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVValue.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVValueType.cs" />
+    <Compile Include="Steam\ValveKeyValue\KVValue_operators.cs" />
+    <Compile Include="Steam\ValveKeyValue\Require.cs" />
     <Compile Include="Wheels\RawWheels.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="RegistryApi.cs" />
@@ -121,7 +163,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\hidtodinput.cfg" />
+    <None Include="Resources\SQLite.Interop.x64.gz" />
+    <None Include="Resources\SQLite.Interop.x86.gz" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Release (
