@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using System.Xml;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System.Threading;
 
 namespace EmulatorLauncher
 {
@@ -351,15 +352,14 @@ namespace EmulatorLauncher
             if (_bezelFileInfo != null)
                 bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
-            int ret = base.RunAndWait(path);
+            Process process = Process.Start(path);
+            Thread.Sleep(4000);
+            process.WaitForExit();
 
             if (bezel != null)
                 bezel.Dispose();
 
-            if (ret == 1)
-                return 0;
-
-            return ret;
+            return 0;
         }
 
         /// <summary>
