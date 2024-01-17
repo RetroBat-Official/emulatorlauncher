@@ -9,6 +9,7 @@ using System.Threading;
 using System.Security.Policy;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Launchers;
 
 namespace EmulatorLauncher
 {
@@ -18,40 +19,7 @@ namespace EmulatorLauncher
         {
             public EpicGameLauncher(Uri uri)
             {
-                LauncherExe = GetEpicGameExecutableName(uri);
-            }
-
-            private string GetEpicGameExecutableName(Uri uri)
-            {
-                string shorturl = uri.LocalPath.ExtractString("/", ":");
-
-                var modSdkMetadataDir = Registry.GetValue("HKEY_CURRENT_USER\\Software\\Epic Games\\EOS", "ModSdkMetadataDir", null);
-                if (modSdkMetadataDir != null)
-                {
-                    string manifestPath = modSdkMetadataDir.ToString();
-
-                    string gameExecutable = null;
-
-                    if (Directory.Exists(manifestPath))
-                    {
-                        foreach (var file in Directory.EnumerateFiles(manifestPath, "*.item"))
-                        {
-                            var item = JsonSerializer.DeserializeString<EpicGame>(File.ReadAllText(file));
-                            if (shorturl.Equals(item.CatalogNamespace))
-                            {
-                                gameExecutable = item.LaunchExecutable;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (gameExecutable == null)
-                        throw new ApplicationException("There is a problem: The Game is not installed");
-
-                    return Path.GetFileNameWithoutExtension(gameExecutable);
-                }
-
-                throw new ApplicationException("There is a problem: Epic Launcher is not installed");
+                LauncherExe = EpicLibrary.GetEpicGameExecutableName(uri);
             }
 
             public override int RunAndWait(ProcessStartInfo path)
@@ -78,16 +46,6 @@ namespace EmulatorLauncher
                 }
 
                 return 0;
-            }
-
-            [DataContract]
-            public class EpicGame
-            {
-                [DataMember]
-                public string CatalogNamespace { get; set; }
-
-                [DataMember]
-                public string LaunchExecutable { get; set; }
             }
         }
     }
