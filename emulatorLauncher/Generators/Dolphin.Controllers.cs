@@ -532,6 +532,8 @@ namespace EmulatorLauncher
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
+            SimpleLogger.Instance.Info("[INFO] Writing controller configuration in : " + iniFile);
+
             bool forceSDL = false;
             if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
                 forceSDL = true;

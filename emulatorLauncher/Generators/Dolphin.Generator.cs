@@ -73,6 +73,8 @@ namespace EmulatorLauncher
                 string sysconf = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin", "User", "Wii", "shared2", "sys", "SYSCONF");
                 if (File.Exists(sysconf))
                     writeWiiSysconfFile(sysconf);
+                else
+                    SimpleLogger.Instance.Info("[WARNING] Wii Nand file not found in : " + sysconf);
             }
             
             SetupGeneralConfig(path, system, emulator, core, rom);
@@ -284,6 +286,8 @@ namespace EmulatorLauncher
             if (!File.Exists(path))
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Writing to wii system nand in : " + path);
+
             int langId = 1;
             int barPos = 0;
 
@@ -308,6 +312,8 @@ namespace EmulatorLauncher
                     bytes[index + i] = toSet[i];
             }
 
+            SimpleLogger.Instance.Info("[INFO] Writing language " + langId.ToString() + " to wii system nand");
+
             // Search BT.BAR pattern and replace with target position
             byte[] barPositionPattern = new byte[] { 0x42, 0x54, 0x2E, 0x42, 0x41, 0x52 };
             int index2 = bytes.IndexOf(barPositionPattern);
@@ -317,6 +323,8 @@ namespace EmulatorLauncher
                 for (int i = 0; i < toSet.Length; i++)
                     bytes[index2 + i] = toSet[i];
             }
+
+            SimpleLogger.Instance.Info("[INFO] Writing sensor bar position " + barPos.ToString() + " to wii system nand");
 
             File.WriteAllBytes(path, bytes);
         }
