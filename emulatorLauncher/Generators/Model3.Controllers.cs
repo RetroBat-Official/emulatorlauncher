@@ -115,13 +115,14 @@ namespace EmulatorLauncher
             else if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "dinput")
                 tech = "dinput";
 
-            if (tech == "dinput")
+            // It seems Supermodel uses sdl index even when dinput is selected as input driver
+            /*if (tech == "dinput")
             {
                 j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
 
                 if (c2 != null && c2.Config != null)
                     j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
-            }
+            }*/
 
             int gunCount = RawLightgun.GetUsableLightGunCount();
             var guns = RawLightgun.GetRawLightguns();
@@ -474,8 +475,10 @@ namespace EmulatorLauncher
 
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
 
-                string guid1 = (c1.Guid.ToString()).Substring(0, 28) + "0000";
+                string guid1 = (c1.Guid.ToString()).Substring(0, 27) + "00000";
                 var ctrl1 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1);
+                
+                SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
 
                 var test = SdlGameController.GetGameController(c1.Guid.ToString());
 
@@ -702,9 +705,11 @@ namespace EmulatorLauncher
 
                 if (c2 != null && multiplayer)
                 {
-                    string guid2 = (c2.Guid.ToString()).Substring(0, 28) + "0000";
+                    string guid2 = (c2.Guid.ToString()).Substring(0, 27) + "00000";
                     var ctrl2 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid2);
-
+                    
+                    SimpleLogger.Instance.Info("[INFO] Player 2. Fetching gamecontrollerdb.txt file with guid : " + guid2);
+                    
                     ini.WriteValue(" Global ", "InputStart2", "\"KEY_2," + GetDinputMapping(j2index, ctrl2, "start") + "\"");
                     ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4," + GetDinputMapping(j2index, ctrl2, "back") + "\"");
                     ini.WriteValue(" Global ", "InputServiceB", enableServiceMenu ? "\"KEY_7," + GetDinputMapping(j2index, ctrl2, "leftstick") + "\"" : "\"KEY_7\"");
