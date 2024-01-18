@@ -12,6 +12,11 @@ namespace EmulatorLauncher
 {
     partial class Mame64Generator : Generator
     {
+        public Mame64Generator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private bool _multigun;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
