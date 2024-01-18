@@ -20,6 +20,11 @@ namespace EmulatorLauncher
 {
     partial class ExeLauncherGenerator : Generator
     {
+        public ExeLauncherGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         private string _systemName;
         private string _exename;
         private bool _isGameExePath;

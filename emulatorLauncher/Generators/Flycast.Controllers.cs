@@ -43,9 +43,10 @@ namespace EmulatorLauncher
 
             for (int i = 1; i < 5; i++)
             {
-                ini.WriteValue("input", "device" + i, "10");
-                ini.WriteValue("input", "device" + i + ".1" , "10");
+                ini.WriteValue("input", "device" + i, "0");
+                ini.WriteValue("input", "device" + i + ".1" , "1");
                 ini.WriteValue("input", "device" + i + ".2", "10");
+                ini.Remove("input", "maple_sdl_joystick_" + (i-1));
             }
             
             string mappingPath = Path.Combine(path, "mappings");
