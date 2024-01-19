@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Drawing;
-using System.Reflection;
 using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;

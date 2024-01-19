@@ -5,7 +5,6 @@ using System.Text;
 using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
-using System.IO.Compression;
 using System.ComponentModel;
 using System.Reflection;
 using EmulatorLauncher.Common;

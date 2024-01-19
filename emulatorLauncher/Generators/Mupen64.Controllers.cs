@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.IMapi2;
 using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher

@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.IO;
 using System.Diagnostics;
-using System.Threading;
-using System.Data.SQLite;
-using System.IO.Compression;
-using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Launchers;
 
 namespace EmulatorLauncher

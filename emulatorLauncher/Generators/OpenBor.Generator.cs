@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using System.Globalization;
 using System.Runtime.InteropServices;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;

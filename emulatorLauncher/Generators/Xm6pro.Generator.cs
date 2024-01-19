@@ -1,11 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.IO;
+﻿using System.IO;
 using System.Diagnostics;
-using System.Xml.Linq;
-using System.Windows.Forms;
-using EmulatorLauncher.PadToKeyboard;
-using System.Security.Cryptography;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 

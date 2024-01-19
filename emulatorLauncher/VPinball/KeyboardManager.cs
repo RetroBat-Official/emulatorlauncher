@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Threading;
-
 namespace EmulatorLauncher.VPinballLauncher
 {
     public class KeyboardManager : IDisposable

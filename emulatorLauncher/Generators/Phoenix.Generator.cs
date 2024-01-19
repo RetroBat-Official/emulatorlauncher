@@ -4,8 +4,6 @@ using System.IO;
 using System.Diagnostics;
 using System.Xml.Linq;
 using System.Windows.Forms;
-using System.Security.Cryptography;
-using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 
