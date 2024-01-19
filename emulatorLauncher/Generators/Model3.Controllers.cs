@@ -479,8 +479,6 @@ namespace EmulatorLauncher
                 
                 SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
 
-                var test = SdlGameController.GetGameController(c1.Guid.ToString());
-
                 //common - start to start and select to input coins
                 //service menu and test menu can be accessed via L3 and R3 buttons if option is enabled
 

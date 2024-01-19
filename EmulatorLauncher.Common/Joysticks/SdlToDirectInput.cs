@@ -57,7 +57,7 @@ public class SdlToDirectInput
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             { }
 
             return null;
