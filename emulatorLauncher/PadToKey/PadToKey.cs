@@ -6,7 +6,6 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Windows.Forms;
 using System.Reflection;
-using System.Diagnostics;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;

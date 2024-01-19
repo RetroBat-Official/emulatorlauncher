@@ -1,19 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
-using System.Windows.Forms;
-using System.Drawing;
-using System.Management;
-using System.Reflection;
-using System.Collections;
-using ValveKeyValue;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
-using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {

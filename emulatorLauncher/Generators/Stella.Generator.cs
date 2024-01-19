@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using System.Data.SQLite;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {

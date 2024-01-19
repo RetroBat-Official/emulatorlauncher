@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
-using System.Collections.Concurrent;
 using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher.Common

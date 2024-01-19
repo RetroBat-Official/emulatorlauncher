@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Diagnostics;
-using System.Windows.Forms;
-using System.Drawing;
-using System.Management;
-using System.Diagnostics.Eventing.Reader;
 using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher

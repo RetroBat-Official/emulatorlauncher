@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
 using Microsoft.Win32;
@@ -10,7 +8,6 @@ using System.Threading;
 using EmulatorLauncher.VPinballLauncher;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {

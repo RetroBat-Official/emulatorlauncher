@@ -4,7 +4,6 @@ using System.Linq;
 using System.IO;
 using System.Globalization;
 using System.Management;
-using System.Windows.Documents;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
