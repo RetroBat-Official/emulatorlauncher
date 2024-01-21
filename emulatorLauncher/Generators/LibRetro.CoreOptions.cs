@@ -1696,9 +1696,6 @@ namespace EmulatorLauncher.Libretro
             // System specifics
             if (system == "fmtowns")
             {
-                if (!SystemConfig.isOptSet("pause_on_disconnect"))
-                    retroarchConfig["pause_on_disconnect"] = "false";
-
                 if (!SystemConfig.isOptSet("alternate_renderer"))
                     coreSettings["mame_alternate_renderer"] = "enabled";
             }
