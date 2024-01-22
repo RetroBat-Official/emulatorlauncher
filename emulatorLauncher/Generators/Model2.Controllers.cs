@@ -137,8 +137,22 @@ namespace EmulatorLauncher
                 bytes[20] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
                 bytes[24] = dinput1 ? GetInputCode(InputKey.y, c1, tech1, vendor1, ctrl1) : (byte)0x10;
                 bytes[28] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
-                bytes[32] = (byte)0x02;
-                bytes[36] = (byte)0x04;
+
+                if (SystemConfig.getOptBoolean("m2_gun_usecontroller"))
+                {
+                    bytes[32] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
+                    bytes[33] = Convert.ToByte(j1index);
+                    bytes[36] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
+                    bytes[37] = Convert.ToByte(j1index);
+                }
+                else
+                {
+                    bytes[32] = (byte)0x02;
+                    bytes[33] = (byte)0x00;
+                    bytes[36] = (byte)0x04;
+                    bytes[37] = (byte)0x00;
+                }
+
                 if (c2 != null && !c2.IsKeyboard)
                 {
                     bytes[40] = dinput2 ? GetInputCode(InputKey.up, c2, tech2, vendor2, ctrl2) : (byte)0x02;
@@ -162,8 +176,20 @@ namespace EmulatorLauncher
                     bytes[68] = (byte)0x00;
                 }
 
-                bytes[72] = (byte)0x03;
+                if (SystemConfig.getOptBoolean("m2_gun_usecontroller") && c2 != null && !c2.IsKeyboard)
+                {
+                    bytes[72] = dinput2 ? GetInputCode(InputKey.start, c2, tech2, vendor2, ctrl2) : (byte)0xB0;
+                    bytes[73] = Convert.ToByte(j2index);
+                    bytes[76] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
+                    bytes[77] = Convert.ToByte(j2index);
+                }
+                else
+                {
+                    bytes[72] = (byte)0x03;
+                    bytes[73] = (byte)0x00;
                     bytes[76] = (byte)0x05;
+                    bytes[77] = (byte)0x00;
+                }
 
                 bytes[80] = (byte)0x3B;
                 bytes[81] = (byte)0x00;

@@ -19,7 +19,7 @@ namespace EmulatorLauncher
         private void UpdateSdlControllersWithHints(IniFile pcsx2ini)
         {
             var hints = new List<string>();
-            hints.Add("SDL_JOYSTICK_HIDAPI_WII = 1");
+            hints.Add("SDL_JOYSTICK_HIDAPI_WII = 0");
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
