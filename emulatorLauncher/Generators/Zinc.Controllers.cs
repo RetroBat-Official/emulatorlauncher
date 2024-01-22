@@ -72,7 +72,7 @@ namespace EmulatorLauncher
             {
                 // all section
                 ini.WriteValue("all", "test", GetInputKeyName(ctrl, controller, InputKey.r3, joy));
-                ini.WriteValue("all", "services", GetInputKeyName(ctrl, controller, InputKey.leftthumb, joy));
+                ini.WriteValue("all", "services", GetInputKeyName(ctrl, controller, InputKey.l3, joy));
             }
 
             // player section
@@ -214,9 +214,13 @@ namespace EmulatorLauncher
             { "select", "back" },
             { "start", "start" },
             { "joystick1left", "leftx" },
+            { "leftanalogleft", "leftx" },
             { "joystick1up", "lefty" },
+            { "leftanalogup", "lefty" },
             { "joystick2left", "rightx" },
+            { "rightanalogleft", "rightx" },
             { "joystick2up", "righty" },
+            { "rightanalogup", "righty" },
             { "up", "dpup" },
             { "down", "dpdown" },
             { "left", "dpleft" },
@@ -227,10 +231,12 @@ namespace EmulatorLauncher
             { "pageup", "leftshoulder" },
             { "r2", "righttrigger" },
             { "r3", "rightstick" },
-            { "leftthumb", "leftstick" },
-            { "rightthumb", "rightstick" },
+            { "leftthumb", "lefttrigger" },
+            { "rightthumb", "righttrigger" },
             { "l1", "leftshoulder" },
             { "r1", "rightshoulder" },
+            { "lefttrigger", "leftstick" },
+            { "righttrigger", "rightstick" },
         };
     }
 }
