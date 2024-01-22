@@ -243,10 +243,48 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (SystemConfig["ratio"] == "16/9")
-                SystemConfig["bezel"] = "none";
+            if (emulator == "daphne")
+            {
+                if (SystemConfig["ratio"] == "16/9")
+                    SystemConfig["bezel"] = "none";
 
-            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadeManager.GetPlatformFromFile(exe), system, rom, emulatorPath, resolution);
+                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadeManager.GetPlatformFromFile(exe), system, rom, emulatorPath, resolution);
+            }
+
+            else if (emulator == "hypseus")
+            {
+                BezelFiles bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                if (bezelFileInfo != null)
+                {
+                    string bezelFile = bezelFileInfo.PngFile;
+                    string hypseusBezelFile = Path.Combine(AppConfig.GetFullPath("hypseus"), "bezels", "retrobatBezel.png");
+
+                    if (bezelFile != null && File.Exists(bezelFile))
+                    {
+                        if (File.Exists(hypseusBezelFile))
+                            File.Delete(hypseusBezelFile);
+
+                        File.Copy(bezelFile, hypseusBezelFile);
+
+                        string targetBezelFile = Path.GetFileName(hypseusBezelFile);
+
+                        commandArray.Add("-bezel");
+                        commandArray.Add("\"" + targetBezelFile + "\"");
+                    }
+                }
+
+                if (SystemConfig["bezel"] == "default_unglazed")
+                {
+                    string hypseusBezelFile = Path.Combine(AppConfig.GetFullPath("hypseus"), "bezels", romName + ".png");
+
+                    if (File.Exists(hypseusBezelFile))
+                    {
+                        string targetBezelFile = Path.GetFileName(hypseusBezelFile);
+                        commandArray.Add("-bezel");
+                        commandArray.Add("\"" + targetBezelFile + "\"");
+                    }
+                }
+            }
 
             string args = string.Join(" ", commandArray);
 
