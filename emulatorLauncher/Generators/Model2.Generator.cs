@@ -102,18 +102,17 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
-                    if (_bezelFileInfo == null && fullscreen)
-                    {
-                        ini.WriteValue("Renderer", "FullMode", "4");
+                    ini.WriteValue("Renderer", "FullMode", "4");
+
+                    if (fullscreen)
                         ini.WriteValue("Renderer", "AutoFull", "1");
-                        ini.WriteValue("Renderer", "WideScreenWindow", "0");
-                    }
                     else
-                    {
-                        ini.WriteValue("Renderer", "FullMode", "4");
                         ini.WriteValue("Renderer", "AutoFull", "0");
+
+                    if (SystemConfig["bezel"] == null || SystemConfig["bezel"] == "none")
                         ini.WriteValue("Renderer", "WideScreenWindow", "1");
-                    }
+                    else
+                        ini.WriteValue("Renderer", "WideScreenWindow", "0");
 
                     ini.WriteValue("Renderer", "FullScreenWidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
                     ini.WriteValue("Renderer", "FullScreenHeight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
