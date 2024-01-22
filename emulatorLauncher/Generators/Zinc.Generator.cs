@@ -116,7 +116,7 @@ namespace EmulatorLauncher
             cfgFile.Save(cfg, false);
         }
 
-        private void SetupRendererCfg(string path, string rom, ScreenResolution resolution = null, bool fullscreen = true)
+        private void SetupRendererCfg(string path, string rom, ScreenResolution resolution = null, bool fullscreen = false)
         {
             // renderer.cfg file
             string cfg = Path.Combine(path, "renderer.cfg");
@@ -129,6 +129,7 @@ namespace EmulatorLauncher
             BindFeature(cfgFile, "ColorDepth", "zinc_colordepth", "32");
             BindFeature(cfgFile, "ScanLines", "zinc_scanlines", "0");
             BindFeature(cfgFile, "ShowFPS", "zinc_fps", "0");
+            BindFeature(cfgFile, "FrameSkipping", "zinc_frameskip", "0");
 
             cfgFile.Save(cfg, false);
         }
