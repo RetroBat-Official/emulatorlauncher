@@ -44,14 +44,13 @@ namespace EmulatorLauncher
                     commandArray.Add("-ignore_aspect_ratio");
                 else
                     commandArray.Add("-force_aspect_ratio");
-                /*
+
                 if (SystemConfig.isOptSet("hypseus_renderer") && SystemConfig["hypseus_renderer"] == "vulkan")
                 {
                     commandArray.Remove("-opengl");
                     commandArray.Add("-vulkan");
 
                 }
-                */
                 return;
             }
         }
@@ -174,20 +173,26 @@ namespace EmulatorLauncher
             }
             else
             {
-                 commandArray.AddRange(new string[]                       
-                   {                                
-                       romName, 
-                       "vldp", 
-                        "-framefile", frameFile, 
+                if (emulator == "daphne")
+                {
+                    commandArray.AddRange(new string[]
+                   {
+                       romName,
+                       "vldp",
+                        "-framefile", frameFile,
                         "-useoverlaysb", "2",
                         "-homedir", _daphneHomedir
                    });
-            }
-
-            if (Features.IsSupported("overlay") && SystemConfig.getOptBoolean("overlay"))
-            {
-                commandArray.Add("-useoverlaysb");
-                commandArray.Add("2");
+                }
+                else                 {
+                    commandArray.AddRange(new string[]
+                   {
+                       romName,
+                       "vldp",
+                        "-framefile", frameFile,
+                        "-homedir", _daphneHomedir
+                   });
+                }
             }
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
@@ -203,7 +208,11 @@ namespace EmulatorLauncher
 
             commandArray.Add("-opengl");            
             commandArray.Add("-fastboot");
-            
+
+            if (SystemConfig.getOptBoolean("daphne_vsync") && emulator == "hypseus")
+                commandArray.Add("-novsync");
+
+
             UpdateCommandline(commandArray);       
             
             // The folder may have a file with the game name and .commands with extra arguments to run the game.
@@ -221,7 +230,7 @@ namespace EmulatorLauncher
                     }
 
                     if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" || 
-                        s == "-opengl" || s == "-fastboot" || s == "-retropath" || s == "-manymouse")
+                        s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse")
                         continue;
 
                     if (s == "-x" || s == "-y" || s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" || s == "-datadir")
