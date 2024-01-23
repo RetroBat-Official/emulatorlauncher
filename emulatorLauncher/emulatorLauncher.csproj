@@ -255,6 +255,9 @@
       <DependentUpon>Zinc.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\SSF.Generator.cs" />
+    <Compile Include="Generators\SSF.Controllers.cs">
+      <DependentUpon>SSF.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Kronos.Generator.cs" />
     <Compile Include="Generators\Kronos.Controllers.cs">
       <DependentUpon>Kronos.Generator.cs</DependentUpon>
