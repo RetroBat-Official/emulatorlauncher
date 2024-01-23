@@ -189,8 +189,8 @@ namespace EmulatorLauncher
                 buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.pageup, dinputController, isXinput)) + (index * 65536)).ToString());
             }
 
-            buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.l2, dinputController, isXinput)) + (index * 65536)).ToString());
-            buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.r2, dinputController, isXinput)) + (index * 65536)).ToString());
+            buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.l2, dinputController, isXinput, true)) + (index * 65536)).ToString());
+            buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.r2, dinputController, isXinput, true)) + (index * 65536)).ToString());
             buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.start, dinputController, isXinput)) + (index * 65536)).ToString());
 
             buttonMapping.Add("0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0");
@@ -200,7 +200,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Input", padKey, "\"" + mapping + "\"");
         }
 
-        private static int GetInputCode(Controller c, InputKey key, SdlToDirectInput ctrl, bool isXinput = false)
+        private static int GetInputCode(Controller c, InputKey key, SdlToDirectInput ctrl, bool isXinput = false, bool trigger = false)
         {
 
             bool revertAxis = false;
@@ -246,27 +246,27 @@ namespace EmulatorLauncher
                 switch (axisID)
                 {
                     case 0:
-                        if (revertAxis) return 32769 + 1;
+                        if (revertAxis || trigger) return 32769 + 1;
                         else return 32769;
                     case 1:
-                        if (revertAxis) return 33025 + 1;
+                        if (revertAxis || trigger) return 33025 + 1;
                         else return 33025;
                     case 2:
                         if (revertAxis && c.VendorID == USB_VENDOR.NINTENDO) return 33537 + 1;
                         else if (c.VendorID == USB_VENDOR.NINTENDO) return 33537;
-                        else if (isXinput || revertAxis) return 33281 + 1;
+                        else if (isXinput || revertAxis || trigger) return 33281 + 1;
                         else return 33281;
                     case 3:
                         if (revertAxis && c.VendorID == USB_VENDOR.NINTENDO) return 33793 + 1;
                         else if (c.VendorID == USB_VENDOR.NINTENDO) return 33793;
-                        else if (revertAxis) return 33537 + 1;
+                        else if (revertAxis || trigger) return 33537 + 1;
                         else return 33537;
                     case 4:
-                        if (revertAxis) return 33793 + 1;
+                        if (revertAxis || trigger) return 33793 + 1;
                         else return 33793;
                     case 5:
                         if (isXinput) return 33281;
-                        else if (revertAxis) return 34049 + 1;
+                        else if (revertAxis || trigger) return 34049 + 1;
                         else return 34049;
                 };
             }
