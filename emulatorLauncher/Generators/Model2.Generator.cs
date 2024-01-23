@@ -12,7 +12,7 @@ namespace EmulatorLauncher
 {
     partial class Model2Generator : Generator
     {
-        
+
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _dinput;
@@ -75,12 +75,13 @@ namespace EmulatorLauncher
 
             if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-            
+
             _dinput = false;
             if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
                 _dinput = true;
-            
+
             SetupConfig(path, resolution, rom);
+            SetupLUAScript(path, resolution, rom);
 
             string arg = Path.GetFileNameWithoutExtension(_destFile);
 
@@ -151,7 +152,7 @@ namespace EmulatorLauncher
                         mouse1Index = SystemConfig["m2_rawinput_p1"];
                     if (SystemConfig.isOptSet("m2_rawinput_p2") && !string.IsNullOrEmpty(SystemConfig["m2_rawinput_p2"]))
                         mouse2Index = SystemConfig["m2_rawinput_p2"];
-                    
+
                     ini.WriteValue("Input", "RawDevP1", mouse1Index);
                     ini.WriteValue("Input", "RawDevP2", mouse2Index);
 
@@ -367,5 +368,37 @@ namespace EmulatorLauncher
             { "waverunr", 72 },
             { "zerogun", 108 }
         };
+
+        private void SetupLUAScript(string path, ScreenResolution resolution, string rom)
+        {
+            string luaFile = Path.Combine(path, "scripts", Path.GetFileNameWithoutExtension(rom) + ".lua");
+
+            if (File.Exists(luaFile))
+            {
+                try
+                {
+                    var lines = File.ReadAllLines(luaFile);
+
+                    for (var i = 0; i < lines.Length; i++)
+                    {
+                        var line = lines[i];
+
+                        if (lines[i].Contains("wide=false") || lines[i].Contains("wide=true"))
+                        {
+                            if (SystemConfig.getOptBoolean("m2_widescreen"))
+                                lines[i] = line.Replace("wide=false", "wide=true");
+                            else
+                                lines[i] = line.Replace("wide=true", "wide=false");
+
+                            break;
+                        }
+                            
+                    }
+
+                    File.WriteAllLines(luaFile, lines);
+                }
+                catch { }
+            }
+        }
     }
 }
