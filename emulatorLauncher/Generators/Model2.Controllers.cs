@@ -28,7 +28,7 @@ namespace EmulatorLauncher
 
                 var c2 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 2);
                 if (c1.IsKeyboard)
-                    return;
+                    WriteKbMapping(bytes, parentRom, hexLength, c1.Config);
                 else
                     WriteJoystickMapping(bytes, parentRom, hexLength, c1, c2);
             }
@@ -37,7 +37,7 @@ namespace EmulatorLauncher
                 var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
                 if (c1.IsKeyboard)
-                    return;
+                    WriteKbMapping(bytes, parentRom, hexLength, c1.Config);
                 else
                     WriteJoystickMapping(bytes, parentRom, hexLength, c1);
             }
@@ -691,6 +691,34 @@ namespace EmulatorLauncher
                     bytes[48] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, false, true) : (byte)0x80;
                     bytes[52] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
                 }
+            }
+        }
+
+        private void WriteKbMapping(byte[] bytes, string parentRom, int hexLength, InputConfig keyboard)
+        {
+            if (keyboard == null)
+                return;
+
+            if (shooters.Contains(parentRom))
+            {
+                // Player index bytes
+                bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = 0x00;
+                bytes[41] = bytes[45] = bytes[49] = bytes[53] = bytes[57] = bytes[61] = bytes[65] = bytes[69] = bytes[73] = bytes[77] = bytes[81] = bytes[85] = 0x00;
+
+                bytes[0] = (byte)0xC8;      // up
+                bytes[4] = (byte)0xD0;      // down
+                bytes[8] = (byte)0xCB;      // left
+                bytes[12] = (byte)0xCD;     // right
+                bytes[16] = (byte)0x39;     // space
+                bytes[20] = (byte)0x2A;     // left maj
+                bytes[24] = (byte)0x1D;     // left ctrl
+                bytes[28] = (byte)0x38;     // left ALT
+                bytes[32] = (byte)0x02;     // 1
+                bytes[36] = (byte)0x04;     // 3
+                bytes[72] = (byte)0x03;     // 2
+                bytes[76] = (byte)0x05;     // 4
+                bytes[80] = (byte)0x3B;     // F1
+                bytes[84] = (byte)0x3C;     // F2
             }
         }
 
