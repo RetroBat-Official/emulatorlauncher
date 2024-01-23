@@ -5,7 +5,7 @@ using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-    class SSFGenerator : Generator
+    partial class SSFGenerator : Generator
     {
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -95,6 +95,8 @@ namespace EmulatorLauncher
                 }
 
                 BindBoolIniFeature(ini, "Screen", "WideScreen", "saturn_widescreen", "\"" + "1" + "\"", "\"" + "0" + "\"");
+
+                CreateControllerConfiguration(ini);
             }
         }
     }
