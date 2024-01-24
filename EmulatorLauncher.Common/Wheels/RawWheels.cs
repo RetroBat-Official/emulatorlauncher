@@ -5,6 +5,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Wheels;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher.Common.Wheels
 {
@@ -96,7 +97,7 @@ namespace EmulatorLauncher.Common.Wheels
             int index = 0;
             foreach (var device in RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.GamePad))    // Wheels are identified as gamepads
             {
-                wheelNames.Add(new RawWheel() { Name = device.Name, DevicePath = device.DevicePath, Index = index, Type = ExtractRawWheelType(device.DevicePath) });
+                wheelNames.Add(new RawWheel() { Name = device.Name, vendorID = device.VendorId, ProductID = device.ProductId, DevicePath = device.DevicePath, Index = index, Type = ExtractRawWheelType(device.DevicePath) });
                 index++;
             }
 
@@ -110,6 +111,8 @@ namespace EmulatorLauncher.Common.Wheels
 
         public int Index { get; set; }
         public string Name { get; set; }
+        public USB_VENDOR vendorID { get; set; }
+        public USB_PRODUCT ProductID { get; set; }
         public string DevicePath { get; set; }
         public RawWheelType Type { get; private set; }
 

@@ -187,6 +187,7 @@ namespace EmulatorLauncher
                     WheelMappingInfo wheelmapping;
                     if (!WheelMappingInfo.Instance.TryGetValue(wheeltype, out wheelmapping))
                         WheelMappingInfo.Instance.TryGetValue("default", out wheelmapping);
+                    SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
 
                     string[] wheelTechs = wheelmapping.inputsystems.Split(',');
 
@@ -195,6 +196,35 @@ namespace EmulatorLauncher
                         tech = wheelTechs[0];
                         SimpleLogger.Instance.Info("[WHEELS] Overriding emulator input driver : " + tech);
                     }
+
+                    int wheelPadIndex = wheel.Index;
+                    SimpleLogger.Instance.Info("[WHEELS] Wheel raw input index : " + wheelPadIndex);
+
+                    var wheelController = this.Controllers.Where(c => c.DevicePath == wheel.DevicePath).FirstOrDefault();
+
+                    if (wheelController != null)
+                    {
+                        switch (tech)
+                        {
+                            case "xinput":
+                                wheelPadIndex = wheelController.XInput != null ? wheelController.XInput.DeviceIndex : wheelController.DeviceIndex;
+                                break;
+                            case "sdl":
+                                wheelPadIndex = wheelController.SdlController != null ? wheelController.SdlController.Index : wheelController.DeviceIndex;
+                                break;
+                            case "dinput":
+                                wheelPadIndex = wheelController.DirectInput != null ? wheelController.DirectInput.DeviceIndex : wheelController.DeviceIndex;
+                                break;
+                            default:
+                                wheelPadIndex = wheelController.DeviceIndex;
+                                break;
+                        }
+
+                        wheelPadIndex = wheelController.DirectInput != null ? wheelController.DirectInput.DeviceIndex : wheelController.DeviceIndex;
+                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + wheelPadIndex);
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + wheel.DevicePath.ToString() + " not found as Gamepad.");
                 }
             }
 
@@ -208,6 +238,11 @@ namespace EmulatorLauncher
             {
                 j2index = SystemConfig["model3_p2index"].ToInteger();
                 SimpleLogger.Instance.Info("[INFO] Forcing index of joystick 2 to " + j2index.ToString());
+            }
+            if (SystemConfig.isOptSet("wheel_index") && !string.IsNullOrEmpty(SystemConfig["wheel_index"]))
+            {
+                j1index = SystemConfig["wheel_index"].ToInteger();
+                SimpleLogger.Instance.Info("[INFO] Forcing index of wheel/joystick to " + j1index.ToString());
             }
 
             bool multiplayer = j2index != -1;
