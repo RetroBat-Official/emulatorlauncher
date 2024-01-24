@@ -1,0 +1,36 @@
+default:
+  WheelGuid: nul
+  Inputsystems: sdl,xinput,dinput
+  Forcefeedback: false
+  Invertedaxis: false
+  Range: nul
+  Throttle: righttrigger
+  Brake: lefttrigger
+  Steer: leftx
+  Gearup: leftshoulder
+  Geardown: rightshoulder
+  Gear1: button_8
+  Gear2: nul
+  Gear3: nul
+  Gear4: nul
+  Gear5: nul
+  Gear6: nul
+  Gear_reverse: nul
+LogitechG29:
+  WheelGuid: 030000006d0400004fc2000000000000
+  Inputsystems: dinput
+  Forcefeedback: true
+  Invertedaxis: true
+  Range: nul
+  Throttle: righttrigger
+  Brake: lefttrigger
+  Steer: leftx
+  Gearup: leftshoulder
+  Geardown: rightshoulder
+  Gear1: button_12
+  Gear2: button_13
+  Gear3: button_14
+  Gear4: button_15
+  Gear5: button_16
+  Gear6: button_17
+  Gear_reverse: button_11

@@ -881,7 +881,7 @@ namespace EmulatorLauncher
             }
         }
 
-        static Dictionary<string, int> serviceByte = new Dictionary<string, int>()
+        static readonly Dictionary<string, int> serviceByte = new Dictionary<string, int>()
         { 
             { "bel", 80 },
             { "daytona", 76 },
@@ -928,14 +928,14 @@ namespace EmulatorLauncher
             bytes[startByte + 9] = (byte)0x00;
         }
 
-        static List<string> shooters = new List<string>() { "bel", "gunblade", "hotd", "rchase2", "vcop", "vcop2" };
-        static List<string> fighters = new List<string>() { "doa", "fvipers", "lastbrnx", "schamp", "vf2" };
-        static List<string> standard = new List<string>() { "dynamcop", "pltkids", "vstriker", "zerogun" };
-        static List<string> drivingshiftupdown = new List<string>() { "indy500", "motoraid", "overrev", "sgt24h", "stcc", "manxtt", "manxttc" };
-        static List<string> drivingshiftlever = new List<string>() { "daytona", "srallyc" };
-        static List<string> sports = new List<string>() { "segawski", "skisuprg", "topskatr", "waverunr" };
+        static readonly List<string> shooters = new List<string>() { "bel", "gunblade", "hotd", "rchase2", "vcop", "vcop2" };
+        static readonly List<string> fighters = new List<string>() { "doa", "fvipers", "lastbrnx", "schamp", "vf2" };
+        static readonly List<string> standard = new List<string>() { "dynamcop", "pltkids", "vstriker", "zerogun" };
+        static readonly List<string> drivingshiftupdown = new List<string>() { "indy500", "motoraid", "overrev", "sgt24h", "stcc", "manxtt", "manxttc" };
+        static readonly List<string> drivingshiftlever = new List<string>() { "daytona", "srallyc" };
+        static readonly List<string> sports = new List<string>() { "segawski", "skisuprg", "topskatr", "waverunr" };
 
-        private static Dictionary<string, string> esToDinput = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> esToDinput = new Dictionary<string, string>()
         {
             { "a", "a" },
             { "b", "b" },
