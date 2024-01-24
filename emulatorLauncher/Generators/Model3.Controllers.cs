@@ -573,6 +573,7 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue(" Global ", "InputSystem", "dinput");
 
+                // Fetch information in retrobat/system/tools/gamecontrollerdb.txt file
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
 
                 if (!File.Exists(gamecontrollerDB))
@@ -582,15 +583,19 @@ namespace EmulatorLauncher
                 }
 
                 string guid1 = (c1.Guid.ToString()).Substring(0, 27) + "00000";
-                string wheelSdlGuid = wheelGuid.Substring(0, 27) + "00000";
                 SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
                 var ctrl1 = gamecontrollerDB == null ? null : GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1);
-                var sdlWheel = gamecontrollerDB == null ? null : GameControllerDBParser.ParseByGuid(gamecontrollerDB, wheelSdlGuid);
-
+                
                 if (ctrl1 == null)
                     SimpleLogger.Instance.Info("[INFO] Player 1. No controller found in gamecontrollerdb.txt file for guid : " + guid1);
                 else
                     SimpleLogger.Instance.Info("[INFO] Player 1: " + guid1 + "found in gamecontrollerDB file.");
+
+                string wheelSdlGuid = wheelGuid != "" ? wheelGuid.Substring(0, 27) + "00000" : "";
+                var sdlWheel = gamecontrollerDB == null ? null : GameControllerDBParser.ParseByGuid(gamecontrollerDB, wheelSdlGuid);
+
+                if (sdlWheel == null)
+                    SimpleLogger.Instance.Info("[WARNING] Wheel not found in gamecontrollerdb.txt file for guid : " + (wheelSdlGuid == "" ? "null" : wheelSdlGuid));
 
                 if (ctrl1 != null)
                 {
@@ -628,24 +633,24 @@ namespace EmulatorLauncher
                     if (useWheel)
                     {
                         //Steering wheel - left analog stick horizontal axis
-                        ini.WriteValue(" Global ", "InputSteeringLeft", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index, wheelGuid, "left"));
-                        ini.WriteValue(" Global ", "InputSteeringRight", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index, wheelGuid, "right"));
-                        ini.WriteValue(" Global ", "InputSteering", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index, wheelGuid));
+                        ini.WriteValue(" Global ", "InputSteeringLeft", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index, "left"));
+                        ini.WriteValue(" Global ", "InputSteeringRight", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index, "right"));
+                        ini.WriteValue(" Global ", "InputSteering", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index));
 
                         //Pedals - accelerate with R2, brake with L2
-                        ini.WriteValue(" Global ", "InputAccelerator", GetWheelMapping(wheelmapping.Throttle, sdlWheel, j1index, wheelGuid));
-                        ini.WriteValue(" Global ", "InputBrake", GetWheelMapping(wheelmapping.Brake, sdlWheel, j1index, wheelGuid));
+                        ini.WriteValue(" Global ", "InputAccelerator", GetWheelMapping(wheelmapping.Throttle, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputBrake", GetWheelMapping(wheelmapping.Brake, sdlWheel, j1index));
 
                         //Up/down shifter manual transmission (all racers) - L1 gear down and R1 gear up
-                        ini.WriteValue(" Global ", "InputGearShiftUp", GetWheelMapping(wheelmapping.Gearup, sdlWheel, j1index, wheelGuid));
-                        ini.WriteValue(" Global ", "InputGearShiftDown", GetWheelMapping(wheelmapping.Geardown, sdlWheel, j1index, wheelGuid));
+                        ini.WriteValue(" Global ", "InputGearShiftUp", GetWheelMapping(wheelmapping.Gearup, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputGearShiftDown", GetWheelMapping(wheelmapping.Geardown, sdlWheel, j1index));
 
                         //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with right stick (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
-                        ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, sdlWheel, j1index, wheelGuid));
-                        ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, sdlWheel, j1index, wheelGuid));
-                        ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, sdlWheel, j1index, wheelGuid));
-                        ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, sdlWheel, j1index, wheelGuid));
-                        ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, sdlWheel, j1index, wheelGuid));
+                        ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, sdlWheel, j1index));
 
                         //VR4 view change buttons (Daytona 2, Le Mans 24, Scud Race) - the 4 buttons will be used to change view in the games listed
                         ini.WriteValue(" Global ", "InputVR1", "\"" + GetDinputMapping(j1index, ctrl1, "y") + "\"");
@@ -1482,8 +1487,15 @@ namespace EmulatorLauncher
 
         private string GetDinputMapping(int index, SdlToDirectInput c, string buttonkey, int plus = 1)
         {
+            if (c.ButtonMappings == null)
+            {
+                SimpleLogger.Instance.Info("[INFO] No mapping found for the controller.");
+                return "";
+            }
+
             if (!c.ButtonMappings.ContainsKey(buttonkey))
             {
+                SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
                 return "";
             }
 
@@ -1548,7 +1560,7 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private string GetWheelMapping(string button, SdlToDirectInput wheel, int index, string wheelGuid, string direction = "")
+        private string GetWheelMapping(string button, SdlToDirectInput wheel, int index, string direction = "")
         {
             if (button.StartsWith("button_"))
             {
@@ -1574,7 +1586,7 @@ namespace EmulatorLauncher
                         return "\"" + GetDinputMapping(index, wheel, button) + "\"";
                 }
             }
-            
+            SimpleLogger.Instance.Info("[INFO] No mapping found for " + button + " in wheel database.");
             return "\"NONE\"";
         }
     }
