@@ -1,6 +1,10 @@
-﻿using System;
+﻿using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Wheels;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher.Common.Wheels
 {
@@ -135,6 +139,57 @@ namespace EmulatorLauncher.Common.Wheels
         ThrustmasterForceFeedbackRacing,
         ThrustmasterRallyGT,
         ThrustmasterT150,
-        Gamepad
+        Gamepad = 100
+    }
+
+    public class WheelMappingInfo
+    {
+        #region Factory
+        public static Dictionary<string, WheelMappingInfo> Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = SimpleYml<WheelMappingInfo>
+                        .Parse(Encoding.UTF8.GetString(Properties.Resources.wheels))
+                        .ToDictionary(a => a.wheeltype, a => a);
+                }
+
+                return _instance;
+            }
+        }
+
+        private static Dictionary<string, WheelMappingInfo> _instance;
+
+        public WheelMappingInfo()
+        {
+            inputsystems = "nul";
+            forcefeedback = false;
+            invertedaxis = false;
+            range = throttle = brake = steer = steer_left = steer_right = gearup = geardown = gear1 = gear2 = gear3 = gear4 = gear5 = gear6 = gear_reverse = "nul";
+        }
+        #endregion
+
+        [YmlName]
+        public string wheeltype { get; set; }
+        public string inputsystems { get; set; }
+        public bool forcefeedback { get; set; }
+        public bool invertedaxis { get; set; }
+        public string range { get; set; }
+        public string throttle { get; set; }
+        public string brake { get; set; }
+        public string steer { get; set; }
+        public string steer_left { get; set; }
+        public string steer_right { get; set; }
+        public string gearup { get; set; }
+        public string geardown { get; set; }
+        public string gear1 { get; set; }
+        public string gear2 { get; set; }
+        public string gear3 { get; set; }
+        public string gear4 { get; set; }
+        public string gear5 { get; set; }
+        public string gear6 { get; set; }
+        public string gear_reverse { get; set; }
     }
 }

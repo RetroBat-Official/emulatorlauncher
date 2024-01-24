@@ -5,6 +5,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
+using EmulatorLauncher.Common.Wheels;
 using static SdlToDirectInput;
 
 namespace EmulatorLauncher
@@ -76,10 +77,14 @@ namespace EmulatorLauncher
             //only index of player 1 is initialized as there might be only 1 controller at that point
             int j2index = -1;
             int j1index = c1.SdlController !=null ? c1.SdlController.Index + 1 : c1.DeviceIndex + 1;
+            SimpleLogger.Instance.Info("[INFO] setting index of joystick 1 to " + j1index.ToString());
 
             //If a secod controller is connected, get controller index of player 2, if there is no 2nd controller, just increment the index
             if (c2 != null && c2.Config != null)
+            {
                 j2index = c2.SdlController != null ? c2.SdlController.Index + 1 : c2.DeviceIndex + 1;
+                SimpleLogger.Instance.Info("[INFO] setting index of joystick 2 to " + j2index.ToString());
+            }
 
             //initialize tech : as default we will use sdl instead of dinput, as there are less differences in button mappings in sdl !
             string tech = "sdl";
@@ -114,6 +119,8 @@ namespace EmulatorLauncher
             else if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "dinput")
                 tech = "dinput";
 
+            SimpleLogger.Instance.Info("[INFO] setting " + tech + " inputdriver in SuperModel.");
+
             // It seems Supermodel uses sdl index even when dinput is selected as input driver
             /*if (tech == "dinput")
             {
@@ -123,10 +130,16 @@ namespace EmulatorLauncher
                     j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
             }*/
 
+            // Guns
             int gunCount = RawLightgun.GetUsableLightGunCount();
+            SimpleLogger.Instance.Info("[GUNS] Found " + gunCount + " usable guns.");
+
             var guns = RawLightgun.GetRawLightguns();
 
             bool multigun = SystemConfig.isOptSet("multigun") && SystemConfig.getOptBoolean("multigun");
+            if (multigun)
+                SimpleLogger.Instance.Info("[GUNS] Using multigun.");
+
             string mouseIndex1 = "1";
             string mouseIndex2 = "2";
 
@@ -153,11 +166,49 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue(" Global ", "Crosshairs", "3");
 
+            // Wheels
+            int wheelCount = RawWheel.GetUsableWheelsCount();
+            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelCount + " usable wheels.");
+
+            var wheels = RawWheel.GetRawWheels();
+            bool useWheel = SystemConfig.isOptSet("supermodel_wheel") && SystemConfig.getOptBoolean("supermodel_wheel");
+            
+            if (useWheel)
+            {
+                string wheeltype = "default";
+
+                if (wheelCount > 0 && wheels.Length > 0)
+                {
+                    var wheel = wheels[0];
+                    wheeltype = wheel.Type.ToString();
+                    SimpleLogger.Instance.Info("[WHEELS] Wheeltype identified : " + wheeltype);
+
+                    // Get mapping in yml file
+                    WheelMappingInfo wheelmapping;
+                    if (!WheelMappingInfo.Instance.TryGetValue(wheeltype, out wheelmapping))
+                        WheelMappingInfo.Instance.TryGetValue("default", out wheelmapping);
+
+                    string[] wheelTechs = wheelmapping.inputsystems.Split(',');
+
+                    if (!wheelTechs.Any(c => c == tech))
+                    {
+                        tech = wheelTechs[0];
+                        SimpleLogger.Instance.Info("[WHEELS] Overriding emulator input driver : " + tech);
+                    }
+                }
+            }
+
             // Force player index if option is set in es_features
             if (SystemConfig.isOptSet("model3_p1index") && !string.IsNullOrEmpty(SystemConfig["model3_p1index"]))
+            {
                 j1index = SystemConfig["model3_p1index"].ToInteger();
+                SimpleLogger.Instance.Info("[INFO] Forcing index of joystick 1 to " + j1index.ToString());
+            }
             if (SystemConfig.isOptSet("model3_p2index") && !string.IsNullOrEmpty(SystemConfig["model3_p2index"]))
+            {
                 j2index = SystemConfig["model3_p2index"].ToInteger();
+                SimpleLogger.Instance.Info("[INFO] Forcing index of joystick 2 to " + j2index.ToString());
+            }
 
             bool multiplayer = j2index != -1;
             bool enableServiceMenu = SystemConfig.isOptSet("m3_service") && SystemConfig.getOptBoolean("m3_service");
@@ -167,7 +218,10 @@ namespace EmulatorLauncher
             if (tech == "sdl")
             {
                 if (multigun)
+                {
                     ini.WriteValue(" Global ", "InputSystem", "rawinput");
+                    SimpleLogger.Instance.Info("[GUNS] Overriding emulator input driver : rawinput");
+                }
                 else
                     ini.WriteValue(" Global ", "InputSystem", "sdl");
 
@@ -468,7 +522,10 @@ namespace EmulatorLauncher
             else if (tech == "dinput")
             {
                 if (multigun)
+                {
                     ini.WriteValue(" Global ", "InputSystem", "rawinput");
+                    SimpleLogger.Instance.Info("[GUNS] Overriding emulator input driver : rawinput");
+                }
                 else
                     ini.WriteValue(" Global ", "InputSystem", "dinput");
 
@@ -774,7 +831,10 @@ namespace EmulatorLauncher
             else
             {
                 if (multigun)
+                {
                     ini.WriteValue(" Global ", "InputSystem", "rawinput");
+                    SimpleLogger.Instance.Info("[GUNS] Overriding emulator input driver : rawinput");
+                }
                 else
                     ini.WriteValue(" Global ", "InputSystem", "xinput");
 

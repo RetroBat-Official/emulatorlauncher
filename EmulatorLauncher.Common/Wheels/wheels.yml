@@ -1,0 +1,39 @@
+default:
+  inputsystems: sdl, xinput, dinput
+  forcefeedback: false
+  invertedaxis: false
+  range: nul
+  throttle: righttrigger
+  brake: lefttrigger
+  steer: joystick1
+  steer_left: joystick1left
+  steer_right: joystick1right
+  gearup: leftshoulder
+  geardown: rightshoulder
+  gear1: nul
+  gear2: nul
+  gear3: nul
+  gear4: nul
+  gear5: nul
+  gear6: nul
+  gear_reverse: nul
+
+LogitechG29:
+  inputsystems: dinput
+  forcefeedback: true
+  invertedaxis: true
+  range: nul
+  throttle: righttrigger
+  brake: lefttrigger
+  steer: joystick1
+  steer_left: joystick1left
+  steer_right: joystick1right
+  gearup: leftshoulder
+  geardown: rightshoulder
+  gear1: button_12
+  gear2: button_13
+  gear3: button_14
+  gear4: button_15
+  gear5: button_16
+  gear6: button_17
+  gear_reverse: button_11
