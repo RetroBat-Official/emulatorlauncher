@@ -762,13 +762,13 @@ namespace EmulatorLauncher
                 ini.WriteValue("Filenames", "BIOS", biosFile);
 
                 // Cheats Path
-                string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "pcsx2", "cheats");
-                string cheatswsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "pcsx2", "cheats_ws");
-                string cheatsniPath = Path.Combine(AppConfig.GetFullPath("cheats"), "pcsx2", "cheats_ni");
-                SetIniPath(ini, "Folders", "Cheats", cheatsPath);
-                SetIniPath(ini, "Folders", "CheatsWS", cheatswsPath);
-                SetIniPath(ini, "Folders", "CheatsNI", cheatsniPath);
-
+                var cheatsRootPath = AppConfig.GetFullPath("cheats");
+                cheatsRootPath = string.IsNullOrEmpty(cheatsRootPath) ? path : Path.Combine(cheatsRootPath, "pcsx2", "cheats");
+                
+                SetIniPath(ini, "Folders", "Cheats", Path.Combine(cheatsRootPath, "cheats"));
+                SetIniPath(ini, "Folders", "CheatsWS", Path.Combine(cheatsRootPath, "cheats_ws"));
+                SetIniPath(ini, "Folders", "CheatsNI", Path.Combine(cheatsRootPath, "cheats_ni"));
+                
                 // Snapshots path
                 string screenShotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "pcsx2");
                 SetIniPath(ini, "Folders", "Snapshots", screenShotsPath);

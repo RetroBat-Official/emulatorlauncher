@@ -561,7 +561,7 @@ namespace EmulatorLauncher.Common.EmulationStation
         [DefaultValue("")]
         public string CheevosHash { get; set; }
 
-        [XmlAttribute("cheevosId")]
+        [XmlElement("cheevosId")]
         [DefaultValue(0)]
         public int CheevosId { get; set; }
 
