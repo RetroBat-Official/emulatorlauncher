@@ -11,7 +11,10 @@ namespace EmulatorLauncher.Common.Launchers
 {
     public static class SteamLibrary
     {
+        // https://cdn.cloudflare.steamstatic.com/steam/apps/1515950/header.jpg
+
         const string GameLaunchUrl = @"steam://rungameid/{0}";
+        const string HeaderImageUrl = @"https://cdn.cloudflare.steamstatic.com/steam/apps/{0}/header.jpg";
 
         public static LauncherGameInfo[] GetInstalledGames()
         {
@@ -204,6 +207,7 @@ namespace EmulatorLauncher.Common.Launchers
                 Name = name,
                 InstallDirectory = installDir,
                 LauncherUrl = string.Format(GameLaunchUrl, gameId),
+                PreviewImageUrl = string.Format(HeaderImageUrl, gameId),
                 ExecutableName = FindExecutableName(gameId.ToInteger()),
                 Launcher = GameLauncherType.Steam
             };

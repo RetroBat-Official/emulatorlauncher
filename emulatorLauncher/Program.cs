@@ -129,7 +129,34 @@ namespace EmulatorLauncher
             get
             {
                 if (_esSystems == null)
+                {
                     _esSystems = EsSystems.Load(Path.Combine(Program.LocalPath, ".emulationstation", "es_systems.cfg"));
+
+                    if (_esSystems != null)
+                    {
+                        // Import emulator overrides
+                        foreach (var file in Directory.GetFiles(Path.Combine(Program.LocalPath, ".emulationstation"), "es_systems_*.cfg"))
+                        {
+                            try
+                            {
+                                var esSystemsOverride = EsSystems.Load(file);
+                                if (esSystemsOverride != null && esSystemsOverride.Systems != null)
+                                {
+                                    foreach (var ss in esSystemsOverride.Systems)
+                                    {
+                                        if (ss.Emulators == null || !ss.Emulators.Any())
+                                            continue;
+
+                                        var orgSys = _esSystems.Systems.FirstOrDefault(e => e.Name == ss.Name);
+                                        if (orgSys != null)
+                                            orgSys.Emulators = ss.Emulators;
+                                    }
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                }
 
                 return _esSystems;
             }
@@ -257,13 +284,6 @@ namespace EmulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
-            /*
-            var games = new List<EmulatorLauncher.Common.Launchers.LauncherGameInfo>();
-            games.AddRange(EmulatorLauncher.Common.Launchers.SteamLibrary.GetInstalledGames());
-            games.AddRange(EmulatorLauncher.Common.Launchers.EpicLibrary.GetInstalledGames());
-            games.AddRange(EmulatorLauncher.Common.Launchers.AmazonLibrary.GetInstalledGames());
-            */
-
             if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun"))
                 SystemConfig["use_guns"] = "true";
             
@@ -326,20 +346,56 @@ namespace EmulatorLauncher
                 if (Directory.Exists(mamePath))
                 {
                     string fn = Path.Combine(Path.GetTempPath(), "mameroms.txt");
-
-                    try
-                    {
-                        if (File.Exists(fn))
-                            File.Delete(fn);
-                    }
-                    catch { }
-
-                    File.WriteAllText(fn, MameVersionDetector.ListAllGames(mamePath));
+                    FileTools.TryDeleteFile(fn);
+                    File.WriteAllText(fn, MameVersionDetector.ListAllGames(mamePath, false));
                     Process.Start(fn);
                 }
              
                 return;
             }
+
+            if (args.Any(a => "-checkmame".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                string mamePath = Path.Combine(AppConfig.GetFullPath("roms"), "mame");
+                if (Directory.Exists(mamePath))
+                {
+                    string fn = Path.Combine(Path.GetTempPath(), "mame.txt");
+                    FileTools.TryDeleteFile(fn);
+                    File.WriteAllText(fn, MameVersionDetector.CheckMame(mamePath));
+                    Process.Start(fn);
+                }
+
+                return;
+            }
+
+            if (args.Any(a => "-listfbneoinmame".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                string mamePath = Path.Combine(AppConfig.GetFullPath("roms"), "mame");
+                if (Directory.Exists(mamePath))
+                {
+                    string fn = Path.Combine(Path.GetTempPath(), "fbneo.txt");
+                    FileTools.TryDeleteFile(fn);
+                    File.WriteAllText(fn, MameVersionDetector.ListAllGames(mamePath, true));
+                    Process.Start(fn);
+                }
+
+                return;
+            }
+
+            if (args.Any(a => "-checkfbneo".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                string mamePath = Path.Combine(AppConfig.GetFullPath("roms"), "fbneo");
+                if (Directory.Exists(mamePath))
+                {
+                    string fn = Path.Combine(Path.GetTempPath(), "fbneo.txt");
+                    FileTools.TryDeleteFile(fn);
+                    File.WriteAllText(fn, MameVersionDetector.CheckFbNeo(mamePath));
+                    Process.Start(fn);
+                }
+
+                return;
+            }
+
 
             if (args.Any(a => "-makeiso".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -414,12 +470,24 @@ namespace EmulatorLauncher
 
             if (CurrentGame == null)
             {
-                CurrentGame = new Game()
+                var romPath = SystemConfig.GetFullPath("rom");
+                var gamelistPath = Path.Combine(Path.GetDirectoryName(romPath), "gamelist.xml");
+                if (File.Exists(gamelistPath))
                 {
-                    Path = SystemConfig.GetFullPath("rom"),
-                    Name = Path.GetFileNameWithoutExtension(SystemConfig["rom"]),
-                    Tag = "missing"
-                };
+                    var gamelist = GameList.Load(gamelistPath);
+                    if (gamelist != null && gamelist.Games != null)
+                        CurrentGame = gamelist.Games.FirstOrDefault(g => g.GetRomFile() == romPath);
+                }
+
+                if (CurrentGame == null)
+                {
+                    CurrentGame = new Game()
+                    {
+                        Path = romPath,
+                        Name = Path.GetFileNameWithoutExtension(romPath),
+                        Tag = "missing"
+                    };
+                }
             }
 
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
