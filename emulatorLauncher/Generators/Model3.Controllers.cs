@@ -625,28 +625,6 @@ namespace EmulatorLauncher
                     ini.WriteValue(" Global ", "InputLongPass", "\"" + GetDinputMapping(j1index, ctrl1, "a") + "\"");
                     ini.WriteValue(" Global ", "InputShoot", "\"" + GetDinputMapping(j1index, ctrl1, "b") + "\"");
 
-                    /*
-        InputSteeringLeft = JOY3_XAXIS_NEG
-        InputSteeringRight = JOY3_XAXIS_POS
-        InputSteering = JOY3_XAXIS_INV
-        InputAccelerator = JOY3_YAXIS_NEG
-        InputBrake = JOY3_RZAXIS_NEG
-InputGearShiftUp = JOY3_BUTTON5
-InputGearShiftDown = JOY3_BUTTON6
-InputGearShift1 = JOY3_BUTTON13
-InputGearShift2 = JOY3_BUTTON14
-InputGearShift3 = JOY3_BUTTON15
-InputGearShift4 = JOY3_BUTTON16
-InputGearShiftN = JOY3_BUTTON17
-InputVR1 = JOY3_POV1_UP
-InputVR2 = JOY3_POV1_RIGHT
-InputVR3 = JOY3_POV1_DOWN
-InputVR4 = JOY3_POV1_LEFT
-InputViewChange = JOY3_POV1_UP
-InputHandBrake = JOY3_POV1_DOWN
-InputRearBrake = JOY3_RZAXIS_NEG
-InputMusicSelect = JOY3_POV1_RIGHT*/
-
                     if (useWheel)
                     {
                         //Steering wheel - left analog stick horizontal axis
