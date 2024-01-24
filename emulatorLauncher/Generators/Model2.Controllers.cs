@@ -6,7 +6,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
-using static SdlToDirectInput;
 using System.Windows.Controls;
 using System.Security.Cryptography;
 

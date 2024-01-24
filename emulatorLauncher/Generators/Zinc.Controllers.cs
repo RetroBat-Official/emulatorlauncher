@@ -2,9 +2,9 @@
 using System.IO;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
-using static SdlToDirectInput;
 using EmulatorLauncher.Common;
 using System.Collections.Generic;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {

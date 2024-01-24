@@ -1123,8 +1123,8 @@ namespace EmulatorLauncher.Libretro
                         if (supportedCores.Length == 0)
                             supportedCores = null;
                     }
-
-                    var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Replace("-", "_")).ToList();
+                   
+                    var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Name.Replace("-", "_")).ToList();
                     var bestCore = compatibleCores.FirstOrDefault();
                     if (!string.IsNullOrEmpty(bestCore))
                     {
