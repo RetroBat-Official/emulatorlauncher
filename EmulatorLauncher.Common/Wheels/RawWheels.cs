@@ -97,7 +97,7 @@ namespace EmulatorLauncher.Common.Wheels
             int index = 0;
             foreach (var device in RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.GamePad))    // Wheels are identified as gamepads
             {
-                wheelNames.Add(new RawWheel() { Name = device.Name, vendorID = device.VendorId, ProductID = device.ProductId, DevicePath = device.DevicePath, Index = index, Type = ExtractRawWheelType(device.DevicePath) });
+                wheelNames.Add(new RawWheel() { Name = device.Name, VendorID = device.VendorId, ProductID = device.ProductId, DevicePath = device.DevicePath.ToLowerInvariant(), Index = index, Type = ExtractRawWheelType(device.DevicePath) });
                 index++;
             }
 
@@ -111,7 +111,7 @@ namespace EmulatorLauncher.Common.Wheels
 
         public int Index { get; set; }
         public string Name { get; set; }
-        public USB_VENDOR vendorID { get; set; }
+        public USB_VENDOR VendorID { get; set; }
         public USB_PRODUCT ProductID { get; set; }
         public string DevicePath { get; set; }
         public RawWheelType Type { get; private set; }
@@ -156,7 +156,7 @@ namespace EmulatorLauncher.Common.Wheels
                 {
                     _instance = SimpleYml<WheelMappingInfo>
                         .Parse(Encoding.UTF8.GetString(Properties.Resources.wheels))
-                        .ToDictionary(a => a.wheeltype, a => a);
+                        .ToDictionary(a => a.Wheeltype, a => a);
                 }
 
                 return _instance;
@@ -167,32 +167,28 @@ namespace EmulatorLauncher.Common.Wheels
 
         public WheelMappingInfo()
         {
-            inputsystems = "nul";
-            forcefeedback = false;
-            invertedaxis = false;
-            range = throttle = brake = steer = steer_left = steer_right = gearup = geardown = gear1 = gear2 = gear3 = gear4 = gear5 = gear6 = gear_reverse = "nul";
+            WheelGuid = Inputsystems = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Gearup = Geardown = Gear1 = Gear2 = Gear3 = Gear4 = Gear5 = Gear6 = Gear_reverse = "nul";
         }
         #endregion
 
         [YmlName]
-        public string wheeltype { get; set; }
-        public string inputsystems { get; set; }
-        public bool forcefeedback { get; set; }
-        public bool invertedaxis { get; set; }
-        public string range { get; set; }
-        public string throttle { get; set; }
-        public string brake { get; set; }
-        public string steer { get; set; }
-        public string steer_left { get; set; }
-        public string steer_right { get; set; }
-        public string gearup { get; set; }
-        public string geardown { get; set; }
-        public string gear1 { get; set; }
-        public string gear2 { get; set; }
-        public string gear3 { get; set; }
-        public string gear4 { get; set; }
-        public string gear5 { get; set; }
-        public string gear6 { get; set; }
-        public string gear_reverse { get; set; }
+        public string Wheeltype { get; set; }
+        public string WheelGuid { get; set; }
+        public string Inputsystems { get; set; }
+        public string Forcefeedback { get; set; }
+        public string Invertedaxis { get; set; }
+        public string Range { get; set; }
+        public string Throttle { get; set; }
+        public string Brake { get; set; }
+        public string Steer { get; set; }
+        public string Gearup { get; set; }
+        public string Geardown { get; set; }
+        public string Gear1 { get; set; }
+        public string Gear2 { get; set; }
+        public string Gear3 { get; set; }
+        public string Gear4 { get; set; }
+        public string Gear5 { get; set; }
+        public string Gear6 { get; set; }
+        public string Gear_reverse { get; set; }
     }
 }
