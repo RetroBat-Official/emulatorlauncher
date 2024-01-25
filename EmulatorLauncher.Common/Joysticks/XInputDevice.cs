@@ -21,28 +21,43 @@ namespace EmulatorLauncher.Common.Joysticks
 
         private static XInputDevice[] GetDevicesInternal(bool skipIfDebuggerAttached = true)
         {
-            if (Debugger.IsAttached)
-                return GetDevicesInternalWithDebuggerAttached(skipIfDebuggerAttached);
+        //    if (Debugger.IsAttached)
+        //        return GetDevicesInternalWithDebuggerAttached(skipIfDebuggerAttached);
+
+            var rawDevices = RawInputDevice.GetRawInputControllers()
+                .Where(dev => dev.DevicePath != null && dev.DevicePath.Contains("IG_"))
+                .OrderBy(dev => InputDevices.GetInputDeviceParent(dev.DevicePath))
+                .ToList();
 
             var devices = new List<XInputDevice>();
 
             try
             {
-                using (_createFileWHook = new APIHook<CreateFileWDelegate>("api-ms-win-core-file-l1-1-0.dll", "CreateFileW", CustomCreateFileW))
+              
+              /*  using (_createFileWHook = new APIHook<CreateFileWDelegate>("api-ms-win-core-file-l1-1-0.dll", "CreateFileW", CustomCreateFileW))
                 using (_deviceIoControlHook = new APIHook<DeviceIoControlDelegate>("api-ms-win-core-io-l1-1-0.dll", "DeviceIoControl", CustomDeviceIoControl))
                 using (_coCreateInstanceHook = new APIHook<CoCreateInstanceDelegate>("api-ms-win-core-com-l1-1-0.dll", "CoCreateInstance", CustomCoCreateInstance)) // This one hangs if the debugger is attached
-                using (_duplicateHandleHook = new APIHook<DuplicateHandleDelegate>("api-ms-win-core-handle-l1-1-0.dll", "DuplicateHandle", CustomDuplicateHandle)) // This one hangs if the debugger is attached
+                using (_duplicateHandleHook = new APIHook<DuplicateHandleDelegate>("api-ms-win-core-handle-l1-1-0.dll", "DuplicateHandle", CustomDuplicateHandle)) // This one hangs if the debugger is attached                
+               */ 
                 {
-                    _deviceToName.Clear();
+                    // _deviceToName.Clear();
 
                     for (int i = 0; i < 4; i++)
                     {
-                        _hidPath = null;
+                        // _hidPath = null;
 
                         var dev = new XInputDevice(i);
                         if (!dev.Connected)
                             continue;
 
+                        var rawDevice = rawDevices.FirstOrDefault(rd => rd.ProductId == dev.ProductId && rd.VendorId == dev.VendorId);
+                        if (rawDevice != null)
+                        {
+                            dev.Path = rawDevice.DevicePath;
+                            dev.ParentPath = InputDevices.GetInputDeviceParent(dev.Path);
+                            rawDevices.Remove(rawDevice);
+                        }
+                        /*
                         if (_hidPath != null)
                         {
                             var pidvid = VidPid.Parse(_hidPath);
@@ -52,10 +67,12 @@ namespace EmulatorLauncher.Common.Joysticks
                                 dev.ParentPath = InputDevices.GetInputDeviceParent(_hidPath);
                             }
                         }
-                        
+                        */
                         devices.Add(dev);                        
                     }
                 }
+
+                SimpleLogger.Instance.Info("[XInput] GetDevicesInternal OK");
 
                 FixMissingPaths(devices);
             }
@@ -87,7 +104,7 @@ namespace EmulatorLauncher.Common.Joysticks
                 }
             }
         }
-
+        /*
         private static XInputDevice[] GetDevicesInternalWithDebuggerAttached(bool skipIfDebuggerAttached = true)
         {
             var devices = new List<XInputDevice>();
@@ -153,7 +170,7 @@ namespace EmulatorLauncher.Common.Joysticks
             FixMissingPaths(devices);
             return devices.ToArray();
         }
-
+        */
         public XInputDevice(int index)
         {
             DeviceIndex = index;
@@ -368,7 +385,8 @@ namespace EmulatorLauncher.Common.Joysticks
         #endregion
 
         #region Api Hooking
-
+        
+        /*
         private static APIHook<CreateFileWDelegate> _createFileWHook;
         private static APIHook<DeviceIoControlDelegate> _deviceIoControlHook;
         private static APIHook<DuplicateHandleDelegate> _duplicateHandleHook;
@@ -528,6 +546,7 @@ namespace EmulatorLauncher.Common.Joysticks
             return ret;
         }
         #endregion
+        */
         #endregion
 
         private static bool IsXInputDevice(string vendorId, string productId)
