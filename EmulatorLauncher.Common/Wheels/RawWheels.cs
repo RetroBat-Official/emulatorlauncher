@@ -17,13 +17,17 @@ namespace EmulatorLauncher.Common.Wheels
         public static RawWheel[] GetRawWheels()
         {
             if (_cache == null)
+            {
+                SimpleLogger.Instance.Info("[WHEELS] Looping wheels.");
                 _cache = GetRawWheelsInternal();
+            }
 
             return _cache;
         }
 
         public static int GetUsableWheelsCount()
         {
+            SimpleLogger.Instance.Info("[WHEELS] Searching for usable wheels.");
             var wheels = RawWheel.GetRawWheels();
 
             int wheelCount = wheels.Count();
@@ -82,7 +86,7 @@ namespace EmulatorLauncher.Common.Wheels
                     return RawWheelType.ThrustmasterT150;
             }
 
-            return RawWheelType.Gamepad;
+            return RawWheelType.Default;
         }
 
         private static RawWheel[] _cache;
@@ -90,16 +94,30 @@ namespace EmulatorLauncher.Common.Wheels
         private static RawWheel[] GetRawWheelsInternal()
         {
             var wheelNames = new List<RawWheel>();
+            // var wheelsDinput = new List<RawWheel>();
+            SimpleLogger.Instance.Info("[WHEELS] Listing all wheels.");
 
             int index = 0;
-            foreach (var device in RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.GamePad))    // Wheels are identified as gamepads
+            foreach (var device in RawInputDevice.GetRawInputControllers())    // Restrict to joysticks and gamepads
             {
-                wheelNames.Add(new RawWheel() { Name = device.Name, VendorID = device.VendorId, ProductID = device.ProductId, DevicePath = device.DevicePath.ToLowerInvariant(), Index = index, Type = ExtractRawWheelType(device.DevicePath) });
+                SimpleLogger.Instance.Info("[WHEELS] Searching wheel with " + device.DevicePath + "," + device.Type + "," + device.Name);
+                wheelNames.Add(new RawWheel() { Name = device.Name, VendorID = device.VendorId.ToString().ToLowerInvariant(), ProductID = device.ProductId.ToString().ToLowerInvariant(), DevicePath = device.DevicePath.ToLowerInvariant(), Index = index, Type = ExtractRawWheelType(device.DevicePath) });
+                
                 index++;
             }
 
+            /*  To test for later, getting index should be less complicated by interrogating dinput controllers instead of RawInput devices
+            foreach (var device in DirectInputInfo.Controllers)
+            {
+                SimpleLogger.Instance.Info("[WHEELS] Searching wheel with " + device.DevicePath + ","  + device.Name);
+                wheelsDinput.Add(new RawWheel() { Name = device.Name, VendorID = device.VendorId.ToString(), ProductID = device.ProductId.ToString(), DevicePath = device.DevicePath.ToLowerInvariant(), Index = device.DeviceIndex, Type = ExtractRawWheelType(device.DevicePath) });
+
+                index++;
+            }*/
+
             // Sorting (by index and put Gamepads at the end, do not remove them to enable usage of unknown wheels with standard configuration and fallback on gamepad)
             wheelNames.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
+            // wheelsDinput.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
 
             return wheelNames.ToArray();
         }
@@ -108,15 +126,15 @@ namespace EmulatorLauncher.Common.Wheels
 
         public int Index { get; set; }
         public string Name { get; set; }
-        public USB_VENDOR VendorID { get; set; }
-        public USB_PRODUCT ProductID { get; set; }
+        public string VendorID { get; set; }
+        public string ProductID { get; set; }
         public string DevicePath { get; set; }
         public RawWheelType Type { get; private set; }
 
         private int GetWheelPriority()
         {
-            if (Type == RawWheelType.Gamepad)
-                return 1000 + Index;
+            if (Type == RawWheelType.Default)
+                return 100 + Index;
             else
                 return Index;
         }
@@ -139,7 +157,7 @@ namespace EmulatorLauncher.Common.Wheels
         ThrustmasterForceFeedbackRacing,
         ThrustmasterRallyGT,
         ThrustmasterT150,
-        Gamepad = 100
+        Default = 100
     }
 
     public class WheelMappingInfo

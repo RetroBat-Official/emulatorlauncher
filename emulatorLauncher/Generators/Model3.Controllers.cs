@@ -120,14 +120,14 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] setting " + tech + " inputdriver in SuperModel.");
 
-            // It seems Supermodel uses sdl index even when dinput is selected as input driver
-            /*if (tech == "dinput")
+            // Not sure about the index used by supermodel but it seems to be dinput
+            if (tech == "dinput")
             {
                 j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
 
                 if (c2 != null && c2.Config != null)
                     j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
-            }*/
+            }
 
             // Guns
             int gunCount = RawLightgun.GetUsableLightGunCount();
@@ -189,9 +189,16 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[WHEELS] Wheel raw input index : " + wheelPadIndex);
 
                     // Get mapping in yml file
-                    if (!WheelMappingInfo.Instance.TryGetValue(wheeltype, out wheelmapping))
-                        WheelMappingInfo.Instance.TryGetValue("default", out wheelmapping);
-                    SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
+                    try
+                    {
+                        if (!WheelMappingInfo.Instance.TryGetValue(wheeltype, out wheelmapping))
+                            WheelMappingInfo.Instance.TryGetValue("default", out wheelmapping);
+                        SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
+                    }
+                    catch 
+                    {
+                        SimpleLogger.Instance.Info("[WHEELS] Problem getting wheel mapping in yml file.");
+                    }
 
                     string[] wheelTechs = wheelmapping.Inputsystems.Split(',');
                     wheelGuid = wheelmapping.WheelGuid;
@@ -223,11 +230,12 @@ namespace EmulatorLauncher
                                 break;
                         }
 
-                        wheelPadIndex = wheelController.DirectInput != null ? wheelController.DirectInput.DeviceIndex : wheelController.DeviceIndex;
-                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + wheelPadIndex);  
+                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + wheelPadIndex);
                     }
                     else
                         SimpleLogger.Instance.Info("[WHEELS] Wheel " + wheel.DevicePath.ToString() + " not found as Gamepad.");
+
+                    j1index = wheelPadIndex + 1;
 
                     // Set force feedback by default if wheel supports it
                     if (wheelmapping.Forcefeedback == "true" && SystemConfig["forceFeedback"] != "0")
@@ -254,6 +262,8 @@ namespace EmulatorLauncher
 
             bool multiplayer = j2index != -1;
             bool enableServiceMenu = SystemConfig.isOptSet("m3_service") && SystemConfig.getOptBoolean("m3_service");
+
+            SimpleLogger.Instance.Info("[INFO] Setting up controls with device index = " + j1index);
 
             #region sdl
             //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT)
@@ -597,12 +607,12 @@ namespace EmulatorLauncher
                     if (ctrl1 == null)
                         SimpleLogger.Instance.Info("[INFO] Player 1. No controller found in gamecontrollerdb.txt file for guid : " + guid1);
                     else
-                        SimpleLogger.Instance.Info("[INFO] Player 1: " + guid1 + "found in gamecontrollerDB file.");
+                        SimpleLogger.Instance.Info("[INFO] Player 1: " + guid1 + " found in gamecontrollerDB file.");
 
                     if (sdlWheel == null)
                         SimpleLogger.Instance.Info("[WARNING] Wheel not found in gamecontrollerdb.txt file for guid : " + wheelSdlGuid);
                     else
-                        SimpleLogger.Instance.Info("[INFO] Player 1 wheel : " + wheelSdlGuid + "found in gamecontrollerDB file.");
+                        SimpleLogger.Instance.Info("[INFO] Player 1 wheel : " + wheelSdlGuid + " found in gamecontrollerDB file.");
                 }
 
                 if (ctrl1 != null || sdlWheel != null)
@@ -1596,7 +1606,7 @@ namespace EmulatorLauncher
                         else if (direction == "right")
                             ret = GetDinputMapping(index, wheel, button, 1);
                         else
-                            ret = GetDinputMapping(index, wheel, button, 0) + "\"";
+                            ret = GetDinputMapping(index, wheel, button, 0);
                         return invertAxis ? ("\"" + ret + "_INV" + "\"") : ("\"" + ret + "\"");
                     case "rightshoulder":
                     case "leftshoulder":
