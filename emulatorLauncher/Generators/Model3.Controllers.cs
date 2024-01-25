@@ -166,15 +166,14 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "Crosshairs", "3");
 
             // Wheels
-            int wheelCount = RawWheel.GetUsableWheelsCount();
-            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelCount + " usable wheels.");
-
-            var wheels = RawWheel.GetRawWheels();
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
             bool invertedWheelAxis = false;
-            
             WheelMappingInfo wheelmapping = null;
             string wheelGuid = "nul";
+
+            int wheelCount = RawWheel.GetUsableWheelsCount();
+            var wheels = RawWheel.GetRawWheels();
+            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelCount + " usable wheels.");
 
             if (useWheel)
             {
@@ -183,8 +182,11 @@ namespace EmulatorLauncher
                 if (wheelCount > 0 && wheels.Length > 0)
                 {
                     var wheel = wheels[0];
+                    var wheelController = this.Controllers.Where(c => c.DirectInput.DevicePath.ToLowerInvariant() == wheel.DevicePath).FirstOrDefault();
+                    int wheelPadIndex = wheel.Index;
                     wheeltype = wheel.Type.ToString();
                     SimpleLogger.Instance.Info("[WHEELS] Wheeltype identified : " + wheeltype);
+                    SimpleLogger.Instance.Info("[WHEELS] Wheel raw input index : " + wheelPadIndex);
 
                     // Get mapping in yml file
                     if (!WheelMappingInfo.Instance.TryGetValue(wheeltype, out wheelmapping))
@@ -192,6 +194,8 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
 
                     string[] wheelTechs = wheelmapping.Inputsystems.Split(',');
+                    wheelGuid = wheelmapping.WheelGuid;
+                    invertedWheelAxis = wheelmapping.Invertedaxis == "true";
 
                     if (!wheelTechs.Any(c => c == tech))
                     {
@@ -199,16 +203,10 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[WHEELS] Overriding emulator input driver : " + tech);
                     }
 
-                    int wheelPadIndex = wheel.Index;
-                    wheelGuid = wheelmapping.WheelGuid;
-                    invertedWheelAxis = wheelmapping.Invertedaxis == "true";
-                    
-                    SimpleLogger.Instance.Info("[WHEELS] Wheel raw input index : " + wheelPadIndex);
-
-                    var wheelController = this.Controllers.Where(c => c.DirectInput.DevicePath.ToLowerInvariant() == wheel.DevicePath).FirstOrDefault();
-
                     if (wheelController != null)
                     {
+                        wheelGuid = wheelController.Guid;
+
                         switch (tech)
                         {
                             case "xinput":
@@ -226,9 +224,7 @@ namespace EmulatorLauncher
                         }
 
                         wheelPadIndex = wheelController.DirectInput != null ? wheelController.DirectInput.DeviceIndex : wheelController.DeviceIndex;
-                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + wheelPadIndex);
-
-                        wheelGuid = wheelController.Guid;
+                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + wheelPadIndex);  
                     }
                     else
                         SimpleLogger.Instance.Info("[WHEELS] Wheel " + wheel.DevicePath.ToString() + " not found as Gamepad.");
@@ -239,7 +235,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Force player index if option is set in es_features
+            // Force index if option is set in es_features
             if (SystemConfig.isOptSet("model3_p1index") && !string.IsNullOrEmpty(SystemConfig["model3_p1index"]))
             {
                 j1index = SystemConfig["model3_p1index"].ToInteger();
@@ -567,6 +563,10 @@ namespace EmulatorLauncher
             #region dinput
             else if (tech == "dinput")
             {
+                string guid1 = (c1.Guid.ToString()).Substring(0, 27) + "00000";
+                string wheelSdlGuid = wheelGuid != "nul" ? wheelGuid.Substring(0, 27) + "00000" : "nul";
+
+                // set inputsystem
                 if (multigun)
                 {
                     ini.WriteValue(" Global ", "InputSystem", "rawinput");
@@ -576,23 +576,21 @@ namespace EmulatorLauncher
                     ini.WriteValue(" Global ", "InputSystem", "dinput");
 
                 // Fetch information in retrobat/system/tools/gamecontrollerdb.txt file
-                string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
                 SdlToDirectInput ctrl1 = null;
                 SdlToDirectInput sdlWheel = null;
-
+                string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+                
                 if (!File.Exists(gamecontrollerDB))
                 {
                     SimpleLogger.Instance.Info("[INFO] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
                     gamecontrollerDB = null;
                 }
 
-                string guid1 = (c1.Guid.ToString()).Substring(0, 27) + "00000";
-                SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
-                string wheelSdlGuid = wheelGuid != "nul" ? wheelGuid.Substring(0, 27) + "00000" : "nul";
-                SimpleLogger.Instance.Info("[INFO] Player 1 wheel. Fetching gamecontrollerdb.txt file with guid : " + guid1);
-
                 if (gamecontrollerDB != null)
                 {
+                    SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
+                    SimpleLogger.Instance.Info("[INFO] Player 1 wheel. Fetching gamecontrollerdb.txt file with guid : " + wheelSdlGuid);
+
                     ctrl1 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1);
                     sdlWheel = GameControllerDBParser.ParseByGuid(gamecontrollerDB, wheelSdlGuid);
 
@@ -602,7 +600,7 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[INFO] Player 1: " + guid1 + "found in gamecontrollerDB file.");
 
                     if (sdlWheel == null)
-                        SimpleLogger.Instance.Info("[WARNING] Wheel not found in gamecontrollerdb.txt file for guid : " + (wheelSdlGuid == "nul" ? "null" : wheelSdlGuid));
+                        SimpleLogger.Instance.Info("[WARNING] Wheel not found in gamecontrollerdb.txt file for guid : " + wheelSdlGuid);
                     else
                         SimpleLogger.Instance.Info("[INFO] Player 1 wheel : " + wheelSdlGuid + "found in gamecontrollerDB file.");
                 }
