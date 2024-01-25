@@ -1,6 +1,7 @@
 default:
   WheelGuid: nul
   Inputsystems: sdl,xinput,dinput
+  Pcsx2_Type: 0
   Forcefeedback: false
   Invertedaxis: false
   Range: nul
@@ -19,6 +20,7 @@ default:
 LogitechG29:
   WheelGuid: 030000006d0400004fc2000000000000
   Inputsystems: dinput
+  Pcsx2_Type: 0
   Forcefeedback: true
   Invertedaxis: true
   Range: nul

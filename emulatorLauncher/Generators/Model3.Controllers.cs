@@ -187,7 +187,7 @@ namespace EmulatorLauncher
                         SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
                         XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
                         ControllerIndex = controller.DeviceIndex,
-                        Type = drivingWheel 
+                        Type = drivingWheel
                     });
             }
 

@@ -120,7 +120,7 @@ namespace EmulatorLauncher
 
         public WheelMappingInfo()
         {
-            WheelGuid = Inputsystems = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Gearup = Geardown = Gear1 = Gear2 = Gear3 = Gear4 = Gear5 = Gear6 = Gear_reverse = "nul";
+            WheelGuid = Inputsystems = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Gearup = Geardown = Gear1 = Gear2 = Gear3 = Gear4 = Gear5 = Gear6 = Gear_reverse = "nul";
         }
         #endregion
 
@@ -128,6 +128,7 @@ namespace EmulatorLauncher
         public string Wheeltype { get; set; }
         public string WheelGuid { get; set; }
         public string Inputsystems { get; set; }
+        public string Pcsx2_Type { get; set; }
         public string Forcefeedback { get; set; }
         public string Invertedaxis { get; set; }
         public string Range { get; set; }
