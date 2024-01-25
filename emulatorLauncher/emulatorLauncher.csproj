@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="Bezels\BezelFiles.cs" />
     <Compile Include="Common\SaveStatesWatcher.cs" />
+	<Compile Include="Common\Wheels.cs" />
     <Compile Include="Common\ScreenShotsWatcher.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
@@ -378,6 +379,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Resources\libretrocoreguns.yml" />
+	<None Include="Resources\wheelMapping.yml" />
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />

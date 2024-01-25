@@ -89,15 +89,5 @@ namespace EmulatorLauncher.Common.Properties {
                 return ((byte[])(obj));
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] wheels {
-            get {
-                object obj = ResourceManager.GetObject("wheels", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }

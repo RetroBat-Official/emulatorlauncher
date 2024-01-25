@@ -143,7 +143,6 @@
     <Compile Include="Steam\ValveKeyValue\KVValueType.cs" />
     <Compile Include="Steam\ValveKeyValue\KVValue_operators.cs" />
     <Compile Include="Steam\ValveKeyValue\Require.cs" />
-    <Compile Include="Wheels\RawWheels.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="RegistryApi.cs" />
     <Compile Include="ScreenCapture.cs" />
@@ -165,7 +164,6 @@
     <None Include="Resources\hidtodinput.cfg" />
     <None Include="Resources\SQLite.Interop.x64.gz" />
     <None Include="Resources\SQLite.Interop.x86.gz" />
-    <None Include="Wheels\wheels.yml" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
