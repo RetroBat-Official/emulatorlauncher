@@ -225,6 +225,16 @@ namespace EmulatorLauncher.Properties {
                 return ((byte[])(obj));
             }
         }
+		
+		/// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] wheelmapping {
+            get {
+                object obj = ResourceManager.GetObject("wheelmapping", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Looking for updates....

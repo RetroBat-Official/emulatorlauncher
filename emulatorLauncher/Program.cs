@@ -286,7 +286,11 @@ namespace EmulatorLauncher
 
             if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun"))
                 SystemConfig["use_guns"] = "true";
-            
+
+            /* for later wheels
+            if (!SystemConfig.isOptSet("use_wheel") && args.Any(a => a == "-wheel"))
+                SystemConfig["use_wheel"] = "true";*/
+
             ImportShaderOverrides();
             
             if (args.Any(a => "-resetusbcontrollers".Equals(a, StringComparison.InvariantCultureIgnoreCase)))

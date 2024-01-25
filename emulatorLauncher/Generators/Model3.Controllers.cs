@@ -5,7 +5,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
-using EmulatorLauncher.Common.Wheels;
 
 namespace EmulatorLauncher
 {
@@ -120,14 +119,14 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] setting " + tech + " inputdriver in SuperModel.");
 
-            // It seems Supermodel uses sdl index even when dinput is selected as input driver
-            /*if (tech == "dinput")
+            // Not sure about the index used by supermodel but it seems to be dinput
+            if (tech == "dinput")
             {
                 j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
 
                 if (c2 != null && c2.Config != null)
                     j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
-            }*/
+            }
 
             // Guns
             int gunCount = RawLightgun.GetUsableLightGunCount();
@@ -166,30 +165,63 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "Crosshairs", "3");
 
             // Wheels
-            int wheelCount = RawWheel.GetUsableWheelsCount();
-            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelCount + " usable wheels.");
-
-            var wheels = RawWheel.GetRawWheels();
+            int wheelNb = 0;
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
+            bool invertedWheelAxis = false;
             WheelMappingInfo wheelmapping = null;
-            string wheelGuid = "";
+            string wheelGuid = "nul";
+            List<Wheel> usableWheels = new List<Wheel>();
+
+            foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
+            {
+                var drivingWheel = Wheel.GetWheelType(controller.DevicePath.ToUpperInvariant());
+
+                if (drivingWheel != WheelType.Default)
+                    usableWheels.Add(new Wheel() 
+                    { 
+                        Name = controller.Name, 
+                        VendorID = controller.VendorID.ToString(), 
+                        ProductID = controller.ProductID.ToString(), 
+                        DevicePath = controller.DevicePath.ToLowerInvariant(), 
+                        DinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex,
+                        SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
+                        XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
+                        ControllerIndex = controller.DeviceIndex,
+                        Type = drivingWheel
+                    });
+            }
+
+            wheelNb = usableWheels.Count;
+            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelNb + " usable wheels.");
 
             if (useWheel)
             {
                 string wheeltype = "default";
 
-                if (wheelCount > 0 && wheels.Length > 0)
+                if (wheelNb > 0)
                 {
-                    var wheel = wheels[0];
+                    usableWheels.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
+
+                    var wheel = usableWheels[0];
+                    int wheelPadIndex = 1;
                     wheeltype = wheel.Type.ToString();
                     SimpleLogger.Instance.Info("[WHEELS] Wheeltype identified : " + wheeltype);
 
                     // Get mapping in yml file
-                    if (!WheelMappingInfo.Instance.TryGetValue(wheeltype, out wheelmapping))
-                        WheelMappingInfo.Instance.TryGetValue("default", out wheelmapping);
-                    SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
+                    try
+                    {
+                        if (!WheelMappingInfo.Instance.TryGetValue(wheeltype, out wheelmapping))
+                            WheelMappingInfo.Instance.TryGetValue("default", out wheelmapping);
+                        SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
+                    }
+                    catch 
+                    {
+                        SimpleLogger.Instance.Info("[WHEELS] Problem getting wheel mapping in yml file.");
+                    }
 
                     string[] wheelTechs = wheelmapping.Inputsystems.Split(',');
+                    wheelGuid = wheelmapping.WheelGuid;
+                    invertedWheelAxis = wheelmapping.Invertedaxis == "true";
 
                     if (!wheelTechs.Any(c => c == tech))
                     {
@@ -197,34 +229,30 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[WHEELS] Overriding emulator input driver : " + tech);
                     }
 
-                    int wheelPadIndex = wheel.Index;
-                    wheelGuid = wheelmapping.WheelGuid;
-                    SimpleLogger.Instance.Info("[WHEELS] Wheel raw input index : " + wheelPadIndex);
-
-                    var wheelController = this.Controllers.Where(c => c.DirectInput.DevicePath.ToLowerInvariant() == wheel.DevicePath).FirstOrDefault();
-
-                    if (wheelController != null)
+                    if (wheel != null)
                     {
                         switch (tech)
                         {
                             case "xinput":
-                                wheelPadIndex = wheelController.XInput != null ? wheelController.XInput.DeviceIndex : wheelController.DeviceIndex;
+                                wheelPadIndex = wheel.XInputIndex;
                                 break;
                             case "sdl":
-                                wheelPadIndex = wheelController.SdlController != null ? wheelController.SdlController.Index : wheelController.DeviceIndex;
+                                wheelPadIndex = wheel.SDLIndex;
                                 break;
                             case "dinput":
-                                wheelPadIndex = wheelController.DirectInput != null ? wheelController.DirectInput.DeviceIndex : wheelController.DeviceIndex;
+                                wheelPadIndex = wheel.DinputIndex;
                                 break;
                             default:
-                                wheelPadIndex = wheelController.DeviceIndex;
+                                wheelPadIndex = wheel.ControllerIndex;
                                 break;
                         }
 
-                        wheelPadIndex = wheelController.DirectInput != null ? wheelController.DirectInput.DeviceIndex : wheelController.DeviceIndex;
-                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + wheelPadIndex);
+                        j1index = wheelPadIndex + 1;
 
-                        wheelGuid = wheelController.Guid;
+                        c1 = this.Controllers.FirstOrDefault(c => c.DeviceIndex == wheel.ControllerIndex);
+                        c2 = null;
+
+                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + wheelPadIndex);
                     }
                     else
                         SimpleLogger.Instance.Info("[WHEELS] Wheel " + wheel.DevicePath.ToString() + " not found as Gamepad.");
@@ -235,7 +263,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Force player index if option is set in es_features
+            // Force index if option is set in es_features
             if (SystemConfig.isOptSet("model3_p1index") && !string.IsNullOrEmpty(SystemConfig["model3_p1index"]))
             {
                 j1index = SystemConfig["model3_p1index"].ToInteger();
@@ -254,6 +282,8 @@ namespace EmulatorLauncher
 
             bool multiplayer = j2index != -1;
             bool enableServiceMenu = SystemConfig.isOptSet("m3_service") && SystemConfig.getOptBoolean("m3_service");
+
+            SimpleLogger.Instance.Info("[INFO] Setting up controls with device index = " + j1index);
 
             #region sdl
             //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT)
@@ -563,6 +593,10 @@ namespace EmulatorLauncher
             #region dinput
             else if (tech == "dinput")
             {
+                string guid1 = (c1.Guid.ToString()).Substring(0, 27) + "00000";
+                string wheelSdlGuid = wheelGuid != "nul" ? wheelGuid.Substring(0, 27) + "00000" : "nul";
+
+                // set inputsystem
                 if (multigun)
                 {
                     ini.WriteValue(" Global ", "InputSystem", "rawinput");
@@ -572,28 +606,37 @@ namespace EmulatorLauncher
                     ini.WriteValue(" Global ", "InputSystem", "dinput");
 
                 // Fetch information in retrobat/system/tools/gamecontrollerdb.txt file
+                SdlToDirectInput ctrl1 = null;
+                SdlToDirectInput sdlWheel = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-
+                
                 if (!File.Exists(gamecontrollerDB))
                 {
                     SimpleLogger.Instance.Info("[INFO] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
                     gamecontrollerDB = null;
                 }
 
-                string guid1 = (c1.Guid.ToString()).Substring(0, 27) + "00000";
-                SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
-                var ctrl1 = gamecontrollerDB == null ? null : GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1);
-                
-                if (ctrl1 == null)
-                    SimpleLogger.Instance.Info("[INFO] Player 1. No controller found in gamecontrollerdb.txt file for guid : " + guid1);
-                else
-                    SimpleLogger.Instance.Info("[INFO] Player 1: " + guid1 + "found in gamecontrollerDB file.");
+                if (gamecontrollerDB != null)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
+                    SimpleLogger.Instance.Info("[INFO] Player 1 wheel. Fetching gamecontrollerdb.txt file with guid : " + wheelSdlGuid);
 
-                string wheelSdlGuid = wheelGuid != "" ? wheelGuid.Substring(0, 27) + "00000" : "";
-                var sdlWheel = gamecontrollerDB == null ? null : GameControllerDBParser.ParseByGuid(gamecontrollerDB, wheelSdlGuid);
+                    ctrl1 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1);
+                    sdlWheel = GameControllerDBParser.ParseByGuid(gamecontrollerDB, wheelSdlGuid);
 
-                if (sdlWheel == null)
-                    SimpleLogger.Instance.Info("[WARNING] Wheel not found in gamecontrollerdb.txt file for guid : " + (wheelSdlGuid == "" ? "null" : wheelSdlGuid));
+                    if (ctrl1 == null)
+                        SimpleLogger.Instance.Info("[INFO] Player 1. No controller found in gamecontrollerdb.txt file for guid : " + guid1);
+                    else
+                        SimpleLogger.Instance.Info("[INFO] Player 1: " + guid1 + " found in gamecontrollerDB file.");
+
+                    if (sdlWheel != null && useWheel)
+                    {
+                        ctrl1 = sdlWheel;
+                        SimpleLogger.Instance.Info("[INFO] Player 1 wheel : " + wheelSdlGuid + " found in gamecontrollerDB file.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[WARNING] Wheel not found in gamecontrollerdb.txt file for guid : " + wheelSdlGuid);
+                }
 
                 if (ctrl1 != null)
                 {
@@ -631,24 +674,24 @@ namespace EmulatorLauncher
                     if (useWheel)
                     {
                         //Steering wheel - left analog stick horizontal axis
-                        ini.WriteValue(" Global ", "InputSteeringLeft", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index, "left"));
-                        ini.WriteValue(" Global ", "InputSteeringRight", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index, "right"));
-                        ini.WriteValue(" Global ", "InputSteering", GetWheelMapping(wheelmapping.Steer, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputSteeringLeft", GetWheelMapping(wheelmapping.Steer, ctrl1, j1index, "left"));
+                        ini.WriteValue(" Global ", "InputSteeringRight", GetWheelMapping(wheelmapping.Steer, ctrl1, j1index, "right"));
+                        ini.WriteValue(" Global ", "InputSteering", GetWheelMapping(wheelmapping.Steer, ctrl1, j1index, "nul", invertedWheelAxis));
 
                         //Pedals - accelerate with R2, brake with L2
-                        ini.WriteValue(" Global ", "InputAccelerator", GetWheelMapping(wheelmapping.Throttle, sdlWheel, j1index));
-                        ini.WriteValue(" Global ", "InputBrake", GetWheelMapping(wheelmapping.Brake, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputAccelerator", GetWheelMapping(wheelmapping.Throttle, ctrl1, j1index));
+                        ini.WriteValue(" Global ", "InputBrake", GetWheelMapping(wheelmapping.Brake, ctrl1, j1index));
 
                         //Up/down shifter manual transmission (all racers) - L1 gear down and R1 gear up
-                        ini.WriteValue(" Global ", "InputGearShiftUp", GetWheelMapping(wheelmapping.Gearup, sdlWheel, j1index));
-                        ini.WriteValue(" Global ", "InputGearShiftDown", GetWheelMapping(wheelmapping.Geardown, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputGearShiftUp", GetWheelMapping(wheelmapping.Gearup, ctrl1, j1index));
+                        ini.WriteValue(" Global ", "InputGearShiftDown", GetWheelMapping(wheelmapping.Geardown, ctrl1, j1index));
 
                         //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with right stick (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
-                        ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, sdlWheel, j1index));
-                        ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, sdlWheel, j1index));
-                        ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, sdlWheel, j1index));
-                        ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, sdlWheel, j1index));
-                        ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, sdlWheel, j1index));
+                        ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, ctrl1, j1index));
+                        ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, ctrl1, j1index));
+                        ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, ctrl1, j1index));
+                        ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, ctrl1, j1index));
+                        ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, ctrl1, j1index));
 
                         //VR4 view change buttons (Daytona 2, Le Mans 24, Scud Race) - the 4 buttons will be used to change view in the games listed
                         ini.WriteValue(" Global ", "InputVR1", "\"" + GetDinputMapping(j1index, ctrl1, "y") + "\"");
@@ -663,7 +706,7 @@ namespace EmulatorLauncher
                         ini.WriteValue(" Global ", "InputHandBrake", "\"" + GetDinputMapping(j1index, ctrl1, "a") + "\"");
 
                         //Harley-Davidson controls
-                        ini.WriteValue(" Global ", "InputRearBrake", GetWheelMapping(wheelmapping.Brake, sdlWheel, j1index, wheelGuid));
+                        ini.WriteValue(" Global ", "InputRearBrake", GetWheelMapping(wheelmapping.Brake, ctrl1, j1index));
                         ini.WriteValue(" Global ", "InputMusicSelect", "\"" + GetDinputMapping(j1index, ctrl1, "b") + "\"");
                     }
                     else
@@ -1485,6 +1528,9 @@ namespace EmulatorLauncher
 
         private string GetDinputMapping(int index, SdlToDirectInput c, string buttonkey, int plus = 1)
         {
+            if (c == null)
+                return "";
+
             if (c.ButtonMappings == null)
             {
                 SimpleLogger.Instance.Info("[INFO] No mapping found for the controller.");
@@ -1558,8 +1604,13 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private string GetWheelMapping(string button, SdlToDirectInput wheel, int index, string direction = "")
+        private string GetWheelMapping(string button, SdlToDirectInput wheel, int index, string direction = "nul", bool invertAxis = false)
         {
+            if (wheel == null)
+                return "\"NONE\"";
+
+            string ret;
+
             if (button.StartsWith("button_"))
             {
                 int buttonID = (button.Substring(7).ToInteger()) + 1;
@@ -1574,11 +1625,12 @@ namespace EmulatorLauncher
                         return "\"" + GetDinputMapping(index, wheel, button, -1) + "\"";
                     case "leftx":
                         if (direction == "left")
-                            return "\"" + GetDinputMapping(index, wheel, button, -1) + "\"";
+                            ret = GetDinputMapping(index, wheel, button, -1);
                         else if (direction == "right")
-                            return "\"" + GetDinputMapping(index, wheel, button, 1) + "\"";
+                            ret = GetDinputMapping(index, wheel, button, 1);
                         else
-                            return "\"" + GetDinputMapping(index, wheel, button, 0) + "\"";
+                            ret = GetDinputMapping(index, wheel, button, 0);
+                        return invertAxis ? ("\"" + ret + "_INV" + "\"") : ("\"" + ret + "\"");
                     case "rightshoulder":
                     case "leftshoulder":
                         return "\"" + GetDinputMapping(index, wheel, button) + "\"";
