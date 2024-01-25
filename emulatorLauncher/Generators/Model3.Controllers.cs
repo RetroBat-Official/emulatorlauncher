@@ -6,7 +6,6 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.Wheels;
-using System.Reflection;
 
 namespace EmulatorLauncher
 {
