@@ -10,7 +10,7 @@ default:
   Steer: leftx
   Gearup: leftshoulder
   Geardown: rightshoulder
-  Gear1: button_8
+  Gear1: nul
   Gear2: nul
   Gear3: nul
   Gear4: nul
@@ -44,3 +44,26 @@ LogitechG29:
   DpadDown: button_26
   DpadLeft: button_27
   DpadRight: button_28
+MicrosoftSideWinder:
+  WheelGuid: 030000005e0400003400000000000000
+  Inputsystems: dinput
+  Pcsx2_Type: 0
+  Forcefeedback: true
+  Invertedaxis: true
+  Range: nul
+  Throttle: throttle
+  Brake: brake
+  Steer: leftx
+  Gearup: leftshoulder
+  Geardown: rightshoulder
+  Gear1: nul
+  Gear2: nul
+  Gear3: nul
+  Gear4: nul
+  Gear5: nul
+  Gear6: nul
+  Gear_reverse: nul
+  DpadUp: nul
+  DpadDown: nul
+  DpadLeft: nul
+  DpadRight: nul
