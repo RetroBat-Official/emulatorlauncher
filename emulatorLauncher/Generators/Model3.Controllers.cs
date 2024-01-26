@@ -1620,8 +1620,10 @@ namespace EmulatorLauncher
             {
                 switch (button)
                 {
-                    case "righttrigger":
+                    case "throttle":
+                    case "brake":
                     case "lefttrigger":
+                    case "righttrigger":
                         return "\"" + GetDinputMapping(index, wheel, button, -1) + "\"";
                     case "leftx":
                         if (direction == "left")

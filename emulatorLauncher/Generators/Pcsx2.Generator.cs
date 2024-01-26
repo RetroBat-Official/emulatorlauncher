@@ -702,6 +702,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "HideMouseCursor", "true");
                 CreateControllerConfiguration(ini);
                 SetupGunQT(ini, path);
+                SetupWheelQT(ini, path);
 
                 // Disable auto-update
                 ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");

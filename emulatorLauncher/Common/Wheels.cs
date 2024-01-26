@@ -144,5 +144,10 @@ namespace EmulatorLauncher
         public string Gear5 { get; set; }
         public string Gear6 { get; set; }
         public string Gear_reverse { get; set; }
+        public string DpadUp { get; set; }
+        public string DpadDown { get; set; }
+        public string DpadLeft { get; set; }
+        public string DpadRight { get; set; }
+
     }
 }

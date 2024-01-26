@@ -17,6 +17,10 @@ default:
   Gear5: nul
   Gear6: nul
   Gear_reverse: nul
+  DpadUp: dpup
+  DpadDown: dpdown
+  DpadLeft: dpleft
+  DpadRight: dpright
 LogitechG29:
   WheelGuid: 030000006d0400004fc2000000000000
   Inputsystems: dinput
@@ -24,8 +28,8 @@ LogitechG29:
   Forcefeedback: true
   Invertedaxis: true
   Range: nul
-  Throttle: righttrigger
-  Brake: lefttrigger
+  Throttle: throttle
+  Brake: brake
   Steer: leftx
   Gearup: leftshoulder
   Geardown: rightshoulder
@@ -36,3 +40,7 @@ LogitechG29:
   Gear5: button_16
   Gear6: button_17
   Gear_reverse: button_11
+  DpadUp: button_25
+  DpadDown: button_26
+  DpadLeft: button_27
+  DpadRight: button_28
