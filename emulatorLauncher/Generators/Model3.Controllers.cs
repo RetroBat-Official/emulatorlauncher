@@ -1639,7 +1639,7 @@ namespace EmulatorLauncher
                         return invertAxis ? ("\"" + ret + "_INV" + "\"") : ("\"" + ret + "\"");
                     case "rightshoulder":
                     case "leftshoulder":
-                        return "\"" + GetDinputMapping(index, wheel, button, true) + "\"";
+                        return "\"" + GetDinputMapping(index, wheel, button, 0, true) + "\"";
                 }
             }
             SimpleLogger.Instance.Info("[INFO] No mapping found for " + button + " in wheel database.");

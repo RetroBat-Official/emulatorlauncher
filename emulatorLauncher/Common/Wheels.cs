@@ -120,7 +120,7 @@ namespace EmulatorLauncher
 
         public WheelMappingInfo()
         {
-            WheelGuid = Inputsystems = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Gearup = Geardown = Gear1 = Gear2 = Gear3 = Gear4 = Gear5 = Gear6 = Gear_reverse = "nul";
+            WheelGuid = Inputsystems = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Gearup = Geardown = Gear1 = Gear2 = Gear3 = Gear4 = Gear5 = Gear6 = Gear_reverse = DpadUp = DpadDown = DpadLeft = DpadRight = "nul";
         }
         #endregion
 
@@ -148,6 +148,56 @@ namespace EmulatorLauncher
         public string DpadDown { get; set; }
         public string DpadLeft { get; set; }
         public string DpadRight { get; set; }
+    }
 
+    public class WheelSDLMappingInfo
+    {
+        #region Factory
+        public static Dictionary<string, WheelSDLMappingInfo> Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = SimpleYml<WheelSDLMappingInfo>
+                        .Parse(Encoding.UTF8.GetString(Properties.Resources.wheelsdlmapping))
+                        .ToDictionary(a => a.Wheeltype, a => a);
+                }
+
+                return _instance;
+            }
+        }
+
+        private static Dictionary<string, WheelSDLMappingInfo> _instance;
+
+        public WheelSDLMappingInfo()
+        {
+            WheelGuid  = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Start = Select = Dpad = Gearup = Geardown = South = East = North = West = L1 = L2 = R1 = R2 = "nul";
+        }
+        #endregion
+
+        [YmlName]
+        public string Wheeltype { get; set; }
+        public string WheelGuid { get; set; }
+        public string Pcsx2_Type { get; set; }
+        public string Forcefeedback { get; set; }
+        public string Invertedaxis { get; set; }
+        public string Range { get; set; }
+        public string Throttle { get; set; }
+        public string Brake { get; set; }
+        public string Steer { get; set; }
+        public string Start { get; set; }
+        public string Select { get; set; }
+        public string Dpad { get; set; }
+        public string Gearup { get; set; }
+        public string Geardown { get; set; }
+        public string South { get; set; }
+        public string East { get; set; }
+        public string North { get; set; }
+        public string West { get; set; }
+        public string L1 { get; set; }
+        public string L2 { get; set; }
+        public string R1 { get; set; }
+        public string R2 { get; set; }
     }
 }
