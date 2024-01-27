@@ -100,6 +100,9 @@
     <Compile Include="Generators\Flycast.Controllers.cs">
       <DependentUpon>Flycast.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Flycast.Guns.cs">
+      <DependentUpon>Flycast.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Kronos.Generator.cs" />
     <Compile Include="Generators\Kronos.Controllers.cs">
       <DependentUpon>Kronos.Generator.cs</DependentUpon>
@@ -124,7 +127,6 @@
     <Compile Include="Generators\Nes3d.Generator.cs" />
     <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\Hatari.Generator.cs" />
-    <Compile Include="Generators\PinballFX3.Generator.cs" />
     <Compile Include="Generators\PinballFX.Generator.cs" />
     <Compile Include="Generators\Play.Generator.cs" />
     <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
@@ -238,6 +240,9 @@
     <Compile Include="Generators\Pico8.Generator.cs" />
     <Compile Include="Generators\Rpcs3.Generator.cs" />
     <Compile Include="Generators\Rpcs3.Controllers.cs">
+      <DependentUpon>Rpcs3.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Rpcs3.Guns.cs">
       <DependentUpon>Rpcs3.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\OpenBor.Generator.cs" />
