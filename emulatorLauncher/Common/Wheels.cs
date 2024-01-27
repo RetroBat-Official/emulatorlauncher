@@ -101,22 +101,22 @@ namespace EmulatorLauncher
     public class WheelMappingInfo
     {
         #region Factory
-        public static Dictionary<string, WheelMappingInfo> Instance
+        public static Dictionary<string, WheelMappingInfo> InstanceW
         {
             get
             {
-                if (_instance == null)
+                if (_instanceW == null)
                 {
-                    _instance = SimpleYml<WheelMappingInfo>
+                    _instanceW = SimpleYml<WheelMappingInfo>
                         .Parse(Encoding.UTF8.GetString(Properties.Resources.wheelmapping))
                         .ToDictionary(a => a.Wheeltype, a => a);
                 }
 
-                return _instance;
+                return _instanceW;
             }
         }
 
-        private static Dictionary<string, WheelMappingInfo> _instance;
+        private static Dictionary<string, WheelMappingInfo> _instanceW;
 
         public WheelMappingInfo()
         {
@@ -153,22 +153,22 @@ namespace EmulatorLauncher
     public class WheelSDLMappingInfo
     {
         #region Factory
-        public static Dictionary<string, WheelSDLMappingInfo> Instance
+        public static Dictionary<string, WheelSDLMappingInfo> InstanceWSDL
         {
             get
             {
-                if (_instance == null)
+                if (_instanceWSDL == null)
                 {
-                    _instance = SimpleYml<WheelSDLMappingInfo>
+                    _instanceWSDL = SimpleYml<WheelSDLMappingInfo>
                         .Parse(Encoding.UTF8.GetString(Properties.Resources.wheelsdlmapping))
                         .ToDictionary(a => a.Wheeltype, a => a);
                 }
 
-                return _instance;
+                return _instanceWSDL;
             }
         }
 
-        private static Dictionary<string, WheelSDLMappingInfo> _instance;
+        private static Dictionary<string, WheelSDLMappingInfo> _instanceWSDL;
 
         public WheelSDLMappingInfo()
         {
