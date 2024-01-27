@@ -89,7 +89,7 @@ namespace EmulatorLauncher
 
             else if (system == "pinballfx2")
             {
-                if (!File.Exists(rom) || Path.GetExtension(rom).ToLower() != ".table")
+                if (!File.Exists(rom))
                     return null;
 
                 if (core == "steam")
