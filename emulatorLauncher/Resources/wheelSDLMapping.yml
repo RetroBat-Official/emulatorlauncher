@@ -1,0 +1,22 @@
+LogitechG29:
+  WheelGuid: 030000006d0400004fc2000000000000
+  Pcsx2_Type: 0
+  Forcefeedback: true
+  Invertedaxis: true
+  Range: nul
+  Throttle: Axis7~
+  Brake: Axis8~
+  Steer: Axis6
+  Start: Button45
+  Select: Button30
+  Dpad: Hat0
+  Gearup: leftshoulder
+  Geardown: rightshoulder
+  South: Button21
+  East: Button23
+  North: Button24
+  West: Button22
+  L1: Button26
+  L2: Button28
+  R1: Button25
+  R2: Button27

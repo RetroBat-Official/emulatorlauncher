@@ -1526,7 +1526,7 @@ namespace EmulatorLauncher
         }
         #endregion
 
-        private string GetDinputMapping(int index, SdlToDirectInput c, string buttonkey, int plus = 1)
+        private string GetDinputMapping(int index, SdlToDirectInput c, string buttonkey, int plus = 1, bool wheel = false)
         {
             if (c == null)
                 return "";
@@ -1544,6 +1544,10 @@ namespace EmulatorLauncher
             }
 
             string button = c.ButtonMappings[buttonkey];
+
+            // For wheels it seems axis 2 is recognized as RZAXIS, not ZAXIS
+            if (wheel)
+                button = "a5";
 
             if (button.StartsWith("b"))
             {
@@ -1620,20 +1624,22 @@ namespace EmulatorLauncher
             {
                 switch (button)
                 {
-                    case "righttrigger":
+                    case "throttle":
+                    case "brake":
                     case "lefttrigger":
-                        return "\"" + GetDinputMapping(index, wheel, button, -1) + "\"";
+                    case "righttrigger":
+                        return "\"" + GetDinputMapping(index, wheel, button, -1, true) + "\"";
                     case "leftx":
                         if (direction == "left")
-                            ret = GetDinputMapping(index, wheel, button, -1);
+                            ret = GetDinputMapping(index, wheel, button, -1, true);
                         else if (direction == "right")
-                            ret = GetDinputMapping(index, wheel, button, 1);
+                            ret = GetDinputMapping(index, wheel, button, 1, true);
                         else
-                            ret = GetDinputMapping(index, wheel, button, 0);
+                            ret = GetDinputMapping(index, wheel, button, 0, true);
                         return invertAxis ? ("\"" + ret + "_INV" + "\"") : ("\"" + ret + "\"");
                     case "rightshoulder":
                     case "leftshoulder":
-                        return "\"" + GetDinputMapping(index, wheel, button) + "\"";
+                        return "\"" + GetDinputMapping(index, wheel, button, 0, true) + "\"";
                 }
             }
             SimpleLogger.Instance.Info("[INFO] No mapping found for " + button + " in wheel database.");

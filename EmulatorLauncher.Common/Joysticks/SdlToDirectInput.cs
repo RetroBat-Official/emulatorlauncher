@@ -90,6 +90,16 @@ namespace EmulatorLauncher.Common.Joysticks
             { InputKey.x,               "x" },
             { InputKey.y,               "y" },
         };
+
+        static Dictionary<string, string> axisNameMapping = new Dictionary<string, string>()
+        {
+            { "a0", "X" },
+            { "a1", "Y"},
+            { "a2", "Z"},
+            { "a3", "RX"},
+            { "a4", "RY"},
+            { "a5", "RZ"},
+        };
     }
 
 }

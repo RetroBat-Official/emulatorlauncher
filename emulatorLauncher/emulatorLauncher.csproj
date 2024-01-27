@@ -78,15 +78,32 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="EsSaveStatesExtensions.cs" />
-    <Compile Include="Generators\Xm6pro.Generator.cs" />
+    <Compile Include="Generators\Cemu.Controllers.cs">
+      <DependentUpon>Cemu.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Citra.Generator.cs" />
+    <Compile Include="Generators\Citra.Controllers.cs">
+      <DependentUpon>Citra.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Duckstation.Generator.cs" />
+    <Compile Include="Generators\Duckstation.Controllers.cs">
+      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Duckstation.Guns.cs">
+      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\DuckStation.SaveStatesMonitor.cs">
+      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\Flycast.Generator.cs" />
     <Compile Include="Generators\Flycast.Controllers.cs">
       <DependentUpon>Flycast.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Cemu.Controllers.cs">
-      <DependentUpon>Cemu.Generator.cs</DependentUpon>
+    <Compile Include="Generators\Kronos.Generator.cs" />
+    <Compile Include="Generators\Kronos.Controllers.cs">
+      <DependentUpon>Kronos.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\Mupen64.Generator.cs" />
     <Compile Include="Generators\Mupen64.Controllers.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
@@ -97,10 +114,6 @@
     <Compile Include="Generators\Simple64.Generator.cs" />
     <Compile Include="Generators\Simple64.Controllers.cs">
       <DependentUpon>Simple64.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\ZEsarUX.Generator.cs" />
-    <Compile Include="Generators\ZEsarUX.Controllers.cs">
-      <DependentUpon>ZEsarUX.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\ScummVm.Generator.cs" />
     <Compile Include="Generators\ForceEngine.Generator.cs" />
@@ -130,13 +143,6 @@
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\GzDoom.Generator.cs" />
-    <Compile Include="Generators\Duckstation.Generator.cs" />
-    <Compile Include="Generators\Duckstation.Controllers.cs">
-      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\DuckStation.SaveStatesMonitor.cs">
-      <DependentUpon>Duckstation.Generator.cs</DependentUpon>
-    </Compile>
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\MelonDS.Generator.cs" />
     <Compile Include="Generators\MelonDS.Controllers.cs">
@@ -220,7 +226,13 @@
     <Compile Include="Generators\Pcsx2.Controllers.cs">
       <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Pcsx2.Guns.cs">
+      <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Pcsx2.SaveStatesMonitor.cs">
+      <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Pcsx2.Wheels.cs">
       <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Pico8.Generator.cs" />
@@ -238,10 +250,6 @@
     </Compile>
     <Compile Include="Generators\Uae.Generator.cs" />
     <Compile Include="Generators\Snes9x.Generator.cs" />
-    <Compile Include="Generators\Citra.Generator.cs" />
-    <Compile Include="Generators\Citra.Controllers.cs">
-      <DependentUpon>Citra.Generator.cs</DependentUpon>
-    </Compile>
     <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\BigPEmu.Generator.cs" />
     <Compile Include="Generators\Project64.Generator.cs" />
@@ -251,17 +259,18 @@
     <Compile Include="Generators\OpenMSX.Controllers.cs">
       <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Zinc.Generator.cs" />
-    <Compile Include="Generators\Zinc.Controllers.cs">
-      <DependentUpon>Zinc.Generator.cs</DependentUpon>
-    </Compile>
     <Compile Include="Generators\SSF.Generator.cs" />
     <Compile Include="Generators\SSF.Controllers.cs">
       <DependentUpon>SSF.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Kronos.Generator.cs" />
-    <Compile Include="Generators\Kronos.Controllers.cs">
-      <DependentUpon>Kronos.Generator.cs</DependentUpon>
+    <Compile Include="Generators\Xm6pro.Generator.cs" />
+    <Compile Include="Generators\ZEsarUX.Generator.cs" />
+    <Compile Include="Generators\ZEsarUX.Controllers.cs">
+      <DependentUpon>ZEsarUX.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Zinc.Generator.cs" />
+    <Compile Include="Generators\Zinc.Controllers.cs">
+      <DependentUpon>Zinc.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
@@ -380,6 +389,7 @@
     </None>
     <None Include="Resources\libretrocoreguns.yml" />
     <None Include="Resources\wheelMapping.yml" />
+    <None Include="Resources\wheelSDLMapping.yml" />
     <None Include="Resources\mame.ini" />
     <None Include="Reshader\ReShade.fxh" />
     <None Include="Reshader\ReShadeUI.fxh" />
