@@ -336,30 +336,7 @@ namespace EmulatorLauncher
             yml.Save();
         }
 
-        /// <summary>
-        /// Setup config.yml file
-        /// </summary>
-        /// <param name="path"></param>
-        private void SetupGuns(YmlFile yml, YmlContainer vulkan)
-        {
-            if (!Program.SystemConfig.getOptBoolean("rpcs3_guns"))
-                return;
-
-            // set borderless window mode for guns
-            vulkan["Exclusive Fullscreen Mode"] = "Disable";
-
-            //
-            var io = yml.GetOrCreateContainer("Input/Output");
-            io["Keyboard"] = "\"Null\"";
-            io["Mouse"] = "\"Null\"";
-            io["Camera"] = "Fake";
-            io["Camera type"] = "PS Eye";
-            io["Move"] = "Mouse";
-
-            BindBoolFeature(io, "Show move cursor", "rpcs3_mouse_cursor", "true", "false");
-        }
-
-            private string GetDefaultPS3Language()
+        private string GetDefaultPS3Language()
         {
             Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
             {

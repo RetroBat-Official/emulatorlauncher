@@ -577,7 +577,7 @@ namespace EmulatorLauncher
                 }
             }
             #endregion
-
+            #region games with specific schemes
             // Games with completely specific schemes
             // Desert Tank
             else if (parentRom == "desert")
@@ -691,6 +691,7 @@ namespace EmulatorLauncher
                     bytes[52] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
                 }
             }
+            #endregion
         }
 
         private void WriteKbMapping(byte[] bytes, string parentRom, int hexLength, InputConfig keyboard)

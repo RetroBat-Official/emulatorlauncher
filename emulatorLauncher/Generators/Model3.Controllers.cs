@@ -210,8 +210,8 @@ namespace EmulatorLauncher
                     // Get mapping in yml file
                     try
                     {
-                        if (!WheelMappingInfo.Instance.TryGetValue(wheeltype, out wheelmapping))
-                            WheelMappingInfo.Instance.TryGetValue("default", out wheelmapping);
+                        if (!WheelMappingInfo.InstanceW.TryGetValue(wheeltype, out wheelmapping))
+                            WheelMappingInfo.InstanceW.TryGetValue("default", out wheelmapping);
                         SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
                     }
                     catch 
@@ -1546,7 +1546,7 @@ namespace EmulatorLauncher
             string button = c.ButtonMappings[buttonkey];
 
             // For wheels it seems axis 2 is recognized as RZAXIS, not ZAXIS
-            if (wheel)
+            if (wheel && button == "a2")
                 button = "a5";
 
             if (button.StartsWith("b"))
