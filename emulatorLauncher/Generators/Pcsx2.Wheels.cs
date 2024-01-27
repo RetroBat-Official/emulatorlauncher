@@ -35,6 +35,8 @@ namespace EmulatorLauncher
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
             SdlToDirectInput sdlWheel1 = null;
             SdlToDirectInput sdlWheel2 = null;
+            string forceWheelType = null;
+            string forceWheelType2 = null;
 
             if (!File.Exists(gamecontrollerDB))
             {
@@ -66,6 +68,12 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[WHEELS] Found " + wheelNb + " usable wheels.");
             if (wheelNb < 1)
                 return;
+
+            if (SystemConfig.isOptSet("pcsx2_wheeltype") && !string.IsNullOrEmpty(SystemConfig["pcsx2_wheeltype"]))
+                forceWheelType = SystemConfig["pcsx2_wheeltype"];
+
+            if (SystemConfig.isOptSet("pcsx2_wheeltype2") && !string.IsNullOrEmpty(SystemConfig["pcsx2_wheeltype2"]))
+                forceWheelType2 = SystemConfig["pcsx2_wheeltype2"];
 
             // Enable Dinput (needed for ForceFeedback)
             pcsx2ini.WriteValue("InputSources", "DInput", "true");
@@ -105,7 +113,10 @@ namespace EmulatorLauncher
             catch { SimpleLogger.Instance.Info("[WHEELS] No SDL mapping in yml file four wheel 1."); }
 
             if (wheelSDLmapping1 != null)
-                wheelTech1 = "sdl";              
+            {
+                wheelTech1 = "sdl";
+                pcsx2ini.WriteValue("InputSources", "SDL", "true");
+            }
 
             if (wheelTech1 == "sdl")
                 wheelGuid1 = wheelSDLmapping1.WheelGuid;
@@ -121,7 +132,7 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[WHEEL] Wheel 1. No Dinput mapping found for : " + wheelGuid1 + " " + wheel1.Name);
 
                 pcsx2ini.WriteValue(usbSection1, "Type", "Pad");
-                pcsx2ini.WriteValue(usbSection1, "Pad_subtype", wheelmapping1.Pcsx2_Type);
+                pcsx2ini.WriteValue(usbSection1, "Pad_subtype", forceWheelType != null ? forceWheelType : wheelmapping1.Pcsx2_Type);
 
                 if (SystemConfig.isOptSet("pcsx2_force_feedback") && SystemConfig.getOptBoolean("pcsx2_force_feedback"))
                 {
@@ -167,7 +178,7 @@ namespace EmulatorLauncher
                 string sdlDevice = "SDL-" + wheel1.SDLIndex + "/";
 
                 pcsx2ini.WriteValue(usbSection1, "Type", "Pad");
-                pcsx2ini.WriteValue(usbSection1, "Pad_subtype", wheelSDLmapping1.Pcsx2_Type);
+                pcsx2ini.WriteValue(usbSection1, "Pad_subtype", forceWheelType != null ? forceWheelType : wheelSDLmapping1.Pcsx2_Type);
 
                 if (SystemConfig.isOptSet("pcsx2_force_feedback") && SystemConfig.getOptBoolean("pcsx2_force_feedback"))
                 {
@@ -231,7 +242,10 @@ namespace EmulatorLauncher
                     wheelTech2 = "sdl";
 
                 if (wheelTech2 == "sdl")
+                {
+                    pcsx2ini.WriteValue("InputSources", "SDL", "true");
                     wheelGuid2 = wheelSDLmapping2.WheelGuid;
+                }
                 else
                     wheelGuid2 = wheelmapping2.WheelGuid;
 
@@ -250,7 +264,7 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[WHEEL] Wheel 2. No Dinput mapping found for : " + wheelGuid2 + " " + wheel2.Name);
 
                     pcsx2ini.WriteValue(usbSection2, "Type", "Pad");
-                    pcsx2ini.WriteValue(usbSection2, "Pad_subtype", wheelmapping2.Pcsx2_Type);
+                    pcsx2ini.WriteValue(usbSection2, "Pad_subtype", forceWheelType2 != null ? forceWheelType2 : wheelmapping2.Pcsx2_Type);
 
                     if (SystemConfig.isOptSet("pcsx2_force_feedback") && SystemConfig.getOptBoolean("pcsx2_force_feedback"))
                     {
@@ -296,7 +310,7 @@ namespace EmulatorLauncher
                     string sdlDevice2 = "SDL-" + wheel2.SDLIndex + "/";
 
                     pcsx2ini.WriteValue(usbSection2, "Type", "Pad");
-                    pcsx2ini.WriteValue(usbSection2, "Pad_subtype", wheelSDLmapping2.Pcsx2_Type);
+                    pcsx2ini.WriteValue(usbSection2, "Pad_subtype", forceWheelType2 != null ? forceWheelType2 : wheelSDLmapping2.Pcsx2_Type);
                     
                     if (SystemConfig.isOptSet("pcsx2_force_feedback") && SystemConfig.getOptBoolean("pcsx2_force_feedback"))
                     {
