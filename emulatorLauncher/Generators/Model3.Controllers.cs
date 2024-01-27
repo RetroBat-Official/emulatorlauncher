@@ -1546,7 +1546,7 @@ namespace EmulatorLauncher
             string button = c.ButtonMappings[buttonkey];
 
             // For wheels it seems axis 2 is recognized as RZAXIS, not ZAXIS
-            if (wheel)
+            if (wheel && button == "a2")
                 button = "a5";
 
             if (button.StartsWith("b"))
