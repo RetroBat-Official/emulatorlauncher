@@ -327,39 +327,6 @@ namespace EmulatorLauncher
                 config["L2"] = GetInputKeyNameSDL(ctrl, InputKey.l2, tech);                            //LT
                 config["L3"] = GetInputKeyNameSDL(ctrl, InputKey.l3, tech);                            //LS
             }
-
-            // Previous MM part before RPCS3 was compatible with SDL
-            /*else if (tech == "MMJoystick")
-            {
-                config["Left Stick Left"] = GetInputKeyNameMM(ctrl, InputKey.joystick1left, tech);    //X-
-                config["Left Stick Down"] = GetInputKeyNameMM(ctrl, InputKey.joystick1down, tech);    //Y+
-                config["Left Stick Right"] = GetInputKeyNameMM(ctrl, InputKey.joystick1right, tech);  //X+
-                config["Left Stick Up"] = GetInputKeyNameMM(ctrl, InputKey.joystick1up, tech);        //Y-
-                config["Right Stick Left"] = GetInputKeyNameMM(ctrl, InputKey.joystick2left, tech);   //U-
-                config["Right Stick Down"] = GetInputKeyNameMM(ctrl, InputKey.joystick2down, tech);   //R+
-                config["Right Stick Right"] = GetInputKeyNameMM(ctrl, InputKey.joystick2right, tech); //U+
-                config["Right Stick Up"] = GetInputKeyNameMM(ctrl, InputKey.joystick2up, tech);       //R-
-                config["Start"] = GetInputKeyNameMM(ctrl, InputKey.start, tech);                      //Button 10
-                config["Select"] = GetInputKeyNameMM(ctrl, InputKey.select, tech);                    //Button 9
-                if (GetInputKeyNameMM(ctrl, InputKey.hotkey, tech) == GetInputKeyNameMM(ctrl, InputKey.select, tech))
-                    config["PS Button"] = null;
-                else
-                    config["PS Button"] = GetInputKeyNameMM(ctrl, InputKey.hotkey, tech);             //Button 13
-                config["Square"] = GetInputKeyNameMM(ctrl, InputKey.x, tech);                         //Button 3
-                config["Cross"] = GetInputKeyNameMM(ctrl, InputKey.a, tech);                          //Button 1
-                config["Circle"] = GetInputKeyNameMM(ctrl, InputKey.b, tech);                         //Button 2
-                config["Triangle"] = GetInputKeyNameMM(ctrl, InputKey.y, tech);                       //Button 4
-                config["Left"] = GetInputKeyNameMM(ctrl, InputKey.left, tech);                        //POV Left
-                config["Down"] = GetInputKeyNameMM(ctrl, InputKey.down, tech);                        //POV Down
-                config["Right"] = GetInputKeyNameMM(ctrl, InputKey.right, tech);                      //POV Right
-                config["Up"] = GetInputKeyNameMM(ctrl, InputKey.up, tech);                            //POV Up
-                config["R1"] = GetInputKeyNameMM(ctrl, InputKey.r1, tech);                            //Button 6
-                config["R2"] = GetInputKeyNameMM(ctrl, InputKey.r2, tech);                            //Button 8
-                config["R3"] = GetInputKeyNameMM(ctrl, InputKey.r3, tech);                            //Button 12
-                config["L1"] = GetInputKeyNameMM(ctrl, InputKey.l1, tech);                            //Button 5
-                config["L2"] = GetInputKeyNameMM(ctrl, InputKey.l2, tech);                            //Button 7
-                config["L3"] = GetInputKeyNameMM(ctrl, InputKey.l3, tech);                            //Button 11
-            }*/
             
             //motion controls
             var motionx = config.GetOrCreateContainer("Motion Sensor X");
@@ -633,56 +600,6 @@ namespace EmulatorLauncher
             }
 
             return "\"\"";
-        }
-
-        private static string GetInputKeyNameMM(Controller c, InputKey key, string tech)
-        {          
-            Int64 pid = -1;
-
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
-
-            var input = c.GetDirectInputMapping(key);
-            if (input == null)
-                return "\"\"";
-
-            long nb = input.Id + 1;
-
-            if (input.Type == "button")
-                return ("Button " + nb);
-
-            if (input.Type == "hat")
-            {
-                pid = input.Value;
-                switch (pid)
-                {
-                    case 1: return "POV Up";
-                    case 2: return "POV Right";
-                    case 4: return "POV Down";
-                    case 8: return "POV Left";
-                }
-             }
-
-             if (input.Type == "axis")
-             {
-                pid = input.Id;
-                switch (pid)
-                {
-                    case 0:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "X+";
-                        else return "X-";
-                    case 1:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "Y+";
-                        else return "Y-";
-                    case 2:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "U+";
-                        else return "U-";
-                    case 3:
-                        if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "R+";
-                        else return "R-";
-                }
-             }
-             return "\"\"";
         }
 
         /// <summary>
