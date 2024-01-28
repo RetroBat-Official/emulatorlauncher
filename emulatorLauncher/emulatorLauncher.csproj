@@ -245,6 +245,10 @@
     <Compile Include="Generators\Rpcs3.Guns.cs">
       <DependentUpon>Rpcs3.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Snes9x.Generator.cs" />
+    <Compile Include="Generators\Snes9x.Controllers.cs">
+      <DependentUpon>Snes9x.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\OpenBor.Generator.cs" />
     <Compile Include="Generators\OpenBor.Controllers.cs">
       <DependentUpon>OpenBor.Generator.cs</DependentUpon>
@@ -254,7 +258,6 @@
       <DependentUpon>Model2.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Uae.Generator.cs" />
-    <Compile Include="Generators\Snes9x.Generator.cs" />
     <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\BigPEmu.Generator.cs" />
     <Compile Include="Generators\Project64.Generator.cs" />

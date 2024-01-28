@@ -7,7 +7,7 @@ using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-	class Snes9xGenerator : Generator
+	partial class Snes9xGenerator : Generator
 	{
 		private BezelFiles _bezelFileInfo;
 		private ScreenResolution _resolution;
@@ -72,11 +72,9 @@ namespace EmulatorLauncher
 
             using (var ini = IniFile.FromFile(conf, IniOptions.KeepEmptyLines))
 			{
-
 				string shaderPath;
 
 				// Inject path
-
 				Dictionary<string, string> userPath = new Dictionary<string, string>
 				{
 					{ "Dir:Roms", Path.Combine(AppConfig.GetFullPath("roms"), system) },
@@ -103,8 +101,8 @@ namespace EmulatorLauncher
 				ini.WriteValue(@"Sound\Win", "BufferSize", "64");
 
 				//ini.WriteValue(@"Display\Win", "OutputMethod", "2"); // Force OpenGL renderer to get bezel and shader to work
-				ini.WriteValue(@"Display\Win", "HideMenu", "TRUE"); // Hide menu at startup, ESC to toggle
-				ini.WriteValue(@"Display\Win", "FullscreenOnOpen", "FALSE");
+				BindBoolIniFeature(ini, @"Display\Win", "HideMenu", "snes9x_showmenu", "FALSE", "TRUE");    // Hide menu at startup, ESC to toggle
+                ini.WriteValue(@"Display\Win", "FullscreenOnOpen", "FALSE");
 				ini.WriteValue(@"Display\Win", "Fullscreen:Enabled", fullscreen ? "TRUE" : "FALSE");
 				ini.WriteValue(@"Display\Win", "Fullscreen:EmulateFullscreen", fullscreen ? "TRUE" : "FALSE");
 				ini.WriteValue(@"Display\Win", "Window:Maximized", "TRUE");
@@ -221,21 +219,16 @@ namespace EmulatorLauncher
 								ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", shaderPath);
 							else
 								ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", "");
-						}
-								
+						}	
 					}
-
 				}
                 else
                 {
 					ini.WriteValue(@"Display\Win", "ShaderEnabled", "FALSE");
 					ini.WriteValue(@"Display\Win", "NTSCScanlines", "FALSE");
 				}
-
-
-			}
-
+				CreateControllerConfiguration(ini);
+            }
         }
-
     }
 }

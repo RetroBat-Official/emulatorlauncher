@@ -1572,9 +1572,15 @@ namespace EmulatorLauncher
                 }
             }
 
-            else if (button.StartsWith("a"))
+            else if (button.StartsWith("a") || button.StartsWith("-a") || button.StartsWith("+a"))
             {
                 int axisID = button.Substring(1).ToInteger();
+
+                if (button.StartsWith("-a") || button.StartsWith("+a"))
+                    axisID = button.Substring(2).ToInteger();
+
+                else if (button.StartsWith("a"))
+                    axisID = button.Substring(1).ToInteger();
 
                 switch (axisID)
                 {
