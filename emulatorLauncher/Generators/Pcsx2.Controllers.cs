@@ -15,7 +15,7 @@ namespace EmulatorLauncher
         private bool _multitap = false;
 
         /// <summary>
-        /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
+        /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Input/SDLInputSource.cpp
         /// </summary>
         /// <param name="pcsx2ini"></param>
         private void UpdateSdlControllersWithHints(IniFile pcsx2ini)

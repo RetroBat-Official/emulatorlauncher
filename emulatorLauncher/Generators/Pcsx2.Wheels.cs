@@ -100,15 +100,15 @@ namespace EmulatorLauncher
 
             try 
             {
-                if (!WheelMappingInfo.InstanceW.TryGetValue(wheeltype1, out wheelmapping1));
-                    SimpleLogger.Instance.Info("[WHEELS] Found dinput mapping to configure first wheel.");
+                if (!WheelMappingInfo.InstanceW.TryGetValue(wheeltype1, out wheelmapping1))
+                    WheelMappingInfo.InstanceW.TryGetValue("default", out wheelmapping1);
             }
             catch { SimpleLogger.Instance.Info("[WHEELS] No DInput mapping in yml file four wheel 1."); }
 
             try
             {
                 if (!WheelSDLMappingInfo.InstanceWSDL.TryGetValue(wheeltype1, out wheelSDLmapping1))
-                    SimpleLogger.Instance.Info("[WHEELS] Found SDL mapping to configure first wheel.");
+                    SimpleLogger.Instance.Info("[WHEELS] No SDL mapping found to configure first wheel.");
             }
             catch { SimpleLogger.Instance.Info("[WHEELS] No SDL mapping in yml file four wheel 1."); }
 
@@ -224,15 +224,15 @@ namespace EmulatorLauncher
 
                 try
                 {
-                    if (!WheelMappingInfo.InstanceW.TryGetValue(wheeltype2, out wheelmapping2)) ;
-                    SimpleLogger.Instance.Info("[WHEELS] Found dinput mapping to configure second wheel.");
+                    if (!WheelMappingInfo.InstanceW.TryGetValue(wheeltype2, out wheelmapping2))
+                        WheelMappingInfo.InstanceW.TryGetValue("default", out wheelmapping2);
                 }
                 catch { SimpleLogger.Instance.Info("[WHEELS] No DInput mapping in yml file four wheel 2."); }
 
                 try
                 {
                     if (!WheelSDLMappingInfo.InstanceWSDL.TryGetValue(wheeltype2, out wheelSDLmapping2))
-                        SimpleLogger.Instance.Info("[WHEELS] Found SDL mapping to configure second wheel.");
+                        SimpleLogger.Instance.Info("[WHEELS] No SDL mapping found to configure second wheel.");
                 }
                 catch { SimpleLogger.Instance.Info("[WHEELS] No SDL mapping in yml file four wheel 2."); }
 
