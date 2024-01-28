@@ -189,8 +189,8 @@ namespace EmulatorLauncher
                 else
                 {
                     pcsx2ini.WriteValue(usbSection1, "Pad_FFDevice", "SDL-" + wheel1.SDLIndex);
-                    pcsx2ini.WriteValue(usbSection1, "Pad_SteeringLeft", sdlDevice + "-" + wheelSDLmapping1.Steer + " & " + GetWheelMapping(sdlWheel1, wheelmapping1.Steer, wheelIndex1, -1));
-                    pcsx2ini.WriteValue(usbSection1, "Pad_SteeringRight", sdlDevice + "+" + wheelSDLmapping1.Steer + " & " + GetWheelMapping(sdlWheel1, wheelmapping1.Steer, wheelIndex1, 1));
+                    pcsx2ini.WriteValue(usbSection1, "Pad_SteeringLeft", sdlDevice + "-" + wheelSDLmapping1.Steer);
+                    pcsx2ini.WriteValue(usbSection1, "Pad_SteeringRight", sdlDevice + "+" + wheelSDLmapping1.Steer);
                 }
 
                 pcsx2ini.WriteValue(usbSection1, "Pad_Start", sdlDevice + wheelSDLmapping1.Start);
@@ -321,8 +321,8 @@ namespace EmulatorLauncher
                     else
                     {
                         pcsx2ini.WriteValue(usbSection2, "Pad_FFDevice", "SDL-" + wheel2.SDLIndex);
-                        pcsx2ini.WriteValue(usbSection2, "Pad_SteeringLeft", sdlDevice2 + "-" + wheelSDLmapping2.Steer + " & " + GetWheelMapping(sdlWheel2, wheelmapping2.Steer, wheelIndex2, -1));
-                        pcsx2ini.WriteValue(usbSection2, "Pad_SteeringRight", sdlDevice2 + "+" + wheelSDLmapping2.Steer + " & " + GetWheelMapping(sdlWheel2, wheelmapping2.Steer, wheelIndex2, 1));
+                        pcsx2ini.WriteValue(usbSection2, "Pad_SteeringLeft", sdlDevice2 + "-" + wheelSDLmapping2.Steer);
+                        pcsx2ini.WriteValue(usbSection2, "Pad_SteeringRight", sdlDevice2 + "+" + wheelSDLmapping2.Steer);
                     }
 
                     pcsx2ini.WriteValue(usbSection2, "Pad_Start", sdlDevice2 + wheelSDLmapping2.Start);
