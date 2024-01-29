@@ -9,6 +9,8 @@ using System.Drawing;
 using Microsoft.Win32;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -90,6 +92,11 @@ namespace EmulatorLauncher
             };
         }
 
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "vpinballx", InputKey.hotkey | InputKey.r3, () => SaveScreenshot());
+        }
+         
         public override int RunAndWait(ProcessStartInfo path)
         {
             try
