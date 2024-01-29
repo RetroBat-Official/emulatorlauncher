@@ -8,6 +8,7 @@ using System.Threading;
 using EmulatorLauncher.VPinballLauncher;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.PadToKeyboard;
 
 namespace EmulatorLauncher
 {
@@ -60,14 +61,16 @@ namespace EmulatorLauncher
                                 regKeyc.SetValue("JoypadDigitalPlunger", JoystickValue(InputKey.a, controller));
                                 regKeyc.SetValue("JoypadToggleHud", JoystickValue(InputKey.y, controller));
                                 regKeyc.SetValue("JoypadNextCamera", JoystickValue(InputKey.b, controller));
-                                regKeyc.SetValue("JoypadExit", JoystickValue(InputKey.x, controller));
+                                regKeyc.SetValue("JoypadExit", -1); //JoystickValue(InputKey.x, controller));
+
                                 regKeyc.SetValue("JoypadLeftFlipper", JoystickValue(InputKey.pageup, controller));
                                 regKeyc.SetValue("JoypadRightFlipper", JoystickValue(InputKey.pagedown, controller));
 
                                 regKeyc.SetValue("JoypadStartGame", JoystickValue(InputKey.start, controller));
                                 regKeyc.SetValue("JoypadInsertCoin", JoystickValue(InputKey.select, controller));
 
-                                regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.r3, controller));
+                                //regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.r3, controller));
+                                regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.x, controller));
                                 regKeyc.SetValue("JoypadBackbox", JoystickValue(InputKey.l3, controller));
 
                                 regKeyc.SetValue("JoypadSpecial1", -1);
@@ -192,6 +195,11 @@ namespace EmulatorLauncher
             File.WriteAllLines(path, lines.ToArray());
 
             _sswatch = new ScreenShotsWatcher(screenShotPath, SystemConfig["system"], SystemConfig["rom"]);
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "future pinball", InputKey.hotkey | InputKey.r3, "(%{PRTSC})");
         }
 
         public override int RunAndWait(ProcessStartInfo path)
