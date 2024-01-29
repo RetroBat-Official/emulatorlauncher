@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
-using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace EmulatorLauncher
 {
@@ -218,7 +215,6 @@ namespace EmulatorLauncher
                 return 0;
 
             string button = ctrl.ButtonMappings[dinputName];
-
 
             if (button.StartsWith("h"))
             {

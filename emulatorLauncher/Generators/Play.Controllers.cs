@@ -1,16 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Diagnostics;
 using System.Xml.Linq;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using System.Reflection;
-using EmulatorLauncher.Common.EmulationStation;
-using System.Windows.Input;
-using TeknoParrotUi.Common;
-using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher
 {
