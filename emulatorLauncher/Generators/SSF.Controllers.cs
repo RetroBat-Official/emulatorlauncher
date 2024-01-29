@@ -257,14 +257,10 @@ namespace EmulatorLauncher
                         if (revertAxis || trigger) return 33025 + 1;
                         else return 33025;
                     case 2:
-                        if (revertAxis && c.VendorID == USB_VENDOR.NINTENDO) return 33537 + 1;
-                        else if (c.VendorID == USB_VENDOR.NINTENDO) return 33537;
-                        else if (isXinput || revertAxis || trigger) return 33281 + 1;
+                        if (isXinput || revertAxis || trigger) return 33281 + 1;
                         else return 33281;
                     case 3:
-                        if (revertAxis && c.VendorID == USB_VENDOR.NINTENDO) return 33793 + 1;
-                        else if (c.VendorID == USB_VENDOR.NINTENDO) return 33793;
-                        else if (revertAxis || trigger) return 33537 + 1;
+                        if (revertAxis || trigger) return 33537 + 1;
                         else return 33537;
                     case 4:
                         if (revertAxis || trigger) return 33793 + 1;

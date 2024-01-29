@@ -38,6 +38,7 @@ namespace EmulatorLauncher
 
             //settings
             SetupConfiguration(path, rom);
+            ConfigureControllers(path);
 
             //Applying bezels
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
@@ -151,14 +152,23 @@ namespace EmulatorLauncher
                 string inputProfilePath = Path.Combine(path, "Play Data Files", "inputprofiles");
                 if (!Directory.Exists(inputProfilePath)) try { Directory.CreateDirectory(inputProfilePath); }
                     catch { }
-                string romName = Path.GetFileNameWithoutExtension(rom);
-                string inputProfile = Path.Combine(inputProfilePath, romName + ".xml");
 
-                if (File.Exists(inputProfile))
-                    padProfile.SetAttributeValue("Value", romName);
+                if (!SystemConfig.isOptSet("disableautocontrollers") || SystemConfig["disableautocontrollers"] != "1")
+                {
+                    padProfile.SetAttributeValue("Value", "Retrobat");
+                }
+
                 else
-                    padProfile.SetAttributeValue("Value", "default");
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    string inputProfile = Path.Combine(inputProfilePath, romName + ".xml");
 
+                    if (File.Exists(inputProfile))
+                        padProfile.SetAttributeValue("Value", romName);
+                    else
+                        padProfile.SetAttributeValue("Value", "default");
+                }
+                
                 //save file
                 configfile.Save(settingsFile);
             }
