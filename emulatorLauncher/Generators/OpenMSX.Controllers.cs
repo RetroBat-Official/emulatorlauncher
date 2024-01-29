@@ -158,6 +158,12 @@ namespace EmulatorLauncher
                 {
                     sw.WriteLine("bind \"" + shortJoy + " button6 down\" \"bind \\\"" + shortJoy + " button0 down\\\" main_menu_toggle ; bind \\\"" + shortJoy + " button1 down\\\" \\\"toggle pause\\\" ; bind \\\"" + shortJoy + " button4 down\\\" \\\"reverse goback 2\\\"  ; bind \\\"" + shortJoy + " button5 down\\\" \\\"toggle fastforward\\\"\"");
                     sw.WriteLine("bind \"" + shortJoy + " button6 up\" \"unbind \\\"" + shortJoy + " button0 down\\\" ; unbind \\\"" + shortJoy + " button1 down\\\" ; unbind \\\"" + shortJoy + " button4 down\\\"  ; bind \\\"" + shortJoy + " button5 down\\\" \\\"toggle fastforward\\\"\"");
+                    sw.WriteLine("dict set " + longJoy + "_config A button0");
+                    sw.WriteLine("dict set " + longJoy + "_config B button1");
+                    sw.WriteLine("dict set " + longJoy + "_config LEFT {-axis0 L_hat0}");
+                    sw.WriteLine("dict set " + longJoy + "_config RIGHT {+axis0 R_hat0}");
+                    sw.WriteLine("dict set " + longJoy + "_config UP {-axis1 U_hat0}");
+                    sw.WriteLine("dict set " + longJoy + "_config DOWN {+axis1 D_hat0}");
                 }
 
                 else if (tech1 == "SDL")
@@ -184,6 +190,15 @@ namespace EmulatorLauncher
                         sw.WriteLine("dict set " + longJoy2 + "_config RIGHT {+axis0 button14}");
                         sw.WriteLine("dict set " + longJoy2 + "_config UP {-axis1 button11}");
                         sw.WriteLine("dict set " + longJoy2 + "_config DOWN {+axis1 button12}");
+                    }
+                    else
+                    {
+                        sw.WriteLine("dict set " + longJoy2 + "_config A button0");
+                        sw.WriteLine("dict set " + longJoy2 + "_config B button1");
+                        sw.WriteLine("dict set " + longJoy2 + "_config LEFT {-axis0 L_hat0}");
+                        sw.WriteLine("dict set " + longJoy2 + "_config RIGHT {+axis0 R_hat0}");
+                        sw.WriteLine("dict set " + longJoy2 + "_config UP {-axis1 U_hat0}");
+                        sw.WriteLine("dict set " + longJoy2 + "_config DOWN {+axis1 D_hat0}");
                     }
                 }
 
