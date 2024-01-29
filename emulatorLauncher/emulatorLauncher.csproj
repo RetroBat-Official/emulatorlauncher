@@ -107,12 +107,24 @@
     <Compile Include="Generators\Kronos.Controllers.cs">
       <DependentUpon>Kronos.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Mesen.Generator.cs" />
+    <Compile Include="Generators\Mesen.Controllers.cs">
+      <DependentUpon>Mesen.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\MelonDS.Generator.cs" />
+    <Compile Include="Generators\MelonDS.Controllers.cs">
+      <DependentUpon>MelonDS.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Mupen64.Generator.cs" />
     <Compile Include="Generators\Mupen64.Controllers.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Mupen64.SaveStatesMonitor.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Play.Generator.cs" />
+    <Compile Include="Generators\Play.Controllers.cs">
+      <DependentUpon>Play.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Simple64.Generator.cs" />
     <Compile Include="Generators\Simple64.Controllers.cs">
@@ -128,7 +140,6 @@
     <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\Hatari.Generator.cs" />
     <Compile Include="Generators\PinballFX.Generator.cs" />
-    <Compile Include="Generators\Play.Generator.cs" />
     <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
@@ -146,14 +157,6 @@
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\GzDoom.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Generator.cs" />
-    <Compile Include="Generators\MelonDS.Generator.cs" />
-    <Compile Include="Generators\MelonDS.Controllers.cs">
-      <DependentUpon>MelonDS.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Mesen.Generator.cs" />
-    <Compile Include="Generators\Mesen.Controllers.cs">
-      <DependentUpon>Mesen.Generator.cs</DependentUpon>
-    </Compile>
     <Compile Include="Generators\Ryujinx.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Controllers.cs">
       <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
