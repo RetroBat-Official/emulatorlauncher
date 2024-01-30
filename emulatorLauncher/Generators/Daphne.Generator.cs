@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
-using System.Windows.Forms;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Lightguns;
 

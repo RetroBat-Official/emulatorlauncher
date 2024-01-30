@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Diagnostics;
-using System.Windows.Forms;
-using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
-using System.Security.Cryptography;
 
 namespace EmulatorLauncher
 {   
