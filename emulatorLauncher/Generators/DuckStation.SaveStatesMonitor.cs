@@ -46,6 +46,7 @@ namespace EmulatorLauncher
             catch { }
         }
 
+        [StructLayout(LayoutKind.Sequential)]
         struct SAVE_STATE_HEADER
         {
             public UInt32 magic;

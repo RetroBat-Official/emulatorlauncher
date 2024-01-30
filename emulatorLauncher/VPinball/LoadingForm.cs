@@ -43,10 +43,26 @@ namespace EmulatorLauncher.VPinballLauncher
             t.Start();
         }
 
+        public event EventHandler Timer;
+
         bool _watchVPinMame = true;
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (t != null)
+            {
+                t.Dispose();
+                t = null;
+            }
+        }
 
         void t_Tick(object sender, EventArgs e)
         {
+            if (Timer != null)
+                Timer(this, EventArgs.Empty);
+
             IntPtr hPlayer = FindWindow("VPPlayer", null);
 
             if (hPlayer != IntPtr.Zero && this.TopMost)

@@ -240,7 +240,8 @@ namespace EmulatorLauncher.Common.FileFormats
         {
             ConfigItem item;
             if (_data.TryGetValue(FormatKey(key), out item) && item != null)
-                return item.Value;
+                if (!string.IsNullOrEmpty(item.Value))
+                    return item.Value;
 
             return defaultValue;
         }
