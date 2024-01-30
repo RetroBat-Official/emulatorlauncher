@@ -68,16 +68,50 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bezels\BezelFiles.cs" />
-    <Compile Include="Common\SaveStatesWatcher.cs" />
-    <Compile Include="Common\Wheels.cs" />
-    <Compile Include="Common\ScreenShotsWatcher.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
+    <Compile Include="EsSaveStatesExtensions.cs" />
+    <Compile Include="Installer.cs" />
+    <Compile Include="InstallerFrm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="InstallerFrm.Designer.cs">
+      <DependentUpon>InstallerFrm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MameVersionDetector.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="SplashVideo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Bezels\BezelFiles.cs" />
     <Compile Include="Bezels\FakeBezelFrm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EsSaveStatesExtensions.cs" />
+    <Compile Include="Common\Generator.cs" />
+    <Compile Include="Common\SaveStatesWatcher.cs" />
+    <Compile Include="Common\ScreenShotsWatcher.cs" />
+    <Compile Include="Common\SystemDefaults.cs" />
+    <Compile Include="Common\SystemShaders.cs" />
+    <Compile Include="Common\Wheels.cs" />
+    <Compile Include="Generators\AmigaForever.Generator.cs" />
+    <Compile Include="Generators\AppleWin.Generator.cs" />
+    <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />
+    <Compile Include="Generators\Ares.Generator.cs" />
+    <Compile Include="Generators\Ares.Controllers.cs">
+      <DependentUpon>Ares.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\BigPEmu.Generator.cs" />
+    <Compile Include="Generators\Bizhawk.Generator.cs" />
+    <Compile Include="Generators\Bizhawk.Controllers.cs">
+      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Bizhawk.CoreOptions.cs">
+      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Bizhawk.Guns.cs">
+      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Cemu.Generator.cs" />
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
     </Compile>
@@ -85,6 +119,23 @@
     <Compile Include="Generators\Citra.Controllers.cs">
       <DependentUpon>Citra.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Cxbx.Generator.cs" />
+    <Compile Include="Generators\Cxbx.Controllers.cs">
+      <DependentUpon>Cxbx.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Daphne.Generator.cs" />
+    <Compile Include="Generators\Daphne.Controllers.cs">
+      <DependentUpon>Daphne.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Demul.Generator.cs" />
+    <Compile Include="Generators\Dolphin.Generator.cs" />
+    <Compile Include="Generators\Dolphin.Controllers.cs">
+      <DependentUpon>Dolphin.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Dolphin.SaveStatesMonitor.cs">
+      <DependentUpon>Dolphin.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\DosBox.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
     <Compile Include="Generators\Duckstation.Controllers.cs">
       <DependentUpon>Duckstation.Generator.cs</DependentUpon>
@@ -95,99 +146,9 @@
     <Compile Include="Generators\DuckStation.SaveStatesMonitor.cs">
       <DependentUpon>Duckstation.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Eka2l1.Generator.cs" />
-    <Compile Include="Generators\Flycast.Generator.cs" />
-    <Compile Include="Generators\Flycast.Controllers.cs">
-      <DependentUpon>Flycast.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Flycast.Guns.cs">
-      <DependentUpon>Flycast.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Kronos.Generator.cs" />
-    <Compile Include="Generators\Kronos.Controllers.cs">
-      <DependentUpon>Kronos.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Mesen.Generator.cs" />
-    <Compile Include="Generators\Mesen.Controllers.cs">
-      <DependentUpon>Mesen.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\MelonDS.Generator.cs" />
-    <Compile Include="Generators\MelonDS.Controllers.cs">
-      <DependentUpon>MelonDS.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Mupen64.Generator.cs" />
-    <Compile Include="Generators\Mupen64.Controllers.cs">
-      <DependentUpon>Mupen64.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Mupen64.SaveStatesMonitor.cs">
-      <DependentUpon>Mupen64.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Phoenix.Generator.cs" />
-    <Compile Include="Generators\Phoenix.Controllers.cs">
-      <DependentUpon>Phoenix.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Play.Generator.cs" />
-    <Compile Include="Generators\Play.Controllers.cs">
-      <DependentUpon>Play.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Simple64.Generator.cs" />
-    <Compile Include="Generators\Simple64.Controllers.cs">
-      <DependentUpon>Simple64.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\ScummVm.Generator.cs" />
-    <Compile Include="Generators\ForceEngine.Generator.cs" />
-    <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
-    <Compile Include="Generators\MessSystem.cs" />
-    <Compile Include="Generators\vita3k.Generator.cs" />
-    <Compile Include="Installer.cs" />
-    <Compile Include="Generators\Nes3d.Generator.cs" />
-    <Compile Include="Generators\Hatari.Generator.cs" />
-    <Compile Include="Generators\PinballFX.Generator.cs" />
-    <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
-    <Compile Include="Generators\Love.Generator.cs" />
-    <Compile Include="Generators\XEmu.Generator.cs" />
-    <Compile Include="Generators\AppleWin.Generator.cs" />
-    <Compile Include="Generators\AmigaForever.Generator.cs" />
-    <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />
-    <Compile Include="Generators\Jynx.Generator.cs" />
-    <Compile Include="Generators\Ruffle.Generator.cs" />
-    <Compile Include="Generators\Stella.Generator.cs" />
-    <Compile Include="Generators\Stella.Controllers.cs">
-      <DependentUpon>Stella.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Cemu.Generator.cs" />
     <Compile Include="Generators\EasyRpg.Generator.cs" />
-    <Compile Include="Generators\GsPlus.Generator.cs" />
-    <Compile Include="Generators\GzDoom.Generator.cs" />
-    <Compile Include="Generators\KegaFusion.Generator.cs" />
-    <Compile Include="Generators\KegaFusion.Controllers.cs">
-      <DependentUpon>KegaFusion.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Ryujinx.Generator.cs" />
-    <Compile Include="Generators\Ryujinx.Controllers.cs">
-      <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\TeknoParrot.Generator.cs" />
-    <Compile Include="Generators\TeknoParrot.Controllers.cs">
-      <DependentUpon>TeknoParrot.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Tsugaru.Generator.cs" />
-    <Compile Include="Generators\Yuzu.Generator.cs" />
-    <Compile Include="Generators\Yuzu.Controllers.cs">
-      <DependentUpon>Yuzu.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Mame64.Generator.cs" />
-    <Compile Include="Generators\Mame64.Bezels.cs">
-      <DependentUpon>Mame64.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Mame64.Controllers.cs">
-      <DependentUpon>Mame64.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Daphne.Generator.cs" />
-    <Compile Include="Generators\Oricutron.Generator.cs" />
-    <Compile Include="Generators\Solarus.Generator.cs" />
-    <Compile Include="Generators\Demul.Generator.cs" />
     <Compile Include="Generators\Eduke32.Generator.cs" />
+    <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\ExeLauncher.Generator.cs" />
     <Compile Include="Generators\EpicLauncher.Generator.cs">
       <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
@@ -198,41 +159,88 @@
     <Compile Include="Generators\SteamLauncher.Generator.cs">
       <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\mGBA.Generator.cs" />
+    <Compile Include="Generators\Flycast.Generator.cs" />
+    <Compile Include="Generators\Flycast.Controllers.cs">
+      <DependentUpon>Flycast.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Flycast.Guns.cs">
+      <DependentUpon>Flycast.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\ForceEngine.Generator.cs" />
+    <Compile Include="Generators\Fpinball.Generator.cs" />
+    <Compile Include="Generators\GsPlus.Generator.cs" />
+    <Compile Include="Generators\GzDoom.Generator.cs" />
+    <Compile Include="Generators\Hatari.Generator.cs" />
+    <Compile Include="Generators\Jynx.Generator.cs" />
+    <Compile Include="Generators\KegaFusion.Generator.cs" />
+    <Compile Include="Generators\KegaFusion.Controllers.cs">
+      <DependentUpon>KegaFusion.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Kronos.Generator.cs" />
+    <Compile Include="Generators\Kronos.Controllers.cs">
+      <DependentUpon>Kronos.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\LibRetro.Generator.cs" />
+    <Compile Include="Generators\LibRetro.StateFileManager.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Libretro.Controllers.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\LibRetro.CoreOptions.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\LibRetro.Guns.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Love.Generator.cs" />
+    <Compile Include="Generators\Mame64.Generator.cs" />
+    <Compile Include="Generators\Mame64.Bezels.cs">
+      <DependentUpon>Mame64.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Mame64.Controllers.cs">
+      <DependentUpon>Mame64.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Mednafen.Generator.cs" />
     <Compile Include="Generators\Mednafen.Controllers.cs">
       <DependentUpon>Mednafen.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Redream.Generator.cs" />
-    <Compile Include="Generators\Redream.Controllers.cs">
-      <DependentUpon>Redream.Generator.cs</DependentUpon>
+    <Compile Include="Generators\MelonDS.Generator.cs" />
+    <Compile Include="Generators\MelonDS.Controllers.cs">
+      <DependentUpon>MelonDS.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Raine.Generator.cs" />
-    <Compile Include="Generators\Cxbx.Generator.cs" />
-    <Compile Include="Generators\Cxbx.Controllers.cs">
-      <DependentUpon>Cxbx.Generator.cs</DependentUpon>
+    <Compile Include="Generators\Mesen.Generator.cs" />
+    <Compile Include="Generators\Mesen.Controllers.cs">
+      <DependentUpon>Mesen.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\SimCoupe.Generator.cs" />
+    <Compile Include="Generators\MessSystem.cs" />
+    <Compile Include="Generators\mGBA.Generator.cs" />
+    <Compile Include="Generators\Model2.Generator.cs" />
+    <Compile Include="Generators\Model2.Controllers.cs">
+      <DependentUpon>Model2.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Model3.Generator.cs" />
     <Compile Include="Generators\Model3.Controllers.cs">
       <DependentUpon>Model3.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Dolphin.Generator.cs" />
-    <Compile Include="Generators\Dolphin.Controllers.cs">
-      <DependentUpon>Dolphin.Generator.cs</DependentUpon>
+    <Compile Include="Generators\Mupen64.Generator.cs" />
+    <Compile Include="Generators\Mupen64.Controllers.cs">
+      <DependentUpon>Mupen64.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Dolphin.SaveStatesMonitor.cs">
-      <DependentUpon>Dolphin.Generator.cs</DependentUpon>
+    <Compile Include="Generators\Mupen64.SaveStatesMonitor.cs">
+      <DependentUpon>Mupen64.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Ppsspp.Generator.cs" />
-    <Compile Include="Generators\Ppsspp.Controllers.cs">
-      <DependentUpon>Ppsspp.Generator.cs</DependentUpon>
+    <Compile Include="Generators\Nes3d.Generator.cs" />
+    <Compile Include="Generators\NosGba.Generator.cs" />
+    <Compile Include="Generators\OpenBor.Generator.cs" />
+    <Compile Include="Generators\OpenBor.Controllers.cs">
+      <DependentUpon>OpenBor.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Ppsspp.SaveStatesMonitor.cs">
-      <DependentUpon>Ppsspp.Generator.cs</DependentUpon>
+    <Compile Include="Generators\OpenMSX.Generator.cs" />
+    <Compile Include="Generators\OpenMSX.Controllers.cs">
+      <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\DosBox.Generator.cs" />
-    <Compile Include="Generators\Fpinball.Generator.cs" />
+    <Compile Include="Generators\Oricutron.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Controllers.cs">
       <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
@@ -246,7 +254,30 @@
     <Compile Include="Generators\Pcsx2.Wheels.cs">
       <DependentUpon>Pcsx2.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Phoenix.Generator.cs" />
+    <Compile Include="Generators\Phoenix.Controllers.cs">
+      <DependentUpon>Phoenix.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Pico8.Generator.cs" />
+    <Compile Include="Generators\PinballFX.Generator.cs" />
+    <Compile Include="Generators\Play.Generator.cs" />
+    <Compile Include="Generators\Play.Controllers.cs">
+      <DependentUpon>Play.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Ppsspp.Generator.cs" />
+    <Compile Include="Generators\Ppsspp.Controllers.cs">
+      <DependentUpon>Ppsspp.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Ppsspp.SaveStatesMonitor.cs">
+      <DependentUpon>Ppsspp.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Project64.Generator.cs" />
+    <Compile Include="Generators\Raine.Generator.cs" />
+    <Compile Include="Generators\Redream.Generator.cs" />
+    <Compile Include="Generators\Redream.Controllers.cs">
+      <DependentUpon>Redream.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\RetrobatLauncher.Generator.cs" />
     <Compile Include="Generators\Rpcs3.Generator.cs" />
     <Compile Include="Generators\Rpcs3.Controllers.cs">
       <DependentUpon>Rpcs3.Generator.cs</DependentUpon>
@@ -254,33 +285,46 @@
     <Compile Include="Generators\Rpcs3.Guns.cs">
       <DependentUpon>Rpcs3.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Ruffle.Generator.cs" />
+    <Compile Include="Generators\Ryujinx.Generator.cs" />
+    <Compile Include="Generators\Ryujinx.Controllers.cs">
+      <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\ScummVm.Generator.cs" />
+    <Compile Include="Generators\SimCoupe.Generator.cs" />
+    <Compile Include="Generators\Simple64.Generator.cs" />
+    <Compile Include="Generators\Simple64.Controllers.cs">
+      <DependentUpon>Simple64.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Snes9x.Generator.cs" />
     <Compile Include="Generators\Snes9x.Controllers.cs">
       <DependentUpon>Snes9x.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\OpenBor.Generator.cs" />
-    <Compile Include="Generators\OpenBor.Controllers.cs">
-      <DependentUpon>OpenBor.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Model2.Generator.cs" />
-    <Compile Include="Generators\Model2.Controllers.cs">
-      <DependentUpon>Model2.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Uae.Generator.cs" />
-    <Compile Include="Generators\Xenia.Generator.cs" />
-    <Compile Include="Generators\BigPEmu.Generator.cs" />
-    <Compile Include="Generators\Project64.Generator.cs" />
-    <Compile Include="Generators\VPinball.Generator.cs" />
-    <Compile Include="Generators\NosGba.Generator.cs" />
-    <Compile Include="Generators\OpenMSX.Generator.cs" />
-    <Compile Include="Generators\OpenMSX.Controllers.cs">
-      <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Generators\Solarus.Generator.cs" />
     <Compile Include="Generators\SSF.Generator.cs" />
     <Compile Include="Generators\SSF.Controllers.cs">
       <DependentUpon>SSF.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Stella.Generator.cs" />
+    <Compile Include="Generators\Stella.Controllers.cs">
+      <DependentUpon>Stella.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\TeknoParrot.Generator.cs" />
+    <Compile Include="Generators\TeknoParrot.Controllers.cs">
+      <DependentUpon>TeknoParrot.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Tsugaru.Generator.cs" />
+    <Compile Include="Generators\Uae.Generator.cs" />
+    <Compile Include="Generators\vita3k.Generator.cs" />
+    <Compile Include="Generators\VPinball.Generator.cs" />
+    <Compile Include="Generators\XEmu.Generator.cs" />
+    <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\Xm6pro.Generator.cs" />
+    <Compile Include="Generators\Yuzu.Generator.cs" />
+    <Compile Include="Generators\Yuzu.Controllers.cs">
+      <DependentUpon>Yuzu.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
     <Compile Include="Generators\ZEsarUX.Generator.cs" />
     <Compile Include="Generators\ZEsarUX.Controllers.cs">
       <DependentUpon>ZEsarUX.Generator.cs</DependentUpon>
@@ -289,13 +333,13 @@
     <Compile Include="Generators\Zinc.Controllers.cs">
       <DependentUpon>Zinc.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="MameVersionDetector.cs" />
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
     <Compile Include="PadToKey\JoystickListener.cs" />
     <Compile Include="PadToKey\Joysticks.cs" />
     <Compile Include="PadToKey\PadToKey.cs" />
     <Compile Include="PadToKey\SendKeys.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.fr.Designer.cs">
       <DependentUpon>Resources.fr.resx</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -311,10 +355,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Reshader\ReshadeManager.cs" />
-    <Compile Include="SplashVideo.cs">
-      <SubType>Form</SubType>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Reshader\ReshadeManager.cs" />
     <Compile Include="Teknoparrot\ConfigTemplate.cs" />
     <Compile Include="Teknoparrot\Description.cs" />
     <Compile Include="Teknoparrot\EmulationProfile.cs" />
@@ -323,44 +369,6 @@
     <Compile Include="Teknoparrot\JoystickHelper.cs" />
     <Compile Include="Teknoparrot\JoystickMapping.cs" />
     <Compile Include="VPinball\KeyboardManager.cs" />
-    <Compile Include="Common\SystemDefaults.cs" />
-    <Compile Include="Common\Generator.cs" />
-    <Compile Include="Generators\LibRetro.Generator.cs" />
-    <Compile Include="Generators\LibRetro.StateFileManager.cs">
-      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Libretro.Controllers.cs">
-      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\LibRetro.CoreOptions.cs">
-      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\LibRetro.Guns.cs">
-      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Bizhawk.Generator.cs" />
-    <Compile Include="Generators\Bizhawk.Controllers.cs">
-      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Bizhawk.CoreOptions.cs">
-      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Bizhawk.Guns.cs">
-      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Ares.Generator.cs" />
-    <Compile Include="Generators\Ares.Controllers.cs">
-      <DependentUpon>Ares.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Common\SystemShaders.cs" />
-    <Compile Include="InstallerFrm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="InstallerFrm.Designer.cs">
-      <DependentUpon>InstallerFrm.cs</DependentUpon>
-    </Compile>
     <Compile Include="VPinball\LoadingForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -393,11 +401,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
     <None Include="Reshader\ReShade.ini" />
     <None Include="Resources\configgen-defaults.yml" />
     <None Include="Resources\eeprom.bin" />
