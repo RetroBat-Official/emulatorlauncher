@@ -9,7 +9,7 @@ using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-    class PhoenixGenerator : Generator
+    partial class PhoenixGenerator : Generator
     {
         enum DumpType
         {
@@ -194,11 +194,39 @@ namespace EmulatorLauncher
             }
 
             XElement settings = xml.Root.Element("Settings");
+            XElement global = settings.Element("Global");
+
+            var settingsPlatform = global.Element("Platform-3DO");
+            if (system == "jaguar")
+                settingsPlatform = global.Element("Platform-Jaguar");
+            
+            ConfigureControllers(settingsPlatform);
 
             //Video settings
             XElement video = settings.Element("Video");
             video.SetAttributeValue("keep-aspect", "true");
-            video.SetAttributeValue("vsynk", "true");
+            
+            if (SystemConfig.isOptSet("phoenix_vsync") && SystemConfig.getOptBoolean("phoenix_vsync"))
+                video.SetAttributeValue("vsynk", "false");
+            else
+                video.SetAttributeValue("vsynk", "true");
+
+            if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
+                video.SetAttributeValue("screen-shader", "1");
+            else
+                video.SetAttributeValue("screen-shader", "0");
+
+            if (system == "3do")
+            {
+                XElement options3do = settingsPlatform.Element("Options");
+
+                var renderer = options3do.Descendants("Item").Where(x => (string)x.Attribute("index") == "Render").FirstOrDefault();
+
+                if (SystemConfig.isOptSet("phoenix_renderer") && !string.IsNullOrEmpty(SystemConfig["phoenix_renderer"]))
+                    renderer.SetAttributeValue("value", SystemConfig["phoenix_renderer"]);
+                else
+                    renderer.SetAttributeValue("value", "0");
+            }
         }
 
         /// <summary>
