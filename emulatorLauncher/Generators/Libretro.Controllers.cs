@@ -24,6 +24,9 @@ namespace EmulatorLauncher.Libretro
             if (Program.SystemConfig["input_driver"] == "xinput")
                 _inputDriver = "xinput";
 
+            if (Program.SystemConfig["input_driver"] == "dinput")
+                _inputDriver = "dinput";
+
             // no menu in non full uimode
             if (Program.SystemConfig.isOptSet("uimode") && Program.SystemConfig["uimode"] != "Full" && retroarchspecials.ContainsKey(InputKey.a))
                 retroarchspecials.Remove(InputKey.a);
