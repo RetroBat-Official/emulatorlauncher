@@ -4,6 +4,8 @@ using System.Linq;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
+using System.IO;
+using System.Windows.Controls;
 
 namespace EmulatorLauncher
 {
@@ -24,6 +26,8 @@ namespace EmulatorLauncher
         public int NbAxes { get; set; }
         
         public bool IsKeyboard { get { return "Keyboard".Equals(Name, StringComparison.InvariantCultureIgnoreCase); } }
+
+        public SdlToDirectInput dinputCtrl = null;
 
         public SdlJoystickGuid GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X, bool noRemoveDriver = false)
         {
@@ -437,6 +441,24 @@ namespace EmulatorLauncher
             Input input = Config[key];
             if (input == null)
                 return null;
+
+            #region dinputToSdl
+            string gamecontrollerdb = Path.Combine(Program.AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+            string dinputGuid = Guid.ToString().Substring(0, 27) + "00000";
+            bool isXinput = this.IsXInputDevice;
+
+            if (File.Exists(gamecontrollerdb))
+            {
+                try { dinputCtrl = GameControllerDBParser.ParseByGuid(gamecontrollerdb, dinputGuid); }
+                catch { }
+
+                if (dinputCtrl != null && dinputCtrl.ButtonMappings != null)
+                {
+                    Input sdlToDinput = SdlToDirectInput.GetDinputInput(dinputCtrl, key, isXinput);
+                    return sdlToDinput;
+                }
+            }
+            #endregion
 
             if (SdlWrappedTechID == SdlWrappedTechId.HID)
             {

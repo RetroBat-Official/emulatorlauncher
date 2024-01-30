@@ -2,6 +2,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using System;
 using System.Collections.Generic;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
@@ -67,7 +68,77 @@ namespace EmulatorLauncher.Common.Joysticks
             return controller;
         }
 
-        static Dictionary<InputKey, string> SdlToGameControllerDB = new Dictionary<InputKey, string>()
+        public static Input GetDinputInput(SdlToDirectInput ctrl, InputKey key, bool isXinput)
+        {
+            if (ctrl.ButtonMappings == null)
+                return null;
+
+            // Get Name
+            string buttonDinputName = SdlToGameControllerDB[key];
+
+            string buttonName = ctrl.ButtonMappings[buttonDinputName];
+
+            if (isXinput)
+            {
+                if (buttonName == "a2")
+                    buttonName = buttonName.Replace("a", "+a");
+                else if (buttonName == "a5")
+                    buttonName = "-a2";
+            }
+
+            // Get type
+            string type;
+
+            if (buttonName.StartsWith("a") || buttonName.StartsWith("+a") || buttonName.StartsWith("-a"))
+                type = "axis";
+            else if (buttonName.StartsWith("h"))
+                type = "hat";
+            else
+                type = "button";
+
+            // Get id
+            int id = -1;
+            if (type == "axis")
+            {
+                if (buttonName.StartsWith("+a") || buttonName.StartsWith("-a"))
+                    id = buttonName.Substring(2).ToInteger();
+                else
+                    id = buttonName.Substring(1).ToInteger();
+            }
+
+            else if (type == "hat")
+                id = 0;
+            
+            else
+                id = buttonName.Substring(1).ToInteger();
+            
+            // Get value
+            int value = -1;
+
+            if (type == "axis")
+            {
+                if (buttonName.StartsWith("+a"))
+                    value = 1;
+                else
+                    value = -1;
+            }
+
+            else if (type == "hat")
+                value = buttonName.Substring(3).ToInteger();
+
+            else
+                value = 1;
+
+            // Build input
+            Input ret = new Input();
+            ret.Name = key;
+            ret.Type = type;
+            ret.Id = id;
+            ret.Value = value;
+            return ret;
+        }
+
+        public static readonly Dictionary<InputKey, string> SdlToGameControllerDB = new Dictionary<InputKey, string>()
         {
             { InputKey.a,               "a" },
             { InputKey.b,               "b"},
@@ -76,12 +147,12 @@ namespace EmulatorLauncher.Common.Joysticks
             { InputKey.left,            "dpleft" },
             { InputKey.right,           "dpright" },
             { InputKey.up,              "dpup" },
-            { InputKey.pageup,          "leftshoulder" },
+            { InputKey.l1,              "leftshoulder" },
             { InputKey.l3,              "leftstick" },
             { InputKey.l2,              "lefttrigger" },
             { InputKey.joystick1left,   "leftx" },
             { InputKey.joystick1up,     "lefty" },
-            { InputKey.pagedown,        "rightshoulder" },
+            { InputKey.r1,              "rightshoulder" },
             { InputKey.r3,              "rightstick" },
             { InputKey.r2,              "righttrigger" },
             { InputKey.joystick2left,   "rightx" },
@@ -89,9 +160,10 @@ namespace EmulatorLauncher.Common.Joysticks
             { InputKey.start,           "start" },
             { InputKey.x,               "x" },
             { InputKey.y,               "y" },
+            { InputKey.hotkey,          "back" },
         };
 
-        static Dictionary<string, string> axisNameMapping = new Dictionary<string, string>()
+        public static readonly Dictionary<string, string> axisNameMapping = new Dictionary<string, string>()
         {
             { "a0", "X" },
             { "a1", "Y"},
