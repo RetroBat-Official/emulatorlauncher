@@ -9,12 +9,12 @@ using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
-    class HypseusGenerator : DaphneGenerator
+    partial class HypseusGenerator : DaphneGenerator
     {
         public HypseusGenerator() { _executableName = "hypseus"; }
     }
 
-    class DaphneGenerator : Generator
+    partial class DaphneGenerator : Generator
     {
         public DaphneGenerator()
         {
@@ -49,8 +49,8 @@ namespace EmulatorLauncher
                 {
                     commandArray.Remove("-opengl");
                     commandArray.Add("-vulkan");
-
                 }
+
                 return;
             }
         }
@@ -121,6 +121,9 @@ namespace EmulatorLauncher
                 ExitCode = ExitCodes.EmulatorNotInstalled;
                 return null;
             }
+
+            if (emulator == "hypseus")
+                CreateControllerConfiguration(emulatorPath);
 
             List<string> commandArray = new List<string>();
 
@@ -194,14 +197,8 @@ namespace EmulatorLauncher
                    });
                 }
             }
-
+            
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-
-            commandArray.Add("-x");
-            commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
-
-            commandArray.Add("-y");
-            commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
 
             if (fullscreen)
                 commandArray.Add("-fullscreen");
@@ -211,7 +208,6 @@ namespace EmulatorLauncher
 
             if (SystemConfig.getOptBoolean("daphne_vsync") && emulator == "hypseus")
                 commandArray.Add("-novsync");
-
 
             UpdateCommandline(commandArray);       
             
