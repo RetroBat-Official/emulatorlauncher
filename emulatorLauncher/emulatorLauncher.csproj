@@ -19,7 +19,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\..\..\..\..\RetroBa6test\emulationstation\</OutputPath>
+    <OutputPath>..\..\EmulationStation\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -122,6 +122,10 @@
     <Compile Include="Generators\Mupen64.SaveStatesMonitor.cs">
       <DependentUpon>Mupen64.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Phoenix.Generator.cs" />
+    <Compile Include="Generators\Phoenix.Controllers.cs">
+      <DependentUpon>Phoenix.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Play.Generator.cs" />
     <Compile Include="Generators\Play.Controllers.cs">
       <DependentUpon>Play.Generator.cs</DependentUpon>
@@ -137,7 +141,6 @@
     <Compile Include="Generators\vita3k.Generator.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="Generators\Nes3d.Generator.cs" />
-    <Compile Include="Generators\Phoenix.Generator.cs" />
     <Compile Include="Generators\Hatari.Generator.cs" />
     <Compile Include="Generators\PinballFX.Generator.cs" />
     <Compile Include="Generators\ZaccariaPinball.Generator.cs" />
