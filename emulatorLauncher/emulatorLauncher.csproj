@@ -160,6 +160,9 @@
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\GzDoom.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Generator.cs" />
+    <Compile Include="Generators\KegaFusion.Controllers.cs">
+      <DependentUpon>KegaFusion.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Ryujinx.Generator.cs" />
     <Compile Include="Generators\Ryujinx.Controllers.cs">
       <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
