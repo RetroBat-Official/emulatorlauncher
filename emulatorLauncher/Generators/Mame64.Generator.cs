@@ -537,7 +537,7 @@ namespace EmulatorLauncher
                 }
             }
             
-            else if (!SystemConfig.isOptSet("mame_ctrlr_profile") || SystemConfig["mame_ctrlr_profile"] != "retrobat_auto")
+            else if (!SystemConfig.isOptSet("mame_ctrlr_profile") || SystemConfig["mame_ctrlr_profile"] == "retrobat_auto")
             {
                 if (ConfigureMameControllers(ctrlrPath, hbmame))
                 {
