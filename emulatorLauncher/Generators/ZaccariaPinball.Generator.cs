@@ -64,7 +64,7 @@ namespace EmulatorLauncher
                 commandArray.Add("444930");
             }
 
-            else if (core == "zaccariapinball-nonsteam" || core == "nosteam")
+            else if (core == "zaccariapinball-nonsteam" || core == "nonsteam")
             {
                 path = AppConfig.GetFullPath("zaccariapinball");
                 if (!Directory.Exists(path))
