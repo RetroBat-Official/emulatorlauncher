@@ -55,7 +55,7 @@ namespace EmulatorLauncher
             string gameCtrlFile = gameCtrlFiles.FirstOrDefault(f => Path.GetFileName(f).StartsWith(romNumber.ToString()));
             string ControllerCfgFile = Path.Combine(path, "controller.cfg");
 
-            if (zincControllerCfgFiles.ContainsKey(romNumber) && File.Exists(gameCtrlFile) && SystemConfig["zinc_controller_config"] != "none")
+            if (File.Exists(gameCtrlFile) && SystemConfig["zinc_controller_config"] != "none")
             {
                 if (SystemConfig.isOptSet("zinc_controller_config") && SystemConfig["zinc_controller_config"] == "autoconfig")
                 {
