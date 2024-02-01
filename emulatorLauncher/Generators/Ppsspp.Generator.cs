@@ -92,12 +92,12 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
-                    ini.WriteValue("General", "CheckForNewVersion", "false");
-                    ini.WriteValue("General", "FirstRun", "false");
+                    ini.WriteValue("General", "CheckForNewVersion", "False");
+                    ini.WriteValue("General", "FirstRun", "False");
                     ini.WriteValue("Control", "AllowMappingCombos", "True"); 
 
                     // Make it complex for the user to run another game using the UI ( related to the way the savestates monitor works )
-                    ini.WriteValue("General", "CurrentDirectory", path);
+                    ini.WriteValue("General", "CurrentDirectory", path.Replace("\\", "/"));
                     ini.ClearSection("Recent");
 
                     // Retroachievements
@@ -216,6 +216,8 @@ namespace EmulatorLauncher
                     }
                     else
                         ini.WriteValue("Graphics", "DisplayIntegerScale", "False");
+
+                    BindBoolIniFeature(ini, "Graphics", "Smart2DTexFiltering", "ppsspp_smart2d", "True", "False");
 
                     // Controls
                     if (SystemConfig.isOptSet("ppsspp_mouse") && SystemConfig.getOptBoolean("ppsspp_mouse"))
