@@ -111,7 +111,8 @@ namespace EmulatorLauncher
             { "stella", () => new StellaGenerator() },
             { "theforceengine", () => new ForceEngineGenerator() },
             { "kronos", () => new KronosGenerator() },
-            { "gzdoom", () => new GZDoomGenerator() }
+            { "gzdoom", () => new GZDoomGenerator() },
+            { "magicengine", () => new MagicEngineGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
