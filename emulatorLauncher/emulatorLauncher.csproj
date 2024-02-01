@@ -194,6 +194,7 @@
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Love.Generator.cs" />
+    <Compile Include="Generators\MagicEngine.Generator.cs" />
     <Compile Include="Generators\Mame64.Generator.cs" />
     <Compile Include="Generators\Mame64.Bezels.cs">
       <DependentUpon>Mame64.Generator.cs</DependentUpon>

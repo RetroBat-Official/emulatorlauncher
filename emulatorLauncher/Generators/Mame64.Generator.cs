@@ -190,11 +190,6 @@ namespace EmulatorLauncher
 
         private string _exeName;
 
-        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
-        {
-            return PadToKey.AddOrUpdateKeyMapping(mapping, _exeName, InputKey.hotkey | InputKey.start, "(%{KILL})");
-        }
-
         private List<string> GetCommonMame64Arguments(string rom, bool hbmame, ScreenResolution resolution = null)
         {
             var retList = new List<string>();
