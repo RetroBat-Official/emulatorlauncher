@@ -208,6 +208,8 @@ namespace EmulatorLauncher
 
                 byte[] bytes;
 
+                SimpleLogger.Instance.Info("Configuring input file " + inputFile);
+
                 if (File.Exists(inputFile))
                     bytes = File.ReadAllBytes(inputFile);
                 else
@@ -215,6 +217,7 @@ namespace EmulatorLauncher
 
                 ConfigureControllers(bytes, ini, parentRom, hexLength);
 
+                SimpleLogger.Instance.Info("Saving input file " + inputFile);
                 File.WriteAllBytes(inputFile, bytes);
             }
         }

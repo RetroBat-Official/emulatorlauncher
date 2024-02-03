@@ -9,6 +9,7 @@ using EmulatorLauncher.Common.Joysticks;
 using System.Windows.Controls;
 using System.Security.Cryptography;
 using System.Diagnostics.Eventing.Reader;
+using System.Windows;
 
 namespace EmulatorLauncher
 {
@@ -237,6 +238,12 @@ namespace EmulatorLauncher
                     bytes[37] = (byte)0x00;
                 }
 
+                for (int i = 0; i < 37; i += 4)
+                {
+                    if (highButtonMapping.ContainsKey(bytes[i]))
+                        bytes[i + 1] = Convert.ToByte(j1index + 16);
+                }
+
                 if (c2 != null && !c2.IsKeyboard)
                 {
                     bytes[40] = dinput2 ? GetInputCode(InputKey.up, c2, tech2, vendor2, ctrl2) : (byte)0x02;
@@ -247,6 +254,12 @@ namespace EmulatorLauncher
                     bytes[60] = dinput2 ? GetInputCode(InputKey.b, c2, tech2, vendor2, ctrl2) : (byte)0x40;
                     bytes[64] = dinput2 ? GetInputCode(InputKey.y, c2, tech2, vendor2, ctrl2) : (byte)0x10;
                     bytes[68] = dinput2 ? GetInputCode(InputKey.x, c2, tech2, vendor2, ctrl2) : (byte)0x20;
+
+                    for (int i = 40; i < 69; i += 4)
+                    {
+                        if (highButtonMapping.ContainsKey(bytes[i]))
+                            bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
                 else
                 {
@@ -266,6 +279,12 @@ namespace EmulatorLauncher
                     bytes[73] = Convert.ToByte(j2index);
                     bytes[76] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
                     bytes[77] = Convert.ToByte(j2index);
+
+                    for (int i = 72; i < 77; i += 4)
+                    {
+                        if (highButtonMapping.ContainsKey(bytes[i]))
+                            bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
                 else
                 {
@@ -370,7 +389,10 @@ namespace EmulatorLauncher
                 else
                 {
                     bytes[16] = dinput1 ? GetInputCode(InputKey.leftanalogleft, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;
-                    bytes[19] = 0xFF;
+                    if (axisBytes.Contains(bytes[16]))
+                        bytes[19] = 0xFF;
+                    else
+                        bytes[19] = 0x00;
 
                     bytes[20] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;
                     if (parentRom == "indy500" || parentRom == "stcc" || parentRom == "motoraid" || parentRom.StartsWith("manxtt"))
@@ -380,14 +402,21 @@ namespace EmulatorLauncher
                     }
                     else if (!dinput1 || vendor1 == "dualshock")
                         bytes[21] = Convert.ToByte(j1index + 16);
-                    bytes[23] = 0xFF;
+                    
+                    if (axisBytes.Contains(bytes[20]))
+                        bytes[23] = 0xFF;
+                    else
+                        bytes[23] = 0x00;
 
                     bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;
                     if (parentRom != "indy500" && parentRom != "stcc" && parentRom != "motoraid" && !parentRom.StartsWith("manxtt"))
                     {
                         bytes[25] = Convert.ToByte(j1index + 16);
                     }
-                    bytes[27] = 0xFF;
+                    if (axisBytes.Contains(bytes[24]))
+                        bytes[27] = 0xFF;
+                    else
+                        bytes[27] = 0x00;
 
                     if (parentRom == "motoraid")
                     {
@@ -428,6 +457,12 @@ namespace EmulatorLauncher
                         bytes[69] = (byte)0x01;
                         bytes[70] = (byte)0x01;
                     }
+                }
+
+                for (int i = 0; i < 49; i+=4)
+                {
+                    if (highButtonMapping.ContainsKey(bytes[i]))
+                        bytes[i + 1] = Convert.ToByte(j1index + 16);
                 }
 
             }
@@ -482,12 +517,21 @@ namespace EmulatorLauncher
                 else
                 {
                     bytes[16] = dinput1 ? GetInputCode(InputKey.leftanalogleft, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;  // Steering
-                    bytes[19] = 0xFF;
+                    if (axisBytes.Contains(bytes[16]))
+                        bytes[19] = 0xFF;
+                    else
+                        bytes[19] = 0x00;
 
                     bytes[20] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;  // Accelerate (R2)
-                    bytes[23] = 0xFF;
+                    if (axisBytes.Contains(bytes[20]))
+                        bytes[23] = 0xFF;
+                    else
+                        bytes[23] = 0x00;
                     bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;  // Brake (L2)
-                    bytes[27] = 0xFF;
+                    if (axisBytes.Contains(bytes[24]))
+                        bytes[27] = 0xFF;
+                    else
+                        bytes[27] = 0x00;
                     bytes[28] = dinput1 ? GetInputCode(InputKey.joystick2up, c1, tech1, vendor1, ctrl1) : (byte)0x0A;
                     bytes[32] = dinput1 ? GetInputCode(InputKey.joystick2down, c1, tech1, vendor1, ctrl1) : (byte)0x0B;
                     bytes[36] = dinput1 ? GetInputCode(InputKey.joystick2left, c1, tech1, vendor1, ctrl1) : (byte)0x08;
@@ -521,6 +565,11 @@ namespace EmulatorLauncher
                     bytes[86] = (byte)0x01;
                 }
 
+                for (int i = 0; i < 69; i += 4)
+                {
+                    if (highButtonMapping.ContainsKey(bytes[i]))
+                        bytes[i + 1] = Convert.ToByte(j1index + 16);
+                }
             }
             #endregion
 
@@ -562,6 +611,12 @@ namespace EmulatorLauncher
                 bytes[32] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                 bytes[36] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
+                for (int i = 0; i < 37; i += 4)
+                {
+                    if (highButtonMapping.ContainsKey(bytes[i]))
+                        bytes[i + 1] = Convert.ToByte(j1index + 16);
+                }
+
                 // Player 2
                 if (c2 != null)
                 {
@@ -595,6 +650,12 @@ namespace EmulatorLauncher
 
                     bytes[72] = dinput2 ? GetInputCode(InputKey.start, c2, tech2, vendor2, ctrl2) : (byte)0xB0;
                     bytes[76] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
+
+                    for (int i = 40; i < 77; i += 4)
+                    {
+                        if (highButtonMapping.ContainsKey(bytes[i]))
+                            bytes[i + 1] = Convert.ToByte(j2index + 16);
+                    }
                 }
                 else
                     bytes[40] = bytes[44] = bytes[48] = bytes[52] = bytes[56] = bytes[60] = bytes[64] = bytes[68] = bytes[72] = bytes[76] = 0x00;
@@ -645,6 +706,12 @@ namespace EmulatorLauncher
                 bytes[32] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                 bytes[36] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
+                for (int i = 0; i < 37; i += 4)
+                {
+                    if (highButtonMapping.ContainsKey(bytes[i]))
+                        bytes[i + 1] = Convert.ToByte(j1index + 16);
+                }
+
                 // Player 2
                 if (c2 != null)
                 {
@@ -684,6 +751,12 @@ namespace EmulatorLauncher
 
                     bytes[72] = dinput2 ? GetInputCode(InputKey.start, c2, tech2, vendor2, ctrl2) : (byte)0xB0;
                     bytes[76] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
+
+                    for (int i = 40; i < 77; i += 4)
+                    {
+                        if (highButtonMapping.ContainsKey(bytes[i]))
+                            bytes[i + 1] = Convert.ToByte(j2index + 16);
+                    }
                 }
                 else
                     bytes[40] = bytes[44] = bytes[48] = bytes[52] = bytes[56] = bytes[60] = bytes[64] = bytes[68] = bytes[72] = bytes[76] = 0x00;
@@ -707,11 +780,21 @@ namespace EmulatorLauncher
                     bytes[12] = dinput1 ? GetInputCode(InputKey.joystick1right, c1, tech1, vendor1, ctrl1) : (byte)0x05;
                     bytes[16] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, false, true) : (byte)0x80;
                     bytes[20] = dinput1 ? GetInputCode(InputKey.joystick1left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;
-                    bytes[23] = 0xFF;
+                    if (axisBytes.Contains(bytes[20]))
+                        bytes[23] = 0xFF;
+                    else
+                        bytes[23] = 0x00;
+
                     bytes[24] = dinput1 ? GetInputCode(InputKey.joystick2left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x04;
-                    bytes[27] = 0xFF;
+                    if (axisBytes.Contains(bytes[24]))
+                        bytes[27] = 0xFF;
+                    else
+                        bytes[27] = 0x00;
                     bytes[28] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;
-                    bytes[31] = 0xFF;
+                    if (axisBytes.Contains(bytes[28]))
+                        bytes[31] = 0xFF;
+                    else
+                        bytes[31] = 0x00;
                     bytes[32] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
                     bytes[36] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                     bytes[40] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
@@ -729,10 +812,17 @@ namespace EmulatorLauncher
                     bytes[12] = dinput1 ? GetInputCode(InputKey.joystick2right, c1, tech1, vendor1, ctrl1) : (byte)0x09;
 
                     bytes[16] = dinput1 ? GetInputCode(InputKey.joystick2left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x04;
-                    bytes[19] = 0xFF;
+
+                    if (axisBytes.Contains(bytes[16]))
+                        bytes[19] = 0xFF;
+                    else
+                        bytes[19] = 0x00;
                     bytes[20] = dinput1 ? GetInputCode(InputKey.joystick1left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;
                     bytes[21] = Convert.ToByte(j1index + 16);
-                    bytes[23] = 0xFF;
+                    if (axisBytes.Contains(bytes[20]))
+                        bytes[23] = 0xFF;
+                    else
+                        bytes[23] = 0x00;
 
                     bytes[24] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
                     bytes[28] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
@@ -754,12 +844,19 @@ namespace EmulatorLauncher
                     bytes[12] = dinput1 ? GetInputCode(InputKey.joystick1right, c1, tech1, vendor1, ctrl1) : (byte)0x05;
                     bytes[16] = dinput1 ? GetInputCode(InputKey.joystick1left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;
                     bytes[17] = Convert.ToByte(j1index + 16);
-                    bytes[19] = 0xFF;
+                    
+                    if (axisBytes.Contains(bytes[16]))
+                        bytes[19] = 0xFF;
+                    else
+                        bytes[19] = 0x00;
 
                     if (parentRom == "topskatr")
                     {
                         bytes[20] = dinput1 ? GetInputCode(InputKey.joystick2left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x04;
-                        bytes[23] = 0xFF;
+                        if (axisBytes.Contains(bytes[20]))
+                            bytes[23] = 0xFF;
+                        else
+                            bytes[23] = 0x00;
                         bytes[24] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
                         bytes[28] = dinput1 ? GetInputCode(InputKey.a, c1, tech1, vendor1, ctrl1) : (byte)0x30;
                         bytes[32] = dinput1 ? GetInputCode(InputKey.y, c1, tech1, vendor1, ctrl1) : (byte)0x10;
@@ -782,6 +879,12 @@ namespace EmulatorLauncher
                         bytes[60] = (byte)0x01;
                     }
                 }
+
+                for (int i = 0; i < 45; i += 4)
+                {
+                    if (highButtonMapping.ContainsKey(bytes[i]))
+                        bytes[i + 1] = Convert.ToByte(j1index + 16);
+                }
             }
             #endregion
 
@@ -798,11 +901,20 @@ namespace EmulatorLauncher
                 bytes[16] = dinput1 ? GetInputCode(InputKey.joystick1up, c1, tech1, vendor1, ctrl1) : (byte)0x06;
                 bytes[20] = dinput1 ? GetInputCode(InputKey.joystick1down, c1, tech1, vendor1, ctrl1) : (byte)0x07;
                 bytes[24] = dinput1 ? GetInputCode(InputKey.joystick2left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x04;
-                bytes[27] = 0xFF;
+                if (axisBytes.Contains(bytes[24]))
+                    bytes[27] = 0xFF;
+                else
+                    bytes[27] = 0x00;
                 bytes[28] = dinput1 ? GetInputCode(InputKey.joystick2up, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x05;
-                bytes[31] = 0xFF;
+                if (axisBytes.Contains(bytes[28]))
+                    bytes[31] = 0xFF;
+                else
+                    bytes[31] = 0x00;
                 bytes[32] = dinput1 ? GetInputCode(InputKey.joystick1up, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x03;
-                bytes[35] = 0xFF;
+                if (axisBytes.Contains(bytes[32]))
+                    bytes[35] = 0xFF;
+                else
+                    bytes[35] = 0x00;
                 bytes[36] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, false, true) : (byte)0x70;
                 bytes[40] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
                 bytes[44] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, false, true) : (byte)0x80;
@@ -813,6 +925,12 @@ namespace EmulatorLauncher
                 bytes[64] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
                 bytes[68] = 0x07;
                 bytes[69] = 0x00;
+
+                for (int i = 0; i < 65; i += 4)
+                {
+                    if (highButtonMapping.ContainsKey(bytes[i]))
+                        bytes[i + 1] = Convert.ToByte(j1index + 16);
+                }
             }
 
             else
@@ -823,6 +941,12 @@ namespace EmulatorLauncher
                 bytes[4] = dinput1 ? GetInputCode(InputKey.joystick1down, c1, tech1, vendor1, ctrl1) : (byte)0x07;
                 bytes[8] = dinput1 ? GetInputCode(InputKey.joystick1left, c1, tech1, vendor1, ctrl1) : (byte)0x04;
                 bytes[12] = dinput1 ? GetInputCode(InputKey.joystick1right, c1, tech1, vendor1, ctrl1) : (byte)0x05;
+
+                for (int i = 0; i < 13; i += 4)
+                {
+                    if (highButtonMapping.ContainsKey(bytes[i]))
+                        bytes[i + 1] = Convert.ToByte(j1index + 16);
+                }
 
                 // Dynamite Baseball '97
                 if (parentRom == "dynabb97")
@@ -836,13 +960,23 @@ namespace EmulatorLauncher
                     if (!dinput1)
                         bytes[17] = Convert.ToByte(j1index + 16);
 
-                    bytes[19] = 0xFF;
+                    if (axisBytes.Contains(bytes[16]))
+                        bytes[19] = 0xFF;
+                    else
+                        bytes[19] = 0x00;
+
                     bytes[20] = dinput1 ? GetInputCode(InputKey.y, c1, tech1, vendor1, ctrl1) : (byte)0x10;
                     bytes[24] = dinput1 ? GetInputCode(InputKey.a, c1, tech1, vendor1, ctrl1) : (byte)0x30;
                     bytes[28] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
                     bytes[32] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
                     bytes[36] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                     bytes[40] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
+
+                    for (int i = 16; i < 41; i += 4)
+                    {
+                        if (highButtonMapping.ContainsKey(bytes[i]))
+                            bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
 
                     if (c2 != null)
                     {
@@ -852,13 +986,22 @@ namespace EmulatorLauncher
                         bytes[56] = dinput2 ? GetInputCode(InputKey.joystick1right, c2, tech2, vendor2, ctrl2) : (byte)0x05;
 
                         bytes[60] = dinput2 ? GetInputCode(InputKey.r2, c2, tech2, vendor2, ctrl2, false, true) : (byte)0x07;
-                        bytes[63] = 0xFF;
+                        if (axisBytes.Contains(bytes[60]))
+                            bytes[63] = 0xFF;
+                        else
+                            bytes[63] = 0x00;
                         bytes[64] = dinput2 ? GetInputCode(InputKey.y, c2, tech2, vendor2, ctrl2) : (byte)0x10;
                         bytes[68] = dinput2 ? GetInputCode(InputKey.a, c2, tech2, vendor2, ctrl2) : (byte)0x30;
                         bytes[72] = dinput2 ? GetInputCode(InputKey.b, c2, tech2, vendor2, ctrl2) : (byte)0x40;
                         bytes[76] = dinput2 ? GetInputCode(InputKey.x, c2, tech2, vendor2, ctrl2) : (byte)0x20;
                         bytes[80] = dinput2 ? GetInputCode(InputKey.start, c2, tech2, vendor2, ctrl2) : (byte)0xB0;
                         bytes[84] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
+
+                        for (int i = 44; i < 85; i += 4)
+                        {
+                            if (highButtonMapping.ContainsKey(bytes[i]))
+                                bytes[i + 1] = Convert.ToByte(j2index + 16);
+                        }
                     }
 
                     bytes[108] = (byte)0x01;
@@ -871,9 +1014,15 @@ namespace EmulatorLauncher
                 else if (parentRom == "skytargt")
                 {
                     bytes[16] = dinput1 ? GetInputCode(InputKey.joystick1left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;
-                    bytes[19] = 0xFF;
+                    if (axisBytes.Contains(bytes[16]))
+                        bytes[19] = 0xFF;
+                    else
+                        bytes[19] = 0x00;
                     bytes[20] = dinput1 ? GetInputCode(InputKey.joystick1up, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x03;
-                    bytes[23] = 0xFF;
+                    if (axisBytes.Contains(bytes[20]))
+                        bytes[23] = 0xFF;
+                    else
+                        bytes[23] = 0x00;
                     bytes[24] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, false, true) : (byte)0x80;
                     bytes[28] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, false, true) : (byte)0x70;
                     bytes[32] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
@@ -883,6 +1032,12 @@ namespace EmulatorLauncher
                     bytes[45] = 0x00;
 
                     bytes[68] = (byte)0x01;
+
+                    for (int i = 16; i < 41; i += 4)
+                    {
+                        if (highButtonMapping.ContainsKey(bytes[i]))
+                            bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
                 else if (parentRom == "von")
                 {
@@ -897,9 +1052,17 @@ namespace EmulatorLauncher
                     bytes[44] = dinput1 ? GetInputCode(InputKey.joystick2right, c1, tech1, vendor1, ctrl1) : (byte)0x09;
                     bytes[48] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, false, true) : (byte)0x80;
                     bytes[52] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
+
+                    for (int i = 16; i < 53; i += 4)
+                    {
+                        if (highButtonMapping.ContainsKey(bytes[i]))
+                            bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
             }
             #endregion
+
+            SimpleLogger.Instance.Info("[WHEELS] Input values all set.");
         }
 
         private void WriteKbMapping(byte[] bytes, string parentRom, int hexLength, InputConfig keyboard)
@@ -932,7 +1095,6 @@ namespace EmulatorLauncher
 
         private static byte GetInputCode(InputKey key, Controller c, string tech, string brand, SdlToDirectInput ctrl ,bool globalAxis = false, bool trigger = false, bool digital = false)
         {
-
             bool revertAxis = false;
             key = key.GetRevertedAxis(out revertAxis);
             
@@ -949,11 +1111,35 @@ namespace EmulatorLauncher
                 return 0x00;
 
             string button = ctrl.ButtonMappings[dinputName];
+            SimpleLogger.Instance.Info("[INPUT] Configuring  " + button);
 
             if (button.StartsWith("b"))
             {
-                int buttonID = (button.Substring(7).ToInteger()) + 1;
-                return (byte)(0x10 * buttonID);
+                int buttonID = (button.Substring(1).ToInteger()) + 1;
+                if (buttonID > 14)
+                {
+                    switch (buttonID)
+                    {
+                        case 15: return 0x05;
+                        case 16: return 0x15;
+                        case 17: return 0x25;
+                        case 18: return 0x35;
+                        case 19: return 0x45;
+                        case 20: return 0x55;
+                        case 21: return 0x65;
+                        case 22: return 0x75;
+                        case 23: return 0x85;
+                        case 24: return 0x95;
+                        case 25: return 0xA5;
+                        case 26: return 0xB5;
+                        case 27: return 0xC5;
+                        case 28: return 0xD5;
+                        case 29: return 0xE5;
+                        case 30: return 0xF5;
+                    };
+                }
+
+                else return (byte)(0x10 * buttonID);
             }
 
             else if (button.StartsWith("h"))
@@ -1068,7 +1254,30 @@ namespace EmulatorLauncher
             if (buttonKey.StartsWith("button_"))
             {
                 int buttonID = (buttonKey.Substring(7).ToInteger()) + 1;
-                ret = (byte)(0x10 * buttonID);
+                if (buttonID > 14)
+                {
+                    switch (buttonID)
+                    {
+                        case 15: return 0x05;
+                        case 16: return 0x15;
+                        case 17: return 0x25;
+                        case 18: return 0x35;
+                        case 19: return 0x45;
+                        case 20: return 0x55;
+                        case 21: return 0x65;
+                        case 22: return 0x75;
+                        case 23: return 0x85;
+                        case 24: return 0x95;
+                        case 25: return 0xA5;
+                        case 26: return 0xB5;
+                        case 27: return 0xC5;
+                        case 28: return 0xD5;
+                        case 29: return 0xE5;
+                        case 30: return 0xF5;
+                    };
+                }
+                else
+                    ret = (byte)(0x10 * buttonID);
             }
 
             else if (ctrl.ButtonMappings.ContainsKey(buttonKey))
@@ -1189,6 +1398,7 @@ namespace EmulatorLauncher
         static readonly List<string> drivingshiftupdown = new List<string>() { "indy500", "motoraid", "overrev", "sgt24h", "stcc", "manxtt", "manxttc" };
         static readonly List<string> drivingshiftlever = new List<string>() { "daytona", "srallyc" };
         static readonly List<string> sports = new List<string>() { "segawski", "skisuprg", "topskatr", "waverunr" };
+        static readonly List<byte> axisBytes = new List<byte>() { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
 
         private static readonly Dictionary<string, string> esToDinput = new Dictionary<string, string>()
         {
