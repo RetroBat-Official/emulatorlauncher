@@ -527,11 +527,13 @@ namespace EmulatorLauncher
                         bytes[23] = 0xFF;
                     else
                         bytes[23] = 0x00;
+                    
                     bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;  // Brake (L2)
                     if (axisBytes.Contains(bytes[24]))
                         bytes[27] = 0xFF;
                     else
                         bytes[27] = 0x00;
+
                     bytes[28] = dinput1 ? GetInputCode(InputKey.joystick2up, c1, tech1, vendor1, ctrl1) : (byte)0x0A;
                     bytes[32] = dinput1 ? GetInputCode(InputKey.joystick2down, c1, tech1, vendor1, ctrl1) : (byte)0x0B;
                     bytes[36] = dinput1 ? GetInputCode(InputKey.joystick2left, c1, tech1, vendor1, ctrl1) : (byte)0x08;
@@ -1111,7 +1113,6 @@ namespace EmulatorLauncher
                 return 0x00;
 
             string button = ctrl.ButtonMappings[dinputName];
-            SimpleLogger.Instance.Info("[INPUT] Configuring  " + button);
 
             if (button.StartsWith("b"))
             {
@@ -1120,7 +1121,7 @@ namespace EmulatorLauncher
                 {
                     switch (buttonID)
                     {
-                        case 15: return 0x05;
+                        case 15: return 0x09;
                         case 16: return 0x15;
                         case 17: return 0x25;
                         case 18: return 0x35;
@@ -1258,7 +1259,7 @@ namespace EmulatorLauncher
                 {
                     switch (buttonID)
                     {
-                        case 15: return 0x05;
+                        case 15: return 0x09;
                         case 16: return 0x15;
                         case 17: return 0x25;
                         case 18: return 0x35;
@@ -1436,7 +1437,7 @@ namespace EmulatorLauncher
 
         private static readonly Dictionary<byte, byte> highButtonMapping = new Dictionary<byte, byte>()
         {
-            { 0x05, 0x00 },
+            { 0x09, 0x00 },
             { 0x15, 0x10 },
             { 0x25, 0x20 },
             { 0x35, 0x30 },
