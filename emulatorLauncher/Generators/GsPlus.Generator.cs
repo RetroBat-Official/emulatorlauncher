@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
 
 namespace EmulatorLauncher
 {
@@ -91,7 +93,16 @@ namespace EmulatorLauncher
             _resolution = resolution;
 
             List<string> commandArray = new List<string>();
-            commandArray.Add("-borderless");         
+            commandArray.Add("-borderless");
+
+            if (this.Controllers.Any(c => !c.IsKeyboard))
+            {
+                var controller = this.Controllers.OrderBy(c => c.PlayerIndex).FirstOrDefault();
+                int index = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex;
+                commandArray.Add("-joy");
+                commandArray.Add(index.ToString());
+            }
+
             commandArray.AddRange(new string[] { "-sw", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString() });
             commandArray.AddRange(new string[] { "-sh", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString() });
 
@@ -127,6 +138,5 @@ namespace EmulatorLauncher
 
             return ret;
         }
-
     }
 }
