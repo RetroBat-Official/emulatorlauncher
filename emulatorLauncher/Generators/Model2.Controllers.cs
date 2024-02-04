@@ -6,10 +6,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
-using System.Windows.Controls;
-using System.Security.Cryptography;
-using System.Diagnostics.Eventing.Reader;
-using System.Windows;
 
 namespace EmulatorLauncher
 {
@@ -241,7 +237,10 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 37; i += 4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
 
                 if (c2 != null && !c2.IsKeyboard)
@@ -258,7 +257,10 @@ namespace EmulatorLauncher
                     for (int i = 40; i < 69; i += 4)
                     {
                         if (highButtonMapping.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
+                        }
                     }
                 }
                 else
@@ -283,7 +285,10 @@ namespace EmulatorLauncher
                     for (int i = 72; i < 77; i += 4)
                     {
                         if (highButtonMapping.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
+                        }
                     }
                 }
                 else
@@ -315,40 +320,27 @@ namespace EmulatorLauncher
                 {
                     SimpleLogger.Instance.Info("[WHEELS] Configuring wheel specific inputs.");
                     bytes[16] = GetWheelInputCode(wheelmapping.Steer, wheel, c1, ctrl1, invertedWheelAxis);  // Steering
-                    if (invertedWheelAxis)
+                    if (!invertedWheelAxis)
                         bytes[17] = Convert.ToByte(j1index + 16);
                     bytes[19] = 0xFF;
 
-                    bytes[20] = GetWheelInputCode(wheelmapping.Throttle, wheel, c1, ctrl1, invertedWheelAxis);  // Accelerate (R2)
-                    if (invertedWheelAxis)
-                    {
-                        if (parentRom != "sgt24h" && parentRom != "overrev")
-                            bytes[21] = Convert.ToByte(j1index + 16);
-                    }
-                    else
-                    {
-                        if (parentRom == "sgt24h" || parentRom == "overrev")
-                            bytes[21] = Convert.ToByte(j1index + 16);
-                    }
+                    bytes[20] = parentRom == "indy500" ? GetWheelInputCode(wheelmapping.Brake, wheel, c1, ctrl1, invertedWheelAxis) : GetWheelInputCode(wheelmapping.Throttle, wheel, c1, ctrl1, invertedWheelAxis);  // Accelerate (R2)
+                    
+                    if (parentRom == "stcc" || parentRom == "overrev" || parentRom.StartsWith("manxtt"))
+                        bytes[21] = Convert.ToByte(j1index + 16);
+
                     bytes[23] = 0xFF;
 
-                    bytes[24] = GetWheelInputCode(wheelmapping.Brake, wheel, c1, ctrl1, invertedWheelAxis);  // Brake (L2)
-                    if (invertedWheelAxis)
-                    {
-                        if (parentRom != "sgt24h" && parentRom != "overrev")
-                            bytes[25] = Convert.ToByte(j1index + 16);
-                    }
-                    else
-                    {
-                        if (parentRom == "sgt24h" || parentRom == "overrev")
-                            bytes[25] = Convert.ToByte(j1index + 16);
-                    }
+                    bytes[24] = parentRom == "indy500" ? GetWheelInputCode(wheelmapping.Throttle, wheel, c1, ctrl1, invertedWheelAxis) : GetWheelInputCode(wheelmapping.Brake, wheel, c1, ctrl1, invertedWheelAxis);  // Brake (L2)
+                    
+                    if (parentRom != "indy500" && parentRom != "overrev")
+                        bytes[25] = Convert.ToByte(j1index + 16);
+
                     bytes[27] = 0xFF;
 
                     if (parentRom != "manxtt" && parentRom != "manxttc" && parentRom != "motoraid")
                     {
                         bytes[28] = GetWheelInputCode(wheelmapping.Geardown, wheel, c1, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[28]))
                             bytes[29] = Convert.ToByte(j1index + 16);
 
                         bytes[32] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
@@ -462,7 +454,10 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 49; i+=4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
 
             }
@@ -482,7 +477,7 @@ namespace EmulatorLauncher
                 {
                     SimpleLogger.Instance.Info("[WHEELS] Configuring wheel specific inputs.");
                     bytes[16] = GetWheelInputCode(wheelmapping.Steer, wheel, c1, ctrl1, invertedWheelAxis);  // Steering
-                    if (invertedWheelAxis)
+                    if (!invertedWheelAxis)
                         bytes[17] = Convert.ToByte(j1index + 16);
                     bytes[19] = 0xFF;
 
@@ -570,7 +565,10 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 69; i += 4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
             }
             #endregion
@@ -616,7 +614,10 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 37; i += 4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
 
                 // Player 2
@@ -656,7 +657,10 @@ namespace EmulatorLauncher
                     for (int i = 40; i < 77; i += 4)
                     {
                         if (highButtonMapping.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j2index + 16);
+                        }
                     }
                 }
                 else
@@ -711,7 +715,10 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 37; i += 4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
 
                 // Player 2
@@ -757,7 +764,10 @@ namespace EmulatorLauncher
                     for (int i = 40; i < 77; i += 4)
                     {
                         if (highButtonMapping.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j2index + 16);
+                        }
                     }
                 }
                 else
@@ -885,7 +895,10 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 45; i += 4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
             }
             #endregion
@@ -931,7 +944,10 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 65; i += 4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
             }
 
@@ -947,7 +963,10 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 13; i += 4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
                 }
 
                 // Dynamite Baseball '97
@@ -977,7 +996,10 @@ namespace EmulatorLauncher
                     for (int i = 16; i < 41; i += 4)
                     {
                         if (highButtonMapping.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
+                        }
                     }
 
                     if (c2 != null)
@@ -1002,7 +1024,10 @@ namespace EmulatorLauncher
                         for (int i = 44; i < 85; i += 4)
                         {
                             if (highButtonMapping.ContainsKey(bytes[i]))
+                            {
+                                bytes[i] = highButtonMapping[bytes[i]];
                                 bytes[i + 1] = Convert.ToByte(j2index + 16);
+                            }
                         }
                     }
 
@@ -1038,7 +1063,10 @@ namespace EmulatorLauncher
                     for (int i = 16; i < 41; i += 4)
                     {
                         if (highButtonMapping.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
+                        }
                     }
                 }
                 else if (parentRom == "von")
@@ -1058,7 +1086,10 @@ namespace EmulatorLauncher
                     for (int i = 16; i < 53; i += 4)
                     {
                         if (highButtonMapping.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
+                        }
                     }
                 }
             }
