@@ -1148,29 +1148,28 @@ namespace EmulatorLauncher
             if (button.StartsWith("b"))
             {
                 int buttonID = (button.Substring(1).ToInteger()) + 1;
-                if (buttonID > 14)
+                if (buttonID > 15)
                 {
                     switch (buttonID)
                     {
-                        case 15: return 0x09;
-                        case 16: return 0x15;
-                        case 17: return 0x25;
-                        case 18: return 0x35;
-                        case 19: return 0x45;
-                        case 20: return 0x55;
-                        case 21: return 0x65;
-                        case 22: return 0x75;
-                        case 23: return 0x85;
-                        case 24: return 0x95;
-                        case 25: return 0xA5;
-                        case 26: return 0xB5;
-                        case 27: return 0xC5;
-                        case 28: return 0xD5;
-                        case 29: return 0xE5;
-                        case 30: return 0xF5;
+                        case 16: return 0x09;
+                        case 17: return 0x15;
+                        case 18: return 0x25;
+                        case 19: return 0x35;
+                        case 20: return 0x45;
+                        case 21: return 0x55;
+                        case 22: return 0x65;
+                        case 23: return 0x75;
+                        case 24: return 0x85;
+                        case 25: return 0x95;
+                        case 26: return 0xA5;
+                        case 27: return 0xB5;
+                        case 28: return 0xC5;
+                        case 29: return 0xD5;
+                        case 30: return 0xE5;
+                        case 31: return 0xF5;
                     };
                 }
-
                 else return (byte)(0x10 * buttonID);
             }
 
@@ -1286,26 +1285,26 @@ namespace EmulatorLauncher
             if (buttonKey.StartsWith("button_"))
             {
                 int buttonID = (buttonKey.Substring(7).ToInteger()) + 1;
-                if (buttonID > 14)
+                if (buttonID > 15)
                 {
                     switch (buttonID)
                     {
-                        case 15: return 0x09;
-                        case 16: return 0x15;
-                        case 17: return 0x25;
-                        case 18: return 0x35;
-                        case 19: return 0x45;
-                        case 20: return 0x55;
-                        case 21: return 0x65;
-                        case 22: return 0x75;
-                        case 23: return 0x85;
-                        case 24: return 0x95;
-                        case 25: return 0xA5;
-                        case 26: return 0xB5;
-                        case 27: return 0xC5;
-                        case 28: return 0xD5;
-                        case 29: return 0xE5;
-                        case 30: return 0xF5;
+                        case 16: return 0x09;
+                        case 17: return 0x15;
+                        case 18: return 0x25;
+                        case 19: return 0x35;
+                        case 20: return 0x45;
+                        case 21: return 0x55;
+                        case 22: return 0x65;
+                        case 23: return 0x75;
+                        case 24: return 0x85;
+                        case 25: return 0x95;
+                        case 26: return 0xA5;
+                        case 27: return 0xB5;
+                        case 28: return 0xC5;
+                        case 29: return 0xD5;
+                        case 30: return 0xE5;
+                        case 31: return 0xF5;
                     };
                 }
                 else
