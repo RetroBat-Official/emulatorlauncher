@@ -536,6 +536,7 @@ namespace EmulatorLauncher
 
                     bytes[44] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
                 }
+                
                 bytes[48] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
 
                 if (parentRom == "daytona")
