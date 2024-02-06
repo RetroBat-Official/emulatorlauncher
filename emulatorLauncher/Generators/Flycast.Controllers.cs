@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Globalization;
-using System.Management;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
@@ -51,6 +49,7 @@ namespace EmulatorLauncher
             string mappingPath = Path.Combine(path, "mappings");
 
             bool guns = SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "7" || SystemConfig["flycast_controller2"] == "7";
+            bool useWheel = SystemConfig.getOptBoolean("use_wheel");
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
             int nsamepad = 0;
@@ -61,6 +60,9 @@ namespace EmulatorLauncher
 
             if (guns)
                 ConfigureFlycastGuns(ini, mappingPath);
+
+            //if (useWheel)
+            //    ConfigureFlycastWheels(ini, mappingPath);
         }
 
         private void ConfigureInput(IniFile ini, Controller controller, string mappingPath, string system, Dictionary<string, int> double_pads, int nsamepad)
@@ -212,7 +214,7 @@ namespace EmulatorLauncher
                 return;
 
             bool isArcade = system != "dreamcast";
-            int index = ctrl.SdlController.Index;
+            int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
             int playerIndex = ctrl.PlayerIndex;
             string deviceName = ctrl.SdlController.Name;
             bool serviceMenu = SystemConfig.isOptSet("flycast_service_menu") && SystemConfig.getOptBoolean("flycast_service_menu");
@@ -223,6 +225,7 @@ namespace EmulatorLauncher
             // Test if triggers are analog or digital
             bool analogTriggers = false;
             bool switchanalog = SystemConfig.isOptSet("flycast_analogdpad") && SystemConfig.getOptBoolean("flycast_analogdpad");
+            bool useR1L1 = SystemConfig.isOptSet("flycast_r1l1") && SystemConfig.getOptBoolean("flycast_r1l1");
             var r2test = joy[InputKey.r2];
             if (joy[InputKey.r2] != null)
                 analogTriggers = r2test.Type == "axis";
@@ -265,116 +268,123 @@ namespace EmulatorLauncher
                 ctrlini.ClearSection("digital");
                 ctrlini.ClearSection("emulator");
 
+                List<string> analogBinds = new List<string>();
+                List<string> digitalBinds = new List<string>();
+
                 if (isArcade)
                 {
                     if (switchanalog)
                     {
-                        ctrlini.WriteValue("analog", "bind0", GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_dpad1_left");
-                        ctrlini.WriteValue("analog", "bind1", GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_dpad1_right");
-                        ctrlini.WriteValue("analog", "bind2", GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_dpad1_up");
-                        ctrlini.WriteValue("analog", "bind3", GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_dpad1_down");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_dpad1_left");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_dpad1_right");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_dpad1_up");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_dpad1_down");
                     }
                     else
                     {
-                        ctrlini.WriteValue("analog", "bind0", GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_analog_left");
-                        ctrlini.WriteValue("analog", "bind1", GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_analog_right");
-                        ctrlini.WriteValue("analog", "bind2", GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_analog_up");
-                        ctrlini.WriteValue("analog", "bind3", GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_analog_down");
-                        ctrlini.WriteValue("analog", "bind4", GetInputKeyName(ctrl, InputKey.rightanalogleft, tech) + ":axis2_left");
-                        ctrlini.WriteValue("analog", "bind5", GetInputKeyName(ctrl, InputKey.rightanalogright, tech) + ":axis2_right");
-                        ctrlini.WriteValue("analog", "bind6", GetInputKeyName(ctrl, InputKey.rightanalogup, tech) + ":axis2_up");
-                        ctrlini.WriteValue("analog", "bind7", GetInputKeyName(ctrl, InputKey.rightanalogdown, tech) + ":axis2_down");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.down, tech) + ":btn_dpad1_down");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.left, tech) + ":btn_dpad1_left");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.right, tech) + ":btn_dpad1_right");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_analog_left");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_analog_right");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_analog_up");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_analog_down");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogleft, tech) + ":axis2_left");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogright, tech) + ":axis2_right");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogup, tech) + ":axis2_up");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogdown, tech) + ":axis2_down");
                     }
 
                     if (analogTriggers)
                     {
-                        ctrlini.WriteValue("analog", switchanalog? "bind4" : "bind8", GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
-                        ctrlini.WriteValue("analog", switchanalog ? "bind5" : "bind9", GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                    }
+                    else
+                    {
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
                     }
 
-                    ctrlini.WriteValue("digital", "bind0", GetInputKeyName(ctrl, InputKey.a, tech) + ":btn_a");
-                    ctrlini.WriteValue("digital", "bind1", GetInputKeyName(ctrl, InputKey.b, tech) + ":btn_b");
-                    ctrlini.WriteValue("digital", "bind2", GetInputKeyName(ctrl, InputKey.y, tech) + ":btn_x");
-                    ctrlini.WriteValue("digital", "bind3", GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
-                    ctrlini.WriteValue("digital", "bind4", GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
-                    ctrlini.WriteValue("digital", "bind5", GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_c");
-                    ctrlini.WriteValue("digital", "bind6", GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
-                    ctrlini.WriteValue("digital", "bind7", GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_d");                    // coin
-                    ctrlini.WriteValue("digital", "bind8", tech == "SDL" ? "5" + ":btn_menu" : "10" + ":btn_menu");                    // Guide button (emulator menu)
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.a, tech) + ":btn_a");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.b, tech) + ":btn_b");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.y, tech) + ":btn_x");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_c");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_d");                                          // coin
                     
-                    if (!switchanalog)
-                    {
-                        ctrlini.WriteValue("digital", "bind9", GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
-                        ctrlini.WriteValue("digital", "bind10", GetInputKeyName(ctrl, InputKey.down, tech) + ":btn_dpad1_down");
-                        ctrlini.WriteValue("digital", "bind11", GetInputKeyName(ctrl, InputKey.left, tech) + ":btn_dpad1_left");
-                        ctrlini.WriteValue("digital", "bind12", GetInputKeyName(ctrl, InputKey.right, tech) + ":btn_dpad1_right");
-                    }
+                    if (tech == "SDL")
+                        digitalBinds.Add("5:btn_menu");
+                    else
+                        digitalBinds.Add("10:btn_menu");                                                                                // Guide button (emulator menu)
                     
                     if (serviceMenu)
                     {
-                        if (switchanalog)
-                        {
-                            ctrlini.WriteValue("digital", "bind9", GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // service menu
-                            ctrlini.WriteValue("digital", "bind10", GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_dpad2_up");                 // test
-                        }
-                        else
-                        {
-                            ctrlini.WriteValue("digital", "bind13", GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // service menu
-                            ctrlini.WriteValue("digital", "bind14", GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_dpad2_up");                 // test
-                        }
-
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // service menu
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_dpad2_up");                 // test
                     }
-                    if (!analogTriggers)
-                    {
-                        if (serviceMenu)
-                        {
-                            ctrlini.WriteValue("digital", switchanalog ? "bind11" : "bind15", GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
-                            ctrlini.WriteValue("digital", switchanalog ? "bind12" : "bind16", GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
-                        }
-                        else
-                        {
-                            ctrlini.WriteValue("digital", switchanalog ? "bind9" : "bind13", GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
-                            ctrlini.WriteValue("digital", switchanalog ? "bind10" : "bind14", GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
-                        }
-                    }  
+
+                    for (int i = 0; i < analogBinds.Count; i++)
+                        ctrlini.WriteValue("analog", "bind" + i, analogBinds[i]);
+
+                    for (int i = 0; i < digitalBinds.Count; i++)
+                        ctrlini.WriteValue("digital", "bind" + i, digitalBinds[i]);
                 }
                 
                 else
                 {
-                    ctrlini.WriteValue("analog", "bind0", GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_analog_left");
-                    ctrlini.WriteValue("analog", "bind1", GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_analog_right");
-                    ctrlini.WriteValue("analog", "bind2", GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_analog_up");
-                    ctrlini.WriteValue("analog", "bind3", GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_analog_down");
-                    ctrlini.WriteValue("analog", "bind4", GetInputKeyName(ctrl, InputKey.rightanalogleft, tech) + ":btn_dpad2_left");
-                    ctrlini.WriteValue("analog", "bind5", GetInputKeyName(ctrl, InputKey.rightanalogright, tech) + ":btn_dpad2_right");
-                    ctrlini.WriteValue("analog", "bind6", GetInputKeyName(ctrl, InputKey.rightanalogup, tech) + ":btn_dpad2_up");
-                    ctrlini.WriteValue("analog", "bind7", GetInputKeyName(ctrl, InputKey.rightanalogdown, tech) + ":btn_dpad2_down");
+                    analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_analog_left");
+                    analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_analog_right");
+                    analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_analog_up");
+                    analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_analog_down");
+                    analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogleft, tech) + ":btn_dpad2_left");
+                    analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogright, tech) + ":btn_dpad2_right");
+                    analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogup, tech) + ":btn_dpad2_up");
+                    analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogdown, tech) + ":btn_dpad2_down");
 
-                    if (analogTriggers)
+                    if (analogTriggers && !useR1L1)
                     {
-                        ctrlini.WriteValue("analog", "bind8", GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
-                        ctrlini.WriteValue("analog", "bind9", GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                    }
+                    else if (analogTriggers && useR1L1)
+                    {
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_z");
+                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_c");
                     }
 
-                    ctrlini.WriteValue("digital", "bind0", GetInputKeyName(ctrl, InputKey.b, tech) + ":btn_b");
-                    ctrlini.WriteValue("digital", "bind1", GetInputKeyName(ctrl, InputKey.a, tech) + ":btn_a");
-                    ctrlini.WriteValue("digital", "bind10", GetInputKeyName(ctrl, InputKey.down, tech) + ":btn_dpad1_down");
-                    ctrlini.WriteValue("digital", "bind11", GetInputKeyName(ctrl, InputKey.left, tech) + ":btn_dpad1_left");
-                    ctrlini.WriteValue("digital", "bind12", GetInputKeyName(ctrl, InputKey.right, tech) + ":btn_dpad1_right");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.b, tech) + ":btn_b");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.a, tech) + ":btn_a");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.down, tech) + ":btn_dpad1_down");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.left, tech) + ":btn_dpad1_left");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.right, tech) + ":btn_dpad1_right");
                     
-                    if (!analogTriggers)
+                    if (!analogTriggers && !useR1L1)
                     {
-                        ctrlini.WriteValue("digital", "bind13", GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
-                        ctrlini.WriteValue("digital", "bind14", GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
                     }
-                    ctrlini.WriteValue("digital", "bind2", GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
-                    ctrlini.WriteValue("digital", "bind3", GetInputKeyName(ctrl, InputKey.y, tech) + ":btn_x");
-                    ctrlini.WriteValue("digital", "bind4", GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_menu");
-                    ctrlini.WriteValue("digital", "bind5", GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
-                    ctrlini.WriteValue("digital", "bind6", GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_d");
-                    ctrlini.WriteValue("digital", "bind7", GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
-                    ctrlini.WriteValue("digital", "bind8", GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_c");
-                    ctrlini.WriteValue("digital", "bind9", GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
+                    else if (useR1L1)
+                    {
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_trigger_left");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_trigger_right");
+                    }
+
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.y, tech) + ":btn_x");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_menu");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_d");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
+
+                    for (int i = 0; i < analogBinds.Count; i++)
+                        ctrlini.WriteValue("analog", "bind" + i, analogBinds[i]);
+
+                    for (int i = 0; i < digitalBinds.Count; i++)
+                        ctrlini.WriteValue("digital", "bind" + i, digitalBinds[i]);
                 }
 
                 if (SystemConfig.isOptSet("flycast_deadzone") && !string.IsNullOrEmpty(SystemConfig["flycast_deadzone"]))
