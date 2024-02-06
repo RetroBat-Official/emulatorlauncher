@@ -324,16 +324,14 @@ namespace EmulatorLauncher
                         bytes[17] = Convert.ToByte(j1index + 16);
                     bytes[19] = 0xFF;
 
-                    bytes[20] = parentRom == "indy500" ? GetWheelInputCode(wheelmapping.Brake, wheel, c1, ctrl1, invertedWheelAxis) : GetWheelInputCode(wheelmapping.Throttle, wheel, c1, ctrl1, invertedWheelAxis);  // Accelerate (R2)
-                    
-                    if (parentRom == "stcc" || parentRom == "overrev" || parentRom.StartsWith("manxtt"))
+                    bytes[20] = parentRom == "overrev" ? GetWheelInputCode(wheelmapping.Brake, wheel, c1, ctrl1, invertedWheelAxis) : GetWheelInputCode(wheelmapping.Throttle, wheel, c1, ctrl1, invertedWheelAxis);  // Accelerate (R2)
+                    if (parentRom != "sgt24h")
                         bytes[21] = Convert.ToByte(j1index + 16);
 
                     bytes[23] = 0xFF;
 
-                    bytes[24] = parentRom == "indy500" ? GetWheelInputCode(wheelmapping.Throttle, wheel, c1, ctrl1, invertedWheelAxis) : GetWheelInputCode(wheelmapping.Brake, wheel, c1, ctrl1, invertedWheelAxis);  // Brake (L2)
-                    
-                    if (parentRom != "indy500" && parentRom != "overrev")
+                    bytes[24] = parentRom == "overrev" ? GetWheelInputCode(wheelmapping.Throttle, wheel, c1, ctrl1, invertedWheelAxis) : GetWheelInputCode(wheelmapping.Brake, wheel, c1, ctrl1, invertedWheelAxis);  // Brake (L2)
+                    if (parentRom != "sgt24h")
                         bytes[25] = Convert.ToByte(j1index + 16);
 
                     bytes[27] = 0xFF;
@@ -482,13 +480,11 @@ namespace EmulatorLauncher
                     bytes[19] = 0xFF;
 
                     bytes[20] = GetWheelInputCode(wheelmapping.Throttle, wheel, c1, ctrl1, invertedWheelAxis);  // Accelerate (R2)
-                    if (invertedWheelAxis)
-                        bytes[21] = Convert.ToByte(j1index + 16);
+                    bytes[21] = Convert.ToByte(j1index + 16);
                     bytes[23] = 0xFF;
 
                     bytes[24] = GetWheelInputCode(wheelmapping.Brake, wheel, c1, ctrl1, invertedWheelAxis);  // Brake (L2)
-                    if (invertedWheelAxis)
-                        bytes[25] = Convert.ToByte(j1index + 16);
+                    bytes[25] = Convert.ToByte(j1index + 16);
                     bytes[27] = 0xFF;
 
                     bytes[28] = GetWheelInputCode(wheelmapping.Gear1, wheel, c1, ctrl1, invertedWheelAxis); // Gear 1
