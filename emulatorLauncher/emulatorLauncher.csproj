@@ -169,6 +169,9 @@
     <Compile Include="Generators\Flycast.Guns.cs">
       <DependentUpon>Flycast.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Flycast.Wheels.cs">
+      <DependentUpon>Flycast.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\ForceEngine.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
@@ -198,6 +201,9 @@
     </Compile>
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\MagicEngine.Generator.cs" />
+    <Compile Include="Generators\MagicEngine.Controllers.cs">
+      <DependentUpon>MagicEngine.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Mame64.Generator.cs" />
     <Compile Include="Generators\Mame64.Bezels.cs">
       <DependentUpon>Mame64.Generator.cs</DependentUpon>
