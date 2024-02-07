@@ -169,9 +169,6 @@
     <Compile Include="Generators\Flycast.Guns.cs">
       <DependentUpon>Flycast.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Flycast.Wheels.cs">
-      <DependentUpon>Flycast.Generator.cs</DependentUpon>
-    </Compile>
     <Compile Include="Generators\ForceEngine.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\GsPlus.Generator.cs" />
