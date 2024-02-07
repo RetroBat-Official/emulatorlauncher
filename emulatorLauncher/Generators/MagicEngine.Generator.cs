@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
-    class MagicEngineGenerator : Generator
+    partial class MagicEngineGenerator : Generator
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -36,6 +36,7 @@ namespace EmulatorLauncher
             _resolution = resolution;
 
             SetupConfig(path, system);
+            SetupControllers(path);
 
             //Applying bezels
             if (_fullscreen && SystemConfig["magicengine_renderer"] != "0")
