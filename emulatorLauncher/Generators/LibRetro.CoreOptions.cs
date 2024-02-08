@@ -94,6 +94,7 @@ namespace EmulatorLauncher.Libretro
                 { "gearsystem", "Gearsystem" },
                 { "genesis_plus_gx", "Genesis Plus GX" },
                 { "genesis_plus_gx_wide", "Genesis Plus GX Wide" },
+                { "geolith", "Geolith" },
                 { "gme", "Game Music Emu" },
                 { "gong", "Gong" },
                 { "gpsp", "gpSP" },
@@ -321,6 +322,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
+            ConfigureGeolith(retroarchConfig, coreSettings, system, core);
             ConfigureGong(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureHatari(retroarchConfig, coreSettings, system, core);
@@ -1517,6 +1519,21 @@ namespace EmulatorLauncher.Libretro
                     SetupLightGuns(retroarchConfig, gunId, core, 2);
                 }
             }
+        }
+
+        private void ConfigureGeolith(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "geolith")
+                return;
+
+            BindFeature(coreSettings, "geolith_4player", "geolith_4player", "off");
+            BindFeature(coreSettings, "geolith_aspect", "geolith_aspect", "1:1");
+            BindFeature(coreSettings, "geolith_freeplay", "geolith_freeplay", "off");
+            BindFeature(coreSettings, "geolith_oc", "geolith_oc", "off");
+            BindFeature(coreSettings, "geolith_region", "geolith_region", "us");
+            BindFeature(coreSettings, "geolith_settingmode", "geolith_settingmode", "off");
+            BindFeature(coreSettings, "geolith_system_type", "geolith_system_type", "aes");
+            BindFeature(coreSettings, "geolith_sprlimit", "geolith_sprlimit", "96");
         }
 
         private void ConfigureGong(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
