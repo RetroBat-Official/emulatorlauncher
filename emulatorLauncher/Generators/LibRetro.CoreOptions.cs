@@ -60,6 +60,7 @@ namespace EmulatorLauncher.Libretro
                 { "dosbox_pure", "DOSBox-pure" },
                 { "dosbox_svn_ce", "DOSBox-SVN CE" },
                 { "dosbox_svn", "DOSBox-SVN" },
+                { "DoubleCherryGB", "Doublecherrygb" },
                 { "duckstation", "DuckStation" },
                 { "easyrpg", "EasyRPG Player" },
                 { "ecwolf", "ECWolf" },
@@ -307,6 +308,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureDolphin(retroarchConfig, coreSettings, system, core);
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
+            ConfigureDoublecherrygb(retroarchConfig, coreSettings, system, core);
             Configureecwolf(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFbalpha(retroarchConfig, coreSettings, system, core);
@@ -967,6 +969,12 @@ namespace EmulatorLauncher.Libretro
             // Controller type
             BindFeature(retroarchConfig, "input_libretro_device_p1", "dos_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "dos_controller2", "1");
+        }
+
+        private void ConfigureDoublecherrygb(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "DoubleCherryGB")
+                return;
         }
 
         private void Configureecwolf(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
