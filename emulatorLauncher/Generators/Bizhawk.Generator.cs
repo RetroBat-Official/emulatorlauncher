@@ -533,6 +533,7 @@ namespace EmulatorLauncher
             { "mastersystem", "SMS" },
             { "megadrive", "GEN" },
             { "msx", "MSX" },
+            { "multivision", "SG" },
             { "n64", "N64" },
             { "nes", "NES" },
             { "nds", "NDS" },

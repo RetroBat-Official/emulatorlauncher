@@ -181,10 +181,11 @@ namespace EmulatorLauncher
                     controllerConfig["P" + i + " Asterisk"] = "";
                     controllerConfig["P" + i + " Pound"] = "";
                 }
+                controllerConfig["Power"] = "";
             }
 
-            if (system == "jaguar")
-                controllerConfig["Power"] = "";
+            if (system == "mastersystem" || system == "sg1000" || system == "multivision")
+                controllerConfig["Pause"] = GetXInputKeyName(controller, InputKey.start);
 
             if (system == "tic80")
             {
@@ -978,6 +979,7 @@ namespace EmulatorLauncher
             { "lynx", "Lynx Controller" },
             { "mastersystem", "SMS Controller" },
             { "megadrive", "GPGX Genesis Controller" },
+            { "multivision", "SMS Controller" },
             { "n64", "Nintendo 64 Controller" },
             { "nds", "NDS Controller" },
             { "nes", "NES Controller" },
@@ -1015,6 +1017,7 @@ namespace EmulatorLauncher
             { "lynx", lynxMapping },
             { "mastersystem", smsMapping },
             { "megadrive", mdMapping },
+            { "multivision", smsMapping },
             { "n64", n64Mapping },
             { "nds", ndsMapping },
             { "nes", nesMapping },
