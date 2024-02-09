@@ -128,13 +128,6 @@ namespace EmulatorLauncher
 
                 sdlWheel1 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, wheelGuid1);
 
-                // ------------------------------------------------------------------------------------------------------- logs to remove later
-                SimpleLogger.Instance.Info("[WHEEL_TEST] Wheel 1. Steer value found " + sdlWheel1.ButtonMappings["leftx"]);
-                SimpleLogger.Instance.Info("[WHEEL_TEST] Wheel 1. Throttle value found " + sdlWheel1.ButtonMappings["throttle"]);
-                SimpleLogger.Instance.Info("[WHEEL_TEST] Wheel 1. Brake value found " + sdlWheel1.ButtonMappings["brake"]);
-                SimpleLogger.Instance.Info("[WHEEL_TEST] Wheel 1. start value found " + sdlWheel1.ButtonMappings["start"]);
-                // ----------------------------------------------------------------------------------------------------------
-
                 string deviceName = wheelSDLmapping1.SDLDeviceName;
 
                 string mappingFile = Path.Combine(mappingPath, "SDL_" + deviceName + ".cfg");
