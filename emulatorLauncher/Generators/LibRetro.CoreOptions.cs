@@ -3041,12 +3041,11 @@ namespace EmulatorLauncher.Libretro
             if (core != "ppsspp")
                 return;
 
-            coreSettings["ppsspp_cpu_core"] = "jit";
             coreSettings["ppsspp_auto_frameskip"] = "disabled";
-            coreSettings["ppsspp_frameskip"] = "Off";
-            coreSettings["ppsspp_frameskiptype"] = "number of frames";
+            coreSettings["ppsspp_frameskip"] = "disabled";
+            coreSettings["ppsspp_frameskiptype"] = "Number of frames";
             coreSettings["ppsspp_rendering_mode"] = "Buffered";
-            coreSettings["ppsspp_locked_cpu_speed"] = "off";
+            coreSettings["ppsspp_locked_cpu_speed"] = "disabled";
 
             if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
                 coreSettings["ppsspp_cheats"] = "disabled";
@@ -3105,11 +3104,13 @@ namespace EmulatorLauncher.Libretro
                     break;
             }
 
+            BindFeature(coreSettings, "ppsspp_cpu_core", "ppsspp_cpu_core", "JIT");
+            BindFeature(coreSettings, "ppsspp_inflight_frames", "ppsspp_inflight_frames", "1440x816");
             BindFeature(coreSettings, "ppsspp_internal_resolution", "ppsspp_internal_resolution", "1440x816");
-            BindFeature(coreSettings, "ppsspp_texture_anisotropic_filtering", "ppsspp_texture_anisotropic_filtering", "off");
+            BindFeature(coreSettings, "ppsspp_texture_anisotropic_filtering", "ppsspp_texture_anisotropic_filtering", "disabled");
             BindFeature(coreSettings, "ppsspp_texture_filtering", "ppsspp_texture_filtering", "Auto");
             BindFeature(coreSettings, "ppsspp_texture_scaling_type", "ppsspp_texture_scaling_type", "xbrz");
-            BindFeature(coreSettings, "ppsspp_texture_scaling_level", "ppsspp_texture_scaling_level", "Off");
+            BindFeature(coreSettings, "ppsspp_texture_scaling_level", "ppsspp_texture_scaling_level", "disabled");
             BindFeature(coreSettings, "ppsspp_texture_deposterize", "ppsspp_texture_deposterize", "disabled");
             BindFeature(coreSettings, "ppsspp_language", "ppsspp_language", "Automatic");
             BindFeature(coreSettings, "ppsspp_io_timing_method", "ppsspp_io_timing_method", "Fast");
