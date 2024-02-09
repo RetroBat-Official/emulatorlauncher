@@ -412,6 +412,8 @@ namespace EmulatorLauncher
 
             if (buttonKey.StartsWith("button_"))
             {
+                SimpleLogger.Instance.Info("[WHEELS] Configuring " + buttonKey);
+
                 int buttonID = (buttonKey.Substring(7).ToInteger());
 
                 SimpleLogger.Instance.Info("[WHEELS] Mapping " + buttonKey + " to button " + buttonID);
@@ -423,21 +425,21 @@ namespace EmulatorLauncher
                 return GetDinputKeyName(ctrl, wheel, wheelMapping, buttonKey, invertedAxis);
         }
 
-        private static string GetDinputKeyName(SdlToDirectInput ctrl, Wheel wheel, WheelMappingInfo wheelMapping, string buttonKey, int plus = 0)
+        private static string GetDinputKeyName(SdlToDirectInput ctrl, Wheel wheel, WheelMappingInfo wheelMapping, string button, int plus = 0)
         {
+            SimpleLogger.Instance.Info("[WHEELS] Configuring " + button);
+
             if (ctrl == null ||ctrl.ButtonMappings == null)
                 return "99";
 
-            if (!ctrl.ButtonMappings.ContainsKey(buttonKey))
+            if (!ctrl.ButtonMappings.ContainsKey(button))
                 return "99";
-
-            string button = ctrl.ButtonMappings[buttonKey];
 
             if (button.StartsWith("b"))
             {
-                int buttonID = (buttonKey.Substring(1).ToInteger());
+                int buttonID = (button.Substring(1).ToInteger());
 
-                SimpleLogger.Instance.Info("[WHEELS] Mapping " + buttonKey + " to button " + buttonID);
+                SimpleLogger.Instance.Info("[WHEELS] Mapping " + button + " to button " + buttonID);
 
                 return buttonID.ToString();
             }
@@ -446,7 +448,7 @@ namespace EmulatorLauncher
             {
                 int hatID = button.Substring(3).ToInteger();
 
-                SimpleLogger.Instance.Info("[WHEELS] Mapping " + buttonKey + " to hat " + hatID);
+                SimpleLogger.Instance.Info("[WHEELS] Mapping " + button + " to hat " + hatID);
 
                 switch (hatID)
                 {
@@ -464,7 +466,7 @@ namespace EmulatorLauncher
                 if (button.StartsWith("-a") || button.StartsWith("+a"))
                     axisID = button.Substring(2).ToInteger();
 
-                SimpleLogger.Instance.Info("[WHEELS] Mapping " + buttonKey + " to axis " + plus + axisID);
+                SimpleLogger.Instance.Info("[WHEELS] Mapping " + button + " to axis " + plus + axisID);
 
                 return plus == 1 ? "+" + axisID : "-" + axisID ;
             }
