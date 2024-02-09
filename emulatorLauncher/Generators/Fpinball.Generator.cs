@@ -115,11 +115,11 @@ namespace EmulatorLauncher
                     return null;
             }
 
-            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+            rom = this.TryUnZipGameIfNeeded(system, rom, true, false);
 
             if (Directory.Exists(rom))
             {
-                rom = Directory.GetFiles(rom, "*.fpt").FirstOrDefault();
+                rom = Directory.GetFiles(rom, "*.fpt", SearchOption.AllDirectories).FirstOrDefault();
                 if (string.IsNullOrEmpty(rom))
                     throw new ApplicationException("Unable to find any table in the provided folder");
             }
