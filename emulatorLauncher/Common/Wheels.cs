@@ -1,9 +1,7 @@
 ﻿using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
@@ -20,7 +18,15 @@ namespace EmulatorLauncher
         {
             if (!string.IsNullOrEmpty(devicePath))
             {
-                string[] logitechDrivingForceids = new string[] { "VID_046D&PID_C294", "VID_046D&PID_C298" };
+                List<string> knownWheelsVidPid = knownWheelsTypes.Keys.ToList();
+                
+                if (knownWheelsVidPid.Any(d => devicePath.Contains(d)))
+                    return knownWheelsTypes[knownWheelsVidPid.First(d => devicePath.Contains(d))];
+
+                else
+                    return WheelType.Default;
+
+                /*string[] logitechDrivingForceids = new string[] { "VID_046D&PID_C294", "VID_046D&PID_C298" };
                 if (logitechDrivingForceids.Any(d => devicePath.Contains(d)))
                     return WheelType.LogitechDrivingForce;                
 
@@ -75,9 +81,11 @@ namespace EmulatorLauncher
                 string[] thrustmasterT150ids = new string[] { "VID_044F&PID_B677" };
                 if (thrustmasterT150ids.Any(d => devicePath.Contains(d)))
                     return WheelType.ThrustmasterT150;
+                */
             }
 
-            return WheelType.Default;
+            else
+                return WheelType.Default;
         }
 
         public int DinputIndex { get; set; }
@@ -97,6 +105,30 @@ namespace EmulatorLauncher
             else
                 return (int)Type;
         }
+
+        private static readonly Dictionary<string, WheelType> knownWheelsTypes = new Dictionary<string, WheelType>
+        {
+            // Logitech
+            { "VID_046D&PID_C24F", WheelType.LogitechG29 },             // G29
+            { "VID_046D&PID_C260", WheelType.LogitechG29alt },          // G29
+            { "VID_046D&PID_C262", WheelType.LogitechG920 },            // G920
+            { "VID_046D&PID_C266", WheelType.LogitechG923PS },          // G923 PS
+            { "VID_046D&PID_C26E", WheelType.LogitechG923X },           // G923 Xbox
+            { "VID_046D&PID_C294", WheelType.LogitechDrivingForce },    // Driving force
+            {"VID_046D&PID_C298", WheelType.LogitechDrivingForce },     // Driving Force
+            { "VID_046D&PID_C299", WheelType.LogitechG25 },             // G25
+            { "VID_046D&PID_C29B", WheelType.LogitechG27 },             // G27
+            { "VID_046D&PID_CA03", WheelType.LogitechMomo },            // Momo
+            // Microsoft
+            { "VID_045E&PID_001A", WheelType.MicrosoftSideWinder },     // Sidewinder
+            { "VID_045E&PID_0034", WheelType.MicrosoftSideWinder },     // Sidewinder
+            // Thrustmaster
+            { "VID_044F&PID_B605", WheelType.ThrustmasterForceFeedbackRacing },     // Force Feedback Racing
+            { "VID_044F&PID_B651", WheelType.ThrustmasterFerrariGT },               // Ferrari GT
+            { "VID_044F&PID_B653", WheelType.ThrustmasterRallyGT },                 // Rally GT
+            { "VID_044F&PID_B654", WheelType.ThrustmasterFerrariGT },               // Ferrari GT
+            { "VID_044F&PID_B677", WheelType.ThrustmasterT150 }                     // T150
+        };
     }
 
     public enum WheelType
@@ -192,13 +224,14 @@ namespace EmulatorLauncher
 
         public WheelSDLMappingInfo()
         {
-            WheelGuid  = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Start = Select = Dpad = Gearup = Geardown = South = East = North = West = L1 = L2 = R1 = R2 = "nul";
+            WheelGuid  = SDLDeviceName = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Start = Select = Dpad = Gearup = Geardown = South = East = North = West = L1 = L2 = R1 = R2 = "nul";
         }
         #endregion
 
         [YmlName]
         public string Wheeltype { get; set; }
         public string WheelGuid { get; set; }
+        public string SDLDeviceName { get; set; }
         public string Pcsx2_Type { get; set; }
         public string Forcefeedback { get; set; }
         public string Invertedaxis { get; set; }

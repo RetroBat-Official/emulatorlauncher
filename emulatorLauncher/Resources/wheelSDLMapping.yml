@@ -1,5 +1,6 @@
 LogitechG29:
   WheelGuid: 030000006d0400004fc2000000000000
+  SDLDeviceName: Logitech G HUB G29 Driving Force Racing Wheel USB
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true

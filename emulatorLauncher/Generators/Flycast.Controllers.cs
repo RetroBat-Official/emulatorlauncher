@@ -54,15 +54,14 @@ namespace EmulatorLauncher
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
             int nsamepad = 0;
 
-            
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                 ConfigureInput(ini, controller, mappingPath, system, double_pads, nsamepad);
 
             if (guns)
                 ConfigureFlycastGuns(ini, mappingPath);
 
-            //if (useWheel)
-            //    ConfigureFlycastWheels(ini, mappingPath);
+            if (useWheel)
+                ConfigureFlycastWheels(ini, mappingPath, system);
         }
 
         private void ConfigureInput(IniFile ini, Controller controller, string mappingPath, string system, Dictionary<string, int> double_pads, int nsamepad)
@@ -213,10 +212,12 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            SimpleLogger.Instance.Info("[GAMEPAD] Configuring gamepad " + ctrl.Name + " for player " + ctrl.PlayerIndex + " and system " + system);
+
             bool isArcade = system != "dreamcast";
             int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
             int playerIndex = ctrl.PlayerIndex;
-            string deviceName = ctrl.SdlController.Name;
+            string deviceName = ctrl.SdlController != null ? ctrl.SdlController.Name : ctrl.Name;
             bool serviceMenu = SystemConfig.isOptSet("flycast_service_menu") && SystemConfig.getOptBoolean("flycast_service_menu");
 
             //Define tech (SDL or XInput)
@@ -246,7 +247,10 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue("input", "device" + playerIndex + ".2", "10");
 
+            SimpleLogger.Instance.Info("[INPUT] Assigning " + ctrl.Name + " with index " + index + " to player " + playerIndex);
             ini.WriteValue("input", "maple_sdl_joystick_" + index, (playerIndex - 1).ToString());
+
+            SimpleLogger.Instance.Info("[GAMEPAD] Generating flycast mapping file : " + mappingFile + " number" + nsamepad);
 
             // Do not generate twice the same mapping file
             if (double_pads.ContainsKey(mappingFile))
@@ -257,7 +261,10 @@ namespace EmulatorLauncher
             double_pads[mappingFile] = nsamepad + 1;
 
             if (nsamepad > 0)
+            {
+                SimpleLogger.Instance.Info("[GAMEPAD] Mapping file " + mappingFile + " already generated for the same controller");
                 return;
+            }
 
             if (File.Exists(mappingFile))
                 File.Delete(mappingFile);
