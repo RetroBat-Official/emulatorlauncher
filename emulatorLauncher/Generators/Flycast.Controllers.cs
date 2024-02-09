@@ -54,14 +54,17 @@ namespace EmulatorLauncher
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
             int nsamepad = 0;
 
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
-                ConfigureInput(ini, controller, mappingPath, system, double_pads, nsamepad);
-
-            if (guns)
-                ConfigureFlycastGuns(ini, mappingPath);
-
             if (useWheel)
                 ConfigureFlycastWheels(ini, mappingPath, system);
+
+            else
+            {
+                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
+                    ConfigureInput(ini, controller, mappingPath, system, double_pads, nsamepad);
+
+                if (guns)
+                    ConfigureFlycastGuns(ini, mappingPath);
+            }
         }
 
         private void ConfigureInput(IniFile ini, Controller controller, string mappingPath, string system, Dictionary<string, int> double_pads, int nsamepad)

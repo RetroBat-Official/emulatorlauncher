@@ -128,6 +128,13 @@ namespace EmulatorLauncher
 
                 sdlWheel1 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, wheelGuid1);
 
+                // ------------------------------------------------------------------------------------------------------- logs to remove later
+                SimpleLogger.Instance.Info("[WHEEL_TEST] Wheel 1. Steer value found " + sdlWheel1.ButtonMappings["leftx"]);
+                SimpleLogger.Instance.Info("[WHEEL_TEST] Wheel 1. Throttle value found " + sdlWheel1.ButtonMappings["throttle"]);
+                SimpleLogger.Instance.Info("[WHEEL_TEST] Wheel 1. Brake value found " + sdlWheel1.ButtonMappings["brake"]);
+                SimpleLogger.Instance.Info("[WHEEL_TEST] Wheel 1. start value found " + sdlWheel1.ButtonMappings["start"]);
+                // ----------------------------------------------------------------------------------------------------------
+
                 string deviceName = wheelSDLmapping1.SDLDeviceName;
 
                 string mappingFile = Path.Combine(mappingPath, "SDL_" + deviceName + ".cfg");
@@ -231,7 +238,7 @@ namespace EmulatorLauncher
                         ctrlini.WriteValue("digital", "bind" + i, digitalBinds[i]);
 
                     ctrlini.WriteValue("emulator", "dead_zone", "1");
-                    ctrlini.WriteValue("emulator", "mapping_name", deviceName);
+                    ctrlini.WriteValue("emulator", "mapping_name", "Default");
                     ctrlini.WriteValue("emulator", "rumble_power", "100");
                     ctrlini.WriteValue("emulator", "version", "3");
 
@@ -316,7 +323,6 @@ namespace EmulatorLauncher
 
                     if (!isArcade)
                     {
-
                         analogBinds.Add(GetWheelKeyName(sdlWheel2, wheel2, wheelmapping2, wheelmapping2.Steer, -1) + ":btn_analog_left");
                         analogBinds.Add(GetWheelKeyName(sdlWheel2, wheel2, wheelmapping2, wheelmapping2.Steer, 1) + ":btn_analog_right");
                         analogBinds.Add(GetWheelKeyName(sdlWheel2, wheel2, wheelmapping2, wheelmapping2.Throttle, -1) + ":btn_trigger_right");
@@ -386,7 +392,7 @@ namespace EmulatorLauncher
                         ctrlini.WriteValue("digital", "bind" + i, digitalBinds[i]);
 
                     ctrlini.WriteValue("emulator", "dead_zone", "1");
-                    ctrlini.WriteValue("emulator", "mapping_name", deviceName2);
+                    ctrlini.WriteValue("emulator", "mapping_name", "Default");
                     ctrlini.WriteValue("emulator", "rumble_power", "100");
                     ctrlini.WriteValue("emulator", "version", "3");
 
@@ -425,21 +431,24 @@ namespace EmulatorLauncher
                 return GetDinputKeyName(ctrl, wheel, wheelMapping, buttonKey, invertedAxis);
         }
 
-        private static string GetDinputKeyName(SdlToDirectInput ctrl, Wheel wheel, WheelMappingInfo wheelMapping, string button, int plus = 0)
+        private static string GetDinputKeyName(SdlToDirectInput ctrl, Wheel wheel, WheelMappingInfo wheelMapping, string buttonkey, int plus = 0)
         {
-            SimpleLogger.Instance.Info("[WHEELS] Configuring " + button);
+            //SimpleLogger.Instance.Info("[INPUT] Configuring " + buttonkey);
 
-            if (ctrl == null ||ctrl.ButtonMappings == null)
+            if (ctrl == null || ctrl.ButtonMappings == null)
                 return "99";
 
-            if (!ctrl.ButtonMappings.ContainsKey(button))
+            if (!ctrl.ButtonMappings.ContainsKey(buttonkey))
                 return "99";
+
+            string button = ctrl.ButtonMappings[buttonkey];
+            //SimpleLogger.Instance.Info("[INPUT] Found value " + button + " for " + buttonkey);
 
             if (button.StartsWith("b"))
             {
                 int buttonID = (button.Substring(1).ToInteger());
 
-                SimpleLogger.Instance.Info("[WHEELS] Mapping " + button + " to button " + buttonID);
+                //SimpleLogger.Instance.Info("[INPUT] Mapping " + button + " to button " + buttonID);
 
                 return buttonID.ToString();
             }
@@ -448,7 +457,7 @@ namespace EmulatorLauncher
             {
                 int hatID = button.Substring(3).ToInteger();
 
-                SimpleLogger.Instance.Info("[WHEELS] Mapping " + button + " to hat " + hatID);
+                //SimpleLogger.Instance.Info("[INPUT] Mapping " + button + " to hat " + hatID);
 
                 switch (hatID)
                 {
@@ -466,9 +475,9 @@ namespace EmulatorLauncher
                 if (button.StartsWith("-a") || button.StartsWith("+a"))
                     axisID = button.Substring(2).ToInteger();
 
-                SimpleLogger.Instance.Info("[WHEELS] Mapping " + button + " to axis " + plus + axisID);
+                //SimpleLogger.Instance.Info("[INPUT] Mapping " + button + " to axis " + plus + axisID);
 
-                return plus == 1 ? "+" + axisID : "-" + axisID ;
+                return plus == 1 ? axisID + "+" : axisID + "-" ;
             }
 
             return "99";
