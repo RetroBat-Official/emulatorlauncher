@@ -442,7 +442,7 @@
       },
       {
         "md5": "0ec5ae5b5a5c4959fa8b43fcf8687f7c",
-        "file": "../emulators/flycast/data/awbios.zip"
+        "file": "emulators/flycast/data/awbios.zip"
       }
     ]
   },
@@ -652,15 +652,15 @@
       },
       {
         "md5": "e10c53c2f8b90bab96ead2d368858623",
-        "file": "../emulators/flycast/data/dc_boot.bin"
+        "file": "emulators/flycast/data/dc_boot.bin"
       },
       {
         "md5": "0a93f7940c455905bea6e392dfde92a4",
-        "file": "../emulators/flycast/data/dc_flash.bin"
+        "file": "emulators/flycast/data/dc_flash.bin"
       },
       {
         "md5": "",
-        "file": "../emulators/flycast/data/dc.zip"
+        "file": "emulators/flycast/data/dc.zip"
       }
     ]
   },
@@ -930,27 +930,27 @@
       },
       {
         "md5": "",
-        "file": "../emulators/jynx/lynx48-1.rom"
+        "file": "emulators/jynx/lynx48-1.rom"
       },
       {
         "md5": "",
-        "file": "../emulators/jynx/lynx48-2.rom"
+        "file": "emulators/jynx/lynx48-2.rom"
       },
       {
         "md5": "",
-        "file": "../emulators/jynx/lynx96-1.rom"
+        "file": "emulators/jynx/lynx96-1.rom"
       },
       {
         "md5": "",
-        "file": "../emulators/jynx/lynx96-2.rom"
+        "file": "emulators/jynx/lynx96-2.rom"
       },
       {
         "md5": "",
-        "file": "../emulators/jynx/lynx96-3.rom"
+        "file": "emulators/jynx/lynx96-3.rom"
       },
       {
         "md5": "",
-        "file": "../emulators/jynx/lynx96-3-scorpion.rom"
+        "file": "emulators/jynx/lynx96-3-scorpion.rom"
       },
       {
         "md5": "",
@@ -1196,7 +1196,7 @@
       },
       {
         "md5": "eb4099aeb42ef089cfe94f8fe95e51f6",
-        "file": "../emulators/flycast/data/naomi.zip"
+        "file": "emulators/flycast/data/naomi.zip"
       }
     ]
   },
@@ -1210,7 +1210,7 @@
       },
       {
         "md5": "",
-        "file": "../emulators/flycast/data/naomi2.zip"
+        "file": "emulators/flycast/data/naomi2.zip"
       }
     ]
   },

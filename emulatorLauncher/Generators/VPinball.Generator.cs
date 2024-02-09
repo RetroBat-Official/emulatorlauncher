@@ -44,7 +44,7 @@ namespace EmulatorLauncher
             _version = new Version(10, 0, 0, 0);
             Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion.Replace(",", ".").Replace(" ", ""), out _version);
 
-            rom = this.TryUnZipGameIfNeeded(system, rom, true);
+            rom = this.TryUnZipGameIfNeeded(system, rom, true, false);
             if (Directory.Exists(rom))
             {
                 rom = Directory.GetFiles(rom, "*.vpx").FirstOrDefault();
@@ -236,6 +236,7 @@ namespace EmulatorLauncher
                         item.Width = bulb.GetAttribute("Width").ToInteger();
                         item.Height = bulb.GetAttribute("Height").ToInteger();
                         item.Visible = bulb.GetAttribute("Visible") == "1";
+                        item.IsImageSnippit = bulb.GetAttribute("IsImageSnippit") == "1";
                         item.Image = Misc.Base64ToImage(bulb.GetAttribute("Image"));
 
                         if (item.Visible && item.Image != null)
@@ -274,10 +275,16 @@ namespace EmulatorLauncher
                 {
                     foreach (var bulb in Bulbs)
                     {
+                        if (bulb.IsImageSnippit)
+                            continue;
+
                         if (index == 0 && (bulb.ID & 1) == 0)
                             continue;
 
                         if (index == 1 && (bulb.ID & 1) == 1)
+                            continue;
+
+                        if (index == 3)
                             continue;
 
                         Color lightColor = Color.White;
@@ -320,6 +327,7 @@ namespace EmulatorLauncher
                 public int Width { get; set; }
                 public int Height { get; set; }
                 public bool Visible { get; set; }
+                public bool IsImageSnippit { get; set; }
 
                 public Image Image { get; set; }                
             }
@@ -346,7 +354,7 @@ namespace EmulatorLauncher
                         if (now - last > 1000)
                         {
                             index++;
-                            if (index >= 3)
+                            if (index >= 4)
                                 index = 0;
 
                             frm.Image = data.RenderBackglass(index);

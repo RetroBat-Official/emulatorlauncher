@@ -10,47 +10,13 @@ namespace batocera_systems
 {
     class Program
     {
-        static string[] biospaths = 
-            {
-                @".\..\bios",
-                @".\..\..\bios",
-            };
-
-        static string[] rompaths = 
-            {
-                @".\..\roms",
-                @".\..\..\roms",
-            };
-
         static void Main(string[] args)
         {
-            string root = null;
             string path = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 
-            foreach (var bp in biospaths)
-            {
-                string test = Path.GetFullPath(Path.Combine(path, bp));
-                if (Directory.Exists(test))
-                {
-                    root = test;
-                    break;
-                }
-            }
-
-            if (root == null)
-                root = Path.GetFullPath(Path.Combine(path, @".\..\bios"));
-
-            string romRoot = null;            
-
-            foreach (var bp in rompaths)
-            {
-                string test = Path.GetFullPath(Path.Combine(path, bp));
-                if (Directory.Exists(test))
-                {
-                    romRoot = test;
-                    break;
-                }
-            }
+            string biosPath = FindPath(path, new string[] { @".\..\bios", @".\..\..\bios" });
+            string romsPath = FindPath(path, new string[] { @".\..\roms", @".\..\..\roms" });
+            string emulatorsPath = FindPath(path, new string[] { @".\..\emulators", @".\..\..\emulators", @".\..\system\emulators" });
 
             string filter = args.SkipWhile(a => a != "--filter").Skip(1).FirstOrDefault();
 
@@ -62,13 +28,18 @@ namespace batocera_systems
                 if (filter != null && filter != item.Key)
                     continue;
 
-                List<string> lines = new List<string>();
+                var lines = new List<string>();
 
                 foreach (var bios in item.Value.biosFiles)
                 {
-                    string fileName = Path.Combine(root, bios.file.StartsWith("bios/") ? bios.file.Substring(5) : bios.file);
-                    if (bios.file.StartsWith("roms/") && romRoot != null)
-                        fileName = Path.Combine(romRoot, bios.file.Replace("roms/", ""));
+                    string fileName = Path.GetFullPath(Path.Combine(path, "..", bios.file));
+
+                    if (bios.file.StartsWith("bios/") && biosPath != null)
+                        fileName = Path.GetFullPath(Path.Combine(biosPath, bios.file.Replace("bios/", "")));
+                    else if (bios.file.StartsWith("roms/") && romsPath != null)
+                        fileName = Path.GetFullPath(Path.Combine(romsPath, bios.file.Replace("roms/", "")));
+                    else if (bios.file.StartsWith("emulators/") && emulatorsPath != null)
+                        fileName = Path.GetFullPath(Path.Combine(emulatorsPath, bios.file.Replace("emulators/", "")));
                     
                     if (!File.Exists(fileName))
                         lines.Add("MISSING " + (string.IsNullOrEmpty(bios.md5) ? "-" : bios.md5) + " " + bios.file);
@@ -91,11 +62,23 @@ namespace batocera_systems
                 if (lines.Any())
                 {
                     Console.WriteLine("> " + item.Key);
+
                     foreach (var line in lines)
                         Console.WriteLine(line);
-
                 }
             }        
+        }
+
+        static string FindPath(string relativeTo, string[] paths)
+        {
+            foreach (var bp in paths)
+            {
+                string test = Path.GetFullPath(Path.Combine(relativeTo, bp));
+                if (Directory.Exists(test))
+                    return test;
+            }
+
+            return null;
         }
 
         public class SystemInfo
