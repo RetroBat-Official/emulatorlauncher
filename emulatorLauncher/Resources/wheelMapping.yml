@@ -8,8 +8,8 @@ LogitechG29:
   Throttle: throttle
   Brake: brake
   Steer: leftx
-  Gearup: leftshoulder
-  Geardown: rightshoulder
+  Gearup: rightshoulder
+  Geardown: leftshoulder
   Gear1: button_12
   Gear2: button_13
   Gear3: button_14
@@ -21,6 +21,29 @@ LogitechG29:
   DpadDown: button_26
   DpadLeft: button_27
   DpadRight: button_28
+LogitechDrivingForceGT:
+  WheelGuid: 030000006d0400009ac2000000000000
+  Inputsystems: dinput
+  Pcsx2_Type: 2
+  Forcefeedback: true
+  Invertedaxis: true
+  Range: nul
+  Throttle: throttle
+  Brake: brake
+  Steer: leftx
+  Gearup: button_13
+  Geardown: button_12
+  Gear1: nul
+  Gear2: nul
+  Gear3: nul
+  Gear4: nul
+  Gear5: nul
+  Gear6: nul
+  Gear_reverse: nul
+  DpadUp: button_21
+  DpadDown: button_22
+  DpadLeft: button_23
+  DpadRight: button_24
 LogitechG29alt:
   WheelGuid: 030000006d04000060c2000000000000
   Inputsystems: dinput
@@ -31,8 +54,8 @@ LogitechG29alt:
   Throttle: throttle
   Brake: brake
   Steer: leftx
-  Gearup: leftshoulder
-  Geardown: rightshoulder
+  Gearup: rightshoulder
+  Geardown: leftshoulder
   Gear1: button_12
   Gear2: button_13
   Gear3: button_14
@@ -54,8 +77,8 @@ LogitechG920:
   Throttle: throttle
   Brake: brake
   Steer: leftx
-  Gearup: leftshoulder
-  Geardown: rightshoulder
+  Gearup: rightshoulder
+  Geardown: leftshoulder
   Gear1: button_12
   Gear2: button_13
   Gear3: button_14
@@ -77,8 +100,8 @@ LogitechG923PS:
   Throttle: throttle
   Brake: brake
   Steer: leftx
-  Gearup: leftshoulder
-  Geardown: rightshoulder
+  Gearup: rightshoulder
+  Geardown: leftshoulder
   Gear1: button_12
   Gear2: button_13
   Gear3: button_14
@@ -100,8 +123,8 @@ LogitechG923X:
   Throttle: throttle
   Brake: brake
   Steer: leftx
-  Gearup: leftshoulder
-  Geardown: rightshoulder
+  Gearup: rightshoulder
+  Geardown: leftshoulder
   Gear1: button_12
   Gear2: button_13
   Gear3: button_14

@@ -83,7 +83,7 @@ namespace EmulatorLauncher
         LogitechG29alt,
         LogitechG920,
         LogitechG27,
-        LogitechDrivingForceGT
+        LogitechDrivingForceGT,
         LogitechG25,
         LogitechDrivingForce,
         ThrustmasterT150,
@@ -169,7 +169,7 @@ namespace EmulatorLauncher
 
         public WheelSDLMappingInfo()
         {
-            WheelGuid  = SDLDeviceName = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Start = Select = Dpad = Gearup = Geardown = South = East = North = West = L1 = L2 = R1 = R2 = "nul";
+            WheelGuid  = SDLDeviceName = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Start = Select = Dpad = Gearup = Geardown = South = East = North = West = L1 = L2 = L3 = R1 = R2 = R3 = "nul";
         }
         #endregion
 
@@ -195,7 +195,9 @@ namespace EmulatorLauncher
         public string West { get; set; }
         public string L1 { get; set; }
         public string L2 { get; set; }
+        public string L3 { get; set; }
         public string R1 { get; set; }
         public string R2 { get; set; }
+        public string R3 { get; set; }
     }
 }

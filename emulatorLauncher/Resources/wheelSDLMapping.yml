@@ -21,3 +21,28 @@ LogitechG29:
   L2: Button28
   R1: Button25
   R2: Button27
+LogitechDrivingForceGT:
+  WheelGuid: 030000006d0400009ac2000000000000
+  SDLDeviceName: Logitech Driving Force GT USB
+  Pcsx2_Type: 2
+  Forcefeedback: true
+  Invertedaxis: true
+  Range: nul
+  Throttle: Axis7~
+  Brake: Axis8~
+  Steer: Axis6
+  Start: Button30
+  Select: Button29
+  Dpad: Hat0
+  Gearup: Button34
+  Geardown: Button33
+  South: Button21
+  East: Button23
+  North: Button24
+  West: Button22
+  L1: Button26
+  L2: Button28
+  L3: Button32
+  R1: Button25
+  R2: Button27
+  R3: Button31
