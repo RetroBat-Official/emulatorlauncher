@@ -7,20 +7,23 @@ LogitechG29:
   Range: nul
   Throttle: Axis7~
   Brake: Axis8~
+  Clutch: Axis9~
   Steer: Axis6
   Start: Button45
   Select: Button30
   Dpad: Hat0
-  Gearup: leftshoulder
-  Geardown: rightshoulder
+  Gearup: rightshoulder
+  Geardown: leftshoulder
   South: Button21
   East: Button23
   North: Button24
   West: Button22
   L1: Button26
   L2: Button28
+  L3: Button32
   R1: Button25
   R2: Button27
+  R3: Button31
 LogitechDrivingForceGT:
   WheelGuid: 030000006d0400009ac2000000000000
   SDLDeviceName: Logitech Driving Force GT USB
@@ -30,12 +33,39 @@ LogitechDrivingForceGT:
   Range: nul
   Throttle: Axis7~
   Brake: Axis8~
+  Clutch: nul
   Steer: Axis6
   Start: Button30
   Select: Button29
   Dpad: Hat0
   Gearup: Button34
   Geardown: Button33
+  South: Button21
+  East: Button23
+  North: Button24
+  West: Button22
+  L1: Button26
+  L2: Button28
+  L3: Button32
+  R1: Button25
+  R2: Button27
+  R3: Button31
+LogitechG923PS:
+  WheelGuid: 030000006d04000066c2000000000000
+  SDLDeviceName: Logitech G HUB G923 Racing Wheel for PlayStation 4 and PC USB
+  Pcsx2_Type: 2
+  Forcefeedback: true
+  Invertedaxis: true
+  Range: nul
+  Throttle: Axis7~
+  Brake: Axis8~
+  Clutch: Axis9~
+  Steer: Axis6
+  Start: Button30
+  Select: Button29
+  Dpad: Hat0
+  Gearup: rightshoulder
+  Geardown: leftshoulder
   South: Button21
   East: Button23
   North: Button24

@@ -7,6 +7,7 @@ LogitechG29:
   Range: nul
   Throttle: throttle
   Brake: brake
+  Clutch: clutch
   Steer: leftx
   Gearup: rightshoulder
   Geardown: leftshoulder
@@ -30,6 +31,7 @@ LogitechDrivingForceGT:
   Range: nul
   Throttle: throttle
   Brake: brake
+  Clutch: nul
   Steer: leftx
   Gearup: button_13
   Geardown: button_12
@@ -53,6 +55,7 @@ LogitechG29alt:
   Range: nul
   Throttle: throttle
   Brake: brake
+  Clutch: clutch
   Steer: leftx
   Gearup: rightshoulder
   Geardown: leftshoulder
@@ -76,6 +79,7 @@ LogitechG920:
   Range: nul
   Throttle: throttle
   Brake: brake
+  Clutch: clutch
   Steer: leftx
   Gearup: rightshoulder
   Geardown: leftshoulder
@@ -99,6 +103,7 @@ LogitechG923PS:
   Range: nul
   Throttle: throttle
   Brake: brake
+  Clutch: clutch
   Steer: leftx
   Gearup: rightshoulder
   Geardown: leftshoulder
@@ -122,6 +127,7 @@ LogitechG923X:
   Range: nul
   Throttle: throttle
   Brake: brake
+  Clutch: clutch
   Steer: leftx
   Gearup: rightshoulder
   Geardown: leftshoulder
@@ -145,6 +151,7 @@ MicrosoftSideWinder:
   Range: nul
   Throttle: throttle
   Brake: brake
+  Clutch: clutch
   Steer: leftx
   Gearup: leftshoulder
   Geardown: rightshoulder
@@ -168,6 +175,7 @@ default:
   Range: nul
   Throttle: righttrigger
   Brake: lefttrigger
+  Clutch: nul
   Steer: leftx
   Gearup: leftshoulder
   Geardown: rightshoulder

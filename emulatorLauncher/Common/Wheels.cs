@@ -117,7 +117,7 @@ namespace EmulatorLauncher
 
         public WheelMappingInfo()
         {
-            WheelGuid = Inputsystems = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Gearup = Geardown = Gear1 = Gear2 = Gear3 = Gear4 = Gear5 = Gear6 = Gear_reverse = DpadUp = DpadDown = DpadLeft = DpadRight = "nul";
+            WheelGuid = Inputsystems = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Clutch = Steer = Gearup = Geardown = Gear1 = Gear2 = Gear3 = Gear4 = Gear5 = Gear6 = Gear_reverse = DpadUp = DpadDown = DpadLeft = DpadRight = "nul";
         }
         #endregion
 
@@ -131,6 +131,7 @@ namespace EmulatorLauncher
         public string Range { get; set; }
         public string Throttle { get; set; }
         public string Brake { get; set; }
+        public string Clutch { get; set; }
         public string Steer { get; set; }
         public string Gearup { get; set; }
         public string Geardown { get; set; }
@@ -169,7 +170,7 @@ namespace EmulatorLauncher
 
         public WheelSDLMappingInfo()
         {
-            WheelGuid  = SDLDeviceName = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Steer = Start = Select = Dpad = Gearup = Geardown = South = East = North = West = L1 = L2 = L3 = R1 = R2 = R3 = "nul";
+            WheelGuid  = SDLDeviceName = Pcsx2_Type = Forcefeedback = Invertedaxis = Range = Throttle = Brake = Clutch = Steer = Start = Select = Dpad = Gearup = Geardown = South = East = North = West = L1 = L2 = L3 = R1 = R2 = R3 = "nul";
         }
         #endregion
 
@@ -183,6 +184,7 @@ namespace EmulatorLauncher
         public string Range { get; set; }
         public string Throttle { get; set; }
         public string Brake { get; set; }
+        public string Clutch { get; set; }
         public string Steer { get; set; }
         public string Start { get; set; }
         public string Select { get; set; }
