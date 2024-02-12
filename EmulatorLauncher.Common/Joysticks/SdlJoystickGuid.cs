@@ -134,7 +134,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     .Where(r => r.VendorId == this.VendorId && r.ProductId == this.ProductId)
                     .FirstOrDefault();
 
-                if (ctrl != null)
+                if (ctrl != null && ctrl.Manufacturer != null)
                 {
                     // 030044f05e040000e002000000007200
                     ushort crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Manufacturer));
@@ -146,6 +146,23 @@ namespace EmulatorLauncher.Common.Joysticks
                     var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
                     return new SdlJoystickGuid(ggs);
                 }
+
+                else if (ctrl != null && name != null)
+                {
+                    var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
+
+                    var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
+                    ret = new SdlJoystickGuid(ggs);
+                }
+
+                else
+                {
+                    // Pre 2.26x : remove '16-bit CRC16 of the joystick name'
+                    var ggs = _guid.Substring(0, 4) + "0000" + _guid.Substring(8);
+                    ret = new SdlJoystickGuid(ggs);
+                    if (version == SdlVersion.SDL2_24)
+                        return ret;
+                }
             }
 
 
@@ -156,6 +173,7 @@ namespace EmulatorLauncher.Common.Joysticks
                 var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
                 ret = new SdlJoystickGuid(ggs);
             }
+
             else
             {
                 // Pre 2.26x : remove '16-bit CRC16 of the joystick name'
