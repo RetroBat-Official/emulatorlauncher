@@ -7,7 +7,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 
 namespace EmulatorLauncher.Common.Joysticks
-{   
+{
     /// <summary>
     /// This GUID fits the standard form:
     ///     * 16-bit bus
@@ -128,6 +128,27 @@ namespace EmulatorLauncher.Common.Joysticks
 
             SdlJoystickGuid ret = new SdlJoystickGuid(_guid);
 
+            if (version == SdlVersion.SDL2_30 && this.WrappedTechID == SdlWrappedTechId.RawInput)
+            {
+                var ctrl = RawInputDevice.GetRawInputControllers()
+                    .Where(r => r.VendorId == this.VendorId && r.ProductId == this.ProductId)
+                    .FirstOrDefault();
+
+                if (ctrl != null)
+                {
+                    // 030044f05e040000e002000000007200
+                    ushort crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Manufacturer));
+                    crc = SDL.SDL_crc16(new byte[] { 32 }, crc);
+                    crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Name), crc);
+
+                    var crc16 = SDL.SDL_Swap16(crc).ToString("X4");
+
+                    var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
+                    return new SdlJoystickGuid(ggs);
+                }
+            }
+
+
             if (version == SdlVersion.SDL2_26 && name != null)
             {
                 var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
@@ -180,7 +201,7 @@ namespace EmulatorLauncher.Common.Joysticks
         {
             return p._guid.ToString();
         }
-        
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -274,6 +295,9 @@ namespace EmulatorLauncher.Common.Joysticks
             if (version.Major >= 3)
                 return SdlVersion.SDL2_26;
 
+            if (version.Minor >= 30)
+                return SdlVersion.SDL2_30;
+
             if (version.Minor >= 26)
                 return SdlVersion.SDL2_26;
 
@@ -332,6 +356,9 @@ namespace EmulatorLauncher.Common.Joysticks
             if (version.Major >= 3)
                 return SdlVersion.SDL2_26;
 
+            if (version.Minor >= 30)
+                return SdlVersion.SDL2_30;
+
             if (version.Minor >= 26)
                 return SdlVersion.SDL2_26;
 
@@ -347,6 +374,7 @@ namespace EmulatorLauncher.Common.Joysticks
         Unknown,
         SDL2_24,
         SDL2_26,
+        SDL2_30,
         SDL2_0_X
     }
 

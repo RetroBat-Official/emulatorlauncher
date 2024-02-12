@@ -3,6 +3,7 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
@@ -13,6 +14,8 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_30;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("ryujinx");
@@ -20,6 +23,10 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "Ryujinx.exe");
             if (!File.Exists(exe))
                 return null;
+
+            string sdl2 = Path.Combine(path, "SDL2.dll");
+            if (File.Exists(sdl2))
+                _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
             SetupConfiguration(path);
 
