@@ -524,8 +524,17 @@ namespace EmulatorLauncher
                 {
                     string romName = Path.GetFileNameWithoutExtension(rom);
                     ctrlrProfile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", romName + ".cfg");
+                    string biosctrlrProfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg", romName + ".cfg");
                     if (File.Exists(ctrlrProfile))
                     {
+                        retList.Add("-ctrlr");
+                        retList.Add(romName);
+                    }
+                    else if (File.Exists(biosctrlrProfile))
+                    {
+                        try { File.Copy(biosctrlrProfile, ctrlrProfile); }
+                        catch { }
+                        
                         retList.Add("-ctrlr");
                         retList.Add(romName);
                     }
