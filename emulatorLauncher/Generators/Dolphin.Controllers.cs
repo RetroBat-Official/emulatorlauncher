@@ -1076,10 +1076,10 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("Hotkeys", "General/Exit", "`Button 4`&`Button 6`");
 
-                    var save = "@(" + (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.y) ?? "") + ")";
+                    var save = (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.y) ?? "");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", save); // Use Same value as SaveState....
                     ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", save);
-                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "@(" + (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.x) ?? "") + ")");                    
+                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.x) ?? ""));                    
 
                     // Save State/Save to Selected Slot = @(`Button 6`+`Button 2`)
 
@@ -1094,8 +1094,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", "`F10`");
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "@(Alt+RETURN)");
                     ini.WriteValue("Hotkeys", "General/Exit", "ESCAPE");
-                 //   ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "`F1`");
-                 //   ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "Alt&`F1");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "`F9`");
                     ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt&E");
                     ini.WriteValue("Hotkeys", "General/Change Disc", "Alt&S");
