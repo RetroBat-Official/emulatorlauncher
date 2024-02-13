@@ -687,11 +687,23 @@ namespace EmulatorLauncher
                         ini.WriteValue(" Global ", "InputGearShiftDown", GetWheelMapping(wheelmapping.Geardown, ctrl1, j1index));
 
                         //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with right stick (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
-                        ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, ctrl1, j1index));
-                        ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, ctrl1, j1index));
-                        ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, ctrl1, j1index));
-                        ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, ctrl1, j1index));
-                        ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, ctrl1, j1index));
+                        if (SystemConfig.getOptBoolean("wheel_nogearstick"))
+                        {
+                            ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.DpadUp, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.DpadDown, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.DpadLeft, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.DpadRight, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShiftN", "\"" + GetDinputMapping(j1index, ctrl1, "rightshoulder") + "\"");
+                        }
+
+                        else
+                        {
+                            ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, ctrl1, j1index));
+                        }
 
                         //VR4 view change buttons (Daytona 2, Le Mans 24, Scud Race) - the 4 buttons will be used to change view in the games listed
                         ini.WriteValue(" Global ", "InputVR1", "\"" + GetDinputMapping(j1index, ctrl1, "y") + "\"");

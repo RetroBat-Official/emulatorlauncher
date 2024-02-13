@@ -39,7 +39,11 @@ namespace EmulatorLauncher
             var system = new XElement("system", new XAttribute("name", "default"));
             var input = new XElement("input");
 
-            foreach(var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+            var mameControllers = this.Controllers.OrderBy(i => i.PlayerIndex).ToList();
+            if (SystemConfig["mame_joystick_driver"] == "xinput")
+                mameControllers = this.Controllers.Where(c => c.IsXInputDevice).OrderBy(i => i.PlayerIndex).ToList();
+
+            foreach (var controller in mameControllers)
             {
                 int i = controller.PlayerIndex;
                 int cIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex + 1 : controller.DeviceIndex + 1;
@@ -50,6 +54,12 @@ namespace EmulatorLauncher
                 string guid = (controller.Guid.ToString()).Substring(0, 27) + "00000";
                 SdlToDirectInput ctrlr = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+
+                if (SystemConfig["mame_joystick_driver"] == "xinput")
+                {
+                    cIndex = mameControllers.IndexOf(controller) + 1;
+                    input.Add(new XElement("mapdevice", new XAttribute("device", "Xinput Player " + cIndex), new XAttribute("controller", "JOYCODE_" + cIndex)));
+                }
 
                 SimpleLogger.Instance.Info("[INFO] Joystick for player " + i + " identified as " + (isXinput ? "XINPUT" : "DINPUT") + " device number " + cIndex);
 

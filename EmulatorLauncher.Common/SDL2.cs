@@ -7989,10 +7989,8 @@ namespace EmulatorLauncher.Common
             return crc;
         }
 
-        public static ushort SDL_crc16(byte[] data)
+        public static ushort SDL_crc16(byte[] data, ushort crc = 0)
         {
-            ushort crc = 0;
-
             // As an optimization we can precalculate a 256 entry table for each byte
             for (int i = 0; i < data.Length; ++i) 
             {

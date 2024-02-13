@@ -9,7 +9,9 @@ namespace EmulatorLauncher.Common
 {
     public class RawInputDevice
     {
-        public string Name { get; private set; }        
+        public string Name { get; private set; }
+        public string Manufacturer { get; set; }
+
         public RawInputDeviceType Type { get; private set; }
         public IntPtr Handle { get; private set; }
 
@@ -130,8 +132,16 @@ namespace EmulatorLauncher.Common
                         StringBuilder buf = new StringBuilder(255);
                         buf.Clear();
 
+                        string manufacturer = null;
+                        if (HidD_GetManufacturerString(hhid, buf, 255))
+                            manufacturer = buf.ToString();
+
+                        string product = null;
                         if (HidD_GetProductString(hhid, buf, 255))
-                            mouseNames.Add(new RawInputDevice() { Handle = device.hDevice, Name = buf.ToString(), DevicePath = deviceName, Type = type });
+                            product = buf.ToString();
+
+                        if (!string.IsNullOrEmpty(product))
+                            mouseNames.Add(new RawInputDevice() { Handle = device.hDevice, Name = product, Manufacturer = manufacturer, DevicePath = deviceName, Type = type });
 
                         CloseHandle(hhid);
                     }
@@ -229,6 +239,10 @@ namespace EmulatorLauncher.Common
 
         [DllImport("hid.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern bool HidD_GetProductString(IntPtr HidDeviceObject, StringBuilder Buffer, uint BufferLength);
+
+        [DllImport("hid.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool HidD_GetManufacturerString(IntPtr HidDeviceObject, StringBuilder Buffer, uint BufferLength);
+
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern IntPtr CreateFile(String lpFileName, UInt32 dwDesiredAccess, UInt32 dwShareMode, IntPtr lpSecurityAttributes, UInt32 dwCreationDisposition, UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
