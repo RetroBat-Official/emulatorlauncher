@@ -100,10 +100,24 @@ namespace EmulatorLauncher
             }
 
             ini.WriteValue("Controls\\Win", joyNb + ":Enabled", "TRUE");
-            ini.WriteValue("Controls\\Win", joyNb + ":Up", GetDinputMapping(index, controller, "dpup", isxinput));
-            ini.WriteValue("Controls\\Win", joyNb + ":Down", GetDinputMapping(index, controller, "dpdown", isxinput));
-            ini.WriteValue("Controls\\Win", joyNb + ":Left", GetDinputMapping(index, controller, "dpleft", isxinput));
-            ini.WriteValue("Controls\\Win", joyNb + ":Right", GetDinputMapping(index, controller, "dpright", isxinput));
+
+            if (SystemConfig.isOptSet("snes9x_analog") && SystemConfig.getOptBoolean("snes9x_analog"))
+            {
+                allowdiagonals = false;
+                ini.WriteValue("Controls\\Win", joyNb + ":Up", "(J" + index + ")Up");
+                ini.WriteValue("Controls\\Win", joyNb + ":Down", "(J" + index + ")Down");
+                ini.WriteValue("Controls\\Win", joyNb + ":Left", "(J" + index + ")Left");
+                ini.WriteValue("Controls\\Win", joyNb + ":Right", "(J" + index + ")Right");
+            }
+
+            else
+            {
+                ini.WriteValue("Controls\\Win", joyNb + ":Up", GetDinputMapping(index, controller, "dpup", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":Down", GetDinputMapping(index, controller, "dpdown", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":Left", GetDinputMapping(index, controller, "dpleft", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":Right", GetDinputMapping(index, controller, "dpright", isxinput));
+            }
+
             ini.WriteValue("Controls\\Win", joyNb + ":A", GetDinputMapping(index, controller, "b", isxinput));
             ini.WriteValue("Controls\\Win", joyNb + ":B", GetDinputMapping(index, controller, "a", isxinput));
             ini.WriteValue("Controls\\Win", joyNb + ":Y", GetDinputMapping(index, controller, "x", isxinput));
