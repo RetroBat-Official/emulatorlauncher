@@ -303,6 +303,8 @@ namespace EmulatorLauncher
             else
                 data.UseDiscordRPC = false;
 
+            data.CheckForUpdates = false;
+
             File.WriteAllText(parrotData, data.ToXml());
         }
 
