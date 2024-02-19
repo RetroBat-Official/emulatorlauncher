@@ -2819,24 +2819,34 @@ namespace EmulatorLauncher.Libretro
             coreSettings["pcsx2_memcard_slot_1"] = "shared32";
             coreSettings["pcsx2_memcard_slot_2"] = "shared32";
 
-            BindFeature(coreSettings, "pcsx2_upscale_multiplier", "pcsx2_upscale_multiplier", "1");
-            BindFeature(coreSettings, "pcsx2_aspect_ratio", "pcsx2_aspect_ratio", "0");
-            BindBoolFeature(coreSettings, "pcsx2_enable_widescreen_patches", "pcsx2_enable_widescreen_patches", "enabled", "disabled");
-            BindFeature(coreSettings, "pcsx2_renderer", "pcsx2_renderer", "Auto");
-            BindBoolFeature(coreSettings, "pcsx2_fxaa", "pcsx2_fxaa", "1", "0");
-            BindFeature(coreSettings, "pcsx2_anisotropic_filter", "pcsx2_anisotropic_filter", "0");
-            BindFeature(coreSettings, "pcsx2_dithering", "pcsx2_dithering", "2");
-            BindFeature(coreSettings, "pcsx2_texture_filtering", "pcsx2_texture_filtering", "2");
-            BindFeature(coreSettings, "pcsx2_deinterlace_mode", "pcsx2_deinterlace_mode", "7");
-            BindFeature(coreSettings, "pcsx2_system_language", "pcsx2_system_language", "English");
-            BindBoolFeature(coreSettings, "pcsx2_fastboot", "pcsx2_fastboot", "disabled", "enabled");
-            BindBoolFeature(coreSettings, "pcsx2_boot_bios", "pcsx2_boot_bios", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "pcsx2_enable_60fps_patches", "pcsx2_enable_60fps_patches", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "pcsx2_enable_cheats", "pcsx2_enable_cheats", "enabled", "disabled");
-            BindFeature(coreSettings, "pcsx2_speedhacks_presets", "pcsx2_speedhacks_presets", "1");
-            BindFeature(coreSettings, "pcsx2_rumble_enable", "pcsx2_rumble_enable", "enabled");
-            BindFeature(coreSettings, "pcsx2_gamepad_l_deadzone", "pcsx2_deadzone", "5");
-            BindFeature(coreSettings, "pcsx2_gamepad_r_deadzone", "pcsx2_deadzone", "5");
+            BindFeature(coreSettings, "pcsx2_upscale_multiplier", "lrps2_upscale_multiplier", "1");
+            BindFeature(coreSettings, "pcsx2_aspect_ratio", "lrps2_aspect_ratio", "0");
+            BindBoolFeature(coreSettings, "pcsx2_enable_widescreen_patches", "lrps2_enable_widescreen_patches", "enabled", "disabled");
+            BindFeature(coreSettings, "pcsx2_renderer", "lrps2_renderer", "Auto");
+            BindBoolFeature(coreSettings, "pcsx2_fxaa", "lrps2_fxaa", "1", "0");
+            BindFeature(coreSettings, "pcsx2_anisotropic_filter", "lrps2_anisotropic_filter", "0");
+            BindFeature(coreSettings, "pcsx2_dithering", "lrps2_dithering", "2");
+            BindFeature(coreSettings, "pcsx2_texture_filtering", "lrps2_texture_filtering", "2");
+            BindFeature(coreSettings, "pcsx2_deinterlace_mode", "lrps2_deinterlace_mode", "7");
+            BindFeature(coreSettings, "pcsx2_system_language", "lrps2_system_language", "English");
+            BindBoolFeature(coreSettings, "pcsx2_fastboot", "lrps2_fastboot", "disabled", "enabled");
+            BindBoolFeature(coreSettings, "pcsx2_boot_bios", "lrps2_boot_bios", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_enable_60fps_patches", "lrps2_enable_60fps_patches", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_enable_cheats", "lrps2_enable_cheats", "enabled", "disabled");
+            BindFeature(coreSettings, "pcsx2_speedhacks_presets", "lrps2_speedhacks_presets", "1");
+            BindFeature(coreSettings, "pcsx2_rumble_enable", "lrps2_rumble_enable", "enabled");
+            BindFeature(coreSettings, "pcsx2_gamepad_l_deadzone", "lrps2_deadzone", "5");
+            BindFeature(coreSettings, "pcsx2_gamepad_r_deadzone", "lrps2_deadzone", "5");
+
+            string pcsx2Bios = "ps2-0230a-20080220.bin";
+
+            if (SystemConfig.isOptSet("lrps2_forcebios") && !string.IsNullOrEmpty(SystemConfig["lrps2_forcebios"]))
+                pcsx2Bios = SystemConfig["lrps2_forcebios"];
+
+            if (!File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "pcsx2", "bios", pcsx2Bios)))
+                throw new ApplicationException("BIOS file " + pcsx2Bios + " does not exist in 'bios/pcsx2/bios' folder.");
+
+            coreSettings["pcsx2_bios"] = pcsx2Bios;
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
