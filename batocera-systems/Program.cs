@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 namespace batocera_systems
 {
     class Program
-    {
+    {        
         static void Main(string[] args)
         {
             string path = Path.GetDirectoryName(typeof(Program).Assembly.Location);
@@ -35,11 +35,11 @@ namespace batocera_systems
                     string fileName = Path.GetFullPath(Path.Combine(path, "..", bios.file));
 
                     if (bios.file.StartsWith("bios/") && biosPath != null)
-                        fileName = Path.GetFullPath(Path.Combine(biosPath, bios.file.Replace("bios/", "")));
+                        fileName = Path.GetFullPath(Path.Combine(biosPath, bios.file.Substring("bios/".Length)));
                     else if (bios.file.StartsWith("roms/") && romsPath != null)
-                        fileName = Path.GetFullPath(Path.Combine(romsPath, bios.file.Replace("roms/", "")));
+                        fileName = Path.GetFullPath(Path.Combine(romsPath, bios.file.Substring("roms/".Length)));
                     else if (bios.file.StartsWith("emulators/") && emulatorsPath != null)
-                        fileName = Path.GetFullPath(Path.Combine(emulatorsPath, bios.file.Replace("emulators/", "")));
+                        fileName = Path.GetFullPath(Path.Combine(emulatorsPath, bios.file.Substring("emulators/".Length)));
                     
                     if (!File.Exists(fileName))
                         lines.Add("MISSING " + (string.IsNullOrEmpty(bios.md5) ? "-" : bios.md5) + " " + bios.file);
