@@ -47,6 +47,7 @@ namespace EmulatorLauncher
             _exeName = Path.GetFileNameWithoutExtension(exe);
 
             ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution);
+            ConfigureUIini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
 
             string args = null;
 
@@ -191,7 +192,7 @@ namespace EmulatorLauncher
         {
             var retList = new List<string>();
 
-            if (!SystemConfig.isOptSet("read_ini") || !SystemConfig.getOptBoolean("read_ini"))
+            if (SystemConfig.isOptSet("noread_ini") && SystemConfig.getOptBoolean("noread_ini"))
                 retList.Add("-noreadconfig");
 
             string sstatePath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "states");
@@ -278,14 +279,8 @@ namespace EmulatorLauncher
             }
 
             // Aspect ratio
-            if (SystemConfig.isOptSet("mame_ratio") && !string.IsNullOrEmpty(SystemConfig["mame_ratio"]))
+            if (SystemConfig.isOptSet("mame_ratio") && SystemConfig["mame_ratio"] == "stretch")
             {
-                if (SystemConfig["mame_ratio"] != "stretch")
-                {
-                    retList.Add("-aspect");
-                    retList.Add(SystemConfig["mame_ratio"]);
-                }
-                if (SystemConfig["mame_ratio"] == "stretch")
                     retList.Add("-nokeepaspect");
             }
             else
@@ -593,5 +588,92 @@ namespace EmulatorLauncher
             return shaderlist;
         }
 
+        private void ConfigureUIini(string path) 
+        {
+            var uiIni = MameIniFile.FromFile(Path.Combine(path, "ui.ini"));
+            if (uiIni["skip_warnings"] != "1")
+            {
+                uiIni["skip_warnings"] = "1";
+                uiIni.Save();
+            }
+        }
+
+    }
+
+    class MameIniFile
+    {
+        private string _fileName;
+        private List<string> _lines;
+
+        public static MameIniFile FromFile(string file)
+        {
+            var ret = new MameIniFile();
+            ret._fileName = file;
+
+            try
+            {
+                if (File.Exists(file))
+                    ret._lines = File.ReadAllLines(file).ToList();
+            }
+            catch { }
+
+            if (ret._lines == null)
+                ret._lines = new List<string>();
+
+            return ret;
+        }
+
+        public string this[string key]
+        {
+            get
+            {
+                int spaceLength = 26 - key.Length;
+                string space = new string(' ', spaceLength);
+                int idx = _lines.FindIndex(l => !string.IsNullOrEmpty(l) && l[0] != '#' && l.StartsWith(key + space));
+                if (idx >= 0)
+                {
+                    int split = _lines[idx].IndexOf(" ");
+                    if (split >= 0)
+                        return _lines[idx].Substring(split + spaceLength).Trim();
+                }
+
+                return string.Empty;
+            }
+            set
+            {
+                if (this[key] == value)
+                    return;
+
+                int spaceLength = 26 - key.Length;
+                string space = new string(' ', spaceLength);
+
+                int idx = _lines.FindIndex(l => !string.IsNullOrEmpty(l) && l[0] != '#' && l.StartsWith(key + space));
+                if (idx >= 0)
+                {
+                    _lines.RemoveAt(idx);
+
+                    if (!string.IsNullOrEmpty(value))
+                        _lines.Insert(idx, key + space + value);
+                }
+                else if (!string.IsNullOrEmpty(value))
+                {
+                    _lines.Add(key + space + value);
+                    _lines.Add("");
+                }
+
+                IsDirty = true;
+            }
+        }
+
+        public bool IsDirty { get; private set; }
+
+        public void Save()
+        {
+            if (!IsDirty)
+                return;
+
+            File.WriteAllLines(_fileName, _lines);
+            IsDirty = false;
+        }
     }
 }
