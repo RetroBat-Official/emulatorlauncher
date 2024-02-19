@@ -46,7 +46,7 @@ namespace EmulatorLauncher
             foreach (var controller in mameControllers)
             {
                 int i = controller.PlayerIndex;
-                int cIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex + 1 : controller.DeviceIndex + 1;
+                int cIndex = controller.DeviceIndex + 1;
                 string joy = "JOYCODE_" + cIndex + "_";
                 bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
                 bool isXinput = controller.IsXInputDevice && SystemConfig["mame_joystick_driver"] != "dinput";
@@ -57,11 +57,10 @@ namespace EmulatorLauncher
 
                 if (SystemConfig["mame_joystick_driver"] == "xinput")
                 {
-                    cIndex = mameControllers.IndexOf(controller) + 1;
-                    input.Add(new XElement("mapdevice", new XAttribute("device", "Xinput Player " + cIndex), new XAttribute("controller", "JOYCODE_" + cIndex)));
+                    int xIndex = mameControllers.OrderBy(c => c.DeviceIndex).ToList().IndexOf(controller) + 1;
+                    joy = "JOYCODE_" + xIndex + "_";
+                    input.Add(new XElement("mapdevice", new XAttribute("device", "XInput Player " + xIndex), new XAttribute("controller", "JOYCODE_" + xIndex)));
                 }
-
-                SimpleLogger.Instance.Info("[INFO] Joystick for player " + i + " identified as " + (isXinput ? "XINPUT" : "DINPUT") + " device number " + cIndex);
 
                 // Get dinput mapping information
                 if (!isXinput)

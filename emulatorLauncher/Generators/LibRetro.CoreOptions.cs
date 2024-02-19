@@ -1703,9 +1703,13 @@ namespace EmulatorLauncher.Libretro
             coreSettings["mame_softlists_enable"] = softLists;
             coreSettings["mame_softlists_auto_media"] = softLists;
             coreSettings["mame_write_config"] = "disabled";
-            coreSettings["mame_mouse_enable"] = "enabled";
             coreSettings["mame_mame_paths_enable"] = "disabled";
 
+            if (SystemConfig.isOptSet("mame_lightgun_mode") && SystemConfig["mame_lightgun_mode"] != "none")
+                coreSettings["mame_mouse_enable"] = "disabled";
+            else
+                BindFeature(coreSettings, "mame_mouse_enable", "mame_mouse_enable", "enabled");
+            
             BindFeature(coreSettings, "mame_buttons_profiles", "mame_buttons_profiles", "disabled");
             BindFeature(coreSettings, "mame_read_config", "mame_read_config", "disabled");
             BindFeature(coreSettings, "mame_alternate_renderer", "alternate_renderer", "disabled");

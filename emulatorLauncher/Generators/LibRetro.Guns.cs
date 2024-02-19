@@ -48,11 +48,15 @@ namespace EmulatorLauncher.Libretro
 
             int gunCount = RawLightgun.GetUsableLightGunCount();
             var guns = RawLightgun.GetRawLightguns();
+            SimpleLogger.Instance.Info("[LightGun] Found " + gunCount + " usable guns.");
 
             // Set multigun to true in some cases
             // Case 1 = multiple guns are connected, playerindex is 1 and user did not force 'one gun only'
             if (gunCount > 1 && guns.Length > 1 && playerIndex == 1 && !useOneGun)
+            {
+                SimpleLogger.Instance.Info("[LightGun] Multigun enabled.");
                 multigun = true;
+            }
 
             // Single player - assign buttons of joystick linked with playerIndex to gun buttons
             if (!multigun)
@@ -123,7 +127,7 @@ namespace EmulatorLauncher.Libretro
 
                     int deviceIndex = guns[i - 1].Index; // i-1;
 
-                    SimpleLogger.Instance.Debug("[LightGun] Assigned player " + i + " to -> " + guns[i - 1].ToString());
+                    SimpleLogger.Instance.Info("[LightGun] Assigned player " + i + " to -> " + guns[i-1].Name.ToString() + " index: " + guns[i-1].Index.ToString());
 
                     retroarchConfig["input_libretro_device_p" + i] = deviceType;
                     retroarchConfig["input_player" + i + "_mouse_index"] = deviceIndex.ToString();
@@ -270,14 +274,9 @@ namespace EmulatorLauncher.Libretro
             // If option in ES is forced to use one gun, only one gun will be configured on the playerIndex defined for the core
             if (useOneGun || playerIndex == 2)
             {
-                // First gun will be used
-                int deviceIndex = guns[0].Index;
-
-                SimpleLogger.Instance.Debug("[LightGun] Assigned player " + playerIndex + " to -> " + guns[0].ToString());
-
                 // Set deviceType and DeviceIndex
                 retroarchConfig["input_libretro_device_p" + playerIndex] = deviceType;
-                retroarchConfig["input_player" + playerIndex + "_mouse_index"] = deviceIndex.ToString();
+                retroarchConfig["input_player" + playerIndex + "_mouse_index"] = "0";
 
                 // Set mouse buttons (mouse only has 3 buttons, that can be mapped differently for each core)
                 retroarchConfig["input_player" + playerIndex + "_gun_trigger_mbtn"] = guninvert ? "2" : "1";
@@ -385,7 +384,7 @@ namespace EmulatorLauncher.Libretro
                 {
                     int deviceIndex = guns[i - 1].Index; // i-1;
 
-                    SimpleLogger.Instance.Debug("[LightGun] Assigned player " + i + " to -> " + guns[i - 1].ToString());
+                    SimpleLogger.Instance.Info("[LightGun] Assigned player " + i + " to -> " + guns[i-1].Name.ToString() + " index: " + guns[i-1].Index.ToString());
 
                     retroarchConfig["input_libretro_device_p" + i] = deviceType;
                     retroarchConfig["input_player" + i + "_mouse_index"] = deviceIndex.ToString();

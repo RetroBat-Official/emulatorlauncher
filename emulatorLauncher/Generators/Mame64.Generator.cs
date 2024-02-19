@@ -161,9 +161,6 @@ namespace EmulatorLauncher
                 /// -crosshairpath
                 /// -swpath
 
-                if (!SystemConfig.isOptSet("read_ini") || !SystemConfig.getOptBoolean("read_ini"))
-                    commandArray.Add("-noreadconfig");
-
                 commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, resolution));
 
                 // Unknown system, try to run with rom name only
@@ -193,6 +190,9 @@ namespace EmulatorLauncher
         private List<string> GetCommonMame64Arguments(string rom, bool hbmame, ScreenResolution resolution = null)
         {
             var retList = new List<string>();
+
+            if (!SystemConfig.isOptSet("read_ini") || !SystemConfig.getOptBoolean("read_ini"))
+                retList.Add("-noreadconfig");
 
             string sstatePath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "states");
             if (!Directory.Exists(sstatePath)) try { Directory.CreateDirectory(sstatePath); }
@@ -551,7 +551,6 @@ namespace EmulatorLauncher
             }
 
             // Add code here
-
 
             return retList;
         }
