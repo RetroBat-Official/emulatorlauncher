@@ -691,9 +691,7 @@ namespace EmulatorLauncher
             if (SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
 
-            var biosList = new string[] {
-                            "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC",
-                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
+            var biosList = new string[] { "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0250e-20100415.bin", "ps2-0230j-20080220.bin", "ps3_ps2_emu_bios.bin" };
 
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
@@ -741,24 +739,22 @@ namespace EmulatorLauncher
                 AddPathToRecursivePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
 
                 // BIOS path
-                string biosPath = AppConfig.GetFullPath("bios");
-
-                if (biosList.Any(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b))))
-                    ini.WriteValue("Folders", "Bios", Path.Combine(biosPath, "pcsx2", "bios"));
-                else
-                    ini.WriteValue("Folders", "Bios", biosPath);
-
-                string biosPcsx2Path = Path.Combine(biosPath, "pcsx2");
-                if (!Directory.Exists(biosPcsx2Path))
-                    try { Directory.CreateDirectory(biosPcsx2Path); }
+                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "pcsx2", "bios");
+                if (!Directory.Exists(biosPath))
+                    try { Directory.CreateDirectory(biosPath); }
                     catch { }
+                ini.WriteValue("Folders", "Bios", biosPath);
 
-                // Precise bios to use
-                string biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPcsx2Path, "bios", b)));
-                if (string.IsNullOrEmpty(biosFile))
+                string biosFile = "ps2-0230a-20080220.bin";                     // Default bios
+
+                if (!File.Exists(Path.Combine(biosPath, biosFile)))             // if default does not exist, select first one that exists
                     biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
-                else
-                    biosFile = "SCPH30004R.bin";
+
+                if (SystemConfig.isOptSet("pcsx2_forcebios") && !string.IsNullOrEmpty(SystemConfig["pcsx2_forcebios"]))                         // Precise bios to use through feature
+                    biosFile = SystemConfig["pcsx2_forcebios"];
+
+                if (string.IsNullOrEmpty(biosFile))
+                    throw new ApplicationException("No PS2 BIOS found.");
 
                 ini.WriteValue("Filenames", "BIOS", biosFile);
 
