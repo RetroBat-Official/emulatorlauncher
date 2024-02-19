@@ -167,7 +167,7 @@ namespace EmulatorLauncher
 
                 commandArray.Add("--nogui");
 
-                if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
+                if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot") && SystemConfig["pcsx2_forcebios"] != "ps3_ps2_emu_bios.bin")
                     commandArray.Add("--fullboot");
             }
 
