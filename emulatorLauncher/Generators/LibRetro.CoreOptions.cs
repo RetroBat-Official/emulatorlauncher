@@ -417,6 +417,8 @@ namespace EmulatorLauncher.Libretro
 
                     var index = i - 1;
                     InputRemap["input_remap_port_p" + i] = index.ToString();
+
+                    GenerateCoreInputRemap(system, core, InputRemap);
                 }
             }
 
@@ -556,8 +558,16 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "a800_controller1", "513");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "a800_controller2", "513");
+            if (system == "atari5200")
+            {
+                BindFeature(retroarchConfig, "input_libretro_device_p1", "a800_controller1", "769");
+                BindFeature(retroarchConfig, "input_libretro_device_p2", "a800_controller2", "769");
+            }
+            else
+            {
+                BindFeature(retroarchConfig, "input_libretro_device_p1", "a800_controller1", "513");
+                BindFeature(retroarchConfig, "input_libretro_device_p2", "a800_controller2", "513");
+            }
 
             if (string.IsNullOrEmpty(AppConfig["bios"]))
                 return;
