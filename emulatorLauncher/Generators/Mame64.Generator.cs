@@ -48,6 +48,7 @@ namespace EmulatorLauncher
 
             ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution);
             ConfigureUIini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
+            ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
 
             string args = null;
 
@@ -598,6 +599,15 @@ namespace EmulatorLauncher
             }
         }
 
+        private void ConfigureMameini(string path)
+        {
+            var uiIni = MameIniFile.FromFile(Path.Combine(path, "mame.ini"));
+            if (uiIni["writeconfig"] != "0")
+            {
+                uiIni["writeconfig"] = "0";
+                uiIni.Save();
+            }
+        }
     }
 
     class MameIniFile
