@@ -15,6 +15,11 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
+        public DemulGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string folderName = (emulator == "demul-old" || core == "demul-old") ? "demul-old" : "demul";

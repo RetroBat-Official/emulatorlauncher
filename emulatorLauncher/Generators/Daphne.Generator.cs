@@ -5,12 +5,14 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Lightguns;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
     partial class HypseusGenerator : DaphneGenerator
     {
-        public HypseusGenerator() { _executableName = "hypseus"; }
+        public HypseusGenerator() { _executableName = "hypseus"; DependsOnDesktopResolution = true; }
+
     }
 
     partial class DaphneGenerator : Generator
@@ -201,6 +203,12 @@ namespace EmulatorLauncher
 
             if (fullscreen)
                 commandArray.Add("-fullscreen");
+
+            commandArray.Add("-x");
+            commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
+
+            commandArray.Add("-y");
+            commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
 
             commandArray.Add("-opengl");            
             commandArray.Add("-fastboot");
