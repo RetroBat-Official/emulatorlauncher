@@ -24,16 +24,29 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            // Align Ryujinx sdl version with the one from ES to get proper Guid
             string ESSdl2 = Path.Combine(AppConfig.GetFullPath("retrobat"), "emulationstation", "SDL2.dll");
-            var sdlVersionInfo = FileVersionInfo.GetVersionInfo(ESSdl2);
-            string sdlVersion = sdlVersionInfo.FileMajorPart + "." + sdlVersionInfo.FileMinorPart + "." + sdlVersionInfo.FileBuildPart + "." + sdlVersionInfo.FilePrivatePart;
-
-            string sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "sdl2", "SDL2_" + sdlVersion + "_x64.dll");
+            string ESsdlVersion = "2.28.1.0";
+            if (File.Exists(ESSdl2))
+            {
+                var ESsdlVersionInfo = FileVersionInfo.GetVersionInfo(ESSdl2);
+                ESsdlVersion = ESsdlVersionInfo.FileMajorPart + "." + ESsdlVersionInfo.FileMinorPart + "." + ESsdlVersionInfo.FileBuildPart + "." + ESsdlVersionInfo.FilePrivatePart;
+            }
 
             string ryujinxSdl2 = Path.Combine(path, "SDL2.dll");
-            if (File.Exists(ryujinxSdl2) && File.Exists(sourceSDL))
+            string sdlVersionRyujinx = "";
+            if (File.Exists(ryujinxSdl2))
             {
-                File.Delete(ryujinxSdl2);
+                var sdlVersionInfoRyujinx = FileVersionInfo.GetVersionInfo(ryujinxSdl2);
+                sdlVersionRyujinx = sdlVersionInfoRyujinx.FileMajorPart + "." + sdlVersionInfoRyujinx.FileMinorPart + "." + sdlVersionInfoRyujinx.FileBuildPart + "." + sdlVersionInfoRyujinx.FilePrivatePart;
+            }
+
+            string sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "sdl2", "SDL2_" + ESsdlVersion + "_x64.dll");
+            if (File.Exists(sourceSDL) && sdlVersionRyujinx != ESsdlVersion)
+            {
+                if (File.Exists(ryujinxSdl2))
+                    File.Delete(ryujinxSdl2);
+
                 File.Copy(sourceSDL, ryujinxSdl2);
             }
             
