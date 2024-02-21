@@ -128,7 +128,7 @@ namespace EmulatorLauncher.Common.Joysticks
 
             SdlJoystickGuid ret = new SdlJoystickGuid(_guid);
 
-            if (version == SdlVersion.SDL2_30 && this.WrappedTechID == SdlWrappedTechId.RawInput)
+            if (version == SdlVersion.SDL2_30)
             {
                 var ctrl = RawInputDevice.GetRawInputControllers()
                     .Where(r => r.VendorId == this.VendorId && r.ProductId == this.ProductId)
