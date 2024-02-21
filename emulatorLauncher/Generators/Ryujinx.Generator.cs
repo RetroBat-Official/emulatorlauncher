@@ -14,7 +14,8 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private SdlVersion _sdlVersion = SdlVersion.SDL2_30;
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
+        private readonly string _currentESSdlVersion = "2.28.1.0";
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -26,7 +27,7 @@ namespace EmulatorLauncher
 
             // Align Ryujinx sdl version with the one from ES to get proper Guid
             string ESSdl2 = Path.Combine(AppConfig.GetFullPath("retrobat"), "emulationstation", "SDL2.dll");
-            string ESsdlVersion = "2.28.1.0";
+            string ESsdlVersion = _currentESSdlVersion;
             if (File.Exists(ESSdl2))
             {
                 var ESsdlVersionInfo = FileVersionInfo.GetVersionInfo(ESSdl2);
@@ -42,7 +43,13 @@ namespace EmulatorLauncher
             }
 
             string sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "sdl2", "SDL2_" + ESsdlVersion + "_x64.dll");
-            if (File.Exists(sourceSDL) && sdlVersionRyujinx != ESsdlVersion)
+            if (!File.Exists(sourceSDL))
+            {
+                sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "sdl2", "SDL2_" + _currentESSdlVersion + "_x64.dll");
+                ESsdlVersion= _currentESSdlVersion;
+            }
+            
+            if (sdlVersionRyujinx != ESsdlVersion && File.Exists(sourceSDL))
             {
                 if (File.Exists(ryujinxSdl2))
                     File.Delete(ryujinxSdl2);

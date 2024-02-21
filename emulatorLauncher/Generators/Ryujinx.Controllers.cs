@@ -192,8 +192,13 @@ namespace EmulatorLauncher
             //Define tech (SDL or XInput)
             string tech = c.IsXInputDevice ? "XInput" : "SDL";
 
-            //Get SDL controller index
-            int index = c.DeviceIndex;
+            //Get controller index (index is equal to 0 and ++ for each repeated guid)
+            int index = 0;
+            List<Controller> same_pad = this.Controllers.Where(i => i.Config != null && i.Guid == c.Guid && !i.IsKeyboard).OrderBy(j => j.DeviceIndex).ToList();
+            if (same_pad.Count > 1)
+            {
+                index = same_pad.IndexOf(c);
+            }
             
             //Build input_config section
             var input_config = new DynamicJson();
