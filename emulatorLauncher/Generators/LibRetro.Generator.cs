@@ -85,6 +85,7 @@ namespace EmulatorLauncher.Libretro
                 var res = ScreenResolution.CurrentResolution;
                 retroarchConfig["video_fullscreen_x"] = res.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = res.Height.ToString();
+                retroarchConfig["video_refresh_rate"] = res.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
 
                 if (!SystemConfig.isOptSet("MonitorIndex"))
                 {
@@ -119,6 +120,7 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
+                retroarchConfig["video_refresh_rate"] = resolution.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
                 retroarchConfig["video_windowed_fullscreen"] = "false";
             }
 

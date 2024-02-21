@@ -2082,7 +2082,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mesen_hdpacks", "hd_packs", "disabled");
             BindFeature(coreSettings, "mesen_ntsc_filter", "ntsc_filter", "Disabled");
             BindFeature(coreSettings, "mesen_palette", "palette", "Default");
-            BindFeature(coreSettings, "mesen_shift_buttons_clockwise", "shift_buttons", "disabled");
+            BindFeature(coreSettings, "mesen_shift_buttons_clockwise", "mesen_shift_buttons", "disabled");
             BindFeature(coreSettings, "mesen_fake_stereo", "fake_stereo", "disabled");
             BindBoolFeature(coreSettings, "mesen_nospritelimit", "mesen_nospritelimit", "enabled", "disabled");
             BindFeature(coreSettings, "mesen_overclock", "mesen_overclock", "None");
