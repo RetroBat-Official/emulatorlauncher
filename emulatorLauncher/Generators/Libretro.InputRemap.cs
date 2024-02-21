@@ -5,6 +5,10 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
+        static List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb" };
+        static List<string> systemButtonRotate = new List<string>() { "nes", "fds" };
+        static List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
+
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap)
         {
             int playerCount = Program.Controllers.Count;
@@ -12,8 +16,27 @@ namespace EmulatorLauncher.Libretro
             if (playerCount == 0)
                 return;
 
+            bool invertButtons = systemButtonInvert.Contains(system) && Program.Features.IsSupported("buttonsInvert") && Program.SystemConfig.getOptBoolean("buttonsInvert");
+            bool rotateButtons = systemButtonRotate.Contains(system) && Program.Features.IsSupported("shift_buttons") && Program.SystemConfig.getOptBoolean("shift_buttons");
+
             for (int i = 1; i <= playerCount; i++)
             {
+                if (invertButtons && !coreNoRemap.Contains(core))
+                {
+                    inputremap["input_player" + i + "_btn_a"] = "0";
+                    inputremap["input_player" + i + "_btn_b"] = "8";
+                    inputremap["input_player" + i + "_btn_x"] = "1";
+                    inputremap["input_player" + i + "_btn_y"] = "9";
+                }
+
+                if (rotateButtons && !coreNoRemap.Contains(core))
+                {
+                    inputremap["input_player" + i + "_btn_a"] = "9";
+                    inputremap["input_player" + i + "_btn_b"] = "8";
+                    inputremap["input_player" + i + "_btn_x"] = "1";
+                    inputremap["input_player" + i + "_btn_y"] = "0";
+                }
+
                 if (core == "atari800")
                 {
                     inputremap["input_player" + i + "_btn_a"] = "0";
@@ -96,6 +119,22 @@ namespace EmulatorLauncher.Libretro
             LEFT_ANALOG = 14,
             RIGHT_ANALOG = 15,
             EMPTY = -1,
+        };
+
+        private enum snes_remap
+        {
+            X = 9,
+            A = 8,
+            Y = 1,
+            B = 0,
+        };
+
+        private enum nes_remap
+        {
+            TURBO_A = 9,
+            A = 8,
+            TURBO_B = 1,
+            B = 0,
         };
     }
 }

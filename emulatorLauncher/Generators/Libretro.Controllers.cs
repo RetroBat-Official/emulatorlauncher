@@ -14,6 +14,7 @@ namespace EmulatorLauncher.Libretro
         private static HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
 
         static List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
+        static List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
 
 
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
@@ -34,7 +35,7 @@ namespace EmulatorLauncher.Libretro
             CleanControllerConfig(retroconfig);
 
             foreach (var controller in Program.Controllers)
-                WriteControllerConfig(retroconfig, controller, system);
+                WriteControllerConfig(retroconfig, controller, system, core);
 
             WriteHotKeyConfig(retroconfig);
 
@@ -177,7 +178,7 @@ namespace EmulatorLauncher.Libretro
             return "0";
         }
 
-        private static Dictionary<string, string> GenerateControllerConfig(ConfigFile retroconfig, Controller controller, string system)
+        private static Dictionary<string, string> GenerateControllerConfig(ConfigFile retroconfig, Controller controller, string system, string core)
         {
             Dictionary<InputKey, string> retroarchbtns = new Dictionary<InputKey, string>()
             {
@@ -214,7 +215,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Reverse buttons clockwise option for super nintendo libretro cores
-            if (systemButtonInvert.Contains(system) && Program.Features.IsSupported("buttonsInvert") && Program.SystemConfig.getOptBoolean("buttonsInvert"))
+            if (systemButtonInvert.Contains(system) && Program.Features.IsSupported("buttonsInvert") && Program.SystemConfig.getOptBoolean("buttonsInvert") && coreNoRemap.Contains(core))
             {
                 retroarchbtns[InputKey.a] = "a";
                 retroarchbtns[InputKey.b] = "b";
@@ -313,9 +314,9 @@ namespace EmulatorLauncher.Libretro
                              .ToArray();
         }
 
-        private static void WriteControllerConfig(ConfigFile retroconfig, Controller controller, string system)
+        private static void WriteControllerConfig(ConfigFile retroconfig, Controller controller, string system, string core)
         {
-            var generatedConfig = GenerateControllerConfig(retroconfig, controller, system);
+            var generatedConfig = GenerateControllerConfig(retroconfig, controller, system, core);
             foreach (var key in generatedConfig)
                 retroconfig[key.Key] = key.Value;
 
