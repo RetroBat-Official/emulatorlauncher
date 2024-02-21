@@ -28,7 +28,7 @@ namespace EmulatorLauncher
             var sdlVersionInfo = FileVersionInfo.GetVersionInfo(ESSdl2);
             string sdlVersion = sdlVersionInfo.FileMajorPart + "." + sdlVersionInfo.FileMinorPart + "." + sdlVersionInfo.FileBuildPart + "." + sdlVersionInfo.FilePrivatePart;
 
-            string sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "tools", "SDL2_" + sdlVersion + "_x64.dll");
+            string sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "sdl2", "SDL2_" + sdlVersion + "_x64.dll");
 
             string ryujinxSdl2 = Path.Combine(path, "SDL2.dll");
             if (File.Exists(ryujinxSdl2) && File.Exists(sourceSDL))
