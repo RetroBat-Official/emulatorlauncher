@@ -128,7 +128,7 @@ namespace EmulatorLauncher.Common.Joysticks
 
             SdlJoystickGuid ret = new SdlJoystickGuid(_guid);
 
-            if (version == SdlVersion.SDL2_30 && this.WrappedTechID == SdlWrappedTechId.RawInput)
+            if (version == SdlVersion.SDL2_30)
             {
                 var ctrl = RawInputDevice.GetRawInputControllers()
                     .Where(r => r.VendorId == this.VendorId && r.ProductId == this.ProductId)
@@ -152,7 +152,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
 
                     var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
-                    ret = new SdlJoystickGuid(ggs);
+                    return new SdlJoystickGuid(ggs);
                 }
 
                 else

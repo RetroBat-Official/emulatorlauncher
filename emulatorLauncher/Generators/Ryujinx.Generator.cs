@@ -24,9 +24,33 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            string sdl2 = Path.Combine(path, "SDL2.dll");
-            if (File.Exists(sdl2))
-                _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
+            // Align Ryujinx sdl version with the one from ES to get proper Guid
+            string ESSdl2 = Path.Combine(AppConfig.GetFullPath("retrobat"), "emulationstation", "SDL2.dll");
+            string ESsdlVersion = "2.28.1.0";
+            if (File.Exists(ESSdl2))
+            {
+                var ESsdlVersionInfo = FileVersionInfo.GetVersionInfo(ESSdl2);
+                ESsdlVersion = ESsdlVersionInfo.FileMajorPart + "." + ESsdlVersionInfo.FileMinorPart + "." + ESsdlVersionInfo.FileBuildPart + "." + ESsdlVersionInfo.FilePrivatePart;
+            }
+
+            string ryujinxSdl2 = Path.Combine(path, "SDL2.dll");
+            string sdlVersionRyujinx = "";
+            if (File.Exists(ryujinxSdl2))
+            {
+                var sdlVersionInfoRyujinx = FileVersionInfo.GetVersionInfo(ryujinxSdl2);
+                sdlVersionRyujinx = sdlVersionInfoRyujinx.FileMajorPart + "." + sdlVersionInfoRyujinx.FileMinorPart + "." + sdlVersionInfoRyujinx.FileBuildPart + "." + sdlVersionInfoRyujinx.FilePrivatePart;
+            }
+
+            string sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "sdl2", "SDL2_" + ESsdlVersion + "_x64.dll");
+            if (File.Exists(sourceSDL) && sdlVersionRyujinx != ESsdlVersion)
+            {
+                if (File.Exists(ryujinxSdl2))
+                    File.Delete(ryujinxSdl2);
+
+                File.Copy(sourceSDL, ryujinxSdl2);
+            }
+            
+            _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(ryujinxSdl2);
 
             SetupConfiguration(path);
 

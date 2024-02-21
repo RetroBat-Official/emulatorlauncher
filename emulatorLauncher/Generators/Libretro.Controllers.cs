@@ -202,57 +202,6 @@ namespace EmulatorLauncher.Libretro
                 retroarchbtns[InputKey.r3] = "l3";
             }
 
-            if (system == "atari800")
-            {
-                retroarchbtns[InputKey.b] = "b";
-                retroarchbtns[InputKey.a] = "a";
-            }
-            else if (system == "atari5200")
-            {
-                retroarchbtns = new Dictionary<InputKey, string>()
-                {
-                    { InputKey.b, "x" },
-                    { InputKey.a, "a" },
-                    { InputKey.x, "b" }, 
-                    { InputKey.y, "y" },
-                    { InputKey.start, "start"}, 
-                    { InputKey.pagedown, "select"} // select
-                };
-            }
-
-            if (system == "gamecube")
-            {
-                bool revertall = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
-                bool revertAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
-
-                retroarchbtns = new Dictionary<InputKey, string>()
-                {
-                    { InputKey.b, "a" },
-                    { InputKey.a, "b" }, // A et B inversés par rapport à batocera
-                    { InputKey.x, "x" }, 
-                    { InputKey.y, "y" },
-                    { InputKey.l2, "l2"},
-                    { InputKey.r2, "r2"},
-                    { InputKey.l3, "l3"}, 
-                    { InputKey.r3, "r3"},
-                    { InputKey.start, "start"}, 
-                    { InputKey.pagedown, "r"} // select
-                };
-
-                if (revertall)
-                {
-                    retroarchbtns[InputKey.b] = "b";
-                    retroarchbtns[InputKey.a] = "a";
-                    retroarchbtns[InputKey.x] = "y";
-                    retroarchbtns[InputKey.y] = "x";
-                }
-                else if (revertAB)
-                {
-                    retroarchbtns[InputKey.b] = "b";
-                    retroarchbtns[InputKey.a] = "a";
-                }
-            }
-
             if (system == "n64")
             {
                 // some input adaptations for some cores...
