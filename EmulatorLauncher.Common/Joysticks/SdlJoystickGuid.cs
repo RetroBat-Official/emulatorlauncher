@@ -152,7 +152,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
 
                     var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
-                    ret = new SdlJoystickGuid(ggs);
+                    return new SdlJoystickGuid(ggs);
                 }
 
                 else
