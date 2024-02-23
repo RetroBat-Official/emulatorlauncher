@@ -24,6 +24,8 @@ namespace EmulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {            
             string path = AppConfig.GetFullPath("openbor");
+            string newPath;
+            string newExe;
 
             string exe = Path.Combine(path, "OpenBOR.exe");
             if (!File.Exists(exe))
@@ -32,8 +34,14 @@ namespace EmulatorLauncher
             string build = GetBuildToUse(rom);
             if (!string.IsNullOrEmpty(build))
             {
-                path = Path.Combine(path, build);
-                exe = Path.Combine(path, "OpenBOR.exe");
+                newPath = Path.Combine(path, build);
+                newExe = Path.Combine(newPath, "OpenBOR.exe");
+
+                if (Directory.Exists(newPath) && File.Exists(newExe))
+                {
+                    path = newPath;
+                    exe = newExe;
+                }
             }
 
             try
@@ -57,12 +65,13 @@ namespace EmulatorLauncher
                 };
             }
 
-            // Old versions ?
+            /* Old versions ?
 
             if (build == "4432")
                 setupConfigBor4432Cfg(path);
             else 
                 setupConfigBorCfg(path);
+            */
 
             string pakDir = Path.Combine(path, "Paks");
             if (!Directory.Exists(pakDir))
@@ -110,7 +119,7 @@ namespace EmulatorLauncher
         private bool setupConfigIni(string path)
         {
             string ini = Path.Combine(path, "config.ini");
-            if (!File.Exists(ini) && !_isCustomRetrobatOpenBor)
+            if (!_isCustomRetrobatOpenBor)
                 return false;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
@@ -162,7 +171,6 @@ namespace EmulatorLauncher
         #region Old Openbor versions with bor.cfg file format
         private string GetBuildToUse(string rom)
         {
-            /*
             string path = AppConfig.GetFullPath("openbor");
 
             int buildIndex = rom.LastIndexOf(']');
@@ -172,14 +180,8 @@ namespace EmulatorLauncher
                 if (buildNumber == 0)
                     return null;
 
-                if (buildNumber < 4000 && File.Exists(Path.Combine(path, "3318", "OpenBOR.exe")))
-                    return "3318";
-                else if (buildNumber < 6000 && File.Exists(Path.Combine(path, "4432", "OpenBOR.exe")))
-                    return "4432";
-                else if (buildNumber < 6340 && File.Exists(Path.Combine(path, "6330", "OpenBOR.exe")))
-                    return "6330";
+                return buildNumber.ToString();
             }
-            */
 
             return null;
         }
