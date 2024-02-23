@@ -842,23 +842,23 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["desmume_pointer_mouse"] = "enabled";
             coreSettings["desmume_pointer_type"] = "mouse";
-            coreSettings["desmume_hybrid_layout_scale"] = "enabled";
 
             BindFeature(coreSettings, "desmume_cpu_mode", "desmume_cpu_mode", "interpreter");
             BindFeature(coreSettings, "desmume_pointer_device_r", "desmume_rightanalog", "emulated");
             BindFeature(coreSettings, "desmume_internal_resolution", "desmume_internal_resolution", "256x192");
             BindFeature(coreSettings, "desmume_screens_layout", "desmume_screens_layout", "top/bottom");
             BindFeature(coreSettings, "desmume_screens_gap", "desmume_screens_gap", "0");
-            BindFeature(coreSettings, "desmume_hybrid_layout_ratio", "desmume_hybrid_layout_ratio", "3:1");
             BindFeature(coreSettings, "desmume_hybrid_showboth_screens", "desmume_hybrid_showboth_screens", "enabled");
             BindFeature(coreSettings, "desmume_firmware_language", "desmume_firmware_language", "Auto");
-            BindFeature(coreSettings, "desmume_gfx_texture_scaling", "desmume_gfx_texture_scaling", "1");
-
+            
             if (core == "desmume")
             {
+                coreSettings["desmume_hybrid_layout_scale"] = "enabled";
                 BindFeature(coreSettings, "desmume_use_external_bios", "desmume_use_external_bios", "disabled");
                 BindFeature(coreSettings, "desmume_boot_into_bios", "desmume_boot_into_bios", "disabled");
-                
+                BindFeature(coreSettings, "desmume_hybrid_layout_ratio", "desmume_hybrid_layout_ratio", "3:1");
+                BindFeature(coreSettings, "desmume_gfx_texture_scaling", "desmume_gfx_texture_scaling", "1");
+
                 // Force interpreter if boot to bios is active
                 if (SystemConfig.isOptSet("desmume_boot_into_bios") && SystemConfig["desmume_boot_into_bios"] == "enabled")
                     coreSettings["desmume_cpu_mode"] = "interpreter";
@@ -868,6 +868,11 @@ namespace EmulatorLauncher.Libretro
                 BindFeature(coreSettings, "desmume_color_depth", "desmume_color_depth", "16-bit");
                 BindFeature(coreSettings, "desmume_gfx_multisampling", "desmume_gfx_multisampling", "disabled");
                 BindFeature(coreSettings, "desmume_gfx_texture_smoothing", "desmume_gfx_texture_smoothing", "disabled");
+            }
+
+            else if (core == "desmume2015")
+            {
+                coreSettings["desmume_hybrid_layout_scale"] = "3";
             }
         }
 
