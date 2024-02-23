@@ -31,7 +31,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            string build = GetBuildToUse(rom);
+            string build = GetBuildToUse(rom, core);
             if (!string.IsNullOrEmpty(build))
             {
                 newPath = Path.Combine(path, build);
@@ -169,8 +169,11 @@ namespace EmulatorLauncher
         #endregion
 
         #region Old Openbor versions with bor.cfg file format
-        private string GetBuildToUse(string rom)
+        private string GetBuildToUse(string rom, string core)
         {
+            if (core != "openbor-specific-version")
+                return null;
+            
             string path = AppConfig.GetFullPath("openbor");
 
             int buildIndex = rom.LastIndexOf(']');
