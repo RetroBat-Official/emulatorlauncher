@@ -410,15 +410,48 @@ namespace EmulatorLauncher
             if (system == "psx")
             {
                 // PSX firmware
-                string usBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5501.bin");
-                if (File.Exists(usBios))
-                    firmware["PSX+U"] = usBios;
-                string jpBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5500.bin");
-                if (File.Exists(jpBios))
-                    firmware["PSX+J"] = jpBios;
-                string euBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5502.bin");
-                if (File.Exists(euBios))
-                    firmware["PSX+E"] = euBios;
+                if (!SystemConfig.getOptBoolean("bizhawk_psx_original_bios"))
+                {
+                    string pspBios = Path.Combine(AppConfig.GetFullPath("bios"), "psxonpsp660.bin");
+                    if (File.Exists(pspBios))
+                    {
+                        firmware["PSX+U"] = pspBios;
+                        firmware["PSX+J"] = pspBios;
+                        firmware["PSX+E"] = pspBios;
+                    }
+                    else if (File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "ps1_rom.bin")))
+                    {
+                        string ps3Bios = Path.Combine(AppConfig.GetFullPath("bios"), "ps1_rom.bin");
+                        firmware["PSX+U"] = ps3Bios;
+                        firmware["PSX+J"] = ps3Bios;
+                        firmware["PSX+E"] = ps3Bios;
+                    }
+                    else
+                    {
+                        string usBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5501.bin");
+                        if (File.Exists(usBios))
+                            firmware["PSX+U"] = usBios;
+                        string jpBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5500.bin");
+                        if (File.Exists(jpBios))
+                            firmware["PSX+J"] = jpBios;
+                        string euBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5502.bin");
+                        if (File.Exists(euBios))
+                            firmware["PSX+E"] = euBios;
+                    }
+                }
+                
+                else
+                {
+                    string usBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5501.bin");
+                    if (File.Exists(usBios))
+                        firmware["PSX+U"] = usBios;
+                    string jpBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5500.bin");
+                    if (File.Exists(jpBios))
+                        firmware["PSX+J"] = jpBios;
+                    string euBios = Path.Combine(AppConfig.GetFullPath("bios"), "scph5502.bin");
+                    if (File.Exists(euBios))
+                        firmware["PSX+E"] = euBios;
+                }
             }
 
             if (system == "saturn")

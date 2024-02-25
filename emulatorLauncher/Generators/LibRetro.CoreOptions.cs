@@ -1990,6 +1990,20 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "beetle_psx_hw_gte_overclock", "beetle_psx_hw_gte_overclock", "disabled");
             BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%(native)");
 
+            // BIOS
+            if (!SystemConfig.getOptBoolean("beetle_psx_original_bios"))
+            {
+                string biosFile = Path.Combine(AppConfig.GetFullPath("bios"), "psxonpsp660.bin");
+                if (File.Exists(biosFile))
+                    coreSettings["beetle_psx_hw_override_bios"] = "psxonpsp";
+                else if (File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "ps1_rom.bin")))
+                    coreSettings["beetle_psx_hw_override_bios"] = "ps1_rom";
+                else
+                    coreSettings["beetle_psx_hw_override_bios"] = "disabled";
+            }
+            else
+                coreSettings["beetle_psx_hw_override_bios"] = "disabled";
+
             // Controls
             if (SystemConfig.isOptSet("mednafen_controller") && !string.IsNullOrEmpty(SystemConfig["mednafen_controller"]))
             {
@@ -3679,6 +3693,36 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["swanstation_GPU_PGXPEnable"] = "false";
                 coreSettings["swanstation_GPU_PGXPCulling"] = "false";
                 coreSettings["swanstation_GPU_PGXPTextureCorrection"] = "false";
+            }
+
+            // BIOS
+            if (!SystemConfig.getOptBoolean("swanstation_original_bios"))
+            {
+                string biosFile = Path.Combine(AppConfig.GetFullPath("bios"), "psxonpsp660.bin");
+                if (File.Exists(biosFile))
+                {
+                    coreSettings["swanstation_BIOS_PathNTSCJ"] = "psxonpsp660.bin";
+                    coreSettings["swanstation_BIOS_PathNTSCU"] = "psxonpsp660.bin";
+                    coreSettings["swanstation_BIOS_PathPAL"] = "psxonpsp660.bin";
+                }
+                else if (File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "ps1_rom.bin")))
+                {
+                    coreSettings["swanstation_BIOS_PathNTSCJ"] = "ps1_rom.bin";
+                    coreSettings["swanstation_BIOS_PathNTSCU"] = "ps1_rom.bin";
+                    coreSettings["swanstation_BIOS_PathPAL"] = "ps1_rom.bin";
+                }
+                else
+                {
+                    coreSettings["swanstation_BIOS_PathNTSCJ"] = "scph5500.bin";
+                    coreSettings["swanstation_BIOS_PathNTSCU"] = "scph5501.bin";
+                    coreSettings["swanstation_BIOS_PathPAL"] = "scph5502.bin";
+                }
+            }
+            else
+            {
+                coreSettings["swanstation_BIOS_PathNTSCJ"] = "scph5500.bin";
+                coreSettings["swanstation_BIOS_PathNTSCU"] = "scph5501.bin";
+                coreSettings["swanstation_BIOS_PathPAL"] = "scph5502.bin";
             }
 
             // Controls
