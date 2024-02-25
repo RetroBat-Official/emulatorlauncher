@@ -372,6 +372,36 @@ namespace EmulatorLauncher
 
             for (int i = 1; i < 9; i++)
                 cfg["psx.input.port" + i + ".dualshock.axis_scale"] = "1.00";
+
+            // BIOS
+            if (!SystemConfig.getOptBoolean("mednafen_psx_original_bios"))
+            {
+                string biosFile = Path.Combine(AppConfig.GetFullPath("bios"), "psxonpsp660.bin");
+                if (File.Exists(biosFile))
+                {
+                    cfg["psx.bios_eu"] = "psxonpsp660.bin";
+                    cfg["psx.bios_jp"] = "psxonpsp660.bin";
+                    cfg["psx.bios_na"] = "psxonpsp660.bin";
+                }
+                else if (File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "ps1_rom.bin")))
+                {
+                    cfg["psx.bios_eu"] = "ps1_rom.bin";
+                    cfg["psx.bios_jp"] = "ps1_rom.bin";
+                    cfg["psx.bios_na"] = "ps1_rom.bin";
+                }
+                else
+                {
+                    cfg["psx.bios_eu"] = "scph5502.bin";
+                    cfg["psx.bios_jp"] = "scph5500.bin";
+                    cfg["psx.bios_na"] = "scph5501.bin";
+                }
+            }
+            else
+            {
+                cfg["psx.bios_eu"] = "scph5502.bin";
+                cfg["psx.bios_jp"] = "scph5500.bin";
+                cfg["psx.bios_na"] = "scph5501.bin";
+            }
         }
 
         private void ConfigureMednafenSaturn(MednafenConfigFile cfg, string mednafenCore, string system)
