@@ -1348,6 +1348,14 @@ namespace EmulatorLauncher.Libretro
                 string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
                 bool isOpenGL = (emulator != "angle") && (videoDriver == "gl") && (!coreNoGL.Contains(core));
 
+                string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
+                if (File.Exists(path))
+                {
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], isOpenGL);
+                    if (!string.IsNullOrEmpty(renderconfig))
+                        SystemConfig["shader"] = renderconfig;
+                }
+
                 string shaderFilename = SystemConfig["shader"] + (isOpenGL ? ".glslp" : ".slangp");
 
                 string videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");

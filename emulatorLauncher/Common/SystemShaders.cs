@@ -14,7 +14,7 @@ namespace EmulatorLauncher.Common
             public string scanline { get; set; }
         }
 
-        public static string GetShader(string yml, string system, string emulator, string core)
+        public static string GetShader(string yml, string system, string emulator, string core, bool isOpenGL = false)
         {
             if (_ymlShadersCache == null)
                 _ymlShadersCache = YmlFile.Parse(yml);
@@ -27,8 +27,10 @@ namespace EmulatorLauncher.Common
                 bool found = false;
 
 				foreach (var si in container.OfType<YmlElement>())
-				{								
-					if (emulator == "libretro" && si.Name == "shader")
+				{
+                    if (emulator == "libretro" && si.Name == "shaderGL" && isOpenGL)
+                        found = true;
+                    else if (emulator == "libretro" && si.Name == "shader" && !isOpenGL)
 						found = true;
 					else if (!string.IsNullOrEmpty(emulator) && !string.IsNullOrEmpty(core) && si.Name == emulator + "." + core)
 						found = true;
