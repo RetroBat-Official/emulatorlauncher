@@ -16,6 +16,10 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            if (!Directory.Exists(Path.Combine(path, "bindings")))
+                try { Directory.CreateDirectory(Path.Combine(path, "bindings")); }
+                catch { }
+
             var ymlFile = Path.Combine(path, "bindings", "retrobat.yml");
             
             if (File.Exists(ymlFile))

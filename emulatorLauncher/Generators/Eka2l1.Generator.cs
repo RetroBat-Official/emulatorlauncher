@@ -152,6 +152,10 @@ namespace EmulatorLauncher
         {
             if (_gameUUID == null)
                 return;
+
+            if (!Directory.Exists(Path.Combine(path, "compat")))
+                try { Directory.CreateDirectory(Path.Combine(path, "compat")); }
+                catch {}
             
             var ymlFile = Path.Combine(path, "compat", _gameUUID + ".yml");
             YmlFile yml;
