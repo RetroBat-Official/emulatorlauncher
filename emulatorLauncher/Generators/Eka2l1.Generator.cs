@@ -4,16 +4,18 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-    class Eka2l1Generator : Generator
+    partial class Eka2l1Generator : Generator
     {
         public Eka2l1Generator()
         {
             DependsOnDesktopResolution = true;
         }
+
+        private string _gameUUID;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -23,8 +25,12 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             List<string> args = new List<string>();
-            args.Add("--fullscreen");
+            
+            if (fullscreen)
+                args.Add("--fullscreen");
 
             if (Directory.Exists(rom))
             {
@@ -43,8 +49,10 @@ namespace EmulatorLauncher
                 args.Add("--run");
                 args.Add("0x"+uuid);
 
+                _gameUUID = uuid;
+
             }
-            else if (Path.GetExtension(rom).ToLowerInvariant() == ".n-gage")
+            /*else if (Path.GetExtension(rom).ToLowerInvariant() == ".n-gage")
             {                    
                 string ngage2registry = Path.Combine(path, "Data", "drives", "c", "sys", "install", "sisregistry", "2000a2ae");
 
@@ -83,6 +91,7 @@ namespace EmulatorLauncher
                 args.Add("--run");
                 args.Add("0x20007b39");
             }
+
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
             {
                 var entries = Zip.ListEntries(rom).Where(e => !e.IsDirectory).Select(e => e.Filename).ToArray(); 
@@ -103,8 +112,11 @@ namespace EmulatorLauncher
                 var uuid = ExtractUUID(dest);
                 args.Add("--run");
                 args.Add("0x" + uuid);
-                File.Delete(dest);
-            }
+            }*/
+
+            SetupConfiguration(path, fullscreen);
+            SetupGame(path);
+            SetupControllers(path);
 
             return new ProcessStartInfo()
             {
@@ -113,6 +125,70 @@ namespace EmulatorLauncher
                 WindowStyle = ProcessWindowStyle.Minimized,                
                 Arguments = string.Join(" ", args.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray())
             };
+        }
+
+        private void SetupConfiguration(string path, bool fullscreen)
+        {
+            var yml = YmlFile.Load(Path.Combine(path, "config.yml"));
+
+            string dataFolder = Path.Combine(AppConfig.GetFullPath("bios"), "eka2l1", "data").Replace("\\", "/");
+
+            // Handle Core part of yml file
+            yml["data-storage"] = dataFolder;
+
+            BindFeature(yml, "enable-nearest-neighbor-filter", "eka2l1_nearest_neighbor_filter", "false");
+            BindFeature(yml, "integer-scaling", "smooth", "false");
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                yml["current-keybind-profile"] = "default";
+            else
+                yml["current-keybind-profile"] = "retrobat";
+
+            // Save to yml file
+            yml.Save();
+        }
+
+        private void SetupGame(string path)
+        {
+            if (_gameUUID == null)
+                return;
+            
+            var ymlFile = Path.Combine(path, "compat", _gameUUID + ".yml");
+            YmlFile yml;
+            if (File.Exists(ymlFile))
+                yml = YmlFile.Load(ymlFile);
+            else
+                yml = new YmlFile();
+            
+            yml["fps"] = "60";
+            yml["time-delay"] = "0";
+            yml["should-child-inherit-setting"] = "true";
+
+            if (SystemConfig.isOptSet("eka2l1_rotate") && !string.IsNullOrEmpty(SystemConfig["eka2l1_rotate"]))
+                yml["screen-rotation"] = SystemConfig["eka2l1_rotate"];
+            else
+                yml["screen-rotation"] = "0";
+
+            if (SystemConfig.isOptSet("eka2l1_upscale") && !string.IsNullOrEmpty(SystemConfig["eka2l1_upscale"]))
+                yml["screen-upscale"] = SystemConfig["eka2l1_upscale"];
+            else
+                yml["screen-upscale"] = "4";
+
+            if (SystemConfig.isOptSet("eka2l1_upscale_filter") && !string.IsNullOrEmpty(SystemConfig["eka2l1_upscale_filter"]))
+            {
+                yml["screen-upscale-method"] = "1";
+                yml["filter-shader-path"] = SystemConfig["eka2l1_upscale_filter"];
+            }
+            else
+            {
+                yml["screen-upscale-method"] = "0";
+                yml["filter-shader-path"] = "Default";
+            }
+
+            yml["t9-bypass-hack"] = "true";
+            
+            // Save to yml file
+            yml.Save(ymlFile);
         }
 
         private static string ExtractUUID(string file)

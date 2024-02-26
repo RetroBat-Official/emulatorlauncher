@@ -152,6 +152,9 @@
     <Compile Include="Generators\EasyRpg.Generator.cs" />
     <Compile Include="Generators\Eduke32.Generator.cs" />
     <Compile Include="Generators\Eka2l1.Generator.cs" />
+    <Compile Include="Generators\Eka2l1.Controllers.cs">
+      <DependentUpon>Eka2l1.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\ExeLauncher.Generator.cs" />
     <Compile Include="Generators\EpicLauncher.Generator.cs">
       <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
