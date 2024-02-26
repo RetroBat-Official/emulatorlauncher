@@ -5,6 +5,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using System.Globalization;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
@@ -23,7 +24,7 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.ClearSection("ControlMapping");
-                    var controller = Program.Controllers.FirstOrDefault();
+                    var controller = Program.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
                     GenerateControllerConfig(ini, controller);
                 }
             }
@@ -39,16 +40,25 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("ppsspp_forceindex") && !string.IsNullOrEmpty(SystemConfig["ppsspp_forceindex"]))
                 index = SystemConfig["ppsspp_forceindex"].ToInteger();
 
-            string xinputID = (20 + index).ToString() + "-";
-            string sdlID = (10 + index).ToString() + "-";
+            string xinputID = "20-";
+            string controllerID = (20 + index).ToString() + "-";
+            bool xInput = true;
+
+            if (!controller.IsXInputDevice)
+            {
+                controllerID = (10 + index).ToString() + "-";
+                xInput = false;
+            }
 
             if (controller.IsKeyboard)
             {
                 ConfigureKeyboard(ini, controller.Config);
                 return;
             }
-            else
+            
+            else if (xInput)
             {
+                xinputID = controllerID;
                 foreach (var input in pspMapping)
                 {
                     string button = input.Key;
@@ -58,7 +68,7 @@ namespace EmulatorLauncher
                     {
                         string xTarget = xInputJoy[inputKey].ToString();
                         string sdlTarget = dualSenseJoy[inputKey].ToString();
-                        ini.WriteValue("ControlMapping", button, xinputID + xTarget + "," + sdlID + sdlTarget);
+                        ini.WriteValue("ControlMapping", button, xinputID + xTarget);
                     }
                     else
                     {
@@ -68,16 +78,16 @@ namespace EmulatorLauncher
                         var sdlnkCode = (int)dualSenseToNKCode[inputKey];
                         string sdlTarget = sdlnkCode.ToString();
                         
-                        ini.WriteValue("ControlMapping", button, xinputID + xTarget + "," + sdlID + sdlTarget);
+                        ini.WriteValue("ControlMapping", button, xinputID + xTarget);
                     }
                 }
 
-                ini.WriteValue("ControlMapping", "Rewind", "1-131," + xinputID + "109:" + xinputID + "21," + sdlID + "196:" + sdlID + "21");            // SELECT + LEFT
-                ini.WriteValue("ControlMapping", "Fast-forward", "1-132," + xinputID + "109:" + xinputID + "22, " + sdlID + "196:" + sdlID + "22");     // SELECT + RIGHT
-                ini.WriteValue("ControlMapping", "Load State", "1-134," + xinputID + "109:" + xinputID + "100, " + sdlID + "196:" + sdlID + "191");     // SELECT + NORTH
-                ini.WriteValue("ControlMapping", "Save State", "1-133," + xinputID + "109:" + xinputID + "99, " + sdlID + "196:" + sdlID + "188");      // SELECT + WEST
-                ini.WriteValue("ControlMapping", "Pause", "1-140," + xinputID + "109:" + xinputID + "97, " + sdlID + "196:" + sdlID + "190");           // SELECT + EAST
-                ini.WriteValue("ControlMapping", "Screenshot", "1-138," + xinputID + "109:" + xinputID + "105, " + sdlID + "196:" + sdlID + "195");     // SELECT + R2
+                ini.WriteValue("ControlMapping", "Rewind", "1-131," + xinputID + "109:" + xinputID + "21");            // SELECT + LEFT
+                ini.WriteValue("ControlMapping", "Fast-forward", "1-132," + xinputID + "109:" + xinputID + "22");     // SELECT + RIGHT
+                ini.WriteValue("ControlMapping", "Load State", "1-134," + xinputID + "109:" + xinputID + "100");     // SELECT + NORTH
+                ini.WriteValue("ControlMapping", "Save State", "1-133," + xinputID + "109:" + xinputID + "99");      // SELECT + WEST
+                ini.WriteValue("ControlMapping", "Pause", "1-140," + xinputID + "109:" + xinputID + "97");           // SELECT + EAST
+                ini.WriteValue("ControlMapping", "Screenshot", "1-138," + xinputID + "109:" + xinputID + "105");     // SELECT + R2
 
                 if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
                 {
@@ -86,8 +96,57 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    ini.WriteValue("ControlMapping", "Previous Slot", "1-135," + xinputID + "109:" + xinputID + "19," + sdlID + "196:" + sdlID + "19"); // SELECT + UP
-                    ini.WriteValue("ControlMapping", "Next Slot", "1-136," + xinputID + "109:" + xinputID + "20," + sdlID + "196:" + sdlID + "20");     // SELECT + DOWN
+                    ini.WriteValue("ControlMapping", "Previous Slot", "1-135," + xinputID + "109:" + xinputID + "19"); // SELECT + UP
+                    ini.WriteValue("ControlMapping", "Next Slot", "1-136," + xinputID + "109:" + xinputID + "20");     // SELECT + DOWN
+                }
+            }
+
+            // Dinput case
+            else
+            {
+                string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+                string guid1 = (controller.Guid.ToString()).Substring(0, 27) + "00000";
+                SdlToDirectInput c1 = null;
+
+                SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid1);
+
+                try { c1 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1); }
+                catch { }
+
+
+                ini.WriteValue("ControlMapping", "Up", xinputID + "-19" + "," + controllerID + GetInputCode(controller, "dpup", c1));
+                ini.WriteValue("ControlMapping", "Down", xinputID + "-20" + "," + controllerID + GetInputCode(controller, "dpdown", c1));
+                ini.WriteValue("ControlMapping", "Left", xinputID + "-21" + "," + controllerID + GetInputCode(controller, "dpleft", c1));
+                ini.WriteValue("ControlMapping", "Right", xinputID + "-22" + "," + controllerID + GetInputCode(controller, "dpright", c1));
+                ini.WriteValue("ControlMapping", "Circle", xinputID + "-97" + "," + controllerID + GetInputCode(controller, "b", c1));
+                ini.WriteValue("ControlMapping", "Cross", xinputID + "-96" + "," + controllerID + GetInputCode(controller, "a", c1));
+                ini.WriteValue("ControlMapping", "Square", xinputID + "-99" + "," + controllerID + GetInputCode(controller, "x", c1));
+                ini.WriteValue("ControlMapping", "Triangle", xinputID + "-100" + "," + controllerID + GetInputCode(controller, "y", c1));
+                ini.WriteValue("ControlMapping", "Start", xinputID + "-108" + "," + controllerID + GetInputCode(controller, "start", c1));
+                ini.WriteValue("ControlMapping", "Select", xinputID + "-109" + "," + controllerID + GetInputCode(controller, "back", c1));
+                ini.WriteValue("ControlMapping", "L", xinputID + "-102" + "," + controllerID + GetInputCode(controller, "leftshoulder", c1));
+                ini.WriteValue("ControlMapping", "R", xinputID + "-103" + "," + controllerID + GetInputCode(controller, "rightshoulder", c1));
+                ini.WriteValue("ControlMapping", "An.Up", xinputID + "-4002" + "," + controllerID + GetInputCode(controller, "lefty", c1, -1));
+                ini.WriteValue("ControlMapping", "An.Down", xinputID + "-4003" + "," + controllerID + GetInputCode(controller, "lefty", c1, 1));
+                ini.WriteValue("ControlMapping", "An.Left", xinputID + "-4001" + "," + controllerID + GetInputCode(controller, "leftx", c1, -1));
+                ini.WriteValue("ControlMapping", "An.Right", xinputID + "-4000" + "," + controllerID + GetInputCode(controller, "leftx", c1, 1));
+
+                ini.WriteValue("ControlMapping", "Rewind", "1-131," + xinputID + "109:" + xinputID + "21," + controllerID + GetInputCode(controller, "back", c1) + ":" + controllerID + GetInputCode(controller, "dpleft", c1));            // SELECT + LEFT
+                ini.WriteValue("ControlMapping", "Fast-forward", "1-132," + xinputID + "109:" + xinputID + "22, " + controllerID + GetInputCode(controller, "back", c1) + ":" + controllerID + GetInputCode(controller, "dpright", c1));     // SELECT + RIGHT
+                ini.WriteValue("ControlMapping", "Load State", "1-134," + xinputID + "109:" + xinputID + "100, " + controllerID + GetInputCode(controller, "back", c1) + ":" + controllerID + GetInputCode(controller, "y", c1));     // SELECT + NORTH
+                ini.WriteValue("ControlMapping", "Save State", "1-133," + xinputID + "109:" + xinputID + "99, " + controllerID + GetInputCode(controller, "back", c1) + ":" + controllerID + GetInputCode(controller, "x", c1));      // SELECT + WEST
+                ini.WriteValue("ControlMapping", "Pause", "1-140," + xinputID + "109:" + xinputID + "97, " + controllerID + GetInputCode(controller, "back", c1) + ":" + controllerID + GetInputCode(controller, "b", c1));           // SELECT + EAST
+                ini.WriteValue("ControlMapping", "Screenshot", "1-138," + xinputID + "109:" + xinputID + "105, " + controllerID + GetInputCode(controller, "back", c1) + ":" + controllerID + GetInputCode(controller, "righttrigger", c1));     // SELECT + R2
+
+                if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
+                {
+                    ini.WriteValue("ControlMapping", "Previous Slot", "");
+                    ini.WriteValue("ControlMapping", "Next Slot", "");
+                }
+                else
+                {
+                    ini.WriteValue("ControlMapping", "Previous Slot", "1-135," + xinputID + "109:" + xinputID + "19," + controllerID + GetInputCode(controller, "back", c1) + ":" + controllerID + GetInputCode(controller, "dpup", c1)); // SELECT + UP
+                    ini.WriteValue("ControlMapping", "Next Slot", "1-136," + xinputID + "109:" + xinputID + "20," + controllerID + GetInputCode(controller, "back", c1) + ":" + controllerID + GetInputCode(controller, "dpdown", c1));     // SELECT + DOWN
                 }
             }
         }
@@ -139,6 +198,64 @@ namespace EmulatorLauncher
             ini.WriteValue("ControlMapping", "Screenshot", deviceID + "138");       //F8
             ini.WriteValue("ControlMapping", "Previous Slot", deviceID + "135");    //F5
             ini.WriteValue("ControlMapping", "Next Slot", deviceID + "136");        //F6
+        }
+
+        private static int GetInputCode(Controller c, string key, SdlToDirectInput ctrl, int direction = -1)
+        {
+            if (ctrl.ButtonMappings[key] == null)
+                return 0;
+
+            string button = ctrl.ButtonMappings[key];
+
+            if (button.StartsWith("h"))
+            {
+                int hatID = button.Substring(3).ToInteger();
+                switch (hatID)
+                {
+                    case 1: return 19;
+                    case 2: return 22;
+                    case 4: return 20;
+                    case 8: return 21;
+                };
+            }
+
+            else if (button.StartsWith("b"))
+            {
+                int buttonID = button.Substring(1).ToInteger();
+                return 188 + buttonID;
+            }
+
+            else if (button.StartsWith("a") || button.StartsWith("-a") || button.StartsWith("+a"))
+            {
+                int axisID = button.Substring(1).ToInteger();
+
+                if (button.StartsWith("-a") || button.StartsWith("+a"))
+                    axisID = button.Substring(2).ToInteger();
+
+                switch (axisID)
+                {
+                    case 0:
+                        if (direction == 1) return 4000;
+                        else return 4001;
+                    case 1:
+                        if (direction == 1) return 4002;
+                        else return 4003;
+                    case 2:
+                        if (direction == 1) return 4022;
+                        else return 4023;
+                    case 3:
+                        if (direction == 1) return 4024;
+                        else return 4025;
+                    case 4:
+                        if (direction == 1) return 4026;
+                        else return 4027;
+                    case 5:
+                        if (direction == 1) return 4028;
+                        else return 4029;
+                };
+            }
+
+            return 0;
         }
 
         static Dictionary<string, InputKey> pspMapping = new Dictionary<string, InputKey>
