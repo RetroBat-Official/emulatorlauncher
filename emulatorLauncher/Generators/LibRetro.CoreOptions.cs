@@ -1625,7 +1625,7 @@ namespace EmulatorLauncher.Libretro
                     string tosFile = "hatarib/" + SystemConfig["hatarib_tos"];
                     string tosPath = Path.Combine(AppConfig.GetFullPath("bios"), "hatarib", SystemConfig["hatarib_tos"]);
 
-                    if (!File.Exists(tosPath))
+                    if (File.Exists(tosPath))
                         coreSettings["hatarib_tos"] = tosFile;
                 }
             }
