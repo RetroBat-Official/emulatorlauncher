@@ -1424,8 +1424,8 @@ namespace EmulatorLauncher.Libretro
                 rom = romToLaunch;
             }
 
-            // Hatarib core in case of gemdos need to run the core without rom
-            if (core == "hatarib" && Path.GetExtension(rom) == ".gemdos")
+            /* Hatarib core in case of gemdos need to run the core without rom
+            if (core == "hatarib" && Path.GetExtension(rom) == ".m3u" && Directory.Exists(Path.GetFullPath(rom).Substring(4)))
             {
                 string hatariBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "hatarib");
 
@@ -1443,7 +1443,7 @@ namespace EmulatorLauncher.Libretro
                 }
 
                 rom = null;
-            }
+            }*/
 
             string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
             if (emulator != "angle" && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))

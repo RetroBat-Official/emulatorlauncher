@@ -1652,16 +1652,14 @@ namespace EmulatorLauncher.Libretro
 
             // Manage gemdos images
             string rom = SystemConfig["rom"];
-            if (Path.GetExtension(rom) == ".gemdos")
+            if (Path.GetExtension(rom) == ".m3u" && Directory.Exists(Path.GetFullPath(rom).Substring(0,rom.Length - 4)))
             {
                 coreSettings["hatarib_hardboot"] = "1";
-                coreSettings["hatarib_hardimg"] = "hatarib/" + Path.GetFileName(rom);
                 coreSettings["hatarib_hardtype"] = "0";
             }
             else
             {
                 coreSettings["hatarib_hardboot"] = "0";
-                coreSettings["hatarib_hardimg"] = "<none>";
             }
         }
 
