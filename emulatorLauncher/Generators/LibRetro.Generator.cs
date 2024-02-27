@@ -1053,6 +1053,7 @@ namespace EmulatorLauncher.Libretro
         }
 
         private string _dosBoxTempRom;
+        private string _gemdosTempFolder;
 
         public override void Cleanup()
         {
@@ -1061,7 +1062,13 @@ namespace EmulatorLauncher.Libretro
 
             if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
                 File.Delete(_dosBoxTempRom);
-            
+
+            if (_gemdosTempFolder != null && Directory.Exists(_gemdosTempFolder))
+            {
+                try { Directory.Delete(_gemdosTempFolder, true); }
+                catch { }
+            }
+
             if (!string.IsNullOrEmpty(_video_driver))
             {
                 var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
@@ -1415,6 +1422,27 @@ namespace EmulatorLauncher.Libretro
                     throw new ApplicationException("Libretro:melonDS requires a '.nds' game file to load a nand file.");
 
                 rom = romToLaunch;
+            }
+
+            // Hatarib core in case of gemdos need to run the core without rom
+            if (core == "hatarib" && Path.GetExtension(rom) == ".gemdos")
+            {
+                string hatariBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "hatarib");
+
+                // First: delete existing .gemdos subdirectories
+                DirectoryInfo parentTargetDirectory = new DirectoryInfo(hatariBiosPath);
+                DirectoryInfo[] targetSubDirectories = parentTargetDirectory.GetDirectories("*" + ".gemdos");
+                foreach (DirectoryInfo subDirectory in targetSubDirectories)
+                    subDirectory.Delete(true);
+
+                // Copy the gemdos folder to the system folder
+                _gemdosTempFolder = Path.Combine(AppConfig.GetFullPath("bios"), "hatarib", Path.GetFileName(rom));
+                if (Directory.Exists(rom))
+                {
+                    FileTools.CopyDirectory(rom, _gemdosTempFolder, true);
+                }
+
+                rom = null;
             }
 
             string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
