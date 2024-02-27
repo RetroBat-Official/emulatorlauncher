@@ -101,9 +101,9 @@ namespace EmulatorLauncher
         private void SetupBezelAndShaders(string system, string rom, ScreenResolution resolution, string path)
         {
             var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
-            if (bezels != null && ((SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1") || BorPak.GetVideoMode(rom).IsWideScreen))
+            if (bezels != null && ((SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1")))
                 SystemConfig["forceNoBezel"] = "1";
-
+            
             ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, false);
         }
 
