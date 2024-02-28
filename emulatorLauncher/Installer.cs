@@ -92,7 +92,8 @@ namespace EmulatorLauncher
             { new Installer("stella", "stella", "Stella.exe") },
             { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") },
             { new Installer("kronos", "kronos", "kronos.exe") },
-            { new Installer("gzdoom", "gzdoom", "gzdoom.exe") }
+            { new Installer("gzdoom", "gzdoom", "gzdoom.exe") },
+            { new Installer("eka2l1", "eka2l1", "eka2l1_qt.exe") }
         };
 
         static List<string>noVersionExe = new List<string>()

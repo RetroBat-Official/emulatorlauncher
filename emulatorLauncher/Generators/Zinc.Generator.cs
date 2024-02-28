@@ -57,30 +57,29 @@ namespace EmulatorLauncher
 
             if (File.Exists(gameCtrlFile) && SystemConfig["zinc_controller_config"] != "none")
             {
-                if (SystemConfig.isOptSet("zinc_controller_config") && SystemConfig["zinc_controller_config"] == "autoconfig")
-                {
-                    ConfigureControllers(ControllerCfgFile, path);
-                }
-                else
+                if (SystemConfig.isOptSet("zinc_controller_config") && SystemConfig["zinc_controller_config"] == "predefined")
                 {
                     if (File.Exists(ControllerCfgFile))
                         File.Delete(ControllerCfgFile);
                     if (File.Exists(gameCtrlFile))
                         File.Copy(gameCtrlFile, ControllerCfgFile);
                 }
-
-                commandArray.Add("--controller=.\\controller.znc");
-
-                string controllerCfgCommand = "--use-controller-cfg-file=" + "\"" + ControllerCfgFile + "\"";
-                commandArray.Add(controllerCfgCommand);
-
-                string outputFile = Path.Combine(path, "wberror.txt");
-                using (var ini = IniFile.FromFile(gameCtrlFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+                else
                 {
-                    ini.WriteValue("General", "output", outputFile);
-                    ini.WriteValue("General", "NOERROR", "1");
-                    ini.Save();
+                    ConfigureControllers(ControllerCfgFile, path);
                 }
+            }
+
+            commandArray.Add("--controller=.\\controller.znc");
+            string controllerCfgCommand = "--use-controller-cfg-file=" + "\"" + ControllerCfgFile + "\"";
+            commandArray.Add(controllerCfgCommand);
+
+            string outputFile = Path.Combine(path, "wberror.txt");
+            using (var ini = IniFile.FromFile(gameCtrlFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+            {
+                ini.WriteValue("General", "output", outputFile);
+                ini.WriteValue("General", "NOERROR", "1");
+                ini.Save();
             }
 
             // Renderer choice

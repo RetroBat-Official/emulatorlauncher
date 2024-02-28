@@ -13,7 +13,7 @@ namespace EmulatorLauncher
     {
         private void ConfigureControllers(string iniFile, string path)
         {
-            if (!Program.SystemConfig.isOptSet("zinc_controller_config") || Program.SystemConfig["zinc_controller_config"] != "autoconfig")
+            if (Program.SystemConfig.isOptSet("zinc_controller_config") && (Program.SystemConfig["zinc_controller_config"] == "none" || Program.SystemConfig["zinc_controller_config"] == "predefined"))
                 return;
 
             using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
@@ -232,10 +232,19 @@ namespace EmulatorLauncher
                     ini.WriteValue(playerSection, "btn12", GetInputKeyName(ctrl, InputKey.b, joy));
                 }
             }
+
+            foreach (var value in ini.EnumerateValues(playerSection))
+            {
+                if (value.Value == "null")
+                    ini.Remove(playerSection, value.Key);
+            }
         }
 
         private static string GetDInputKeyName(Controller c, SdlToDirectInput ctrl, InputKey key, string joy)
         {
+            if (c.Config[key] == null)
+                return "null";
+
             string esName = (c.Config[key].Name).ToString();
 
             if (esName == null || !esToDinput.ContainsKey(esName))
@@ -335,7 +344,7 @@ namespace EmulatorLauncher
 
             var input = c.GetDirectInputMapping(key);
             if (input == null)
-                return "\"\"";
+                return "null";
 
             long nb = input.Id + 1;
 

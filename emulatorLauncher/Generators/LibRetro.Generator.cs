@@ -1053,6 +1053,7 @@ namespace EmulatorLauncher.Libretro
         }
 
         private string _dosBoxTempRom;
+        private string _gemdosTempFolder;
 
         public override void Cleanup()
         {
@@ -1061,7 +1062,13 @@ namespace EmulatorLauncher.Libretro
 
             if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
                 File.Delete(_dosBoxTempRom);
-            
+
+            if (_gemdosTempFolder != null && Directory.Exists(_gemdosTempFolder))
+            {
+                try { Directory.Delete(_gemdosTempFolder, true); }
+                catch { }
+            }
+
             if (!string.IsNullOrEmpty(_video_driver))
             {
                 var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));

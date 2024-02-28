@@ -1649,6 +1649,18 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "hatarib_statusbar", "hatarib_statusbar", "1");
             BindFeature(coreSettings, "hatarib_emutos_framerate", "hatarib_emutos_framerate", "-1");
             BindFeature(coreSettings, "hatarib_emutos_region", "hatarib_emutos_region", "-1");
+
+            // Manage gemdos images
+            string rom = SystemConfig["rom"];
+            if (Path.GetExtension(rom) == ".m3u" && Directory.Exists(Path.GetFullPath(rom).Substring(0,rom.Length - 4)))
+            {
+                coreSettings["hatarib_hardboot"] = "1";
+                coreSettings["hatarib_hardtype"] = "0";
+            }
+            else
+            {
+                coreSettings["hatarib_hardboot"] = "0";
+            }
         }
 
         private void ConfigureKronos(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
