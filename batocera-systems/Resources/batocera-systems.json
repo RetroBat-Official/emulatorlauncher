@@ -1319,6 +1319,16 @@
     ]
   },
 
+  "ngage": {
+    "name": "Nokia N-gage",
+    "biosFiles": [
+      {
+        "md5": "64a95a4a884cf4cc15a566b856603193",
+        "file": "bios/eka2l1/data/roms/NEM-4/SYM.ROM"
+      }
+    ]
+  },
+
   "ngp": {
     "name": "Neo Geo Pocket",
     "biosFiles": [
