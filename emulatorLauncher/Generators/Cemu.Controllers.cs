@@ -380,14 +380,7 @@ namespace EmulatorLauncher
             //Write mappings of buttons
 
             //revert gamepadbuttons if set in features
-            if (ctrl.IsXInputDevice && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
-            {
-                WriteMapping("1", InputKey.b, false);
-                WriteMapping("2", InputKey.a, false);
-                WriteMapping("3", InputKey.x, false);
-                WriteMapping("4", InputKey.y, false);
-            }
-            else if (ctrl.IsXInputDevice)
+            if (Program.SystemConfig.getOptBoolean("gamepadbuttons"))
             {
                 WriteMapping("1", InputKey.a, false);
                 WriteMapping("2", InputKey.b, false);
