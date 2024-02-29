@@ -124,6 +124,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Renderer", "ForceManaged", "m2_ForceManaged", "1", "0");
                     BindBoolIniFeature(ini, "Renderer", "AutoMip", "m2_AutoMip", "1", "0");
                     BindBoolIniFeature(ini, "Renderer", "FSAA", "m2_fsaa", "1", "0");
+                    BindBoolIniFeature(ini, "Renderer", "DrawCross", "m2_crosshair", "1", "0");
 
                     // Input Drivers
                     if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
