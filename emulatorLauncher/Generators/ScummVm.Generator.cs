@@ -204,10 +204,21 @@ namespace EmulatorLauncher
                         ini.WriteValue("scummvm", "filtering", "false");
                 }
 
-                if (Features.IsSupported("subtitles") && SystemConfig.getOptBoolean("subtitles"))
+                if (Features.IsSupported("scumm_subtitles") && SystemConfig["scumm_subtitles"] == "subtitles")
+                {
                     ini.WriteValue("scummvm", "subtitles", "true");
-                else
+                    ini.WriteValue("scummvm", "speech_mute", "true");
+                }
+                else if (Features.IsSupported("scumm_subtitles") && SystemConfig["scumm_subtitles"] == "voice")
+                {
                     ini.WriteValue("scummvm", "subtitles", "false");
+                    ini.WriteValue("scummvm", "speech_mute", "false");
+                }
+                else
+                {
+                    ini.WriteValue("scummvm", "subtitles", "true");
+                    ini.WriteValue("scummvm", "speech_mute", "false");
+                }
 
                 if (Features.IsSupported("antialiasing") && SystemConfig.isOptSet("antialiasing"))
                     ini.WriteValue("scummvm", "antialiasing", SystemConfig["antialiasing"]);
