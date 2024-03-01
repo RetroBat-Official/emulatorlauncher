@@ -282,6 +282,7 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(gameName))
                 return;
 
+            // Since recent versions of scummvm, .scummvm need to contain engine:gameid
             if (gameName.Contains(":"))
             {
                 string[] parts = gameName.Split(new[] { ':' }, 2);
@@ -293,6 +294,7 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Case where games are already installed in scummvm and .scummvm only contains gameid of installed game
             else
             {
                 string delimiter = "-";
@@ -306,9 +308,11 @@ namespace EmulatorLauncher
 
             var iniSection = ini.EnumerateSections();
 
+            // Do not create section if we don't know engine + gameID and return if section does not exist
             if (noCreateSection && !iniSection.Contains(gameName))
                 return;
 
+            // Create game section with basic data if not existing already
             if (!iniSection.Contains(gameName))
             {
                 ini.WriteValue(gameName, "gameid", gameid);
@@ -320,10 +324,17 @@ namespace EmulatorLauncher
                 ini.WriteValue(gameName, "path", Path.GetDirectoryName(rom));
             }
 
+            // Language
             if (SystemConfig.isOptSet("scumm_language") && !string.IsNullOrEmpty(SystemConfig["scumm_language"]))
                 ini.WriteValue(gameName, "language", SystemConfig["scumm_language"]);
             else if (ini.EnumerateValues(gameName).Any(v => v.Key == "language"))
                 ini.Remove(gameName, "language");
+
+            // other interesting values (to be investigated in future)
+            // original_gui
+            // platform
+            // extra
+            // enhancements
         }
 
         public override int RunAndWait(ProcessStartInfo path)
