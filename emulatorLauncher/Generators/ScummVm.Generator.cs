@@ -43,7 +43,7 @@ namespace EmulatorLauncher
 
             string iniPath = Path.ChangeExtension(exe, ".ini");
 
-            SetupConfiguration(iniPath, system, fullscreen);
+            SetupConfiguration(iniPath, system, rom, fullscreen);
 
             List<string> commandArray = new List<string>();
 
@@ -74,7 +74,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string iniPath, string system, bool fullscreen = true)
+        private void SetupConfiguration(string iniPath, string system, string rom, bool fullscreen = true)
         {
             using (IniFile ini = new IniFile(iniPath))
             {
@@ -254,7 +254,74 @@ namespace EmulatorLauncher
                     ini.WriteValue("scummvm", "enable_unsupported_game_warning", "false");
                 else
                     ini.Remove("scummvm", "enable_unsupported_game_warning");
+
+                SetupGameSettings(ini, rom);
+
+                ini.Save();
             }
+        }
+
+        private void SetupGameSettings(IniFile ini, string rom)
+        {
+            if (!File.Exists(rom) || !rom.EndsWith(".scummvm", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var lines = File.ReadAllLines(rom);
+            
+            if (lines == null)
+                return;
+            
+            if (lines.Length == 0)
+                return;
+
+            string gameName = lines[0].Trim();
+            string engine = null;
+            string gameid = null;
+            bool noCreateSection = false;
+
+            if (string.IsNullOrEmpty(gameName))
+                return;
+
+            if (gameName.Contains(":"))
+            {
+                string[] parts = gameName.Split(new[] { ':' }, 2);
+                if (parts.Length > 1)
+                {
+                    gameName = parts[1].Trim();
+                    gameid = gameName;
+                    engine = parts[0].Trim();
+                }
+            }
+
+            else
+            {
+                string delimiter = "-";
+                int lastOccurrenceIndex = gameName.LastIndexOf(delimiter);
+                if (lastOccurrenceIndex != -1)
+                    gameid = gameName.Substring(0, lastOccurrenceIndex).Trim();
+                else
+                    gameid = gameName;
+                noCreateSection = true;
+            }
+
+            var iniSection = ini.EnumerateSections();
+
+            if (noCreateSection && !iniSection.Contains(gameName))
+                return;
+
+            if (!iniSection.Contains(gameName))
+            {
+                ini.WriteValue(gameName, "gameid", gameid);
+                ini.WriteValue(gameName, "description", Path.GetFileName(Path.GetDirectoryName(rom)));
+                
+                if (engine != null)
+                    ini.WriteValue(gameName, "engineid", engine);
+                
+                ini.WriteValue(gameName, "path", Path.GetDirectoryName(rom));
+            }
+
+            if (SystemConfig.isOptSet("scumm_language") && !string.IsNullOrEmpty(SystemConfig["scumm_language"]))
+                ini.WriteValue(gameName, "language", SystemConfig["scumm_language"]);
         }
 
         public override int RunAndWait(ProcessStartInfo path)
