@@ -255,7 +255,7 @@ namespace EmulatorLauncher
                 else
                     ini.Remove("scummvm", "enable_unsupported_game_warning");
 
-                SetupGameSettings(ini, rom);
+                //SetupGameSettings(ini, rom);
 
                 ini.Save();
             }
@@ -322,6 +322,8 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("scumm_language") && !string.IsNullOrEmpty(SystemConfig["scumm_language"]))
                 ini.WriteValue(gameName, "language", SystemConfig["scumm_language"]);
+            else if (ini.EnumerateValues(gameName).Any(v => v.Key == "language"))
+                ini.Remove(gameName, "language");
         }
 
         public override int RunAndWait(ProcessStartInfo path)
