@@ -43,7 +43,7 @@ namespace EmulatorLauncher
 
             string iniPath = Path.ChangeExtension(exe, ".ini");
 
-            SetupConfiguration(iniPath, system, fullscreen);
+            SetupConfiguration(iniPath, system, rom, fullscreen);
 
             List<string> commandArray = new List<string>();
 
@@ -74,7 +74,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string iniPath, string system, bool fullscreen = true)
+        private void SetupConfiguration(string iniPath, string system, string rom, bool fullscreen = true)
         {
             using (IniFile ini = new IniFile(iniPath))
             {
@@ -204,10 +204,21 @@ namespace EmulatorLauncher
                         ini.WriteValue("scummvm", "filtering", "false");
                 }
 
-                if (Features.IsSupported("subtitles") && SystemConfig.getOptBoolean("subtitles"))
+                if (Features.IsSupported("scumm_subtitles") && SystemConfig["scumm_subtitles"] == "subtitles")
+                {
                     ini.WriteValue("scummvm", "subtitles", "true");
-                else
+                    ini.WriteValue("scummvm", "speech_mute", "true");
+                }
+                else if (Features.IsSupported("scumm_subtitles") && SystemConfig["scumm_subtitles"] == "voice")
+                {
                     ini.WriteValue("scummvm", "subtitles", "false");
+                    ini.WriteValue("scummvm", "speech_mute", "false");
+                }
+                else
+                {
+                    ini.WriteValue("scummvm", "subtitles", "true");
+                    ini.WriteValue("scummvm", "speech_mute", "false");
+                }
 
                 if (Features.IsSupported("antialiasing") && SystemConfig.isOptSet("antialiasing"))
                     ini.WriteValue("scummvm", "antialiasing", SystemConfig["antialiasing"]);
@@ -243,7 +254,87 @@ namespace EmulatorLauncher
                     ini.WriteValue("scummvm", "enable_unsupported_game_warning", "false");
                 else
                     ini.Remove("scummvm", "enable_unsupported_game_warning");
+
+                //SetupGameSettings(ini, rom);
+
+                ini.Save();
             }
+        }
+
+        private void SetupGameSettings(IniFile ini, string rom)
+        {
+            if (!File.Exists(rom) || !rom.EndsWith(".scummvm", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var lines = File.ReadAllLines(rom);
+            
+            if (lines == null)
+                return;
+            
+            if (lines.Length == 0)
+                return;
+
+            string gameName = lines[0].Trim();
+            string engine = null;
+            string gameid = null;
+            bool noCreateSection = false;
+
+            if (string.IsNullOrEmpty(gameName))
+                return;
+
+            // Since recent versions of scummvm, .scummvm need to contain engine:gameid
+            if (gameName.Contains(":"))
+            {
+                string[] parts = gameName.Split(new[] { ':' }, 2);
+                if (parts.Length > 1)
+                {
+                    gameName = parts[1].Trim();
+                    gameid = gameName;
+                    engine = parts[0].Trim();
+                }
+            }
+
+            // Case where games are already installed in scummvm and .scummvm only contains gameid of installed game
+            else
+            {
+                string delimiter = "-";
+                int lastOccurrenceIndex = gameName.LastIndexOf(delimiter);
+                if (lastOccurrenceIndex != -1)
+                    gameid = gameName.Substring(0, lastOccurrenceIndex).Trim();
+                else
+                    gameid = gameName;
+                noCreateSection = true;
+            }
+
+            var iniSection = ini.EnumerateSections();
+
+            // Do not create section if we don't know engine + gameID and return if section does not exist
+            if (noCreateSection && !iniSection.Contains(gameName))
+                return;
+
+            // Create game section with basic data if not existing already
+            if (!iniSection.Contains(gameName))
+            {
+                ini.WriteValue(gameName, "gameid", gameid);
+                ini.WriteValue(gameName, "description", Path.GetFileName(Path.GetDirectoryName(rom)));
+                
+                if (engine != null)
+                    ini.WriteValue(gameName, "engineid", engine);
+                
+                ini.WriteValue(gameName, "path", Path.GetDirectoryName(rom));
+            }
+
+            // Language
+            if (SystemConfig.isOptSet("scumm_language") && !string.IsNullOrEmpty(SystemConfig["scumm_language"]))
+                ini.WriteValue(gameName, "language", SystemConfig["scumm_language"]);
+            else if (ini.EnumerateValues(gameName).Any(v => v.Key == "language"))
+                ini.Remove(gameName, "language");
+
+            // other interesting values (to be investigated in future)
+            // original_gui
+            // platform
+            // extra
+            // enhancements
         }
 
         public override int RunAndWait(ProcessStartInfo path)

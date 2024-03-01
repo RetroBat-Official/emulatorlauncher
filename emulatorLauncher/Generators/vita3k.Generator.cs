@@ -172,7 +172,9 @@ namespace EmulatorLauncher
             BindFeature(yml, "shader-cache", "shader-cache", "true");
             BindFeature(yml, "texture-cache", "texture-cache", "true");
             BindFeature(yml, "performance-overlay", "performance-overlay", "false");
-            
+            BindFeature(yml, "high-accuracy", "vita3k_high_accuracy", "true");
+            BindFeature(yml, "fps-hack", "vita3k_fpshack", "false");
+
             //Performance overlay options
             if (SystemConfig.isOptSet("performance-overlay") && SystemConfig["performance-overlay"] != "false")
             {
