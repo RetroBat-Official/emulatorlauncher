@@ -760,7 +760,7 @@ namespace EmulatorLauncher
 
                 // Cheats Path
                 var cheatsRootPath = AppConfig.GetFullPath("cheats");
-                cheatsRootPath = string.IsNullOrEmpty(cheatsRootPath) ? path : Path.Combine(cheatsRootPath, "pcsx2", "cheats");
+                cheatsRootPath = string.IsNullOrEmpty(cheatsRootPath) ? path : Path.Combine(cheatsRootPath, "pcsx2");
                 
                 SetIniPath(ini, "Folders", "Cheats", Path.Combine(cheatsRootPath, "cheats"));
                 SetIniPath(ini, "Folders", "CheatsWS", Path.Combine(cheatsRootPath, "cheats_ws"));
