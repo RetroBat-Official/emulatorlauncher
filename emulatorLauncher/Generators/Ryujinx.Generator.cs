@@ -123,6 +123,15 @@ namespace EmulatorLauncher
             //Set fullscreen
             json["start_fullscreen"] = fullscreen ? "true" : "false";
 
+            // Folder
+            List<string> paths = new List<string>();
+            string romPath = Path.Combine(AppConfig.GetFullPath("roms"), "switch");
+            if (Directory.Exists(romPath))
+            {
+                paths.Add(romPath);
+                json.SetObject("game_dirs", paths);
+            }
+
             //General Settings
             json["check_updates_on_start"] = "false";
             json["show_confirm_exit"] = "false";
@@ -130,7 +139,7 @@ namespace EmulatorLauncher
 
             //Input
             BindBoolFeature(json, "docked_mode", "ryujinx_undock", "false", "true");
-            json["hide_cursor_on_idle"] = "true";
+            json["hide_cursor"] = "2";
 
             // Discord
             BindBoolFeature(json, "enable_discord_integration", "discord", "true", "false");
