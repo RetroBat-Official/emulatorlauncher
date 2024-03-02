@@ -117,11 +117,17 @@ namespace EmulatorLauncher
 
             var json = DynamicJson.Load(Path.Combine(path, "portable", "Config.json"));
 
-            //Perform conroller configuration
-            CreateControllerConfiguration(json);
-
             //Set fullscreen
             json["start_fullscreen"] = fullscreen ? "true" : "false";
+
+            // Folder
+            List<string> paths = new List<string>();
+            string romPath = Path.Combine(AppConfig.GetFullPath("roms"), "switch");
+            if (Directory.Exists(romPath))
+            {
+                paths.Add(romPath);
+                json.SetObject("game_dirs", paths);
+            }
 
             //General Settings
             json["check_updates_on_start"] = "false";
@@ -130,7 +136,7 @@ namespace EmulatorLauncher
 
             //Input
             BindBoolFeature(json, "docked_mode", "ryujinx_undock", "false", "true");
-            json["hide_cursor_on_idle"] = "true";
+            json["hide_cursor"] = "2";
 
             // Discord
             BindBoolFeature(json, "enable_discord_integration", "discord", "true", "false");
@@ -148,12 +154,17 @@ namespace EmulatorLauncher
 
             //Graphics Settings
             BindFeature(json, "backend_threading", "backend_threading", "Auto");
-            BindFeature(json, "graphics_backend", "backend", "Vulkan");
+            
             BindFeature(json, "enable_shader_cache", "enable_shader_cache", "true");
             BindFeature(json, "enable_texture_recompression", "enable_texture_recompression", "false");
             BindFeature(json, "res_scale", "res_scale", "1");
             BindFeature(json, "max_anisotropy", "max_anisotropy", "-1");
             BindFeature(json, "aspect_ratio", "aspect_ratio", "Fixed16x9");
+
+            //Perform conroller configuration
+            CreateControllerConfiguration(json);
+
+            BindFeature(json, "graphics_backend", "backend", "Vulkan");
 
             //save config file
             json.Save();
