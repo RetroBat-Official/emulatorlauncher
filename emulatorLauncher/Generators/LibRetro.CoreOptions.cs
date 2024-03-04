@@ -1392,7 +1392,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "gambatte_gb_hwmode", "gambatte_gb_hwmode", "Auto");
             BindFeature(coreSettings, "gambatte_mix_frames", "gambatte_mix_frames", "lcd_ghosting");
             BindFeature(coreSettings, "gambatte_gb_internal_palette", "gambatte_gb_internal_palette", "GB - DMG");
-            BindFeature(coreSettings, "gambatte_gb_colorization", "gambatte_gb_colorization", "auto");
+            BindFeature(coreSettings, "gambatte_gb_colorization", "gambatte_gb_colorization", "disabled");
         }
 
         private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
