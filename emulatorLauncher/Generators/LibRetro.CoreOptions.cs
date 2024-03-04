@@ -1056,18 +1056,20 @@ namespace EmulatorLauncher.Libretro
             // Controls
             if (SystemConfig.isOptSet("fba_controller") && !string.IsNullOrEmpty(SystemConfig["fba_controller"]))
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fba_controller"];
                 }
             }
             else
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
             }
+
+            SetupLightGuns(retroarchConfig, "4", core);
         }
 
         private void ConfigureFbalpha2012(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1095,18 +1097,20 @@ namespace EmulatorLauncher.Libretro
             // Controllers
             if (SystemConfig.isOptSet("fba2012_controller") && !string.IsNullOrEmpty(SystemConfig["fba2012_controller"]))
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fba2012_controller"];
                 }
             }
             else
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
             }
+
+            SetupLightGuns(retroarchConfig, "4", core);
         }
 
         private void ConfigureFbalpha2012Neogeo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1147,14 +1151,14 @@ namespace EmulatorLauncher.Libretro
             // Controllers
             if (SystemConfig.isOptSet("fba2012_neogeo_control") && !string.IsNullOrEmpty(SystemConfig["fba2012_neogeo_control"]))
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fba2012_neogeo_control"];
                 }
             }
             else
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
@@ -1283,14 +1287,14 @@ namespace EmulatorLauncher.Libretro
             // Controls
             if (SystemConfig.isOptSet("fbneo_controller") && !string.IsNullOrEmpty(SystemConfig["fbneo_controller"]))
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fbneo_controller"];
                 }
             }
             else
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 1; i < 3; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
