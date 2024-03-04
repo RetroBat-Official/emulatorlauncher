@@ -313,6 +313,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFbalpha(retroarchConfig, coreSettings, system, core);
             ConfigureFbalpha2012(retroarchConfig, coreSettings, system, core);
+            ConfigureFbalpha2012Neogeo(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS1(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS2(retroarchConfig, coreSettings, system, core);
             ConfigureFbalphaCPS3(retroarchConfig, coreSettings, system, core);
@@ -1033,12 +1034,24 @@ namespace EmulatorLauncher.Libretro
             if (core != "fbalpha")
                 return;
 
+            // Free Play
+            string rom = SystemConfig["rom"];
+            string gameName = Path.GetFileNameWithoutExtension(rom);
+
+            if (SystemConfig.isOptSet("fbalpha_freeplay") && SystemConfig.getOptBoolean("fbalpha_freeplay"))
+                coreSettings["fba-dipswitch-" + gameName + "-Free_play"] = "On";
+            else if (SystemConfig.isOptSet("fbalpha_freeplay") && !SystemConfig.getOptBoolean("fbalpha_freeplay"))
+                coreSettings["fba-dipswitch-" + gameName + "-Free_play"] = "Off";
+            else if (coreSettings["fba-dipswitch-" + gameName + "-Free_play"] != null)
+                coreSettings["fba-dipswitch-" + gameName + "-Free_play"] = "(Default) Off";
+
             BindFeature(coreSettings, "fba-vertical-mode", "fba_vertical_mode", "disabled");
             BindFeature(coreSettings, "fba-diagnostic-input", "fba_diagkey", "None");
             BindFeature(coreSettings, "fba-hiscores", "fba_highscore", "enabled");
             BindFeature(coreSettings, "fba-samplerate", "fba_samplerate", "48000");
             BindFeature(coreSettings, "fba-cpu-speed-adjust", "fba_cpu_overclock", "100");
             BindFeature(coreSettings, "fba-frameskip", "fba_frame_skipping", "0");
+            BindFeature(coreSettings, "fba-neogeo-mode", "fba_neogeo_mode", "UNIBIOS");
 
             // Controls
             if (SystemConfig.isOptSet("fba_controller") && !string.IsNullOrEmpty(SystemConfig["fba_controller"]))
@@ -1062,10 +1075,22 @@ namespace EmulatorLauncher.Libretro
             if (core != "fbalpha2012")
                 return;
 
+            // Free Play
+            string rom = SystemConfig["rom"];
+            string gameName = Path.GetFileNameWithoutExtension(rom);
+
+            if (SystemConfig.isOptSet("fbalpha2012_freeplay") && SystemConfig.getOptBoolean("fbalpha2012_freeplay"))
+                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "On";
+            else if (SystemConfig.isOptSet("fbalpha2012_freeplay") && !SystemConfig.getOptBoolean("fbalpha2012_freeplay"))
+                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "Off";
+            else if (coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] != null)
+                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "(Default) Off";
+
             BindFeature(coreSettings, "fbneo-vertical-mode", "fba2012_vertical_mode", "disabled");
             BindFeature(coreSettings, "fbneo-diagnostic-input", "fba2012_diagkey", "None");
             BindFeature(coreSettings, "fbneo-frameskip", "fba2012_frame_skipping", "0");
             BindFeature(coreSettings, "fbneo-cpu-speed-adjust", "fba2012_cpu_overclock", "100");
+            BindFeature(coreSettings, "fbneo-neogeo-mode", "fba2012_neogeo_mode", "UNIBIOS");
 
             // Controllers
             if (SystemConfig.isOptSet("fba2012_controller") && !string.IsNullOrEmpty(SystemConfig["fba2012_controller"]))
@@ -1073,6 +1098,58 @@ namespace EmulatorLauncher.Libretro
                 for (int i = 1; i < 9; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fba2012_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
+        }
+
+        private void ConfigureFbalpha2012Neogeo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fbalpha2012_neogeo")
+                return;
+
+            // Free Play
+            string rom = SystemConfig["rom"];
+            string gameName = Path.GetFileNameWithoutExtension(rom);
+
+            if (SystemConfig.isOptSet("fbalpha2012ng_freeplay") && SystemConfig.getOptBoolean("fbalpha2012ng_freeplay"))
+                coreSettings["fbalpha2012_neogeo_dipswitch_" + gameName + "_Free_play"] = "On";
+            else if (SystemConfig.isOptSet("fbalpha2012ng_freeplay") && !SystemConfig.getOptBoolean("fbalpha2012ng_freeplay"))
+                coreSettings["fbalpha2012_neogeo_dipswitch_" + gameName + "_Free_play"] = "Off";
+            else if (coreSettings["fbalpha2012_neogeo_dipswitch_" + gameName + "_Free_play"] != null)
+                coreSettings["fbalpha2012_neogeo_dipswitch_" + gameName + "_Free_play"] = "(Default) Off";
+
+            BindFeature(coreSettings, "fbalpha2012_neogeo_diagnostic_input", "fba2012ng_diagkey", "None");
+            BindFeature(coreSettings, "fbalpha2012_neogeo_frameskip", "fbalpha2012_neogeo_frameskip", "disabled");
+            BindFeature(coreSettings, "fbalpha2012_neogeo_cpu_speed_adjust", "fbalpha2012_neogeo_cpu_speed_adjust", "100");
+            BindFeature(coreSettings, "fbalpha2012_neogeo_neogeo_mode", "fba2012ng_neogeo_mode", "UNIBIOS");
+
+            if (Features.IsSupported("fbalpha2012_neogeo_lowpass_filter"))
+            {
+                if (SystemConfig.isOptSet("fbalpha2012_neogeo_lowpass_filter") && SystemConfig["fbalpha2012_neogeo_lowpass_filter"] != "0")
+                {
+                    coreSettings["fbalpha2012_neogeo_lowpass_filter"] = "enabled";
+                    coreSettings["fbalpha2012_neogeo_lowpass_range"] = SystemConfig["fbalpha2012_neogeo_lowpass_range"];
+                }
+                else
+                {
+                    coreSettings["fbalpha2012_neogeo_lowpass_filter"] = "disabled";
+                    coreSettings["fbalpha2012_neogeo_lowpass_range"] = "60";
+                }
+            }
+
+            // Controllers
+            if (SystemConfig.isOptSet("fba2012_neogeo_control") && !string.IsNullOrEmpty(SystemConfig["fba2012_neogeo_control"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fba2012_neogeo_control"];
                 }
             }
             else
@@ -1163,6 +1240,17 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "fbneo")
                 return;
+
+            // Free Play
+            string rom = SystemConfig["rom"];
+            string gameName = Path.GetFileNameWithoutExtension(rom);
+
+            if (SystemConfig.isOptSet("fbneo_freeplay") && SystemConfig.getOptBoolean("fbneo_freeplay"))
+                coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] = "On";
+            else if (SystemConfig.isOptSet("fbneo_freeplay") && !SystemConfig.getOptBoolean("fbneo_freeplay"))
+                coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] = "Off";
+            else if (coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] != null)
+                coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] = "Off";
 
             coreSettings["fbneo-allow-depth-32"] = "enabled";
 
