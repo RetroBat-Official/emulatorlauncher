@@ -1034,6 +1034,11 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "fba-vertical-mode", "fba_vertical_mode", "disabled");
+            BindFeature(coreSettings, "fba-diagnostic-input", "fba_diagkey", "None");
+            BindFeature(coreSettings, "fba-hiscores", "fba_highscore", "enabled");
+            BindFeature(coreSettings, "fba-samplerate", "fba_samplerate", "48000");
+            BindFeature(coreSettings, "fba-cpu-speed-adjust", "fba_cpu_overclock", "100");
+            BindFeature(coreSettings, "fba-frameskip", "fba_frame_skipping", "0");
 
             // Controls
             if (SystemConfig.isOptSet("fba_controller") && !string.IsNullOrEmpty(SystemConfig["fba_controller"]))
@@ -1058,6 +1063,9 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "fbneo-vertical-mode", "fba2012_vertical_mode", "disabled");
+            BindFeature(coreSettings, "fbneo-diagnostic-input", "fba2012_diagkey", "None");
+            BindFeature(coreSettings, "fbneo-frameskip", "fba2012_frame_skipping", "0");
+            BindFeature(coreSettings, "fbneo-cpu-speed-adjust", "fba2012_cpu_overclock", "100");
 
             // Controllers
             if (SystemConfig.isOptSet("fba2012_controller") && !string.IsNullOrEmpty(SystemConfig["fba2012_controller"]))
@@ -1087,6 +1095,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fba2012cps1_auto_rotate", "fba2012cps1_auto_rotate", "enabled");
             BindFeature(coreSettings, "fba2012cps1_cpu_speed_adjust", "fba2012cps1_cpu_speed_adjust", "100");
             BindFeature(coreSettings, "fba2012cps1_hiscores", "fba2012cps1_hiscores", "enabled");
+            BindFeature(coreSettings, "fba2012cps1_diagnostics", "fba2012cps1_diagnostics", "disabled");
 
             if (Features.IsSupported("fba2012cps1_lowpass_range"))
             {
@@ -1147,6 +1156,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fbalpha2012_cps3_controls_p2", "fbalpha2012_cps3_controls_p2", "gamepad");
             BindFeature(coreSettings, "fbalpha2012_cps3_lr_controls_p1", "fbalpha2012_cps3_lr_controls_p1", "normal");
             BindFeature(coreSettings, "fbalpha2012_cps3_lr_controls_p2", "fbalpha2012_cps3_lr_controls_p2", "normal");
+            BindFeature(coreSettings, "fbalpha2012_cps3_diagnostic_input", "fbalpha2012_cps3_diagnostic_input", "None");
         }
 
         private void ConfigureFbneo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
