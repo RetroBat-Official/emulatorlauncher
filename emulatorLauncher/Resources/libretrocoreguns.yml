@@ -42,6 +42,39 @@ cap32:
   start: 3
   start_changereload: nul
   select: nul
+fbalpha:
+  reload: nul
+  aux_a: 2
+  aux_b: nul
+  aux_c: nul
+  aux_a_changereload: 3
+  aux_b_changereload: nul
+  aux_c_changereload: nul
+  start: 3
+  start_changereload: nul
+  select: nul
+fbalpha2012:
+  reload: nul
+  aux_a: 2
+  aux_b: nul
+  aux_c: nul
+  aux_a_changereload: 3
+  aux_b_changereload: nul
+  aux_c_changereload: nul
+  start: 3
+  start_changereload: nul
+  select: nul
+fbneo:
+  reload: nul
+  aux_a: 2
+  aux_b: nul
+  aux_c: nul
+  aux_a_changereload: 3
+  aux_b_changereload: nul
+  aux_c_changereload: nul
+  start: 3
+  start_changereload: nul
+  select: nul
 fceumm:
   reload: 2
   aux_a: nul
@@ -227,16 +260,5 @@ swanstation:
   aux_b_changereload: nul
   aux_c_changereload: nul
   start: nul
-  start_changereload: nul
-  select: nul
-fbneo:
-  reload: nul
-  aux_a: 2
-  aux_b: nul
-  aux_c: nul
-  aux_a_changereload: 3
-  aux_b_changereload: nul
-  aux_c_changereload: nul
-  start: 3
   start_changereload: nul
   select: nul
