@@ -1048,7 +1048,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fba-vertical-mode", "fba_vertical_mode", "disabled");
             BindFeature(coreSettings, "fba-diagnostic-input", "fba_diagkey", "None");
             BindFeature(coreSettings, "fba-hiscores", "fba_highscore", "enabled");
-            BindFeature(coreSettings, "fba-samplerate", "fba_samplerate", "48000");
+            BindFeature(coreSettings, "fba-samplerate", "fba_samplerate", "44100");
             BindFeature(coreSettings, "fba-cpu-speed-adjust", "fba_cpu_overclock", "100");
             BindFeature(coreSettings, "fba-frameskip", "fba_frame_skipping", "0");
             BindFeature(coreSettings, "fba-neogeo-mode", "fba_neogeo_mode", "UNIBIOS");
@@ -1077,22 +1077,24 @@ namespace EmulatorLauncher.Libretro
             if (core != "fbalpha2012")
                 return;
 
-            // Free Play
             string rom = SystemConfig["rom"];
             string gameName = Path.GetFileNameWithoutExtension(rom);
-
-            if (SystemConfig.isOptSet("fbalpha2012_freeplay") && SystemConfig.getOptBoolean("fbalpha2012_freeplay"))
-                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "On";
-            else if (SystemConfig.isOptSet("fbalpha2012_freeplay") && !SystemConfig.getOptBoolean("fbalpha2012_freeplay"))
-                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "Off";
-            else if (coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] != null)
-                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "(Default) Off";
 
             BindFeature(coreSettings, "fbneo-vertical-mode", "fba2012_vertical_mode", "disabled");
             BindFeature(coreSettings, "fbneo-diagnostic-input", "fba2012_diagkey", "None");
             BindFeature(coreSettings, "fbneo-frameskip", "fba2012_frame_skipping", "0");
             BindFeature(coreSettings, "fbneo-cpu-speed-adjust", "fba2012_cpu_overclock", "100");
             BindFeature(coreSettings, "fbneo-neogeo-mode", "fba2012_neogeo_mode", "UNIBIOS");
+            BindFeature(coreSettings, "fbneo-hiscores", "fba2012_hiscore", "enabled");
+            BindFeature(coreSettings, "fbneo-samplerate", "fba2012_samplerate", "44100");
+
+            // Dip Switches
+            if (SystemConfig.isOptSet("fbalpha2012_freeplay") && SystemConfig.getOptBoolean("fbalpha2012_freeplay"))
+                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "On";
+            else if (SystemConfig.isOptSet("fbalpha2012_freeplay") && !SystemConfig.getOptBoolean("fbalpha2012_freeplay"))
+                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "Off";
+            else if (coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] != null)
+                coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "(Default) Off";
 
             // Controllers
             if (SystemConfig.isOptSet("fba2012_controller") && !string.IsNullOrEmpty(SystemConfig["fba2012_controller"]))
@@ -1118,10 +1120,15 @@ namespace EmulatorLauncher.Libretro
             if (core != "fbalpha2012_neogeo")
                 return;
 
-            // Free Play
             string rom = SystemConfig["rom"];
             string gameName = Path.GetFileNameWithoutExtension(rom);
 
+            BindFeature(coreSettings, "fbalpha2012_neogeo_diagnostic_input", "fba2012ng_diagkey", "None");
+            BindFeature(coreSettings, "fbalpha2012_neogeo_frameskip", "fbalpha2012_neogeo_frameskip", "disabled");
+            BindFeature(coreSettings, "fbalpha2012_neogeo_cpu_speed_adjust", "fbalpha2012_neogeo_cpu_speed_adjust", "100");
+            BindFeature(coreSettings, "fbalpha2012_neogeo_neogeo_mode", "fba2012ng_neogeo_mode", "UNIBIOS");
+
+            // Dip Switches
             if (SystemConfig.isOptSet("fbalpha2012ng_freeplay") && SystemConfig.getOptBoolean("fbalpha2012ng_freeplay"))
                 coreSettings["fbalpha2012_neogeo_dipswitch_" + gameName + "_Free_play"] = "On";
             else if (SystemConfig.isOptSet("fbalpha2012ng_freeplay") && !SystemConfig.getOptBoolean("fbalpha2012ng_freeplay"))
@@ -1129,11 +1136,7 @@ namespace EmulatorLauncher.Libretro
             else if (coreSettings["fbalpha2012_neogeo_dipswitch_" + gameName + "_Free_play"] != null)
                 coreSettings["fbalpha2012_neogeo_dipswitch_" + gameName + "_Free_play"] = "(Default) Off";
 
-            BindFeature(coreSettings, "fbalpha2012_neogeo_diagnostic_input", "fba2012ng_diagkey", "None");
-            BindFeature(coreSettings, "fbalpha2012_neogeo_frameskip", "fbalpha2012_neogeo_frameskip", "disabled");
-            BindFeature(coreSettings, "fbalpha2012_neogeo_cpu_speed_adjust", "fbalpha2012_neogeo_cpu_speed_adjust", "100");
-            BindFeature(coreSettings, "fbalpha2012_neogeo_neogeo_mode", "fba2012ng_neogeo_mode", "UNIBIOS");
-
+            // Low Pass Filter
             if (Features.IsSupported("fbalpha2012_neogeo_lowpass_filter"))
             {
                 if (SystemConfig.isOptSet("fbalpha2012_neogeo_lowpass_filter") && SystemConfig["fbalpha2012_neogeo_lowpass_filter"] != "0")
@@ -1170,14 +1173,15 @@ namespace EmulatorLauncher.Libretro
             if (core != "fbalpha2012_cps1")
                 return;
 
-            coreSettings["fba2012cps1_frameskip"] = "disabled";
             coreSettings["fba2012cps1_aspect"] = "DAR";
 
             BindFeature(coreSettings, "fba2012cps1_auto_rotate", "fba2012cps1_auto_rotate", "enabled");
             BindFeature(coreSettings, "fba2012cps1_cpu_speed_adjust", "fba2012cps1_cpu_speed_adjust", "100");
             BindFeature(coreSettings, "fba2012cps1_hiscores", "fba2012cps1_hiscores", "enabled");
             BindFeature(coreSettings, "fba2012cps1_diagnostics", "fba2012cps1_diagnostics", "disabled");
+            BindFeature(coreSettings, "fba2012cps1_frameskip", "fba2012cps1_frameskip", "disabled");
 
+            // Low Pass Filter
             if (Features.IsSupported("fba2012cps1_lowpass_range"))
             {
                 if (SystemConfig.isOptSet("fba2012cps1_lowpass_range") && SystemConfig["fba2012cps1_lowpass_range"] != "0")
@@ -1198,14 +1202,14 @@ namespace EmulatorLauncher.Libretro
             if (core != "fbalpha2012_cps2")
                 return;
 
-            coreSettings["fba2012cps2_frameskip"] = "disabled";
             coreSettings["fba2012cps2_aspect"] = "DAR";
 
             BindFeature(coreSettings, "fba2012cps2_auto_rotate", "fba2012cps2_auto_rotate", "enabled");
             BindFeature(coreSettings, "fba2012cps2_cpu_speed_adjust", "fba2012cps2_cpu_speed_adjust", "100");
             BindFeature(coreSettings, "fba2012cps2_hiscores", "fba2012cps2_hiscores", "enabled");
+            BindFeature(coreSettings, "fba2012cps2_frameskip", "fba2012cps2_frameskip", "disabled");
 
-            // Audio Filter
+            // Low Pass Filter
             if (Features.IsSupported("fba2012cps2_lowpass_range"))
             {
                 if (SystemConfig.isOptSet("fba2012cps2_lowpass_range") && SystemConfig["fba2012cps2_lowpass_range"] != "0")
@@ -1228,7 +1232,6 @@ namespace EmulatorLauncher.Libretro
             if (core != "fbalpha2012_cps3")
                 return;
 
-            coreSettings["fbalpha2012_cps3_frameskip"] = "0";
             coreSettings["fbalpha2012_cps3_aspect"] = "DAR";
 
             BindFeature(coreSettings, "fbalpha2012_cps3_cpu_speed_adjust", "fbalpha2012_cps3_cpu_speed_adjust", "100");
@@ -1238,6 +1241,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fbalpha2012_cps3_lr_controls_p1", "fbalpha2012_cps3_lr_controls_p1", "normal");
             BindFeature(coreSettings, "fbalpha2012_cps3_lr_controls_p2", "fbalpha2012_cps3_lr_controls_p2", "normal");
             BindFeature(coreSettings, "fbalpha2012_cps3_diagnostic_input", "fbalpha2012_cps3_diagnostic_input", "None");
+            BindFeature(coreSettings, "fbalpha2012_cps3_frameskip", "fbalpha2012_cps3_frameskip", "0");
+            BindFeature(coreSettings, "fbalpha2012_cps3_samplerate", "fbalpha2012_cps3_samplerate", "44100");
         }
 
         private void ConfigureFbneo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1245,10 +1250,41 @@ namespace EmulatorLauncher.Libretro
             if (core != "fbneo")
                 return;
 
-            // Free Play
             string rom = SystemConfig["rom"];
             string gameName = Path.GetFileNameWithoutExtension(rom);
 
+            coreSettings["fbneo-allow-depth-32"] = "enabled";
+            coreSettings["fbneo-memcard-mode"] = "per-game";
+            coreSettings["fbneo-load-subsystem-from-parent"] = "enabled";
+            coreSettings["fbneo-fm-interpolation"] = "4-point 3rd order";
+            coreSettings["fbneo-sample-interpolation"] = "4-point 3rd order";
+
+            BindFeature(coreSettings, "fbneo-neogeo-mode", "fbneo_neogeo_mode", "UNIBIOS");
+            BindFeature(coreSettings, "fbneo-vertical-mode", "fbneo-vertical-mode", "disabled");
+            BindFeature(coreSettings, "fbneo-diagnostic-input", "fbneo_diagkey", "Start + L + R");
+            BindFeature(coreSettings, "fbneo-cpu-speed-adjust", "fbneo_cpu_overclock", "100");
+            BindFeature(coreSettings, "fbneo-samplerate", "fbneo_samplerate", "44100");
+            BindFeature(coreSettings, "fbneo-lowpass-filter", "fbneo_lowpass_filter", "disabled");
+            BindFeature(coreSettings, "fbneo-hiscores", "fbneo_hiscore", "enabled");
+
+            // Frameskip
+            if (SystemConfig.isOptSet("fbneo_frameskip") && SystemConfig["fbneo_frameskip"] == "auto")
+                coreSettings["fbneo-frameskip-type"] = "Auto";
+            else if (SystemConfig.isOptSet("fbneo_frameskip") && !string.IsNullOrEmpty(SystemConfig["fbneo_frameskip"]))
+            {
+                coreSettings["fbneo-frameskip-type"] = "Fixed";
+                coreSettings["fbneo-fixed-frameskip"] = SystemConfig["fbneo_frameskip"];
+            }
+            else
+                coreSettings["fbneo-frameskip-type"] = "disabled";
+
+            // Retroachievements
+            if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
+                coreSettings["fbneo-allow-patched-romsets"] = "disabled";
+            else
+                coreSettings["fbneo-allow-patched-romsets"] = "enabled";
+
+            // Dispwitches
             if (SystemConfig.isOptSet("fbneo_freeplay") && SystemConfig.getOptBoolean("fbneo_freeplay"))
                 coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] = "On";
             else if (SystemConfig.isOptSet("fbneo_freeplay") && !SystemConfig.getOptBoolean("fbneo_freeplay"))
@@ -1256,23 +1292,7 @@ namespace EmulatorLauncher.Libretro
             else if (coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] != null)
                 coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] = "Off";
 
-            coreSettings["fbneo-allow-depth-32"] = "enabled";
-
-            if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
-                coreSettings["fbneo-allow-patched-romsets"] = "disabled";
-            else
-                coreSettings["fbneo-allow-patched-romsets"] = "enabled";
-
-            coreSettings["fbneo-memcard-mode"] = "per-game";
-            coreSettings["fbneo-hiscores"] = "enabled";
-            coreSettings["fbneo-load-subsystem-from-parent"] = "enabled";
-            coreSettings["fbneo-fm-interpolation"] = "4-point 3rd order";
-            coreSettings["fbneo-sample-interpolation"] = "4-point 3rd order";
-
-            BindFeature(coreSettings, "fbneo-neogeo-mode", "fbneo-neogeo-mode", "UNIBIOS");
-            BindFeature(coreSettings, "fbneo-vertical-mode", "fbneo-vertical-mode", "disabled");
-            BindFeature(coreSettings, "fbneo-diagnostic-input", "fbneo_diagkey", "Start + L + R");
-
+            // Crosshair
             if (SystemConfig.isOptSet("fbneo-lightgun-hide-crosshair") && SystemConfig["fbneo-lightgun-hide-crosshair"] == "disabled")
             {
                 coreSettings["fbneo-lightgun-crosshair-emulation"] = "always show";
@@ -1838,21 +1858,24 @@ namespace EmulatorLauncher.Libretro
             coreSettings["mame_softlists_auto_media"] = softLists;
             coreSettings["mame_write_config"] = "disabled";
             coreSettings["mame_mame_paths_enable"] = "disabled";
+            coreSettings["mame_saves"] = "game";
 
             if (SystemConfig.isOptSet("mame_lightgun_mode") && SystemConfig["mame_lightgun_mode"] != "none")
                 coreSettings["mame_mouse_enable"] = "disabled";
             else
                 BindFeature(coreSettings, "mame_mouse_enable", "mame_mouse_enable", "enabled");
-            
+
+            BindBoolFeature(coreSettings, "mame_auto_save", "autosave", "enabled", "disabled");
             BindFeature(coreSettings, "mame_buttons_profiles", "mame_buttons_profiles", "disabled");
             BindFeature(coreSettings, "mame_read_config", "mame_read_config", "disabled");
             BindFeature(coreSettings, "mame_alternate_renderer", "alternate_renderer", "disabled");
             BindFeature(coreSettings, "mame_altres", "internal_resolution", "640x480");
             BindFeature(coreSettings, "mame_cheats_enable", "cheats_enable", "disabled");
-            BindFeature(coreSettings, "mame_mame_4way_enable", "4way_enable", "disabled");
+            BindFeature(coreSettings, "mame_mame_4way_enable", "mame_mame_4way_enable", "disabled");
             BindFeature(coreSettings, "mame_lightgun_mode", "lightgun_mode", "lightgun");
             BindFeature(coreSettings, "mame_rotation_mode", "mame_rotation_mode", "internal");
-
+            BindFeature(coreSettings, "mame_thread_mode", "mame_thread_mode", "enabled");
+            BindFeature(coreSettings, "mame_throttle", "mame_throttle", "disabled");
             BindFeature(coreSettings, "mame_boot_from_cli", "boot_from_cli", "enabled", true);
             BindFeature(coreSettings, "mame_boot_to_bios", "boot_to_bios", "disabled", true);
             BindFeature(coreSettings, "mame_boot_to_osd", "boot_to_osd", "disabled", true);
@@ -1914,6 +1937,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             coreSettings["mame2000-skip_disclaimer"] = "enabled";
+            coreSettings["mame2000-show_gameinfo"] = "disabled";
         }
 
         private void ConfigureMame2003(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1924,9 +1948,15 @@ namespace EmulatorLauncher.Libretro
             coreSettings["mame2003_skip_disclaimer"] = "enabled";
             coreSettings["mame2003_skip_warnings"] = "enabled";
             coreSettings["mame2003_mouse_device"] = "mouse";
+
             BindFeature(coreSettings, "mame2003_tate_mode", "mame2003_tate_mode", "disabled");
             BindFeature(coreSettings, "mame2003_input_interface", "mame2003_input_interface", "retropad");
             BindFeature(coreSettings, "mame2003_four_way_emulation", "mame2003_four_way_emulation", "disabled");
+
+            BindFeature(coreSettings, "mame2003_frameskip", "mame2003_frameskip", "disabled");
+            BindFeature(coreSettings, "mame2003_mame_remapping", "mame2003_mame_remapping", "enabled");
+            BindFeature(coreSettings, "mame2003_display_setup", "mame2003_display_setup", "disabled");
+            BindFeature(coreSettings, "mame2003_sample_rate", "mame2003_sample_rate", "44100");
         }
 
         private void ConfigureMame2003Plus(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1937,14 +1967,17 @@ namespace EmulatorLauncher.Libretro
             coreSettings["mame2003-plus_skip_disclaimer"] = "enabled";
             coreSettings["mame2003-plus_skip_warnings"] = "enabled";
             coreSettings["mame2003-plus_mouse_device"] = "mouse";
-            coreSettings["mame2003-plus_xy_device"] = "lightgun";
 
+            BindFeature(coreSettings, "mame2003-plus_tate_mode", "mame2003-plus_tate_mode", "disabled");
+            BindFeature(coreSettings, "mame2003-plus_input_interface", "mame2003-plus_input_interface", "retropad");
+            BindFeature(coreSettings, "mame2003-plus_four_way_emulation", "mame2003-plus_four_way_emulation", "disabled");
             BindFeature(coreSettings, "mame2003-plus_analog", "mame2003-plus_analog", "digital");
             BindFeature(coreSettings, "mame2003-plus_frameskip", "mame2003-plus_frameskip", "disabled");
-            BindFeature(coreSettings, "mame2003-plus_input_interface", "mame2003-plus_input_interface", "retropad");
             BindFeature(coreSettings, "mame2003-plus_neogeo_bios", "mame2003-plus_neogeo_bios", "unibios33");
-            BindFeature(coreSettings, "mame2003-plus_tate_mode", "mame2003-plus_tate_mode", "disabled");
-            BindFeature(coreSettings, "mame2003-plus_four_way_emulation", "mame2003-plus_four_way_emulation", "disabled");
+
+            BindFeature(coreSettings, "mame2003-plus_mame_remapping", "mame2003-plus_mame_remapping", "enabled");
+            BindFeature(coreSettings, "mame2003-plus_display_setup", "mame2003-plus_display_setup", "disabled");
+            BindFeature(coreSettings, "mame2003-plus_sample_rate", "mame2003-plus_sample_rate", "44100");
 
             // Controller type
             BindFeature(retroarchConfig, "input_libretro_device_p1", "mame_controller1", "1");
@@ -1959,7 +1992,13 @@ namespace EmulatorLauncher.Libretro
             if (core != "mame2010")
                 return;
 
-            BindFeature(coreSettings, "mame_current_xy_type", "mame_xy_type", HasMultipleGuns() ? "mouse" : "lightgun");
+            coreSettings["mame_current_skip_gameinfo"] = "enabled";
+            coreSettings["mame_current_skip_nagscreen"] = "enabled";
+            coreSettings["mame_current_skip_warnings"] = "enabled";
+
+            BindFeature(coreSettings, "mame_current_xy_type", "mame_current_xy_type", HasMultipleGuns() ? "mouse" : "lightgun");
+            BindFeature(coreSettings, "mame_current_frame_skip", "mame_current_frame_skip", "0");
+            BindFeature(coreSettings, "mame_current_sample_rate", "mame_current_sample_rate", "44100Hz");
         }
 
         private void ConfigureMame2014(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1967,7 +2006,18 @@ namespace EmulatorLauncher.Libretro
             if (core != "mame2014")
                 return;
 
-            coreSettings["mame2014_mouse_enable"] = "enabled";
+            coreSettings["mame2014_boot_from_cli"] = "disabled";
+            coreSettings["mame2014_hide_infoscreen"] = "enabled";
+            coreSettings["mame2014_hide_nagscreen"] = "enabled";
+            coreSettings["mame2014_hide_warnings"] = "enabled";
+
+            BindBoolFeature(coreSettings, "mame2014_auto_save", "autosave", "enabled", "disabled");
+            BindFeature(coreSettings, "mame2014_alternate_renderer", "mame2014_alternate_renderer", "disabled");
+            BindFeature(coreSettings, "mame2014_boot_to_osd", "mame2014_boot_to_osd", "disabled");
+            BindFeature(coreSettings, "mame2014_cheats_enable", "mame2014_cheats_enable", "disabled");
+            BindBoolFeature(coreSettings, "mame2014_mouse_enable", "mame2014_mouse_enable", "disabled", "enabled");
+            BindFeature(coreSettings, "mame2014_throttle", "mame2014_throttle", "disabled");
+            BindFeature(coreSettings, "mame2016_read_config", "mame2016_read_config", "disabled");
         }
 
         private void ConfigureMame2016(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1975,7 +2025,16 @@ namespace EmulatorLauncher.Libretro
             if (core != "mame2016")
                 return;
 
-            coreSettings["mame2016_mouse_enable"] = "enabled";
+            coreSettings["mame2016_boot_from_cli"] = "disabled";
+
+            BindBoolFeature(coreSettings, "mame2016_auto_save", "autosave", "enabled", "disabled");
+            BindFeature(coreSettings, "mame2016_alternate_renderer", "mame2016_alternate_renderer", "disabled");
+            BindFeature(coreSettings, "mame2016_throttle", "mame2016_throttle", "disabled");
+            BindFeature(coreSettings, "mame2016_boot_to_bios", "mame2016_boot_to_bios", "disabled");
+            BindFeature(coreSettings, "mame2016_boot_to_osd", "mame2016_boot_to_osd", "disabled");
+            BindFeature(coreSettings, "mame2016_cheats_enable", "mame2016_cheats_enable", "disabled");
+            BindFeature(coreSettings, "mame2016_read_config", "mame2016_read_config", "disabled");
+            BindBoolFeature(coreSettings, "mame2016_mouse_enable", "mame2016_mouse_enable", "disabled", "enabled");
         }
 
         private void ConfigureMednafenPCFX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
