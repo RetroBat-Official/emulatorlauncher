@@ -76,3 +76,29 @@ LogitechG923PS:
   R1: Button25
   R2: Button27
   R3: Button31
+ThrustmasterT300RS:
+  WheelGuid: 030000004f0400006eb6000000000000
+  SDLDeviceName: Thrustmaster T300RS Racing Wheel
+  Pcsx2_Type: 2
+  Forcefeedback: true
+  Invertedaxis: true
+  Range: nul
+  Throttle: Axis9~
+  Brake: Axis7~
+  Clutch: Axis8~
+  Steer: Axis6
+  Start: Button28
+  Select: Button27
+  Dpad: Hat0
+  Gearup: rightshoulder
+  Geardown: leftshoulder
+  South: Button26
+  East: Button25
+  North: Button23
+  West: Button24
+  L1: Button21
+  L2: Button30
+  L3: Button31
+  R1: Button22
+  R2: Button29
+  R3: Button32

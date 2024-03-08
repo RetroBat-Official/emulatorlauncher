@@ -314,7 +314,11 @@ namespace EmulatorLauncher
                 }
 
                 ini.WriteValue("input", "maple_sdl_joystick_" + wheelIndex1, "0");
-                ini.WriteValue("input", "device1", "0");
+
+                if (racingController == false && SystemConfig["flycast_controller1"] == "15")
+                    racingController = true;
+
+                ini.WriteValue("input", "device1", racingController ? "15" : "0");
                 ini.WriteValue("input", "device1.1", "1");
 
                 if (SystemConfig.isOptSet("flycast_extension1") && !string.IsNullOrEmpty(SystemConfig["flycast_extension1"]))
@@ -541,8 +545,13 @@ namespace EmulatorLauncher
                     ctrlini.Save();
                 }
 
+                if (racingController == false && SystemConfig["flycast_controller2"] == "15")
+                    racingController = true;
+                else if (racingController == false && SystemConfig["flycast_controller2"] != "15")
+                    racingController = false;
+
                 ini.WriteValue("input", "maple_sdl_joystick_" + wheelIndex2, "1");
-                ini.WriteValue("input", "device2", "0");
+                ini.WriteValue("input", "device2", racingController ? "15" : "0");
                 ini.WriteValue("input", "device2.1", "1");
 
                 if (SystemConfig.isOptSet("flycast_extension2") && !string.IsNullOrEmpty(SystemConfig["flycast_extension2"]))
