@@ -166,6 +166,30 @@ MicrosoftSideWinder:
   DpadDown: nul
   DpadLeft: nul
   DpadRight: nul
+ThrustmasterT300RS:
+  WheelGuid: 030000004f0400006eb6000000000000
+  Inputsystems: dinput
+  Pcsx2_Type: 2
+  Forcefeedback: true
+  Invertedaxis: true
+  Range: nul
+  Throttle: throttle
+  Brake: brake
+  Clutch: clutch
+  Steer: leftx
+  Gearup: rightshoulder
+  Geardown: leftshoulder
+  Gear1: nul
+  Gear2: nul
+  Gear3: nul
+  Gear4: nul
+  Gear5: nul
+  Gear6: nul
+  Gear_reverse: nul
+  DpadUp: button_13
+  DpadDown: button_14
+  DpadLeft: button_15
+  DpadRight: button_16
 default:
   WheelGuid: nul
   Inputsystems: sdl,xinput,dinput

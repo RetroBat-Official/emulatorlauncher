@@ -44,6 +44,7 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')          
             retroarchConfig["menu_driver"] = "ozone";
             retroarchConfig["ui_menubar_enable"] = "false";
+            retroarchConfig["menu_framebuffer_opacity"] = "0.900000";
             retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["video_window_save_positions"] = "false";
             retroarchConfig["notification_show_autoconfig"] = "false";
