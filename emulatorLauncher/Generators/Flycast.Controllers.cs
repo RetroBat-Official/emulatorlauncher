@@ -230,6 +230,7 @@ namespace EmulatorLauncher
             bool analogTriggers = false;
             bool switchanalog = SystemConfig.isOptSet("flycast_analogdpad") && SystemConfig.getOptBoolean("flycast_analogdpad");
             bool useR1L1 = SystemConfig.isOptSet("flycast_r1l1") && SystemConfig.getOptBoolean("flycast_r1l1");
+            
             var r2test = joy[InputKey.r2];
             if (joy[InputKey.r2] != null)
                 analogTriggers = r2test.Type == "axis";
@@ -359,6 +360,8 @@ namespace EmulatorLauncher
                     {
                         analogBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
                         analogBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_c");
                     }
                     else if (analogTriggers && useR1L1)
                     {
@@ -371,11 +374,14 @@ namespace EmulatorLauncher
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.down, tech) + ":btn_dpad1_down");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.left, tech) + ":btn_dpad1_left");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.right, tech) + ":btn_dpad1_right");
-                    
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
+
                     if (!analogTriggers && !useR1L1)
                     {
                         digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
                         digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_c");
                     }
                     else if (useR1L1)
                     {
@@ -388,8 +394,7 @@ namespace EmulatorLauncher
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_menu");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_d");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
-
+                    
                     for (int i = 0; i < analogBinds.Count; i++)
                         ctrlini.WriteValue("analog", "bind" + i, analogBinds[i]);
 
