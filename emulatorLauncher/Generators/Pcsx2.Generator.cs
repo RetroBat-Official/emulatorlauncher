@@ -22,6 +22,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private bool _isPcsx17;
         private bool _isPcsxqt;
+        private bool _fullscreen;
 
         public override void Cleanup()
         {
@@ -105,16 +106,19 @@ namespace EmulatorLauncher
             
             String path = AppConfig.GetFullPath(emulator);
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            if (!_fullscreen)
+                SystemConfig["bezel"] = "none";
 
             // Configuration files
             // QT version has now only 1 ini file versus multiple for wxwidgets version
             if (_isPcsxqt)
-                SetupConfigurationQT(path, rom, system, fullscreen);
+                SetupConfigurationQT(path, rom, system, _fullscreen);
 
             else
             {
-                SetupPaths(system, emulator, core, fullscreen);
+                SetupPaths(system, emulator, core, _fullscreen);
                 SetupVM();
                 SetupLilyPad();
                 SetupGSDx(resolution);
@@ -162,7 +166,7 @@ namespace EmulatorLauncher
             {
                 commandArray.Add("--portable");
 
-                if (fullscreen)
+                if (_fullscreen)
                     commandArray.Add("--fullscreen");
 
                 commandArray.Add("--nogui");
