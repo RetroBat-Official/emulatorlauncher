@@ -547,6 +547,9 @@ namespace EmulatorLauncher
                 }
             }
 
+            else if (button.StartsWith("DPad"))
+                return button;
+
             return "None";
         }
 
