@@ -59,6 +59,7 @@ namespace EmulatorLauncher
         protected string _executableName;
         private string _daphneHomedir;
         private string _symLink;
+        private string _daphnePath;
 
         static string FindFile(string dir, string pattern, Predicate<string> predicate)
         {
@@ -117,6 +118,8 @@ namespace EmulatorLauncher
 
             string emulatorPath = AppConfig.GetFullPath(_executableName);
             string exe = Path.Combine(emulatorPath, _executableName + ".exe");
+            _daphnePath = AppConfig.GetFullPath("daphne");
+
             if (!File.Exists(exe))
             {
                 ExitCode = ExitCodes.EmulatorNotInstalled;
@@ -315,6 +318,9 @@ namespace EmulatorLauncher
                 string frameFile = Path.Combine(_daphneHomedir, "framefile");
                 if (Directory.Exists(frameFile))
                     new DirectoryInfo(frameFile).Delete(true);     
+
+                if (_executableName == "daphne")
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _daphnePath);
             }
             catch { }
         }

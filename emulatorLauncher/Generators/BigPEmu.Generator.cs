@@ -10,6 +10,7 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private string _path;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -19,9 +20,16 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            _path = path;
+
             //Applying bezels
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            if (fullscreen)
+            {
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            }
 
             _resolution = resolution;
 
@@ -35,7 +43,7 @@ namespace EmulatorLauncher
 
             string args = string.Join(" ", commandArray);
 
-            SetupConfiguration(path, system, resolution);
+            SetupConfiguration(path, system, resolution, fullscreen);
 
             return new ProcessStartInfo()
             {
@@ -46,10 +54,8 @@ namespace EmulatorLauncher
         }
 
         //Configuration file in json format "BigPEmuConfig.bigpcfg"
-        private void SetupConfiguration(string path, string system, ScreenResolution resolution = null)
+        private void SetupConfiguration(string path, string system, ScreenResolution resolution = null, bool fullscreen = false)
         {
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-
             //open userdata config file
             string folder = Path.Combine(path, "userdata");
             if (!Directory.Exists(folder))
@@ -153,8 +159,12 @@ namespace EmulatorLauncher
                 bezel.Dispose();
 
             if (ret == 1)
+            {
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
                 return 0;
+            }
 
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
             return ret;
         }
     }

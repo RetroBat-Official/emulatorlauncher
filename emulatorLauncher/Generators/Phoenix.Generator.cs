@@ -172,6 +172,9 @@ namespace EmulatorLauncher
 
             process.WaitForExit();
             int exitCode = process.ExitCode;
+
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+
             return exitCode;
         }
 

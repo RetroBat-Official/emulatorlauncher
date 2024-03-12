@@ -57,9 +57,12 @@ namespace EmulatorLauncher
 				bezel.Dispose();
 
 			if (ret == 1)
+			{
+				ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 				return 0;
-
-			return ret;
+			}
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+            return ret;
 		}
 
 		private void SetupConfiguration(string path, string rom, string system)

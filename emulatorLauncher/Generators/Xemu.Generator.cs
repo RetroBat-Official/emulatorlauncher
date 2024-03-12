@@ -118,7 +118,7 @@ namespace EmulatorLauncher
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             Rectangle emulationStationBounds;
-            if (IsEmulationStationWindowed(out emulationStationBounds, true))
+            if (IsEmulationStationWindowed(out emulationStationBounds, true) && !SystemConfig.getOptBoolean("forcefullscreen"))
             {
                 _windowRect = emulationStationBounds;
                 _bezelFileInfo = null;
@@ -438,6 +438,8 @@ namespace EmulatorLauncher
 
             if (bezel != null)
                 bezel.Dispose();
+
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 
             return ret;
         }

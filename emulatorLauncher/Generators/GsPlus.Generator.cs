@@ -134,7 +134,12 @@ namespace EmulatorLauncher
 
             // GsPlus always returns 1
             if (ret == 1)
-                return 0;
+            {
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+                ret = 0;
+            }
+
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 
             return ret;
         }
