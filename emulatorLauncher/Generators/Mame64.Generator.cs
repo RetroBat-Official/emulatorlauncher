@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
-using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -108,16 +106,6 @@ namespace EmulatorLauncher
                         commandArray.Add("-cheatpath");
                         commandArray.Add(cheatPath);
                     }
-                }
-
-                // NVRAM directory
-                string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "nvram");
-                if (!Directory.Exists(nvramPath)) try { Directory.CreateDirectory(nvramPath); }
-                    catch { }
-                if (!string.IsNullOrEmpty(nvramPath) && Directory.Exists(nvramPath))
-                {
-                    commandArray.Add("-nvram_directory");
-                    commandArray.Add(nvramPath);
                 }
 
                 // cfg directory
@@ -601,12 +589,18 @@ namespace EmulatorLauncher
 
         private void ConfigureMameini(string path)
         {
-            var uiIni = MameIniFile.FromFile(Path.Combine(path, "mame.ini"));
-            if (uiIni["writeconfig"] != "0")
+            var ini = MameIniFile.FromFile(Path.Combine(path, "mame.ini"));
+            if (ini["writeconfig"] != "0")
             {
-                uiIni["writeconfig"] = "0";
-                uiIni.Save();
+                ini["writeconfig"] = "0";
+                ini.Save();
             }
+
+            if (SystemConfig.getOptBoolean("mame_output_windows"))
+                ini["output"] = "windows";
+            else
+                ini["output"] = "auto";
+
         }
     }
 
