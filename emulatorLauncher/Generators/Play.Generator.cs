@@ -188,6 +188,8 @@ namespace EmulatorLauncher
             if (bezel != null)
                 bezel.Dispose();
 
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+
             return ret;
         }
     }

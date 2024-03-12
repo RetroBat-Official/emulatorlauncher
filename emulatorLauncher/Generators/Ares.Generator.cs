@@ -15,6 +15,7 @@ namespace EmulatorLauncher
 
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private string _path;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -24,14 +25,37 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            _path = path;
+
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             //Applying bezels
             if (!fullscreen)
                 SystemConfig["forceNoBezel"] = "1";
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            //Applying bezels
+            string renderer = "OpenGL 3.2";
+            if (SystemConfig.isOptSet("ares_renderer") && !string.IsNullOrEmpty(SystemConfig["ares_renderer"]))
+                renderer = SystemConfig["ares_renderer"];
+
+            switch (renderer)
+            {
+                case "OpenGL 3.2":
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    break;
+                case "Direct3D 9.0":
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    break;
+                case "GDI":
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                    SystemConfig["forceNoBezel"] = "1";
+                    break;
+            }
 
             _resolution = resolution;
 
@@ -335,7 +359,14 @@ namespace EmulatorLauncher
                 bezel.Dispose();
 
             if (ret == 1)
+            {
+                ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
                 return 0;
+            }
+
+            ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
 
             return ret;
         }

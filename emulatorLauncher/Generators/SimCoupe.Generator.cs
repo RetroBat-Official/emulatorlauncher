@@ -80,6 +80,8 @@ namespace EmulatorLauncher
             if (bezel != null)
                 bezel.Dispose();
 
+            ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path.WorkingDirectory);
+
             return ret;
         }
 

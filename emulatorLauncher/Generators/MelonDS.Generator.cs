@@ -24,15 +24,17 @@ namespace EmulatorLauncher
                 return null;
 
             bool bootToDSINand = Path.GetExtension(rom).ToLowerInvariant() == ".bin";
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             //Applying bezels
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+            if (fullscreen)
+            {
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-            else
                 _bezelsEnabled = true;
+            }
 
             _resolution = resolution;
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            
 
             // settings
             SetupConfiguration(path, rom, bootToDSINand);

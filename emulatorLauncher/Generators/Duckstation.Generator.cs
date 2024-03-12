@@ -43,8 +43,30 @@ namespace EmulatorLauncher
             SetupSettings(path, rom, system);
 
             //Applying bezels
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            string renderer = "OpenGL";
+            if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
+                renderer = SystemConfig["gfxbackend"];
+            
+            switch (renderer)
+            {
+                case "OpenGL":
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    break;
+                case "Vulkan":
+                case "Software":
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    break;
+                case "D3D11":
+                case "D3D12":
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x64, system, rom, path, resolution))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    break;
+            }
 
             _resolution = resolution;
 
@@ -406,6 +428,9 @@ namespace EmulatorLauncher
 
             if (bezel != null)
                 bezel.Dispose();
+
+            ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path.WorkingDirectory);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 
             return ret;
         }

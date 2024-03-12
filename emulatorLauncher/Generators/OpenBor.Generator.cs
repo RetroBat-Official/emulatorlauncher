@@ -19,6 +19,7 @@ namespace EmulatorLauncher
         }
 
         private string _destFile;
+        private string _path;
         private bool _isCustomRetrobatOpenBor; // This Version support harcoded NumButtons / NumAxes values for generic injection
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -53,6 +54,7 @@ namespace EmulatorLauncher
 
             if (setupConfigIni(path))
             {
+                _path = path;
                 UseEsPadToKey = false;
 
                 SetupBezelAndShaders(system, rom, resolution, path);
@@ -111,6 +113,8 @@ namespace EmulatorLauncher
         {
             if (_destFile != null && File.Exists(_destFile))
                 File.Delete(_destFile);
+
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
 
             base.Cleanup();
         }
