@@ -288,6 +288,10 @@
       <DependentUpon>Ppsspp.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Project64.Generator.cs" />
+    <Compile Include="Generators\PSXMame.Generator.cs" />
+    <Compile Include="Generators\PSXMame.Controllers.cs">
+      <DependentUpon>PSXMame.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Raine.Generator.cs" />
     <Compile Include="Generators\Redream.Generator.cs" />
     <Compile Include="Generators\Redream.Controllers.cs">
