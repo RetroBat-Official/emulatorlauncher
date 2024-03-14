@@ -2162,6 +2162,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "beetle_psx_hw_renderer", "mednafen_psx_renderer", "hardware");
             BindFeature(coreSettings, "beetle_psx_hw_gte_overclock", "beetle_psx_hw_gte_overclock", "disabled");
             BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%(native)");
+            BindFeature(coreSettings, "beetle_psx_hw_cd_access_method", "beetle_psx_hw_cd_access_method", "async");
 
             // BIOS
             if (!SystemConfig.getOptBoolean("beetle_psx_original_bios"))
