@@ -402,7 +402,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Inject custom input_libretro_device_pXX values into remap file, as it's no longer supported in retroarch.cfg file
-            if (InputRemap != null && InputRemap.Count == 0 && Program.SystemConfig["disableautocontrollers"] != "1")
+            if (InputRemap != null && InputRemap.Count == 0)
             {
                 for (int i = 1; i <= 8; i++)
                 {
@@ -1880,6 +1880,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mame_boot_to_bios", "boot_to_bios", "disabled", true);
             BindFeature(coreSettings, "mame_boot_to_osd", "boot_to_osd", "disabled", true);
 
+            SetupLightGuns(retroarchConfig, "1", core);
+
             // System specifics
             if (system == "fmtowns")
             {
@@ -1985,6 +1987,8 @@ namespace EmulatorLauncher.Libretro
 
             // Lightguns
             coreSettings["mame2003-plus_xy_device"] = HasMultipleGuns() ? "mouse" : "lightgun";
+
+            SetupLightGuns(retroarchConfig, "1", core);
         }
 
         private void ConfigureMame2010(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2035,6 +2039,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mame2016_cheats_enable", "mame2016_cheats_enable", "disabled");
             BindFeature(coreSettings, "mame2016_read_config", "mame2016_read_config", "disabled");
             BindBoolFeature(coreSettings, "mame2016_mouse_enable", "mame2016_mouse_enable", "disabled", "enabled");
+
+            SetupLightGuns(retroarchConfig, "1", core);
         }
 
         private void ConfigureMednafenPCFX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2162,6 +2168,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "beetle_psx_hw_renderer", "mednafen_psx_renderer", "hardware");
             BindFeature(coreSettings, "beetle_psx_hw_gte_overclock", "beetle_psx_hw_gte_overclock", "disabled");
             BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%(native)");
+            BindFeature(coreSettings, "beetle_psx_hw_cd_access_method", "beetle_psx_hw_cd_access_method", "async");
 
             // BIOS
             if (!SystemConfig.getOptBoolean("beetle_psx_original_bios"))

@@ -378,7 +378,6 @@ namespace EmulatorLauncher.Libretro
             if (controller.Name == "Keyboard")
                 return;
 
-            // Seul sdl2 reconnait le bouton Guide
             retroconfig["input_joypad_driver"] = _inputDriver;
 
             int index = controller.DeviceIndex;

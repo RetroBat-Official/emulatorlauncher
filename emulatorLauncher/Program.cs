@@ -112,7 +112,8 @@ namespace EmulatorLauncher
             { "theforceengine", () => new ForceEngineGenerator() },
             { "kronos", () => new KronosGenerator() },
             { "gzdoom", () => new GZDoomGenerator() },
-            { "magicengine", () => new MagicEngineGenerator() }
+            { "magicengine", () => new MagicEngineGenerator() },
+            { "psxmame", () => new PSXMameGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
