@@ -167,6 +167,9 @@ namespace EmulatorLauncher
             // Wheels
             int wheelNb = 0;
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
+            if (useWheel)
+                SimpleLogger.Instance.Info("[WHEELS] Wheels enabled.");
+
             bool invertedWheelAxis = false;
             WheelMappingInfo wheelmapping = null;
             string wheelGuid = "nul";
@@ -174,7 +177,9 @@ namespace EmulatorLauncher
 
             foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
             {
+                SimpleLogger.Instance.Info("[WHEELS] Fetching Wheel model.");
                 var drivingWheel = Wheel.GetWheelType(controller.DevicePath.ToUpperInvariant());
+                SimpleLogger.Instance.Info("[WHEELS] Wheel model found : " + drivingWheel.ToString());
 
                 if (drivingWheel != WheelType.Default)
                     usableWheels.Add(new Wheel() 
@@ -1538,7 +1543,7 @@ namespace EmulatorLauncher
         }
         #endregion
 
-        private string GetDinputMapping(int index, SdlToDirectInput c, string buttonkey, int plus = 1, bool wheel = false)
+        private string GetDinputMapping(int index, SdlToDirectInput c, string buttonkey, int direction = 1, bool wheel = false)
         {
             if (c == null)
                 return "";
@@ -1588,8 +1593,17 @@ namespace EmulatorLauncher
             {
                 int axisID = button.Substring(1).ToInteger();
 
-                if (button.StartsWith("-a") || button.StartsWith("+a"))
+                if (button.StartsWith("-a"))
+                {
                     axisID = button.Substring(2).ToInteger();
+                    direction = -1;
+                }
+
+                else if (button.StartsWith("+a"))
+                {
+                    axisID = button.Substring(2).ToInteger();
+                    direction = 1;
+                }
 
                 else if (button.StartsWith("a"))
                     axisID = button.Substring(1).ToInteger();
@@ -1597,28 +1611,28 @@ namespace EmulatorLauncher
                 switch (axisID)
                 {
                     case 0:
-                        if (plus == 1) return "JOY" + index + "_XAXIS_POS";             // right/down/push
-                        else if (plus == -1) return "JOY" + index + "_XAXIS_NEG";       // left/up/release
+                        if (direction == 1) return "JOY" + index + "_XAXIS_POS";             // right/down/push
+                        else if (direction == -1) return "JOY" + index + "_XAXIS_NEG";       // left/up/release
                         else return "JOY" + index + "_XAXIS";
                     case 1:
-                        if (plus == 1) return "JOY" + index + "_YAXIS_POS";
-                        else if (plus == -1) return "JOY" + index + "_YAXIS_NEG";
+                        if (direction == 1) return "JOY" + index + "_YAXIS_POS";
+                        else if (direction == -1) return "JOY" + index + "_YAXIS_NEG";
                         else return "JOY" + index + "_YAXIS";
                     case 2:
-                        if (plus == 1) return "JOY" + index + "_ZAXIS_POS";
-                        else if (plus == -1) return "JOY" + index + "_ZAXIS_NEG";
+                        if (direction == 1) return "JOY" + index + "_ZAXIS_POS";
+                        else if (direction == -1) return "JOY" + index + "_ZAXIS_NEG";
                         else return "JOY" + index + "_ZAXIS";
                     case 3:
-                        if (plus == 1) return "JOY" + index + "_RXAXIS_POS";
-                        else if (plus == -1) return "JOY" + index + "_RXAXIS_NEG";
+                        if (direction == 1) return "JOY" + index + "_RXAXIS_POS";
+                        else if (direction == -1) return "JOY" + index + "_RXAXIS_NEG";
                         else return "JOY" + index + "_RXAXIS";
                     case 4:
-                        if (plus == 1) return "JOY" + index + "_RYAXIS_POS";
-                        else if (plus == -1) return "JOY" + index + "_RYAXIS_NEG";
+                        if (direction == 1) return "JOY" + index + "_RYAXIS_POS";
+                        else if (direction == -1) return "JOY" + index + "_RYAXIS_NEG";
                         else return "JOY" + index + "_RYAXIS";
                     case 5:
-                        if (plus == 1) return "JOY" + index + "_RZAXIS_POS";
-                        else if(plus == -1) return "JOY" + index + "_RZAXIS_NEG";
+                        if (direction == 1) return "JOY" + index + "_RZAXIS_POS";
+                        else if(direction == -1) return "JOY" + index + "_RZAXIS_NEG";
                         else return "JOY" + index + "_RZAXIS";
                 }
             }
