@@ -39,14 +39,14 @@ namespace EmulatorLauncher
             var system = new XElement("system", new XAttribute("name", "default"));
             var input = new XElement("input");
 
-            var mameControllers = this.Controllers.OrderBy(i => i.PlayerIndex).ToList();
+            var mameControllers = this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).ToList();
             if (SystemConfig["mame_joystick_driver"] == "xinput")
-                mameControllers = this.Controllers.Where(c => c.IsXInputDevice).OrderBy(i => i.PlayerIndex).ToList();
+                mameControllers = this.Controllers.Where(c => c.IsXInputDevice && !c.IsKeyboard).OrderBy(i => i.PlayerIndex).ToList();
 
             foreach (var controller in mameControllers)
             {
                 int i = controller.PlayerIndex;
-                int cIndex = controller.DeviceIndex + 1;
+                int cIndex = mameControllers.OrderBy(c => c.DirectInput.DeviceIndex).ToList().IndexOf(controller) + 1;
                 string joy = "JOYCODE_" + cIndex + "_";
                 bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
                 bool isXinput = controller.IsXInputDevice && SystemConfig["mame_joystick_driver"] != "dinput";
