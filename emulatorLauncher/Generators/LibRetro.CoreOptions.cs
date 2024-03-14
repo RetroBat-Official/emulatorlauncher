@@ -402,7 +402,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Inject custom input_libretro_device_pXX values into remap file, as it's no longer supported in retroarch.cfg file
-            if (InputRemap != null && InputRemap.Count == 0 && Program.SystemConfig["disableautocontrollers"] != "1")
+            if (InputRemap != null && InputRemap.Count == 0)
             {
                 for (int i = 1; i <= 8; i++)
                 {
