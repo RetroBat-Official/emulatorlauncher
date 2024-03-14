@@ -1880,6 +1880,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mame_boot_to_bios", "boot_to_bios", "disabled", true);
             BindFeature(coreSettings, "mame_boot_to_osd", "boot_to_osd", "disabled", true);
 
+            SetupLightGuns(retroarchConfig, "1", core);
+
             // System specifics
             if (system == "fmtowns")
             {
@@ -1985,6 +1987,8 @@ namespace EmulatorLauncher.Libretro
 
             // Lightguns
             coreSettings["mame2003-plus_xy_device"] = HasMultipleGuns() ? "mouse" : "lightgun";
+
+            SetupLightGuns(retroarchConfig, "1", core);
         }
 
         private void ConfigureMame2010(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2035,6 +2039,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mame2016_cheats_enable", "mame2016_cheats_enable", "disabled");
             BindFeature(coreSettings, "mame2016_read_config", "mame2016_read_config", "disabled");
             BindBoolFeature(coreSettings, "mame2016_mouse_enable", "mame2016_mouse_enable", "disabled", "enabled");
+
+            SetupLightGuns(retroarchConfig, "1", core);
         }
 
         private void ConfigureMednafenPCFX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
