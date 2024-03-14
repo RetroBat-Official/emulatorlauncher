@@ -695,7 +695,8 @@ namespace EmulatorLauncher
             if (SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
 
-            var biosList = new string[] { "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0250e-20100415.bin", "ps2-0230j-20080220.bin", "ps3_ps2_emu_bios.bin" };
+            var biosList = new string[] { "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0250e-20100415.bin", "ps2-0230j-20080220.bin", "ps3_ps2_emu_bios.bin", 
+                "SCPH30004R.bin", "scph39001.bin", "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
 
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
@@ -747,20 +748,29 @@ namespace EmulatorLauncher
                 if (!Directory.Exists(biosPath))
                     try { Directory.CreateDirectory(biosPath); }
                     catch { }
-                ini.WriteValue("Folders", "Bios", biosPath);
 
                 string biosFile = "ps2-0230a-20080220.bin";                     // Default bios
+
+                if (Directory.GetFiles(biosPath).Length == 0)                 // if no bios, do not set
+                    biosPath = AppConfig.GetFullPath("bios");
+                
+                if (!biosList.Any(b => File.Exists(Path.Combine(biosPath, b))))
+                    throw new ApplicationException("No BIOS found in bios/pcsx2/bios folder.");
 
                 if (!File.Exists(Path.Combine(biosPath, biosFile)))             // if default does not exist, select first one that exists
                     biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
 
                 if (SystemConfig.isOptSet("pcsx2_forcebios") && !string.IsNullOrEmpty(SystemConfig["pcsx2_forcebios"]))                         // Precise bios to use through feature
-                    biosFile = SystemConfig["pcsx2_forcebios"];
+                {
+                    string checkBiosFile = Path.Combine(biosPath, SystemConfig["pcsx2_forcebios"]);
+                    if (File.Exists(checkBiosFile))
+                        biosFile = SystemConfig["pcsx2_forcebios"];
+                }
 
-                if (string.IsNullOrEmpty(biosFile))
-                    throw new ApplicationException("No PS2 BIOS found.");
+                ini.WriteValue("Folders", "Bios", biosPath);
 
-                ini.WriteValue("Filenames", "BIOS", biosFile);
+                if (!string.IsNullOrEmpty(biosFile))
+                    ini.WriteValue("Filenames", "BIOS", biosFile);
 
                 // Cheats Path
                 var cheatsRootPath = AppConfig.GetFullPath("cheats");
