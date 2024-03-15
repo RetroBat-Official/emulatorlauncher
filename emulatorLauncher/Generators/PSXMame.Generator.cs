@@ -154,6 +154,8 @@ namespace EmulatorLauncher
             string iniFile = Path.Combine(path, "mame.ini");
             iniFiles.Add(iniFile);
 
+            string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), "psxmame", "nvram");
+
             foreach (string file in iniFiles)
             {
                 var ini = PSXMameIniFile.FromFile(file);
@@ -163,6 +165,7 @@ namespace EmulatorLauncher
                 ini["ctrlrpath"] = "ctrlr";
                 ini["inipath"] = ".;ini";
                 ini["cfg_directory"] = "cfg";
+                ini["nvram_directory"] = nvramPath;
 
                 // Core state options
                 ini["snapname"] = "%g/%i";
