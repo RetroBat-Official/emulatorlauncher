@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Globalization;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -51,13 +52,25 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["notification_show_config_override_load"] = "false";            
             retroarchConfig["notification_show_remap_load"] = "false";
             retroarchConfig["driver_switch_enable"] = "true";
-            retroarchConfig["input_driver"] = "dinput";
-            BindBoolFeature(retroarchConfig, "pause_on_disconnect", "pause_on_disconnect", "true", "false");
-
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
             retroarchConfig["rgui_browser_directory"] = AppConfig.GetFullPath("roms") ?? "default";
             
+            // input driver set to raw if multigun is enabled
+            if (SystemConfig.getOptBoolean("use_guns") && !SystemConfig.getOptBoolean("one_gun"))
+            {
+                int gunCount = RawLightgun.GetUsableLightGunCount();
+                var guns = RawLightgun.GetRawLightguns();
+
+                if (gunCount > 1 && guns.Length > 1)
+                    retroarchConfig["input_driver"] = "raw";
+                else
+                    retroarchConfig["input_driver"] = "dinput";
+            }
+            else
+                retroarchConfig["input_driver"] = "dinput";
+            
+            BindBoolFeature(retroarchConfig, "pause_on_disconnect", "pause_on_disconnect", "true", "false");
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
             BindFeature(retroarchConfig, "input_analog_deadzone", "analog_deadzone", "0.000000");
