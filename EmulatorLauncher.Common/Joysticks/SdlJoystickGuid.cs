@@ -126,9 +126,11 @@ namespace EmulatorLauncher.Common.Joysticks
             if (version == SdlVersion.Unknown || _guid.Length != 32)
                 return new SdlJoystickGuid(_guid);
 
+            var prod = ProductId;
+
             SdlJoystickGuid ret = new SdlJoystickGuid(_guid);
 
-            if (version == SdlVersion.SDL2_30)
+            if (version == SdlVersion.SDL2_30 && (ret.WrappedTechID == SdlWrappedTechId.RawInput || crcUseManufacturer.Contains(prod)))
             {
                 var ctrl = RawInputDevice.GetRawInputControllers()
                     .Where(r => r.VendorId == this.VendorId && r.ProductId == this.ProductId)
@@ -160,7 +162,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     return ret;                
             }
             
-            if (version == SdlVersion.SDL2_26 && name != null)
+            if (version > SdlVersion.SDL2_26 && name != null)
             {
                 var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
 
@@ -183,8 +185,6 @@ namespace EmulatorLauncher.Common.Joysticks
 
             if (VendorId == USB_VENDOR.NINTENDO && !noRemoveDriver)
             {
-                var prod = ProductId;
-
                 if (prod == USB_PRODUCT.NINTENDO_N64_CONTROLLER ||
                     prod == USB_PRODUCT.NINTENDO_SEGA_GENESIS_CONTROLLER ||
                     prod == USB_PRODUCT.NINTENDO_SNES_CONTROLLER ||
@@ -201,6 +201,12 @@ namespace EmulatorLauncher.Common.Joysticks
 
             return ret;
         }
+
+        private static readonly List<USB_PRODUCT> crcUseManufacturer = new List<USB_PRODUCT>()
+        {
+            USB_PRODUCT.NINTENDO_SWITCH_PRO
+        };
+
         #endregion
 
         #region Operators
@@ -390,11 +396,11 @@ namespace EmulatorLauncher.Common.Joysticks
 
     public enum SdlVersion
     {
-        Unknown,
-        SDL2_24,
-        SDL2_26,
-        SDL2_30,
-        SDL2_0_X
+        Unknown = 0,
+        SDL2_24 = 224,
+        SDL2_26 = 226,
+        SDL2_30 = 230,
+        SDL2_0_X = 200
     }
 
     public enum SdlWrappedTechId
