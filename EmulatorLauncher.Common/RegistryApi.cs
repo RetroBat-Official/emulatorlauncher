@@ -349,6 +349,34 @@ namespace EmulatorLauncher.Common
 
             return names;
         }
+
+        public string[] GetValueNames()
+        {
+            if (_hKey == 0)
+                return new string[] { };
+
+            uint numSubKeys;
+            uint errorCode = Win32Registry.RegQueryInfoKey(_hKey, null, 0, 0, 0, 0, 0, out numSubKeys, 0, 0, 0, 0);            
+
+            if (errorCode != 0) 
+                return null;
+
+            string[] names = new string[numSubKeys];
+
+            for (uint i = 0; i < numSubKeys; i++)
+            {
+                uint maxKeySize = 1024;
+                StringBuilder sb = new StringBuilder((int)maxKeySize);
+
+                errorCode = Win32Registry.RegEnumValue(_hKey, i, sb, ref maxKeySize, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);         
+                if (errorCode != 0)
+                    break;
+
+                names[i] = sb.ToString();
+            }
+
+            return names;
+        }
             
         #region Is64BitOperatingSystem
 
@@ -513,6 +541,13 @@ namespace EmulatorLauncher.Common
                 uint lpcbClass,
                 out long lpftLastWriteTime);
 
+            [DllImport("advapi32.dll", CharSet = CharSet.Auto, BestFitMapping = false)]
+            public static extern uint RegEnumValue(uint hKey,
+                uint dwIndex,
+                StringBuilder lpValueName, 
+                ref uint lpcbValueName,
+                IntPtr lpReserved_MustBeZero, IntPtr lpType, IntPtr lpData, IntPtr lpcbData);
+
             [DllImport("advapi32.dll", EntryPoint = "RegQueryInfoKey", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
             public extern static uint RegQueryInfoKey(
                 uint hkey,
@@ -523,6 +558,22 @@ namespace EmulatorLauncher.Common
                 uint lpcbMaxSubKeyLen,
                 uint lpcbMaxClassLen,
                 uint lpcValues,
+                uint lpcbMaxValueNameLen,
+                uint lpcbMaxValueLen,
+                uint lpcbSecurityDescriptor,
+                uint lpftLastWriteTime);
+
+
+            [DllImport("advapi32.dll", EntryPoint = "RegQueryInfoKey", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
+            public extern static uint RegQueryInfoKey(
+                uint hkey,
+                StringBuilder lpClass,
+                uint lpcbClass,
+                uint lpReserved,
+                uint lpcSubKeys,
+                uint lpcbMaxSubKeyLen,
+                uint lpcbMaxClassLen,
+                out uint lpcValues,
                 uint lpcbMaxValueNameLen,
                 uint lpcbMaxValueLen,
                 uint lpcbSecurityDescriptor,

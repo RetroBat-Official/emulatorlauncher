@@ -24,9 +24,10 @@ namespace EmulatorLauncher
         }
 
         private LoadingForm _splash;
-        private string _rom;
+        private string _rom;        
         private Version _version;
         private string _processName;
+        private string _exe;        
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -40,6 +41,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            _exe = exe;
             _processName = Path.GetFileNameWithoutExtension(exe);
             _version = new Version(10, 0, 0, 0);
             Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion.Replace(",", ".").Replace(" ", ""), out _version);
@@ -87,21 +89,21 @@ namespace EmulatorLauncher
 
             SetupOptions(path, romPath, resolution);
 
-            List<string> commandArray = new List<string>();
+            var commands = new List<string>();
 
             if (_version >= new Version(10, 7, 0, 0))
-                commandArray.Add("-Minimized");
+                commands.Add("-ExtMinimized");
 
             if (_version >= new Version(10, 8, 0, 0))
             {
-                commandArray.Add("-Ini");
-                commandArray.Add(Path.ChangeExtension(exe, ".ini"));
+                commands.Add("-Ini");
+                commands.Add(Path.Combine(path, "VPinballX.ini"));
 
             }
-            commandArray.Add("-play");
-            commandArray.Add(rom);
+            commands.Add("-play");
+            commands.Add(rom);
 
-            string args = string.Join(" ", commandArray.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
+            string args = string.Join(" ", commands.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
 
             return new ProcessStartInfo()
             {
@@ -446,9 +448,9 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private static string ReadRegistryValue(RegistryKeyEx key, string path, string value)
+        private static string ReadRegistryValue(RegistryKeyEx key, string path, string value, RegistryViewEx view = RegistryViewEx.Registry32)
         {
-            var regKeyc = key.OpenSubKey(path, RegistryViewEx.Registry32);
+            var regKeyc = key.OpenSubKey(path, view);
             if (regKeyc != null)
             {
                 object pth = regKeyc.GetValue(value);
@@ -461,15 +463,15 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private static bool ShouldRegisterBackglassServer(string path)
+        private bool ShouldRegisterBackglassServer(string path, RegistryViewEx view)
         {
-            try
+            try            
             {
                 var clsid = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"B2S.B2SPlayer\CLSID", null);
                 if (string.IsNullOrEmpty(clsid))
                     return true;
 
-                var codeBase = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "CodeBase");
+                var codeBase = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "CodeBase", view);
                 if (string.IsNullOrEmpty(codeBase))
                     return true;
                 
@@ -482,7 +484,7 @@ namespace EmulatorLauncher
                     return true;
 
                 // Version changed ?
-                var assembly = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "Assembly");
+                var assembly = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "Assembly", view);
                 var assemblyName = System.Reflection.AssemblyName.GetAssemblyName(localPath).FullName;
 
                 return assembly != assemblyName;
@@ -493,10 +495,12 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void EnsureBackglassServerRegistered(string path)
+        private void EnsureBackglassServerRegistered(string path)
         {
+            var view = Kernel32.IsX64(_exe) ? RegistryViewEx.Registry64 : RegistryViewEx.Registry32;
+
             string dllPath = Path.Combine(path, "BackglassServer", "B2SBackglassServer.dll");
-            if (!ShouldRegisterBackglassServer(dllPath))
+            if (!ShouldRegisterBackglassServer(dllPath, view))
                 return;
 
             try
@@ -504,7 +508,7 @@ namespace EmulatorLauncher
                 Process px = new Process();
                 px.EnableRaisingEvents = true;
                 px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = Path.Combine(GetRegAsmPath(), "regasm.exe");
+                px.StartInfo.FileName = Path.Combine(GetRegAsmPath(view), "regasm.exe");
                 px.StartInfo.Arguments = "\"" + dllPath + "\" /codebase";
                 px.StartInfo.UseShellExecute = true;
                 px.StartInfo.CreateNoWindow = true;
@@ -515,12 +519,12 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private static string GetRegAsmPath()
+        private static string GetRegAsmPath(RegistryViewEx view = RegistryViewEx.Registry32)
         {
             string installRoot = string.Empty;
             string str2 = null;
 
-            RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NetFramework", false);
+            var key = RegistryKeyEx.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NetFramework", view);
             if (key != null)
             {
                 object oInstallRoot = key.GetValue("InstallRoot");
@@ -533,7 +537,7 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(installRoot))
                 return null;
 
-            key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NetFramework\Policy\v4.0", false);
+            key = RegistryKeyEx.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NetFramework\Policy\v4.0", view);
             if (key != null)
             {
                 string str3 = "v4.0";
@@ -553,11 +557,19 @@ namespace EmulatorLauncher
             return str2;
         }
 
-        private static bool ShouldRegisterVPinMame(string path)
+        private static bool ShouldRegisterVPinMame(string path, RegistryViewEx view)
         {
             try
             {
-                var dllPath = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"TypeLib\{57270B76-C846-4B1E-88D4-53C8337A0623}\1.0\0\win32", null);
+                var dll = RegistryKeyEx.GetRegistryValue( 
+                    view == RegistryViewEx.Registry64 ?
+                    @"HKEY_CLASSES_ROOT\TypeLib\{57270B76-C846-4B1E-88D4-53C8337A0623}\1.0\0\win64" :
+                    @"HKEY_CLASSES_ROOT\TypeLib\{57270B76-C846-4B1E-88D4-53C8337A0623}\1.0\0\win32", null, view);
+
+                if (dll == null)
+                    return true;
+
+                var dllPath = dll.ToString();
                 if (string.IsNullOrEmpty(dllPath))
                     return true;
 
@@ -577,10 +589,12 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void EnsureVPinMameRegistered(string path)
+        private void EnsureVPinMameRegistered(string path)
         {
-            string dllPath = Path.Combine(path, "VPinMame", "VPinMAME.dll");
-            if (!ShouldRegisterVPinMame(dllPath))
+            RegistryViewEx view = Kernel32.IsX64(_exe) ? RegistryViewEx.Registry64 : RegistryViewEx.Registry32;
+
+            string dllPath = Path.Combine(path, "VPinMame", view == RegistryViewEx.Registry64 ? "VPinMAME64.dll" : "VPinMAME.dll");
+            if (!ShouldRegisterVPinMame(dllPath, view))
                 return;
 
             try
@@ -588,7 +602,7 @@ namespace EmulatorLauncher
                 Process px = new Process();
                 px.EnableRaisingEvents = true;
                 px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = Path.Combine(FileTools.GetSystemDirectory(), "regsvr32.exe");
+                px.StartInfo.FileName = Path.Combine(FileTools.GetSystemDirectory(view), "regsvr32.exe");
                 px.StartInfo.Arguments = "/s \"" + dllPath + "\"";
                 px.StartInfo.UseShellExecute = true;
                 px.StartInfo.CreateNoWindow = true;
@@ -604,6 +618,8 @@ namespace EmulatorLauncher
                 SetupOptionsIniFile(path, romPath, resolution);
             else
                 SetupOptionsRegistry(path, romPath, resolution);
+
+            SetupVPinMameOptions(path, romPath);
         }
 
         private void SetupOptionsIniFile(string path, string romPath, ScreenResolution resolution)
@@ -828,86 +844,89 @@ namespace EmulatorLauncher
 
             vp10.Close();
             vp.Close();
-
-            SetupVPinMameOptions(path, romPath);
         }
 
         private static void SetupVPinMameOptions(string path, string romPath)
         {
-            string vPinMamePath = Path.Combine(path, "VPinMAME");
-
-            RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
-            if (regKeyc != null)
+            var softwareKey = Registry.CurrentUser.OpenSubKey(@"Software", true);
+            if (softwareKey == null)
+                return;
+            
+            var visualPinMame = softwareKey.CreateSubKey("Freeware").CreateSubKey("Visual PinMame");
+            if (visualPinMame != null)
             {
-                RegistryKey visualPinMame = regKeyc.CreateSubKey("Freeware").CreateSubKey("Visual PinMame");
-                if (visualPinMame == null)
-                    return;
-
-                regKeyc = visualPinMame.CreateSubKey("globals");
-
                 DisableVPinMameLicenceDialogs(romPath, visualPinMame);
+
+                visualPinMame.CreateSubKey("default");
+                
+                var globalKey = visualPinMame.CreateSubKey("globals");
+                if (globalKey != null)
+                {
+                    string vPinMamePath = Path.Combine(path, "VPinMAME");
+
+                    SetOption(globalKey, "rompath", string.IsNullOrEmpty(romPath) ? Path.Combine(vPinMamePath, "roms") : romPath);
+
+                    SetOption(globalKey, "artwork_directory", Path.Combine(vPinMamePath, "artwork"));
+                    SetOption(globalKey, "cfg_directory", Path.Combine(vPinMamePath, "cfg"));
+                    SetOption(globalKey, "cheat_file", Path.Combine(vPinMamePath, "cheat.dat"));
+                    SetOption(globalKey, "cpu_affinity_mask", 0);
+                    SetOption(globalKey, "diff_directory", Path.Combine(vPinMamePath, "diff"));
+                    SetOption(globalKey, "hiscore_directory", Path.Combine(vPinMamePath, "hi"));
+                    SetOption(globalKey, "history_file", Path.Combine(vPinMamePath, "history.dat"));
+                    SetOption(globalKey, "input_directory", Path.Combine(vPinMamePath, "inp"));
+                    SetOption(globalKey, "joystick", 0);
+                    SetOption(globalKey, "low_latency_throttle", 0);
+                    SetOption(globalKey, "mameinfo_file", Path.Combine(vPinMamePath, "mameinfo.dat"));
+                    SetOption(globalKey, "memcard_directory", Path.Combine(vPinMamePath, "memcard"));
+                    SetOption(globalKey, "mouse", 0);
+                    SetOption(globalKey, "nvram_directory", Path.Combine(vPinMamePath, "nvram"));
+                    SetOption(globalKey, "samplepath", Path.Combine(vPinMamePath, "samples"));
+                    SetOption(globalKey, "screen", "");
+                    SetOption(globalKey, "snapshot_directory", Path.Combine(vPinMamePath, "snap"));
+                    SetOption(globalKey, "state_directory", Path.Combine(vPinMamePath, "sta"));
+                    SetOption(globalKey, "steadykey", 1);
+                    SetOption(globalKey, "wave_directory", Path.Combine(vPinMamePath, "wave"));
+                    SetOption(globalKey, "window", 1);
+
+                    globalKey.Close();
+                }
             }
 
-            if (regKeyc != null)
-            {
-                SetOption(regKeyc, "rompath", string.IsNullOrEmpty(romPath) ? Path.Combine(vPinMamePath, "roms") : romPath);
-
-                SetOption(regKeyc, "nvram_directory", Path.Combine(vPinMamePath, "nvram"));
-                SetOption(regKeyc, "snapshot_directory", Path.Combine(vPinMamePath, "snap"));
-                SetOption(regKeyc, "samplepath", Path.Combine(vPinMamePath, "samples"));
-                SetOption(regKeyc, "state_directory", Path.Combine(vPinMamePath, "sta"));
-                SetOption(regKeyc, "wave_directory", Path.Combine(vPinMamePath, "wave"));
-                SetOption(regKeyc, "memcard_directory", Path.Combine(vPinMamePath, "memcard"));
-                SetOption(regKeyc, "artwork_directory", Path.Combine(vPinMamePath, "artwork"));
-                SetOption(regKeyc, "cfg_directory", Path.Combine(vPinMamePath, "cfg"));
-                SetOption(regKeyc, "diff_directory", Path.Combine(vPinMamePath, "diff"));
-                SetOption(regKeyc, "hiscore_directory", Path.Combine(vPinMamePath, "hi"));
-                SetOption(regKeyc, "input_directory", Path.Combine(vPinMamePath, "inp"));
-                SetOption(regKeyc, "mameinfo_file", Path.Combine(vPinMamePath, "mameinfo.dat"));
-                SetOption(regKeyc, "cheat_file", Path.Combine(vPinMamePath, "cheat.dat"));
-                SetOption(regKeyc, "history_file", Path.Combine(vPinMamePath, "history.dat"));
-
-                regKeyc.Close();
-            }
+            softwareKey.Close();
         }
 
         private static void DisableVPinMameLicenceDialogs(string romPath, RegistryKey visualPinMame)
         {
-            if (romPath == null)
+            if (romPath == null || !Directory.Exists(romPath))
                 return;
 
-            string[] romList = Directory.GetFiles(romPath, "*.zip");
+            string[] romList = Directory.GetFiles(romPath, "*.zip").Select(r => Path.GetFileNameWithoutExtension(r)).Distinct().ToArray();
             foreach (var rom in romList)
             {
-                RegistryKey romKey = visualPinMame.OpenSubKey(Path.GetFileNameWithoutExtension(rom), true);
+                var romKey = visualPinMame.OpenSubKey(rom, true);
                 if (romKey == null)
                 {
-                    romKey = visualPinMame.CreateSubKey(Path.GetFileNameWithoutExtension(rom));
+                    romKey = visualPinMame.CreateSubKey(rom);
                     if (romKey != null)
-                    {
                         romKey.SetValue(null, 1);
-                        romKey.SetValue("cabinet_mode", 1);
-                        romKey.Close();
-                    }
                 }
-                else
+                
+                if (romKey != null)
                 {
                     romKey.SetValue("cabinet_mode", 1);
+                    romKey.SetValue("skip_disclaimer", 1);
+                    romKey.SetValue("skip_gameinfo", 1);
+
                     romKey.Close();
                 }
             }
         }
-
-        private static Dictionary<string, object> _oldValues = new Dictionary<string, object>();
 
         private static void SetOption(RegistryKey regKeyc, string name, object value)
         {
             object o = regKeyc.GetValue(name);
             if (object.Equals(value, o))
                 return;
-
-            if (o != null)
-                _oldValues[name] = o;
 
             regKeyc.SetValue(name, value);
         }
@@ -919,30 +938,6 @@ namespace EmulatorLauncher
                 return;
 
             regKeyc.SetValue(name, value);
-        }
-
-        private static void RestoreOptions(string path)
-        {
-            if (_oldValues.Count == 0)
-                return;
-
-            RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software\Freeware\Visual PinMame\globals", true);
-            if (regKeyc != null)
-            {
-                foreach (var key in _oldValues)
-                {
-                    try
-                    {
-                        if (key.Value == null)
-                            regKeyc.DeleteValue(key.Key);
-                        else
-                            regKeyc.SetValue(key.Key, key.Value);
-                    }
-                    catch { }
-                }
-
-                regKeyc.Close();
-            }
         }
     }
 }
