@@ -6,6 +6,7 @@ using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using System.Text;
 
 namespace EmulatorLauncher
 {
@@ -38,7 +39,7 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("eka2l1_controllerindex") && !string.IsNullOrEmpty(SystemConfig["eka2l1_controllerindex"]))
                 index = SystemConfig["eka2l1_controllerindex"];
 
-            List<Dictionary<string, object>> mappings = new List<Dictionary<string, object>>();
+            var mappingInfo = new List<Eka2l1MappingInfo>();
 
             foreach (var input in inputKeys)
             {
@@ -47,62 +48,54 @@ namespace EmulatorLauncher
 
                 if (button == "red")
                 {
-                    mappings.Add(new Dictionary<string, object>
+                    mappingInfo.Add(new Eka2l1MappingInfo()
                     {
-                        { "source", new Dictionary<string, object>
+                        Source = new Eka2l1MappingSource()
+                        {
+                            Type = "key",
+                            Data = new Dictionary<string, string>()
                             {
-                                { "type", "key" },
-                                { "data", new Dictionary<string, object>
-                                    {
-                                        { "keycode", "16777267" }
-                                    }
-                                }
+                                { "keycode", "16777267" }
                             }
                         },
-                        { "target", target }
+                        Target = target
                     });
                 }
-
                 else if (button == "green")
                 {
-                    mappings.Add(new Dictionary<string, object>
+                    mappingInfo.Add(new Eka2l1MappingInfo()
                     {
-                        { "source", new Dictionary<string, object>
+                        Source = new Eka2l1MappingSource()
+                        {
+                            Type = "key",
+                            Data = new Dictionary<string, string>()
                             {
-                                { "type", "key" },
-                                { "data", new Dictionary<string, object>
-                                    {
-                                        { "keycode", "16777266" }
-                                    }
-                                }
+                                { "keycode", "16777266" }
                             }
                         },
-                        { "target", target }
+                        Target = target
                     });
                 }
-
                 else
                 {
-                    mappings.Add(new Dictionary<string, object>
+                    mappingInfo.Add(new Eka2l1MappingInfo()
                     {
-                        { "source", new Dictionary<string, object>
+                        Source = new Eka2l1MappingSource()
+                        {
+                            Type = "controller",
+                            Data = new Dictionary<string, string>()
                             {
-                                { "type", "controller" },
-                                { "data", new Dictionary<string, object>
-                                    {
-                                        { "controller_id", index },
-                                        { "button_id", button }
-                                    }
-                                }
+                                { "controller_id", index },
+                                { "button_id", button }
                             }
                         },
-                        { "target", target }
+                        Target = target
                     });
                 }
                 
             }
 
-            string ymlContent = SerializeToYml(mappings);
+            string ymlContent = SerializeToYml(mappingInfo);
             File.WriteAllText(ymlFile, ymlContent);
         }
 
@@ -130,25 +123,43 @@ namespace EmulatorLauncher
             { "42", "308" },        // star - L2
             { "127", "309" },       // diese - R2
         };
-
-        static string SerializeToYml(List<Dictionary<string, object>> mappings)
+        
+        class Eka2l1MappingInfo
         {
-            StringWriter writer = new StringWriter();
+            public Eka2l1MappingSource Source { get; set; }
+            public string Target { get; set; }
+
+            public string ToYml()
+            {
+                var writer = new StringBuilder();
+
+                writer.AppendLine("- source:");
+                writer.AppendLine(string.Format("    type: {0}", Source.Type));
+
+                writer.AppendLine("    data:");
+                foreach (var dataEntry in Source.Data)
+                    writer.AppendLine(string.Format("      {0}: {1}", dataEntry.Key, dataEntry.Value));
+
+                writer.AppendLine(string.Format("  target: {0}", Target));
+
+                return writer.ToString();
+            }
+
+            public override string ToString() { return ToYml(); }
+        }
+
+        class Eka2l1MappingSource
+        {
+            public string Type { get; set; }
+            public Dictionary<string, string> Data { get; set; }
+        }
+
+        static string SerializeToYml(IEnumerable<Eka2l1MappingInfo> mappings)
+        {
+            var writer = new StringBuilder();
 
             foreach (var mapping in mappings)
-            {
-                writer.WriteLine("- source:");
-                writer.WriteLine($"    type: {(mapping["source"] as Dictionary<string, object>)["type"]}");
-
-                var data = (Dictionary<string, object>)(mapping["source"] as Dictionary<string, object>)["data"];
-                writer.WriteLine("    data:");
-                foreach (var dataEntry in data)
-                {
-                    writer.WriteLine($"      {dataEntry.Key}: {dataEntry.Value}");
-                }
-
-                writer.WriteLine($"  target: {mapping["target"]}");
-            }
+                writer.Append(mapping.ToYml());
 
             return writer.ToString();
         }
