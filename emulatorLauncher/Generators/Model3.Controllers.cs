@@ -1652,6 +1652,10 @@ namespace EmulatorLauncher
                 int buttonID = (button.Substring(7).ToInteger()) + 1;
                 return "\"JOY" + index + "_BUTTON" + buttonID + "\"";
             }
+            
+            else if (button.StartsWith("dp"))
+                return "\"" + GetDinputMapping(index, wheel, button) + "\"";
+
             else
             {
                 switch (button)
