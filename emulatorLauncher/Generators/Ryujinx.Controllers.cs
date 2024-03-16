@@ -16,6 +16,8 @@ namespace EmulatorLauncher
         /// </summary>
         private void UpdateSdlControllersWithHints()
         {
+            _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(Path.Combine(_emulatorPath, "SDL2.dll"));
+
             var hints = new List<string>();            
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
@@ -26,59 +28,12 @@ namespace EmulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        private void ManageSDLFiles(string path)
-        {
-            // Check ES sdl version (in retrobat\emulationstation)
-            string ESSdl2 = Path.Combine(AppConfig.GetFullPath("retrobat"), "emulationstation", "SDL2.dll");
-            string ESsdlVersion = _currentESSdlVersion;
-            if (File.Exists(ESSdl2))
-            {
-                var ESsdlVersionInfo = FileVersionInfo.GetVersionInfo(ESSdl2);
-                ESsdlVersion = ESsdlVersionInfo.FileMajorPart + "." + ESsdlVersionInfo.FileMinorPart + "." + ESsdlVersionInfo.FileBuildPart + "." + ESsdlVersionInfo.FilePrivatePart;
-            }
-
-            // Check Ryujinx sdl version in emulator path
-            string ryujinxSdl2 = Path.Combine(path, "SDL2.dll");
-            string sdlVersionRyujinx = "";
-            if (File.Exists(ryujinxSdl2))
-            {
-                var sdlVersionInfoRyujinx = FileVersionInfo.GetVersionInfo(ryujinxSdl2);
-                sdlVersionRyujinx = sdlVersionInfoRyujinx.FileMajorPart + "." + sdlVersionInfoRyujinx.FileMinorPart + "." + sdlVersionInfoRyujinx.FileBuildPart + "." + sdlVersionInfoRyujinx.FilePrivatePart;
-            }
-
-            // If already aligned, no need to change anything
-            if (sdlVersionRyujinx == ESsdlVersion)
-                return;
-
-            // Find the right sdl2.dll to copy in the Retrobat\system\resources\sdl2 folder
-            string sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "sdl2", "SDL2_" + ESsdlVersion + "_x64.dll");
-            // If the exact version is not found, take the currently provided in default one
-            if (!File.Exists(sourceSDL))
-            {
-                sourceSDL = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "sdl2", "SDL2_" + _currentESSdlVersion + "_x64.dll");
-                ESsdlVersion = _currentESSdlVersion;
-            }
-
-            // Copy file to ryujinx folder
-            if (sdlVersionRyujinx != ESsdlVersion && File.Exists(sourceSDL))
-            {
-                if (File.Exists(ryujinxSdl2))
-                    File.Delete(ryujinxSdl2);
-
-                File.Copy(sourceSDL, ryujinxSdl2);
-            }
-
-            // Set global _sdlversion
-            _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(ryujinxSdl2);
-        }
-
         private void CreateControllerConfiguration(DynamicJson json)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
             UpdateSdlControllersWithHints();
-            ManageSDLFiles(_emulatorPath);
 
             //clear existing input_config section to avoid the same controller mapped to different players because of past mapping
             json.Remove("input_config");
@@ -99,7 +54,6 @@ namespace EmulatorLauncher
         /// <param name="input_configs"></param>
         private void ConfigureInput(DynamicJson json, Controller c, List<DynamicJson> input_configs)
         {
-
             if (c == null || c.Config == null)
                 return;
 
@@ -364,7 +318,7 @@ namespace EmulatorLauncher
 
             //player identification part
             //get guid in system.guid format
-            string guid = c.SdlController.Guid != null ? c.SdlController.Guid.ToString() : c.GetSdlGuid(_sdlVersion, true);
+            string guid = (_sdlVersion == SdlVersion.Unknown && c.SdlController.Guid != null) ? c.SdlController.Guid.ToString() : c.GetSdlGuid(_sdlVersion, true);
             var newguid = SdlJoystickGuidManager.FromSdlGuidString(guid);
 
             input_config["version"] = "1";
