@@ -243,6 +243,16 @@ namespace EmulatorLauncher
             pcsx2ini.ClearSection(padNumber);
             pcsx2ini.WriteValue(padNumber, "Type", "DualShock2");
 
+            // Generic settings
+            pcsx2ini.WriteValue(padNumber, "InvertL", "0");
+            pcsx2ini.WriteValue(padNumber, "InvertR", "0");
+            BindIniFeature(pcsx2ini, padNumber, "Deadzone", "pcsx2_deadzone", "0");
+            BindIniFeature(pcsx2ini, padNumber, "AxisScale", "pcsx2_axisscale", "1.33");
+            BindIniFeature(pcsx2ini, padNumber, "LargeMotorScale", "pcsx2_rumble_strength", "1");
+            BindIniFeature(pcsx2ini, padNumber, "SmallMotorScale", "pcsx2_rumble_strength", "1");
+            BindIniFeature(pcsx2ini, padNumber, "ButtonDeadzone", "pcsx2_trigger_deadzone", "0");
+            pcsx2ini.WriteValue(padNumber, "PressureModifier", "0.5");
+
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
             if (ctrl.IsXInputDevice && !_forceSDL)
