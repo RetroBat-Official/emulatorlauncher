@@ -54,6 +54,7 @@ namespace EmulatorLauncher.Common
                 req.UserAgent = UserAgent;
                 req.KeepAlive = false;
                 req.Method = "HEAD";
+                req.CookieContainer = Cookies;
 
                 var resp = req.GetResponse() as HttpWebResponse;
                 if (resp.StatusCode == HttpStatusCode.OK)
@@ -80,6 +81,7 @@ namespace EmulatorLauncher.Common
             req.Method = "POST";
             req.UserAgent = UserAgent;
             req.KeepAlive = false;
+            req.CookieContainer = Cookies;
 
             byte[] data = Encoding.UTF8.GetBytes(content);
 
@@ -110,6 +112,8 @@ namespace EmulatorLauncher.Common
             req.UserAgent = UserAgent;
             req.KeepAlive = false;
             req.ContentLength = data.Length;
+            req.CookieContainer = Cookies;
+
             if (contentType != null)
                 req.ContentType = contentType;
 
@@ -135,7 +139,8 @@ namespace EmulatorLauncher.Common
         {
             var req = WebRequest.Create(url) as HttpWebRequest;
             req.UserAgent = UserAgent;
-            req.KeepAlive = false;
+            req.KeepAlive = true;
+            req.CookieContainer = Cookies;
 
             var resp = req.GetResponse() as HttpWebResponse;
             if (resp != null)
@@ -149,6 +154,8 @@ namespace EmulatorLauncher.Common
             return null;
         }
 
+        public static CookieContainer Cookies { get; set; }
+
         public static ResponseStreamInfo DownloadToStream(Stream fileStream, string url, ProgressChangedEventHandler progress = null)
         {
         retry:
@@ -156,7 +163,8 @@ namespace EmulatorLauncher.Common
             {
                 var req = WebRequest.Create(url) as HttpWebRequest;
                 req.UserAgent = UserAgent;
-                req.KeepAlive = false;
+                req.KeepAlive = true;
+                req.CookieContainer = Cookies;
 
                 var resp = req.GetResponse() as HttpWebResponse;
                 if (resp != null)
@@ -216,7 +224,7 @@ namespace EmulatorLauncher.Common
             if (!string.IsNullOrEmpty(contentDisposition))
             {
                 int idx = contentDisposition.IndexOf("filename=");
-                if (idx >= 0)
+                if (idx >= 0 && contentDisposition.IndexOf("filename*=UTF-8") < 0)
                     ret.FileName = System.Uri.UnescapeDataString(contentDisposition.Substring(idx + "filename=".Length).Replace("\"", ""));
                 else
                 {

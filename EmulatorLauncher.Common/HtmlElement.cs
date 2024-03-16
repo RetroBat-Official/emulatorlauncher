@@ -302,7 +302,7 @@ namespace EmulatorLauncher.Common.FileFormats
                         pos++;
                         continue;
                     }
-                    else if (!string.IsNullOrEmpty(name) && inQuote == '\0' && (c == ' ' || c == '\r' || c == '\n'))
+                    else if (!string.IsNullOrEmpty(name) && inQuote == '\0' && (c == ' ' || c == '\r' || c == '\n' || c == '\t'))
                     {
                         value = temp.ToString();
 

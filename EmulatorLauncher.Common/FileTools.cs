@@ -266,9 +266,9 @@ namespace EmulatorLauncher.Common
         [DllImport("shell32.dll")]
         public static extern bool SHGetSpecialFolderPath(IntPtr hwndOwner, [Out]StringBuilder lpszPath, int nFolder, bool fCreate);
 
-        public static string GetSystemDirectory()
+        public static string GetSystemDirectory(RegistryViewEx view = RegistryViewEx.Default)
         {
-            if (Environment.Is64BitOperatingSystem)
+            if (view == RegistryViewEx.Default && Environment.Is64BitOperatingSystem || view == RegistryViewEx.Registry32)
             {
                 StringBuilder path = new StringBuilder(260);
                 SHGetSpecialFolderPath(IntPtr.Zero, path, 0x0029, false); // CSIDL_SYSTEMX86
