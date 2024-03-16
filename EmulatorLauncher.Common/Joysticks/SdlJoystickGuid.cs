@@ -134,9 +134,8 @@ namespace EmulatorLauncher.Common.Joysticks
                     .Where(r => r.VendorId == this.VendorId && r.ProductId == this.ProductId)
                     .FirstOrDefault();
 
-                if (ctrl != null && ctrl.Manufacturer != null)
+                if (ctrl != null && !string.IsNullOrEmpty(ctrl.Name) && !string.IsNullOrEmpty(ctrl.Manufacturer))
                 {
-                    // 030044f05e040000e002000000007200
                     ushort crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Manufacturer));
                     crc = SDL.SDL_crc16(new byte[] { 32 }, crc);
                     crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Name), crc);
@@ -147,25 +146,20 @@ namespace EmulatorLauncher.Common.Joysticks
                     return new SdlJoystickGuid(ggs);
                 }
 
-                else if (ctrl != null && name != null)
+                if (ctrl != null && !string.IsNullOrEmpty(ctrl.Name))
                 {
-                    var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
+                    var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Name))).ToString("X4");
 
                     var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
                     return new SdlJoystickGuid(ggs);
                 }
 
-                else
-                {
-                    // Pre 2.26x : remove '16-bit CRC16 of the joystick name'
-                    var ggs = _guid.Substring(0, 4) + "0000" + _guid.Substring(8);
-                    ret = new SdlJoystickGuid(ggs);
-                    if (version == SdlVersion.SDL2_24)
-                        return ret;
-                }
+                // Pre 2.26x : remove '16-bit CRC16 from the joystick name'
+                ret = new SdlJoystickGuid(_guid.Substring(0, 4) + "0000" + _guid.Substring(8));
+                if (version == SdlVersion.SDL2_24)
+                    return ret;                
             }
-
-
+            
             if (version == SdlVersion.SDL2_26 && name != null)
             {
                 var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
@@ -332,6 +326,13 @@ namespace EmulatorLauncher.Common.Joysticks
         /// SDL-2.26.4-no-vcs
         /// <returns></returns>
         public static SdlVersion GetSdlVersionFromStaticBinary(string fileName, SdlVersion defaultValue = SdlVersion.SDL2_0_X)
+        {
+            var version = GetSdlVersionFromStaticBinaryInternal(fileName, defaultValue = SdlVersion.SDL2_0_X);
+            SimpleLogger.Instance.Info("[GetSdlVersionFromStaticBinary] " + version.ToString());
+            return version;
+        }
+
+        private static SdlVersion GetSdlVersionFromStaticBinaryInternal(string fileName, SdlVersion defaultValue = SdlVersion.SDL2_0_X)
         {
             if (!File.Exists(fileName))
                 return defaultValue;
