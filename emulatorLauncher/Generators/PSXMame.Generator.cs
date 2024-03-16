@@ -96,13 +96,17 @@ namespace EmulatorLauncher
                 commandArray.Add(sstatePath);
             }
 
+            string ctrlrPath = Path.Combine(path, "ctrlr");
+            if (!Directory.Exists(ctrlrPath)) try { Directory.CreateDirectory(ctrlrPath); }
+                catch { }
+
             if (SystemConfig["psxmame_controller_configmode"] == "per_game" && File.Exists(Path.Combine(path, "ctrlr", Path.GetFileNameWithoutExtension(rom) + ".cfg")))
             {
                 commandArray.Add("-ctrlr");
                 commandArray.Add(Path.GetFileNameWithoutExtension(rom));
             }
 
-            else if (!Program.SystemConfig.isOptSet("disableautocontrollers") || Program.SystemConfig["disableautocontrollers"] == "0")
+            else if (ConfigureMameControllers(path))
             {
                 commandArray.Add("-ctrlr");
                 commandArray.Add("retrobat");
@@ -116,7 +120,6 @@ namespace EmulatorLauncher
 
             ConfigureUIini(Path.Combine(path));
             ConfigureMameini(Path.Combine(path), combinedRomPath);
-            ConfigureMameControllers(path);
 
             return new ProcessStartInfo()
             {
@@ -154,6 +157,8 @@ namespace EmulatorLauncher
             string iniFile = Path.Combine(path, "mame.ini");
             iniFiles.Add(iniFile);
 
+            string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), "psxmame", "nvram");
+
             foreach (string file in iniFiles)
             {
                 var ini = PSXMameIniFile.FromFile(file);
@@ -163,6 +168,7 @@ namespace EmulatorLauncher
                 ini["ctrlrpath"] = "ctrlr";
                 ini["inipath"] = ".;ini";
                 ini["cfg_directory"] = "cfg";
+                ini["nvram_directory"] = nvramPath;
 
                 // Core state options
                 ini["snapname"] = "%g/%i";

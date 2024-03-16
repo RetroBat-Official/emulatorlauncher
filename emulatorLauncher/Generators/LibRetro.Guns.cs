@@ -61,6 +61,7 @@ namespace EmulatorLauncher.Libretro
             // Single player - assign buttons of joystick linked with playerIndex to gun buttons
             if (!multigun)
             {
+                retroarchConfig["input_driver"] = "dinput";
                 // Get gamepad buttons to assign them so that controller buttons can be used along with gun
                 string a_padbutton = retroarchConfig["input_player" + playerIndex + "_a_btn"];
                 string b_padbutton = retroarchConfig["input_player" + playerIndex + "_b_btn"];
@@ -274,6 +275,7 @@ namespace EmulatorLauncher.Libretro
             // If option in ES is forced to use one gun, only one gun will be configured on the playerIndex defined for the core
             if (useOneGun || playerIndex == 2)
             {
+                retroarchConfig["input_driver"] = "dinput";
                 // Set deviceType and DeviceIndex
                 retroarchConfig["input_libretro_device_p" + playerIndex] = deviceType;
                 retroarchConfig["input_player" + playerIndex + "_mouse_index"] = "0";
@@ -380,6 +382,7 @@ namespace EmulatorLauncher.Libretro
             // Multigun case
             else
             {
+                retroarchConfig["input_driver"] = "raw";
                 for (int i = 1; i <= guns.Length; i++)
                 {
                     int deviceIndex = guns[i - 1].Index; // i-1;

@@ -186,10 +186,10 @@ ThrustmasterT300RS:
   Gear5: nul
   Gear6: nul
   Gear_reverse: nul
-  DpadUp: button_13
-  DpadDown: button_14
-  DpadLeft: button_15
-  DpadRight: button_16
+  DpadUp: dpup
+  DpadDown: dpdown
+  DpadLeft: dpleft
+  DpadRight: dpright
 default:
   WheelGuid: nul
   Inputsystems: sdl,xinput,dinput
