@@ -75,6 +75,41 @@ namespace EmulatorLauncher.Common.Joysticks
                 return (USB_PRODUCT)intValue;
             }
         }
+                
+        /// <summary>
+        /// Last byte of the SDL guid
+        /// </summary>
+        public int SubControllerType
+        {
+            get
+            {
+                if (_guid.Length != 32)
+                    return 0;
+
+                string id = _guid.Substring(30, 2).ToUpper();
+                int intValue = int.Parse(id, System.Globalization.NumberStyles.HexNumber);
+                return intValue;
+            }
+        }
+
+        public bool SupportsGuidsWithManufacturerCrc
+        {
+            get
+            {
+                if (WrappedTechID == SdlWrappedTechId.RawInput)
+                    return true;
+
+                if (WrappedTechID == SdlWrappedTechId.HID && VendorId == USB_VENDOR.NINTENDO && SubControllerType > 0)
+                {
+                    // See UpdateDeviceIdentity(SDL_HIDAPI_Device *device)
+                    // if only HIDAPI_SetDeviceName is called -> No manufacturerId
+                    // if HIDAPI_SetDeviceProduct is called -> Guid includes manufacturerId
+                    return SubControllerType < 7 || SubControllerType > 10;
+                }
+
+                return false;
+            }
+        }
 
         public ushort JoystickNameCrc16
         {
@@ -130,7 +165,7 @@ namespace EmulatorLauncher.Common.Joysticks
 
             SdlJoystickGuid ret = new SdlJoystickGuid(_guid);
 
-            if (version == SdlVersion.SDL2_30 && (ret.WrappedTechID == SdlWrappedTechId.RawInput || crcUseManufacturer.Contains(prod)))
+            if (version == SdlVersion.SDL2_30 && ret.SupportsGuidsWithManufacturerCrc)
             {
                 var ctrl = RawInputDevice.GetRawInputControllers()
                     .Where(r => r.VendorId == this.VendorId && r.ProductId == this.ProductId)
@@ -201,11 +236,6 @@ namespace EmulatorLauncher.Common.Joysticks
 
             return ret;
         }
-
-        private static readonly List<USB_PRODUCT> crcUseManufacturer = new List<USB_PRODUCT>()
-        {
-            USB_PRODUCT.NINTENDO_SWITCH_PRO
-        };
 
         #endregion
 
