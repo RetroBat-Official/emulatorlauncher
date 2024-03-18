@@ -9,6 +9,10 @@ namespace EmulatorLauncher
 {
     partial class FlycastGenerator
     {
+        private static List<string> reloadWithButtonB = new List<string> { "confmiss", "hotd2", "manicpnc", "mok", "otrigger", "tduno", "tduno2", "zunou", "claychal", "rangrmsn", "sprtshot", "waidrive", "xtrmhnt2", "xtrmhunt" };
+        private static List<string> useXandB = new List<string> { "kick4csh" };
+        private static List<string> useXandA = new List<string> { "shootopl", "shootpl", "shootplm" };
+
         private void ConfigureFlycastGuns(IniFile ini, string mappingPath)
         {
             bool useOneGun = SystemConfig.getOptBoolean("one_gun");
@@ -33,9 +37,34 @@ namespace EmulatorLauncher
 
             using (var ctrlini = new IniFile(mappingFile, IniOptions.UseSpaces))
             {
-                ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
-                ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
-                ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                if (useXandB.Contains(_romName))
+                {
+                    ctrlini.WriteValue("digital", "bind0", "1:btn_x");
+                    ctrlini.WriteValue("digital", "bind1", "2:btn_start");
+                    ctrlini.WriteValue("digital", "bind2", "3:btn_b");
+                }
+                else if (useXandA.Contains(_romName))
+                {
+                    ctrlini.WriteValue("digital", "bind0", "1:btn_a");
+                    ctrlini.WriteValue("digital", "bind1", "2:btn_x");
+                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                }
+                else
+                {
+                    if (reloadWithButtonB.Contains(_romName))
+                    {
+                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
+                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
+                    }
+                    else
+                    {
+                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
+                    }
+
+                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                }
+                
                 ctrlini.WriteValue("emulator", "dead_zone", "10");
                 ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
                 ctrlini.WriteValue("emulator", "rumble_power", "100");
@@ -96,9 +125,32 @@ namespace EmulatorLauncher
                     
                     using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
                     {
-                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
-                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
-                        ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                        if (useXandB.Contains(_romName))
+                        {
+                            ctrlini.WriteValue("digital", "bind0", "1:btn_x");
+                            ctrlini.WriteValue("digital", "bind1", "2:btn_start");
+                            ctrlini.WriteValue("digital", "bind2", "3:btn_b");
+                        }
+                        else if (useXandA.Contains(_romName))
+                        {
+                            ctrlini.WriteValue("digital", "bind0", "1:btn_a");
+                            ctrlini.WriteValue("digital", "bind1", "2:btn_x");
+                            ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                        }
+                        else
+                        {
+                            if (reloadWithButtonB.Contains(_romName))
+                            {
+                                ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
+                                ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
+                            }
+                            else
+                            {
+                                ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                                ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
+                            }
+                            ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                        }
                         ctrlini.WriteValue("emulator", "dead_zone", "10");
                         ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
                         ctrlini.WriteValue("emulator", "rumble_power", "100");

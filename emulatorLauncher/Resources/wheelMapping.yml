@@ -179,13 +179,13 @@ ThrustmasterT300RS:
   Steer: leftx
   Gearup: rightshoulder
   Geardown: leftshoulder
-  Gear1: nul
-  Gear2: nul
-  Gear3: nul
-  Gear4: nul
-  Gear5: nul
-  Gear6: nul
-  Gear_reverse: nul
+  Gear1: button_0
+  Gear2: button_1
+  Gear3: button_2
+  Gear4: button_3
+  Gear5: button_4
+  Gear6: button_5
+  Gear_reverse: button_7
   DpadUp: dpup
   DpadDown: dpdown
   DpadLeft: dpleft

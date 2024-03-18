@@ -238,7 +238,85 @@ namespace EmulatorLauncher
                         digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "dpleft") + ":btn_dpad1_left");
                         digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "dpright") + ":btn_dpad1_right");
 
-                        if (SystemConfig.isOptSet("flycast_arcadewheel_layout") && !string.IsNullOrEmpty(SystemConfig["flycast_arcadewheel_layout"]))
+                        if (!SystemConfig.isOptSet("flycast_arcadewheel_layout"))
+                        {
+                            if (_romName.StartsWith("initd"))
+                            {
+                                digitalBinds.Add(GetWheelKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_b");
+                                digitalBinds.Add(GetWheelKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_a");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_dpad1_down");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "x") + ":insert_card");
+                            }
+                            else if (_romName == "18wheelr")
+                            {
+                                digitalBinds.Add(GetWheelKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_b");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_c");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "b") + ":btn_a");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_dpad1_down");
+                            }
+                            else if (_romName.StartsWith("crzyt"))
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_dpad1_down");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_dpad1_up");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_c");
+                            }
+                            else if (_romName.StartsWith("f355"))
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_a");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_b");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_c");
+                            }
+                            else if (_romName == "tokyobus")
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_b");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_c");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_dpad1_down");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "a") + ":btn_a");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "x") + ":btn_y");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "b") + ":btn_z");
+                            }
+                            else if (_romName == "wrungp")
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.DpadUp) + ":axis2_up");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.DpadDown) + ":axis2_down");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":axis2_left");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":axis2_right");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_dpad1_up");
+                            }
+                            else if (_romName == "ftspeed")
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_dpad1_down");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_dpad1_up");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "b") + ":btn_a");
+                            }
+                            else if (_romName == "maxspeed")
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_dpad1_down");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_dpad1_up");
+                            }
+                            else if (_romName.StartsWith("clubk"))
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "a") + ":btn_b");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "x") + ":insert_card");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_dpad1_down");
+                            }
+                            else if (_romName == "kingrt66")
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_c");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_x");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "a") + ":btn_a");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "b") + ":btn_b");
+                            }
+                            else if (_romName == "wldrider")
+                            {
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_dpad1_down");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "b") + ":btn_dpad1_up");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "a") + ":btn_a");
+                                digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "x") + ":btn_b");
+                            }
+                        }
+
+                        else if (SystemConfig.isOptSet("flycast_arcadewheel_layout") && !string.IsNullOrEmpty(SystemConfig["flycast_arcadewheel_layout"]))
                         {
                             string layout = SystemConfig["flycast_arcadewheel_layout"];
 
