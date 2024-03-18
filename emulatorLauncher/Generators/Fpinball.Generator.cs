@@ -313,15 +313,19 @@ namespace EmulatorLauncher
                     regKeyc.SetValue("BitsPerPixel", Screen.PrimaryScreen.BitsPerPixel);
                 }
 
-                if (SystemConfig.isOptSet("MonitorIndex"))
+                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
                     regKeyc.SetValue("PlayfieldMonitorID", "\\\\.\\DISPLAY" + SystemConfig["MonitorIndex"]);
                 else
                     regKeyc.SetValue("PlayfieldMonitorID", "\\\\.\\DISPLAY1");
 
-                if (regKeyc.GetValue("DefaultCamera") == null)
+                if (SystemConfig.isOptSet("DefaultCamera") && !string.IsNullOrEmpty(SystemConfig["DefaultCamera"]))
+                    regKeyc.SetValue("DefaultCamera", SystemConfig["DefaultCamera"]);
+                else
                     regKeyc.SetValue("DefaultCamera", 0);
 
-                if (regKeyc.GetValue("CameraFollowsTheBall") == null)
+                if (SystemConfig.isOptSet("camerafollowball") && SystemConfig.getOptBoolean("camerafollowball"))
+                    regKeyc.SetValue("CameraFollowsTheBall", 1);
+                else
                     regKeyc.SetValue("CameraFollowsTheBall", 0);
 
                 if (SystemConfig.isOptSet("preset") && SystemConfig["preset"] == "medium")
