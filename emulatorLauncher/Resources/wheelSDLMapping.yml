@@ -83,9 +83,9 @@ ThrustmasterT300RS:
   Forcefeedback: true
   Invertedaxis: true
   Range: nul
-  Throttle: Axis9~
+  Throttle: Axis8~
   Brake: Axis7~
-  Clutch: Axis8~
+  Clutch: Axis9~
   Steer: Axis6
   Start: Button28
   Select: Button27

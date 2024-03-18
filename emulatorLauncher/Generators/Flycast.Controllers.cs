@@ -228,7 +228,7 @@ namespace EmulatorLauncher
 
             // Test if triggers are analog or digital
             bool analogTriggers = false;
-            bool switchanalog = SystemConfig.isOptSet("flycast_analogdpad") && SystemConfig.getOptBoolean("flycast_analogdpad");
+            bool switchToDpad = SystemConfig.isOptSet("flycast_usedpad") && SystemConfig.getOptBoolean("flycast_usedpad");
             bool useR1L1 = SystemConfig.isOptSet("flycast_r1l1") && SystemConfig.getOptBoolean("flycast_r1l1");
             
             var r2test = joy[InputKey.r2];
@@ -281,57 +281,139 @@ namespace EmulatorLauncher
 
                 List<string> analogBinds = new List<string>();
                 List<string> digitalBinds = new List<string>();
+                YmlContainer game = null;
 
                 if (isArcade)
                 {
-                    if (switchanalog)
+                    Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
+                    string flycastMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "flycastArcadeControlsMapping.yml");
+                    if (File.Exists(flycastMapping))
                     {
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_dpad1_left");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_dpad1_right");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_dpad1_up");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_dpad1_down");
-                    }
-                    else
-                    {
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.down, tech) + ":btn_dpad1_down");
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.left, tech) + ":btn_dpad1_left");
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.right, tech) + ":btn_dpad1_right");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_analog_left");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_analog_right");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_analog_up");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_analog_down");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogleft, tech) + ":axis2_left");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogright, tech) + ":axis2_right");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogup, tech) + ":axis2_up");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogdown, tech) + ":axis2_down");
+                        YmlFile ymlFile = YmlFile.Load(flycastMapping);
+
+                        game = ymlFile.Elements.Where(c => c.Name == _romName).FirstOrDefault() as YmlContainer;
+
+                        if (game != null)
+                        {
+                            var gameName = game.Name;
+                            var buttonMap = new Dictionary<string, string>();
+
+                            foreach (var buttonEntry in game.Elements)
+                            {
+                                var button = buttonEntry as YmlElement;
+                                if (button != null)
+                                {
+                                    buttonMap.Add(button.Name, button.Value);
+                                }
+                            }
+                            gameMapping.Add(gameName, buttonMap);
+
+                            if (buttonMap.Count > 0)
+                            {
+                                foreach (var button in buttonMap)
+                                {
+                                    switch (button.Key)
+                                    {
+                                        case "leftanalogleft":
+                                        case "leftanalogright":
+                                        case "leftanalogup":
+                                        case "leftanalogdown":
+                                            if (switchToDpad)
+                                                digitalBinds.Add(GetInputKeyName(ctrl, switchToDpadKeys[button.Key], tech) + ":" + button.Value);
+                                            else
+                                                analogBinds.Add(GetInputKeyName(ctrl, yamlToInputKey[button.Key], tech) + ":" + button.Value);
+                                            break;
+                                        case "rightanalogleft":
+                                        case "rightanalogright":
+                                        case "rightanalogup":
+                                        case "rightanalogdown":
+                                            analogBinds.Add(GetInputKeyName(ctrl, yamlToInputKey[button.Key], tech) + ":" + button.Value);
+                                            break;
+                                        case "l2":
+                                        case "r2":
+                                            if (analogTriggers)
+                                                analogBinds.Add(GetInputKeyName(ctrl, yamlToInputKey[button.Key], tech) + ":" + button.Value);
+                                            else
+                                                digitalBinds.Add(GetInputKeyName(ctrl, yamlToInputKey[button.Key], tech) + ":" + button.Value);
+                                            break;
+                                        case "south":
+                                        case "north":
+                                        case "east":
+                                        case "west":
+                                        case "l1":
+                                        case "r1":
+                                        case "l3":
+                                        case "r3":
+                                        case "select":
+                                        case "start":
+                                            digitalBinds.Add(GetInputKeyName(ctrl, yamlToInputKey[button.Key], tech) + ":" + button.Value);
+                                            break;
+                                        case "up":
+                                        case "down":
+                                        case "left":
+                                        case "right":
+                                            if (switchToDpad)
+                                                break;
+                                            else
+                                                digitalBinds.Add(GetInputKeyName(ctrl, yamlToInputKey[button.Key], tech) + ":" + button.Value);
+                                            break;
+                                    }
+                                }
+                            }
+                        }
                     }
 
-                    if (analogTriggers)
+                    if (game == null)
                     {
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
-                        analogBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
-                    }
-                    else
-                    {
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                        if (!switchToDpad)
+                        {
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_dpad1_left");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_dpad1_right");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_dpad1_up");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_dpad1_down");
+                        }
+                        else
+                        {
+                            digitalBinds.Add(GetInputKeyName(ctrl, InputKey.up, tech) + ":btn_dpad1_up");
+                            digitalBinds.Add(GetInputKeyName(ctrl, InputKey.down, tech) + ":btn_dpad1_down");
+                            digitalBinds.Add(GetInputKeyName(ctrl, InputKey.left, tech) + ":btn_dpad1_left");
+                            digitalBinds.Add(GetInputKeyName(ctrl, InputKey.right, tech) + ":btn_dpad1_right");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogleft, tech) + ":btn_analog_left");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogright, tech) + ":btn_analog_right");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogup, tech) + ":btn_analog_up");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.leftanalogdown, tech) + ":btn_analog_down");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogleft, tech) + ":axis2_left");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogright, tech) + ":axis2_right");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogup, tech) + ":axis2_up");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.rightanalogdown, tech) + ":axis2_down");
+                        }
+
+                        if (analogTriggers)
+                        {
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
+                            analogBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                        }
+                        else
+                        {
+                            digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_trigger_left");
+                            digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_trigger_right");
+                        }
+
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.a, tech) + ":btn_a");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.b, tech) + ":btn_b");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.y, tech) + ":btn_c");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_x");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_y");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_d");                                          // coin
                     }
 
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.a, tech) + ":btn_a");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.b, tech) + ":btn_b");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.y, tech) + ":btn_x");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_c");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_d");                                          // coin
-                    
                     if (tech == "SDL")
                         digitalBinds.Add("5:btn_menu");
                     else
                         digitalBinds.Add("10:btn_menu");                                                                                // Guide button (emulator menu)
-                    
+
                     if (serviceMenu)
                     {
                         digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // service menu
@@ -769,5 +851,53 @@ namespace EmulatorLauncher
             { "none", 10 }
         };
         #endregion
+
+        static Dictionary<string, InputKey> yamlToInputKey = new Dictionary<string, InputKey>()
+        {
+            { "leftanalogleft", InputKey.leftanalogleft },
+            { "leftanalogright", InputKey.leftanalogright },
+            { "leftanalogup", InputKey.leftanalogup },
+            { "leftanalogdown", InputKey.leftanalogdown },
+            { "rightanalogleft", InputKey.rightanalogleft },
+            { "rightanalogright", InputKey.rightanalogright },
+            { "rightanalogup", InputKey.rightanalogup },
+            { "rightanalogdown", InputKey.rightanalogdown },
+            { "south", InputKey.a },
+            { "east", InputKey.b },
+            { "north", InputKey.x },
+            { "west", InputKey.y },
+            { "select", InputKey.select },
+            { "start", InputKey.start },
+            { "l1", InputKey.pageup },
+            { "r1", InputKey.pagedown },
+            { "l2", InputKey.l2 },
+            { "r2", InputKey.r2 },
+            { "l3", InputKey.l3 },
+            { "r3", InputKey.r3 },
+            { "up", InputKey.up },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "right", InputKey.right },
+        };
+
+        static Dictionary<string, InputKey> switchToDpadKeys = new Dictionary<string, InputKey>()
+        {
+            { "leftanalogleft", InputKey.left },
+            { "leftanalogright", InputKey.right },
+            { "leftanalogup", InputKey.up },
+            { "leftanalogdown", InputKey.down },
+        };
+
+        static List<string> analogKeys = new List<string>()
+        {
+            "leftanalogleft",
+            "leftanalogright",
+            "leftanalogup",
+            "leftanalogdown",
+            "rightanalogleft",
+            "rightanalogright",
+            "rightanalogup",
+            "rightanalogdown",
+        };
     }
 }

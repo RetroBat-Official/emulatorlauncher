@@ -11,6 +11,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _fullscreen;
+        private string _romName;
 
         public FlycastGenerator()
         {
@@ -27,6 +28,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            _romName = Path.GetFileNameWithoutExtension(rom);
             _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             bool wide = SystemConfig.isOptSet("flycast_ratio") && SystemConfig["flycast_ratio"] != "normal";
 
@@ -197,6 +199,8 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "config", "Dynarec.Enabled", "flycast_dynarec", "yes");
 
                 CreateControllerConfiguration(path, system, ini);
+
+                BindBoolIniFeature(ini, "config", "PerGameVmu", "flycast_vmupergame", "yes", "no");
 
                 ini.Save();
             }
