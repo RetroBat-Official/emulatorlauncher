@@ -340,8 +340,8 @@ namespace EmulatorLauncher.Common.Joysticks
                 return SdlVersion.Unknown;
             }
 
-            if (version.Major >= 3)
-                return SdlVersion.SDL2_26;
+            if (version.Major >= 3) // SDL3 !???
+                return SdlVersion.SDL2_30;
 
             if (version.Minor >= 30)
                 return SdlVersion.SDL2_30;
