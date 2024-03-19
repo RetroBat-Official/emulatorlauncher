@@ -278,7 +278,10 @@ namespace EmulatorLauncher.Libretro
             if (SystemConfig.isOptSet("ratio"))
             {
                 if (SystemConfig["ratio"] == "custom")
+                {
                     retroarchConfig["video_aspect_ratio_auto"] = "false";
+                    retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString();
+                }
                 else
                 {
                     int idx = ratioIndexes.IndexOf(SystemConfig["ratio"]);
