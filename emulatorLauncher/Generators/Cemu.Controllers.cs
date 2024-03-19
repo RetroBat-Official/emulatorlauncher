@@ -18,8 +18,7 @@ namespace EmulatorLauncher
         /// <param name="pcsx2ini"></param>
         private void UpdateSdlControllersWithHints()
         {
-            var hints = new List<string>();
-            
+            var hints = new List<string>();            
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4 = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5 = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
@@ -30,10 +29,16 @@ namespace EmulatorLauncher
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_STADIA = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_STEAM = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_LUNA = 1");
-            
-            SdlGameController.ReloadWithHints(string.Join(",", hints));
-            Program.Controllers.ForEach(c => c.ResetSdlController());
+
+            _sdlMapping = SdlDllControllersMapping.FromSdlVersion(_sdlVersion, string.Join(",", hints));
+            if (_sdlMapping == null)
+            {
+                SdlGameController.ReloadWithHints(string.Join(",", hints));
+                Program.Controllers.ForEach(c => c.ResetSdlController());
+            }
         }
+
+        private SdlDllControllersMapping _sdlMapping;
 
         /// <summary>
         /// Create controller configuration
@@ -289,6 +294,13 @@ namespace EmulatorLauncher
                 .IndexOf(ctrl);
 
             string uuid = index + "_" + ctrl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
+
+            if (_sdlMapping != null)
+            {
+                var sdlTrueGuid = _sdlMapping.GetControllerGuid(ctrl.DevicePath);
+                if (sdlTrueGuid != null)
+                    uuid = index + "_" + sdlTrueGuid.ToLowerInvariant();
+            }
 
             // Define type of controller
             // Players 1 defaults to WIIU Gamepad but can be changed in features

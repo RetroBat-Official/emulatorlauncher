@@ -23,10 +23,16 @@ namespace EmulatorLauncher
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1");
-
-            SdlGameController.ReloadWithHints(string.Join(",", hints));
-            Program.Controllers.ForEach(c => c.ResetSdlController());
+            
+            _sdlMapping = SdlDllControllersMapping.FromSdlVersion(_sdlVersion, string.Join(",", hints));
+            if (_sdlMapping == null)
+            {
+                SdlGameController.ReloadWithHints(string.Join(",", hints));
+                Program.Controllers.ForEach(c => c.ResetSdlController());
+            }
         }
+
+        private SdlDllControllersMapping _sdlMapping;
 
         private void CreateControllerConfiguration(DynamicJson json)
         {
@@ -192,16 +198,14 @@ namespace EmulatorLauncher
 
             bool handheld = playerType == "Handheld";
 
-            //Define tech (SDL or XInput)
+            // Define tech (SDL or XInput)
             string tech = c.IsXInputDevice ? "XInput" : "SDL";
 
-            //Get controller index (index is equal to 0 and ++ for each repeated guid)
+            // Get controller index (index is equal to 0 and ++ for each repeated guid)
             int index = 0;
-            List<Controller> same_pad = this.Controllers.Where(i => i.Config != null && i.Guid == c.Guid && !i.IsKeyboard).OrderBy(j => j.DeviceIndex).ToList();
+            var same_pad = this.Controllers.Where(i => i.Config != null && i.Guid == c.Guid && !i.IsKeyboard).OrderBy(j => j.DeviceIndex).ToList();
             if (same_pad.Count > 1)
-            {
                 index = same_pad.IndexOf(c);
-            }
             
             //Build input_config section
             var input_config = new DynamicJson();
@@ -316,14 +320,22 @@ namespace EmulatorLauncher
             
             input_config.SetObject("right_joycon", right_joycon);
 
-            //player identification part
-            //get guid in system.guid format
+            // Player identification part
+            // Get guid in system.guid format
             string guid = (_sdlVersion == SdlVersion.Unknown && c.SdlController.Guid != null) ? c.SdlController.Guid.ToString() : c.GetSdlGuid(_sdlVersion, true);
-            var newguid = SdlJoystickGuidManager.FromSdlGuidString(guid);
+
+            if (_sdlMapping != null)
+            {
+                var sdlTrueGuid = _sdlMapping.GetControllerGuid(c.DevicePath);
+                if (sdlTrueGuid != null)
+                    guid = sdlTrueGuid.ToString();
+            }
+
+            var newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
 
             input_config["version"] = "1";
             input_config["backend"] = "GamepadSDL2";
-            input_config["id"] = index + "-" + newguid.ToString();
+            input_config["id"] = index + "-" + newGuid.ToString();
             input_config["controller_type"] = playerType;
             input_config["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;
 

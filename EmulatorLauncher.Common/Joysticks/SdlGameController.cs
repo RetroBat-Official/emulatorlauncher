@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EmulatorLauncher.Common.EmulationStation;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.IO;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
