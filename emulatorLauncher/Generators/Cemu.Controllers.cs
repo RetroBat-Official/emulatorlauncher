@@ -307,9 +307,18 @@ namespace EmulatorLauncher
             // Player 2 defaults to Pro controller but can be changed in features
             // Players 3 and 4 default to pro controllers and cannot be changed
             bool procontroller = false;
-            if (playerIndex == 0)
+            bool emulatedWiimote = false;
+            bool enableMotion = SystemConfig.getOptBoolean("cemu_enable_motion");
+            string cemuController = "cemu_controllerp" + playerIndex;
+
+            if (Program.SystemConfig.isOptSet(cemuController) && (Program.SystemConfig[cemuController].StartsWith("wiimote")))
             {
-                string cemuController = "cemu_controllerp" + playerIndex;
+                type = "Wiimote";
+                emulatedWiimote = true;
+            }
+
+            else if (playerIndex == 0)
+            {
                 if (Program.SystemConfig.isOptSet(cemuController) && (Program.SystemConfig[cemuController] == "procontroller"))
                 {
                     type = "Wii U Pro Controller";
@@ -324,7 +333,6 @@ namespace EmulatorLauncher
 
             else if (playerIndex == 1)
             {
-                string cemuController = "cemu_controllerp" + playerIndex;
                 if (Program.SystemConfig.isOptSet(cemuController) && (Program.SystemConfig[cemuController] == "gamepad"))
                 {
                     type = "Wii U GamePad";
@@ -347,6 +355,15 @@ namespace EmulatorLauncher
             writer.WriteStartDocument();
             writer.WriteStartElement("emulated_controller");
             writer.WriteElementString("type", type);
+
+            if (emulatedWiimote)
+            {
+                if (SystemConfig.isOptSet("cemu_wiimotep" + playerIndex) && !string.IsNullOrEmpty(SystemConfig["cemu_wiimotep" + playerIndex]))
+                    writer.WriteElementString("device_type", SystemConfig["cemu_wiimotep" + playerIndex]);
+                else
+                    writer.WriteElementString("device_type", enableMotion ? "5" : "0");
+            }
+            
             writer.WriteStartElement("controller");
             writer.WriteElementString("api", api);
             writer.WriteElementString("uuid", uuid);
@@ -357,8 +374,10 @@ namespace EmulatorLauncher
                 writer.WriteElementString("rumble", Program.SystemConfig["cemu_enable_rumble"]);
 
             //set motion if option is set in features
-            if (xbox != "yes" && Program.SystemConfig.isOptSet("cemu_enable_motion") && Program.SystemConfig.getOptBoolean("cemu_enable_motion"))
-                writer.WriteElementString("motion", Program.SystemConfig["cemu_enable_motion"]);
+            if (xbox != "yes" && enableMotion)
+                writer.WriteElementString("motion", "true");
+            else
+                writer.WriteElementString("motion", "false");
 
             //Default deadzones and ranges for axis, rotation and trigger
             writer.WriteStartElement("axis");
@@ -391,63 +410,96 @@ namespace EmulatorLauncher
 
             //Write mappings of buttons
 
-            //revert gamepadbuttons if set in features
-            if (Program.SystemConfig.getOptBoolean("gamepadbuttons"))
+            // Emulated wiimote
+            if (emulatedWiimote)
             {
-                WriteMapping("1", InputKey.a, false);
-                WriteMapping("2", InputKey.b, false);
-                WriteMapping("3", InputKey.y, false);
-                WriteMapping("4", InputKey.x, false);
-            }
-            else
-            {
-                WriteMapping("1", InputKey.b, false);
-                WriteMapping("2", InputKey.a, false);
-                WriteMapping("3", InputKey.x, false);
-                WriteMapping("4", InputKey.y, false);
+                bool horizontalWiimote = Program.SystemConfig[cemuController] == "wiimote_horizontal";
+                
+                WriteMapping("1", InputKey.pageup, false);      // Wiimote A
+                WriteMapping("2", InputKey.l2, false);          // Wiimote B
+                WriteMapping("3", InputKey.y, false);           // Wiimote 1
+                WriteMapping("4", InputKey.a, false);           // Wiimote 2
+                WriteMapping("7", InputKey.start, false);       // Wiimote +
+                WriteMapping("8", InputKey.select, false);      // Wiimote -
+                WriteMapping("9", InputKey.left, false);        // Wiimote Up
+                WriteMapping("10", InputKey.right, false);      // Wiimote Down
+                WriteMapping("11", InputKey.down, false);       // Wiimote Left
+                WriteMapping("12", InputKey.up, false);         // Wiimote Right
+                WriteMapping("17", InputKey.r3, false);         // Wiimote Home
+
+                // Nunchuk
+                if (SystemConfig["cemu_wiimotep" + playerIndex] == "6" || SystemConfig["cemu_wiimotep" + playerIndex] == "1")
+                {
+                    WriteMapping("5", InputKey.r2, false);                  // Nunchuk Z
+                    WriteMapping("6", InputKey.pagedown, false);            // Nunchuk C
+                    WriteMapping("13", InputKey.leftanalogup, false);       // Nunchuk up
+                    WriteMapping("14", InputKey.leftanalogup, true);        // Nunchuk down
+                    WriteMapping("15", InputKey.leftanalogleft, false);     // Nunchuk left
+                    WriteMapping("16", InputKey.leftanalogleft, true);      // Nunchuk right
+                }
             }
 
-            WriteMapping("5", InputKey.pageup, false);
-            WriteMapping("6", InputKey.pagedown, false);
-            WriteMapping("7", InputKey.l2, false);
-            WriteMapping("8", InputKey.r2, false);
-            WriteMapping("9", InputKey.start, false);
-            WriteMapping("10", InputKey.select, false);
-
-            //Pro controller skips 11 while Gamepad continues numbering
-            if (procontroller)
-            {
-                WriteMapping("12", InputKey.up, false);
-                WriteMapping("13", InputKey.down, false);
-                WriteMapping("14", InputKey.left, false);
-                WriteMapping("15", InputKey.right, false);
-                WriteMapping("16", InputKey.l3, false);
-                WriteMapping("17", InputKey.r3, false);
-                WriteMapping("18", InputKey.leftanalogup, false);
-                WriteMapping("19", InputKey.leftanalogup, true);
-                WriteMapping("20", InputKey.leftanalogleft, false);
-                WriteMapping("21", InputKey.leftanalogleft, true);
-                WriteMapping("22", InputKey.rightanalogup, false);
-                WriteMapping("23", InputKey.rightanalogup, true);
-                WriteMapping("24", InputKey.rightanalogleft, false);
-                WriteMapping("25", InputKey.rightanalogleft, true);
-            }
+            // Other
             else
             {
-                WriteMapping("11", InputKey.up, false);
-                WriteMapping("12", InputKey.down, false);
-                WriteMapping("13", InputKey.left, false);
-                WriteMapping("14", InputKey.right, false);
-                WriteMapping("15", InputKey.l3, false);
-                WriteMapping("16", InputKey.r3, false);
-                WriteMapping("17", InputKey.leftanalogup, false);
-                WriteMapping("18", InputKey.leftanalogup, true);
-                WriteMapping("19", InputKey.leftanalogleft, false);
-                WriteMapping("20", InputKey.leftanalogleft, true);
-                WriteMapping("21", InputKey.rightanalogup, false);
-                WriteMapping("22", InputKey.rightanalogup, true);
-                WriteMapping("23", InputKey.rightanalogleft, false);
-                WriteMapping("24", InputKey.rightanalogleft, true);
+                //revert gamepadbuttons if set in features
+                if (Program.SystemConfig.getOptBoolean("gamepadbuttons"))
+                {
+                    WriteMapping("1", InputKey.a, false);
+                    WriteMapping("2", InputKey.b, false);
+                    WriteMapping("3", InputKey.y, false);
+                    WriteMapping("4", InputKey.x, false);
+                }
+                else
+                {
+                    WriteMapping("1", InputKey.b, false);
+                    WriteMapping("2", InputKey.a, false);
+                    WriteMapping("3", InputKey.x, false);
+                    WriteMapping("4", InputKey.y, false);
+                }
+
+                WriteMapping("5", InputKey.pageup, false);
+                WriteMapping("6", InputKey.pagedown, false);
+                WriteMapping("7", InputKey.l2, false);
+                WriteMapping("8", InputKey.r2, false);
+                WriteMapping("9", InputKey.start, false);
+                WriteMapping("10", InputKey.select, false);
+
+                //Pro controller skips 11 while Gamepad continues numbering
+                if (procontroller)
+                {
+                    WriteMapping("12", InputKey.up, false);
+                    WriteMapping("13", InputKey.down, false);
+                    WriteMapping("14", InputKey.left, false);
+                    WriteMapping("15", InputKey.right, false);
+                    WriteMapping("16", InputKey.l3, false);
+                    WriteMapping("17", InputKey.r3, false);
+                    WriteMapping("18", InputKey.leftanalogup, false);
+                    WriteMapping("19", InputKey.leftanalogup, true);
+                    WriteMapping("20", InputKey.leftanalogleft, false);
+                    WriteMapping("21", InputKey.leftanalogleft, true);
+                    WriteMapping("22", InputKey.rightanalogup, false);
+                    WriteMapping("23", InputKey.rightanalogup, true);
+                    WriteMapping("24", InputKey.rightanalogleft, false);
+                    WriteMapping("25", InputKey.rightanalogleft, true);
+                }
+                else
+                {
+                    WriteMapping("11", InputKey.up, false);
+                    WriteMapping("12", InputKey.down, false);
+                    WriteMapping("13", InputKey.left, false);
+                    WriteMapping("14", InputKey.right, false);
+                    WriteMapping("15", InputKey.l3, false);
+                    WriteMapping("16", InputKey.r3, false);
+                    WriteMapping("17", InputKey.leftanalogup, false);
+                    WriteMapping("18", InputKey.leftanalogup, true);
+                    WriteMapping("19", InputKey.leftanalogleft, false);
+                    WriteMapping("20", InputKey.leftanalogleft, true);
+                    WriteMapping("21", InputKey.rightanalogup, false);
+                    WriteMapping("22", InputKey.rightanalogup, true);
+                    WriteMapping("23", InputKey.rightanalogleft, false);
+                    WriteMapping("24", InputKey.rightanalogleft, true);
+                }
             }
 
             //close xml sections 
