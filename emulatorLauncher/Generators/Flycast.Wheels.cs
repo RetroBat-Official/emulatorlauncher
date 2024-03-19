@@ -247,7 +247,7 @@ namespace EmulatorLauncher
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_dpad1_down");
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "x") + ":insert_card");
                             }
-                            else if (_romName == "18wheelr")
+                            else if (_romName.StartsWith("18wheel"))
                             {
                                 digitalBinds.Add(GetWheelKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_b");
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_c");
@@ -275,7 +275,7 @@ namespace EmulatorLauncher
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "x") + ":btn_y");
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "b") + ":btn_z");
                             }
-                            else if (_romName == "wrungp")
+                            else if (_romName.StartsWith("wrungp"))
                             {
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.DpadUp) + ":axis2_up");
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.DpadDown) + ":axis2_down");
@@ -300,7 +300,7 @@ namespace EmulatorLauncher
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "x") + ":insert_card");
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, "y") + ":btn_dpad1_down");
                             }
-                            else if (_romName == "kingrt66")
+                            else if (_romName.StartsWith("kingrt66"))
                             {
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Geardown) + ":btn_c");
                                 digitalBinds.Add(GetDinputKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Gearup) + ":btn_x");

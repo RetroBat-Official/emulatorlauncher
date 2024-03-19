@@ -9,9 +9,11 @@ namespace EmulatorLauncher
 {
     partial class FlycastGenerator
     {
-        private static List<string> reloadWithButtonB = new List<string> { "confmiss", "hotd2", "manicpnc", "mok", "otrigger", "tduno", "tduno2", "zunou", "claychal", "rangrmsn", "sprtshot", "waidrive", "xtrmhnt2", "xtrmhunt" };
+        private static List<string> reloadWithButtonB = new List<string> 
+        { "confmiss", "hotd2", "hotd2e", "hotd2o", "hotd2p", "manicpnc", "mok", "otrigger", "tduno", "tduno2", "zunou", "claychal", 
+            "rangrmsn", "sprtshot", "waidrive", "xtrmhnt2", "xtrmhunt" };
         private static List<string> useXandB = new List<string> { "kick4csh" };
-        private static List<string> useXandA = new List<string> { "shootopl", "shootpl", "shootplm" };
+        private static List<string> useXandA = new List<string> { "shootopl", "shootpl", "shootplm", "shootplmp" };
 
         private void ConfigureFlycastGuns(IniFile ini, string mappingPath)
         {
