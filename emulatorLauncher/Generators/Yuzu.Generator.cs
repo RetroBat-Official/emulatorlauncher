@@ -15,16 +15,25 @@ namespace EmulatorLauncher
         }
 
         private SdlVersion _sdlVersion = SdlVersion.Unknown;
+        private bool _suyu;
         
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath(emulator.Replace("-", " "));
             if (string.IsNullOrEmpty(path) && emulator.Contains("-"))
                 path = AppConfig.GetFullPath(emulator);
-            
+
+            if (!Directory.Exists(path))
+                path = AppConfig.GetFullPath("suyu");
+
             string exe = Path.Combine(path, "yuzu.exe");
             if (!File.Exists(exe))
+                exe = Path.Combine(path, "suyu.exe");
+            
+            if (!File.Exists(exe))
                 return null;
+
+            _suyu = exe.EndsWith("suyu.exe");
 
             string sdl2 = Path.Combine(path, "SDL2.dll");
             if (File.Exists(sdl2))
@@ -227,13 +236,19 @@ namespace EmulatorLauncher
                     ini.WriteValue("System", "use_docked_mode", "1");
                 }
 
-                //disable telemetry
-                ini.WriteValue("WebService", "enable_telemetry\\default", "false");
-                ini.WriteValue("WebService", "enable_telemetry", "false");
+                //disable telemetry (yuzu only)
+                if (!_suyu)
+                {
+                    ini.WriteValue("WebService", "enable_telemetry\\default", "false");
+                    ini.WriteValue("WebService", "enable_telemetry", "false");
+                }
+                else
+                {
+                    ini.Remove("WebService", "enable_telemetry\\default");
+                    ini.Remove("WebService", "enable_telemetry");
+                }
 
                 //remove exit confirmation
-                ini.WriteValue("UI", "confirmClose\\default", "false");
-                ini.WriteValue("UI", "confirmClose", "false");
                 ini.WriteValue("UI", "confirmStop\\default", "false");
                 ini.WriteValue("UI", "confirmStop", "2");
 
