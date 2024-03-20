@@ -166,6 +166,7 @@ namespace EmulatorLauncher
                         BindBoolIniFeature(ini, " Global ", "MultiThreaded", "m3_thread", "0", "1");
                         BindIniFeature(ini, " Global ", "PowerPCFrequency", "m3_ppc_frequency", "50");
                         BindBoolIniFeature(ini, " Global ", "ShowFrameRate", "m3_fps", "1", "0");
+                        BindBoolIniFeature(ini, " Global ", "WideBackground", "widescreen", "true", "false");
 
                         //force rompath in GUI
                         string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "model3");
