@@ -93,6 +93,7 @@ namespace EmulatorLauncher
             { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") },
             { new Installer("kronos", "kronos", "kronos.exe") },
             { new Installer("gzdoom", "gzdoom", "gzdoom.exe") },
+            { new Installer("magicengine", "magicengine", "pce.exe") },
             { new Installer("eka2l1", "eka2l1", "eka2l1_qt.exe") },
             { new Installer("psxmame", "psxmame", "mame.exe") }
         };
