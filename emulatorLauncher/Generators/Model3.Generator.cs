@@ -42,14 +42,14 @@ namespace EmulatorLauncher
             bool wideScreen = SystemConfig["widescreen"] == "1" || SystemConfig["widescreen"] == "2" || (!SystemConfig.isOptSet("widescreen") && isWideScreen);
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
+            if (fullscreen)
+                commandArray.Add("-fullscreen");
+
             if (wideScreen)
             {
                 SystemConfig["forceNoBezel"] = "1";
 
                 ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
-
-                if (fullscreen)
-                    commandArray.Add("-fullscreen");
 
                 if (SystemConfig["widescreen"] == "2")
                     commandArray.Add("-stretch");
@@ -58,14 +58,8 @@ namespace EmulatorLauncher
             }
             else
             {
-                if (ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                    commandArray.Add("-fullscreen");
-                else
-                {
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-                    if (_bezelFileInfo == null && fullscreen)
-                        commandArray.Add("-fullscreen");
-                }
             }
 
             // quad rendering
@@ -79,6 +73,10 @@ namespace EmulatorLauncher
             // force feedback
             if (SystemConfig.isOptSet("forceFeedback") && SystemConfig.getOptBoolean("forceFeedback"))
                 commandArray.Add("-force-feedback");
+
+            // SuperSampling
+            if (SystemConfig.isOptSet("m3_supersampling") && !string.IsNullOrEmpty(SystemConfig["m3_supersampling"]) && SystemConfig["m3_supersampling"] != "0")
+                commandArray.Add("-ss=" + SystemConfig["m3_supersampling"]);
 
             //Write config in supermodel.ini
             SetupConfiguration(path, wideScreen, fullscreen);

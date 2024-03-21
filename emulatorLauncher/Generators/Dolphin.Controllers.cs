@@ -7,6 +7,8 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System.Windows.Controls;
+using System.Runtime.CompilerServices;
 
 namespace EmulatorLauncher
 {
@@ -61,30 +63,30 @@ namespace EmulatorLauncher
                 generateControllerConfig_gamecube(path, rom, triforceMapping, triforce);
             else
                 generateControllerConfig_gamecube(path, rom, gamecubeMapping);
-            return true;            
+            return true;
         }
 
         static InputKeyMapping gamecubeMapping = new InputKeyMapping()
-        { 
+        {
             { InputKey.l3,              "Main Stick/Modifier"},
             { InputKey.r3,              "C-Stick/Modifier"},
-            { InputKey.l2,              "Triggers/L-Analog" },    
+            { InputKey.l2,              "Triggers/L-Analog" },
             { InputKey.r2,              "Triggers/R-Analog"},
-            { InputKey.y,               "Buttons/Y" },  
+            { InputKey.y,               "Buttons/Y" },
             { InputKey.b,               "Buttons/B" },
-            { InputKey.x,               "Buttons/X" },  
+            { InputKey.x,               "Buttons/X" },
             { InputKey.a,               "Buttons/A" },
             { InputKey.start,           "Buttons/Start" },
-            { InputKey.pagedown,        "Buttons/Z" },  
-            { InputKey.l2,              "Triggers/L" }, 
+            { InputKey.pagedown,        "Buttons/Z" },
+            { InputKey.l2,              "Triggers/L" },
             { InputKey.r2,              "Triggers/R" },
-            { InputKey.up,              "D-Pad/Up" }, 
-            { InputKey.down,            "D-Pad/Down" }, 
-            { InputKey.left,            "D-Pad/Left" }, 
+            { InputKey.up,              "D-Pad/Up" },
+            { InputKey.down,            "D-Pad/Down" },
+            { InputKey.left,            "D-Pad/Left" },
             { InputKey.right,           "D-Pad/Right" },
-            { InputKey.joystick1up,     "Main Stick/Up" }, 
+            { InputKey.joystick1up,     "Main Stick/Up" },
             { InputKey.joystick1left,   "Main Stick/Left" },
-            { InputKey.joystick2up,     "C-Stick/Up" },    
+            { InputKey.joystick2up,     "C-Stick/Up" },
             { InputKey.joystick2left,   "C-Stick/Left"},
             { InputKey.hotkey,          "Buttons/Hotkey" },
         };
@@ -118,27 +120,27 @@ namespace EmulatorLauncher
         };
 
         static InputKeyMapping gamecubeWiiMapping = new InputKeyMapping()
-        { 
+        {
             { InputKey.l3,              "Main Stick/Modifier"},
             { InputKey.r3,              "C-Stick/Modifier"},
-            { InputKey.l2,              "Triggers/L-Analog" },    
+            { InputKey.l2,              "Triggers/L-Analog" },
             { InputKey.r2,              "Triggers/R-Analog"},
-            { InputKey.y,               "Buttons/Y" },  
+            { InputKey.y,               "Buttons/Y" },
             { InputKey.b,               "Buttons/B" },
-            { InputKey.x,               "Buttons/X" },  
+            { InputKey.x,               "Buttons/X" },
             { InputKey.a,               "Buttons/A" },
-            { InputKey.select,          "Buttons/Z" },  
+            { InputKey.select,          "Buttons/Z" },
             { InputKey.start,           "Buttons/Start" },
-            { InputKey.pageup,          "Triggers/L" }, 
+            { InputKey.pageup,          "Triggers/L" },
             { InputKey.pagedown,        "Triggers/R" },
-            { InputKey.up,              "D-Pad/Up" }, 
-            { InputKey.down,            "D-Pad/Down" }, 
-            { InputKey.left,            "D-Pad/Left" }, 
+            { InputKey.up,              "D-Pad/Up" },
+            { InputKey.down,            "D-Pad/Down" },
+            { InputKey.left,            "D-Pad/Left" },
             { InputKey.right,           "D-Pad/Right" },
-            { InputKey.joystick1up,     "Main Stick/Up" }, 
+            { InputKey.joystick1up,     "Main Stick/Up" },
             { InputKey.joystick1left,   "Main Stick/Left" },
-            { InputKey.joystick2up,     "C-Stick/Up" },    
-            { InputKey.joystick2left,   "C-Stick/Left"}          
+            { InputKey.joystick2up,     "C-Stick/Up" },
+            { InputKey.joystick2left,   "C-Stick/Left"}
         };
 
         static InputKeyMapping reversedButtons = new InputKeyMapping()
@@ -163,7 +165,7 @@ namespace EmulatorLauncher
             { InputKey.a,               "Buttons/X" }
         };
 
-        static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string,string>()
+        static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string, string>()
         {
             { "Main Stick/Up",   "Main Stick/Down" },
             { "Main Stick/Left", "Main Stick/Right" },
@@ -188,28 +190,28 @@ namespace EmulatorLauncher
             { "joystick1right", "right" }
         };
 
-        static InputKeyMapping _wiiMapping = new InputKeyMapping 
+        static InputKeyMapping _wiiMapping = new InputKeyMapping
         {
-            { InputKey.x,               "Buttons/2" },  
+            { InputKey.x,               "Buttons/2" },
             { InputKey.b,               "Buttons/A" },
-            { InputKey.y,               "Buttons/1" },  
+            { InputKey.y,               "Buttons/1" },
             { InputKey.a,               "Buttons/B" },
-            { InputKey.pageup,          "Buttons/-" },  
+            { InputKey.pageup,          "Buttons/-" },
             { InputKey.pagedown,        "Buttons/+" },
             { InputKey.select,          "Buttons/Home" },
-            { InputKey.up,              "D-Pad/Up" }, 
-            { InputKey.down,            "D-Pad/Down" }, 
-            { InputKey.left,            "D-Pad/Left" }, 
+            { InputKey.up,              "D-Pad/Up" },
+            { InputKey.down,            "D-Pad/Down" },
+            { InputKey.left,            "D-Pad/Left" },
             { InputKey.right,           "D-Pad/Right" },
-            { InputKey.joystick1up,     "IR/Up" }, 
+            { InputKey.joystick1up,     "IR/Up" },
             { InputKey.joystick1left,   "IR/Left" },
-            { InputKey.joystick2up,     "Tilt/Forward" }, 
+            { InputKey.joystick2up,     "Tilt/Forward" },
             { InputKey.joystick2left,   "Tilt/Left" },
             { InputKey.l3,              "IR/Relative Input Hold" },
             { InputKey.r3,              "Tilt/Modifier" }
         };
 
-        static Dictionary<string, string> wiiReverseAxes = new Dictionary<string,string>()
+        static Dictionary<string, string> wiiReverseAxes = new Dictionary<string, string>()
         {
             { "IR/Up",      "IR/Down"},
             { "IR/Left",    "IR/Right"},
@@ -271,13 +273,13 @@ namespace EmulatorLauncher
                 // s
                 if (Program.SystemConfig["controller_mode"] == "si" || Program.SystemConfig["controller_mode"] == "st" || Program.SystemConfig["controller_mode"] == "sn")
                 {
-                    wiiMapping[InputKey.joystick1up]   = "Swing/Up";
+                    wiiMapping[InputKey.joystick1up] = "Swing/Up";
                     wiiMapping[InputKey.joystick1left] = "Swing/Left";
                 }
 
                 if (Program.SystemConfig["controller_mode"] == "is" || Program.SystemConfig["controller_mode"] == "ts" || Program.SystemConfig["controller_mode"] == "ns")
                 {
-                    wiiMapping[InputKey.joystick2up]   = "Swing/Up";
+                    wiiMapping[InputKey.joystick2up] = "Swing/Up";
                     wiiMapping[InputKey.joystick2left] = "Swing/Left";
                 }
 
@@ -389,30 +391,30 @@ namespace EmulatorLauncher
         {
             bool vs4axis = triforce && Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4";
 
-            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, vs4axis ? vs4ReverseAxes : gamecubeReverseAxes, gamecubeReplacements, triforce);     
+            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, vs4axis ? vs4ReverseAxes : gamecubeReverseAxes, gamecubeReplacements, triforce);
         }
 
         static Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()
         {
-            { XINPUTMAPPING.X,                  "`Button Y`" },  
+            { XINPUTMAPPING.X,                  "`Button Y`" },
             { XINPUTMAPPING.B,                  "`Button A`" },
-            { XINPUTMAPPING.Y,                  "`Button X`" },  
+            { XINPUTMAPPING.Y,                  "`Button X`" },
             { XINPUTMAPPING.A,                  "`Button B`" },
-            { XINPUTMAPPING.BACK,               "Back" },  
+            { XINPUTMAPPING.BACK,               "Back" },
             { XINPUTMAPPING.START,              "Start" },
-            { XINPUTMAPPING.LEFTSHOULDER,       "`Shoulder L`" }, 
+            { XINPUTMAPPING.LEFTSHOULDER,       "`Shoulder L`" },
             { XINPUTMAPPING.RIGHTSHOULDER,      "`Shoulder R`" },
-            { XINPUTMAPPING.DPAD_UP,            "`Pad N`" }, 
-            { XINPUTMAPPING.DPAD_DOWN,          "`Pad S`" }, 
-            { XINPUTMAPPING.DPAD_LEFT,          "`Pad W`" }, 
+            { XINPUTMAPPING.DPAD_UP,            "`Pad N`" },
+            { XINPUTMAPPING.DPAD_DOWN,          "`Pad S`" },
+            { XINPUTMAPPING.DPAD_LEFT,          "`Pad W`" },
             { XINPUTMAPPING.DPAD_RIGHT,         "`Pad E`" },
-            { XINPUTMAPPING.LEFTANALOG_UP,      "`Left Y+`" }, 
+            { XINPUTMAPPING.LEFTANALOG_UP,      "`Left Y+`" },
             { XINPUTMAPPING.LEFTANALOG_DOWN,    "`Left Y-`" },
-            { XINPUTMAPPING.LEFTANALOG_LEFT,    "`Left X-`" },    
+            { XINPUTMAPPING.LEFTANALOG_LEFT,    "`Left X-`" },
             { XINPUTMAPPING.LEFTANALOG_RIGHT,   "`Left X+`"},
-            { XINPUTMAPPING.RIGHTANALOG_UP,     "`Right Y+`" }, 
+            { XINPUTMAPPING.RIGHTANALOG_UP,     "`Right Y+`" },
             { XINPUTMAPPING.RIGHTANALOG_DOWN,   "`Right Y-`" },
-            { XINPUTMAPPING.RIGHTANALOG_LEFT,   "`Right X-`" },    
+            { XINPUTMAPPING.RIGHTANALOG_LEFT,   "`Right X-`" },
             { XINPUTMAPPING.RIGHTANALOG_RIGHT,  "`Right X+`"},
             { XINPUTMAPPING.LEFTSTICK,          "`Thumb L`" },
             { XINPUTMAPPING.RIGHTSTICK,         "`Thumb R`" },
@@ -452,11 +454,11 @@ namespace EmulatorLauncher
             {
                 for (int i = 1; i < 5; i++)
                 {
-                    string btDevice = (i-1).ToString();
+                    string btDevice = (i - 1).ToString();
                     ini.ClearSection(anyDefKey + i.ToString());
                     ini.WriteValue(anyDefKey + i.ToString(), "Source", "1");
-                    ini.WriteValue(anyDefKey + i.ToString(), "Device", "Bluetooth/" + btDevice + "/Wii Remote" );
-                    
+                    ini.WriteValue(anyDefKey + i.ToString(), "Device", "Bluetooth/" + btDevice + "/Wii Remote");
+
                     foreach (KeyValuePair<string, string> x in realEmulatedWiimote)
                         ini.WriteValue(anyDefKey + i.ToString(), x.Key, x.Value);
 
@@ -494,7 +496,7 @@ namespace EmulatorLauncher
                     ini.ClearSection(anyDefKey + i.ToString());
                 }
                 string wiimote = "Wiimote1";
-                
+
                 ini.WriteValue(wiimote, "Device", "DInput/0/Keyboard Mouse");
                 ini.WriteValue(wiimote, "Source", "1");
                 ini.WriteValue(wiimote, "Buttons/X", "Q");
@@ -556,13 +558,13 @@ namespace EmulatorLauncher
             {
                 if (input.Id == 0) // invert A&B
                     return "`Button 1`";
-                
+
                 if (input.Id == 1) // invert A&B
                     return "`Button 0`";
-                
+
                 return "`Button " + input.Id.ToString() + "`";
             }
-            
+
             if (input.Type == "axis")
             {
                 Func<Input, bool, string> axisValue = (inp, revertAxis) =>
@@ -607,11 +609,11 @@ namespace EmulatorLauncher
             int nsamepad = 0;
             bool gc = anyDefKey == "GCPad";
 
-            Dictionary<string, int> double_pads = new Dictionary<string,int>();
+            Dictionary<string, int> double_pads = new Dictionary<string, int>();
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
-                foreach (var pad in Program.Controllers.OrderBy(i => i.PlayerIndex))
+                foreach (var pad in Program.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                 {
                     string gcpad = anyDefKey + pad.PlayerIndex;
                     ini.ClearSection(gcpad);
@@ -625,6 +627,12 @@ namespace EmulatorLauncher
                     string guid = pad.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
                     var prod = pad.ProductID;
 
+                    if (gcAdapters.ContainsKey(guid))
+                    {
+                        ConfigureGCAdapter(gcpad, guid, pad, gc, ini, double_pads, nsamepad);
+                        continue;
+                    }
+
                     string tech = "XInput";
                     string deviceName = "Gamepad";
                     int xIndex = 0;
@@ -632,14 +640,14 @@ namespace EmulatorLauncher
                     if (pad.Config.Type == "keyboard")
                     {
                         tech = "DInput";
-                        deviceName = "Keyboard Mouse";                        
-                    } 
+                        deviceName = "Keyboard Mouse";
+                    }
                     else if (!pad.IsXInputDevice || forceSDL)
                     {
                         var s = pad.SdlController;
                         if (s == null)
                             continue;
-                        
+
                         tech = "SDL";
 
                         deviceName = pad.Name;
@@ -647,16 +655,16 @@ namespace EmulatorLauncher
                         if (deviceName == "DualSense Wireless Controller")
                             deviceName = "PS5 Controller";
                     }
-             
+
                     if (double_pads.ContainsKey(tech + "/" + deviceName))
                         nsamepad = double_pads[tech + "/" + deviceName];
-                    else 
+                    else
                         nsamepad = 0;
 
                     double_pads[tech + "/" + deviceName] = nsamepad + 1;
 
                     if (pad.IsXInputDevice)
-                        xIndex = pad.XInput != null ? pad.XInput.DeviceIndex : pad.DeviceIndex; 
+                        xIndex = pad.XInput != null ? pad.XInput.DeviceIndex : pad.DeviceIndex;
 
                     if (tech == "XInput")
                         ini.WriteValue(gcpad, "Device", tech + "/" + xIndex + "/" + deviceName);
@@ -664,8 +672,8 @@ namespace EmulatorLauncher
                         ini.WriteValue(gcpad, "Device", tech + "/" + nsamepad.ToString() + "/" + deviceName);
 
                     if (extraOptions != null)
-                       foreach(var xtra in extraOptions)
-                           ini.WriteValue(gcpad, xtra.Key, xtra.Value);
+                        foreach (var xtra in extraOptions)
+                            ini.WriteValue(gcpad, xtra.Key, xtra.Value);
 
                     bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
                     bool revertButtonsAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
@@ -796,7 +804,7 @@ namespace EmulatorLauncher
                                 Int64 pid = input.Value;
                                 switch (pid)
                                 {
-                                    case 1: 
+                                    case 1:
                                         ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " N`");
                                         break;
                                     case 2:
@@ -814,7 +822,7 @@ namespace EmulatorLauncher
                             if (triforce)
                                 ini.WriteValue(gcpad, "Buttons/Z", "@(`Button 8`+`Button 9`)");
                         }
-                        
+
                         else // SDL
                         {
                             var input = pad.GetSdlMapping(x.Key);
@@ -834,21 +842,21 @@ namespace EmulatorLauncher
                             else if (input.Type == "axis")
                             {
                                 Func<Input, bool, string> axisValue = (inp, revertAxis) =>
-                                {                                     
+                                {
                                     string axis = "`Axis ";
 
                                     if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
                                         axis += inp.Id;
 
-                                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))                                            
+                                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))
                                         axis += "+";
-                                    else 
+                                    else
                                         axis += "-";
 
                                     if (inp.Id == 4 || inp.Id == 5)
                                         axis = "`Full Axis " + inp.Id + "+";
 
-                                    return axis+"`";
+                                    return axis + "`";
                                 };
 
                                 ini.WriteValue(gcpad, value, axisValue(input, false));
@@ -942,7 +950,7 @@ namespace EmulatorLauncher
                                 ini.WriteValue(gcpad, "Rumble/Motor", "Motor");
                         }
                     }
-                    
+
                     else
                     {
                         // DEAD ZONE
@@ -1131,11 +1139,11 @@ namespace EmulatorLauncher
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", "Back&`Button B`");
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Back&`Button A`");
                     ini.WriteValue("Hotkeys", "General/Exit", "Back&Start");
-                                        
+
                     // SaveStates
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "@(Back+`Button X`)"); // Use Same value as SaveState....
                     ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", "@(Back+`Button X`)");
-                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "@(Back+`Button Y`)");                    
+                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "@(Back+`Button Y`)");
                     ini.WriteValue("Hotkeys", "Other State Hotkeys/Increase Selected State Slot", "@(Back+`Pad N`)");
                     ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "@(Back+`Pad S`)");
 
@@ -1154,7 +1162,7 @@ namespace EmulatorLauncher
                     var save = (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.y) ?? "");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", save); // Use Same value as SaveState....
                     ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", save);
-                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.x) ?? ""));                    
+                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.x) ?? ""));
 
                     // Save State/Save to Selected Slot = @(`Button 6`+`Button 2`)
 
@@ -1194,6 +1202,28 @@ namespace EmulatorLauncher
             }
         }
 
+        private static void ConfigureGCAdapter(string gcpad, string guid, Controller pad, bool gc, IniFile ini, Dictionary<string, int> double_pads, int nsamepad)
+        {
+            ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.");
+            ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.");
+
+            string deviceName = pad.DirectInput.Name;
+
+            if (deviceName == null)
+                return;
+            
+            string tech = "SDL";
+
+            int padIndex = Program.Controllers.Where(g => g.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant() == guid).OrderBy(o => o.DeviceIndex).ToList().IndexOf(pad);
+
+            ini.WriteValue(gcpad, "Device", tech + "/" + padIndex + "/" + pad.DirectInput.Name);
+
+            Dictionary<string, string> buttons = gcAdapters[guid];
+
+            foreach (var button in buttons)
+                ini.WriteValue(gcpad, button.Key, button.Value); 
+        }
+
         private static void removeControllerConfig_gamecube(string path, string filename)
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
@@ -1223,7 +1253,7 @@ namespace EmulatorLauncher
                 }
                 return ((char)id).ToString().ToUpper();
             }
-                        
+
             switch (id)
             {
                 case 32: return "SPACE";
@@ -1276,22 +1306,22 @@ namespace EmulatorLauncher
                 case 0x400000e4: return "RCONTROL"; // RightCtrl
                 case 0x400000e5: return "RSHIFT"; // RightShift
                 case 0x40000058: return "NUMPADENTER"; // Kp_ENTER
-                /*        
-                KP_Period = 0x40000063,
-                KP_Divide = 0x40000054,
-                   
-                NumlockClear = 0x40000053,
-                ScrollLock = 0x40000047,                
-                 * //Select = 0x40000077,
-                //PrintScreen = 0x40000046,
-                //LeftGui = 0x400000e3,
-                //RightGui = 0x400000e7,
-                //Application = 0x40000065,            
-                //Gui = 0x400000e3,
-                //Pause = 0x40000048,
-                //Capslock = 0x40000039,
+                    /*        
+                    KP_Period = 0x40000063,
+                    KP_Divide = 0x40000054,
 
-                 */
+                    NumlockClear = 0x40000053,
+                    ScrollLock = 0x40000047,                
+                     * //Select = 0x40000077,
+                    //PrintScreen = 0x40000046,
+                    //LeftGui = 0x400000e3,
+                    //RightGui = 0x400000e7,
+                    //Application = 0x40000065,            
+                    //Gui = 0x400000e3,
+                    //Pause = 0x40000048,
+                    //Capslock = 0x40000039,
+
+                     */
             }
 
             return null;
@@ -1376,6 +1406,77 @@ namespace EmulatorLauncher
             { "Classic/D-Pad/Right", "`Classic Right`" },
             { "Rumble/Motor", "`Motor`" },
             { "Options/Battery", "`Battery`" },
+        };
+
+        static Dictionary<string, Dictionary<string, string>> gcAdapters = new Dictionary<string, Dictionary<string, string>>()
+        {
+            {
+                "030000009b2800006500000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "Buttons/A", "`Button 0`" },
+                    { "Buttons/B", "`Button 1`" },
+                    { "Buttons/X", "`Button 7`" },
+                    { "Buttons/Y", "`Button 8`" },
+                    { "Buttons/Z", "`Button 2`" },
+                    { "Buttons/Start", "`Button 3`" },
+                    { "D-Pad/Up", "`Button 10`" },
+                    { "D-Pad/Down", "`Button 11`" },
+                    { "D-Pad/Left", "`Button 12`" },
+                    { "D-Pad/Right", "`Button 13`" },
+                    { "Main Stick/Up", "`Axis 1-`" },
+                    { "Main Stick/Down", "`Axis 1+`" },
+                    { "Main Stick/Left", "`Axis 0-`" },
+                    { "Main Stick/Right", "`Axis 0+`" },
+                    { "Main Stick/Calibration", "99.27 96.28 95.41 98.50 105.10 101.56 97.09 96.92 99.47 97.29 97.14 98.38 102.95 95.99 93.28 94.23 93.71 91.04 90.65 93.92 100.78 94.03 92.17 93.97 98.00 93.31 93.19 96.03 102.50 96.33 93.79 95.22" },
+                    { "C-Stick/Up", "`Axis 4-`" },
+                    { "C-Stick/Down", "`Axis 4+`" },
+                    { "C-Stick/Left", "`Axis 3-`" },
+                    { "C-Stick/Right", "`Axis 3+`" },
+                    { "C-Stick/Calibration", "90.54 87.42 87.39 89.59 95.36 91.17 88.92 90.16 93.68 89.71 89.36 90.43 89.88 84.17 82.25 83.56 87.00 83.71 82.29 84.69 89.54 86.49 84.83 85.69 91.00 88.88 88.76 92.16 97.58 90.57 87.72 88.07" },
+                    { "Triggers/L", "`Full Axis 5+`" },
+                    { "Triggers/R", "`Full Axis 2+`" },
+                    { "Triggers/L-Analog", "`Full Axis 5+`" },
+                    { "Triggers/R-Analog", "`Full Axis 2+`" },
+                    { "Triggers/Threshold", "85." },
+                    { "Triggers/Dead Zone", "6." },
+                    { "Rumble/Motor", "Constant" },
+                }
+            },
+
+            {
+                "03000000790000004318000000016800",
+                new Dictionary<string, string>()
+                {
+                    { "Buttons/A", "`Button 1`" },
+                    { "Buttons/B", "`Button 2`" },
+                    { "Buttons/X", "`Button 0`" },
+                    { "Buttons/Y", "`Button 3`" },
+                    { "Buttons/Z", "`Button 7`" },
+                    { "Buttons/Start", "`Button 9`" },
+                    { "D-Pad/Up", "`Button 12`" },
+                    { "D-Pad/Down", "`Button 14`" },
+                    { "D-Pad/Left", "`Button 15`" },
+                    { "D-Pad/Right", "`Button 13`" },
+                    { "Main Stick/Up", "`Axis 1-`" },
+                    { "Main Stick/Down", "`Axis 1+`" },
+                    { "Main Stick/Left", "`Axis 0-`" },
+                    { "Main Stick/Right", "`Axis 0+`" },
+                    { "Main Stick/Calibration", "75.42 74.28 73.52 76.21 82.13 79.47 76.23 76.20 79.88 79.52 78.29 79.31 82.97 76.86 74.57 75.04 78.75 76.38 75.33 77.47 83.20 77.96 75.92 77.09 79.96 77.32 76.31 78.33 80.81 75.37 73.05 73.61" },
+                    { "C-Stick/Up", "`Axis 2-`" },
+                    { "C-Stick/Down", "`Axis 2+`" },
+                    { "C-Stick/Left", "`Axis 5-`" },
+                    { "C-Stick/Right", "`Axis 5+`" },
+                    { "C-Stick/Calibration", "63.12 61.50 61.87 63.75 68.25 65.24 63.84 64.95 68.10 69.10 68.34 69.84 74.34 68.89 66.25 66.80 69.53 67.22 66.31 68.01 72.16 68.16 67.01 68.33 70.91 67.61 66.56 68.48 70.69 65.43 63.17 61.72" },
+                    { "Triggers/L", "`Full Axis 3+`" },
+                    { "Triggers/R", "`Full Axis 4+`" },
+                    { "Triggers/L-Analog", "`Full Axis 3+`" },
+                    { "Triggers/R-Analog", "`Full Axis 4+`" },
+                    { "Triggers/Threshold", "85." },
+                    { "Triggers/Dead Zone", "7." },
+                    { "Rumble/Motor", "Motor" },
+                }
+            },
         };
     }
 }
