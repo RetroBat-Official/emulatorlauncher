@@ -63,7 +63,7 @@ namespace EmulatorLauncher
             { "simcoupe", () => new SimCoupeGenerator() },               
             { "cxbx", () => new CxbxGenerator() }, { "chihiro", () => new CxbxGenerator() }, { "xbox", () => new CxbxGenerator() },               
             { "redream", () => new RedreamGenerator() },                  
-            { "mugen", () => new ExeLauncherGenerator() }, { "windows", () => new ExeLauncherGenerator() },
+            { "mugen", () => new ExeLauncherGenerator() }, { "ikemen", () => new ExeLauncherGenerator() }, { "windows", () => new ExeLauncherGenerator() },
             { "demul", () => new DemulGenerator() }, { "demul-old", () => new DemulGenerator() }, 
             { "mednafen", () => new MednafenGenerator() },
             { "daphne", () => new DaphneGenerator() },

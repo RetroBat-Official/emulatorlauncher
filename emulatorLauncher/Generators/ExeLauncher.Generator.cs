@@ -21,6 +21,7 @@ namespace EmulatorLauncher
         private string _systemName;
         private string _exename;
         private bool _isGameExePath;
+        private BezelFiles _bezelFileInfo;
 
         private GameLauncher _gameLauncher;
 
@@ -41,6 +42,8 @@ namespace EmulatorLauncher
             string arguments = null;
             _isGameExePath = false;
             string extension = Path.GetExtension(rom);
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             if (extension == ".lnk")
             {
@@ -163,7 +166,8 @@ namespace EmulatorLauncher
                     rom = Path.Combine(path, rom.Substring(1));
             }
 
-            UpdateMugenConfig(path, resolution);
+            UpdateMugenConfig(path, fullscreen, resolution);
+            UpdateIkemenConfig(path, system, rom, fullscreen, resolution);
 
             var ret = new ProcessStartInfo()
             {
@@ -199,13 +203,13 @@ namespace EmulatorLauncher
             else if (_gameLauncher != null) 
                 return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
-            else if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
+            else if (_systemName != "mugen" || _systemName != "ikemen" || string.IsNullOrEmpty(_exename))
                 return mapping;
 
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
-        private void UpdateMugenConfig(string path, ScreenResolution resolution)
+        private void UpdateMugenConfig(string path, bool fullscreen, ScreenResolution resolution)
         {
             if (_systemName != "mugen")
                 return;
@@ -229,8 +233,35 @@ namespace EmulatorLauncher
                 ini.WriteValue("Video", "Height", resolution.Height.ToString());
 
                 ini.WriteValue("Video", "VRetrace", SystemConfig["VSync"] != "false" ? "1" : "0");
-                ini.WriteValue("Video", "FullScreen", "1");
+
+                if (fullscreen)
+                    ini.WriteValue("Video", "FullScreen", "1");
+                else
+                    ini.WriteValue("Video", "FullScreen", "0");
             }
+        }
+
+        private void UpdateIkemenConfig(string path, string system, string rom, bool fullscreen, ScreenResolution resolution)
+        {
+            if (_systemName != "ikemen")
+                return;
+
+            var json = DynamicJson.Load(Path.Combine(path, "save", "config.json"));
+
+            if (resolution == null)
+                resolution = ScreenResolution.CurrentResolution;
+
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            json["FirstRun"] = "false";
+            json["GameWidth"] = resolution.Width.ToString();
+            json["GameHeight"] = resolution.Height.ToString();
+            json["Fullscreen"] = fullscreen ? "true" : "false";
+            BindFeature(json, "VRetrace", "VRetrace", "1");
+
+            json.Save();
+
         }
 
         public override int RunAndWait(ProcessStartInfo path)
