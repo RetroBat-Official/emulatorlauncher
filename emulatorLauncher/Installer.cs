@@ -239,7 +239,12 @@ namespace EmulatorLauncher
                 if (Path.GetFileNameWithoutExtension(exe).ToLower() == "retroarch")
                 {
                     var output = ProcessExtensions.RunWithOutput(exe, "--version");
-                    output = StringExtensions.FormatVersionString(output.ExtractString(" -- v", " -- "));
+
+                    string ret = output.ExtractString("Version:", " ("); 
+                    if (string.IsNullOrEmpty(ret))
+                        ret = output.ExtractString(" -- v", " -- "); // Format before 1.16
+
+                    output = StringExtensions.FormatVersionString(ret);
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))

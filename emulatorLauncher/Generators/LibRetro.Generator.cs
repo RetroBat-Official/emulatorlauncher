@@ -1364,8 +1364,15 @@ namespace EmulatorLauncher.Libretro
                     commandArray.Add("--connect " + SystemConfig["netplayip"]);
                     commandArray.Add("--port " + SystemConfig["netplayport"]);
                 }
-            }
 
+                if (!string.IsNullOrEmpty(SystemConfig["netplaysession"]))
+                {
+                    // Suported with retroarch 1.17+ only
+                    if (IsVersionAtLeast(new Version(1, 17, 0, 0)))
+                        commandArray.Add("--mitm-session " + SystemConfig["netplaysession"]);
+                }
+            }
+            
             // RetroArch 1.7.8 requires the shaders to be passed as command line argument      
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
             {
@@ -1575,6 +1582,19 @@ namespace EmulatorLauncher.Libretro
             {"tr", retro_language.RETRO_LANGUAGE_TURKISH},
             {"uk_UA", retro_language.RETRO_LANGUAGE_UKRAINIAN}
         };
+
+        private static bool IsVersionAtLeast(Version ver)
+        {
+            var ist = Installer.GetInstaller("libretro");
+            if (ist != null)
+            {
+                var local = ist.GetInstalledVersion();
+                return (!string.IsNullOrEmpty(local) && Version.Parse(local) >= ver);
+            }
+
+            return false;
+        }
+    
     }
 
     // https://github.com/libretro/RetroArch/blob/master/libretro-common/include/libretro.h#L260
@@ -1666,6 +1686,4 @@ namespace EmulatorLauncher.Libretro
         public string Core { get; set; }
         public string SubSystemId { get; set; }
     }
-    
-
 }
