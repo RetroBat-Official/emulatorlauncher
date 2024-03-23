@@ -66,6 +66,7 @@ namespace EmulatorLauncher
             int index = controller.SdlController.Index;
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
             bool zAsLeftTrigger = SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
+            string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
 
             string iniSection = "RetroBatAuto-" + playerIndex;
 
@@ -80,6 +81,21 @@ namespace EmulatorLauncher
 
             // ButtonID (SDL)
             // 3 = hat / 4 = button / 5 = axis / 1 or -1 = axis direction (if axis)
+
+            if (n64StyleControllers.ContainsKey(guid))
+            {
+                ConfigureN64Controller(profileIni, iniSection, controller, guid);
+
+                profileIni.WriteValue(iniSection, "Deadzone", deadzone);
+                profileIni.WriteValue(iniSection, "Sensitivity", sensitivity);
+
+                settingsIni.WriteValue("Controller" + playerIndex, "Profile", iniSection);
+
+                string gamepadN64 = index + ":" + devicename;
+                settingsIni.WriteValue("Controller" + playerIndex, "Gamepad", gamepadN64);
+
+                return;
+            }
 
             if (SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl"))
             {
@@ -201,5 +217,41 @@ namespace EmulatorLauncher
         {
            //TBD
         }
+
+        private void ConfigureN64Controller(IniFile profileIni, string iniSection, Controller controller, string guid)
+        {
+            Dictionary<string, string> buttons = n64StyleControllers[guid];
+
+            foreach (var button in buttons)
+                profileIni.WriteValue(iniSection, button.Key, button.Value);
+        }
+
+        static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        {
+            {
+                "0300b7e67e050000192000000000680c",
+                new Dictionary<string, string>()
+                {
+                    { "A", "\"" + "0,4" + "\"" },
+                    { "B", "\"" + "1,4" + "\"" },
+                    { "Z", "\"" + "4,5,1" + "\"" },
+                    { "Start", "\"" + "6,4" + "\"" },
+                    { "L", "\"" + "9,4" + "\"" },
+                    { "R", "\"" + "10,4" + "\"" },
+                    { "DPadL", "\"" + "13,4" + "\"" },
+                    { "DPadR", "\"" + "14,4" + "\"" },
+                    { "DPadU", "\"" + "11,4" + "\"" },
+                    { "DPadD", "\"" + "12,4" + "\"" },
+                    { "CLeft", "\"" + "2,4" + "\"" },
+                    { "CRight", "\"" + "4,4" + "\"" },
+                    { "CUp", "\"" + "3,4" + "\"" },
+                    { "CDown", "\"" + "5,5,-1" + "\"" },
+                    { "AxisLeft", "\"" + "0,5,-1" + "\"" },
+                    { "AxisRight", "\"" + "0,5,1" + "\"" },
+                    { "AxisUp", "\"" + "1,5,-1" + "\"" },
+                    { "AxisDown", "\"" + "1,5,1" + "\"" },
+                }
+            },
+        };
     }
 }
