@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using System.Configuration;
 
 namespace EmulatorLauncher
 {
@@ -90,10 +91,21 @@ namespace EmulatorLauncher
                 return;
 
             string tech = ctrl.IsXInputDevice ? "xinput" : "SDL";
+            string guid = ctrl.SdlController != null ? ctrl.SdlController.Guid.ToString().ToLower() : ctrl.Guid.ToString().ToLower();
 
             var vpad = bml.GetOrCreateContainer("VirtualPad" + playerindex);
             int index = 0x3 + (ctrl.DeviceIndex* 100000000);
             string padId = "0x" + index + "/";
+
+            if (n64StyleControllers.ContainsKey(guid))
+            {
+                Dictionary<string, string> buttons = n64StyleControllers[guid];
+
+                foreach (var button in buttons)
+                    vpad[button.Key] = padId + button.Value + ";;";
+
+                return;
+            }
 
             vpad["Pad.Up"] = GetInputKeyName(ctrl, InputKey.up, padId, tech);
             vpad["Pad.Down"] = GetInputKeyName(ctrl, InputKey.down, padId, tech);
@@ -296,6 +308,40 @@ namespace EmulatorLauncher
         static List<string> mouseButtons = new List<string>()
         {
             "X", "Y", "Left", "Middle", "Right", "Extra"
+        };
+
+        static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        {
+            {
+                "0300b7e67e050000192000000000680c",
+                new Dictionary<string, string>()
+                {
+                    { "Pad.Up", "3/11" },
+                    { "Pad.Down", "3/12" },
+                    { "Pad.Left", "3/13" },
+                    { "Pad.Right", "3/14" },
+                    { "Select", "" },
+                    { "Start", "3/6" },
+                    { "A..South", "3/0" },
+                    { "B..East", "" },
+                    { "X..West", "3/1" },
+                    { "Y..North", "" },
+                    { "L-Bumper", "3/9" },
+                    { "R-Bumper", "3/10" },
+                    { "L-Trigger", "" },
+                    { "R-Trigger", "0/4/Hi" },
+                    { "L-Stick..Click", "" },
+                    { "R-Stick..Click", "" },
+                    { "L-Up", "0/1/Lo" },
+                    { "L-Down", "0/1/Hi" },
+                    { "L-Left", "0/0/Lo" },
+                    { "L-Right", "0/0/Hi" },
+                    { "R-Up", "3/3" },
+                    { "R-Down", "0/5/Hi" },
+                    { "R-Left", "3/2" },
+                    { "R-Right", "3/4" },
+                }
+            },
         };
     }
 }
