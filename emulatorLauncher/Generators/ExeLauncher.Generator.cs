@@ -218,10 +218,11 @@ namespace EmulatorLauncher
             if (!File.Exists(cfg))
                 return;
 
+            if (resolution == null)
+                resolution = ScreenResolution.CurrentResolution;
+
             using (var ini = IniFile.FromFile(cfg, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
-                if (resolution == null)
-                    resolution = ScreenResolution.CurrentResolution;
 
                 if (!string.IsNullOrEmpty(ini.GetValue("Config", "GameWidth")))
                 {
@@ -229,15 +230,32 @@ namespace EmulatorLauncher
                     ini.WriteValue("Config", "GameHeight", resolution.Height.ToString());
                 }
 
-                ini.WriteValue("Video", "Width", resolution.Width.ToString());
-                ini.WriteValue("Video", "Height", resolution.Height.ToString());
-
-                ini.WriteValue("Video", "VRetrace", SystemConfig["VSync"] != "false" ? "1" : "0");
-
-                if (fullscreen)
-                    ini.WriteValue("Video", "FullScreen", "1");
+                if (SystemConfig["resolution"] == "480p")
+                {
+                    ini.WriteValue("Config", "GameWidth", "640");
+                    ini.WriteValue("Config", "GameHeight", "480");
+                }
+                else if (SystemConfig["resolution"] == "720p")
+                {
+                    ini.WriteValue("Config", "GameWidth", "960");
+                    ini.WriteValue("Config", "GameHeight", "720");
+                }
+                else if (SystemConfig["resolution"] == "960p")
+                {
+                    ini.WriteValue("Config", "GameWidth", "1280");
+                    ini.WriteValue("Config", "GameHeight", "960");
+                }
                 else
-                    ini.WriteValue("Video", "FullScreen", "0");
+                {
+                    ini.WriteValue("Config", "GameWidth", resolution.Width.ToString());
+                    ini.WriteValue("Config", "GameHeight", resolution.Height.ToString());
+                }
+
+                //ini.WriteValue("Video", "Width", resolution.Width.ToString());
+                //ini.WriteValue("Video", "Height", resolution.Height.ToString());
+                ini.WriteValue("Video", "VRetrace", SystemConfig["VRetrace"] != "false" ? "1" : "0");
+                ini.WriteValue("Video", "FullScreen", fullscreen ? "1" : "0");
+
             }
         }
 
@@ -246,18 +264,48 @@ namespace EmulatorLauncher
             if (_systemName != "ikemen")
                 return;
 
-            var json = DynamicJson.Load(Path.Combine(path, "save", "config.json"));
+            var json = DynamicJson.Load(Path.Combine(path, "save", "config.json"));     
+                        
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
             if (resolution == null)
                 resolution = ScreenResolution.CurrentResolution;
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
-
-            json["FirstRun"] = "false";
-            json["GameWidth"] = resolution.Width.ToString();
-            json["GameHeight"] = resolution.Height.ToString();
+            json["FirstRun"] = "false";           
             json["Fullscreen"] = fullscreen ? "true" : "false";
+
+            if (SystemConfig["resolution"] == "240p")
+            {
+                json["GameWidth"] = "320";
+                json["GameHeight"] = "240";
+            }
+            else if (SystemConfig["resolution"] == "480p")
+            {
+                json["GameWidth"] = "640";
+                json["GameHeight"] = "480";
+            }
+            else if (SystemConfig["resolution"] == "720p")
+            {
+                json["GameWidth"] = "1280";
+                json["GameHeight"] = "720";
+            }
+            else if (SystemConfig["resolution"] == "960p")
+            {
+                json["GameWidth"] = "1280";
+                json["GameHeight"] = "960";
+            }
+            else if (SystemConfig["resolution"] == "1080p")
+            {
+                json["GameWidth"] = "1920";
+                json["GameHeight"] = "1080";
+            }
+            else
+            {
+                json["GameWidth"] = resolution.Width.ToString();
+                json["GameHeight"] = resolution.Height.ToString();
+            }
+
             BindFeature(json, "VRetrace", "VRetrace", "1");
 
             json.Save();
