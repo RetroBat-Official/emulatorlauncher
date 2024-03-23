@@ -1489,7 +1489,7 @@
     "name": "PSX",
     "biosFiles": [
       {
-        "md5": " c53ca5908936d412331790f4426c6c33",
+        "md5": "c53ca5908936d412331790f4426c6c33",
         "file": "bios/psxonpsp660.bin"
       }
     ]
