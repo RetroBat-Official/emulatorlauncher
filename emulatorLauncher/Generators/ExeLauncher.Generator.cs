@@ -21,6 +21,7 @@ namespace EmulatorLauncher
         private string _systemName;
         private string _exename;
         private bool _isGameExePath;
+        private BezelFiles _bezelFileInfo;
 
         private GameLauncher _gameLauncher;
 
@@ -41,6 +42,8 @@ namespace EmulatorLauncher
             string arguments = null;
             _isGameExePath = false;
             string extension = Path.GetExtension(rom);
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             if (extension == ".lnk")
             {
@@ -163,7 +166,8 @@ namespace EmulatorLauncher
                     rom = Path.Combine(path, rom.Substring(1));
             }
 
-            UpdateMugenConfig(path, resolution);
+            UpdateMugenConfig(path, fullscreen, resolution);
+            UpdateIkemenConfig(path, system, rom, fullscreen, resolution);
 
             var ret = new ProcessStartInfo()
             {
@@ -199,13 +203,13 @@ namespace EmulatorLauncher
             else if (_gameLauncher != null) 
                 return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
-            else if (_systemName != "mugen" || string.IsNullOrEmpty(_exename))
+            else if (_systemName != "mugen" || _systemName != "ikemen" || string.IsNullOrEmpty(_exename))
                 return mapping;
 
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
-        private void UpdateMugenConfig(string path, ScreenResolution resolution)
+        private void UpdateMugenConfig(string path, bool fullscreen, ScreenResolution resolution)
         {
             if (_systemName != "mugen")
                 return;
@@ -214,10 +218,11 @@ namespace EmulatorLauncher
             if (!File.Exists(cfg))
                 return;
 
+            if (resolution == null)
+                resolution = ScreenResolution.CurrentResolution;
+
             using (var ini = IniFile.FromFile(cfg, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
-                if (resolution == null)
-                    resolution = ScreenResolution.CurrentResolution;
 
                 if (!string.IsNullOrEmpty(ini.GetValue("Config", "GameWidth")))
                 {
@@ -225,12 +230,86 @@ namespace EmulatorLauncher
                     ini.WriteValue("Config", "GameHeight", resolution.Height.ToString());
                 }
 
-                ini.WriteValue("Video", "Width", resolution.Width.ToString());
-                ini.WriteValue("Video", "Height", resolution.Height.ToString());
+                if (SystemConfig["resolution"] == "480p")
+                {
+                    ini.WriteValue("Config", "GameWidth", "640");
+                    ini.WriteValue("Config", "GameHeight", "480");
+                }
+                else if (SystemConfig["resolution"] == "720p")
+                {
+                    ini.WriteValue("Config", "GameWidth", "960");
+                    ini.WriteValue("Config", "GameHeight", "720");
+                }
+                else if (SystemConfig["resolution"] == "960p")
+                {
+                    ini.WriteValue("Config", "GameWidth", "1280");
+                    ini.WriteValue("Config", "GameHeight", "960");
+                }
+                else
+                {
+                    ini.WriteValue("Config", "GameWidth", resolution.Width.ToString());
+                    ini.WriteValue("Config", "GameHeight", resolution.Height.ToString());
+                }
 
-                ini.WriteValue("Video", "VRetrace", SystemConfig["VSync"] != "false" ? "1" : "0");
-                ini.WriteValue("Video", "FullScreen", "1");
+                //ini.WriteValue("Video", "Width", resolution.Width.ToString());
+                //ini.WriteValue("Video", "Height", resolution.Height.ToString());
+                ini.WriteValue("Video", "VRetrace", SystemConfig["VRetrace"] != "false" ? "1" : "0");
+                ini.WriteValue("Video", "FullScreen", fullscreen ? "1" : "0");
+
             }
+        }
+
+        private void UpdateIkemenConfig(string path, string system, string rom, bool fullscreen, ScreenResolution resolution)
+        {
+            if (_systemName != "ikemen")
+                return;
+
+            var json = DynamicJson.Load(Path.Combine(path, "save", "config.json"));     
+                        
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
+            if (resolution == null)
+                resolution = ScreenResolution.CurrentResolution;
+
+            json["FirstRun"] = "false";           
+            json["Fullscreen"] = fullscreen ? "true" : "false";
+
+            if (SystemConfig["resolution"] == "240p")
+            {
+                json["GameWidth"] = "320";
+                json["GameHeight"] = "240";
+            }
+            else if (SystemConfig["resolution"] == "480p")
+            {
+                json["GameWidth"] = "640";
+                json["GameHeight"] = "480";
+            }
+            else if (SystemConfig["resolution"] == "720p")
+            {
+                json["GameWidth"] = "1280";
+                json["GameHeight"] = "720";
+            }
+            else if (SystemConfig["resolution"] == "960p")
+            {
+                json["GameWidth"] = "1280";
+                json["GameHeight"] = "960";
+            }
+            else if (SystemConfig["resolution"] == "1080p")
+            {
+                json["GameWidth"] = "1920";
+                json["GameHeight"] = "1080";
+            }
+            else
+            {
+                json["GameWidth"] = resolution.Width.ToString();
+                json["GameHeight"] = resolution.Height.ToString();
+            }
+
+            BindFeature(json, "VRetrace", "VRetrace", "1");
+
+            json.Save();
+
         }
 
         public override int RunAndWait(ProcessStartInfo path)
