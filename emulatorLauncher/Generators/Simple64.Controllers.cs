@@ -229,6 +229,7 @@ namespace EmulatorLauncher
         static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
+                // Nintendo Switch Online N64 Controller
                 "0300b7e67e050000192000000000680c",
                 new Dictionary<string, string>()
                 {
@@ -254,6 +255,7 @@ namespace EmulatorLauncher
             },
 
             {
+                // Raphnet N64 Dual Adapter
                 "030000009b2800006300000000000000",
                 new Dictionary<string, string>()
                 {
@@ -271,6 +273,33 @@ namespace EmulatorLauncher
                     { "CRight", "\"" + "9,4" + "\"" },
                     { "CUp", "\"" + "6,4" + "\"" },
                     { "CDown", "\"" + "7,4" + "\"" },
+                    { "AxisLeft", "\"" + "0,5,-1" + "\"" },
+                    { "AxisRight", "\"" + "0,5,1" + "\"" },
+                    { "AxisUp", "\"" + "1,5,-1" + "\"" },
+                    { "AxisDown", "\"" + "1,5,1" + "\"" },
+                }
+            },
+
+
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "A", "\"" + "1,4" + "\"" },
+                    { "B", "\"" + "2,4" + "\"" },
+                    { "Z", "\"" + "6,4" + "\"" },
+                    { "Start", "\"" + "9,4" + "\"" },
+                    { "L", "\"" + "4,4" + "\"" },
+                    { "R", "\"" + "5,4" + "\"" },
+                    { "DPadL", "\"" + "0,3,8" + "\"" },
+                    { "DPadR", "\"" + "0,3,2" + "\"" },
+                    { "DPadU", "\"" + "0,3,1" + "\"" },
+                    { "DPadD", "\"" + "0,3,4" + "\"" },
+                    { "CLeft", "\"" + "2,5,-1" + "\"" },
+                    { "CRight", "\"" + "2,5,1" + "\"" },
+                    { "CUp", "\"" + "3,5,-1" + "\"" },
+                    { "CDown", "\"" + "3,5,1" + "\"" },
                     { "AxisLeft", "\"" + "0,5,-1" + "\"" },
                     { "AxisRight", "\"" + "0,5,1" + "\"" },
                     { "AxisUp", "\"" + "1,5,-1" + "\"" },

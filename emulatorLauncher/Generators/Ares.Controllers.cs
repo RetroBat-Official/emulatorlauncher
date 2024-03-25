@@ -313,6 +313,7 @@ namespace EmulatorLauncher
         static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
+                // Nintendo Switch Online N64 Controller
                 "0300b7e67e050000192000000000680c",
                 new Dictionary<string, string>()
                 {
@@ -344,6 +345,7 @@ namespace EmulatorLauncher
             },
 
             {
+                // Raphnet 2x N64 Adapter
                 "030000009b2800006300000000000000",
                 new Dictionary<string, string>()
                 {
@@ -371,6 +373,38 @@ namespace EmulatorLauncher
                     { "R-Down", "3/7" },
                     { "R-Left", "3/8" },
                     { "R-Right", "3/9" },
+                }
+            },
+
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "Pad.Up", "1/1/Lo" },
+                    { "Pad.Down", "1/1/Hi" },
+                    { "Pad.Left", "1/0/Lo" },
+                    { "Pad.Right", "1/0/Hi" },
+                    { "Select", "" },
+                    { "Start", "3/9" },
+                    { "A..South", "3/1" },
+                    { "B..East", "" },
+                    { "X..West", "3/2" },
+                    { "Y..North", "" },
+                    { "L-Bumper", "3/4" },
+                    { "R-Bumper", "3/5" },
+                    { "L-Trigger", "" },
+                    { "R-Trigger", "3/6" },
+                    { "L-Stick..Click", "" },
+                    { "R-Stick..Click", "" },
+                    { "L-Up", "0/1/Lo" },
+                    { "L-Down", "0/1/Hi" },
+                    { "L-Left", "0/0/Lo" },
+                    { "L-Right", "0/0/Hi" },
+                    { "R-Up", "0/3/Lo" },
+                    { "R-Down", "0/3/Hi" },
+                    { "R-Left", "0/2/Lo" },
+                    { "R-Right", "0/2/Hi" },
                 }
             },
         };
