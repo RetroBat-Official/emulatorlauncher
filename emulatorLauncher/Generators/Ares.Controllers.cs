@@ -342,6 +342,37 @@ namespace EmulatorLauncher
                     { "R-Right", "3/4" },
                 }
             },
+
+            {
+                "030000009b2800006300000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "Pad.Up", "3/10" },
+                    { "Pad.Down", "3/11" },
+                    { "Pad.Left", "3/12" },
+                    { "Pad.Right", "3/13" },
+                    { "Select", "" },
+                    { "Start", "3/3" },
+                    { "A..South", "3/0" },
+                    { "B..East", "" },
+                    { "X..West", "3/1" },
+                    { "Y..North", "" },
+                    { "L-Bumper", "3/4" },
+                    { "R-Bumper", "3/5" },
+                    { "L-Trigger", "" },
+                    { "R-Trigger", "3/2" },
+                    { "L-Stick..Click", "" },
+                    { "R-Stick..Click", "" },
+                    { "L-Up", "0/1/Lo" },
+                    { "L-Down", "0/1/Hi" },
+                    { "L-Left", "0/0/Lo" },
+                    { "L-Right", "0/0/Hi" },
+                    { "R-Up", "3/6" },
+                    { "R-Down", "3/7" },
+                    { "R-Left", "3/8" },
+                    { "R-Right", "3/9" },
+                }
+            },
         };
     }
 }
