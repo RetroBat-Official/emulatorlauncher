@@ -63,7 +63,7 @@ namespace EmulatorLauncher
                 return;
 
             string devicename = joy.DeviceName;
-            int index = controller.SdlController.Index;
+            int index = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex;
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
             bool zAsLeftTrigger = SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
             string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
@@ -246,6 +246,31 @@ namespace EmulatorLauncher
                     { "CRight", "\"" + "4,4" + "\"" },
                     { "CUp", "\"" + "3,4" + "\"" },
                     { "CDown", "\"" + "5,5,-1" + "\"" },
+                    { "AxisLeft", "\"" + "0,5,-1" + "\"" },
+                    { "AxisRight", "\"" + "0,5,1" + "\"" },
+                    { "AxisUp", "\"" + "1,5,-1" + "\"" },
+                    { "AxisDown", "\"" + "1,5,1" + "\"" },
+                }
+            },
+
+            {
+                "030000009b2800006300000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "A", "\"" + "0,4" + "\"" },
+                    { "B", "\"" + "1,4" + "\"" },
+                    { "Z", "\"" + "2,4" + "\"" },
+                    { "Start", "\"" + "3,4" + "\"" },
+                    { "L", "\"" + "4,4" + "\"" },
+                    { "R", "\"" + "5,4" + "\"" },
+                    { "DPadL", "\"" + "12,4" + "\"" },
+                    { "DPadR", "\"" + "13,4" + "\"" },
+                    { "DPadU", "\"" + "10,4" + "\"" },
+                    { "DPadD", "\"" + "11,4" + "\"" },
+                    { "CLeft", "\"" + "8,4" + "\"" },
+                    { "CRight", "\"" + "9,4" + "\"" },
+                    { "CUp", "\"" + "6,4" + "\"" },
+                    { "CDown", "\"" + "7,4" + "\"" },
                     { "AxisLeft", "\"" + "0,5,-1" + "\"" },
                     { "AxisRight", "\"" + "0,5,1" + "\"" },
                     { "AxisUp", "\"" + "1,5,-1" + "\"" },
