@@ -1484,6 +1484,7 @@ namespace EmulatorLauncher
         static Dictionary<string, Dictionary<InputKey, string>> n64StyleControllers = new Dictionary<string, Dictionary<InputKey, string>>()
         {
            {
+                // Nintendo Switch Online N64 Controller
                 "0300b7e67e050000192000000000680c",
                 new Dictionary<InputKey, string>()
                 {
@@ -1509,6 +1510,7 @@ namespace EmulatorLauncher
             },
 
             {
+                // Raphnet 2x N64 Adapter
                 "030000009b2800006300000000000000",
                 new Dictionary<InputKey, string>()
                 {
@@ -1532,11 +1534,38 @@ namespace EmulatorLauncher
                     { InputKey.pagedown, "B6" },
                 }
             },
+
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
+                new Dictionary<InputKey, string>()
+                {
+                    { InputKey.leftanalogup, "X AxisUp" },
+                    { InputKey.leftanalogdown, "X AxisDown" },
+                    { InputKey.leftanalogleft, "X AxisLeft" },
+                    { InputKey.leftanalogright, "X AxisRight" },
+                    { InputKey.up, "POV0U" },
+                    { InputKey.down, "POV0D" },
+                    { InputKey.left, "POV0L" },
+                    { InputKey.right, "POV0R" },
+                    { InputKey.start, "B10" },
+                    { InputKey.r2, "B7" },
+                    { InputKey.y, "B3" },
+                    { InputKey.a, "B2" },
+                    { InputKey.rightanalogup, "W-" },
+                    { InputKey.rightanalogdown, "W+" },
+                    { InputKey.rightanalogleft, "Z-" },
+                    { InputKey.rightanalogright, "Z+" },
+                    { InputKey.pageup, "B5" },
+                    { InputKey.pagedown, "B6" },
+                }
+            },
         };
 
         static Dictionary<string, Dictionary<string, bool>> n64StyleControllersInfo = new Dictionary<string, Dictionary<string, bool>>()
         {
             {
+                // Nintendo Switch Online N64 Controller
                 "0300b7e67e050000192000000000680c",
                 new Dictionary<string, bool>()
                 {
@@ -1547,7 +1576,19 @@ namespace EmulatorLauncher
             },
 
             {
+                // Raphnet 2x N64 Adapter
                 "030000009b2800006300000000000000",
+                new Dictionary<string, bool>()
+                {
+                    { "XInvert", false },
+                    { "YInvert", true },
+                    { "dinput", true },
+                }
+            },
+
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
                 new Dictionary<string, bool>()
                 {
                     { "XInvert", false },
