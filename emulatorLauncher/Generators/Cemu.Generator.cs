@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         }
 
         private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
+        private bool _isX64 = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -45,9 +46,15 @@ namespace EmulatorLauncher
             {
                 string sdl2 = Path.Combine(path, "SDL2.dll");
                 if (FileVersionInfo.GetVersionInfo(exe).ProductMajorPart <= 1 && File.Exists(sdl2))
+                {
+                    _isX64 = Kernel32.IsX64(sdl2);
                     _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
+                }
                 else
+                {
+                    _isX64 = Kernel32.IsX64(exe);
                     _sdlVersion = SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe);
+                }
             }
             catch { }
 

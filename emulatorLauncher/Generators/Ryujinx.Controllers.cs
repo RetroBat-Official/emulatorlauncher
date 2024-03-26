@@ -6,6 +6,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
 using System.Diagnostics;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -16,7 +17,8 @@ namespace EmulatorLauncher
         /// </summary>
         private void UpdateSdlControllersWithHints()
         {
-            _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(Path.Combine(_emulatorPath, "SDL2.dll"));
+            string dllPath = Path.Combine(_emulatorPath, "SDL2.dll");
+            _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(dllPath);
 
             var hints = new List<string>();            
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
@@ -24,7 +26,7 @@ namespace EmulatorLauncher
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1");
             
-            _sdlMapping = SdlDllControllersMapping.FromSdlVersion(_sdlVersion, string.Join(",", hints));
+            _sdlMapping = SdlDllControllersMapping.FromSdlVersion(_sdlVersion, Kernel32.IsX64(dllPath), string.Join(",", hints));
             if (_sdlMapping == null)
             {
                 SdlGameController.ReloadWithHints(string.Join(",", hints));
