@@ -113,6 +113,7 @@ namespace EmulatorLauncher
             { "kronos", () => new KronosGenerator() },
             { "gzdoom", () => new GZDoomGenerator() },
             { "magicengine", () => new MagicEngineGenerator() },
+            { "gemrb", () => new GemRBGenerator() },
             { "psxmame", () => new PSXMameGenerator() }
         };
 

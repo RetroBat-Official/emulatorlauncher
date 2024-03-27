@@ -95,6 +95,7 @@ namespace EmulatorLauncher
             { new Installer("gzdoom", "gzdoom", "gzdoom.exe") },
             { new Installer("magicengine", "magicengine", "pce.exe") },
             { new Installer("eka2l1", "eka2l1", "eka2l1_qt.exe") },
+            { new Installer("gemrb", "gemrb", "gemrb.exe") },
             { new Installer("psxmame", "psxmame", "mame.exe") }
         };
 
