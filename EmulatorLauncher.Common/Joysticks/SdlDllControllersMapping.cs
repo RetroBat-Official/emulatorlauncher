@@ -16,6 +16,8 @@ namespace EmulatorLauncher.Common.Joysticks
     {
         public static SdlDllControllersMapping FromSdlVersion(SdlVersion version, bool use64dll, string hints = null)
         {
+            SimpleLogger.Instance.Info("[SdlDllControllersMapping] " + version.ToString() + ", " + use64dll.ToString());
+
             if (version == SdlVersion.Unknown || version == SdlVersion.SDL2_0_X)
             {
                 SimpleLogger.Instance.Debug("[SdlDllControllersMapping] Unknown or default version");
@@ -39,27 +41,37 @@ namespace EmulatorLauncher.Common.Joysticks
             if (use64dll && !Environment.Is64BitProcess)
             {                
                 var sourceSDL64 = Path.GetFullPath(Path.Combine(currentPath, "sdl2", "SDL2_" + ver + "_x64.dll"));
-                if (File.Exists(sourceSDL64))
+                if (!File.Exists(sourceSDL64))
+                    SimpleLogger.Instance.Warning("[SdlDllControllersMapping] missing " + sourceSDL64);
+                else
                 {
                     try
                     {
                         string ee = Path.Combine(currentPath, "x64controllers.exe");
-                        if (File.Exists(ee))
+                        if (!File.Exists(ee))
+                            SimpleLogger.Instance.Warning("[SdlDllControllersMapping] missing " + ee);
+                        else
                         {
                             SimpleLogger.Instance.Debug("[SdlDllControllersMapping] Calling x64controllers");
 
                             string output = ProcessExtensions.RunWithOutput(ee, "-version " + version.ToString() + " -hints \"" + (hints ?? "") + "\"");
                             if (string.IsNullOrEmpty(output))
-                                return null;
-
-                            var mappings = Mappings.DeserializeMappings(output);
-                            if (mappings != null && mappings.Any())
                             {
-                                var ret = new SdlDllControllersMapping();
-                                foreach (var mapping in mappings)
-                                    ret.Mapping[mapping.Path] = new SdlJoystickGuid(mapping.Guid);
+                                SimpleLogger.Instance.Debug("[SdlDllControllersMapping] x64controllers returned empty output");
+                            }
+                            else
+                            {
+                                var mappings = Mappings.DeserializeMappings(output);
+                                if (mappings == null || !mappings.Any())
+                                    SimpleLogger.Instance.Debug("[SdlDllControllersMapping] x64controllers returned no mapping");
+                                else
+                                {
+                                    var ret = new SdlDllControllersMapping();
+                                    foreach (var mapping in mappings)
+                                        ret.Mapping[mapping.Path] = new SdlJoystickGuid(mapping.Guid);
 
-                                return ret;
+                                    return ret;
+                                }
                             }
                         }
                     }
