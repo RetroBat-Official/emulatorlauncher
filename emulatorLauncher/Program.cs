@@ -114,7 +114,8 @@ namespace EmulatorLauncher
             { "gzdoom", () => new GZDoomGenerator() },
             { "magicengine", () => new MagicEngineGenerator() },
             { "gemrb", () => new GemRBGenerator() },
-            { "psxmame", () => new PSXMameGenerator() }
+            { "psxmame", () => new PSXMameGenerator() },
+            { "fbneo", () => new FbneoGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
