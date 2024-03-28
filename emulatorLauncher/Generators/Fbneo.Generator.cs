@@ -77,8 +77,30 @@ namespace EmulatorLauncher
             
             var cfg = FbneoConfigFile.FromFile(iniFile);
 
-            // Write roms path
+            // Write paths
             cfg["szAppRomPaths[0]"] = Path.GetDirectoryName(rom) + "\\";
+            cfg["szAppRomPaths[1]"] = Path.Combine(AppConfig.GetFullPath("bios")) + "\\";
+
+            string fbneoBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fbneo");
+            if (!Directory.Exists(fbneoBiosPath)) try { Directory.CreateDirectory(fbneoBiosPath); }
+                catch { }
+            cfg["szAppRomPaths[2]"] = fbneoBiosPath + "\\";
+            cfg["szAppHiscorePath"] = fbneoBiosPath + "\\";
+
+            string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "fbneo");
+            if (!Directory.Exists(cheatsPath)) try { Directory.CreateDirectory(cheatsPath); }
+                catch { }
+            cfg["szAppCheatsPath"] = cheatsPath + "\\";
+
+            string samplePath = Path.Combine(AppConfig.GetFullPath("bios"), "fbneo", "samples");
+            if (!Directory.Exists(samplePath)) try { Directory.CreateDirectory(samplePath); }
+                catch { }
+            cfg["szAppSamplesPath"] = samplePath + "\\";
+
+            string eepromPath = Path.Combine(AppConfig.GetFullPath("saves"), "fbneo");
+            if (!Directory.Exists(eepromPath)) try { Directory.CreateDirectory(eepromPath); }
+                catch { }
+            cfg["szAppEEPROMPath"] = eepromPath + "\\";
 
             // Video driver
             if (SystemConfig.isOptSet("fbneo_renderer") && !string.IsNullOrEmpty(SystemConfig["fbneo_renderer"]))
