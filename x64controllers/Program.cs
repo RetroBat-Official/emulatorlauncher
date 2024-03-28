@@ -21,7 +21,7 @@ namespace x64controllers
 
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i] == "-version" && i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                if (args[i] == "-sdl2" && i + 1 < args.Length && !args[i + 1].StartsWith("-"))
                 {
                     version = args[i + 1];
                     i++;
@@ -36,14 +36,10 @@ namespace x64controllers
                 }
             }
 
-            SdlVersion sdlVersion = SdlVersion.Unknown;
-            if (!Enum.TryParse<SdlVersion>(version, out sdlVersion))
+            if (string.IsNullOrEmpty(version))
                 return;
 
-            if (sdlVersion == SdlVersion.Unknown || sdlVersion == SdlVersion.SDL2_0_X)
-                return;
-
-            var ss = SdlDllControllersMapping.FromSdlVersion(sdlVersion, true, hints);
+            var ss = SdlDllControllersMapping.FromDll(version, hints);
             if (ss == null || ss.Mapping == null)
                 return;
 
