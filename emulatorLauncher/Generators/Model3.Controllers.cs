@@ -174,6 +174,8 @@ namespace EmulatorLauncher
             WheelMappingInfo wheelmapping = null;
             string wheelGuid = "nul";
             List<Wheel> usableWheels = new List<Wheel>();
+            bool deportedShifter = false;
+            int shifterID = -1;
 
             foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
             {
@@ -284,6 +286,7 @@ namespace EmulatorLauncher
                 j1index = SystemConfig["wheel_index"].ToInteger();
                 SimpleLogger.Instance.Info("[INFO] Forcing index of wheel/joystick to " + j1index.ToString());
             }
+            shifterID = j1index - 1;
 
             bool multiplayer = j2index != -1;
             bool enableServiceMenu = SystemConfig.isOptSet("m3_service") && SystemConfig.getOptBoolean("m3_service");
@@ -678,6 +681,18 @@ namespace EmulatorLauncher
 
                     if (useWheel)
                     {
+                        if (Wheel.shifterOtherDevice.Contains(usableWheels[0].Type))
+                            deportedShifter = true;
+
+                        if (SystemConfig.isOptSet("gearstick_deviceid") && !string.IsNullOrEmpty(SystemConfig["gearstick_deviceid"]))
+                        {
+                            deportedShifter = true;
+                            shifterID = SystemConfig["gearstick_deviceid"].ToInteger();
+                        }
+
+                        if (deportedShifter)
+                            SimpleLogger.Instance.Info("[WHEELS] Deported shifter enabled for wheel " + usableWheels[0].Name + " with ID " + shifterID);
+
                         //Steering wheel - left analog stick horizontal axis
                         ini.WriteValue(" Global ", "InputSteeringLeft", GetWheelMapping(wheelmapping.Steer, ctrl1, j1index, "left"));
                         ini.WriteValue(" Global ", "InputSteeringRight", GetWheelMapping(wheelmapping.Steer, ctrl1, j1index, "right"));
@@ -701,6 +716,14 @@ namespace EmulatorLauncher
                             ini.WriteValue(" Global ", "InputGearShiftN", "\"" + GetDinputMapping(j1index, ctrl1, "rightshoulder") + "\"");
                         }
 
+                        else if (deportedShifter)
+                        {
+                            ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, ctrl1, j1index, "nul", false, shifterID));
+                            ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, ctrl1, j1index, "nul", false, shifterID));
+                            ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, ctrl1, j1index, "nul", false, shifterID));
+                            ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, ctrl1, j1index, "nul", false, shifterID));
+                            ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, ctrl1, j1index, "nul", false, shifterID));
+                        }
                         else
                         {
                             ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, ctrl1, j1index));
@@ -1640,7 +1663,7 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private string GetWheelMapping(string button, SdlToDirectInput wheel, int index, string direction = "nul", bool invertAxis = false)
+        private string GetWheelMapping(string button, SdlToDirectInput wheel, int index, string direction = "nul", bool invertAxis = false, int shifterid = -1)
         {
             if (wheel == null)
                 return "\"NONE\"";
@@ -1649,8 +1672,16 @@ namespace EmulatorLauncher
 
             if (button.StartsWith("button_"))
             {
-                int buttonID = (button.Substring(7).ToInteger()) + 1;
-                return "\"JOY" + index + "_BUTTON" + buttonID + "\"";
+                if (shifterid != -1)
+                {
+                    int buttonID = (button.Substring(7).ToInteger()) + 1;
+                    return "\"JOY" + shifterid + "_BUTTON" + buttonID + "\"";
+                }
+                else
+                {
+                    int buttonID = (button.Substring(7).ToInteger()) + 1;
+                    return "\"JOY" + index + "_BUTTON" + buttonID + "\"";
+                }
             }
             
             else if (button.StartsWith("dp"))

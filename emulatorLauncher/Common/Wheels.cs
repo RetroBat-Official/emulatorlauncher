@@ -74,6 +74,15 @@ namespace EmulatorLauncher
             { "VID_044F&PID_B677", WheelType.ThrustmasterT150 },                    // T150
             { "VID_044F&PID_B66E", WheelType.ThrustmasterT300RS }                   // T300RS
         };
+
+        public static List<WheelType> shifterOtherDevice = new List<WheelType>
+        {
+            WheelType.ThrustmasterT300RS,
+            WheelType.ThrustmasterT150,
+            WheelType.ThrustmasterRallyGT,
+            WheelType.ThrustmasterFerrariGT,
+            WheelType.ThrustmasterForceFeedbackRacing,
+        };
     }
 
     public enum WheelType
