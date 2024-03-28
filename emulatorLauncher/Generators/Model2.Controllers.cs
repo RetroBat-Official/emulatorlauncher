@@ -67,6 +67,8 @@ namespace EmulatorLauncher
             string tech2 = "xinput";
             bool dinput1 = false;
             bool dinput2 = false;
+            bool deportedShifter = false;
+            int shifterID = -1;
 
             if (_dinput || !c1.IsXInputDevice)
             {
@@ -155,6 +157,7 @@ namespace EmulatorLauncher
                     if (wheel != null)
                     {
                         j1index = wheelPadIndex + 1;
+                        shifterID = j1index - 1;
 
                         if (!wheelTechs.Contains("xinput"))
                         {
@@ -461,6 +464,18 @@ namespace EmulatorLauncher
 
                 if (useWheel && wheelmapping != null)
                 {
+                    if (Wheel.shifterOtherDevice.Contains(wheel.Type))
+                        deportedShifter = true;
+
+                    if (SystemConfig.isOptSet("gearstick_deviceid") && !string.IsNullOrEmpty(SystemConfig["gearstick_deviceid"]))
+                    {
+                        deportedShifter = true;
+                        shifterID = SystemConfig["gearstick_deviceid"].ToInteger();
+                    }
+
+                    if (deportedShifter)
+                        SimpleLogger.Instance.Info("[WHEELS] Deported shifter enabled for wheel " + usableWheels[0].Name + " with ID " + shifterID);
+
                     SimpleLogger.Instance.Info("[WHEELS] Configuring wheel specific inputs.");
                     bytes[16] = GetWheelInputCode(wheelmapping.Steer, wheel, c1, ctrl1, invertedWheelAxis);  // Steering
                     if (!invertedWheelAxis)
@@ -481,6 +496,39 @@ namespace EmulatorLauncher
                         bytes[32] = GetWheelInputCode(wheelmapping.DpadDown, wheel, c1, ctrl1, invertedWheelAxis);
                         bytes[36] = GetWheelInputCode(wheelmapping.DpadLeft, wheel, c1, ctrl1, invertedWheelAxis);
                         bytes[40] = GetWheelInputCode(wheelmapping.DpadRight, wheel, c1, ctrl1, invertedWheelAxis);
+                    }
+
+                    else if (deportedShifter)
+                    {
+                        bytes[28] = GetWheelInputCode(wheelmapping.Gear1, wheel, c1, ctrl1, invertedWheelAxis); // Gear 1
+                        if (highButtonMapping.ContainsKey(bytes[28]))
+                            bytes[29] = Convert.ToByte(shifterID + 16);
+                        else
+                            bytes[29] = Convert.ToByte(shifterID);
+                        
+                        bytes[32] = GetWheelInputCode(wheelmapping.Gear2, wheel, c1, ctrl1, invertedWheelAxis);
+                        if (highButtonMapping.ContainsKey(bytes[32]))
+                            bytes[33] = Convert.ToByte(shifterID + 16);
+                        else
+                            bytes[33] = Convert.ToByte(shifterID);
+
+                        bytes[36] = GetWheelInputCode(wheelmapping.Gear3, wheel, c1, ctrl1, invertedWheelAxis);
+                        if (highButtonMapping.ContainsKey(bytes[36]))
+                            bytes[37] = Convert.ToByte(shifterID + 16);
+                        else
+                            bytes[37] = Convert.ToByte(shifterID);
+
+                        bytes[40] = GetWheelInputCode(wheelmapping.Gear4, wheel, c1, ctrl1, invertedWheelAxis);
+                        if (highButtonMapping.ContainsKey(bytes[40]))
+                            bytes[41] = Convert.ToByte(shifterID + 16);
+                        else
+                            bytes[41] = Convert.ToByte(shifterID);
+
+                        bytes[44] = GetWheelInputCode(wheelmapping.Gear_reverse, wheel, c1, ctrl1, invertedWheelAxis);
+                        if (highButtonMapping.ContainsKey(bytes[44]))
+                            bytes[45] = Convert.ToByte(shifterID + 16);
+                        else
+                            bytes[45] = Convert.ToByte(shifterID);
                     }
 
                     else

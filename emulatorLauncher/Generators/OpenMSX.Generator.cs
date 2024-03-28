@@ -332,6 +332,23 @@ namespace EmulatorLauncher
             else
                 osdiconset.SetValue(iconset);
 
+            // Fullspeed when loading
+            string fullspeedwhenloading = "false";
+            if (SystemConfig.isOptSet("msx_loadfullspeed") && SystemConfig.getOptBoolean("msx_loadfullspeed"))
+                fullspeedwhenloading = "true";
+
+            XElement fullspeed = xdoc.Descendants()
+            .Where(x => (string)x.Attribute("id") == "fullspeedwhenloading").FirstOrDefault();
+
+            if (fullspeed == null)
+            {
+                fullspeed = new XElement("setting", new XAttribute("id", "fullspeedwhenloading"));
+                fullspeed.SetValue(fullspeedwhenloading);
+                settings.Add(fullspeed);
+            }
+            else
+                fullspeed.SetValue(fullspeedwhenloading);
+
             // Clean existing bindings
             var bindings = topnode.GetOrCreateElement("bindings");
             bindings.RemoveAll();
