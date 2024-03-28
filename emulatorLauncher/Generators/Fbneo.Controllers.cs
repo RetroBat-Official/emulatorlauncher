@@ -24,22 +24,24 @@ namespace EmulatorLauncher
 
             string cfgFile = Path.Combine(padConfigFolder, Path.GetFileNameWithoutExtension(rom) + ".ini");
 
+            int players = 2;
+            if (players4.Any(g => _romName.StartsWith(g)))
+                players = 4;
+
             var cfg = FbneoConfigFile.FromFile(cfgFile);
 
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-                ConfigureInput(controller, cfg, cfgFile, system);
-        }
+            if (!Controllers.Any(c => !c.IsKeyboard))
+            {
+                var controller = Controllers.FirstOrDefault(c => c.IsKeyboard);
+                if (controller != null)
+                    ConfigureKeyboard(controller, cfg, cfgFile);
+            }
 
-        private void ConfigureInput(Controller controller, FbneoConfigFile cfg, string cfgFile, string system)
-        {
-            if (controller == null || controller.Config == null)
-                return;
-
-            if (controller.IsKeyboard && this.Controllers.Count(i => !i.IsKeyboard) == 0)
-                ConfigureKeyboard(controller, cfg, cfgFile);
             else
             {
-                ConfigureJoystick(controller, cfg, system);
+                foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(players))
+                    ConfigureJoystick(controller, cfg, system);
+
                 cfg.Save();
             }
         }
@@ -125,10 +127,32 @@ namespace EmulatorLauncher
 
             foreach (var button in gameMapping.Values.FirstOrDefault())
             {
-                if (testStrings.Contains(button.Key))
-                    cfg["input  " + "\"" + button.Key + "\""] = "switch " + joy + GetDinputMapping(dinputCtrl, button.Value);
+                if (p1strings.Contains(button.Key))
+                {
+                    if (controller.PlayerIndex == 1)
+                        cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                }
+
+                else if (p2strings.Contains(button.Key))
+                {
+                    if (controller.PlayerIndex == 2)
+                        cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                }
+
+                else if (p3strings.Contains(button.Key))
+                {
+                    if (controller.PlayerIndex == 3)
+                        cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                }
+
+                else if (p4strings.Contains(button.Key))
+                {
+                    if (controller.PlayerIndex == 4)
+                        cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                }
+
                 else
-                    cfg["input  " + "\"P" + controller.PlayerIndex + " " + button.Key + "\""] = "switch " + joy + GetDinputMapping(dinputCtrl, button.Value);
+                    cfg["input  " + "\"P" + controller.PlayerIndex + " " + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
             }
         }
 
@@ -158,17 +182,17 @@ namespace EmulatorLauncher
             }
         }
 
-        private string GetDinputMapping(SdlToDirectInput c, string buttonkey)
+        private string GetDinputMapping(SdlToDirectInput c, string buttonkey, string joy, int index)
         {
             int direction = 1;
 
             if (c == null)
-                return "00";
+                return "undefined";
 
             if (c.ButtonMappings == null)
             {
                 SimpleLogger.Instance.Info("[INFO] No mapping found for the controller.");
-                return "00";
+                return "undefined";
             }
 
             if (buttonkey.Contains("_"))
@@ -180,12 +204,14 @@ namespace EmulatorLauncher
                     direction = -1;
                 else if (buttonDirection[1] == "down" || buttonDirection[1] == "right")
                     direction = 1;
+                else if (buttonDirection[1] == "axis")
+                    direction = 0;
             }
 
             if (!c.ButtonMappings.ContainsKey(buttonkey))
             {
                 SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
-                return "00";
+                return "undefined";
             }
 
             if (buttonkey.StartsWith("-"))
@@ -207,19 +233,19 @@ namespace EmulatorLauncher
                 switch (buttonID)
                 {
                     case 10:
-                        return "8A";
+                        return "switch " + joy + "8A";
                     case 11:
-                        return "8B";
+                        return "switch " + joy + "8B";
                     case 12:
-                        return "8C";
+                        return "switch " + joy + "8C";
                     case 13:
-                        return "8D";
+                        return "switch " + joy + "8D";
                     case 14:
-                        return "8E";
+                        return "switch " + joy + "8E";
                     case 15:
-                        return "8F";
+                        return "switch " + joy + "8F";
                     default:
-                        return "8" + buttonID;
+                        return "switch " + joy + "8" + buttonID;
                 }
                 
             }
@@ -231,13 +257,13 @@ namespace EmulatorLauncher
                 switch (hatID)
                 {
                     case 1:
-                        return "12";
+                        return "switch " + joy + "12";
                     case 2:
-                        return "11";
+                        return "switch " + joy + "11";
                     case 4:
-                        return "13";
+                        return "switch " + joy + "13";
                     case 8:
-                        return "10";
+                        return "switch " + joy + "10";
                 }
             }
 
@@ -248,39 +274,57 @@ namespace EmulatorLauncher
                 if (button.StartsWith("-a"))
                 {
                     axisID = button.Substring(2).ToInteger();
-                    direction = -1;
                 }
 
                 else if (button.StartsWith("+a"))
                 {
                     axisID = button.Substring(2).ToInteger();
-                    direction = 1;
                 }
 
                 else if (button.StartsWith("a"))
-                    axisID = button.Substring(1).ToInteger();
-
-                switch (axisID)
                 {
-                    case 0:
-                        return "0" + (direction == 1 ? "1" : "0");
-                    case 1:
-                        return "0" + (direction == 1 ? "3" : "2");
-                    case 2:
-                        return "0" + (direction == 1 ? "5" : "4");
-                    case 3:
-                        return "0" + (direction == 1 ? "7" : "6");
-                    case 4:
-                        return "0" + (direction == 1 ? "9" : "8");
-                    case 5:
-                        return "0" + (direction == 1 ? "B" : "A");
+                    axisID = button.Substring(1).ToInteger();
+                }
+
+                if (direction == 0)
+                    return "joyaxis " + index.ToString() + " " + axisID.ToString();
+
+                else
+                {
+                    switch (axisID)
+                    {
+                        case 0:
+                            return "switch " + joy + "0" + (direction == 1 ? "1" : "0");
+                        case 1:
+                            return "switch " + joy + "0" + (direction == 1 ? "3" : "2");
+                        case 2:
+                            return "switch " + joy + "0" + (direction == 1 ? "5" : "4");
+                        case 3:
+                            return "switch " + joy + "0" + (direction == 1 ? "7" : "6");
+                        case 4:
+                            return "switch " + joy + "0" + (direction == 1 ? "9" : "8");
+                        case 5:
+                            return "switch " + joy + "0" + (direction == 1 ? "B" : "A");
+                    }
                 }
             }
 
-            return "00";
+            return "undefined";
         }
 
-        private static List<string> testStrings = new List<string>() 
-        { "Diagnostic", "Debug Dip 1", "Debug Dip 2", "Dip 1", "Dip 2", "Dip A", "Dip B", "Dip C", "Fake Dip", "Region", "Reset", "Service", "System", "Slots",  "Test" };
+        private static List<string> p1strings = new List<string>() 
+        { "Coin 1", "Diagnostic", "Debug Dip 1", "Debug Dip 2", "Dip 1", "Dip 2", "Dip A", "Dip B", "Dip C", "Fake Dip", "Region", "Reset", "Service", "Start 1", "System", "Slots", "Test" };
+
+        private static List<string> p2strings = new List<string>()
+        { "Coin 2", "Start 2" };
+
+        private static List<string> p3strings = new List<string>()
+        { "Coin 3", "Start 3" };
+
+        private static List<string> p4strings = new List<string>()
+        { "Coin 4", "Start 4" };
+
+        private static List<string> players4 = new List<string>()
+        { "gaunt" };
     }
 }
