@@ -30,7 +30,7 @@ namespace EmulatorLauncher
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_STEAM = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_LUNA = 1");
 
-            _sdlMapping = SdlDllControllersMapping.FromSdlVersion(_sdlVersion, _isX64, string.Join(",", hints));
+            _sdlMapping = SdlDllControllersMapping.FromDll(_sdl2dll, string.Join(",", hints));
             if (_sdlMapping == null)
             {
                 SdlGameController.ReloadWithHints(string.Join(",", hints));
