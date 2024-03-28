@@ -165,6 +165,10 @@
     <Compile Include="Generators\SteamLauncher.Generator.cs">
       <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Fbneo.Generator.cs" />
+    <Compile Include="Generators\Fbneo.Controllers.cs">
+      <DependentUpon>Fbneo.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Flycast.Generator.cs" />
     <Compile Include="Generators\Flycast.Controllers.cs">
       <DependentUpon>Flycast.Generator.cs</DependentUpon>

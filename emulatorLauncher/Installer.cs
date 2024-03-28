@@ -96,7 +96,8 @@ namespace EmulatorLauncher
             { new Installer("magicengine", "magicengine", "pce.exe") },
             { new Installer("eka2l1", "eka2l1", "eka2l1_qt.exe") },
             { new Installer("gemrb", "gemrb", "gemrb.exe") },
-            { new Installer("psxmame", "psxmame", "mame.exe") }
+            { new Installer("psxmame", "psxmame", "mame.exe") },
+            { new Installer("fbneo", "fbneo", "fbneo64.exe") }
         };
 
         static List<string>noVersionExe = new List<string>()
