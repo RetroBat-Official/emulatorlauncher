@@ -41,7 +41,7 @@ namespace EmulatorLauncher
 
             // Configure cfg file
             SetupConfig(path, fullscreen, rom);
-            CreateControllerConfiguration(path, rom);
+            CreateControllerConfiguration(path, rom, system);
 
             // Command line arguments
             List<string> commandArray = new List<string>();
@@ -107,6 +107,37 @@ namespace EmulatorLauncher
                 cfg["nVidSelect"] = SystemConfig["fbneo_renderer"];
             else
                 cfg["nVidSelect"] = "3";
+
+            // Monitor indexes
+            if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+            {
+                string emuMonitor = "\\\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
+                cfg["HorScreen"] = emuMonitor;
+            }
+            else
+                cfg["HorScreen"] = "\\\\" + ".\\" + "DISPLAY1";
+
+            if (SystemConfig.isOptSet("VerticalMonitorIndex") && !string.IsNullOrEmpty(SystemConfig["VerticalMonitorIndex"]))
+            {
+                string emuMonitorV = "\\\\" + ".\\" + "DISPLAY" + SystemConfig["VerticalMonitorIndex"];
+                cfg["VerScreen"] = emuMonitorV;
+            }
+            else if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+            {
+                string emuMonitorV = "\\\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
+                cfg["VerScreen"] = emuMonitorV;
+            }
+            else
+                cfg["VerScreen"] = "\\\\" + ".\\" + "DISPLAY1";
+
+            // Scanlines
+            if (SystemConfig.isOptSet("fbneo_scanlines") && SystemConfig["fbneo_scanlines"] != "0")
+            {
+                cfg["bVidScanlines"] = "1";
+                cfg["nVidScanIntensity"] = SystemConfig["fbneo_scanlines"];
+            }
+            else
+                cfg["bVidScanlines"] = "0";
 
             // Audio driver
             if (SystemConfig.isOptSet("fbneo_audiodriver") && !string.IsNullOrEmpty(SystemConfig["fbneo_audiodriver"]))

@@ -13,7 +13,7 @@ namespace EmulatorLauncher
     partial class FbneoGenerator : Generator
     {
 
-        private void CreateControllerConfiguration(string path, string rom)
+        private void CreateControllerConfiguration(string path, string rom, string system)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -27,10 +27,10 @@ namespace EmulatorLauncher
             var cfg = FbneoConfigFile.FromFile(cfgFile);
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-                ConfigureInput(controller, cfg, cfgFile);
+                ConfigureInput(controller, cfg, cfgFile, system);
         }
 
-        private void ConfigureInput(Controller controller, FbneoConfigFile cfg, string cfgFile)
+        private void ConfigureInput(Controller controller, FbneoConfigFile cfg, string cfgFile, string system)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -39,12 +39,12 @@ namespace EmulatorLauncher
                 ConfigureKeyboard(controller, cfg, cfgFile);
             else
             {
-                ConfigureJoystick(controller, cfg);
+                ConfigureJoystick(controller, cfg, system);
                 cfg.Save();
             }
         }
 
-        private void ConfigureJoystick(Controller controller, FbneoConfigFile cfg)
+        private void ConfigureJoystick(Controller controller, FbneoConfigFile cfg, string system)
         {
             if (controller == null)
                 return;
@@ -79,7 +79,16 @@ namespace EmulatorLauncher
             {
                 YmlFile ymlFile = YmlFile.Load(fbneoMapping);
 
-                game = ymlFile.Elements.Where(c => c.Name == _romName).FirstOrDefault() as YmlContainer;
+                game = ymlFile.Elements.Where(g => g.Name == _romName).FirstOrDefault() as YmlContainer;
+
+                if (game == null)
+                    game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name)).FirstOrDefault() as YmlContainer;
+
+                if (game == null)
+                    game = ymlFile.Elements.Where(g => g.Name == "default_" + system).FirstOrDefault() as YmlContainer;
+
+                if (game == null)
+                    game = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;
 
                 if (game != null)
                 {

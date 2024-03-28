@@ -125,6 +125,12 @@ namespace EmulatorLauncher.Libretro
             game = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
 
             if (game == null)
+                game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name)).FirstOrDefault() as YmlContainer;
+
+            if (game == null)
+                game = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
+
+            if (game == null)
                 return;
 
             var gameName = game.Name;
