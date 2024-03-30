@@ -18,7 +18,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
 
         private SaveStatesWatcher _saveStatesWatcher;
-
+        
         public override void Cleanup()
         {
             if (_saveStatesWatcher != null)
@@ -61,8 +61,11 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] != "1")
                 SystemConfig["forceNoBezel"] = "1";
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            if (fullscreen)
+            {
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            }
 
             _resolution = resolution;
 
@@ -155,8 +158,18 @@ namespace EmulatorLauncher
 
                 // Default settings                
                 ini.WriteValue("Rosalie's Mupen GUI", "HideCursorInFullscreenEmulation", "True");
-                ini.WriteValue("Rosalie's Mupen GUI", "PauseEmulationOnFocusLoss", "True");
-                ini.WriteValue("Rosalie's Mupen GUI", "ResumeEmulationOnFocus", "True");
+
+                if (SystemConfig.isOptSet("mupen64_pause_on_focus_lost") && SystemConfig.getOptBoolean("mupen64_pause_on_focus_lost"))
+                {
+                    ini.WriteValue("Rosalie's Mupen GUI", "PauseEmulationOnFocusLoss", "True");
+                    ini.WriteValue("Rosalie's Mupen GUI", "ResumeEmulationOnFocus", "True");
+                }
+                else
+                {
+                    ini.WriteValue("Rosalie's Mupen GUI", "PauseEmulationOnFocusLoss", "False");
+                    ini.WriteValue("Rosalie's Mupen GUI", "ResumeEmulationOnFocus", "False");
+                }
+                
                 ini.WriteValue("Rosalie's Mupen GUI", "AutomaticFullscreen", fullscreen ? "True" : "False");
                 ini.WriteValue("Rosalie's Mupen GUI", "ShowVerboseLogMessages", "False");
                 ini.WriteValue("Rosalie's Mupen GUI", "CheckForUpdates", "False");
