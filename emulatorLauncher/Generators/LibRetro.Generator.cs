@@ -416,6 +416,10 @@ namespace EmulatorLauncher.Libretro
             // Language
             SetLanguage(retroarchConfig);
 
+            // Force raw input
+            if (SystemConfig.isOptSet("libretro_rawinput") && SystemConfig.getOptBoolean("libretro_rawinput"))
+                retroarchConfig["input_driver"] = "raw";
+
             if (hdrCompatibleVideoDrivers.Contains(_video_driver))
                 BindBoolFeature(retroarchConfig, "video_hdr_enable", "enable_hdr", "true", "false");
             else
