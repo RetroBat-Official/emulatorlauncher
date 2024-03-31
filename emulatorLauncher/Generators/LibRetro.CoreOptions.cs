@@ -1505,11 +1505,11 @@ namespace EmulatorLauncher.Libretro
             if (core != "gambatte")
                 return;
 
-            coreSettings["gambatte_gb_bootloader"] = "enabled";
             coreSettings["gambatte_gbc_color_correction_mode"] = "accurate";
             coreSettings["gambatte_gbc_color_correction"] = "GBC only";
             coreSettings["gambatte_up_down_allowed"] = "disabled";
 
+            BindFeature(coreSettings, "gambatte_gb_bootloader", "gambatte_gb_bootloader", "enabled");
             BindFeature(coreSettings, "gambatte_gb_hwmode", "gambatte_gb_hwmode", "Auto");
             BindFeature(coreSettings, "gambatte_mix_frames", "gambatte_mix_frames", "lcd_ghosting");
             BindFeature(coreSettings, "gambatte_gb_internal_palette", "gambatte_gb_internal_palette", "GB - DMG");
