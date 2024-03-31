@@ -320,7 +320,8 @@ namespace EmulatorLauncher
         }
 
         private static List<string> p1strings = new List<string>() 
-        { "Coin 1", "Diagnostic", "Debug Dip 1", "Debug Dip 2", "Dip 1", "Dip 2", "Dip A", "Dip B", "Dip C", "Fake Dip", "Region", "Reset", "Service", "Service 1", "Service Mode", "Start 1", "System", "Slots", "Test", "Tilt" };
+        { "Coin 1", "Diagnostic", "Debug Dip 1", "Debug Dip 2", "Dip 1", "Dip 2", "Dip A", "Dip B", "Dip C", "Fake Dip", "Left Switch", "Pay Switch", "Region", "Reset", "Right Switch",
+            "Service", "Service 1", "Service Mode", "Show Switch", "Start 1", "System", "Slots", "Test", "Tilt" };
 
         private static List<string> p2strings = new List<string>()
         { "Coin 2", "Service 2", "Start 2" };
