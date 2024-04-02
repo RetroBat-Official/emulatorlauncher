@@ -806,6 +806,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "citra_resolution_factor", "citra_resolution_factor", "1x (Native)");
             BindFeature(coreSettings, "citra_swap_screen", "citra_swap_screen", "Top");
             BindFeature(coreSettings, "citra_custom_textures", "citra_custom_textures", "disabled");
+            BindFeature(coreSettings, "citra_use_hw_renderer", "citra_use_hw_renderer", "enabled");
 
             BindFeature(coreSettings, "citra_analog_function", "citra_analog_function", "C-Stick and Touchscreen Pointer");
             BindFeature(coreSettings, "citra_mouse_touchscreen", "citra_mouse_touchscreen", "enabled");
