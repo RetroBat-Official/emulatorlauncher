@@ -99,9 +99,9 @@ namespace EmulatorLauncher
             ProcessStick(controller, profile, "c_stick", ini, citraGuid);
             
             //motion
-            if (SystemConfig.isOptSet("citra_motion") && !string.IsNullOrEmpty(SystemConfig["citra_motion"]))
+            if (SystemConfig.isOptSet("n3ds_motion") && !string.IsNullOrEmpty(SystemConfig["n3ds_motion"]))
             {
-                switch (SystemConfig["citra_motion"])
+                switch (SystemConfig["n3ds_motion"])
                 {
                     case "cemuhook":
                         ini.WriteValue("Controls", profile + "motion_device" + "\\default", "false");
