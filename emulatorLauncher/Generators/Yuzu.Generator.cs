@@ -327,7 +327,12 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
 
-            string conf = Path.Combine(path, "user", "config", "qt-config.ini");
+            string userFolder = Path.Combine(path, "user");
+            if (!Directory.Exists(userFolder))
+                try { Directory.CreateDirectory(userFolder); }
+                catch { }
+            
+            string conf = Path.Combine(userFolder, "config", "qt-config.ini");
 
             using (var ini = new IniFile(conf))
             {
