@@ -15,8 +15,8 @@ namespace EmulatorLauncher
         }
 
         private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
-        private bool _isCitraCanary = false;
-        private bool _isLemonade = false;
+        private static bool _isCitraCanary = false;
+        private static bool _isLemonade = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
