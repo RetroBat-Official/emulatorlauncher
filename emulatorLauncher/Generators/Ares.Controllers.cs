@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using System.Configuration;
 
 namespace EmulatorLauncher
 {
@@ -90,10 +91,21 @@ namespace EmulatorLauncher
                 return;
 
             string tech = ctrl.IsXInputDevice ? "xinput" : "SDL";
+            string guid = ctrl.SdlController != null ? ctrl.SdlController.Guid.ToString().ToLower() : ctrl.Guid.ToString().ToLower();
 
             var vpad = bml.GetOrCreateContainer("VirtualPad" + playerindex);
             int index = 0x3 + (ctrl.DeviceIndex* 100000000);
             string padId = "0x" + index + "/";
+
+            if (n64StyleControllers.ContainsKey(guid))
+            {
+                Dictionary<string, string> buttons = n64StyleControllers[guid];
+
+                foreach (var button in buttons)
+                    vpad[button.Key] = padId + button.Value + ";;";
+
+                return;
+            }
 
             vpad["Pad.Up"] = GetInputKeyName(ctrl, InputKey.up, padId, tech);
             vpad["Pad.Down"] = GetInputKeyName(ctrl, InputKey.down, padId, tech);
@@ -296,6 +308,105 @@ namespace EmulatorLauncher
         static List<string> mouseButtons = new List<string>()
         {
             "X", "Y", "Left", "Middle", "Right", "Extra"
+        };
+
+        static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        {
+            {
+                // Nintendo Switch Online N64 Controller
+                "0300b7e67e050000192000000000680c",
+                new Dictionary<string, string>()
+                {
+                    { "Pad.Up", "3/11" },
+                    { "Pad.Down", "3/12" },
+                    { "Pad.Left", "3/13" },
+                    { "Pad.Right", "3/14" },
+                    { "Select", "" },
+                    { "Start", "3/6" },
+                    { "A..South", "3/0" },
+                    { "B..East", "" },
+                    { "X..West", "3/1" },
+                    { "Y..North", "" },
+                    { "L-Bumper", "3/9" },
+                    { "R-Bumper", "3/10" },
+                    { "L-Trigger", "" },
+                    { "R-Trigger", "0/4/Hi" },
+                    { "L-Stick..Click", "" },
+                    { "R-Stick..Click", "" },
+                    { "L-Up", "0/1/Lo" },
+                    { "L-Down", "0/1/Hi" },
+                    { "L-Left", "0/0/Lo" },
+                    { "L-Right", "0/0/Hi" },
+                    { "R-Up", "3/3" },
+                    { "R-Down", "0/5/Hi" },
+                    { "R-Left", "3/2" },
+                    { "R-Right", "3/4" },
+                }
+            },
+
+            {
+                // Raphnet 2x N64 Adapter
+                "030000009b2800006300000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "Pad.Up", "3/10" },
+                    { "Pad.Down", "3/11" },
+                    { "Pad.Left", "3/12" },
+                    { "Pad.Right", "3/13" },
+                    { "Select", "" },
+                    { "Start", "3/3" },
+                    { "A..South", "3/0" },
+                    { "B..East", "" },
+                    { "X..West", "3/1" },
+                    { "Y..North", "" },
+                    { "L-Bumper", "3/4" },
+                    { "R-Bumper", "3/5" },
+                    { "L-Trigger", "" },
+                    { "R-Trigger", "3/2" },
+                    { "L-Stick..Click", "" },
+                    { "R-Stick..Click", "" },
+                    { "L-Up", "0/1/Lo" },
+                    { "L-Down", "0/1/Hi" },
+                    { "L-Left", "0/0/Lo" },
+                    { "L-Right", "0/0/Hi" },
+                    { "R-Up", "3/6" },
+                    { "R-Down", "3/7" },
+                    { "R-Left", "3/8" },
+                    { "R-Right", "3/9" },
+                }
+            },
+
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "Pad.Up", "1/1/Lo" },
+                    { "Pad.Down", "1/1/Hi" },
+                    { "Pad.Left", "1/0/Lo" },
+                    { "Pad.Right", "1/0/Hi" },
+                    { "Select", "" },
+                    { "Start", "3/9" },
+                    { "A..South", "3/1" },
+                    { "B..East", "" },
+                    { "X..West", "3/2" },
+                    { "Y..North", "" },
+                    { "L-Bumper", "3/4" },
+                    { "R-Bumper", "3/5" },
+                    { "L-Trigger", "" },
+                    { "R-Trigger", "3/6" },
+                    { "L-Stick..Click", "" },
+                    { "R-Stick..Click", "" },
+                    { "L-Up", "0/1/Lo" },
+                    { "L-Down", "0/1/Hi" },
+                    { "L-Left", "0/0/Lo" },
+                    { "L-Right", "0/0/Hi" },
+                    { "R-Up", "0/3/Lo" },
+                    { "R-Down", "0/3/Hi" },
+                    { "R-Left", "0/2/Lo" },
+                    { "R-Right", "0/2/Hi" },
+                }
+            },
         };
     }
 }

@@ -105,6 +105,7 @@ namespace EmulatorLauncher
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
 
+
             // Define mapping to use
             InputKeyMapping mapping = mappingToUse[system];
 
@@ -134,16 +135,41 @@ namespace EmulatorLauncher
             // Perform mapping
             int playerIndex = controller.PlayerIndex;
             int index = controller.SdlController != null ? controller.SdlController.Index + 1 : controller.DeviceIndex + 1;
+            string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
 
-            foreach (var x in mapping)
+            if (n64StyleControllers.ContainsKey(guid) && system == "n64")
             {
-                string value = x.Value;
-                InputKey key = x.Key;
+                bool useDInput = false;
 
-                if (!monoplayer)
-                    controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
-                else
-                    controllerConfig[value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                if (n64StyleControllersInfo.ContainsKey(guid))
+                {
+                    Dictionary<string, bool> n64ControllerInfo = n64StyleControllersInfo[guid];
+                    useDInput = n64ControllerInfo.ContainsKey("dinput") ? n64ControllerInfo["dinput"] : false;
+                }
+
+                Dictionary<InputKey, string> buttons = n64StyleControllers[guid];
+
+                foreach (var x in mapping)
+                {
+                    string value = x.Value;
+                    InputKey key = x.Key;
+
+                    controllerConfig["P" + playerIndex + " " + value] = useDInput ? "J" + index + " " + buttons[key] : "X" + index + " " + buttons[key];
+                }
+            }
+
+            else
+            {
+                foreach (var x in mapping)
+                {
+                    string value = x.Value;
+                    InputKey key = x.Key;
+
+                    if (!monoplayer)
+                        controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                    else
+                        controllerConfig[value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                }
             }
 
             // Specifics
@@ -198,18 +224,34 @@ namespace EmulatorLauncher
             var analog = json.GetOrCreateContainer("AllTrollersAnalog");
             var analogConfig = analog.GetOrCreateContainer(systemController[system]);
 
+            string deadzone = "0.15";
+
+            if (SystemConfig.isOptSet("bizhawk_deadzone") && !string.IsNullOrEmpty(SystemConfig["bizhawk_deadzone"]))
+                deadzone = SystemConfig["bizhawk_deadzone"];
+
             if (system == "n64")
             {
+                bool revertXAxis = false;
+                bool revertYAxis = false;
+                bool useDInput = false;
                 var xAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " X Axis");
                 var yAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " Y Axis");
 
-                xAxis["Value"] = "X" + index + " LeftThumbX Axis";
-                xAxis.SetObject("Mult", 1.0);
-                xAxis.SetObject("Deadzone", 0.1);
+                if (n64StyleControllersInfo.ContainsKey(guid))
+                {
+                    Dictionary<string, bool> n64ControllerInfo = n64StyleControllersInfo[guid];
+                    revertXAxis = n64ControllerInfo.ContainsKey("XInvert") ? n64ControllerInfo["XInvert"] : false;
+                    revertYAxis = n64ControllerInfo.ContainsKey("YInvert") ? n64ControllerInfo["YInvert"] : false;
+                    useDInput = n64ControllerInfo.ContainsKey("dinput") ? n64ControllerInfo["dinput"] : false;
+                }
 
-                yAxis["Value"] = "X" + index + " LeftThumbY Axis";
-                yAxis.SetObject("Mult", 1.0);
-                yAxis.SetObject("Deadzone", 0.1);
+                xAxis["Value"] = useDInput ? "J" + index + " X Axis" : "X" + index + " LeftThumbX Axis";
+                xAxis.SetObject("Mult", revertXAxis ? -1.0 : 1.0);
+                xAxis.SetObject("Deadzone", deadzone);
+
+                yAxis["Value"] = useDInput ? "J" + index + " Y Axis" : "X" + index + " LeftThumbY Axis";
+                yAxis.SetObject("Mult", revertYAxis ? -1.0 : 1.0);
+                yAxis.SetObject("Deadzone", deadzone);
             }
 
             if (system == "nds")
@@ -237,19 +279,19 @@ namespace EmulatorLauncher
 
                 lStickH["Value"] = "X" + index + " LeftThumbX Axis";
                 lStickH.SetObject("Mult", 1.0);
-                lStickH.SetObject("Deadzone", 0.1);
+                lStickH.SetObject("Deadzone", deadzone);
 
                 lStickV["Value"] = "X" + index + " LeftThumbY Axis";
                 lStickV.SetObject("Mult", 1.0);
-                lStickV.SetObject("Deadzone", 0.1);
+                lStickV.SetObject("Deadzone", deadzone);
 
                 rStickH["Value"] = "X" + index + " RightThumbX Axis";
                 rStickH.SetObject("Mult", 1.0);
-                rStickH.SetObject("Deadzone", 0.1);
+                rStickH.SetObject("Deadzone", deadzone);
 
                 rStickV["Value"] = "X" + index + " RightThumbY Axis";
                 rStickV.SetObject("Mult", 1.0);
-                rStickV.SetObject("Deadzone", 0.1);
+                rStickV.SetObject("Deadzone", deadzone);
             }
 
             if (system == "tic80")
@@ -1437,6 +1479,123 @@ namespace EmulatorLauncher
             { "Key Up Cursor", "Up" },
             { "Key Down Cursor", "Down" },
             { "Key Comma", "Comma" }
+        };
+
+        static Dictionary<string, Dictionary<InputKey, string>> n64StyleControllers = new Dictionary<string, Dictionary<InputKey, string>>()
+        {
+           {
+                // Nintendo Switch Online N64 Controller
+                "0300b7e67e050000192000000000680c",
+                new Dictionary<InputKey, string>()
+                {
+                    { InputKey.leftanalogup, "X AxisUp" },
+                    { InputKey.leftanalogdown, "X AxisDown" },
+                    { InputKey.leftanalogleft, "X AxisLeft" },
+                    { InputKey.leftanalogright, "X AxisRight" },
+                    { InputKey.up, "DpadUp" },
+                    { InputKey.down, "DpadDown" },
+                    { InputKey.left, "DpadLeft" },
+                    { InputKey.right, "DpadRight" },
+                    { InputKey.start, "Start" },
+                    { InputKey.r2, "LeftTrigger" },
+                    { InputKey.y, "B" },
+                    { InputKey.a, "A" },
+                    { InputKey.rightanalogup, "Y" },
+                    { InputKey.rightanalogdown, "RightTrigger" },
+                    { InputKey.rightanalogleft, "X" },
+                    { InputKey.rightanalogright, "Back" },
+                    { InputKey.pageup, "LeftShoulder" },
+                    { InputKey.pagedown, "RightShoulder" },
+                }
+            },
+
+            {
+                // Raphnet 2x N64 Adapter
+                "030000009b2800006300000000000000",
+                new Dictionary<InputKey, string>()
+                {
+                    { InputKey.leftanalogup, "X AxisUp" },
+                    { InputKey.leftanalogdown, "X AxisDown" },
+                    { InputKey.leftanalogleft, "X AxisLeft" },
+                    { InputKey.leftanalogright, "X AxisRight" },
+                    { InputKey.up, "B11" },
+                    { InputKey.down, "B12" },
+                    { InputKey.left, "B13" },
+                    { InputKey.right, "B14" },
+                    { InputKey.start, "B4" },
+                    { InputKey.r2, "B3" },
+                    { InputKey.y, "B2" },
+                    { InputKey.a, "B1" },
+                    { InputKey.rightanalogup, "B7" },
+                    { InputKey.rightanalogdown, "B8" },
+                    { InputKey.rightanalogleft, "B9" },
+                    { InputKey.rightanalogright, "B10" },
+                    { InputKey.pageup, "B5" },
+                    { InputKey.pagedown, "B6" },
+                }
+            },
+
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
+                new Dictionary<InputKey, string>()
+                {
+                    { InputKey.leftanalogup, "X AxisUp" },
+                    { InputKey.leftanalogdown, "X AxisDown" },
+                    { InputKey.leftanalogleft, "X AxisLeft" },
+                    { InputKey.leftanalogright, "X AxisRight" },
+                    { InputKey.up, "POV0U" },
+                    { InputKey.down, "POV0D" },
+                    { InputKey.left, "POV0L" },
+                    { InputKey.right, "POV0R" },
+                    { InputKey.start, "B10" },
+                    { InputKey.r2, "B7" },
+                    { InputKey.y, "B3" },
+                    { InputKey.a, "B2" },
+                    { InputKey.rightanalogup, "W-" },
+                    { InputKey.rightanalogdown, "W+" },
+                    { InputKey.rightanalogleft, "Z-" },
+                    { InputKey.rightanalogright, "Z+" },
+                    { InputKey.pageup, "B5" },
+                    { InputKey.pagedown, "B6" },
+                }
+            },
+        };
+
+        static Dictionary<string, Dictionary<string, bool>> n64StyleControllersInfo = new Dictionary<string, Dictionary<string, bool>>()
+        {
+            {
+                // Nintendo Switch Online N64 Controller
+                "0300b7e67e050000192000000000680c",
+                new Dictionary<string, bool>()
+                {
+                    { "XInvert", false },
+                    { "YInvert", false },
+                    { "dinput", false },
+                }
+            },
+
+            {
+                // Raphnet 2x N64 Adapter
+                "030000009b2800006300000000000000",
+                new Dictionary<string, bool>()
+                {
+                    { "XInvert", false },
+                    { "YInvert", true },
+                    { "dinput", true },
+                }
+            },
+
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
+                new Dictionary<string, bool>()
+                {
+                    { "XInvert", false },
+                    { "YInvert", true },
+                    { "dinput", true },
+                }
+            },
         };
     }
 }

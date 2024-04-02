@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.EmulationStation;
 using System.Text;
 
 namespace EmulatorLauncher
@@ -103,8 +98,8 @@ namespace EmulatorLauncher
         {
             { "164", "6" },         // Left softkey - Select
             { "165", "7" },         // Right softkey - Start
-            { "180", "green" },         // Green softkey - rightThumb
-            { "181", "red" },          // Red softkey - N/A
+            { "180", "green" },     // Green softkey - rightThumb
+            { "181", "red" },       // Red softkey - N/A
             { "167", "4" },         // Middle softkey - leftThumb
             { "16", "11" },         // Up - dpad up
             { "17", "13" },         // Down - dpad down

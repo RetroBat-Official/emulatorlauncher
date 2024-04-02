@@ -627,7 +627,7 @@ namespace EmulatorLauncher
                     string guid = pad.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
                     var prod = pad.ProductID;
 
-                    if (gcAdapters.ContainsKey(guid))
+                    if (gcAdapters.ContainsKey(guid) && !Program.SystemConfig.getOptBoolean("gamecubepad" + (pad.PlayerIndex - 1)))
                     {
                         ConfigureGCAdapter(gcpad, guid, pad, gc, ini, double_pads, nsamepad);
                         continue;

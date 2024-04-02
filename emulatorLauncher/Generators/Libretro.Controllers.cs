@@ -5,11 +5,16 @@ using System.Globalization;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using System.Windows.Controls;
+using System.Configuration;
+using ValveKeyValue;
+using System.Reflection;
 
 namespace EmulatorLauncher.Libretro
 {
     class LibretroControllers
     {
+        private static bool _n64specialController = false;
         private static string _inputDriver = "sdl2";
         private static HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
 
@@ -36,6 +41,9 @@ namespace EmulatorLauncher.Libretro
 
             foreach (var controller in Program.Controllers)
                 WriteControllerConfig(retroconfig, controller, system, core);
+
+            if (_n64specialController)
+                return true;
 
             WriteHotKeyConfig(retroconfig);
 
@@ -196,6 +204,8 @@ namespace EmulatorLauncher.Libretro
                 { InputKey.select, "select"}
             };
 
+            var config = new Dictionary<string, string>();
+
             if (system == "mame")
             {
                 // Invert Dip switches and set it on r3 instead ( less annoying )
@@ -205,6 +215,27 @@ namespace EmulatorLauncher.Libretro
 
             if (system == "n64")
             {
+                string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
+                if (n64StyleControllers.ContainsKey(guid))
+                {
+                    Dictionary<string, string> buttons = n64StyleControllers[guid];
+                    Dictionary<string, string> hotkeys = n64StyleControllersSpecial[guid];
+
+                    foreach (var button in buttons)
+                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+
+                    foreach (var hotkey in hotkeys)
+                        config[hotkey.Key] = hotkey.Value;
+
+                    _inputDriver = "sdl2";
+
+                    if (config["input_joypad_driver"] != null)
+                        _inputDriver = config["input_joypad_driver"];
+
+                    _n64specialController = true;
+                    return config;
+                }
+
                 // some input adaptations for some cores...
                 // z is important, in case l2 (z) is not available for this pad, use l1
                 if (controller.Config != null && controller.Config.Input != null && !controller.Config.Input.Any(i => i.Name == InputKey.r2))
@@ -224,8 +255,6 @@ namespace EmulatorLauncher.Libretro
             }
 
             var conflicts = new List<string>();
-
-            var config = new Dictionary<string, string>();
 
             foreach (var btnkey in retroarchbtns)
             {
@@ -884,5 +913,107 @@ namespace EmulatorLauncher.Libretro
       //     { 0, retro_key.RETROK_UNKNOWN },*/
         };
 
+        static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        {
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "b_btn", "1" },
+                    { "a_axis", "+3" },
+                    { "down_btn", "h0down" },
+                    { "l2_btn", "6" },
+                    { "l_btn", "4" },
+                    { "l_x_minus_axis", "-0" },
+                    { "l_x_plus_axis", "+0" },
+                    { "l_y_minus_axis", "-1" },
+                    { "l_y_plus_axis", "+1" },
+                    { "left_btn", "h0left" },
+                    { "r_btn", "5" },
+                    { "r_x_minus_axis", "-2" },
+                    { "r_x_plus_axis", "+2" },
+                    { "r_y_minus_axis", "-3" },
+                    { "r_y_plus_axis", "+3" },
+                    { "right_btn", "h0right" },
+                    { "select_btn", "4" },
+                    { "start_btn", "9" },
+                    { "up_btn", "h0up" },
+                    { "y_btn", "2" },
+                }
+            },
+
+            {
+                // Raphnet N64 Adapter
+                "030000009b2800006300000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "a_btn", "7" },
+                    { "b_btn", "0" },
+                    { "down_btn", "11" },
+                    { "l2_btn", "2" },
+                    { "l_btn", "4" },
+                    { "l_x_minus_axis", "-0" },
+                    { "l_x_plus_axis", "+0" },
+                    { "l_y_minus_axis", "-1" },
+                    { "l_y_plus_axis", "+1" },
+                    { "left_btn", "12" },
+                    { "r_btn", "5" },
+                    { "r_x_minus_btn", "8" },
+                    { "r_x_plus_btn", "9" },
+                    { "r_y_minus_btn", "6" },
+                    { "r_y_plus_btn", "7" },
+                    { "right_btn", "13" },
+                    { "select_btn", "4" },
+                    { "start_btn", "3" },
+                    { "up_btn", "10" },
+                    { "y_btn", "1" },
+                }
+            },
+        };
+
+        static Dictionary<string, Dictionary<string, string>> n64StyleControllersSpecial = new Dictionary<string, Dictionary<string, string>>()
+        {
+            {
+                // Mayflash N64 Adapter
+                "03000000d620000010a7000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "input_enable_hotkey_btn", "4" },
+                    { "input_joypad_driver", "sdl2" },
+                    { "input_exit_emulator_btn", "9" },
+                    { "input_pause_toggle_axis", "+3" },
+                    { "input_pause_toggle_btn", "nul" },
+                    { "input_menu_toggle_btn", "1" },
+                    { "input_load_state_axis", "-2" },
+                    { "input_load_state_btn", "nul" },
+                    { "input_save_state_btn", "2" },
+                    { "input_ai_service_btn", "5" },
+                    { "input_state_slot_decrease_btn", "h0down" },
+                    { "input_state_slot_increase_btn", "h0up" },
+                    { "input_rewind_btn", "h0left" },
+                    { "input_hold_fast_forward_btn", "h0right" },
+                }
+            },
+            {
+                // Raphnet N64 Adapter
+                "030000009b2800006300000000000000",
+                new Dictionary<string, string>()
+                {
+                    { "input_enable_hotkey_btn", "4" },
+                    { "input_joypad_driver", "sdl2" },
+                    { "input_exit_emulator_btn", "3" },
+                    { "input_pause_toggle_btn", "7" },
+                    { "input_menu_toggle_btn", "0" },
+                    { "input_load_state_btn", "8" },
+                    { "input_save_state_btn", "1" },
+                    { "input_ai_service_btn", "5" },
+                    { "input_state_slot_decrease_btn", "11" },
+                    { "input_state_slot_increase_btn", "10" },
+                    { "input_rewind_btn", "12" },
+                    { "input_hold_fast_forward_btn", "13" },
+                }
+            },
+        };
     }
 }
