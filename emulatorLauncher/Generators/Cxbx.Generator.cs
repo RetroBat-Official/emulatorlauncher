@@ -12,6 +12,11 @@ namespace EmulatorLauncher
 {
     partial class CxbxGenerator : Generator
     {
+        public CxbxGenerator()
+        {
+            DependsOnDesktopResolution = true;
+        }
+
         #region XboxIsoVfs management
         private string _dokanDriveLetter;
 
