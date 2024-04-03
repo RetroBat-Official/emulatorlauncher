@@ -35,13 +35,49 @@ namespace EmulatorLauncher
             if (File.Exists(inputConfig))
                 File.Delete(inputConfig);
 
+            Dictionary<Controller, int> hybridController = new Dictionary<Controller, int>();
             var mameconfig = new XElement("mameconfig", new XAttribute("version", "10"));
             var system = new XElement("system", new XAttribute("name", "default"));
             var input = new XElement("input");
 
             var mameControllers = this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).ToList();
+
             if (SystemConfig["mame_joystick_driver"] == "xinput")
                 mameControllers = this.Controllers.Where(c => c.IsXInputDevice && !c.IsKeyboard).OrderBy(i => i.PlayerIndex).ToList();
+
+            else if (!SystemConfig.isOptSet("mame_joystick_driver") || SystemConfig["mame_joystick_driver"] == "winhybrid")
+            {
+                int i = 1;
+                var nonXinputControllers = mameControllers.Where(c => !c.IsXInputDevice).OrderBy(o => o.DirectInput.DeviceIndex).ToList();
+                if (nonXinputControllers.Count > 0)
+                {
+                    foreach (var controller in nonXinputControllers)
+                    {
+                        hybridController.Add(controller, i);
+                        i++;
+                    }
+                }
+
+                var usbControllers = mameControllers.Where(c => !nonXinputControllers.Contains(c) && c.DevicePath.StartsWith("USB")).OrderBy(o => o.DirectInput.DeviceIndex).ToList();
+                if (usbControllers.Count > 0)
+                {
+                    foreach (var controller in usbControllers)
+                    {
+                        hybridController.Add(controller, i);
+                        i++;
+                    }
+                }
+
+                var otherXinputControllers = mameControllers.Where(c => !nonXinputControllers.Contains(c) && !usbControllers.Contains(c)).OrderBy(o => o.DirectInput.DeviceIndex).ToList();
+                if (otherXinputControllers.Count > 0)
+                {
+                    foreach (var controller in otherXinputControllers)
+                    {
+                        hybridController.Add(controller, i);
+                        i++;
+                    }
+                }
+            }
 
             foreach (var controller in mameControllers)
             {
@@ -60,6 +96,12 @@ namespace EmulatorLauncher
                     int xIndex = mameControllers.OrderBy(c => c.DeviceIndex).ToList().IndexOf(controller) + 1;
                     joy = "JOYCODE_" + xIndex + "_";
                     input.Add(new XElement("mapdevice", new XAttribute("device", "XInput Player " + xIndex), new XAttribute("controller", "JOYCODE_" + xIndex)));
+                }
+
+                if ((!SystemConfig.isOptSet("mame_joystick_driver") || SystemConfig["mame_joystick_driver"] == "winhybrid") && hybridController.Count > 0)
+                {
+                    var hIndex = hybridController[controller];
+                    joy = "JOYCODE_" + hIndex + "_";
                 }
 
                 // Get dinput mapping information
