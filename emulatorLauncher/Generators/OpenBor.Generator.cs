@@ -45,6 +45,8 @@ namespace EmulatorLauncher
                 }
             }
 
+            _path = path;
+
             try
             {
                 var versionInfo = FileVersionInfo.GetVersionInfo(exe);
@@ -54,7 +56,6 @@ namespace EmulatorLauncher
 
             if (setupConfigIni(path))
             {
-                _path = path;
                 UseEsPadToKey = false;
 
                 SetupBezelAndShaders(system, rom, resolution, path);
@@ -114,7 +115,8 @@ namespace EmulatorLauncher
             if (_destFile != null && File.Exists(_destFile))
                 File.Delete(_destFile);
 
-            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
+            if (_path != null)
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
 
             base.Cleanup();
         }
