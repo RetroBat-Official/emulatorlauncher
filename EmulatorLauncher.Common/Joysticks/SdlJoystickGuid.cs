@@ -191,10 +191,8 @@ namespace EmulatorLauncher.Common.Joysticks
                     return new SdlJoystickGuid(ggs);
                 }
 
-                // Pre 2.26x : remove '16-bit CRC16 from the joystick name'
-                ret = new SdlJoystickGuid(_guid.Substring(0, 4) + "0000" + _guid.Substring(8));
-                if (version == SdlVersion.SDL2_24)
-                    return ret;                
+                if (string.IsNullOrEmpty(ctrl.Name))
+                    return new SdlJoystickGuid(_guid.Substring(0, 4) + "0000" + _guid.Substring(8));
             }
             
             if (version > SdlVersion.SDL2_26 && name != null)
