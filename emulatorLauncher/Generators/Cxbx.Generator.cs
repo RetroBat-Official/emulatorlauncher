@@ -14,7 +14,7 @@ namespace EmulatorLauncher
     {
         public CxbxGenerator()
         {
-            DependsOnDesktopResolution = true;
+            DependsOnDesktopResolution = false;
         }
 
         #region XboxIsoVfs management
@@ -88,7 +88,7 @@ namespace EmulatorLauncher
 
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
-        private bool _isUsingCxBxLoader = true;
+        private bool _isUsingCxBxLoader;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -106,6 +106,7 @@ namespace EmulatorLauncher
             _isUsingCxBxLoader = true;
 
             string exe = Path.Combine(path, "cxbxr-ldr.exe");
+
             if (!File.Exists(exe))
             {
                 _isUsingCxBxLoader = false;
@@ -120,7 +121,7 @@ namespace EmulatorLauncher
             _resolution = resolution;
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            if (_isUsingCxBxLoader)
+            if (_isUsingCxBxLoader || Path.GetExtension(rom).ToLowerInvariant() == ".xbe")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             
             // If rom is a directory
@@ -146,7 +147,7 @@ namespace EmulatorLauncher
                     res = ScreenResolution.CurrentResolution;
 
                 //Fulscreen Management
-                if (_isUsingCxBxLoader)
+                if (_isUsingCxBxLoader && Path.GetExtension(rom).ToLowerInvariant() != ".xbe")
                     ini.WriteValue("video", "FullScreen", "false");
                 else
                 {
