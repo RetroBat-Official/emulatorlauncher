@@ -140,7 +140,7 @@ namespace EmulatorLauncher.Common
                         if (HidD_GetProductString(hhid, buf, 255))
                             product = buf.ToString();
 
-                        if (!string.IsNullOrEmpty(product))
+                        //if (!string.IsNullOrEmpty(product))
                             mouseNames.Add(new RawInputDevice() { Handle = device.hDevice, Name = product, Manufacturer = manufacturer, DevicePath = deviceName, Type = type });
 
                         CloseHandle(hhid);
