@@ -131,7 +131,47 @@ namespace EmulatorLauncher
 
             foreach (var button in gameMapping.Values.FirstOrDefault())
             {
-                if (p1strings.Contains(button.Key))
+                // Specific games
+                if (_romName == "kenseim")
+                {
+                    if (button.Key == "players")
+                        continue;
+                    else if (button.Key == "Coin")
+                    {
+                        if (controller.PlayerIndex == 1)
+                            cfg["input  " + "\"Coin\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    }
+                    else if (button.Key == "Ryu Start")
+                    {
+                        if (controller.PlayerIndex == 1)
+                            cfg["input  " + "\"Ryu Start\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    }
+                    else if (button.Key == "Chun-Li Start")
+                    {
+                        if (controller.PlayerIndex == 2)
+                            cfg["input  " + "\"Chun-Li Start\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    }
+                    else if (button.Key == "Service")
+                    {
+                        if (controller.PlayerIndex == 1)
+                            cfg["input  " + "\"Service\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    }
+                    else if (controller.PlayerIndex == 1)
+                        cfg["input  " + "\"Mole A" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    else
+                        cfg["input  " + "\"Mole B" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                }
+
+                else if (noPlayerRom.Contains(_romName))
+                {
+                    if (button.Key == "players")
+                        continue;
+                    else
+                        cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                }
+
+                // General
+                else if (p1strings.Contains(button.Key))
                 {
                     if (controller.PlayerIndex == 1)
                         cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
@@ -321,7 +361,7 @@ namespace EmulatorLauncher
 
         private static List<string> p1strings = new List<string>() 
         { "Coin 1", "Diagnostic", "Debug Dip 1", "Debug Dip 2", "Dip 1", "Dip 2", "Dip A", "Dip B", "Dip C", "Fake Dip", "Left Switch", "Pay Switch", "Region", "Reset", "Right Switch",
-            "Service", "Service 1", "Service Mode", "Show Switch", "Start 1", "System", "Slots", "Test", "Tilt" };
+            "S3 Test (Jamma)", "S3 Test", "Service", "Service 1", "Service Mode", "Show Switch", "Start 1", "System", "Slots", "Test", "Tilt" };
 
         private static List<string> p2strings = new List<string>()
         { "Coin 2", "Service 2", "Start 2" };
@@ -331,5 +371,8 @@ namespace EmulatorLauncher
 
         private static List<string> p4strings = new List<string>()
         { "Coin 4", "Service 4", "Start 4" };
+
+        private static List<string> noPlayerRom = new List<string>()
+        { "crusherm", "korokoro", "tjumpman" };
     }
 }
