@@ -126,8 +126,6 @@ namespace EmulatorLauncher
                     // Fullscreen
                     if (_bezelFileInfo != null)
                         ini.WriteValue("Settings", "BorderlessFullscreen", "True");
-                    else
-                        ini.WriteValue("Settings", "BorderlessFullscreen", "False");
 
                     // Ratio
                     if (SystemConfig.isOptSet("ratio"))
