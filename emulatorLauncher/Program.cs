@@ -114,6 +114,7 @@ namespace EmulatorLauncher
             { "magicengine", () => new MagicEngineGenerator() },
             { "gemrb", () => new GemRBGenerator() },
             { "psxmame", () => new PSXMameGenerator() },
+            { "devilutionx", () => new DevilutionXGenerator() },
             { "fbneo", () => new FbneoGenerator() }
         };
 

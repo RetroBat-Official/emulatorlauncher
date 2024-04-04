@@ -97,6 +97,7 @@ namespace EmulatorLauncher
             { new Installer("eka2l1", "eka2l1", "eka2l1_qt.exe") },
             { new Installer("gemrb", "gemrb", "gemrb.exe") },
             { new Installer("psxmame", "psxmame", "mame.exe") },
+            { new Installer("devilutionx", "devilutionx", "devilutionx.exe") },
             { new Installer("fbneo", "fbneo", "fbneo64.exe") }
         };
 
