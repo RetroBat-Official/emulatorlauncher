@@ -114,7 +114,8 @@ namespace EmulatorLauncher
             { "magicengine", () => new MagicEngineGenerator() },
             { "gemrb", () => new GemRBGenerator() },
             { "psxmame", () => new PSXMameGenerator() },
-            { "fbneo", () => new FbneoGenerator() }
+            { "fbneo", () => new FbneoGenerator() },
+            { "sonic3air", () => new PortsLauncherGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
