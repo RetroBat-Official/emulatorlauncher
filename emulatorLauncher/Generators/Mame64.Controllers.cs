@@ -129,10 +129,6 @@ namespace EmulatorLauncher
                 // Guns
                 int gunCount = RawLightgun.GetUsableLightGunCount();
                 var guns = RawLightgun.GetRawLightguns();
-                _multigun = false;
-
-                if (gunCount > 1 && guns.Length > 1)
-                    _multigun = true;
 
                 string mouseIndex1 = "1";
                 string mouseIndex2 = "2";
@@ -140,11 +136,13 @@ namespace EmulatorLauncher
                 if (gunCount > 0 && guns.Length > 0)
                 {
                     SimpleLogger.Instance.Info("[GUNS] Found " + guns.Length + " gun(s).");
+
                     mouseIndex1 = (guns[0].Index + 1).ToString();
                     SimpleLogger.Instance.Info("[GUNS] Gun 1 index : " + mouseIndex1);
 
                     if (_multigun)
                     {
+                        SimpleLogger.Instance.Info("[GUNS] Multimouse enabled");
                         mouseIndex2 = (guns[1].Index + 1).ToString();
                         SimpleLogger.Instance.Info("[GUNS] Gun 2 index : " + mouseIndex2);
                     }
@@ -877,7 +875,7 @@ namespace EmulatorLauncher
                                 new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["lsright"])));
 
                         // Case of 2 guns only for now, cannot test more than 2 guns so stop here
-                        if ((_multigun && (i == 2)) || (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse") && (i == 2)))
+                        if (_multigun && (i == 2))
                         {
                             input.Add(new XElement
                                 ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
@@ -1008,7 +1006,7 @@ namespace EmulatorLauncher
                             ("port", new XAttribute("type", "P" + i + "_AD_STICK_Z"),
                                 new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["rs_y"])));
 
-                        if ((_multigun && (i == 2)) || (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse") && (i == 2)))
+                        if (_multigun && (i == 2))
                         {
                             input.Add(new XElement
                                 ("port", new XAttribute("type", "P" + i + "_LIGHTGUN_X"),
@@ -1112,7 +1110,7 @@ namespace EmulatorLauncher
                                 new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftx", xinputCtrl, 1))));
 
                         // Case of 2 guns only for now, cannot test more than 2 guns so stop here
-                        if ((_multigun && (i == 2)) || (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse") && (i == 2)))
+                        if (_multigun && (i == 2))
                         {
                             input.Add(new XElement
                                 ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
@@ -1228,7 +1226,7 @@ namespace EmulatorLauncher
                             ("port", new XAttribute("type", "P" + i + "_AD_STICK_Z"),
                                 new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righty", xinputCtrl, 0))));
 
-                        if ((_multigun && (i == 2)) || (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse") && (i == 2)))
+                        if (_multigun && (i == 2))
                         {
                             input.Add(new XElement
                                 ("port", new XAttribute("type", "P" + i + "_LIGHTGUN_X"),
