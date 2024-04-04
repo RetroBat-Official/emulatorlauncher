@@ -200,7 +200,7 @@ namespace EmulatorLauncher
                 tech = "DS4";
             else if (prod == USB_PRODUCT.SONY_DS3)
                 tech = "DS3";
-            else if (ctrl.IsXInputDevice)
+            else if (ctrl.IsXInputDevice && !SystemConfig.getOptBoolean("rpcs3_forceSDL"))
                 tech = "XInput";
 
             //Create Player block titles
@@ -272,31 +272,31 @@ namespace EmulatorLauncher
 
             else if (tech == "XInput")
             {
-                config["Left Stick Left"] = GetInputKeyNameX(ctrl, InputKey.joystick1left, tech);    //LS X-
-                config["Left Stick Down"] = GetInputKeyNameX(ctrl, InputKey.joystick1down, tech);    //LS Y-
-                config["Left Stick Right"] = GetInputKeyNameX(ctrl, InputKey.joystick1right, tech);  //LS X+
-                config["Left Stick Up"] = GetInputKeyNameX(ctrl, InputKey.joystick1up, tech);        //LS Y+
-                config["Right Stick Left"] = GetInputKeyNameX(ctrl, InputKey.joystick2left, tech);   //RS X-
-                config["Right Stick Down"] = GetInputKeyNameX(ctrl, InputKey.joystick2down, tech);   //RS Y-
-                config["Right Stick Right"] = GetInputKeyNameX(ctrl, InputKey.joystick2right, tech); //RS X+
-                config["Right Stick Up"] = GetInputKeyNameX(ctrl, InputKey.joystick2up, tech);       //RS Y+
-                config["Start"] = GetInputKeyNameX(ctrl, InputKey.start, tech);                      //Start
-                config["Select"] = GetInputKeyNameX(ctrl, InputKey.select, tech);                    //Back
-                config["PS Button"] = "Guide";                                                       //Guide (fixed)
-                config["Square"] = GetInputKeyNameX(ctrl, InputKey.y, tech);                         //Y
-                config["Cross"] = GetInputKeyNameX(ctrl, InputKey.b, tech);                          //B
-                config["Circle"] = GetInputKeyNameX(ctrl, InputKey.a, tech);                         //A
-                config["Triangle"] = GetInputKeyNameX(ctrl, InputKey.x, tech);                       //X
-                config["Left"] = GetInputKeyNameX(ctrl, InputKey.left, tech);                        //Left
-                config["Down"] = GetInputKeyNameX(ctrl, InputKey.down, tech);                        //Down
-                config["Right"] = GetInputKeyNameX(ctrl, InputKey.right, tech);                      //Right
-                config["Up"] = GetInputKeyNameX(ctrl, InputKey.up, tech);                            //Up
-                config["R1"] = GetInputKeyNameX(ctrl, InputKey.r1, tech);                            //RB
-                config["R2"] = GetInputKeyNameX(ctrl, InputKey.r2, tech);                            //RT
-                config["R3"] = GetInputKeyNameX(ctrl, InputKey.r3, tech);                            //RS
-                config["L1"] = GetInputKeyNameX(ctrl, InputKey.l1, tech);                            //LB
-                config["L2"] = GetInputKeyNameX(ctrl, InputKey.l2, tech);                            //LT
-                config["L3"] = GetInputKeyNameX(ctrl, InputKey.l3, tech);                            //LS
+                config["Left Stick Left"] = GetInputKeyNameX(ctrl, InputKey.joystick1left);    //LS X-
+                config["Left Stick Down"] = GetInputKeyNameX(ctrl, InputKey.joystick1down);    //LS Y-
+                config["Left Stick Right"] = GetInputKeyNameX(ctrl, InputKey.joystick1right);  //LS X+
+                config["Left Stick Up"] = GetInputKeyNameX(ctrl, InputKey.joystick1up);        //LS Y+
+                config["Right Stick Left"] = GetInputKeyNameX(ctrl, InputKey.joystick2left);   //RS X-
+                config["Right Stick Down"] = GetInputKeyNameX(ctrl, InputKey.joystick2down);   //RS Y-
+                config["Right Stick Right"] = GetInputKeyNameX(ctrl, InputKey.joystick2right); //RS X+
+                config["Right Stick Up"] = GetInputKeyNameX(ctrl, InputKey.joystick2up);       //RS Y+
+                config["Start"] = GetInputKeyNameX(ctrl, InputKey.start);                      //Start
+                config["Select"] = GetInputKeyNameX(ctrl, InputKey.select);                    //Back
+                config["PS Button"] = "Guide";                                                 //Guide (fixed)
+                config["Square"] = GetInputKeyNameX(ctrl, InputKey.y);                         //Y
+                config["Cross"] = GetInputKeyNameX(ctrl, InputKey.b);                          //B
+                config["Circle"] = GetInputKeyNameX(ctrl, InputKey.a);                         //A
+                config["Triangle"] = GetInputKeyNameX(ctrl, InputKey.x);                       //X
+                config["Left"] = GetInputKeyNameX(ctrl, InputKey.left);                        //Left
+                config["Down"] = GetInputKeyNameX(ctrl, InputKey.down);                        //Down
+                config["Right"] = GetInputKeyNameX(ctrl, InputKey.right);                      //Right
+                config["Up"] = GetInputKeyNameX(ctrl, InputKey.up);                            //Up
+                config["R1"] = GetInputKeyNameX(ctrl, InputKey.r1);                            //RB
+                config["R2"] = GetInputKeyNameX(ctrl, InputKey.r2);                            //RT
+                config["R3"] = GetInputKeyNameX(ctrl, InputKey.r3);                            //RS
+                config["L1"] = GetInputKeyNameX(ctrl, InputKey.l1);                            //LB
+                config["L2"] = GetInputKeyNameX(ctrl, InputKey.l2);                            //LT
+                config["L3"] = GetInputKeyNameX(ctrl, InputKey.l3);                            //LS
             }
 
             else if (tech == "SDL")
@@ -461,7 +461,7 @@ namespace EmulatorLauncher
             return "\"\"";
         }
 
-        private static string GetInputKeyNameX(Controller c, InputKey key, string tech)
+        private static string GetInputKeyNameX(Controller c, InputKey key)
         {
             Int64 pid = -1;
 
