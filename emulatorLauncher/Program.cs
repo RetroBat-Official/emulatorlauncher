@@ -115,8 +115,8 @@ namespace EmulatorLauncher
             { "gemrb", () => new GemRBGenerator() },
             { "psxmame", () => new PSXMameGenerator() },
             { "fbneo", () => new FbneoGenerator() },
-            { "sonic3air", () => new PortsLauncherGenerator() }
-            { "devilutionx", () => new DevilutionXGenerator() },
+            { "sonic3air", () => new PortsLauncherGenerator() },
+            { "devilutionx", () => new DevilutionXGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
