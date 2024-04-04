@@ -12,7 +12,7 @@ namespace EmulatorLauncher
         /// <summary>
         /// Cf. https://github.com/yuzu-emu/yuzu/blob/master/src/input_common/drivers/sdl_driver.cpp
         /// </summary>
-        /// <param name="pcsx2ini"></param>
+        /// <param name="ini"></param>
         private static void UpdateSdlControllersWithHints(IniFile ini)
         {
             var hints = new List<string>();
@@ -82,7 +82,7 @@ namespace EmulatorLauncher
 
             var guid = controller.GetSdlGuid(SdlVersion.SDL2_0_X, true);
 
-            // Yuzu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
+            // Yuzu suyu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
             if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
             {
@@ -149,7 +149,7 @@ namespace EmulatorLauncher
             }
 
             //Manage motion
-            if (Program.SystemConfig.isOptSet("yuzu_enable_motion") && Program.SystemConfig.getOptBoolean("yuzu_enable_motion"))
+            if (Program.SystemConfig.isOptSet("switch_enable_motion") && Program.SystemConfig.getOptBoolean("switch_enable_motion"))
             {
                 ini.WriteValue("Controls", "motion_device" + "\\default", "true");
                 ini.WriteValue("Controls", "motion_device", "\"" + "engine:motion_emu,update_period:100,sensitivity:0.01" + "\"");
@@ -180,7 +180,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Controls", player + "motionright", "[empty]");
 
                 // If motion is set for XInput devices, and controller type is left/right joycon, inject with R3/L3
-                if (SystemConfig.isOptSet("yuzu_enable_motion") && SystemConfig.getOptBoolean("yuzu_enable_motion") && playerTypeId == 2 || playerTypeId == 3)
+                if (SystemConfig.isOptSet("switch_enable_motion") && SystemConfig.getOptBoolean("switch_enable_motion") && playerTypeId == 2 || playerTypeId == 3)
                 {
                     // 2 = Left joycon, 3 = Right joycon -> use R3 or L3
                     var input = FromInput(controller, playerTypeId == 3 ? cfg[InputKey.l3] : cfg[InputKey.r3], yuzuGuid, index);
@@ -203,7 +203,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            bool revertButtons = Features.IsSupported("yuzu_gamepadbuttons") && SystemConfig.isOptSet("yuzu_gamepadbuttons") && SystemConfig.getOptBoolean("yuzu_gamepadbuttons");
+            bool revertButtons = Features.IsSupported("switch_gamepadbuttons") && SystemConfig.isOptSet("switch_gamepadbuttons") && SystemConfig.getOptBoolean("switch_gamepadbuttons");
             if (controller.VendorID == USB_VENDOR.NINTENDO)
             {
                 if (revertButtons)
@@ -418,9 +418,17 @@ namespace EmulatorLauncher
 
         private static void WriteShortcuts(IniFile ini)
         {
-            // exit yuzu with SELECT+START
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq", "Minus+Plus");
+            if (!_suyu)
+            {
+                // exit yuzu with SELECT+START
+                ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq\\default", "false");
+                ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq", "Minus+Plus");
+            }
+            else
+            {
+                ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20suyu\\Controller_KeySeq\\default", "false");
+                ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20suyu\\Controller_KeySeq", "Minus+Plus");
+            }
 
             // Pause with SELECT+EAST
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");

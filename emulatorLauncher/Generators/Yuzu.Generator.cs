@@ -15,16 +15,13 @@ namespace EmulatorLauncher
         }
 
         private SdlVersion _sdlVersion = SdlVersion.Unknown;
-        private bool _suyu;
+        private static bool _suyu;
         
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath(emulator.Replace("-", " "));
             if (string.IsNullOrEmpty(path) && emulator.Contains("-"))
                 path = AppConfig.GetFullPath(emulator);
-
-            if (!Directory.Exists(path))
-                path = AppConfig.GetFullPath("suyu");
 
             string exe = Path.Combine(path, "yuzu.exe");
             if (!File.Exists(exe))
@@ -41,7 +38,10 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            SetupConfiguration(path, rom, fullscreen);
+            if (!_suyu)
+                SetupConfigurationYuzu(path, rom, fullscreen);
+            else
+                SetupConfigurationSuyu(path, rom, fullscreen);
 
             var commandArray = new List<string>();
 
@@ -118,8 +118,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "Paths\\gamedirs\\size", _gamedirsSize);
         }
 
-
-        private void SetupConfiguration(string path, string rom, bool fullscreen)
+        #region yuzu
+        private void SetupConfigurationYuzu(string path, string rom, bool fullscreen)
         {
             if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
@@ -237,16 +237,8 @@ namespace EmulatorLauncher
                 }
 
                 //disable telemetry (yuzu only)
-                if (!_suyu)
-                {
-                    ini.WriteValue("WebService", "enable_telemetry\\default", "false");
-                    ini.WriteValue("WebService", "enable_telemetry", "false");
-                }
-                else
-                {
-                    ini.Remove("WebService", "enable_telemetry\\default");
-                    ini.Remove("WebService", "enable_telemetry");
-                }
+                ini.WriteValue("WebService", "enable_telemetry\\default", "false");
+                ini.WriteValue("WebService", "enable_telemetry", "false");
 
                 //remove exit confirmation
                 ini.WriteValue("UI", "confirmStop\\default", "false");
@@ -327,6 +319,211 @@ namespace EmulatorLauncher
                 CreateControllerConfiguration(ini);
             }
         }
+        #endregion
+
+        #region suyu
+        private void SetupConfigurationSuyu(string path, string rom, bool fullscreen)
+        {
+            if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
+                return;
+
+            string userFolder = Path.Combine(path, "user");
+            if (!Directory.Exists(userFolder))
+                try { Directory.CreateDirectory(userFolder); }
+                catch { }
+            
+            string conf = Path.Combine(userFolder, "config", "qt-config.ini");
+
+            using (var ini = new IniFile(conf))
+            {
+                /* Set up paths
+                string switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
+                if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
+                    catch { }
+
+                string sdmcPath = Path.Combine(switchSavesPath, "sdmc");
+                if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
+                    catch { }
+
+                if (Directory.Exists(sdmcPath))
+                {
+                    ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
+                }
+
+                string nandPath = Path.Combine(switchSavesPath, "nand");
+                if (!Directory.Exists(nandPath)) try { Directory.CreateDirectory(nandPath); }
+                    catch { }
+
+                if (Directory.Exists(nandPath))
+                {
+                    ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "nand_directory", nandPath.Replace("\\", "/"));
+                }
+
+                string dumpPath = Path.Combine(switchSavesPath, "dump");
+                if (!Directory.Exists(dumpPath)) try { Directory.CreateDirectory(dumpPath); }
+                    catch { }
+
+                if (Directory.Exists(dumpPath))
+                {
+                    ini.WriteValue("Data%20Storage", "dump_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "dump_directory", dumpPath.Replace("\\", "/"));
+                }
+
+                string loadPath = Path.Combine(switchSavesPath, "load");
+                if (!Directory.Exists(loadPath)) try { Directory.CreateDirectory(loadPath); }
+                    catch { }
+
+                if (Directory.Exists(loadPath))
+                {
+                    ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
+                }*/
+
+                //language
+                ini.WriteValue("System", "language_index\\default", "false");
+                if (SystemConfig.isOptSet("suyu_language") && !string.IsNullOrEmpty(SystemConfig["suyu_language"]))
+                    ini.WriteValue("System", "language_index", SystemConfig["suyu_language"]);
+                else
+                    ini.WriteValue("System", "language_index", GetDefaultswitchLanguage());
+
+                //region
+                if (SystemConfig.isOptSet("suyu_region_value") && !string.IsNullOrEmpty(SystemConfig["suyu_region_value"]) && SystemConfig["suyu_region_value"] != "1")
+                {
+                    ini.WriteValue("System", "region_index\\default", "false");
+                    ini.WriteValue("System", "region_index", SystemConfig["suyu_region_value"]);
+                }
+                else if (Features.IsSupported("suyu_region_value"))
+                {
+                    ini.WriteValue("System", "region_index\\default", "true");
+                    ini.WriteValue("System", "region_index", "1");
+                }
+
+                //Discord
+                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                {
+                    ini.WriteValue("UI", "enable_discord_presence\\default", "true");
+                    ini.WriteValue("UI", "enable_discord_presence", "true");
+                }
+                else
+                {
+                    ini.WriteValue("UI", "enable_discord_presence\\default", "false");
+                    ini.WriteValue("UI", "enable_discord_presence", "false");
+                }
+
+                //launch in fullscreen
+                ini.WriteValue("UI", "fullscreen\\default", fullscreen ? "false" : "true");
+                ini.WriteValue("UI", "fullscreen", fullscreen ? "true" : "false");
+
+                //Hide mouse when inactive
+                ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
+                ini.WriteValue("UI", "hideInactiveMouse", "true");
+
+                // Controller applet (disabled by default)
+                if (SystemConfig.isOptSet("suyu_controller_applet") && SystemConfig.getOptBoolean("suyu_controller_applet"))
+                {
+                    ini.WriteValue("UI", "disableControllerApplet\\default", "true");
+                    ini.WriteValue("UI", "disableControllerApplet", "false");
+                }
+                else if (Features.IsSupported("suyu_controller_applet"))
+                {
+                    ini.WriteValue("UI", "disableControllerApplet\\default", "false");
+                    ini.WriteValue("UI", "disableControllerApplet", "true");
+                }
+
+                //docked mode
+                if (SystemConfig.isOptSet("suyu_undock") && SystemConfig.getOptBoolean("suyu_undock"))
+                {
+                    ini.WriteValue("System", "use_docked_mode\\default", "false");
+                    ini.WriteValue("System", "use_docked_mode", "0");
+                }
+                else if (Features.IsSupported("suyu_undock"))
+                {
+                    ini.WriteValue("System", "use_docked_mode\\default", "true");
+                    ini.WriteValue("System", "use_docked_mode", "1");
+                }
+
+                //remove exit confirmation
+                ini.WriteValue("UI", "confirmStop\\default", "false");
+                ini.WriteValue("UI", "confirmStop", "2");
+
+                //get path for roms
+                string romPath = Path.GetDirectoryName(rom);
+                ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\", "/"));
+
+                // Set gamedirs count to 4
+                var gameDirsSize = ini.GetValue("UI", "Paths\\gamedirs\\size");
+                if (gameDirsSize.ToInteger() != 4)
+                {
+                    _gamedirsIniPath = conf;
+                    _gamedirsSize = gameDirsSize;
+                    ini.WriteValue("UI", "Paths\\gamedirs\\size", "4");
+                }
+
+                //screenshots path
+                string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/suyu";
+                if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
+                {
+                    ini.WriteValue("UI", "Screenshots\\enable_screenshot_save_as\\default", "false");
+                    ini.WriteValue("UI", "Screenshots\\enable_screenshot_save_as", "false");
+                    ini.WriteValue("UI", "Screenshots\\screenshot_path", screenshotpath);
+                }
+
+                // Audio output
+                BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "auto");
+                BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");
+
+                // Video drivers                
+                BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
+
+                // resolution_setup
+                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "2");
+
+                // Aspect ratio
+                BindQtIniFeature(ini, "Renderer", "aspect_ratio", "suyu_ratio", "0");
+
+                // Anisotropic filtering
+                BindQtIniFeature(ini, "Renderer", "max_anisotropy", "suyu_anisotropy", "0");
+
+                // Vsync
+                BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
+
+                // anti_aliasing
+                BindQtIniFeature(ini, "Renderer", "anti_aliasing", "anti_aliasing", "0");
+
+                // scaling_filter
+                BindQtIniFeature(ini, "Renderer", "scaling_filter", "scaling_filter", "1");
+
+                // GPU accuracy
+                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "1");
+
+                // Asynchronous shaders compilation (hack)
+                if (SystemConfig.isOptSet("use_asynchronous_shaders") && !SystemConfig.getOptBoolean("use_asynchronous_shaders"))
+                {
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "true");
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders", "false");
+                }
+                else
+                {
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "false");
+                    ini.WriteValue("Renderer", "use_asynchronous_shaders", "true");
+                }
+
+                // ASTC Compression (non compressed by default, use medium for videocards with 6GB of VRAM and low for 2-4GB VRAM)
+                BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
+
+                //Core options
+                BindQtIniFeature(ini, "Core", "use_multi_core", "suyu_multicore", "true");
+                BindQtIniFeature(ini, "Core", "memory_layout_mode", "suyu_memory", "0");
+
+                // CPU accuracy (auto except if the user chooses otherwise)
+                BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
+
+                CreateControllerConfiguration(ini);
+            }
+        }
+        #endregion
 
         public override int RunAndWait(ProcessStartInfo path)
         {

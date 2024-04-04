@@ -14,7 +14,7 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private bool _multigun;
+        private bool _multigun = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -486,7 +486,10 @@ namespace EmulatorLauncher
                 retList.Add("-offscreen_reload");
 
             if (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse"))
+            {
                 retList.Add("-multimouse");
+                _multigun = true;
+            }
 
             // Gamepad driver
             retList.Add("-joystickprovider");

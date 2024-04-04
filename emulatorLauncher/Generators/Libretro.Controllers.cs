@@ -5,10 +5,6 @@ using System.Globalization;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
-using System.Windows.Controls;
-using System.Configuration;
-using ValveKeyValue;
-using System.Reflection;
 
 namespace EmulatorLauncher.Libretro
 {

@@ -14,86 +14,59 @@ namespace EmulatorLauncher.Common.Joysticks
     /// </summary>
     public class SdlDllControllersMapping
     {
-        public static SdlDllControllersMapping FromSdlVersion(SdlVersion version, bool use64dll, string hints = null)
-        {
-            if (version == SdlVersion.Unknown || version == SdlVersion.SDL2_0_X)
-            {
-                SimpleLogger.Instance.Debug("[SdlDllControllersMapping] Unknown or default version");
-                return null;
-            }
-
-            string currentPath = Path.GetDirectoryName(typeof(SdlDllControllersMapping).Assembly.Location);
-
-            string ver =
-                version == SdlVersion.SDL2_24 ? "2.24.0.0" :
-                version == SdlVersion.SDL2_26 ? "2.26.0.0" :
-                version == SdlVersion.SDL2_30 ? "2.30.0.0" :
-                null;
-
-            if (ver == null)
-            {
-                SimpleLogger.Instance.Debug("[SdlDllControllersMapping] Unknown version");
-                return null;
-            }
-
-            if (use64dll && !Environment.Is64BitProcess)
-            {                
-                var sourceSDL64 = Path.GetFullPath(Path.Combine(currentPath, "sdl2", "SDL2_" + ver + "_x64.dll"));
-                if (File.Exists(sourceSDL64))
-                {
-                    try
-                    {
-                        string ee = Path.Combine(currentPath, "x64controllers.exe");
-                        if (File.Exists(ee))
-                        {
-                            SimpleLogger.Instance.Debug("[SdlDllControllersMapping] Calling x64controllers");
-
-                            string output = ProcessExtensions.RunWithOutput(ee, "-version " + version.ToString() + " -hints \"" + (hints ?? "") + "\"");
-                            if (string.IsNullOrEmpty(output))
-                                return null;
-
-                            var mappings = Mappings.DeserializeMappings(output);
-                            if (mappings != null && mappings.Any())
-                            {
-                                var ret = new SdlDllControllersMapping();
-                                foreach (var mapping in mappings)
-                                    ret.Mapping[mapping.Path] = new SdlJoystickGuid(mapping.Guid);
-
-                                return ret;
-                            }
-                        }
-                    }
-                    catch(Exception ex)
-                    {
-                        SimpleLogger.Instance.Error("[SdlDllControllersMapping] " + ex.Message);
-                    }
-                }
-            }
-
-            string sourceSDL = Path.GetFullPath(Path.Combine(currentPath, "sdl2", "SDL2_" + ver + (Environment.Is64BitProcess ? "_x64.dll" : ".dll")));
-            if (File.Exists(sourceSDL))
-                return FromDll(sourceSDL, hints);
-
-            if (!Environment.Is64BitProcess)
-            {
-                string currentSdlPath = Path.Combine(currentPath, "SDL2.dll");
-
-                var sdlVersion = SdlJoystickGuidManager.GetSdlVersion(currentSdlPath);
-                if (sdlVersion == version)
-                {
-                    var ret = FromDll(currentSdlPath, hints);
-                    if (ret != null)
-                        return ret;
-                }
-            }
-
-            SimpleLogger.Instance.Debug("[SdlDllControllersMapping] SDL2 version not found");
-            return null;
-        }
-
         public static SdlDllControllersMapping FromDll(string path, string hints = null)
         {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                return null;
+
+            SimpleLogger.Instance.Info("[SdlDllControllersMapping] FromDll : " + path); 
+            
+            if (Kernel32.IsX64(path) && !Environment.Is64BitProcess)
+                return FromExternalDll64(path, hints);
+
             return new SdlDllControllersMapping(path, hints);
+        }
+
+        private static SdlDllControllersMapping FromExternalDll64(string path, string hints)
+        {
+            try
+            {
+                string currentPath = Path.GetDirectoryName(typeof(SdlDllControllersMapping).Assembly.Location);
+
+                string ee = Path.Combine(currentPath, "x64controllers.exe");
+                if (!File.Exists(ee))
+                    SimpleLogger.Instance.Warning("[SdlDllControllersMapping] missing " + ee);
+                else
+                {
+                    SimpleLogger.Instance.Debug("[SdlDllControllersMapping] Calling x64controllers");
+
+                    string output = ProcessExtensions.RunWithOutput(ee, "-sdl2 \"" + path + "\" -hints \"" + (hints ?? "") + "\"");
+                    if (string.IsNullOrEmpty(output))
+                    {
+                        SimpleLogger.Instance.Debug("[SdlDllControllersMapping] x64controllers returned empty output");
+                    }
+                    else
+                    {
+                        var mappings = Mappings.DeserializeMappings(output);
+                        if (mappings == null || !mappings.Any())
+                            SimpleLogger.Instance.Debug("[SdlDllControllersMapping] x64controllers returned no mapping");
+                        else
+                        {
+                            var ret = new SdlDllControllersMapping();
+                            foreach (var mapping in mappings)
+                                ret.Mapping[mapping.Path] = new SdlJoystickGuid(mapping.Guid);
+
+                            return ret;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[SdlDllControllersMapping] " + ex.Message);
+            }
+
+            return null;
         }
 
         public SdlJoystickGuid GetControllerGuid(string hidPath)
@@ -170,23 +143,29 @@ namespace EmulatorLauncher.Common.Joysticks
                 return;
             }
 
-            SDL_JoystickPathForIndex = (SDL_JoystickPathForIndexPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_JoystickPathForIndex"), typeof(SDL_JoystickPathForIndexPtr));
-            if (SDL_JoystickPathForIndex == null)
+            try
             {
-                SimpleLogger.Instance.Error("[SdlDllControllersMapping] SDL_JoystickPathForIndex is missing in " + path);
-                return;
+                SDL_JoystickPathForIndex = (SDL_JoystickPathForIndexPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_JoystickPathForIndex"), typeof(SDL_JoystickPathForIndexPtr));
+                if (SDL_JoystickPathForIndex == null)
+                {
+                    SimpleLogger.Instance.Error("[SdlDllControllersMapping] SDL_JoystickPathForIndex is missing in " + path);
+                    return;
+                }
+
+                SDL_Init = (SDL_InitPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_Init"), typeof(SDL_InitPtr));
+                SDL_InitSubSystem = (SDL_InitSubSystemPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_InitSubSystem"), typeof(SDL_InitSubSystemPtr));
+                SDL_QuitSubSystem = (SDL_QuitSubSystemPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_QuitSubSystem"), typeof(SDL_QuitSubSystemPtr));
+                SDL_Quit = (SDL_QuitPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_Quit"), typeof(SDL_QuitPtr));
+                SDL_NumJoysticks = (SDL_NumJoysticksPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_NumJoysticks"), typeof(SDL_NumJoysticksPtr));
+                SDL_JoystickGetDeviceGUID = (SDL_JoystickGetDeviceGUIDPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_JoystickGetDeviceGUID"), typeof(SDL_JoystickGetDeviceGUIDPtr));
+                SDL_SetHint = (SDL_SetHintPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_SetHint"), typeof(SDL_SetHintPtr));
+                SDL_GameControllerNameForIndex = (SDL_GameControllerNameForIndexPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_GameControllerNameForIndex"), typeof(SDL_GameControllerNameForIndexPtr));
+                LoadControllers(hints);
             }
-
-            SDL_Init = (SDL_InitPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_Init"), typeof(SDL_InitPtr));
-            SDL_InitSubSystem = (SDL_InitSubSystemPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_InitSubSystem"), typeof(SDL_InitSubSystemPtr));
-            SDL_QuitSubSystem = (SDL_QuitSubSystemPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_QuitSubSystem"), typeof(SDL_QuitSubSystemPtr));
-            SDL_Quit = (SDL_QuitPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_Quit"), typeof(SDL_QuitPtr));
-            SDL_NumJoysticks = (SDL_NumJoysticksPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_NumJoysticks"), typeof(SDL_NumJoysticksPtr));
-            SDL_JoystickGetDeviceGUID = (SDL_JoystickGetDeviceGUIDPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_JoystickGetDeviceGUID"), typeof(SDL_JoystickGetDeviceGUIDPtr));
-            SDL_SetHint = (SDL_SetHintPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_SetHint"), typeof(SDL_SetHintPtr));
-            SDL_GameControllerNameForIndex = (SDL_GameControllerNameForIndexPtr)Marshal.GetDelegateForFunctionPointer(GetProcAddress(hModule, "SDL_GameControllerNameForIndex"), typeof(SDL_GameControllerNameForIndexPtr));
-
-            LoadControllers(hints);
+            catch(Exception ex)
+            {
+                SimpleLogger.Instance.Error("[SdlDllControllersMapping] Libary has problems", ex);
+            }
 
             FreeLibrary(hModule);
 

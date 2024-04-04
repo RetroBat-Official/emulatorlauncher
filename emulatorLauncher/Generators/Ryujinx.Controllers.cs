@@ -13,20 +13,24 @@ namespace EmulatorLauncher
     partial class RyujinxGenerator : Generator
     {
         /// <summary>
-        /// cf. https://github.com/Ryujinx/Ryujinx/blob/master/Ryujinx.SDL2.Common/SDL2Driver.cs#L61
+        /// cf. https://github.com/Ryujinx/Ryujinx/blob/master/src/Ryujinx.SDL2.Common/SDL2Driver.cs#L56
         /// </summary>
         private void UpdateSdlControllersWithHints()
         {
             string dllPath = Path.Combine(_emulatorPath, "SDL2.dll");
             _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(dllPath);
 
+            if (Program.Controllers.Count(c => !c.IsKeyboard) == 0)
+                return;
+
             var hints = new List<string>();            
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_SWITCH_HOME_LED = 0");            
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1");
             
-            _sdlMapping = SdlDllControllersMapping.FromSdlVersion(_sdlVersion, Kernel32.IsX64(dllPath), string.Join(",", hints));
+            _sdlMapping = SdlDllControllersMapping.FromDll(dllPath, string.Join(",", hints));
             if (_sdlMapping == null)
             {
                 SdlGameController.ReloadWithHints(string.Join(",", hints));

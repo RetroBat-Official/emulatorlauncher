@@ -319,7 +319,7 @@ namespace EmulatorLauncher
                     regKeyc.SetValue("PlayfieldMonitorID", "\\\\.\\DISPLAY1");
 
                 if (SystemConfig.isOptSet("DefaultCamera") && !string.IsNullOrEmpty(SystemConfig["DefaultCamera"]))
-                    regKeyc.SetValue("DefaultCamera", SystemConfig["DefaultCamera"]);
+                    regKeyc.SetValue("DefaultCamera", SystemConfig["DefaultCamera"].ToInteger());
                 else
                     regKeyc.SetValue("DefaultCamera", 0);
 
@@ -393,19 +393,19 @@ namespace EmulatorLauncher
                     regKeyc.SetValue("RenderOrnaments", 0);
 
                 if (SystemConfig.isOptSet("fp_texture_filter"))
-                    regKeyc.SetValue("TextureFilter", SystemConfig["fp_texture_filter"]);
+                    regKeyc.SetValue("TextureFilter", SystemConfig["fp_texture_filter"].ToInteger());
                 else
-                    regKeyc.SetValue("TextureFilter", "0");
+                    regKeyc.SetValue("TextureFilter", 0);
 
                 if (SystemConfig.isOptSet("fp_anisotropic"))
-                    regKeyc.SetValue("AnisotropicFiltering", SystemConfig["fp_anisotropic"]);
+                    regKeyc.SetValue("AnisotropicFiltering", SystemConfig["fp_anisotropic"].ToInteger());
                 else
-                    regKeyc.SetValue("AnisotropicFiltering", "1");
+                    regKeyc.SetValue("AnisotropicFiltering", 1);
 
                 if (SystemConfig.isOptSet("fp_antialiasing"))
-                    regKeyc.SetValue("AntiAliasing", SystemConfig["fp_antialiasing"]);
+                    regKeyc.SetValue("AntiAliasing", SystemConfig["fp_antialiasing"].ToInteger());
                 else
-                    regKeyc.SetValue("AntiAliasing", "2");
+                    regKeyc.SetValue("AntiAliasing", 2);
 
                 regKeyc.Close();
             }

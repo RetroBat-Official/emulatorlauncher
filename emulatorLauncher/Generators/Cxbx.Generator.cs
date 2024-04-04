@@ -12,6 +12,11 @@ namespace EmulatorLauncher
 {
     partial class CxbxGenerator : Generator
     {
+        public CxbxGenerator()
+        {
+            DependsOnDesktopResolution = false;
+        }
+
         #region XboxIsoVfs management
         private string _dokanDriveLetter;
 
@@ -83,14 +88,18 @@ namespace EmulatorLauncher
 
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
-        private bool _isUsingCxBxLoader = true;
+        private bool _isUsingCxBxLoader;
+        private bool _chihiro = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = null;
 
             if ((core != null && core == "chihiro") || (emulator != null && emulator == "chihiro"))
+            {
                 path = AppConfig.GetFullPath("chihiro");
+                _chihiro = true;
+            }
 
             if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("cxbx-reloaded");
@@ -101,6 +110,7 @@ namespace EmulatorLauncher
             _isUsingCxBxLoader = true;
 
             string exe = Path.Combine(path, "cxbxr-ldr.exe");
+
             if (!File.Exists(exe))
             {
                 _isUsingCxBxLoader = false;
@@ -141,7 +151,7 @@ namespace EmulatorLauncher
                     res = ScreenResolution.CurrentResolution;
 
                 //Fulscreen Management
-                if (_isUsingCxBxLoader)
+                if (_isUsingCxBxLoader && !_chihiro)
                     ini.WriteValue("video", "FullScreen", "false");
                 else
                 {

@@ -806,6 +806,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "citra_resolution_factor", "citra_resolution_factor", "1x (Native)");
             BindFeature(coreSettings, "citra_swap_screen", "citra_swap_screen", "Top");
             BindFeature(coreSettings, "citra_custom_textures", "citra_custom_textures", "disabled");
+            BindFeature(coreSettings, "citra_use_hw_renderer", "citra_use_hw_renderer", "enabled");
+            BindFeature(coreSettings, "citra_use_virtual_sd", "citra_use_virtual_sd", "enabled");
 
             BindFeature(coreSettings, "citra_analog_function", "citra_analog_function", "C-Stick and Touchscreen Pointer");
             BindFeature(coreSettings, "citra_mouse_touchscreen", "citra_mouse_touchscreen", "enabled");
@@ -1505,11 +1507,11 @@ namespace EmulatorLauncher.Libretro
             if (core != "gambatte")
                 return;
 
-            coreSettings["gambatte_gb_bootloader"] = "enabled";
             coreSettings["gambatte_gbc_color_correction_mode"] = "accurate";
             coreSettings["gambatte_gbc_color_correction"] = "GBC only";
             coreSettings["gambatte_up_down_allowed"] = "disabled";
 
+            BindFeature(coreSettings, "gambatte_gb_bootloader", "gambatte_gb_bootloader", "enabled");
             BindFeature(coreSettings, "gambatte_gb_hwmode", "gambatte_gb_hwmode", "Auto");
             BindFeature(coreSettings, "gambatte_mix_frames", "gambatte_mix_frames", "lcd_ghosting");
             BindFeature(coreSettings, "gambatte_gb_internal_palette", "gambatte_gb_internal_palette", "GB - DMG");
@@ -3271,10 +3273,9 @@ namespace EmulatorLauncher.Libretro
             coreSettings["ppsspp_auto_frameskip"] = "disabled";
             coreSettings["ppsspp_frameskip"] = "disabled";
             coreSettings["ppsspp_frameskiptype"] = "Number of frames";
-            coreSettings["ppsspp_rendering_mode"] = "Buffered";
             coreSettings["ppsspp_locked_cpu_speed"] = "disabled";
 
-            if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
+            if ((Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore")) || !SystemConfig.getOptBoolean("ppsspp_cheats"))
                 coreSettings["ppsspp_cheats"] = "disabled";
             else
                 coreSettings["ppsspp_cheats"] = "enabled";
@@ -3282,58 +3283,46 @@ namespace EmulatorLauncher.Libretro
             switch (SystemConfig["PerformanceMode"])
             {
                 case "Fast":
-                    coreSettings["ppsspp_block_transfer_gpu"] = "disabled";
                     coreSettings["ppsspp_spline_quality"] = "Low";
                     coreSettings["ppsspp_software_skinning"] = "enabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
                     coreSettings["ppsspp_vertex_cache"] = "enabled";
                     coreSettings["ppsspp_fast_memory"] = "enabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "enabled";
-                    coreSettings["ppsspp_retain_changed_textures"] = "enabled";
                     coreSettings["ppsspp_force_lag_sync"] = "disabled";
-                    coreSettings["ppsspp_disable_slow_framebuffer_effects"] = "enabled";
                     break;
                 case "Balanced":
-                    coreSettings["ppsspp_block_transfer_gpu"] = "enabled";
                     coreSettings["ppsspp_spline_quality"] = "Medium";
                     coreSettings["ppsspp_software_skinning"] = "disabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
                     coreSettings["ppsspp_vertex_cache"] = "enabled";
                     coreSettings["ppsspp_fast_memory"] = "enabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "disabled";
-                    coreSettings["ppsspp_retain_changed_textures"] = "disabled";
                     coreSettings["ppsspp_force_lag_sync"] = "disabled";
-                    coreSettings["ppsspp_disable_slow_framebuffer_effects"] = "disabled";
                     break;
                 case "Accurate":
-                    coreSettings["ppsspp_block_transfer_gpu"] = "enabled";
                     coreSettings["ppsspp_spline_quality"] = "High";
                     coreSettings["ppsspp_software_skinning"] = "disabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "disabled";
                     coreSettings["ppsspp_vertex_cache"] = "disabled";
                     coreSettings["ppsspp_fast_memory"] = "disabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "disabled";
-                    coreSettings["ppsspp_retain_changed_textures"] = "disabled";
                     coreSettings["ppsspp_force_lag_sync"] = "enabled";
-                    coreSettings["ppsspp_disable_slow_framebuffer_effects"] = "disabled";
                     break;
                 default:
-                    coreSettings["ppsspp_block_transfer_gpu"] = "enabled";
-                    coreSettings["ppsspp_spline_quality"] = "Medium";
+                    coreSettings["ppsspp_spline_quality"] = "High";
                     coreSettings["ppsspp_software_skinning"] = "enabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
                     coreSettings["ppsspp_vertex_cache"] = "disabled";
                     coreSettings["ppsspp_fast_memory"] = "enabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "disabled";
-                    coreSettings["ppsspp_retain_changed_textures"] = "disabled";
                     coreSettings["ppsspp_force_lag_sync"] = "disabled";
-                    coreSettings["ppsspp_disable_slow_framebuffer_effects"] = "disabled";
                     break;
             }
 
             BindFeature(coreSettings, "ppsspp_cpu_core", "ppsspp_cpu_core", "JIT");
-            BindFeature(coreSettings, "ppsspp_inflight_frames", "ppsspp_inflight_frames", "1440x816");
-            BindFeature(coreSettings, "ppsspp_internal_resolution", "ppsspp_internal_resolution", "1440x816");
+            BindFeature(coreSettings, "ppsspp_inflight_frames", "ppsspp_inflight_frames", "Up to 2");
+            BindFeature(coreSettings, "ppsspp_internal_resolution", "ppsspp_internal_resolution", "480x272");
             BindFeature(coreSettings, "ppsspp_texture_anisotropic_filtering", "ppsspp_texture_anisotropic_filtering", "disabled");
             BindFeature(coreSettings, "ppsspp_texture_filtering", "ppsspp_texture_filtering", "Auto");
             BindFeature(coreSettings, "ppsspp_texture_scaling_type", "ppsspp_texture_scaling_type", "xbrz");
@@ -3344,7 +3333,6 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "ppsspp_ignore_bad_memory_access", "ppsspp_ignore_bad_memory_access", "enabled");
             BindFeature(coreSettings, "ppsspp_texture_replacement", "ppsspp_texture_replacement", "disabled");
             BindFeature(coreSettings, "ppsspp_button_preference", "ppsspp_button_preference", "Cross");
-            BindFeature(coreSettings, "ppsspp_mulitsample_level", "ppsspp_mulitsample_level", "Disabled");
         }
 
         private void ConfigurePrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
