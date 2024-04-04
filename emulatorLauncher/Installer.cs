@@ -97,13 +97,14 @@ namespace EmulatorLauncher
             { new Installer("eka2l1", "eka2l1", "eka2l1_qt.exe") },
             { new Installer("gemrb", "gemrb", "gemrb.exe") },
             { new Installer("psxmame", "psxmame", "mame.exe") },
-            { new Installer("devilutionx", "devilutionx", "devilutionx.exe") },
-            { new Installer("fbneo", "fbneo", "fbneo64.exe") }
+            { new Installer("fbneo", "fbneo", "fbneo64.exe") },
+            { new Installer("sonic3air", "sonic3air", "Sonic3AIR.exe") },
+            { new Installer("devilutionx", "devilutionx", "devilutionx.exe") }
         };
 
         static List<string>noVersionExe = new List<string>()
         {
-            "rmg", "play", "eduke32", "mesen"
+            "rmg", "play", "eduke32", "mesen", "fbneo"
         };
 
         #region Properties
