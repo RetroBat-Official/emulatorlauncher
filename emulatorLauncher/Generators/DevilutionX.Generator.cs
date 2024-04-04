@@ -55,7 +55,6 @@ namespace EmulatorLauncher
                 FileName = exe,
                 WorkingDirectory = path,
                 Arguments = args,
-                WindowStyle = ProcessWindowStyle.Hidden,
             };
         }
 
