@@ -89,13 +89,17 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
         private bool _isUsingCxBxLoader;
+        private bool _chihiro = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = null;
 
             if ((core != null && core == "chihiro") || (emulator != null && emulator == "chihiro"))
+            {
                 path = AppConfig.GetFullPath("chihiro");
+                _chihiro = true;
+            }
 
             if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("cxbx-reloaded");
@@ -121,7 +125,7 @@ namespace EmulatorLauncher
             _resolution = resolution;
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            if (_isUsingCxBxLoader || Path.GetExtension(rom).ToLowerInvariant() == ".xbe")
+            if (_isUsingCxBxLoader)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             
             // If rom is a directory
@@ -147,7 +151,7 @@ namespace EmulatorLauncher
                     res = ScreenResolution.CurrentResolution;
 
                 //Fulscreen Management
-                if (_isUsingCxBxLoader && Path.GetExtension(rom).ToLowerInvariant() != ".xbe")
+                if (_isUsingCxBxLoader && !_chihiro)
                     ini.WriteValue("video", "FullScreen", "false");
                 else
                 {
