@@ -12,6 +12,7 @@ namespace EmulatorLauncher
         {
             ConfigureSonic3air(commandArray, rom, exe);
             ConfigureSonicMania(commandArray, rom, exe);
+            ConfigureSonicRetro(commandArray, rom, exe);
         }
 
         #region ports
@@ -122,7 +123,16 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "Game", "language", "sonicmania_lang", "0");
 
                 if (_fullscreen)
+                {
                     ini.WriteValue("Video", "windowed", "n");
+                    if (_resolution != null)
+                        ini.WriteValue("Video", "refreshRate", _resolution.DisplayFrequency.ToString());
+                    else
+                    {
+                        var res = ScreenResolution.CurrentResolution;
+                        ini.WriteValue("Video", "refreshRate", res.DisplayFrequency.ToString());
+                    }
+                }
                 else
                 {
                     ini.WriteValue("Video", "windowed", "y");
@@ -138,9 +148,12 @@ namespace EmulatorLauncher
                         var res = ScreenResolution.CurrentResolution;
                         ini.WriteValue("Video", "winWidth", res.Width.ToString());
                         ini.WriteValue("Video", "winHeight", res.Height.ToString());
-                        ini.WriteValue("Video", "winHeight", res.DisplayFrequency.ToString());
+                        ini.WriteValue("Video", "refreshRate", res.DisplayFrequency.ToString());
                     }
                 }
+
+                if (SystemConfig.isOptSet("sonicmania_force60hz") && SystemConfig.getOptBoolean("sonicmania_force60hz"))
+                    ini.WriteValue("Video", "refreshRate", "60");
 
                 if (SystemConfig.isOptSet("sonicmania_shader") && !string.IsNullOrEmpty(SystemConfig["sonicmania_shader"]) && SystemConfig["sonicmania_shader"] != "none")
                 {
@@ -153,7 +166,100 @@ namespace EmulatorLauncher
                     ini.WriteValue("Video", "screenShader", "0");
                 }
 
-                ConfigureSonicManiaControls(ini);
+                ini.Save();
+            }
+        }
+
+        private void ConfigureSonicRetro(List<string> commandArray, string rom, string exe)
+        {
+            if (_emulator != "sonicretro")
+                return;
+
+            string [] rsdkv4Files = new string[] { "glew32.dll", "ogg.dll", "SDL2.dll", "vorbis.dll" };
+
+            string sourcePath = _path;
+            string romPath = Path.GetDirectoryName(rom);
+
+            // Put the emulator files in the rom folder (check versions)
+            string sourceGameExe = Path.Combine(_path, _exeName);
+            string targetGameExe = Path.Combine(romPath, _exeName);
+
+            if (!File.Exists(targetGameExe))
+            {
+                try
+                {
+                    File.Copy(sourceGameExe, targetGameExe, true);
+                    foreach (string file in rsdkv4Files)
+                    {
+                        string sourceFile = Path.Combine(_path, file);
+                        string targetFile = Path.Combine(romPath, file);
+                        File.Copy(sourceFile, targetFile, true);
+                    }
+                }
+                catch { }
+            }
+
+            // check versions
+            if (File.Exists(targetGameExe))
+            {
+                var sourceVersionInfo = FileVersionInfo.GetVersionInfo(sourceGameExe);
+                var targetVersionInfo = FileVersionInfo.GetVersionInfo(targetGameExe);
+                string sourceVersion = sourceVersionInfo.FileMajorPart + "." + sourceVersionInfo.FileMinorPart + "." + sourceVersionInfo.FileBuildPart + "." + sourceVersionInfo.FilePrivatePart;
+                string targetVersion = targetVersionInfo.FileMajorPart + "." + targetVersionInfo.FileMinorPart + "." + targetVersionInfo.FileBuildPart + "." + targetVersionInfo.FilePrivatePart;
+
+                if (sourceVersion != targetVersion)
+                {
+                    try
+                    {
+                        File.Copy(sourceGameExe, targetGameExe, true);
+                        foreach (string file in rsdkv4Files)
+                        {
+                            string sourceFile = Path.Combine(_path, file);
+                            string targetFile = Path.Combine(romPath, file);
+                            File.Copy(sourceFile, targetFile, true);
+                        }
+                    }
+                    catch { }
+                }
+            }
+            _path = romPath;
+            exe = targetGameExe;
+
+            var res = ScreenResolution.CurrentResolution;
+
+            // Settings
+            string settingsFile = Path.Combine(romPath, "Settings.ini");
+
+            using (var ini = IniFile.FromFile(settingsFile))
+            {
+                ini.WriteValue("Dev", "DataFile", Path.GetFileName(rom));
+                BindIniFeature(ini, "Game", "Language", "sonicretro_lang", "0");
+                BindIniFeature(ini, "Game", "GameType", "sonicretro_gametype", "0");
+                
+                if (_fullscreen)
+                {
+                    ini.WriteValue("Window", "FullScreen", "true");
+                    if (_resolution != null)
+                        ini.WriteValue("Window", "RefreshRate", _resolution.DisplayFrequency.ToString());
+                    else
+                        ini.WriteValue("Window", "RefreshRate", res.DisplayFrequency.ToString());
+                }
+                else
+                {
+                    ini.WriteValue("Window", "FullScreen", "false");
+
+                    if (_resolution != null)
+                        ini.WriteValue("Window", "RefreshRate", _resolution.DisplayFrequency.ToString());
+                    else
+                        ini.WriteValue("Window", "RefreshRate", res.DisplayFrequency.ToString());
+                }
+
+                if (SystemConfig.isOptSet("sonicretro_force60hz") && SystemConfig.getOptBoolean("sonicretro_force60hz"))
+                    ini.WriteValue("Window", "RefreshRate", "60");
+
+                ini.WriteValue("Window", "Borderless", "true");
+                BindBoolIniFeature(ini, "Window", "VSync", "sonicretro_vsync", "true", "false");
+                BindIniFeature(ini, "Window", "ScalingMode", "sonicretro_scaling", "0");
 
                 ini.Save();
             }
