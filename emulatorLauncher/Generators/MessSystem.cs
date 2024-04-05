@@ -109,7 +109,15 @@ namespace EmulatorLauncher
                 // Color Computer (default to coco3)
                 new MessSystem("coco"         ,"coco3"     , new MessRomType[]
                         {
-                            new MessRomType("cass", new string[] { "wav", "cas" } ),
+                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                            new MessRomType("hard1", new string[] { "vhd" } ),
+                            new MessRomType("flop1" ),
+                        }),
+
+                new MessSystem("cocoh"         ,"cocoh"     , new MessRomType[]
+                        {
+                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
                             new MessRomType("hard1", new string[] { "vhd" } ),
                             new MessRomType("flop1" ),
@@ -117,13 +125,7 @@ namespace EmulatorLauncher
 
                 new MessSystem("coco1"        ,"coco"     , new MessRomType[]
                         {
-                            new MessRomType("cass", new string[] { "wav", "cas" } ),
-                            new MessRomType("cart" )
-                        }),
-
-               new MessSystem("coco2"         ,"coco2"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "cas" } ),
+                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
                             new MessRomType("hard1", new string[] { "vhd" } ),
                             new MessRomType("flop1" ),
@@ -131,7 +133,15 @@ namespace EmulatorLauncher
 
                new MessSystem("coco2b"        ,"coco2b"     , new MessRomType[]
                         {
-                            new MessRomType("cass", new string[] { "wav", "cas" } ),
+                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                            new MessRomType("hard1", new string[] { "vhd" } ),
+                            new MessRomType("flop1" ),
+                        }),
+
+               new MessSystem("coco2bh"        ,"coco2bh"     , new MessRomType[]
+                        {
+                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
                             new MessRomType("hard1", new string[] { "vhd" } ),
                             new MessRomType("flop1" ),
@@ -139,7 +149,15 @@ namespace EmulatorLauncher
 
                 new MessSystem("coco3p"         ,"coco3p"     , new MessRomType[]
                         {
-                            new MessRomType("cass", new string[] { "wav", "cas" } ),
+                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                            new MessRomType("hard1", new string[] { "vhd" } ),
+                            new MessRomType("flop1" ),
+                        }),
+
+                new MessSystem("coco3h"         ,"coco3h"     , new MessRomType[]
+                        {
+                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
                             new MessRomType("hard1", new string[] { "vhd" } ),
                             new MessRomType("flop1" ),

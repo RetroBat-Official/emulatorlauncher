@@ -8,9 +8,13 @@ namespace EmulatorLauncher
 {
     partial class PortsLauncherGenerator : Generator
     {
+        #region ports
         private void ConfigureSonic3airControls(string configFolder, DynamicJson settings)
         {
             if (_emulator != "sonic3air")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
             if (!Controllers.Any(c => !c.IsKeyboard))
@@ -68,6 +72,39 @@ namespace EmulatorLauncher
             inputJson.Save();
         }
 
+        private void ConfigureSonicManiaControls(IniFile ini)
+        {
+            if (_emulator != "sonicmania")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            ini.ClearSection("Keyboard Map 1");
+            ini.ClearSection("Keyboard Map 2");
+            ini.ClearSection("Keyboard Map 3");
+            ini.ClearSection("Keyboard Map 4");
+
+            if (!Controllers.Any(c => !c.IsKeyboard))
+            {
+                ini.WriteValue("Keyboard Map 1", "up", "0x26");
+                ini.WriteValue("Keyboard Map 1", "down", "0x28");
+                ini.WriteValue("Keyboard Map 1", "left", "0x25");
+                ini.WriteValue("Keyboard Map 1", "right", "0x27");
+                ini.WriteValue("Keyboard Map 1", "buttonA", "0x41");
+                ini.WriteValue("Keyboard Map 1", "buttonB", "0x53");
+                ini.WriteValue("Keyboard Map 1", "buttonC", "0x44");
+                ini.WriteValue("Keyboard Map 1", "buttonX", "0x51");
+                ini.WriteValue("Keyboard Map 1", "buttonY", "0x57");
+                ini.WriteValue("Keyboard Map 1", "buttonZ", "0x45");
+                ini.WriteValue("Keyboard Map 1", "start", "0xd");
+                ini.WriteValue("Keyboard Map 1", "select", "0x9");
+                return;
+            }
+        }
+        #endregion
+
+        #region general tools
         private static string GetSDLInputName(Controller c, InputKey key, bool isXinput)
         {
             Int64 pid = -1;
@@ -120,5 +157,6 @@ namespace EmulatorLauncher
             }
             return "";
         }
+        #endregion
     }
 }

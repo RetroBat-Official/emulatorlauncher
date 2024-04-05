@@ -116,6 +116,7 @@ namespace EmulatorLauncher
             { "psxmame", () => new PSXMameGenerator() },
             { "fbneo", () => new FbneoGenerator() },
             { "sonic3air", () => new PortsLauncherGenerator() },
+            { "sonicmania", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() }
         };
 
