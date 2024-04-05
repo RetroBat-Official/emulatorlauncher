@@ -360,6 +360,7 @@ namespace EmulatorLauncher.Libretro
             ConfigurePcsx2(retroarchConfig, coreSettings, system, core);
             ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
+            ConfigurePocketCDG(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(retroarchConfig, coreSettings, system, core);
             ConfigurePpsspp(retroarchConfig, coreSettings, system, core);
@@ -3191,6 +3192,13 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["picodrive_lowpass_range"] = "60";
                 }
             }
+        }
+
+        private void ConfigurePocketCDG(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "pocketcpg")
+                return;
+
         }
 
         private void ConfigurePokeMini(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
