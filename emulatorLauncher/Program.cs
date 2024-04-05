@@ -118,6 +118,7 @@ namespace EmulatorLauncher
             { "sonic3air", () => new PortsLauncherGenerator() },
             { "sonicmania", () => new PortsLauncherGenerator() },
             { "sonicretro", () => new PortsLauncherGenerator() },
+            { "sonicretrocd", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() }
         };
 

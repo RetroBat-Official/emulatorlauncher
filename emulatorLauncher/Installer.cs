@@ -101,6 +101,7 @@ namespace EmulatorLauncher
             { new Installer("sonic3air", "sonic3air", "Sonic3AIR.exe") },
             { new Installer("sonicmania", "sonicmania", "RSDKv5U_x64.exe") },
             { new Installer("sonicretro", "sonicretro", "RSDKv4_64.exe") },
+            { new Installer("sonicretrocd", "sonicretrocd", "RSDKv3_64.exe") },
             { new Installer("devilutionx", "devilutionx", "devilutionx.exe") }
         };
 
