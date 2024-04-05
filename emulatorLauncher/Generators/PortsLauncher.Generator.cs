@@ -51,6 +51,7 @@ namespace EmulatorLauncher
         {
             { "sonic3air", "Sonic3AIR.exe"},
             { "sonicmania", "RSDKv5U_x64.exe"},
+            { "sonicretro", "RSDKv4_64.exe"},
         };
     }
 }

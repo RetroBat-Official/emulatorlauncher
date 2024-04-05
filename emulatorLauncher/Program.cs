@@ -117,6 +117,7 @@ namespace EmulatorLauncher
             { "fbneo", () => new FbneoGenerator() },
             { "sonic3air", () => new PortsLauncherGenerator() },
             { "sonicmania", () => new PortsLauncherGenerator() },
+            { "sonicretro", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() }
         };
 
