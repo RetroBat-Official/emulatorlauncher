@@ -29,6 +29,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            _resolution = resolution;
 
             List<string> commandArray = new List<string>();
 
@@ -49,6 +50,7 @@ namespace EmulatorLauncher
         private readonly Dictionary<string, string> exeDictionnary = new Dictionary<string, string>
         {
             { "sonic3air", "Sonic3AIR.exe"},
+            { "sonicmania", "RSDKv5U_x64.exe"},
         };
     }
 }
