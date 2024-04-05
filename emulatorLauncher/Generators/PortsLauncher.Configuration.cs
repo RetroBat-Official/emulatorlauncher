@@ -172,11 +172,12 @@ namespace EmulatorLauncher
 
         private void ConfigureSonicRetro(List<string> commandArray, string rom, string exe)
         {
-            if (_emulator != "sonicretro")
+            if (_emulator != "sonicretro" && _emulator != "sonicretrocd")
                 return;
 
-            string [] rsdkv4Files = new string[] { "glew32.dll", "ogg.dll", "SDL2.dll", "vorbis.dll" };
-
+            string[] rsdkv4Files = new string[] { "glew32.dll", "ogg.dll", "SDL2.dll", "vorbis.dll" };
+            string[] rsdkv3Files = new string[] { "glew32.dll", "ogg.dll", "SDL2.dll" };
+            bool sonicCD = _emulator == "sonicretrocd";
             string sourcePath = _path;
             string romPath = Path.GetDirectoryName(rom);
 
@@ -186,17 +187,35 @@ namespace EmulatorLauncher
 
             if (!File.Exists(targetGameExe))
             {
-                try
+                switch (_emulator)
                 {
-                    File.Copy(sourceGameExe, targetGameExe, true);
-                    foreach (string file in rsdkv4Files)
-                    {
-                        string sourceFile = Path.Combine(_path, file);
-                        string targetFile = Path.Combine(romPath, file);
-                        File.Copy(sourceFile, targetFile, true);
-                    }
+                    case "sonicretro":
+                        try
+                        {
+                            File.Copy(sourceGameExe, targetGameExe, true);
+                            foreach (string file in rsdkv4Files)
+                            {
+                                string sourceFile = Path.Combine(_path, file);
+                                string targetFile = Path.Combine(romPath, file);
+                                File.Copy(sourceFile, targetFile, true);
+                            }
+                        }
+                        catch { }
+                        break;
+                    case "sonicretrocd":
+                        try
+                        {
+                            File.Copy(sourceGameExe, targetGameExe, true);
+                            foreach (string file in rsdkv3Files)
+                            {
+                                string sourceFile = Path.Combine(_path, file);
+                                string targetFile = Path.Combine(romPath, file);
+                                File.Copy(sourceFile, targetFile, true);
+                            }
+                        }
+                        catch { }
+                        break;
                 }
-                catch { }
             }
 
             // check versions
@@ -209,17 +228,35 @@ namespace EmulatorLauncher
 
                 if (sourceVersion != targetVersion)
                 {
-                    try
+                    switch (_emulator)
                     {
-                        File.Copy(sourceGameExe, targetGameExe, true);
-                        foreach (string file in rsdkv4Files)
-                        {
-                            string sourceFile = Path.Combine(_path, file);
-                            string targetFile = Path.Combine(romPath, file);
-                            File.Copy(sourceFile, targetFile, true);
-                        }
+                        case "sonicretro":
+                            try
+                            {
+                                File.Copy(sourceGameExe, targetGameExe, true);
+                                foreach (string file in rsdkv4Files)
+                                {
+                                    string sourceFile = Path.Combine(_path, file);
+                                    string targetFile = Path.Combine(romPath, file);
+                                    File.Copy(sourceFile, targetFile, true);
+                                }
+                            }
+                            catch { }
+                            break;
+                        case "sonicretrocd":
+                            try
+                            {
+                                File.Copy(sourceGameExe, targetGameExe, true);
+                                foreach (string file in rsdkv3Files)
+                                {
+                                    string sourceFile = Path.Combine(_path, file);
+                                    string targetFile = Path.Combine(romPath, file);
+                                    File.Copy(sourceFile, targetFile, true);
+                                }
+                            }
+                            catch { }
+                            break;
                     }
-                    catch { }
                 }
             }
             _path = romPath;
@@ -234,6 +271,9 @@ namespace EmulatorLauncher
             {
                 ini.WriteValue("Dev", "DataFile", Path.GetFileName(rom));
                 BindIniFeature(ini, "Game", "Language", "sonicretro_lang", "0");
+                if (sonicCD && SystemConfig.isOptSet("sonicretro_lang") && SystemConfig["sonicretro_lang"].ToInteger() > 5)
+                    ini.WriteValue("Game", "Language", "0");
+
                 BindIniFeature(ini, "Game", "GameType", "sonicretro_gametype", "0");
                 
                 if (_fullscreen)
@@ -260,6 +300,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("Window", "Borderless", "true");
                 BindBoolIniFeature(ini, "Window", "VSync", "sonicretro_vsync", "true", "false");
                 BindIniFeature(ini, "Window", "ScalingMode", "sonicretro_scaling", "0");
+
+                if (sonicCD)
+                    ini.WriteValue("Game", "Platform", "0");
 
                 ini.Save();
             }

@@ -17,9 +17,14 @@ namespace EmulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             _system = system;
-            _emulator = emulator;
+            
             _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
+            // Specific cases for some emulators
+            if (rom.Contains("soniccd") || SystemConfig.getOptBoolean("sonicretro_sonicCD"))
+                emulator = "sonicretrocd";
+
+            _emulator = emulator;
             _path = AppConfig.GetFullPath(emulator);
             if (!Directory.Exists(_path))
                 return null;
@@ -52,6 +57,7 @@ namespace EmulatorLauncher
             { "sonic3air", "Sonic3AIR.exe"},
             { "sonicmania", "RSDKv5U_x64.exe"},
             { "sonicretro", "RSDKv4_64.exe"},
+            { "sonicretrocd", "RSDKv3_64.exe"},
         };
     }
 }
