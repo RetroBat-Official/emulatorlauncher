@@ -31,7 +31,7 @@ namespace EmulatorLauncher
             var settings = DynamicJson.Load(settingsFile);
 
             settings["AutoAssignGamepadPlayerIndex"] = "-1";
-            settings["GameExePath"] = exe.Replace("\\", "\\\\");
+            settings["GameExePath"] = exe;
             settings["Fullscreen"] = _fullscreen ? "1" : "0";
             settings["RomPath"] = rom.Replace("\\", "/");
             BindFeature(settings, "ControllerRumblePlayer1", "sonic3_rumble", "0.0");
@@ -54,16 +54,6 @@ namespace EmulatorLauncher
             ConfigureSonic3airControls(configFolder, settings);
 
             settings.Save();
-
-            string configFile = Path.Combine(_path, "config.json");
-
-            // Config file
-            var config = DynamicJson.Load(configFile);
-
-            var devmode = config.GetOrCreateContainer("DevMode");
-            devmode["SkipExitConfirmation"] = "1";
-
-            config.Save();
         }
 
         private void ConfigureSonicMania(List<string> commandArray, string rom, string exe)
