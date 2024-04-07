@@ -119,8 +119,6 @@ namespace EmulatorLauncher
                     playerTypeId = id.ToInteger();
             }
 
-            bool handheld = playerTypeId == 4;
-
             ini.WriteValue("Controls", player + "type" + "\\default",  playerTypeId == 0 ? "true" : "false");
             ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
             ini.WriteValue("Controls", player + "connected" + "\\default", "true");
@@ -344,8 +342,6 @@ namespace EmulatorLauncher
                     playerTypeId = id.ToInteger();
             }
 
-            bool handheld = playerTypeId == 4;
-
             ini.WriteValue("Controls", player + "type" + "\\default", playerTypeId == 0 ? "true" : "false");
             ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
             ini.WriteValue("Controls", player + "connected" + "\\default", "true");
@@ -435,7 +431,7 @@ namespace EmulatorLauncher
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "Minus+A");
         }
 
-            static Dictionary<string, string> DefKeys = new Dictionary<string, string>()
+        /*static readonly Dictionary<string, string> DefKeys = new Dictionary<string, string>()
         {
             { "button_a", "engine:keyboard,code:67,toggle:0" },
             { "button_b","engine:keyboard,code:88,toggle:0" },
@@ -459,9 +455,9 @@ namespace EmulatorLauncher
             { "button_screenshot","engine:keyboard,code:0,toggle:0" },
             { "lstick","engine:analog_from_button,up:engine$0keyboard$1code$087$1toggle$00,left:engine$0keyboard$1code$065$1toggle$00,modifier:engine$0keyboard$1code$016777248$1toggle$00,down:engine$0keyboard$1code$083$1toggle$00,right:engine$0keyboard$1code$068$1toggle$00,modifier_scale:0.500000" },
             { "rstick","engine:analog_from_button,up:engine$0keyboard$1code$073$1toggle$00,left:engine$0keyboard$1code$074$1toggle$00,modifier:engine$0keyboard$1code$00$1toggle$00,down:engine$0keyboard$1code$075$1toggle$00,right:engine$0keyboard$1code$076$1toggle$00,modifier_scale:0.500000" }
-        };
+        };*/
 
-        static InputKeyMapping Mapping = new InputKeyMapping()
+        static readonly InputKeyMapping Mapping = new InputKeyMapping()
         {
             { InputKey.select,          "button_minus" },
             { InputKey.start,           "button_plus" },
@@ -487,7 +483,7 @@ namespace EmulatorLauncher
             { InputKey.r3,              "button_rstick"},
         };
 
-        static InputKeyMapping reversedButtons = new InputKeyMapping()
+        static readonly InputKeyMapping reversedButtons = new InputKeyMapping()
         {
             { InputKey.b,               "button_b" },
             { InputKey.a,               "button_a" },

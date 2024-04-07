@@ -14,7 +14,6 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private SdlVersion _sdlVersion = SdlVersion.Unknown;
         private static bool _suyu;
         
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -31,10 +30,6 @@ namespace EmulatorLauncher
                 return null;
 
             _suyu = exe.EndsWith("suyu.exe");
-
-            string sdl2 = Path.Combine(path, "SDL2.dll");
-            if (File.Exists(sdl2))
-                _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -93,8 +88,7 @@ namespace EmulatorLauncher
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                string ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
 

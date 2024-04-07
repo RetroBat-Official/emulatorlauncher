@@ -13,7 +13,7 @@ namespace EmulatorLauncher
         // mame -listfull nom*
         // mame -listmedias nom*
 
-        static MessSystem[] MessSystems = new MessSystem[]
+        static readonly MessSystem[] MessSystems = new MessSystem[]
             {
                 // IN RETROBAT
 
@@ -277,6 +277,7 @@ namespace EmulatorLauncher
                 new MessSystem("apfm1000"     ,"apfm1000" ,"cart"  ),           // APF M-1000
                 new MessSystem("arcadia"      ,"arcadia"  ,"cart"  ),           // Arcadia 2001
                 new MessSystem("gmaster"      ,"gmaster"  ,"cart"  ),           // Game Master
+                new MessSystem("vc4000"       ,"vc4000"        , "cart"  ),  // Interton VC 4000
 
                 // NOT IN RETROBAT
                 new MessSystem("x1"           ,"x1" , new MessRomType[] 
@@ -362,7 +363,6 @@ namespace EmulatorLauncher
                 new MessSystem("einstein"     ,"einstein"      , "flop1"  ), // Tatung Einstein TC-01
                 new MessSystem("pmd85"        ,"pmd85"         , "cass"  ), // Tesla PMD 85
                 new MessSystem("laser200"     ,"laser200"      , "dump" ), // VTech Laser 200
-                new MessSystem("vc4000"       ,"vc4000"        , "cart"  ),  // Interton VC 4000
                 new MessSystem("casloopy"       ,"casloopy"        , "cart"  ),  // casio Loopy
                 new MessSystem("mpu2000"      ,"vc4000"        , "cart"  ),  // Acetronic MPU 2000
                 new MessSystem("mpt05"        ,"vc4000"        , "cart"  ),  // ITMC MPT-05

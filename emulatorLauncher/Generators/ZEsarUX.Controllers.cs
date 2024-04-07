@@ -36,7 +36,6 @@ namespace EmulatorLauncher
             if (!File.Exists(gamecontrollerDB))
             {
                 SimpleLogger.Instance.Info("[INFO] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
-                gamecontrollerDB = null;
                 return;
             }
 
@@ -69,8 +68,7 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key, SdlToDirectInput dInputCtrl, bool isXinput)
         {
-            bool revertAxis;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             string esName = (c.Config[key].Name).ToString();
 
@@ -130,7 +128,7 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private static Dictionary<string, string> esToDinput = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> esToDinput = new Dictionary<string, string>()
         {
             { "a", "a" },
             { "b", "b" },

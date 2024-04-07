@@ -51,12 +51,13 @@ namespace EmulatorLauncher
             MessSystem messMode = MessSystem.GetMessSystem(system, core);
             if (messMode == null || messMode.Name == "mame" || messMode.Name == "hbmame")
             {
-                List<string> commandArray = new List<string>();
+                List<string> commandArray = new List<string>
+                {
+                    "-skip_gameinfo",
 
-                commandArray.Add("-skip_gameinfo");
-
-                // rompath
-                commandArray.Add("-rompath");
+                    // rompath
+                    "-rompath"
+                };
                 if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig["bios"]))
                     commandArray.Add(AppConfig.GetFullPath("bios") + ";" + Path.GetDirectoryName(rom));
                 else
