@@ -62,9 +62,11 @@ namespace EmulatorLauncher
             }
 
             // Command line arguments
-            var commandArray = new List<string>();
+            var commandArray = new List<string>
+            {
+                "\"" + rom + "\""
+            };
 
-            commandArray.Add("\"" + rom + "\"");
             if (fullscreen)
                 commandArray.Add("--fullscreen");
 

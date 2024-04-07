@@ -9,7 +9,6 @@ namespace EmulatorLauncher
     {
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
-        private string _system;
         private string _emulator;
         private string _path;
         private string _exeName;
@@ -17,8 +16,6 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            _system = system;
-            
             _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             // Specific cases for some emulators

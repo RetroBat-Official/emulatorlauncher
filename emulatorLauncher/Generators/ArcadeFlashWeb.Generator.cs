@@ -65,8 +65,6 @@ namespace EmulatorLauncher
 
             while (hWnd != focusApp)
             {
-                var name = User32.GetWindowText(focusApp);
-                var name2 = User32.GetWindowText(hWnd);
                 if (process.WaitForExit(50))
                 {
                     process = null;

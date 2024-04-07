@@ -64,10 +64,11 @@ namespace EmulatorLauncher
             if (aresSystems.ContainsKey(core))
                 aresSystem = aresSystems[core];
 
-            List<string> commandArray = new List<string>();
-            
-            commandArray.Add("--system");
-            commandArray.Add("\"" + aresSystem + "\"");
+            List<string> commandArray = new List<string>
+            {
+                "--system",
+                "\"" + aresSystem + "\""
+            };
 
             // if running a n64dd game, both roms need to be specified with the ndd rom last
             if (system == "n64dd" && Path.GetExtension(rom) == ".ndd")

@@ -63,8 +63,6 @@ namespace EmulatorLauncher
             //controller configuration
             CreateControllerConfiguration(path);
 
-            string romdir = Path.GetDirectoryName(rom);
-
             var commandArray = new List<string>();
 
             if (fullscreen)
@@ -124,8 +122,7 @@ namespace EmulatorLauncher
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                string ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
 

@@ -132,10 +132,7 @@ namespace EmulatorLauncher
 
         private void WriteApple2Option(string name, string value)
         {
-            RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AppleWin\CurrentVersion\Configuration", true);
-            if (regKeyc == null)
-                regKeyc = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\AppleWin\CurrentVersion\Configuration");
-
+            RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AppleWin\CurrentVersion\Configuration", true) ?? Registry.CurrentUser.CreateSubKey(@"SOFTWARE\AppleWin\CurrentVersion\Configuration");
             if (regKeyc != null)
             {
                 regKeyc.SetValue(name, value);
@@ -152,8 +149,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             return ret;
         }
