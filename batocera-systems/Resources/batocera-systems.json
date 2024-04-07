@@ -521,6 +521,20 @@
     ]
   },
 
+  "casloopy": {
+    "name": "Casio Loopy",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/casloopy.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/casloopy.xml"
+      }
+    ]
+  },
+
   "cdi": {
     "name": "Philips CD-I",
     "biosFiles": [
@@ -1441,7 +1455,7 @@
     ]
   },
 
-    "pcenginecd": {
+  "pcenginecd": {
     "name": "PC Engine CD",
     "biosFiles": [
       {
@@ -1707,6 +1721,16 @@
       {
         "md5": "",
         "file": "bios/mame/hash/tutor.xml"
+      }
+    ]
+  },
+
+  "vc4000": {
+    "name": "VC4000",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/mame/hash/vc4000.xml"
       }
     ]
   },

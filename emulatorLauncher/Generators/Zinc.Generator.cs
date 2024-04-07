@@ -10,8 +10,6 @@ namespace EmulatorLauncher
 {
     partial class ZincGenerator : Generator
     {
-        private ScreenResolution _resolution;
-
         public ZincGenerator()
         {
             DependsOnDesktopResolution = true;
@@ -24,8 +22,6 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "ZiNc.exe");
             if (!File.Exists(exe))
                 return null;
-
-            _resolution = resolution;
 
             List<string> commandArray = new List<string>();
 
