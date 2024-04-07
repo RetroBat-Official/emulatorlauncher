@@ -590,17 +590,18 @@ namespace EmulatorLauncher
         private void ConfigureMameini(string path)
         {
             var ini = MameIniFile.FromFile(Path.Combine(path, "mame.ini"));
+
             if (ini["writeconfig"] != "0")
             {
                 ini["writeconfig"] = "0";
-                ini.Save();
             }
 
             if (SystemConfig.getOptBoolean("mame_output_windows"))
                 ini["output"] = "windows";
             else
                 ini["output"] = "auto";
-
+            
+            ini.Save();
         }
     }
 
