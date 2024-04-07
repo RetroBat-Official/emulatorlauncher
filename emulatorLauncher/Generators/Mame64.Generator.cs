@@ -42,13 +42,11 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            _exeName = Path.GetFileNameWithoutExtension(exe);
-
             ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution);
             ConfigureUIini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
             ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
 
-            string args = null;
+            string args;
 
             MessSystem messMode = MessSystem.GetMessSystem(system, core);
             if (messMode == null || messMode.Name == "mame" || messMode.Name == "hbmame")
@@ -172,10 +170,8 @@ namespace EmulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args,
                 WindowStyle = ProcessWindowStyle.Minimized,
-        };
+            };
         }
-
-        private string _exeName;
 
         private List<string> GetCommonMame64Arguments(string rom, bool hbmame, ScreenResolution resolution = null)
         {
@@ -614,8 +610,10 @@ namespace EmulatorLauncher
 
         public static MameIniFile FromFile(string file)
         {
-            var ret = new MameIniFile();
-            ret._fileName = file;
+            var ret = new MameIniFile
+            {
+                _fileName = file
+            };
 
             try
             {
