@@ -264,12 +264,13 @@ namespace EmulatorLauncher
                 new MessSystem("scv"          ,"scv"      ,"cart"  ),           // Super Cassette Vision
                 new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),           // Bally Astrocade
                 new MessSystem("astrocade"    ,"astrocde" ,"cart"  ),           // Bally Astrocade
+                new MessSystem("casloopy"     ,"casloopy" ,"cart"  ),           // casio Loopy
                 new MessSystem("pv1000"       ,"pv1000"   ,"cart"  ),           // Casio PV-1000
                 new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),           // GameCom
-                new MessSystem("gp32"         ,"gp32"          , "memc"  ),     // GamePark 32             
+                new MessSystem("gp32"         ,"gp32"     ,"memc"  ),           // GamePark 32             
                 new MessSystem("vsmile"       ,"vsmile"   ,"cart"  ),           // VSMILE
-                new MessSystem("vsmilem"       ,"vsmilem"   ,"cart"  ),         // VSMILE
-                new MessSystem("vsmilpro"       ,"vsmilpro"   ,"cdrm"  ),       // VSMILE
+                new MessSystem("vsmilem"      ,"vsmilem"  ,"cart"  ),           // VSMILE
+                new MessSystem("vsmilpro"     ,"vsmilpro" ,"cdrm"  ),           // VSMILE
                 new MessSystem("supracan"     ,"supracan" ,"cart"  ),           // Supracan
                 new MessSystem("megaduck"     ,"megaduck" ,"cart"  ),           // Megaduck
                 new MessSystem("gamate"       ,"gamate"   ,"cart"  ),           // Gamate
@@ -363,7 +364,6 @@ namespace EmulatorLauncher
                 new MessSystem("einstein"     ,"einstein"      , "flop1"  ), // Tatung Einstein TC-01
                 new MessSystem("pmd85"        ,"pmd85"         , "cass"  ), // Tesla PMD 85
                 new MessSystem("laser200"     ,"laser200"      , "dump" ), // VTech Laser 200
-                new MessSystem("casloopy"       ,"casloopy"        , "cart"  ),  // casio Loopy
                 new MessSystem("mpu2000"      ,"vc4000"        , "cart"  ),  // Acetronic MPU 2000
                 new MessSystem("mpt05"        ,"vc4000"        , "cart"  ),  // ITMC MPT-05
                 new MessSystem("tcs"          ,"vc4000"        , "cart"  ),  // Rowtron Television Computer System
