@@ -64,10 +64,11 @@ namespace EmulatorLauncher
             if (aresSystems.ContainsKey(core))
                 aresSystem = aresSystems[core];
 
-            List<string> commandArray = new List<string>();
-            
-            commandArray.Add("--system");
-            commandArray.Add("\"" + aresSystem + "\"");
+            List<string> commandArray = new List<string>
+            {
+                "--system",
+                "\"" + aresSystem + "\""
+            };
 
             // if running a n64dd game, both roms need to be specified with the ndd rom last
             if (system == "n64dd" && Path.GetExtension(rom) == ".ndd")
@@ -95,8 +96,8 @@ namespace EmulatorLauncher
 
             var bml = BmlFile.Load(Path.Combine(path, "settings.bml"));
             SetupConfiguration(bml, path, system, core, rom);
-            SetupFirmwares(bml, path, system, core, rom);
-            WriteKeyboardHotkeys(bml, path);
+            SetupFirmwares(bml, system);
+            WriteKeyboardHotkeys(bml);
             CreateControllerConfiguration(bml, path);
 
             bml.Save();
@@ -192,7 +193,7 @@ namespace EmulatorLauncher
             aresCore["Path"] = Path.GetDirectoryName(rom).Replace("\\", "/") + "/";
         }
 
-        private void WriteKeyboardHotkeys(BmlFile bml, string path)
+        private void WriteKeyboardHotkeys(BmlFile bml)
         {
             // Use padtokey mapping to map these keys to controllers as Ares does not allow combos
             var hotkey = bml.GetOrCreateContainer("Hotkey");
@@ -210,7 +211,7 @@ namespace EmulatorLauncher
             hotkey["QuitEmulator"] = "0x1/0/12;;";          // F12
         }
 
-        private void SetupFirmwares(BmlFile bml, string path, string system, string core, string rom)
+        private void SetupFirmwares(BmlFile bml, string system)
         {
             if (system == "colecovision")
             {
@@ -355,8 +356,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             if (ret == 1)
             {
@@ -371,7 +371,7 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        private static Dictionary<string, string> aresSystems = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> aresSystems = new Dictionary<string, string>
         {
             { "Atari2600", "Atari2600" },
             { "WonderSwan", "WonderSwan" },

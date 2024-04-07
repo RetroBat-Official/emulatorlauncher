@@ -70,7 +70,7 @@ namespace EmulatorLauncher
             {
                 string sysconf = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin", "User", "Wii", "shared2", "sys", "SYSCONF");
                 if (File.Exists(sysconf))
-                    writeWiiSysconfFile(sysconf);
+                    WriteWiiSysconfFile(sysconf);
                 else
                     SimpleLogger.Instance.Info("[WARNING] Wii Nand file not found in : " + sysconf);
             }
@@ -241,7 +241,7 @@ namespace EmulatorLauncher
             catch { }
         }
     
-        private string getGameCubeLangFromEnvironment()
+        private string GetGameCubeLangFromEnvironment()
         {
             var availableLanguages = new Dictionary<string, string>() 
             { 
@@ -251,15 +251,14 @@ namespace EmulatorLauncher
             var lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                string ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
 
             return "0";
         }
 
-        private int getWiiLangFromEnvironment()
+        private int GetWiiLangFromEnvironment()
         {
             var availableLanguages = new Dictionary<string, int>()
             {
@@ -269,28 +268,27 @@ namespace EmulatorLauncher
             var lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                int ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out int ret))
                     return ret;
             }
 
             return 1;
         }
 
-        private void writeWiiSysconfFile(string path)
+        private void WriteWiiSysconfFile(string path)
         {
             if (!File.Exists(path))
                 return;
 
             SimpleLogger.Instance.Info("[INFO] Writing to wii system nand in : " + path);
 
-            int langId = 1;
+            int langId;
             int barPos = 0;
 
             if (SystemConfig.isOptSet("wii_language") && !string.IsNullOrEmpty(SystemConfig["wii_language"]))
                 langId = SystemConfig["wii_language"].ToInteger();
             else
-                langId = getWiiLangFromEnvironment();
+                langId = GetWiiLangFromEnvironment();
 
             if (SystemConfig.isOptSet("sensorbar_position") && !string.IsNullOrEmpty(SystemConfig["sensorbar_position"]))
                 barPos = SystemConfig["sensorbar_position"].ToInteger();
@@ -333,8 +331,7 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
                 {
-                    Rectangle emulationStationBounds;
-                    if (IsEmulationStationWindowed(out emulationStationBounds, true) && !SystemConfig.getOptBoolean("forcefullscreen"))
+                    if (IsEmulationStationWindowed(out Rectangle emulationStationBounds, true) && !SystemConfig.getOptBoolean("forcefullscreen"))
                     {
                         _windowRect = emulationStationBounds;
                         _bezelFileInfo = null;
@@ -380,8 +377,8 @@ namespace EmulatorLauncher
                     }
                     else
                     {
-                        ini.WriteValue("Core", "SelectedLanguage", getGameCubeLangFromEnvironment());
-                        ini.WriteValue("Core", "GameCubeLanguage", getGameCubeLangFromEnvironment());
+                        ini.WriteValue("Core", "SelectedLanguage", GetGameCubeLangFromEnvironment());
+                        ini.WriteValue("Core", "GameCubeLanguage", GetGameCubeLangFromEnvironment());
                     }
 
                     // Audio
@@ -579,8 +576,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             return ret;
         }

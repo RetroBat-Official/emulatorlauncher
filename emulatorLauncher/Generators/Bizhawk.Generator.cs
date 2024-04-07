@@ -12,7 +12,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
-        private static List<string> preferredRomExtensions = new List<string>() { ".bin", ".cue", ".img", ".iso", ".rom" };
+        private static readonly List<string> preferredRomExtensions = new List<string>() { ".bin", ".cue", ".img", ".iso", ".rom" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -37,7 +37,7 @@ namespace EmulatorLauncher
 
                 SetupGeneralConfig(json,system, core, rom, emulator);
                 SetupCoreOptions(json, system, core, rom);
-                SetupFirmwares(json, system, core);
+                SetupFirmwares(json, system);
                 SetupRetroAchievements(json);
                 CreateControllerConfiguration(json, system, core);
 
@@ -62,9 +62,11 @@ namespace EmulatorLauncher
             }
 
             // Command line arguments
-            var commandArray = new List<string>();
+            var commandArray = new List<string>
+            {
+                "\"" + rom + "\""
+            };
 
-            commandArray.Add("\"" + rom + "\"");
             if (fullscreen)
                 commandArray.Add("--fullscreen");
 
@@ -79,7 +81,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private static Dictionary<string, string> bizhawkPreferredCore = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> bizhawkPreferredCore = new Dictionary<string, string>()
         {
             { "gb", "GB" },
             { "gbc", "GBC" },
@@ -253,7 +255,7 @@ namespace EmulatorLauncher
                 json["GbAsSgb"] = "false";
         }
 
-        private void SetupFirmwares(DynamicJson json, string system, string core)
+        private void SetupFirmwares(DynamicJson json, string system)
         {
             var firmware = json.GetOrCreateContainer("FirmwareUserSpecifications");
 
@@ -535,8 +537,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             if (ret == 1)
                 return 0;
@@ -544,7 +545,7 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        private static Dictionary<string, string> bizHawkSystems = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> bizHawkSystems = new Dictionary<string, string>()
         {
             { "amstradcpc", "AmstradCPC" },
             { "apple2", "AppleII" },
@@ -593,7 +594,7 @@ namespace EmulatorLauncher
             { "zxspectrum", "ZXSpectrum" },
         };
 
-        private static Dictionary<string, string> bizHawkShortSystems = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> bizHawkShortSystems = new Dictionary<string, string>()
         {
             { "atari2600", "A26" },
             { "atari7800", "A78" },
