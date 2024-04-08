@@ -95,7 +95,7 @@ namespace EmulatorLauncher
             string args = string.Join(" ", commandArray);
 
             var bml = BmlFile.Load(Path.Combine(path, "settings.bml"));
-            SetupConfiguration(bml, path, system, core, rom);
+            SetupConfiguration(bml, system, core, rom);
             SetupFirmwares(bml, system);
             WriteKeyboardHotkeys(bml);
             CreateControllerConfiguration(bml, path);
@@ -114,7 +114,7 @@ namespace EmulatorLauncher
         /// Setup settings.bml file
         /// </summary>
         /// <param name="path"></param>
-        private void SetupConfiguration(BmlFile bml, string path, string system, string core, string rom)
+        private void SetupConfiguration(BmlFile bml, string system, string core, string rom)
         {
             // Set driver for input
             var input = bml.GetOrCreateContainer("Input");

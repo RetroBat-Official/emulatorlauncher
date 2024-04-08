@@ -64,9 +64,7 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key)
         {
-            Int64 pid = -1;
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             int index = c.SdlController != null ? c.SdlController.Index : c.DeviceIndex;
 

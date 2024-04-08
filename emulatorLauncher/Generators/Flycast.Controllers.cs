@@ -15,7 +15,7 @@ namespace EmulatorLauncher
         /// <summary>
         /// cf. https://github.com/flyinghead/flycast/blob/master/core/sdl/sdl.cpp
         /// </summary>
-        private void UpdateSdlControllersWithHints()
+        /*private void UpdateSdlControllersWithHints()
         {
             var hints = new List<string>();
 
@@ -24,7 +24,7 @@ namespace EmulatorLauncher
                 SdlGameController.ReloadWithHints(string.Join(",", hints));
                 Program.Controllers.ForEach(c => c.ResetSdlController());
             }
-        }
+        }*/
 
         private void CreateControllerConfiguration(string path, string system, IniFile ini)
         {
@@ -309,7 +309,7 @@ namespace EmulatorLauncher
 
                             foreach (var buttonEntry in game.Elements)
                             {
-                                var button = buttonEntry as YmlElement;
+                                YmlElement button = buttonEntry as YmlElement;
                                 if (button != null)
                                 {
                                     buttonMap.Add(button.Name, button.Value);
@@ -557,8 +557,7 @@ namespace EmulatorLauncher
             // If controller is nintendo, A/B and X/Y are reversed
             //bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -604,7 +603,7 @@ namespace EmulatorLauncher
         }
 
         #region keyboard mapping
-        static Dictionary<SDL.SDL_Keycode, int> keycodeToHID = new Dictionary<SDL.SDL_Keycode, int>()
+        static readonly Dictionary<SDL.SDL_Keycode, int> keycodeToHID = new Dictionary<SDL.SDL_Keycode, int>()
         {
             { SDL.SDL_Keycode.SDLK_a, 4 },
             { SDL.SDL_Keycode.SDLK_b, 5 },
@@ -826,7 +825,7 @@ namespace EmulatorLauncher
             { SDL.SDL_Keycode.SDLK_SLEEP, 282 }
         };
 
-        static Dictionary<SDL.SDL_Keycode, SDL.SDL_Keycode> azertyLayoutMapping = new Dictionary<SDL.SDL_Keycode, SDL.SDL_Keycode>()
+        static readonly Dictionary<SDL.SDL_Keycode, SDL.SDL_Keycode> azertyLayoutMapping = new Dictionary<SDL.SDL_Keycode, SDL.SDL_Keycode>()
         {
             { SDL.SDL_Keycode.SDLK_a, SDL.SDL_Keycode.SDLK_q },
             { SDL.SDL_Keycode.SDLK_q, SDL.SDL_Keycode.SDLK_a },
@@ -841,7 +840,7 @@ namespace EmulatorLauncher
         #endregion
 
         #region controllerinformation
-        static Dictionary<string, int> deviceType = new Dictionary<string, int>()
+        /*static readonly Dictionary<string, int> deviceType = new Dictionary<string, int>()
         {
             { "controller", 0 },
             { "lightgun", 7 },
@@ -850,18 +849,18 @@ namespace EmulatorLauncher
             { "ascii_stick", 4 },
             { "twinstick", 8 },
             { "none", 10 }
-        };
+        };*/
 
-        static Dictionary<string, int> extensionType = new Dictionary<string, int>()
+        /*static readonly Dictionary<string, int> extensionType = new Dictionary<string, int>()
         {
             { "vmu", 1 },
             { "purupuru", 3 },
             { "microphone", 2 },
             { "none", 10 }
-        };
+        };*/
         #endregion
 
-        static Dictionary<string, InputKey> yamlToInputKey = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> yamlToInputKey = new Dictionary<string, InputKey>()
         {
             { "leftanalogleft", InputKey.leftanalogleft },
             { "leftanalogright", InputKey.leftanalogright },
@@ -889,7 +888,7 @@ namespace EmulatorLauncher
             { "right", InputKey.right },
         };
 
-        static Dictionary<string, InputKey> switchToDpadKeys = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> switchToDpadKeys = new Dictionary<string, InputKey>()
         {
             { "leftanalogleft", InputKey.left },
             { "leftanalogright", InputKey.right },
@@ -897,7 +896,7 @@ namespace EmulatorLauncher
             { "leftanalogdown", InputKey.down },
         };
 
-        static List<string> analogKeys = new List<string>()
+        /*static readonly List<string> analogKeys = new List<string>()
         {
             "leftanalogleft",
             "leftanalogright",
@@ -907,6 +906,6 @@ namespace EmulatorLauncher
             "rightanalogright",
             "rightanalogup",
             "rightanalogdown",
-        };
+        };*/
     }
 }

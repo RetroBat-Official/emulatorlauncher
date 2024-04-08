@@ -15,7 +15,6 @@ namespace EmulatorLauncher
         }
 
         private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
-        private readonly string _currentESSdlVersion = "2.28.1.0";
         private string _emulatorPath;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -71,8 +70,7 @@ namespace EmulatorLauncher
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                string ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
             return "AmericanEnglish";

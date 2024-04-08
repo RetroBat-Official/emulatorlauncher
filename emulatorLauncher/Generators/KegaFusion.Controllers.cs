@@ -174,10 +174,8 @@ namespace EmulatorLauncher
 
         private string GetInputCode(SdlToDirectInput ctrl, Controller c, InputKey key)
         {
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
             bool isxinput = c.IsXInputDevice;
-            bool trigger = false;
 
             string esName = (c.Config[key].Name).ToString();
 
