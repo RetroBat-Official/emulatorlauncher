@@ -44,6 +44,8 @@ namespace EmulatorLauncher
             string sdl2 = Path.Combine(path, "SDL2.dll");
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
+            else if (_isLemonade)
+                _sdlVersion = SdlVersion.SDL2_30;
 
             if (!_isLemonade)
                 SetupConfigurationCitra(path, fullscreen);
