@@ -33,7 +33,7 @@ namespace EmulatorLauncher
             if (_sdlVersion == SdlVersion.SDL2_26 && sdlControllerNameMap.ContainsKey(controller.Name))
                 controller.Name = sdlControllerNameMap[controller.Name];
 
-            var guid = controller.GetSdlGuid(SdlVersion.SDL2_26, true);
+            var guid = controller.GetSdlGuid(_sdlVersion, true);
             var citraGuid = guid.ToString().ToLowerInvariant();
 
             //only 1 player so profile is fixed to 1

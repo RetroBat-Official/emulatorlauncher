@@ -195,7 +195,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     return new SdlJoystickGuid(_guid.Substring(0, 4) + "0000" + _guid.Substring(8));
             }
             
-            if (version > SdlVersion.SDL2_26 && name != null)
+            if (version >= SdlVersion.SDL2_26 && name != null)
             {
                 var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(name ?? ""))).ToString("X4");
 
