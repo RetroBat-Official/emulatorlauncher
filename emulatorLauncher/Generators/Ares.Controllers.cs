@@ -94,8 +94,17 @@ namespace EmulatorLauncher
             string guid = ctrl.SdlController != null ? ctrl.SdlController.Guid.ToString().ToLower() : ctrl.Guid.ToString().ToLower();
 
             var vpad = bml.GetOrCreateContainer("VirtualPad" + playerindex);
-            int index = 0x3 + (ctrl.DeviceIndex* 100000000);
-            string padId = "0x" + index + "/";
+            
+            string prodID = ctrl.DirectInput.ProductId.ToString("X4");
+            string vendorID = ctrl.DirectInput.VendorId.ToString("X");
+            string padId = "0x";
+            
+            int index = ctrl.DeviceIndex;
+
+            if (index == 0)
+                padId = padId + vendorID + prodID + "/";
+            else
+                padId = padId + index + "0" + vendorID + prodID + "/";
 
             if (n64StyleControllers.ContainsKey(guid))
             {
