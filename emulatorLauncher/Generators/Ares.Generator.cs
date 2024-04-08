@@ -127,7 +127,7 @@ namespace EmulatorLauncher
             BindFeature(video, "Driver", "ares_renderer", "OpenGL 3.2");
             BindFeature(video, "Output", "ares_aspect", "Scale");
 
-            string shaderPath = Path.Combine(AppConfig.GetFullPath("ares"), "Shaders");
+            /*string shaderPath = Path.Combine(AppConfig.GetFullPath("ares"), "Shaders");
 
             if (SystemConfig.isOptSet("ares_shaders") && SystemConfig["ares_shaders"] == "none")
                 video["Shader"] = "None";
@@ -138,7 +138,36 @@ namespace EmulatorLauncher
                 string shader = SystemConfig["ares_shaders"];
                 string pathShader = Path.Combine(shaderPath, shader + ".slangp").Replace("\\", "/");
                 video["Shader"] = pathShader;
+            }*/
+
+            if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
+            {
+                string ShadersPath = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
+                if (File.Exists(ShadersPath))
+                {
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(ShadersPath), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], false);
+                    if (!string.IsNullOrEmpty(renderconfig))
+                        SystemConfig["shader"] = renderconfig;
+                }
+
+                string shaderFilename = SystemConfig["shader"] + ".slangp";
+                string videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), "shaders_slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), "slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("retroarch"), "shaders", "shaders_slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader) && shaderFilename.Contains("zfast-"))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("retroarch"), "shaders", "shaders_slang", "crt/crt-geom.slangp").Replace("/", "\\");
+
+                video["Shader"] = videoShader;
             }
+            else
+                video["Shader"] = "None";
 
             BindBoolFeature(video, "ColorBleed", "ares_colobleed", "true", "false");
             BindBoolFeature(video, "ColorEmulation", "ares_coloremulation", "false", "true");
@@ -376,37 +405,37 @@ namespace EmulatorLauncher
         private static readonly Dictionary<string, string> aresSystems = new Dictionary<string, string>
         {
             { "Atari2600", "Atari2600" },
-            { "WonderSwan", "WonderSwan" },
-            { "WonderSwanColor", "WonderSwanColor" },
-            { "PocketChallengeV2", "PocketChallengeV2" },
             { "ColecoVision", "ColecoVision" },
-            { "MyVision", "MyVision" },
-            { "MSX", "MSX" },
-            { "MSX2", "MSX2" },
-            { "PCEngine", "PCEngine" },
-            { "PCEngineCD", "PCEngineCD" },
-            { "SuperGrafx", "SuperGrafx" },
-            { "SuperGrafxCD", "SuperGrafxCD" },
             { "Famicom", "Famicom" },
             { "FamicomDiskSystem", "FamicomDiskSystem" },
-            { "SuperFamicom", "SuperFamicom" },
-            { "Nintendo64", "Nintendo64" },
-            { "Nintendo64DD", "Nintendo64DD" },
             { "GameBoy", "GameBoy" },
             { "GameBoyColor", "GameBoyColor" },
             { "GameBoyAdvance", "GameBoyAdvance" },
-            { "SG-1000", "SG-1000" },
-            { "MasterSystem", "MasterSystem" },
             { "GameGear", "GameGear" },
+            { "MasterSystem", "MasterSystem" },
             { "MegaDrive", "MegaDrive" },
             { "Mega32X", "Mega32X" },
             { "MegaCD", "MegaCD" },
             { "MegaCD32X", "MegaCD32X" },
+            { "MSX", "MSX" },
+            { "MSX2", "MSX2" },
+            { "MyVision", "MyVision" },
             { "NeoGeoAES", "NeoGeoAES" },
             { "NeoGeoMVS", "NeoGeoMVS" },
             { "NeoGeoPocket", "NeoGeoPocket" },
             { "NeoGeoPocketColor", "NeoGeoPocketColor" },
+            { "Nintendo64", "Nintendo64" },
+            { "Nintendo64DD", "Nintendo64DD" },
+            { "PCEngine", "PCEngine" },
+            { "PCEngineCD", "PCEngineCD" },
+            { "PocketChallengeV2", "PocketChallengeV2" },
             { "PlayStation", "PlayStation" },
+            { "SG-1000", "SG-1000" },
+            { "SuperGrafx", "SuperGrafx" },
+            { "SuperGrafxCD", "SuperGrafxCD" },
+            { "SuperFamicom", "SuperFamicom" },
+            { "WonderSwan", "WonderSwan" },
+            { "WonderSwanColor", "WonderSwanColor" },
             { "ZXSpectrum", "ZXSpectrum" },
             { "ZXSpectrum128", "ZXSpectrum128" }
         };
