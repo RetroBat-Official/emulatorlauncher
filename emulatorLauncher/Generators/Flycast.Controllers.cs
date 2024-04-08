@@ -215,7 +215,7 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            SimpleLogger.Instance.Info("[GAMEPAD] Configuring gamepad " + ctrl.Name + " for player " + ctrl.PlayerIndex + " and system " + system);
+            SimpleLogger.Instance.Info("[GAMEPAD] Configuring gamepad for player " + ctrl.PlayerIndex + " and system " + system);
 
             bool isArcade = system != "dreamcast";
             int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
