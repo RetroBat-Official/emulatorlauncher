@@ -36,12 +36,9 @@ namespace EmulatorLauncher
 
             var mappingInfo = new List<Eka2l1MappingInfo>();
 
-            foreach (var input in inputKeys)
+            if (controller.IsKeyboard)
             {
-                string target = input.Key;
-                string button = input.Value;
-
-                if (button == "red")
+                foreach (var input in keyboardDefaults)
                 {
                     mappingInfo.Add(new Eka2l1MappingInfo()
                     {
@@ -49,45 +46,69 @@ namespace EmulatorLauncher
                         {
                             Type = "key",
                             Data = new Dictionary<string, string>()
+                            {
+                                { "keycode", input.Value }
+                            }
+                        },
+                        Target = input.Key
+                    });
+                }
+            }
+
+            else
+            {
+                foreach (var input in inputKeys)
+                {
+                    string target = input.Key;
+                    string button = input.Value;
+
+                    if (button == "red")
+                    {
+                        mappingInfo.Add(new Eka2l1MappingInfo()
+                        {
+                            Source = new Eka2l1MappingSource()
+                            {
+                                Type = "key",
+                                Data = new Dictionary<string, string>()
                             {
                                 { "keycode", "16777267" }
                             }
-                        },
-                        Target = target
-                    });
-                }
-                else if (button == "green")
-                {
-                    mappingInfo.Add(new Eka2l1MappingInfo()
+                            },
+                            Target = target
+                        });
+                    }
+                    else if (button == "green")
                     {
-                        Source = new Eka2l1MappingSource()
+                        mappingInfo.Add(new Eka2l1MappingInfo()
                         {
-                            Type = "key",
-                            Data = new Dictionary<string, string>()
+                            Source = new Eka2l1MappingSource()
+                            {
+                                Type = "key",
+                                Data = new Dictionary<string, string>()
                             {
                                 { "keycode", "16777266" }
                             }
-                        },
-                        Target = target
-                    });
-                }
-                else
-                {
-                    mappingInfo.Add(new Eka2l1MappingInfo()
+                            },
+                            Target = target
+                        });
+                    }
+                    else
                     {
-                        Source = new Eka2l1MappingSource()
+                        mappingInfo.Add(new Eka2l1MappingInfo()
                         {
-                            Type = "controller",
-                            Data = new Dictionary<string, string>()
+                            Source = new Eka2l1MappingSource()
+                            {
+                                Type = "controller",
+                                Data = new Dictionary<string, string>()
                             {
                                 { "controller_id", index },
                                 { "button_id", button }
                             }
-                        },
-                        Target = target
-                    });
+                            },
+                            Target = target
+                        });
+                    }
                 }
-                
             }
 
             string ymlContent = SerializeToYml(mappingInfo);
@@ -118,7 +139,33 @@ namespace EmulatorLauncher
             { "42", "308" },        // star - L2
             { "127", "309" },       // diese - R2
         };
-        
+
+        private Dictionary<string, string> keyboardDefaults = new Dictionary<string, string>()
+        {
+            { "164", "16777264" },
+            { "165", "16777265" },
+            { "180", "16777266" },
+            { "181", "16777267" },
+            { "167", "16777220" },
+            { "16", "16777235" },
+            { "17", "16777237" },
+            { "14", "16777234" },
+            { "15", "16777236" },
+            { "48", "48" },
+            { "49", "49" },
+            { "50", "50" },
+            { "51", "51" },
+            { "52", "52" },
+            { "53", "53" },
+            { "54", "54" },
+            { "55", "55" },
+            { "56", "56" },
+            { "57", "57" },
+            { "42", "42" },
+            { "127", "47" },
+            { "1", "16777219" }
+        };
+
         class Eka2l1MappingInfo
         {
             public Eka2l1MappingSource Source { get; set; }
