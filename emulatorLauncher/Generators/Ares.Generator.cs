@@ -127,6 +127,8 @@ namespace EmulatorLauncher
             BindFeature(video, "Driver", "ares_renderer", "OpenGL 3.2");
             BindFeature(video, "Output", "ares_aspect", "Scale");
 
+            string shaderPath = Path.Combine(AppConfig.GetFullPath("ares"), "Shaders");
+
             if (SystemConfig.isOptSet("ares_shaders") && SystemConfig["ares_shaders"] == "none")
                 video["Shader"] = "None";
             else if (SystemConfig.isOptSet("ares_shaders") && SystemConfig["ares_shaders"] == "Blur")
@@ -134,7 +136,7 @@ namespace EmulatorLauncher
             else if (SystemConfig.isOptSet("ares_shaders") && !string.IsNullOrEmpty(SystemConfig["ares_shaders"]))
             {
                 string shader = SystemConfig["ares_shaders"];
-                string pathShader = Path.Combine(path, "Shaders", shader + "/").Replace("\\", "/");
+                string pathShader = Path.Combine(shaderPath, shader + ".slangp").Replace("\\", "/");
                 video["Shader"] = pathShader;
             }
 
