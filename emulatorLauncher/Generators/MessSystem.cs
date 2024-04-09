@@ -278,7 +278,9 @@ namespace EmulatorLauncher
                 new MessSystem("apfm1000"     ,"apfm1000" ,"cart"  ),           // APF M-1000
                 new MessSystem("arcadia"      ,"arcadia"  ,"cart"  ),           // Arcadia 2001
                 new MessSystem("gmaster"      ,"gmaster"  ,"cart"  ),           // Game Master
-                new MessSystem("vc4000"       ,"vc4000"        , "cart"  ),  // Interton VC 4000
+                new MessSystem("vc4000"       ,"vc4000"        , "cart"  ),     // Interton VC 4000
+                new MessSystem("pegasus"      ,"pegasus"       , "rom1"  ),     // Amber Pegasus
+                new MessSystem("pegasusm"      ,"pegasusm"     , "rom1"  ),     // Amber Pegasus (memory expansion)
 
                 // NOT IN RETROBAT
                 new MessSystem("x1"           ,"x1" , new MessRomType[] 
@@ -367,7 +369,6 @@ namespace EmulatorLauncher
                 new MessSystem("mpu2000"      ,"vc4000"        , "cart"  ),  // Acetronic MPU 2000
                 new MessSystem("mpt05"        ,"vc4000"        , "cart"  ),  // ITMC MPT-05
                 new MessSystem("tcs"          ,"vc4000"        , "cart"  ),  // Rowtron Television Computer System
-                new MessSystem("pegasus"      ,"pegasus"       , "rom1"  ),  // Amber Pegasus
                 new MessSystem("cpc6128p"     ,"cpc6128p"      , "flop1"  ), // Amstrad CPC Plus
                 new MessSystem("apogee"       ,"apogee"        , "cass"  ),  // Apogee BK-01
                 new MessSystem("apple2gs"     ,"apple2gsr1"    , "flop3"  ), // Apple II GS
