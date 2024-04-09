@@ -525,7 +525,7 @@
     "name": "Casio Loopy",
     "biosFiles": [
       {
-        "md5": "",
+        "md5": "0e1d8dc0110ecf8201c0cef11ef4a858",
         "file": "bios/casloopy.zip"
       },
       {
@@ -1475,6 +1475,20 @@
       {
         "md5": "",
         "file": "bios/fx-scsi.rom"
+      }
+    ]
+  },
+
+  "pegasus": {
+    "name": "Aamber Pegasus",
+    "biosFiles": [
+      {
+        "md5": "fee37d8140e4fab48aac4fdab2847f7d",
+        "file": "bios/pegasus.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/pegasus_cart.xml"
       }
     ]
   },
