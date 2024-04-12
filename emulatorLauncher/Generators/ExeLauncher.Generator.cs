@@ -61,7 +61,7 @@ namespace EmulatorLauncher
                 {
                     string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
                     string uwpexecutableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".uwp");
-                    
+
                     // First case : use has directly specified the executable name in a .gameexe file
                     if (File.Exists(executableFile))
                     {
@@ -119,6 +119,11 @@ namespace EmulatorLauncher
                                 }
                             }
                         }
+                    }
+
+                    else
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Impossible to find executable name, using rom file name.");
                     }
                 }
 
