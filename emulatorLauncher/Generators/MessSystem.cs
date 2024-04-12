@@ -662,6 +662,16 @@ namespace EmulatorLauncher
                 }
             };
 
+            // Adam
+            if (system == "adam")
+            {
+                if (SystemConfig.isOptSet("adam_joy") && SystemConfig["adam_joy"] != "none")
+                {
+                    addSlot(SystemConfig["adam_joy"], "-joy1");
+                    addSlot(SystemConfig["adam_joy"], "-joy2");
+                }
+            }
+
             // Apple 2
             if (system == "apple2" || system == "apple2gs")
             {
@@ -683,6 +693,20 @@ namespace EmulatorLauncher
                     addSlot("mockingboard", "-sl4");
             }
 
+            //Astrocade
+            if (system == "astrocade")
+            {
+                if (SystemConfig.isOptSet("astrocde_addjoy") && SystemConfig.getOptBoolean("astrocde_addjoy"))
+                {
+                    commandArray.Add("-ctrl2");
+                    commandArray.Add("joy");
+                    commandArray.Add("-ctrl3");
+                    commandArray.Add("joy");
+                    commandArray.Add("-ctrl4");
+                    commandArray.Add("joy");
+                }
+            }
+
             //BBC Micro Joystick
             if (system == "bbcmicro")
             {
@@ -697,13 +721,15 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Adam
-            if (system == "ti99")
+            //FM-Towns
+            if (system == "fmtowns")
             {
-                if (SystemConfig.isOptSet("adam_joy") && SystemConfig["adam_joy"] != "none")
+                if (SystemConfig.isOptSet("fmtowns_joytype") && SystemConfig["fmtowns_joytype"] != "none")
                 {
-                    addSlot(SystemConfig["adam_joy"], "-joy1");
-                    addSlot(SystemConfig["adam_joy"], "-joy2");
+                    commandArray.Add("-pad1");
+                    commandArray.Add(SystemConfig["fmtowns_joytype"]);
+                    commandArray.Add("-pad2");
+                    commandArray.Add(SystemConfig["fmtowns_joytype"]);
                 }
             }
 
@@ -722,6 +748,13 @@ namespace EmulatorLauncher
                     commandArray.Add("-ioport:peb:slot3");
                     commandArray.Add("speech");
                 }
+            }
+
+            //V-SMILE
+            if (system == "vsmile")
+            {
+                commandArray.Add("-ctrl2");
+                commandArray.Add("joy");
             }
 
             // Ram size
