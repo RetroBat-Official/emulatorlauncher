@@ -667,8 +667,10 @@ namespace EmulatorLauncher
             {
                 if (SystemConfig.isOptSet("adam_joy") && SystemConfig["adam_joy"] != "none")
                 {
-                    addSlot(SystemConfig["adam_joy"], "-joy1");
-                    addSlot(SystemConfig["adam_joy"], "-joy2");
+                    commandArray.Add("-joy1");
+                    commandArray.Add(SystemConfig["adam_joy"]);
+                    commandArray.Add("-joy2");
+                    commandArray.Add(SystemConfig["adam_joy"]);
                 }
             }
 
