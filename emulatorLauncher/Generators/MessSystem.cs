@@ -686,10 +686,24 @@ namespace EmulatorLauncher
             //BBC Micro Joystick
             if (system == "bbcmicro")
             {
-                if (SystemConfig.isOptSet("bbc_sticktype") && SystemConfig["bbc_sticktype"] != "none")
+                if (SystemConfig.isOptSet("bbc_sticktype") && SystemConfig["bbc_sticktype"] != "none" && messModel != "bbcmc")
                 {
                     commandArray.Add("-analogue");
                     commandArray.Add(SystemConfig["bbc_sticktype"]);
+                }
+                if (messModel == "bbcmc")
+                {
+                    addSlot("joystick", "-joyport");
+                }
+            }
+
+            // Adam
+            if (system == "ti99")
+            {
+                if (SystemConfig.isOptSet("adam_joy") && SystemConfig["adam_joy"] != "none")
+                {
+                    addSlot(SystemConfig["adam_joy"], "-joy1");
+                    addSlot(SystemConfig["adam_joy"], "-joy2");
                 }
             }
 
