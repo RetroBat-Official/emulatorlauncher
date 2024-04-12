@@ -56,6 +56,22 @@ namespace EmulatorLauncher
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 
+            // Cleanup existing files for additional controllers
+            if (Controllers.Count > 0)
+            {
+                int count = Controllers.Count - 1;
+
+                if (count < 7)
+                {
+                    for (int i = count; i < 8; i++)
+                    {
+                        string controllerXml = Path.Combine(folder, "controller" + i + ".xml");
+                        if (File.Exists(controllerXml))
+                            File.Delete(controllerXml);
+                    }
+                }
+            }
+
             // If Wiimotes is set, do not use ES controllers but force wiimotes
             if (Program.SystemConfig.isOptSet("use_wiimotes") && (Program.SystemConfig["use_wiimotes"] != "0"))
             {
@@ -79,6 +95,8 @@ namespace EmulatorLauncher
                         continue;
 
                     string controllerXml = Path.Combine(folder, "controller" + (controller.PlayerIndex - 1) + ".xml");
+                    if (File.Exists(controllerXml))
+                        File.Delete(controllerXml);
 
                     // Create xml file with correct settings
                     var settings = new XmlWriterSettings() { Encoding = Encoding.UTF8, Indent = true, IndentChars = ("\t"), OmitXmlDeclaration = false };
@@ -280,10 +298,12 @@ namespace EmulatorLauncher
             if (ctrl.IsXInputDevice)
                 xbox = "yes";
 
+            bool forceXInput = SystemConfig.getOptBoolean("cemu_forcexinput") && xbox =="yes";
+
             // Get joystick data (type, api, guid, index)
             string type;                            //will be used to switch from Gamepad to Pro Controller
-            string api = "SDLController";           //all controllers in cemu are mapped as sdl controllers                              
-            string devicename = joy.DeviceName;
+            string api = forceXInput ? "XInput" : "SDLController";           //all controllers in cemu are mapped as sdl controllers                              
+            string devicename = forceXInput ? ("Controller " + (ctrl.XInput.DeviceIndex).ToString()) : joy.DeviceName;
 
             int index = Program.Controllers
                 .GroupBy(c => c.Guid.ToLowerInvariant())
@@ -293,9 +313,9 @@ namespace EmulatorLauncher
                 .ToList()
                 .IndexOf(ctrl);
 
-            string uuid = index + "_" + ctrl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
+            string uuid = forceXInput ? (ctrl.XInput.DeviceIndex).ToString() : index + "_" + ctrl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
-            if (_sdlMapping != null)
+            if (_sdlMapping != null && !forceXInput)
             {
                 var sdlTrueGuid = _sdlMapping.GetControllerGuid(ctrl.DevicePath);
                 if (sdlTrueGuid != null)
@@ -408,6 +428,14 @@ namespace EmulatorLauncher
                 }
             };
 
+            Action<string, string> WriteMappingXinput = (v, k) =>
+            {
+                writer.WriteStartElement("entry");
+                writer.WriteElementString("mapping", v);
+                writer.WriteElementString("button", k);
+                writer.WriteEndElement();
+            };
+
             //Write mappings of buttons
 
             // Emulated wiimote
@@ -439,6 +467,69 @@ namespace EmulatorLauncher
                 }
             }
 
+            // For XInput
+            else if (forceXInput)
+            {
+                //revert gamepadbuttons if set in features
+                if (Program.SystemConfig.getOptBoolean("gamepadbuttons"))
+                {
+                    WriteMappingXinput("1", "12");
+                    WriteMappingXinput("2", "13");
+                    WriteMappingXinput("3", "14");
+                    WriteMappingXinput("4", "15");
+                }
+                else
+                {
+                    WriteMappingXinput("1", "13");
+                    WriteMappingXinput("2", "12");
+                    WriteMappingXinput("3", "15");
+                    WriteMappingXinput("4", "14");
+                }
+
+                WriteMappingXinput("5", "8");
+                WriteMappingXinput("6", "9");
+                WriteMappingXinput("7", "42");
+                WriteMappingXinput("8", "43");
+                WriteMappingXinput("9", "4");
+                WriteMappingXinput("10", "5");
+
+                //Pro controller skips 11 while Gamepad continues numbering
+                if (procontroller)
+                {
+                    WriteMappingXinput("12", "0");
+                    WriteMappingXinput("13", "1");
+                    WriteMappingXinput("14", "2");
+                    WriteMappingXinput("15", "3");
+                    WriteMappingXinput("16", "6");
+                    WriteMappingXinput("17", "7");
+                    WriteMappingXinput("18", "39");
+                    WriteMappingXinput("19", "45");
+                    WriteMappingXinput("20", "44");
+                    WriteMappingXinput("21", "38");
+                    WriteMappingXinput("22", "41");
+                    WriteMappingXinput("23", "47");
+                    WriteMappingXinput("24", "46");
+                    WriteMappingXinput("25", "40");
+                }
+                else
+                {
+                    WriteMappingXinput("11", "0");
+                    WriteMappingXinput("12", "1");
+                    WriteMappingXinput("13", "2");
+                    WriteMappingXinput("14", "3");
+                    WriteMappingXinput("15", "6");
+                    WriteMappingXinput("16", "7");
+                    WriteMappingXinput("17", "39");
+                    WriteMappingXinput("18", "45");
+                    WriteMappingXinput("19", "44");
+                    WriteMappingXinput("20", "38");
+                    WriteMappingXinput("21", "41");
+                    WriteMappingXinput("22", "47");
+                    WriteMappingXinput("23", "46");
+                    WriteMappingXinput("24", "40");
+                }
+            }
+            
             // Other
             else
             {

@@ -33,7 +33,12 @@ namespace EmulatorLauncher
             {
                 YmlFile ymlFile = YmlFile.Load(fbneoMapping);
 
-                game = ymlFile.Elements.Where(g => g.Name == _romName).FirstOrDefault() as YmlContainer;
+                if (decocassGames.Contains(_romName))
+                    game = ymlFile.Elements.Where(g => g.Name == "decocass").FirstOrDefault() as YmlContainer;
+                else if(decomlcGames.Contains(_romName))
+                    game = ymlFile.Elements.Where(g => g.Name == "decomlc").FirstOrDefault() as YmlContainer;
+                else
+                    game = ymlFile.Elements.Where(g => g.Name == _romName).FirstOrDefault() as YmlContainer;
 
                 if (game == null)
                     game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name)).FirstOrDefault() as YmlContainer;
@@ -85,19 +90,19 @@ namespace EmulatorLauncher
             {
                 var controller = Controllers.FirstOrDefault(c => c.IsKeyboard);
                 if (controller != null)
-                    ConfigureKeyboard(controller, cfg, cfgFile);
+                    ConfigureKeyboard(controller, cfgFile);
             }
 
             else
             {
                 foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(players))
-                    ConfigureJoystick(controller, cfg, system, gameMapping);
+                    ConfigureJoystick(controller, cfg, gameMapping);
 
                 cfg.Save();
             }
         }
 
-        private void ConfigureJoystick(Controller controller, FbneoConfigFile cfg, string system, Dictionary<string, Dictionary<string,string>> gameMapping)
+        private void ConfigureJoystick(Controller controller, FbneoConfigFile cfg, Dictionary<string, Dictionary<string,string>> gameMapping)
         {
             if (controller == null)
                 return;
@@ -173,11 +178,50 @@ namespace EmulatorLauncher
                         cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
                 }
 
+                else if (_romName.StartsWith("sidepckt"))
+                {
+                    if (controller.PlayerIndex == 1)
+                    {
+                        if (button.Key == "Coin" || button.Key == "Start")
+                            cfg["input  " + "\"" + button.Key + " 1\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                        else if (button.Key == "Service")
+                            cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                        else if (button.Key.EndsWith("(Cocktail)"))
+                            cfg["input  " + "\"" + button.Key.Replace("_(Cocktail)", "") + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    }
+
+                    else if (controller.PlayerIndex == 2)
+                    {
+                        if (button.Key == "Coin" || button.Key == "Start")
+                            cfg["input  " + "\"" + button.Key + " 2\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                        else
+                            cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    }
+                }
+
                 // General
+                else if (gunValues.Contains(button.Value))
+                {
+                    if (controller.PlayerIndex == 1)
+                        cfg["input  " + "\"P" + controller.PlayerIndex + " " + button.Key + "\""] = button.Value;
+                    else
+                        continue;
+                }
+
                 else if (p1strings.Contains(button.Key))
                 {
                     if (controller.PlayerIndex == 1)
                         cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                }
+
+                else if (button.Key.EndsWith("(Cocktail)") && controller.PlayerIndex == 1)
+                {
+                    if (_romName.StartsWith("birdtry") && button.Key == "Fire 1 (Cocktail)")
+                        cfg["input  " + "\"P" + controller.PlayerIndex + " " + button.Key.Replace("(Cocktail)", "(Hit)") + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    else if (_romName.StartsWith("birdtry") && button.Key == "Fire 2 (Cocktail)")
+                        cfg["input  " + "\"P" + controller.PlayerIndex + " " + button.Key.Replace("(Cocktail)", "(Select)") + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
+                    else
+                        cfg["input  " + "\"P" + controller.PlayerIndex + " " + button.Key.Replace(" (Cocktail)", "") + "\""] = GetDinputMapping(dinputCtrl, button.Value, joy, index);
                 }
 
                 else if (p2strings.Contains(button.Key))
@@ -206,7 +250,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void ConfigureKeyboard(Controller controller, FbneoConfigFile cfg, string cfgFile)
+        private static void ConfigureKeyboard(Controller controller, string cfgFile)
         {
             if (controller == null)
                 return;
@@ -362,20 +406,36 @@ namespace EmulatorLauncher
             return "undefined";
         }
 
-        private static List<string> p1strings = new List<string>() 
+        private readonly static List<string> p1strings = new List<string>() 
         { "Coin 1", "Diagnostic", "Debug Dip 1", "Debug Dip 2", "Dip 1", "Dip 2", "Dip A", "Dip B", "Dip C", "Fake Dip", "Left Switch", "Pay Switch", "Region", "Reset", "Right Switch",
             "S3 Test (Jamma)", "S3 Test", "Service", "Service 1", "Service Mode", "Show Switch", "Start 1", "System", "Slots", "Test", "Tilt" };
 
-        private static List<string> p2strings = new List<string>()
+        private readonly static List<string> p2strings = new List<string>()
         { "Coin 2", "Service 2", "Start 2" };
 
-        private static List<string> p3strings = new List<string>()
+        private readonly static List<string> p3strings = new List<string>()
         { "Coin 3", "Service 3", "Start 3" };
 
-        private static List<string> p4strings = new List<string>()
+        private readonly static List<string> p4strings = new List<string>()
         { "Coin 4", "Service 4", "Start 4" };
 
-        private static List<string> noPlayerRom = new List<string>()
+        private readonly static List<string> noPlayerRom = new List<string>()
         { "crusherm", "korokoro", "tjumpman" };
+
+        private readonly static List<string> gunValues = new List<string>()
+        { "mouseaxis 0", "mouseaxis 1" };
+
+        private readonly static List<string> decocassGames = new List<string>()
+        {
+            "chwy", "cmanhat", "cterrani", "castfant", "cnebula", "csuperas", "cocean1a", "cocean6b", "clocknch", "clocknchj", "cfboy0a1", "cprogolf", "cprogolfj", "cprogolf18", "cluckypo", "ctisland", "ctisland2",
+            "ctisland3", "cexplore", "cdiscon1", "csweetht", "ctornado", "cmissnx", "cptennis", "cptennisj", "cadanglr", "cfishing", "cbtime", "chamburger", "cburnrub", "cburnrub2", "cbnj", "cgraplop", "cgraplop2",
+            "clapapa", "clapapa2", "cskater", "cprobowl", "cnightst", "cnightst2", "cpsoccer", "cpsoccerj", "csdtenis", "czeroize", "cppicf", "cppicf2", "cfghtice", "cscrtry", "cscrtry2", "coozumou", "cbdash",
+            "cflyball", "decomult"
+        };
+
+        private readonly static List<string> decomlcGames = new List<string>()
+        {
+            "avengrgs", "avengrgsj", "avengrgsbh", "skullfng", "skullfngj", "skullfnga", "stadhr96", "stadhr96u", "stadhr96j", "stadhr96j2", "stadhr96k", "hoops96", "hoops95", "ddream95"
+        };
     }
 }

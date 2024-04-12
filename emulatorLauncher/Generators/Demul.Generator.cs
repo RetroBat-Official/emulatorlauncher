@@ -97,7 +97,7 @@ namespace EmulatorLauncher
                         Path.GetDirectoryName(rom)
                     };
 
-                    foreach (var sys in new string[] { "dreamcast", "naomi", "naomi2", "hikaru", "gaelco", "atomiswave" })
+                    foreach (var sys in new string[] { "cave", "dreamcast", "naomi", "naomi2", "hikaru", "gaelco", "atomiswave" })
                     {
                         var sysPath = Path.Combine(romsPath, sys);
                         if (Directory.Exists(sysPath) && !romsPaths.Contains(sysPath))
@@ -229,6 +229,8 @@ namespace EmulatorLauncher
                         return "naomi";
                     case "atomiswave":
                         return "awave";
+                    case "cave":
+                        return "cave3rd";
                 }
             }
             

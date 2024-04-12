@@ -21,6 +21,7 @@ namespace EmulatorLauncher
         private string _systemName;
         private string _exename;
         private bool _isGameExePath;
+        private bool _exeFile;
         private BezelFiles _bezelFileInfo;
 
         private GameLauncher _gameLauncher;
@@ -41,6 +42,7 @@ namespace EmulatorLauncher
             string path = Path.GetDirectoryName(rom);
             string arguments = null;
             _isGameExePath = false;
+            _exeFile = false;
             string extension = Path.GetExtension(rom);
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
@@ -48,8 +50,22 @@ namespace EmulatorLauncher
             if (extension == ".lnk")
             {
                 string target = FileTools.GetShortcutTarget(rom);
+                
                 if (target != "" && target != null)
                     _isGameExePath = File.Exists(target);
+                else
+                {
+                    string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
+                    if (File.Exists(executableFile))
+                    {
+                        var lines = File.ReadAllLines(executableFile);
+                        if (lines.Length > 0)
+                        {
+                            _exename = lines[0];
+                            _exeFile = true;
+                        }
+                    }
+                }
 
                 if (_isGameExePath)
                 {
@@ -197,7 +213,7 @@ namespace EmulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_isGameExePath)
+            if (_isGameExePath || _exeFile)
                 return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
 
             else if (_gameLauncher != null) 
@@ -314,7 +330,7 @@ namespace EmulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            if (_isGameExePath)
+            if (_isGameExePath || _exeFile)
             {
                 Process process = Process.Start(path);
                 SimpleLogger.Instance.Info("Process started : " + _exename);
