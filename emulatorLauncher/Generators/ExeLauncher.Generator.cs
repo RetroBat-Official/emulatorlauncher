@@ -21,7 +21,7 @@ namespace EmulatorLauncher
         }
 
         private string _systemName;
-        private string _exename;
+        private string _exename = null;
         private bool _isGameExePath;
         private bool _exeFile;
         private BezelFiles _bezelFileInfo;
@@ -260,7 +260,7 @@ namespace EmulatorLauncher
                 ret.WindowStyle = ProcessWindowStyle.Hidden;
                 ret.UseShellExecute = true;
             }
-            else if (!_exeFile)
+            else if (string.IsNullOrEmpty(_exename))
             {
                 _exename = Path.GetFileNameWithoutExtension(rom);
                 SimpleLogger.Instance.Info("[INFO] Executable name : " + _exename);
