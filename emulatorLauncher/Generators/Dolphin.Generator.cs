@@ -79,7 +79,7 @@ namespace EmulatorLauncher
             SetupGfxConfig(path);
             SetupStateSlotConfig(path);
 
-            DolphinControllers.WriteControllersConfig(path, system, rom, _triforce);
+            DolphinControllers.WriteControllersConfig(path, system, _triforce);
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
@@ -507,6 +507,7 @@ namespace EmulatorLauncher
                                 ini.WriteValue("Core", "SIDevice" + i, "0");
                         }
                     }
+                    
                     // Disable auto updates
                     string updateTrack = ini.GetValue("AutoUpdate", "UpdateTrack");
                     if (updateTrack != "")

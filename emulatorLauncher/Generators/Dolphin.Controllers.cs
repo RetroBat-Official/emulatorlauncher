@@ -7,8 +7,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using System.Windows.Controls;
-using System.Runtime.CompilerServices;
 
 namespace EmulatorLauncher
 {
@@ -19,14 +17,16 @@ namespace EmulatorLauncher
         /// </summary>
         private static void UpdateSdlControllersWithHints()
         {
-            var hints = new List<string>();
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+            var hints = new List<string>
+            {
+                "SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1"
+            };
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        public static bool WriteControllersConfig(string path, string system, string rom, bool triforce)
+        public static bool WriteControllersConfig(string path, string system, bool triforce)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
@@ -37,36 +37,41 @@ namespace EmulatorLauncher
             {
                 if (Program.SystemConfig.getOptBoolean("use_guns"))
                 {
-                    generateControllerConfig_wiilightgun(path, "WiimoteNew.ini", "Wiimote");
+                    GenerateControllerConfig_wiilightgun(path, "WiimoteNew.ini", "Wiimote");
                     return true;
                 }
 
                 else if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"))
                 {
-                    generateControllerConfig_emulatedwiimotes(path, rom);
-                    removeControllerConfig_gamecube(path, "Dolphin.ini"); // because pads will already be used as emulated wiimotes
+                    GenerateControllerConfig_emulatedwiimotes(path);
+                    RemoveControllerConfig_gamecube(path, "Dolphin.ini"); // because pads will already be used as emulated wiimotes
                     return true;
                 }
 
                 else if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] != "0" && Program.SystemConfig["emulatedwiimotes"] != "1")
                 {
-                    generateControllerConfig_realEmulatedwiimotes(path, "WiimoteNew.ini", "Wiimote");
+                    GenerateControllerConfig_realEmulatedwiimotes(path, "WiimoteNew.ini", "Wiimote");
                     return true;
                 }
                 else
-                    generateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");
+                {
+                    GenerateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");
+                }
 
-                generateControllerConfig_gamecube(path, rom, gamecubeMapping);
+                if (Program.SystemConfig.isOptSet("wii_gamecube") && Program.SystemConfig["wii_gamecube"] == "0")
+                    RemoveControllerConfig_gamecube(path, "Dolphin.ini");
+
+                GenerateControllerConfig_gamecube(path,gamecubeMapping);
             }
             // Special mapping for triforce games to remove Z button from R1 (as this is used to access service menu and will be mapped to R3+L3)
             else if (triforce)
-                generateControllerConfig_gamecube(path, rom, triforceMapping, triforce);
+                GenerateControllerConfig_gamecube(path,triforceMapping, triforce);
             else
-                generateControllerConfig_gamecube(path, rom, gamecubeMapping);
+                GenerateControllerConfig_gamecube(path,gamecubeMapping);
             return true;
         }
 
-        static InputKeyMapping gamecubeMapping = new InputKeyMapping()
+        static readonly InputKeyMapping gamecubeMapping = new InputKeyMapping()
         {
             { InputKey.l3,              "Main Stick/Modifier"},
             { InputKey.r3,              "C-Stick/Modifier"},
@@ -91,7 +96,7 @@ namespace EmulatorLauncher
             { InputKey.hotkey,          "Buttons/Hotkey" },
         };
 
-        static InputKeyMapping triforceMapping = new InputKeyMapping()
+        static readonly InputKeyMapping triforceMapping = new InputKeyMapping()
         {
             { InputKey.l2,              "Triggers/L-Analog" },
             { InputKey.r2,              "Triggers/R-Analog"},
@@ -113,37 +118,13 @@ namespace EmulatorLauncher
             { InputKey.hotkey,          "Buttons/Hotkey" },
         };
 
-        static InputKeyMapping vs4mapping = new InputKeyMapping()
+        static readonly InputKeyMapping vs4mapping = new InputKeyMapping()
         {
             { InputKey.joystick1left,  "Main Stick/Down" },
             { InputKey.joystick1up,    "Main Stick/Left" },
         };
 
-        static InputKeyMapping gamecubeWiiMapping = new InputKeyMapping()
-        {
-            { InputKey.l3,              "Main Stick/Modifier"},
-            { InputKey.r3,              "C-Stick/Modifier"},
-            { InputKey.l2,              "Triggers/L-Analog" },
-            { InputKey.r2,              "Triggers/R-Analog"},
-            { InputKey.y,               "Buttons/Y" },
-            { InputKey.b,               "Buttons/B" },
-            { InputKey.x,               "Buttons/X" },
-            { InputKey.a,               "Buttons/A" },
-            { InputKey.select,          "Buttons/Z" },
-            { InputKey.start,           "Buttons/Start" },
-            { InputKey.pageup,          "Triggers/L" },
-            { InputKey.pagedown,        "Triggers/R" },
-            { InputKey.up,              "D-Pad/Up" },
-            { InputKey.down,            "D-Pad/Down" },
-            { InputKey.left,            "D-Pad/Left" },
-            { InputKey.right,           "D-Pad/Right" },
-            { InputKey.joystick1up,     "Main Stick/Up" },
-            { InputKey.joystick1left,   "Main Stick/Left" },
-            { InputKey.joystick2up,     "C-Stick/Up" },
-            { InputKey.joystick2left,   "C-Stick/Left"}
-        };
-
-        static InputKeyMapping reversedButtons = new InputKeyMapping()
+        static readonly InputKeyMapping reversedButtons = new InputKeyMapping()
         {
             { InputKey.b,               "Buttons/A" },
             { InputKey.a,               "Buttons/B" },
@@ -151,13 +132,13 @@ namespace EmulatorLauncher
             { InputKey.y,               "Buttons/X" }
         };
 
-        static InputKeyMapping reversedButtonsAB = new InputKeyMapping()
+        static readonly InputKeyMapping reversedButtonsAB = new InputKeyMapping()
         {
             { InputKey.b,               "Buttons/A" },
             { InputKey.a,               "Buttons/B" }
         };
 
-        static InputKeyMapping reversedButtonsRotate = new InputKeyMapping()
+        static readonly InputKeyMapping reversedButtonsRotate = new InputKeyMapping()
         {
             { InputKey.b,               "Buttons/A" },
             { InputKey.y,               "Buttons/B" },
@@ -165,7 +146,7 @@ namespace EmulatorLauncher
             { InputKey.a,               "Buttons/X" }
         };
 
-        static Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> gamecubeReverseAxes = new Dictionary<string, string>()
         {
             { "Main Stick/Up",   "Main Stick/Down" },
             { "Main Stick/Left", "Main Stick/Right" },
@@ -173,7 +154,7 @@ namespace EmulatorLauncher
             { "C-Stick/Left",    "C-Stick/Right" }
         };
 
-        static Dictionary<string, string> vs4ReverseAxes = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> vs4ReverseAxes = new Dictionary<string, string>()
         {
             { "Main Stick/Down",   "Main Stick/Up" },
             { "Main Stick/Left",   "Main Stick/Right" },
@@ -181,16 +162,7 @@ namespace EmulatorLauncher
             { "C-Stick/Left",      "C-Stick/Right" }
         };
 
-        // if joystick1up is missing on the pad, use up instead
-        static Dictionary<string, string> gamecubeReplacements = new Dictionary<string, string>()
-        {
-            { "joystick1up", "up" },
-            { "joystick1left", "left" },
-            { "joystick1down", "down" },
-            { "joystick1right", "right" }
-        };
-
-        static InputKeyMapping _wiiMapping = new InputKeyMapping
+        static readonly InputKeyMapping _wiiMapping = new InputKeyMapping
         {
             { InputKey.x,               "Buttons/2" },
             { InputKey.b,               "Buttons/A" },
@@ -211,7 +183,7 @@ namespace EmulatorLauncher
             { InputKey.r3,              "Tilt/Modifier" }
         };
 
-        static Dictionary<string, string> wiiReverseAxes = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> wiiReverseAxes = new Dictionary<string, string>()
         {
             { "IR/Up",      "IR/Down"},
             { "IR/Left",    "IR/Right"},
@@ -227,10 +199,12 @@ namespace EmulatorLauncher
             { "Classic/Left Stick/Left" , "Classic/Left Stick/Right" }
         };
 
-        private static void generateControllerConfig_emulatedwiimotes(string path, string rom)
+        private static void GenerateControllerConfig_emulatedwiimotes(string path)
         {
-            var extraOptions = new Dictionary<string, string>();
-            extraOptions["Source"] = "1";
+            var extraOptions = new Dictionary<string, string>
+            {
+                ["Source"] = "1"
+            };
 
             var wiiMapping = new InputKeyMapping(_wiiMapping);
 
@@ -384,17 +358,17 @@ namespace EmulatorLauncher
                 wiiMapping[InputKey.r3] = "Classic/Right Stick/Modifier";
             }
 
-            generateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, null, false, extraOptions);
+            GenerateControllerConfig_any(path, "WiimoteNew.ini", "Wiimote", wiiMapping, wiiReverseAxes, false, extraOptions);
         }
 
-        private static void generateControllerConfig_gamecube(string path, string rom, InputKeyMapping anyMapping, bool triforce = false)
+        private static void GenerateControllerConfig_gamecube(string path, InputKeyMapping anyMapping, bool triforce = false)
         {
             bool vs4axis = triforce && Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4";
 
-            generateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, vs4axis ? vs4ReverseAxes : gamecubeReverseAxes, gamecubeReplacements, triforce);
+            GenerateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, vs4axis ? vs4ReverseAxes : gamecubeReverseAxes, triforce);
         }
 
-        static Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()
+        static readonly Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()
         {
             { XINPUTMAPPING.X,                  "`Button Y`" },
             { XINPUTMAPPING.B,                  "`Button A`" },
@@ -422,7 +396,7 @@ namespace EmulatorLauncher
             { XINPUTMAPPING.RIGHTTRIGGER,       "`Trigger R`" }
         };
 
-        private static void generateControllerConfig_realwiimotes(string path, string filename, string anyDefKey)
+        private static void GenerateControllerConfig_realwiimotes(string path, string filename, string anyDefKey)
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
@@ -446,7 +420,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void generateControllerConfig_realEmulatedwiimotes(string path, string filename, string anyDefKey)
+        private static void GenerateControllerConfig_realEmulatedwiimotes(string path, string filename, string anyDefKey)
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
@@ -485,7 +459,7 @@ namespace EmulatorLauncher
                 SetWiimoteHotkeys(hotkeyini);
         }
 
-        private static void generateControllerConfig_wiilightgun(string path, string filename, string anyDefKey)
+        private static void GenerateControllerConfig_wiilightgun(string path, string filename, string anyDefKey)
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
@@ -595,7 +569,7 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private static void generateControllerConfig_any(string path, string filename, string anyDefKey, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> anyReplacements, bool triforce = false, Dictionary<string, string> extraOptions = null)
+        private static void GenerateControllerConfig_any(string path, string filename, string anyDefKey, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, bool triforce = false, Dictionary<string, string> extraOptions = null)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", filename);
@@ -629,7 +603,7 @@ namespace EmulatorLauncher
 
                     if (gcAdapters.ContainsKey(guid) && !Program.SystemConfig.getOptBoolean("gamecubepad" + (pad.PlayerIndex - 1)))
                     {
-                        ConfigureGCAdapter(gcpad, guid, pad, gc, ini, double_pads, nsamepad);
+                        ConfigureGCAdapter(gcpad, guid, pad, ini);
                         continue;
                     }
 
@@ -742,8 +716,7 @@ namespace EmulatorLauncher
                             if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                 ini.WriteValue(gcpad, value, xInputMapping[mapping]);
 
-                            string reverseAxis;
-                            if (anyReverseAxes.TryGetValue(value, out reverseAxis))
+                            if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                             {
                                 mapping = pad.GetXInputMapping(x.Key, true);
                                 if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
@@ -794,8 +767,7 @@ namespace EmulatorLauncher
 
                                 ini.WriteValue(gcpad, value, axisValue(input, false));
 
-                                string reverseAxis;
-                                if (anyReverseAxes.TryGetValue(value, out reverseAxis))
+                                if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                                     ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
                             }
 
@@ -861,8 +833,7 @@ namespace EmulatorLauncher
 
                                 ini.WriteValue(gcpad, value, axisValue(input, false));
 
-                                string reverseAxis;
-                                if (anyReverseAxes.TryGetValue(value, out reverseAxis))
+                                if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                                     ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
                             }
 
@@ -1202,7 +1173,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void ConfigureGCAdapter(string gcpad, string guid, Controller pad, bool gc, IniFile ini, Dictionary<string, int> double_pads, int nsamepad)
+        private static void ConfigureGCAdapter(string gcpad, string guid, Controller pad, IniFile ini)
         {
             ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.");
             ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.");
@@ -1224,7 +1195,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(gcpad, button.Key, button.Value); 
         }
 
-        private static void removeControllerConfig_gamecube(string path, string filename)
+        private static void RemoveControllerConfig_gamecube(string path, string filename)
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
@@ -1327,7 +1298,7 @@ namespace EmulatorLauncher
             return null;
         }
 
-        static Dictionary<string, string> realEmulatedWiimote = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> realEmulatedWiimote = new Dictionary<string, string>()
         {
             { "Tilt/Modifier/Range", "50." },
             { "Nunchuk/Stick/Modifier/Range", "50." },
@@ -1408,7 +1379,7 @@ namespace EmulatorLauncher
             { "Options/Battery", "`Battery`" },
         };
 
-        static Dictionary<string, Dictionary<string, string>> gcAdapters = new Dictionary<string, Dictionary<string, string>>()
+        static readonly Dictionary<string, Dictionary<string, string>> gcAdapters = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 "030000009b2800006500000000000000",
