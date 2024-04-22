@@ -6,29 +6,26 @@ using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-    partial class YuzuGenerator : Generator
+    partial class SuyuGenerator : Generator
     {
-        public YuzuGenerator()
+        public SuyuGenerator()
         {
             DependsOnDesktopResolution = true;
         }
         
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string path = AppConfig.GetFullPath(emulator.Replace("-", " "));
-            if (string.IsNullOrEmpty(path) && emulator.Contains("-"))
-                path = AppConfig.GetFullPath(emulator);
-
-            string exe = Path.Combine(path, "yuzu.exe");
-            if (!File.Exists(exe))
+            string path = AppConfig.GetFullPath(emulator);
+            if (string.IsNullOrEmpty(path))
                 return null;
-            
+
+            string exe = Path.Combine(path, "suyu.exe");
             if (!File.Exists(exe))
                 return null;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            SetupConfigurationYuzu(path, rom, fullscreen);
+            SetupConfigurationSuyu(path, rom, fullscreen);
 
             var commandArray = new List<string>();
 
@@ -95,7 +92,7 @@ namespace EmulatorLauncher
             base.Cleanup();
 
             // Restore value for Paths\\gamedirs\\size
-            // As it's faster to launch a yuzu game when there's no folder set            
+            // As it's faster to launch a suyu game when there's no folder set            
 
             if (string.IsNullOrEmpty(_gamedirsIniPath) || string.IsNullOrEmpty(_gamedirsSize))
                 return;
@@ -104,12 +101,17 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "Paths\\gamedirs\\size", _gamedirsSize);
         }
 
-        private void SetupConfigurationYuzu(string path, string rom, bool fullscreen)
+        private void SetupConfigurationSuyu(string path, string rom, bool fullscreen)
         {
             if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
 
-            string conf = Path.Combine(path, "user", "config", "qt-config.ini");
+            string userFolder = Path.Combine(path, "user");
+            if (!Directory.Exists(userFolder))
+                try { Directory.CreateDirectory(userFolder); }
+                catch { }
+            
+            string conf = Path.Combine(userFolder, "config", "qt-config.ini");
 
             using (var ini = new IniFile(conf))
             {
@@ -160,18 +162,18 @@ namespace EmulatorLauncher
 
                 //language
                 ini.WriteValue("System", "language_index\\default", "false");
-                if (SystemConfig.isOptSet("yuzu_language") && !string.IsNullOrEmpty(SystemConfig["yuzu_language"]))
-                    ini.WriteValue("System", "language_index", SystemConfig["yuzu_language"]);
+                if (SystemConfig.isOptSet("suyu_language") && !string.IsNullOrEmpty(SystemConfig["suyu_language"]))
+                    ini.WriteValue("System", "language_index", SystemConfig["suyu_language"]);
                 else
                     ini.WriteValue("System", "language_index", GetDefaultswitchLanguage());
 
                 //region
-                if (SystemConfig.isOptSet("yuzu_region_value") && !string.IsNullOrEmpty(SystemConfig["yuzu_region_value"]) && SystemConfig["yuzu_region_value"] != "1")
+                if (SystemConfig.isOptSet("suyu_region_value") && !string.IsNullOrEmpty(SystemConfig["suyu_region_value"]) && SystemConfig["suyu_region_value"] != "1")
                 {
                     ini.WriteValue("System", "region_index\\default", "false");
-                    ini.WriteValue("System", "region_index", SystemConfig["yuzu_region_value"]);
+                    ini.WriteValue("System", "region_index", SystemConfig["suyu_region_value"]);
                 }
-                else if (Features.IsSupported("yuzu_region_value"))
+                else if (Features.IsSupported("suyu_region_value"))
                 {
                     ini.WriteValue("System", "region_index\\default", "true");
                     ini.WriteValue("System", "region_index", "1");
@@ -198,32 +200,28 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "hideInactiveMouse", "true");
 
                 // Controller applet (disabled by default)
-                if (SystemConfig.isOptSet("yuzu_controller_applet") && SystemConfig.getOptBoolean("yuzu_controller_applet"))
+                if (SystemConfig.isOptSet("suyu_controller_applet") && SystemConfig.getOptBoolean("suyu_controller_applet"))
                 {
                     ini.WriteValue("UI", "disableControllerApplet\\default", "true");
                     ini.WriteValue("UI", "disableControllerApplet", "false");
                 }
-                else if (Features.IsSupported("yuzu_controller_applet"))
+                else if (Features.IsSupported("suyu_controller_applet"))
                 {
                     ini.WriteValue("UI", "disableControllerApplet\\default", "false");
                     ini.WriteValue("UI", "disableControllerApplet", "true");
                 }
 
                 //docked mode
-                if (SystemConfig.isOptSet("yuzu_undock") && SystemConfig.getOptBoolean("yuzu_undock"))
+                if (SystemConfig.isOptSet("suyu_undock") && SystemConfig.getOptBoolean("suyu_undock"))
                 {
                     ini.WriteValue("System", "use_docked_mode\\default", "false");
                     ini.WriteValue("System", "use_docked_mode", "0");
                 }
-                else if (Features.IsSupported("yuzu_undock"))
+                else if (Features.IsSupported("suyu_undock"))
                 {
                     ini.WriteValue("System", "use_docked_mode\\default", "true");
                     ini.WriteValue("System", "use_docked_mode", "1");
                 }
-
-                //disable telemetry
-                ini.WriteValue("WebService", "enable_telemetry\\default", "false");
-                ini.WriteValue("WebService", "enable_telemetry", "false");
 
                 //remove exit confirmation
                 ini.WriteValue("UI", "confirmStop\\default", "false");
@@ -231,8 +229,8 @@ namespace EmulatorLauncher
 
                 //get path for roms
                 string romPath = Path.GetDirectoryName(rom);
-                ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\","/"));
-                
+                ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\", "/"));
+
                 // Set gamedirs count to 4
                 var gameDirsSize = ini.GetValue("UI", "Paths\\gamedirs\\size");
                 if (gameDirsSize.ToInteger() != 4)
@@ -243,7 +241,7 @@ namespace EmulatorLauncher
                 }
 
                 //screenshots path
-                string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/yuzu";
+                string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/suyu";
                 if (!Directory.Exists(screenshotpath)) try { Directory.CreateDirectory(screenshotpath); }
                     catch { }
                 if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
@@ -264,10 +262,10 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "2");
 
                 // Aspect ratio
-                BindQtIniFeature(ini, "Renderer", "aspect_ratio", "yuzu_ratio", "0");
+                BindQtIniFeature(ini, "Renderer", "aspect_ratio", "suyu_ratio", "0");
 
                 // Anisotropic filtering
-                BindQtIniFeature(ini, "Renderer", "max_anisotropy", "yuzu_anisotropy", "0");
+                BindQtIniFeature(ini, "Renderer", "max_anisotropy", "suyu_anisotropy", "0");
 
                 // Vsync
                 BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
@@ -297,8 +295,8 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
 
                 //Core options
-                BindQtIniFeature(ini, "Core", "use_multi_core", "yuzu_multicore", "true");
-                BindQtIniFeature(ini, "Core", "memory_layout_mode", "yuzu_memory", "0");
+                BindQtIniFeature(ini, "Core", "use_multi_core", "suyu_multicore", "true");
+                BindQtIniFeature(ini, "Core", "memory_layout_mode", "suyu_memory", "0");
 
                 // CPU accuracy (auto except if the user chooses otherwise)
                 BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
@@ -311,7 +309,7 @@ namespace EmulatorLauncher
         {
             int exitCode = base.RunAndWait(path);
 
-            // Yuzu always returns 0xc0000005 ( null pointer !? )
+            // Suyu always returns 0xc0000005 ( null pointer !? )
             if (exitCode == unchecked((int)0xc0000005))
                 return 0;
             

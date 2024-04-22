@@ -128,7 +128,7 @@ namespace EmulatorLauncher
             BindFeature(json, "enable_texture_recompression", "enable_texture_recompression", "false");
 
             // Resolution
-            string res = "1";
+            string res;
             if (SystemConfig.isOptSet("res_scale") && !string.IsNullOrEmpty(SystemConfig["res_scale"]))
             {
                 res = SystemConfig["res_scale"];
