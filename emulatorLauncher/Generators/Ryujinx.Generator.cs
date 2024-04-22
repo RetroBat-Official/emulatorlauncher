@@ -126,7 +126,27 @@ namespace EmulatorLauncher
             
             BindFeature(json, "enable_shader_cache", "enable_shader_cache", "true");
             BindFeature(json, "enable_texture_recompression", "enable_texture_recompression", "false");
-            BindFeature(json, "res_scale", "res_scale", "1");
+
+            // Resolution
+            string res = "1";
+            if (SystemConfig.isOptSet("res_scale") && !string.IsNullOrEmpty(SystemConfig["res_scale"]))
+            {
+                res = SystemConfig["res_scale"];
+
+                if (res.StartsWith("0."))
+                {
+                    json["res_scale"] = "-1";
+                    json["res_scale_custom"] = res;
+                }
+                else
+                {
+                    json["res_scale"] = res;
+                }
+            }
+
+            else
+                json["res_scale"] = "1";
+
             BindFeature(json, "max_anisotropy", "max_anisotropy", "-1");
             BindFeature(json, "aspect_ratio", "aspect_ratio", "Fixed16x9");
 
