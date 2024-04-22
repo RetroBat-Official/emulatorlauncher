@@ -211,6 +211,10 @@
     <Compile Include="Generators\LibRetro.InputRemap.cs">
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Lime3ds.Generator.cs" />
+    <Compile Include="Generators\Lime3ds.Controllers.cs">
+      <DependentUpon>Lime3ds.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\MagicEngine.Generator.cs" />
     <Compile Include="Generators\MagicEngine.Controllers.cs">
@@ -341,6 +345,14 @@
     <Compile Include="Generators\Stella.Generator.cs" />
     <Compile Include="Generators\Stella.Controllers.cs">
       <DependentUpon>Stella.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Sudachi.Generator.cs" />
+    <Compile Include="Generators\Sudachi.Controllers.cs">
+      <DependentUpon>Sudachi.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Suyu.Generator.cs" />
+    <Compile Include="Generators\Suyu.Controllers.cs">
+      <DependentUpon>Suyu.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\TeknoParrot.Generator.cs" />
     <Compile Include="Generators\TeknoParrot.Controllers.cs">
