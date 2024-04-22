@@ -282,7 +282,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", "touch_from_button_maps\\size", "1");
         }
 
-        static Dictionary<string, string> DefKeys = new Dictionary<string, string>()
+        /*static Dictionary<string, string> DefKeys = new Dictionary<string, string>()
         {
             { "button_a", "code:65,engine:keyboard" },
             { "button_b","code:83,engine:keyboard" },
@@ -303,9 +303,9 @@ namespace EmulatorLauncher
             { "button_home","code:66,engine:keyboard" },
             { "circle_pad","down:code$016777237$1engine$0keyboard,engine:analog_from_button,left:code$016777234$1engine$0keyboard,modifier:code$068$1engine$0keyboard,modifier_scale:0.500000,right:code$016777236$1engine$0keyboard,up:code$016777235$1engine$0keyboard" },
             { "c_stick","down:code$075$1engine$0keyboard,engine:analog_from_button,left:code$074$1engine$0keyboard,modifier:code$068$1engine$0keyboard,modifier_scale:0.500000,right:code$076$1engine$0keyboard,up:code$073$1engine$0keyboard" }, 
-        };
+        };*/
 
-        static InputKeyMapping Mapping = new InputKeyMapping()
+        static readonly InputKeyMapping Mapping = new InputKeyMapping()
         {
             { InputKey.b,               "button_a" },
             { InputKey.a,               "button_b" },
@@ -321,13 +321,13 @@ namespace EmulatorLauncher
             { InputKey.select,          "button_select" },
         };
 
-        static InputKeyMapping Zmapping = new InputKeyMapping()
+        static readonly InputKeyMapping Zmapping = new InputKeyMapping()
         {
             { InputKey.l2,               "button_zl" },
             { InputKey.r2,               "button_zr" },
         };
 
-        static Dictionary<string, string> sdlControllerNameMap = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> sdlControllerNameMap = new Dictionary<string, string>()
         {
             { "DualSense Wireless Controller", "PS5 Controller" },
         };

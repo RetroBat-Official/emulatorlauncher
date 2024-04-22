@@ -70,7 +70,7 @@ namespace EmulatorLauncher
             { "hypseus", () => new HypseusGenerator() },
             { "raine", () => new RaineGenerator() },
             { "snes9x", () => new Snes9xGenerator() },
-            { "citra", () => new CitraGenerator() }, { "citra-canary", () => new CitraGenerator() }, { "lemonade", () => new CitraGenerator() },
+            { "citra", () => new CitraGenerator() }, { "citra-canary", () => new CitraGenerator() },
             { "pico8", () => new Pico8Generator() },
             { "xenia", () => new XeniaGenerator() }, { "xenia-canary", () => new XeniaGenerator() },
             { "mame64", () => new Mame64Generator() }, { "hbmame", () => new Mame64Generator() },
