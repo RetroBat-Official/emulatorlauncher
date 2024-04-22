@@ -7,21 +7,20 @@ using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-    partial class CitraGenerator : Generator
+    partial class Lime3dsGenerator : Generator
     {
-        public CitraGenerator()
+        public Lime3dsGenerator()
         {
             DependsOnDesktopResolution = true;
         }
 
-        private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_30;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string folderName = emulator;
-            string path = AppConfig.GetFullPath(folderName);
+            string path = AppConfig.GetFullPath(emulator);
 
-            string exe = Path.Combine(path, "citra-qt.exe");
+            string exe = Path.Combine(path, "lime-qt.exe");
             if (!File.Exists(exe))
                 return null;
 
@@ -39,7 +38,7 @@ namespace EmulatorLauncher
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
-            SetupConfigurationCitra(path, fullscreen);
+            SetupConfigurationLime3ds(path, fullscreen);
 
             List<string> commandArray = new List<string>();
             if (fullscreen)
@@ -58,7 +57,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfigurationCitra(string path, bool fullscreen = true)
+        private void SetupConfigurationLime3ds(string path, bool fullscreen = true)
         {
             if (SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
@@ -87,7 +86,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Data%20Storage", "use_custom_storage\\default", "false");
                 ini.WriteValue("Data%20Storage", "use_custom_storage", "true");
 
-                string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "nand");
+                string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "lime3ds", "nand");
                 if (!Directory.Exists(emuNandPath)) try { Directory.CreateDirectory(emuNandPath); }
                     catch { }
                 ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
@@ -98,13 +97,13 @@ namespace EmulatorLauncher
                 if (File.Exists(nandPath))
                     Write3DSnand(nandPath);
 
-                string sdmcPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "sdmc");
+                string sdmcPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "lime3ds", "sdmc");
                 if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
                     catch { }
                 ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
                 ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
 
-                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "citra");
+                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "lime3ds");
                 if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
                     catch { }
                 ini.WriteValue("UI", "Paths\\screenshotPath\\default", "false");
@@ -141,12 +140,12 @@ namespace EmulatorLauncher
                     ini.WriteValue("Layout", "filter_mode", "false");
                 }
 
-                if (Features.IsSupported("citra_resolution_factor"))
+                if (Features.IsSupported("lime_resolution_factor"))
                 {
-                    if (SystemConfig.isOptSet("citra_resolution_factor"))
+                    if (SystemConfig.isOptSet("lime_resolution_factor"))
                     {
-                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["citra_resolution_factor"] == "1" ? "true" : "false");
-                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["citra_resolution_factor"]);
+                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["lime_resolution_factor"] == "1" ? "true" : "false");
+                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["lime_resolution_factor"]);
                     }
                     else
                     {
@@ -155,12 +154,12 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("citra_layout_option"))
+                if (Features.IsSupported("lime_layout_option"))
                 {
-                    if (SystemConfig.isOptSet("citra_layout_option"))
+                    if (SystemConfig.isOptSet("lime_layout_option"))
                     {
                         ini.WriteValue("Layout", "layout_option\\default", "false");
-                        ini.WriteValue("Layout", "layout_option", SystemConfig["citra_layout_option"]);
+                        ini.WriteValue("Layout", "layout_option", SystemConfig["lime_layout_option"]);
                     }
                     else
                     {
@@ -169,9 +168,9 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("citra_swap_screen"))
+                if (Features.IsSupported("lime_swap_screen"))
                 {
-                    if (SystemConfig.isOptSet("citra_swap_screen") && SystemConfig.getOptBoolean("citra_swap_screen"))
+                    if (SystemConfig.isOptSet("lime_swap_screen") && SystemConfig.getOptBoolean("lime_swap_screen"))
                     {
                         ini.WriteValue("Layout", "swap_screen\\default", "false");
                         ini.WriteValue("Layout", "swap_screen", "true");
@@ -184,35 +183,35 @@ namespace EmulatorLauncher
                 }
 
                 // Define console region
-                if (SystemConfig.isOptSet("citra_region_value") && !string.IsNullOrEmpty(SystemConfig["citra_region_value"]) && SystemConfig["citra_region_value"] != "-1")
+                if (SystemConfig.isOptSet("lime_region_value") && !string.IsNullOrEmpty(SystemConfig["lime_region_value"]) && SystemConfig["lime_region_value"] != "-1")
                 {
                     ini.WriteValue("System", "region_value\\default", "false");
-                    ini.WriteValue("System", "region_value", SystemConfig["citra_region_value"]);
+                    ini.WriteValue("System", "region_value", SystemConfig["lime_region_value"]);
                 }
-                else if (Features.IsSupported("citra_region_value"))
+                else if (Features.IsSupported("lime_region_value"))
                 {
                     ini.WriteValue("System", "region_value\\default", "true");
                     ini.WriteValue("System", "region_value", "-1");
                 }
 
                 // Custom textures
-                if (SystemConfig.isOptSet("citra_custom_textures") && SystemConfig.getOptBoolean("citra_custom_textures"))
+                if (SystemConfig.isOptSet("lime_custom_textures") && SystemConfig.getOptBoolean("lime_custom_textures"))
                 {
                     ini.WriteValue("Utility", "custom_textures\\default", "false");
                     ini.WriteValue("Utility", "custom_textures", "true");
                 }
-                else if (Features.IsSupported("citra_custom_textures"))
+                else if (Features.IsSupported("lime_custom_textures"))
                 {
                     ini.WriteValue("Utility", "custom_textures\\default", "true");
                     ini.WriteValue("Utility", "custom_textures", "false");
                 }
 
-                if (SystemConfig.isOptSet("citra_PreloadTextures") && SystemConfig.getOptBoolean("citra_PreloadTextures"))
+                if (SystemConfig.isOptSet("lime_PreloadTextures") && SystemConfig.getOptBoolean("lime_PreloadTextures"))
                 {
                     ini.WriteValue("Utility", "preload_textures\\default", "false");
                     ini.WriteValue("Utility", "preload_textures", "true");
                 }
-                else if (Features.IsSupported("citra_PreloadTextures"))
+                else if (Features.IsSupported("lime_PreloadTextures"))
                 {
                     ini.WriteValue("Utility", "preload_textures\\default", "true");
                     ini.WriteValue("Utility", "preload_textures", "false");

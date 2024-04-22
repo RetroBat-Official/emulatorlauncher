@@ -7,10 +7,10 @@ using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
-    partial class YuzuGenerator : Generator
-    {        
+    partial class SuyuGenerator : Generator
+    {
         /// <summary>
-        /// Cf. https://github.com/yuzu-emu/yuzu/blob/master/src/input_common/drivers/sdl_driver.cpp
+        /// Cf. https://git.suyu.dev/suyu/suyu/src/branch/dev/src/input_common/drivers/sdl_driver.cpp
         /// </summary>
         /// <param name="ini"></param>
         private static void UpdateSdlControllersWithHints(IniFile ini)
@@ -82,7 +82,7 @@ namespace EmulatorLauncher
 
             var guid = controller.GetSdlGuid(SdlVersion.SDL2_0_X, true);
 
-            // Yuzu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
+            // Suyu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
             if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
             {
@@ -90,7 +90,7 @@ namespace EmulatorLauncher
                     guid = guid.ToXInputGuid(controller.XInput.SubType);
             }
 
-            var yuzuGuid = guid.ToString().ToLowerInvariant();
+            var suyuGuid = guid.ToString().ToLowerInvariant();
 
             int index = Program.Controllers
                     .GroupBy(c => c.Guid.ToLowerInvariant())
@@ -166,9 +166,9 @@ namespace EmulatorLauncher
             if (!controller.IsXInputDevice)
             {
                 ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
-                ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + yuzuGuid + "\"");
+                ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + suyuGuid + "\"");
                 ini.WriteValue("Controls", player + "motionright" + "\\default", "false");
-                ini.WriteValue("Controls", player + "motionright", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + yuzuGuid + "\"");
+                ini.WriteValue("Controls", player + "motionright", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + suyuGuid + "\"");
             }
             else
             {
@@ -181,7 +181,7 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("switch_enable_motion") && SystemConfig.getOptBoolean("switch_enable_motion") && playerTypeId == 2 || playerTypeId == 3)
                 {
                     // 2 = Left joycon, 3 = Right joycon -> use R3 or L3
-                    var input = FromInput(controller, playerTypeId == 3 ? cfg[InputKey.l3] : cfg[InputKey.r3], yuzuGuid, index);
+                    var input = FromInput(controller, playerTypeId == 3 ? cfg[InputKey.l3] : cfg[InputKey.r3], suyuGuid, index);
                     if (input != null)
                     {
                         ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
@@ -217,7 +217,7 @@ namespace EmulatorLauncher
                 if (revertButtons && reversedButtons.ContainsKey(map.Key))
                     name = player + reversedButtons[map.Key];
 
-                string cvalue = FromInput(controller, cfg[map.Key], yuzuGuid, index);
+                string cvalue = FromInput(controller, cfg[map.Key], suyuGuid, index);
 
                 if (string.IsNullOrEmpty(cvalue))
                 {
@@ -248,8 +248,8 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", player + "button_screenshot" + "\\default", "false");
             ini.WriteValue("Controls", player + "button_screenshot", "[empty]");
 
-            ProcessStick(controller, player, "lstick", ini, yuzuGuid, index);
-            ProcessStick(controller, player, "rstick", ini, yuzuGuid, index);
+            ProcessStick(controller, player, "lstick", ini, suyuGuid, index);
+            ProcessStick(controller, player, "rstick", ini, suyuGuid, index);
         }
 
         private string FromInput(Controller controller, Input input, string guid, int index)
@@ -265,7 +265,7 @@ namespace EmulatorLauncher
                 value += ",hat:" + input.Id + ",direction:" + input.Name.ToString();
             else if (input.Type == "axis")
             {
-                //yuzu sdl implementation uses "2" as axis value for left trigger for XInput
+                //Suyu sdl implementation uses "2" as axis value for left trigger for XInput
                 if (controller.IsXInputDevice)
                 {
                     long newID = input.Id;
@@ -291,17 +291,17 @@ namespace EmulatorLauncher
 
             if (leftVal != null && topVal != null && leftVal.Type == topVal.Type && leftVal.Type == "axis")
             {
-                long yuzuleftval = leftVal.Id;
-                long yuzutopval = topVal.Id;
+                long suyuleftval = leftVal.Id;
+                long suyutopval = topVal.Id;
 
-                //yuzu sdl implementation uses 3 and 4 for right stick axis values with XInput
+                //Suyu sdl implementation uses 3 and 4 for right stick axis values with XInput
                 if (controller.IsXInputDevice && stickName == "rstick")
                 {
-                    yuzuleftval = 3;
-                    yuzutopval = 4;
+                    suyuleftval = 3;
+                    suyutopval = 4;
                 }
 
-                string value = "engine:sdl," + "axis_x:" + yuzuleftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + yuzutopval + ",deadzone:0.150000,range:1.000000";
+                string value = "engine:sdl," + "axis_x:" + suyuleftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + suyutopval + ",deadzone:0.150000,range:1.000000";
 
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "\"" + value + "\"");
@@ -414,9 +414,8 @@ namespace EmulatorLauncher
 
         private static void WriteShortcuts(IniFile ini)
         {
-            // exit yuzu with SELECT+START
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq", "Minus+Plus");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20suyu\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20suyu\\Controller_KeySeq", "Minus+Plus");
 
             // Pause with SELECT+EAST
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");

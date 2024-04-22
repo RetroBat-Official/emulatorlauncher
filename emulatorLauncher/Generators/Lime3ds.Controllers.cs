@@ -6,7 +6,7 @@ using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
-    partial class CitraGenerator : Generator
+    partial class Lime3dsGenerator : Generator
     {
         private void CreateControllerConfiguration(IniFile ini)
         {
@@ -30,11 +30,8 @@ namespace EmulatorLauncher
             if (cfg == null)
                 return;
 
-            if (_sdlVersion == SdlVersion.SDL2_26 && sdlControllerNameMap.ContainsKey(controller.Name))
-                controller.Name = sdlControllerNameMap[controller.Name];
-
             var guid = controller.GetSdlGuid(_sdlVersion, true);
-            var citraGuid = guid.ToString().ToLowerInvariant();
+            var limeGuid = guid.ToString().ToLowerInvariant();
 
             //only 1 player so profile is fixed to 1
             ini.WriteValue("Controls", "profile\\default", "true");
@@ -49,7 +46,7 @@ namespace EmulatorLauncher
             {
                 string name = profile + map.Value;
 
-                string cvalue = FromInput(controller, cfg[map.Key], citraGuid);
+                string cvalue = FromInput(controller, cfg[map.Key], limeGuid);
 
                 if (string.IsNullOrEmpty(cvalue))
                 {
@@ -74,7 +71,7 @@ namespace EmulatorLauncher
             {
                 string name = profile + map.Value;
 
-                string cvalue = FromInput(controller, cfg[map.Key], citraGuid);
+                string cvalue = FromInput(controller, cfg[map.Key], limeGuid);
 
                 if (string.IsNullOrEmpty(cvalue))
                 {
@@ -95,8 +92,8 @@ namespace EmulatorLauncher
             //Manage sticks
             //left stick = circle pad
             //right stick = c-stick
-            ProcessStick(controller, profile, "circle_pad", ini, citraGuid);
-            ProcessStick(controller, profile, "c_stick", ini, citraGuid);
+            ProcessStick(controller, profile, "circle_pad", ini, limeGuid);
+            ProcessStick(controller, profile, "c_stick", ini, limeGuid);
             
             //motion
             if (SystemConfig.isOptSet("n3ds_motion") && !string.IsNullOrEmpty(SystemConfig["n3ds_motion"]))
@@ -113,7 +110,7 @@ namespace EmulatorLauncher
                         break;
                     case "sdl":
                         ini.WriteValue("Controls", profile + "motion_device" + "\\default", "false");
-                        ini.WriteValue("Controls", profile + "motion_device", "\"engine:sdl,guid:" + citraGuid + ",port:0\"");
+                        ini.WriteValue("Controls", profile + "motion_device", "\"engine:sdl,guid:" + limeGuid + ",port:0\"");
                         break;
                 }
             }
@@ -194,10 +191,10 @@ namespace EmulatorLauncher
 
             if (leftVal != null && topVal != null && leftVal.Type == topVal.Type && leftVal.Type == "axis")
             {
-                long citraleftval = leftVal.Id;
-                long citratopval = topVal.Id;
+                long limeleftval = leftVal.Id;
+                long limetopval = topVal.Id;
 
-                string value = "axis_x:" + citraleftval + ",axis_y:" + citratopval + ",deadzone:0.100000,engine:sdl,guid:" + guid + ",port:0";
+                string value = "axis_x:" + limeleftval + ",axis_y:" + limetopval + ",deadzone:0.100000,engine:sdl,guid:" + guid + ",port:0";
 
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "\"" + value + "\"");
@@ -325,11 +322,6 @@ namespace EmulatorLauncher
         {
             { InputKey.l2,               "button_zl" },
             { InputKey.r2,               "button_zr" },
-        };
-
-        static readonly Dictionary<string, string> sdlControllerNameMap = new Dictionary<string, string>()
-        {
-            { "DualSense Wireless Controller", "PS5 Controller" },
         };
     }
 }
