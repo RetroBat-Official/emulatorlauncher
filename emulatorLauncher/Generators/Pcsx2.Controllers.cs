@@ -22,8 +22,10 @@ namespace EmulatorLauncher
         /// <param name="pcsx2ini"></param>
         private void UpdateSdlControllersWithHints(IniFile pcsx2ini)
         {
-            var hints = new List<string>();
-            hints.Add("SDL_JOYSTICK_HIDAPI_WII = 1");
+            var hints = new List<string>
+            {
+                "SDL_JOYSTICK_HIDAPI_WII = 1"
+            };
 
             if (pcsx2ini.GetValue("InputSources", "SDLControllerEnhancedMode") == "true")
             {
@@ -222,7 +224,7 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[WHEELS] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
                     gamecontrollerDB = null;
                 }
-                string guid = (ctrl.Guid.ToString()).Substring(0, 27) + "00000";
+                string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
                 SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid);
 
                 try { dinputController = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid); }
@@ -398,10 +400,9 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)

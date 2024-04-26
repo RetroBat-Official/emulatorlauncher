@@ -98,7 +98,7 @@ namespace EmulatorLauncher
             SetupConfiguration(bml, system, core, rom);
             SetupFirmwares(bml, system);
             WriteKeyboardHotkeys(bml);
-            CreateControllerConfiguration(bml, path);
+            CreateControllerConfiguration(bml);
 
             bml.Save();
 

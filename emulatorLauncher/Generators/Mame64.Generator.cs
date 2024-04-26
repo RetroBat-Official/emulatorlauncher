@@ -596,8 +596,8 @@ namespace EmulatorLauncher
                 ini["writeconfig"] = "0";
             }
 
-            if (SystemConfig.getOptBoolean("mame_output_windows"))
-                ini["output"] = "windows";
+            if (SystemConfig.isOptSet("mame_output") && !string.IsNullOrEmpty(SystemConfig["mame_output"]))
+                ini["output"] = SystemConfig["mame_output"];
             else
                 ini["output"] = "auto";
             

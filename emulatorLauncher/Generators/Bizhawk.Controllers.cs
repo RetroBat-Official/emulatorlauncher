@@ -8,10 +8,10 @@ namespace EmulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {
-        private static List<string> systemMonoPlayer = new List<string>() { "apple2", "gb", "gbc", "gba", "lynx", "nds" };
-        private static List<string> computersystem = new List<string>() { "apple2" };
+        private static readonly List<string> systemMonoPlayer = new List<string>() { "apple2", "gb", "gbc", "gba", "lynx", "nds" };
+        private static readonly List<string> computersystem = new List<string>() { "apple2" };
 
-        private static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
+        private static readonly Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "A26", 2 },
             { "A78", 2 },

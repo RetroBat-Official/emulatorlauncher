@@ -61,7 +61,7 @@ namespace EmulatorLauncher
 
             // Initializing controller information
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            string guid = (controller.Guid.ToString()).Substring(0, 27) + "00000";
+            string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput sdlCtrl = null;
             int index = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex;
 

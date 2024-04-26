@@ -64,7 +64,7 @@ namespace EmulatorLauncher
             if (ctrl == null || ctrl.Config == null)
                 return;
 
-            string guid = (ctrl.Guid.ToString()).Substring(0, 27) + "00000";
+            string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput dinputCtrl = null;
             string inputPad = "input.pad" + (ctrl.PlayerIndex).ToString() + ".";
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");

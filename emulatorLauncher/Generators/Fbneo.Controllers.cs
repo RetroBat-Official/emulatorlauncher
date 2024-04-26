@@ -117,7 +117,7 @@ namespace EmulatorLauncher
 
             // Get gamecontrollerdb buttonmapping for the controller
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            string guid1 = (controller.Guid.ToString()).Substring(0, 27) + "00000";
+            string guid1 = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput dinputCtrl = null;
 
             SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid1);

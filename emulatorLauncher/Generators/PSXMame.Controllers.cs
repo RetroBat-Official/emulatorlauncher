@@ -46,7 +46,7 @@ namespace EmulatorLauncher
 
                 string joy = "JOYCODE_" + cIndex + "_";
                 bool xinputCtrl = controller.IsXInputDevice;
-                string guid = (controller.Guid.ToString()).Substring(0, 27) + "00000";
+                string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
                 SdlToDirectInput ctrlr = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
 
@@ -665,7 +665,7 @@ namespace EmulatorLauncher
             return "NONE";
         }
 
-        static List<string> AnalogToNone = new List<string>()
+        static readonly List<string> AnalogToNone = new List<string>()
         {
             "PEDAL", "PEDAL2", "PEDAL3", "PADDLE", "PADDLE_V", "POSITIONAL", "POSITIONAL_V", "DIAL", "DIAL_V", "TRACKBALL_X", "TRACKBALL_Y", "AD_STICK_X", "AD_STICK_Y", "AD_STICK_Z",
               "LIGHTGUN_X", "LIGHTGUN_Y", "MOUSE_X", "MOUSE_Y"

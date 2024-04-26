@@ -1915,6 +1915,8 @@ namespace EmulatorLauncher.Libretro
                 if (!SystemConfig.isOptSet("alternate_renderer"))
                     coreSettings["mame_alternate_renderer"] = "enabled";
             }
+
+            ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
         }
 
         private void CleanupMameMessConfigFiles(MessSystem messSystem)
@@ -1958,6 +1960,23 @@ namespace EmulatorLauncher.Libretro
                 }
             }
             catch { }
+        }
+
+        private void ConfigureMameini(string path)
+        {
+            var ini = MameIniFile.FromFile(Path.Combine(path, "mame.ini"));
+
+            if (ini["writeconfig"] != "0")
+            {
+                ini["writeconfig"] = "0";
+            }
+
+            if (SystemConfig.isOptSet("mame_output") && !string.IsNullOrEmpty(SystemConfig["mame_output"]))
+                ini["output"] = SystemConfig["mame_output"];
+            else
+                ini["output"] = "auto";
+
+            ini.Save();
         }
 
         private void ConfigureMame2000(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2927,7 +2946,7 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "opera_high_resolution", "high_resolution", "enabled");
             BindFeature(coreSettings, "opera_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
-            BindFeature(coreSettings, "opera_bios", "opera_bios", "Panasonic FZ-1 (U)");
+            BindFeature(coreSettings, "opera_bios", "opera_bios", "panafz1.bin");
             BindFeature(coreSettings, "opera_region", "opera_region", "ntsc");
 
             // Game hacks

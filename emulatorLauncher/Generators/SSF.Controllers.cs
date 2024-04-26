@@ -111,11 +111,11 @@ namespace EmulatorLauncher
 
             // Define variables to be used
             bool isXinput = ctrl.IsXInputDevice;
-            SdlToDirectInput dinputController = null;
+            SdlToDirectInput dinputController;
 
             // Find controllerMapping in Gamecontrollerdb.txt file
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            string guid = (ctrl.Guid.ToString()).Substring(0, 27) + "00000";
+            string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
             
             if (!File.Exists(gamecontrollerDB))
             {
@@ -198,9 +198,7 @@ namespace EmulatorLauncher
 
         private static int GetInputCode(Controller c, InputKey key, SdlToDirectInput ctrl, bool isXinput = false, bool trigger = false)
         {
-
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             string esName = (c.Config[key].Name).ToString();
 
@@ -271,7 +269,7 @@ namespace EmulatorLauncher
             return 0;
         }
 
-        private static Dictionary<int, string> ssfPadOrder = new Dictionary<int, string>()
+        private static readonly Dictionary<int, string> ssfPadOrder = new Dictionary<int, string>()
         {
             { 1, "0_0" },
             { 2, "1_0" },
@@ -287,7 +285,7 @@ namespace EmulatorLauncher
             { 12, "1_5" },
         };
 
-        private static Dictionary<string, string> esToDinput = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> esToDinput = new Dictionary<string, string>()
         {
             { "a", "a" },
             { "b", "b" },

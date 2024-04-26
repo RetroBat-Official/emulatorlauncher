@@ -9,7 +9,7 @@ namespace EmulatorLauncher
 {
     partial class Pcsx2Generator : Generator
     {
-        private void SetupWheelQT(IniFile pcsx2ini, string path)
+        private void SetupWheelQT(IniFile pcsx2ini)
         {
             if (!SystemConfig.getOptBoolean("use_wheel"))
                 return;

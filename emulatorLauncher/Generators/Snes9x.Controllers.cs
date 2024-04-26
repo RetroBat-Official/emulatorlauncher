@@ -60,7 +60,7 @@ namespace EmulatorLauncher
                 return;
 
             // Initializing controller information
-            string guid = (ctrl.Guid.ToString()).Substring(0, 27) + "00000";
+            string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput controller = null;
             int index = ctrl.DirectInput != null ? ctrl.DirectInput.JoystickID : ctrl.DeviceIndex;
             string joyNb = "Joypad" + playerindex;

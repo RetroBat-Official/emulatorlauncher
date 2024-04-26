@@ -183,8 +183,8 @@ namespace EmulatorLauncher
 
             if (tech1 == "dinput" || tech2 == "dinput")
             {
-                string guid1 = wheel != null ? (wheelGuid.ToString()).Substring(0, 27) + "00000" : (c1.Guid.ToString()).Substring(0, 27) + "00000";
-                string guid2 = (c2 != null && c2.Config != null) ? (c2.Guid.ToString()).Substring(0, 27) + "00000" : null;
+                string guid1 = wheel != null ? (wheelGuid.ToString()).Substring(0, 24) + "00000000" : (c1.Guid.ToString()).Substring(0, 24) + "00000000";
+                string guid2 = (c2 != null && c2.Config != null) ? (c2.Guid.ToString()).Substring(0, 24) + "00000000" : null;
 
                 if (!File.Exists(gamecontrollerDB))
                 {
@@ -1172,8 +1172,7 @@ namespace EmulatorLauncher
 
         private static byte GetInputCode(InputKey key, Controller c, string tech, string brand, SdlToDirectInput ctrl ,bool globalAxis = false, bool trigger = false, bool digital = false)
         {
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
             
             string esName = (c.Config[key].Name).ToString();
 

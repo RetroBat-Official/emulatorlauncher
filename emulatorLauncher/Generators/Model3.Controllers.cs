@@ -17,8 +17,10 @@ namespace EmulatorLauncher
         /// <param name="ini"></param>
         private void UpdateSdlControllersWithHints()
         {
-            var hints = new List<string>();
-            hints.Add("SDL_JOYSTICK_HIDAPI_WII = 0");
+            var hints = new List<string>
+            {
+                "SDL_JOYSTICK_HIDAPI_WII = 0"
+            };
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
@@ -601,8 +603,8 @@ namespace EmulatorLauncher
             #region dinput
             else if (tech == "dinput")
             {
-                string guid1 = (c1.Guid.ToString()).Substring(0, 27) + "00000";
-                string wheelSdlGuid = wheelGuid != "nul" ? wheelGuid.Substring(0, 27) + "00000" : "nul";
+                string guid1 = (c1.Guid.ToString()).Substring(0, 24) + "00000000";
+                string wheelSdlGuid = wheelGuid != "nul" ? wheelGuid.Substring(0, 24) + "00000000" : "nul";
 
                 // set inputsystem
                 if (multigun)
@@ -944,7 +946,7 @@ namespace EmulatorLauncher
 
                     if (c2 != null && multiplayer)
                     {
-                        string guid2 = (c2.Guid.ToString()).Substring(0, 27) + "00000";
+                        string guid2 = (c2.Guid.ToString()).Substring(0, 24) + "00000000";
                         SimpleLogger.Instance.Info("[INFO] Player 2. Fetching gamecontrollerdb.txt file with guid : " + guid2);
                         var ctrl2 = gamecontrollerDB == null ? null : GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid2);
                         
