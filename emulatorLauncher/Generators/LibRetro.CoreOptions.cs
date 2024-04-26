@@ -3889,7 +3889,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "swanstation_Console_Region", "swanstation_region", "Auto");
             BindFeature(coreSettings, "swanstation_GPU_Renderer", "swanstation_GPU", "Auto");
             BindFeature(coreSettings, "swanstation_GPU_TextureFilter", "swanstation_texturefilter", "Nearest");
-            BindFeature(coreSettings, "swanstation_Display_AspectRatio", "swanstation_aspectratio", "Auto");
+            BindFeature(coreSettings, "swanstation_Display_AspectRatio", "swanstation_aspectratio", "Native");
             BindFeature(coreSettings, "swanstation_Display_CropMode", "swanstation_cropmode", "Overscan");
             BindFeature(coreSettings, "swanstation_GPU_ResolutionScale", "internal_resolution", "1");
             BindFeature(coreSettings, "swanstation_GPU_ForceNTSCTimings", "force_ntsc_timings", "false");
