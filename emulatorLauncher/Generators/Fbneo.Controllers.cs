@@ -56,7 +56,7 @@ namespace EmulatorLauncher
 
                     foreach (var buttonEntry in game.Elements)
                     {
-                        var button = buttonEntry as YmlElement;
+                        YmlElement button = buttonEntry as YmlElement;
                         if (button != null)
                         {
                             buttonMap.Add(button.Name, button.Value);

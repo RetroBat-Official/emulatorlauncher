@@ -36,12 +36,12 @@ namespace EmulatorLauncher
                 return;
 
             if (controller.IsKeyboard)
-                ConfigureKeyboard(ini, controller.Config, controller.PlayerIndex);
+                ConfigureKeyboard(controller.Config);
             else
                 ConfigureJoystick(ini, controller, controller.PlayerIndex);
         }
 
-        private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, int playerindex)
+        private void ConfigureKeyboard(InputConfig keyboard)
         {
             if (keyboard == null)
                 return;

@@ -118,7 +118,7 @@ namespace EmulatorLauncher
 
             else
             {
-                SetupPaths(system, emulator, core, _fullscreen);
+                SetupPaths(_fullscreen);
                 SetupVM();
                 SetupLilyPad();
                 SetupGSDx(resolution);
@@ -195,7 +195,7 @@ namespace EmulatorLauncher
         }
 
         #region wxwidgets version
-        private void SetupPaths(string system, string emulator, string core, bool fullscreen)
+        private void SetupPaths(bool fullscreen)
         {
             if (SystemConfig.getOptBoolean("disableautoconfig"))
                 return;

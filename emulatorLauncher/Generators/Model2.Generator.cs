@@ -56,8 +56,7 @@ namespace EmulatorLauncher
                 catch { }
             }
 
-            string parentRom = null;
-            if (parentRoms.TryGetValue(Path.GetFileNameWithoutExtension(rom).ToLowerInvariant(), out parentRom))
+            if (parentRoms.TryGetValue(Path.GetFileNameWithoutExtension(rom).ToLowerInvariant(), out string parentRom))
             {
                 parentRom = Path.Combine(Path.GetDirectoryName(rom), parentRom + ".zip");
                 _destParent = Path.Combine(pakDir, Path.GetFileName(parentRom));
@@ -81,7 +80,7 @@ namespace EmulatorLauncher
                 _dinput = true;
 
             SetupConfig(path, resolution, rom);
-            SetupLUAScript(path, resolution, rom);
+            SetupLUAScript(path, rom);
 
             string arg = Path.GetFileNameWithoutExtension(_destFile);
 
@@ -216,7 +215,7 @@ namespace EmulatorLauncher
                 else
                     bytes = new byte[hexLength];
 
-                ConfigureControllers(bytes, ini, parentRom, hexLength);
+                ConfigureControllers(bytes, ini, parentRom);
 
                 SimpleLogger.Instance.Info("Saving input file " + inputFile);
                 File.WriteAllBytes(inputFile, bytes);
@@ -276,14 +275,13 @@ namespace EmulatorLauncher
             catch { }
             finally
             {
-                if (bezel != null)
-                    bezel.Dispose();
+                bezel?.Dispose();
             }
 
             return -1;
         }
 
-        static Dictionary<string, string> parentRoms = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> parentRoms = new Dictionary<string, string>()
         { 
             // Daytona USA
             { "dayton93", "daytona" },
@@ -337,7 +335,7 @@ namespace EmulatorLauncher
             { "zeroguna", "zerogun" },
         };
 
-        static Dictionary<string, int> byteLength = new Dictionary<string, int>()
+        static readonly Dictionary<string, int> byteLength = new Dictionary<string, int>()
         {
             { "bel", 108 },
             { "daytona", 104 },
@@ -373,7 +371,7 @@ namespace EmulatorLauncher
             { "zerogun", 108 }
         };
 
-        private void SetupLUAScript(string path, ScreenResolution resolution, string rom)
+        private void SetupLUAScript(string path, string rom)
         {
             string luaFile = Path.Combine(path, "scripts", Path.GetFileNameWithoutExtension(rom) + ".lua");
 

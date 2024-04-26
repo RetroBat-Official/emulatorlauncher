@@ -11,10 +11,10 @@ namespace EmulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
-        static List<string> systemWithAutoconfig = new List<string>() { "apple2", "gb", "gba", "gg", "lynx", "md", "nes", "ngp", "pce", "pcfx", "psx", "sms", "snes", "ss", "wswan" };
-        static List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
+        static readonly List<string> systemWithAutoconfig = new List<string>() { "apple2", "gb", "gba", "gg", "lynx", "md", "nes", "ngp", "pce", "pcfx", "psx", "sms", "snes", "ss", "wswan" };
+        //static readonly List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
 
-        static Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> defaultPadType = new Dictionary<string, string>()
         {
             { "apple2", "gamepad" },
             { "lynx", "builtin.gamepad"},
@@ -33,7 +33,7 @@ namespace EmulatorLauncher
             { "wswan", "gamepad" }
         };
         
-        static Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
+        static readonly Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "apple2", 2 },
             { "lynx", 1 },
@@ -618,7 +618,7 @@ namespace EmulatorLauncher
 
         #region controller Mapping
 
-        static Dictionary<string, InputKey> gbmapping = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> gbmapping = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "b", InputKey.a },
@@ -632,7 +632,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> gbtiltmapping = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> gbtiltmapping = new Dictionary<string, InputKey>()
         {
             { "down", InputKey.rightanalogdown },
             { "left", InputKey.rightanalogleft },
@@ -640,7 +640,7 @@ namespace EmulatorLauncher
             { "up", InputKey.rightanalogup }
         };
 
-        static Dictionary<string, InputKey> gbamapping = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> gbamapping = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "b", InputKey.a },
@@ -656,7 +656,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> ggmapping = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> ggmapping = new Dictionary<string, InputKey>()
         {
             { "button1", InputKey.a },
             { "button2", InputKey.b },
@@ -669,7 +669,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> lynxmapping = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> lynxmapping = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "b", InputKey.a },
@@ -684,7 +684,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> mdgamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> mdgamepad = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.y },
             { "b", InputKey.a },
@@ -699,7 +699,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> mdgamepad2 = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> mdgamepad2 = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.a },
             { "b", InputKey.b },
@@ -712,7 +712,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> mdgamepad6 = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> mdgamepad6 = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.y },
             { "b", InputKey.a },
@@ -728,7 +728,7 @@ namespace EmulatorLauncher
             { "z", InputKey.pagedown },
         };
 
-        static Dictionary<string, InputKey> nesgamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> nesgamepad = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "b", InputKey.a },
@@ -742,7 +742,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up },
         };
 
-        static Dictionary<string, InputKey> ngpmapping = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> ngpmapping = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.a },
             { "b", InputKey.b },
@@ -755,7 +755,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> pcegamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> pcegamepad = new Dictionary<string, InputKey>()
         {
             { "down", InputKey.down },
             { "i", InputKey.b },
@@ -772,7 +772,7 @@ namespace EmulatorLauncher
             { "vi", InputKey.pagedown },
         };
 
-        static Dictionary<string, InputKey> pcfxgamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> pcfxgamepad = new Dictionary<string, InputKey>()
         {
             { "down", InputKey.down },
             { "i", InputKey.b },
@@ -790,7 +790,7 @@ namespace EmulatorLauncher
             { "vi", InputKey.pagedown },
         };
 
-        static Dictionary<string, InputKey> psxgamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> psxgamepad = new Dictionary<string, InputKey>()
         {
             { "circle", InputKey.b },
             { "cross", InputKey.a },
@@ -808,7 +808,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> psxdualshock = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> psxdualshock = new Dictionary<string, InputKey>()
         {
             { "circle", InputKey.b },
             { "cross", InputKey.a },
@@ -836,7 +836,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> snesgamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> snesgamepad = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "b", InputKey.a },
@@ -854,7 +854,7 @@ namespace EmulatorLauncher
             { "y", InputKey.y },
         };
 
-        static Dictionary<string, InputKey> ssgamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> ssgamepad = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "b", InputKey.a },
@@ -871,7 +871,7 @@ namespace EmulatorLauncher
             { "z", InputKey.pageup }
         };
 
-        static Dictionary<string, InputKey> apple2gamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> apple2gamepad = new Dictionary<string, InputKey>()
         {
             { "button1", InputKey.a },
             { "button2", InputKey.b },
@@ -882,7 +882,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> apple2joystick = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> apple2joystick = new Dictionary<string, InputKey>()
         {
             { "button1", InputKey.a },
             { "button2", InputKey.b },
@@ -893,7 +893,7 @@ namespace EmulatorLauncher
             { "stick_up", InputKey.leftanalogup }
         };
 
-        static Dictionary<string, InputKey> apple2atari = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> apple2atari = new Dictionary<string, InputKey>()
         {
             { "button", InputKey.a },
             { "down", InputKey.down },
@@ -902,7 +902,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> smsgamepad = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> smsgamepad = new Dictionary<string, InputKey>()
         {
             { "down", InputKey.down },
             { "fire1", InputKey.a },
@@ -915,7 +915,7 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> wswanhorizontal = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> wswanhorizontal = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "b", InputKey.a },
@@ -932,7 +932,7 @@ namespace EmulatorLauncher
             { "up-y", InputKey.leftanalogup }
         };
 
-        static Dictionary<string, InputKey> wswanvertical = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> wswanvertical = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "ap", InputKey.x },
@@ -949,7 +949,7 @@ namespace EmulatorLauncher
             { "up-y", InputKey.up }
         };
 
-        static Dictionary<string, InputKey> wswanhorizontalkb = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> wswanhorizontalkb = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "b", InputKey.a },
@@ -966,7 +966,7 @@ namespace EmulatorLauncher
             { "up-y", InputKey.pagedown }
         };
 
-        static Dictionary<string, InputKey> wswanverticalkb = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, InputKey> wswanverticalkb = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
             { "ap", InputKey.x },
@@ -985,7 +985,7 @@ namespace EmulatorLauncher
         #endregion
 
         #region Gun Mapping
-        static Dictionary<string, int> gunPort = new Dictionary<string, int>()
+        static readonly Dictionary<string, int> gunPort = new Dictionary<string, int>()
         {
             { "nes", 1 },
             { "snes", 2 },
@@ -993,14 +993,14 @@ namespace EmulatorLauncher
             { "psx", 1 }
         };
 
-        static Dictionary<string, string> gunName = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> gunName = new Dictionary<string, string>()
         {
             { "nes", "zapper" },
             { "snes", "superscope" },
             { "ss", "gun" }
         };
 
-        static Dictionary<string, string> neszapper = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> neszapper = new Dictionary<string, string>()
         {
             { "away_trigger", "mouse 0x0 button_right" },
             { "trigger", "mouse 0x0 button_left" },
@@ -1008,7 +1008,7 @@ namespace EmulatorLauncher
             { "y_axis", "mouse 0x0 cursor_y-+" },
         };
 
-        static Dictionary<string, string> psxguncon = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> psxguncon = new Dictionary<string, string>()
         {
             { "a", "mouse 0x0 button_right" },
             { "b", "mouse 0x0 button_middle" },
@@ -1018,7 +1018,7 @@ namespace EmulatorLauncher
             { "y_axis", "mouse 0x0 cursor_y-+" },
         };
 
-        static Dictionary<string, string> psxjustifier = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> psxjustifier = new Dictionary<string, string>()
         {
             { "o", "mouse 0x0 button_right" },
             { "offscreen_shot", "keyboard 0x0 44" },    //space
@@ -1028,7 +1028,7 @@ namespace EmulatorLauncher
             { "y_axis", "mouse 0x0 cursor_y-+" },
         };
 
-        static Dictionary<string, string> snessuperscope = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> snessuperscope = new Dictionary<string, string>()
         {
             { "cursor", "mouse 0x0 button_right" },
             { "offscreen_shot", "keyboard 0x0 44" },    //space
@@ -1039,7 +1039,7 @@ namespace EmulatorLauncher
             { "y_axis", "mouse 0x0 cursor_y-+" },
         };
 
-        static Dictionary<string, string> saturngun = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> saturngun = new Dictionary<string, string>()
         {
             { "offscreen_shot", "mouse 0x0 button_right" },
             { "start", "mouse 0x0 button_middle" },
@@ -1050,7 +1050,7 @@ namespace EmulatorLauncher
         #endregion
 
         #region Mapping link
-        static Dictionary<string, Dictionary<string, InputKey> > mappingToUse = new Dictionary<string, Dictionary<string, InputKey>>()
+        static readonly Dictionary<string, Dictionary<string, InputKey> > mappingToUse = new Dictionary<string, Dictionary<string, InputKey>>()
         {
             { "apple2_gamepad", apple2gamepad },
             { "apple2_joystick", apple2joystick },
@@ -1069,13 +1069,13 @@ namespace EmulatorLauncher
             { "wswan_gamepadraa", wswanvertical }
         };
 
-        static Dictionary<string, Dictionary<string, InputKey>> mappingToUsekb = new Dictionary<string, Dictionary<string, InputKey>>()
+        static readonly Dictionary<string, Dictionary<string, InputKey>> mappingToUsekb = new Dictionary<string, Dictionary<string, InputKey>>()
         {
             { "wswan_gamepad", wswanhorizontalkb },
             { "wswan_gamepadraa", wswanverticalkb }
         };
 
-        static Dictionary<string, Dictionary<string, string>> gunMappingToUse = new Dictionary<string, Dictionary<string, string>>()
+        static readonly Dictionary<string, Dictionary<string, string>> gunMappingToUse = new Dictionary<string, Dictionary<string, string>>()
         {
             { "nes", neszapper },
             { "snes", snessuperscope },
@@ -1086,7 +1086,7 @@ namespace EmulatorLauncher
         #endregion
 
         #region Mednafen keycodes
-        static Dictionary<SDL.SDL_Keycode, int> mednafenKeyCodes = new Dictionary<SDL.SDL_Keycode, int>()
+        static readonly Dictionary<SDL.SDL_Keycode, int> mednafenKeyCodes = new Dictionary<SDL.SDL_Keycode, int>()
         {
             { SDL.SDL_Keycode.SDLK_UNKNOWN, 0 },
             { SDL.SDL_Keycode.SDLK_a, 4 },
@@ -1309,7 +1309,7 @@ namespace EmulatorLauncher
             { SDL.SDL_Keycode.SDLK_SLEEP, 282 }
         };
 
-        static Dictionary<SDL.SDL_Keycode, SDL.SDL_Keycode> azertyLayoutMapping = new Dictionary<SDL.SDL_Keycode, SDL.SDL_Keycode>()
+        static readonly Dictionary<SDL.SDL_Keycode, SDL.SDL_Keycode> azertyLayoutMapping = new Dictionary<SDL.SDL_Keycode, SDL.SDL_Keycode>()
         {
             { SDL.SDL_Keycode.SDLK_a, SDL.SDL_Keycode.SDLK_q },
             { SDL.SDL_Keycode.SDLK_q, SDL.SDL_Keycode.SDLK_a },
@@ -1325,7 +1325,7 @@ namespace EmulatorLauncher
 
         #region dinputMappping
 
-        static Dictionary<InputKey, string> dinputMapping = new Dictionary<InputKey, string>()
+        static readonly Dictionary<InputKey, string> dinputMapping = new Dictionary<InputKey, string>()
         {
             { InputKey.b, "b" },
             { InputKey.a, "a" },
@@ -1353,7 +1353,7 @@ namespace EmulatorLauncher
             { InputKey.rightanalogright, "+rightx" },
         };
 
-        static Dictionary<InputKey, string> ds4ds5dinputmapping = new Dictionary<InputKey, string>()
+        /*static readonly Dictionary<InputKey, string> ds4ds5dinputmapping = new Dictionary<InputKey, string>()
         {
             { InputKey.b, "button_2" },
             { InputKey.a, "button_1" },
@@ -1379,9 +1379,9 @@ namespace EmulatorLauncher
             { InputKey.rightanalogdown, "abs_5+" },
             { InputKey.rightanalogleft, "abs_2-" },
             { InputKey.rightanalogright, "abs_2+" },
-        };
+        };*/
 
-        static Dictionary<InputKey, string> xboxmapping = new Dictionary<InputKey, string>()
+        static readonly Dictionary<InputKey, string> xboxmapping = new Dictionary<InputKey, string>()
         {
             { InputKey.b, "button_13" },
             { InputKey.a, "button_12" },
@@ -1416,7 +1416,7 @@ namespace EmulatorLauncher
                 cfg[core + ".input.port" + i] = core == "apple2" ? "paddle" : "none";
         }
 
-        static Dictionary<string, int> inputPortCleanupNb = new Dictionary<string, int>()
+        static readonly Dictionary<string, int> inputPortCleanupNb = new Dictionary<string, int>()
         {
             { "apple2", 2 },
             { "md", 8 },
