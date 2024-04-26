@@ -51,7 +51,7 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[WHEELS] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
                     gamecontrollerDB = null;
                 }
-                string guid = (ctrl.Guid.ToString()).Substring(0, 27) + "00000";
+                string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
                 SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid);
 
                 try { dinputController = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid); }

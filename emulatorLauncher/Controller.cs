@@ -444,7 +444,7 @@ namespace EmulatorLauncher
 
             #region dinputToSdl
             string gamecontrollerdb = Path.Combine(Program.AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            string dinputGuid = Guid.ToString().Substring(0, 27) + "00000";
+            string dinputGuid = Guid.ToString().Substring(0, 24) + "00000000";
             bool isXinput = this.IsXInputDevice;
 
             if (File.Exists(gamecontrollerdb))

@@ -30,7 +30,7 @@ namespace EmulatorLauncher
             {
                 try
                 {
-                    CleanupExistingMappings(ctrlIni, system);
+                    CleanupExistingMappings(ctrlIni);
 
                     foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                         ConfigureInput(controller, ctrlIni, ini, system);
@@ -61,7 +61,7 @@ namespace EmulatorLauncher
 
             // Initializing controller information
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            string guid = (controller.Guid.ToString()).Substring(0, 27) + "00000";
+            string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput sdlCtrl = null;
             int index = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex;
 
@@ -211,8 +211,7 @@ namespace EmulatorLauncher
             long axisStart = 33554688;
             long revertAxisStart = axisStart - 256;
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             string esName = (c.Config[key].Name).ToString();
 
@@ -266,10 +265,9 @@ namespace EmulatorLauncher
 
         private static string GetXInputCode(Controller c, InputKey key, int index)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -330,7 +328,7 @@ namespace EmulatorLauncher
             return "0";
         }
 
-        private void CleanupExistingMappings(IniFile ini, string system)
+        private void CleanupExistingMappings(IniFile ini)
         {
             for (int i = 0; i < 2; i++)
             {
@@ -368,7 +366,7 @@ namespace EmulatorLauncher
         private static readonly List<string> globalButtons = new List<string>() {
             "TEST", "TEST2", "SERVICE", "SAVESTATE", "LOADSTATE", "NEXTSTATE", "PREVSTATE", "DEADZONE" };
 
-        private static Dictionary<string, string> esToDinput = new Dictionary<string, string>()
+        private readonly static Dictionary<string, string> esToDinput = new Dictionary<string, string>()
         {
             { "a", "a" },
             { "b", "b" },
@@ -402,7 +400,7 @@ namespace EmulatorLauncher
             { "righttrigger", "rightstick" },
         };
 
-        private static Dictionary<int, string> maplePorts = new Dictionary<int, string>()
+        private readonly static Dictionary<int, string> maplePorts = new Dictionary<int, string>()
         {
             { 1, "PORTA" },
             { 2, "PORTB" },
@@ -410,7 +408,7 @@ namespace EmulatorLauncher
             { 4, "PORTD" },
         };
 
-        private static Dictionary<int, string> vmuPort = new Dictionary<int, string>()
+        private readonly static Dictionary<int, string> vmuPort = new Dictionary<int, string>()
         {
             { 1, "VMSA0" },
             { 2, "VMSB0" },

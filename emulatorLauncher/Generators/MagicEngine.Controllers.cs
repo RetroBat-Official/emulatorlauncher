@@ -73,7 +73,7 @@ namespace EmulatorLauncher
                 return;
 
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            string guid = (ctrl.Guid.ToString()).Substring(0, 27) + "00000";
+            string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput sdlCtrl = null;
             int playerIndex = ctrl.PlayerIndex - 1;
             int startIndex = gamepadByteIndex + 16 + (playerIndex * 148);
@@ -104,7 +104,7 @@ namespace EmulatorLauncher
             {
                 byte[] toSet = GetButtonByteArray(sdlCtrl, button, ctrlIndex);
 
-                if (!isZeroByteArray(toSet))
+                if (!IsZeroByteArray(toSet))
                 {
                     System.Array.Copy(toSet, 0, bytes, buttonStart, 12);
                     buttonStart += 12;
@@ -161,7 +161,7 @@ namespace EmulatorLauncher
             return toSet;
         }
 
-        private static Dictionary<string, byte> buttonMap = new Dictionary<string, byte>()
+        private static readonly Dictionary<string, byte> buttonMap = new Dictionary<string, byte>()
         {
             { "leftx", 0x0D },
             { "lefty", 0x0E },
@@ -176,7 +176,7 @@ namespace EmulatorLauncher
             { "dpup", 0x0F },
         };
 
-        public static bool isZeroByteArray(byte[] array)
+        public static bool IsZeroByteArray(byte[] array)
         {
             foreach (byte b in array)
             {

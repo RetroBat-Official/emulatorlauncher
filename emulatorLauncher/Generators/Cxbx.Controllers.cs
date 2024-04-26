@@ -106,7 +106,7 @@ namespace EmulatorLauncher
             }
 
             else if (padType == "2" && playerIndex == 1)
-                ConfigureGun(ini, ctrl, playerIndex);
+                ConfigureGun(ini, playerIndex);
         }
 
         private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex, Dictionary<string, int> double_pads, int nsamepad)
@@ -186,7 +186,7 @@ namespace EmulatorLauncher
             }
 
             else if (padType == "2" && playerIndex == 1)
-                ConfigureGun(ini, ctrl, playerIndex);
+                ConfigureGun(ini, playerIndex);
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, bool isXinput)
@@ -260,7 +260,7 @@ namespace EmulatorLauncher
         }
 
         // Configure ems topgun, only for player 1 and hardmapping to keyboard/mouse
-        private void ConfigureGun(IniFile ini, Controller ctrl, int playerIndex)
+        private void ConfigureGun(IniFile ini, int playerIndex)
         {
             string profileSection = "input-profile-" + (playerIndex - 1);
             string inputSection = "input-port-" + (playerIndex - 1);
@@ -293,7 +293,7 @@ namespace EmulatorLauncher
             ini.WriteValue(profileSection, "Laser", "C");
         }
 
-        private static string SdlToKeyCode(long sdlCode)
+        /*private static string SdlToKeyCode(long sdlCode)
         {
             switch (sdlCode)
             {
@@ -451,6 +451,6 @@ namespace EmulatorLauncher
                 case 0x40000105: return "AUDIOPLAY";
             }
             return "";
-        }
+        }*/
     }
 }

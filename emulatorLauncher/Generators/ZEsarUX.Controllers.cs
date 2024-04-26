@@ -28,7 +28,7 @@ namespace EmulatorLauncher
                 return;
 
             int index = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex;
-            string guid = (controller.Guid.ToString()).Substring(0, 27) + "00000";
+            string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput dinputCtrl = null;
             bool isxinput = false;
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");

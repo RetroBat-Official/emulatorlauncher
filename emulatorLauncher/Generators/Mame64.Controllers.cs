@@ -5,30 +5,43 @@ using System.Xml.Linq;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
-using Microsoft.Win32;
 
 namespace EmulatorLauncher
 {
     partial class Mame64Generator
     {
+        private void UpdateSdlControllersWithHints()
+        {
+            var hints = new List<string>
+            {
+                "SDL_JOYSTICK_HIDAPI_WII = 1"
+            };
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         private bool ConfigureMameControllers(string path, bool hbmame)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
 
-            // We generate controllers only for 
-            if (Controllers.Count == 0)
+            int gunCount = RawLightgun.GetUsableLightGunCount();
+            var guns = RawLightgun.GetRawLightguns();
+
+            if (Controllers.Count == 0 && gunCount == 0)
                 return false;
 
-            else if (Controllers.Count == 1)
+            else if (Controllers.Count == 1 && gunCount == 0)
             {
                 var c1 = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
                 if (c1.IsKeyboard)
                     return false;
             }
-            
+
+            UpdateSdlControllersWithHints();
+
             // Delete existing config file if any
             string inputConfig = Path.Combine(path, "retrobat_auto.cfg");
             if (File.Exists(inputConfig))
@@ -43,7 +56,6 @@ namespace EmulatorLauncher
             var mameconfig = new XElement("mameconfig", new XAttribute("version", "10"));
             var system = new XElement("system", new XAttribute("name", "default"));
             var input = new XElement("input");
-
             var mameControllers = this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).ToList();
 
             if (SystemConfig["mame_joystick_driver"] == "xinput")
@@ -83,6 +95,43 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Specific Gun4IR & Sinden mapping
+            if (guns[0] != null && guns[0].Type == RawLighGunType.Gun4Ir && SystemConfig["mame_gun_config"] == "gun4ir")
+            {
+                bool multigun4ir = guns[1] != null && guns[1].Type == RawLighGunType.Gun4Ir;
+                ConfigureLightguns(input, RawLighGunType.Gun4Ir, multigun4ir, hbmame);
+
+                XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
+                xdocgun.Add(mameconfig);
+                mameconfig.Add(system);
+                system.Add(input);
+
+                xdocgun.Save(inputConfig);
+
+                if (!File.Exists(inputConfig))
+                    return false;
+
+                return true;
+            }
+
+            else if (guns[0] != null && guns[0].Type == RawLighGunType.SindenLightgun && SystemConfig["mame_gun_config"] == "sinden")
+            {
+                bool multiSinden = guns[1] != null && guns[1].Type == RawLighGunType.SindenLightgun;
+                ConfigureLightguns(input, RawLighGunType.SindenLightgun, multiSinden, hbmame);
+
+                XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
+                xdocgun.Add(mameconfig);
+                mameconfig.Add(system);
+                system.Add(input);
+
+                xdocgun.Save(inputConfig);
+
+                if (!File.Exists(inputConfig))
+                    return false;
+
+                return true;
+            }
+
             // Generate controller mapping
             foreach (var controller in mameControllers)
             {
@@ -92,7 +141,7 @@ namespace EmulatorLauncher
                 bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
                 bool isXinput = controller.IsXInputDevice && SystemConfig["mame_joystick_driver"] != "dinput";
                 bool xinputCtrl = controller.IsXInputDevice;
-                string guid = (controller.Guid.ToString()).Substring(0, 27) + "00000";
+                string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
                 SdlToDirectInput ctrlr = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
 
@@ -132,9 +181,6 @@ namespace EmulatorLauncher
                 }
 
                 // GUNS
-                int gunCount = RawLightgun.GetUsableLightGunCount();
-                var guns = RawLightgun.GetRawLightguns();
-
                 string mouseIndex1 = "1";
                 string mouseIndex2 = "2";
 
@@ -145,7 +191,7 @@ namespace EmulatorLauncher
                     mouseIndex1 = (guns[0].Index + 1).ToString();
                     SimpleLogger.Instance.Info("[GUNS] Gun 1 index : " + mouseIndex1);
 
-                    if (_multigun)
+                    if (_multigun && guns.Length > 1)
                     {
                         SimpleLogger.Instance.Info("[GUNS] Multimouse enabled");
                         mouseIndex2 = (guns[1].Index + 1).ToString();
@@ -184,7 +230,7 @@ namespace EmulatorLauncher
                     if (isXinput)
                         ConfigurePlayersXInput(i, input, mapping, joy, mouseIndex2, hbmame, dpadonly);
                     else
-                        ConfigurePlayersDInput(i, input, ctrlr, joy, mouseIndex2, hbmame, dpadonly, xinputCtrl);
+                        ConfigurePlayersDInput(i, input, ctrlr, joy, mouseIndex2, dpadonly, xinputCtrl);
                 }
             }
 
@@ -1062,7 +1108,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigurePlayersDInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex2, bool hbmame, bool dpadonly, bool xinputCtrl)
+        private void ConfigurePlayersDInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex2, bool dpadonly, bool xinputCtrl)
         {
             if (dpadonly)
             {
@@ -1277,6 +1323,220 @@ namespace EmulatorLauncher
                 input.Add(new XElement
                     ("port", new XAttribute("type", "P" + i + "_LIGHTGUN_Y"),
                         new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefty", xinputCtrl, 0))));
+            }
+        }
+
+        private void ConfigureLightguns(XElement input, RawLighGunType lightgunType, bool multi = false, bool hbmame = false)
+        {
+            if (lightgunType == RawLighGunType.Gun4Ir)
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_2341&PID_8042"), new XAttribute("controller", "GUNCODE_1")));
+            else if (lightgunType == RawLighGunType.SindenLightgun)
+            {
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_16C0&PID_0F38"), new XAttribute("controller", "GUNCODE_1")));
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_16C0&PID_0F01"), new XAttribute("controller", "GUNCODE_1")));
+            }
+
+            if (multi && lightgunType == RawLighGunType.Gun4Ir)
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_2341&PID_8043"), new XAttribute("controller", "GUNCODE_2")));
+            else if (multi && lightgunType == RawLighGunType.SindenLightgun)
+            {
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_16C0&PID_0F39"), new XAttribute("controller", "GUNCODE_2")));
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_16C0&PID_0F02"), new XAttribute("controller", "GUNCODE_2")));
+            }
+
+            if (hbmame)
+            {
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "UI_CONFIGURE"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_5 GUNCODE_1_BUTTON2" + " OR KEYCODE_TAB")));
+            }
+            else
+            {
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "UI_MENU"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_5 GUNCODE_1_BUTTON2" + " OR KEYCODE_TAB")));
+            }
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_SELECT"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON1" + " OR GUNCODE_1_BUTTON2" + " OR KEYCODE_ENTER")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_BACK"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON3" + " OR KEYCODE_ESC")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_CANCEL"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_5 GUNCODE_1_BUTTON3" + " OR KEYCODE_ESC")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_UP"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_UP")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_DOWN"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_DOWN")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_LEFT"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_LEFT")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_RIGHT"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_RIGHT")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_PAUSE"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_5 KEYCODE_UP" + " OR KEYCODE_P")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_REWIND_SINGLE"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_TILDE KEYCODE_LSHIFT")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_FAST_FORWARD"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_INSERT")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_SAVE_STATE"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_F7 KEYCODE_LSHIFT")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "UI_LOAD_STATE"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_F7")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "SERVICE"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_5 KEYCODE_DOWN" + " OR KEYCODE_F2")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "SERVICE1"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_5 KEYCODE_DOWN" + " OR KEYCODE_9")));
+
+            // Standard joystick buttons and directions
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_JOYSTICK_UP"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_UP")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_JOYSTICK_DOWN"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_DOWN")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_JOYSTICK_LEFT"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_LEFT")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_JOYSTICK_RIGHT"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_RIGHT")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_BUTTON1"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON1")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_BUTTON2"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON4 OR GUNCODE_1_BUTTON2 OR KEYCODE_F1")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_BUTTON3"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON3")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_START"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON6 OR KEYCODE_1")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_SELECT"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON5 OR KEYCODE_5")));
+
+            // Start & coin
+            input.Add(new XElement
+                ("port", new XAttribute("type", "START1"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON6 OR KEYCODE_1")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "COIN1"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_BUTTON5 OR KEYCODE_5")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_AD_STICK_X"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_XAXIS")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_AD_STICK_Y"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_YAXIS")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_LIGHTGUN_X"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_XAXIS")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P1_LIGHTGUN_Y"),
+                    new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_1_YAXIS")));
+
+            if (multi)
+            {
+                input.Add(new XElement 
+                    ("port", new XAttribute("type", "P2_JOYSTICK_UP"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON7")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_JOYSTICK_DOWN"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON9")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_JOYSTICK_LEFT"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON10")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_JOYSTICK_RIGHT"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON8")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_BUTTON1"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON1")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_BUTTON2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON4 OR GUNCODE_2_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_BUTTON3"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON3")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_START"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON6 OR KEYCODE_2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_SELECT"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON5 OR KEYCODE_6")));
+
+                // Start & coin
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "START2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON6 OR KEYCODE_2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "COIN2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON5 OR KEYCODE_6")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_AD_STICK_X"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_XAXIS")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_AD_STICK_Y"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_YAXIS")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_LIGHTGUN_X"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_XAXIS")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P2_LIGHTGUN_Y"),
+                        new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_YAXIS")));
             }
         }
 

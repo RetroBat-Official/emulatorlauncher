@@ -767,24 +767,31 @@ namespace EmulatorLauncher
             }
 
             // Autostart computer games where applicable
-            // Generic boot if only one type is available
-            var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
-            if (autoRunCommand != null)
-                commandArray.AddRange(autoRunCommand.Arguments);
+            // User autostart if autorun file exists
+            var romname = Path.GetFileNameWithoutExtension(rom);
+            string autorunFile = Path.Combine(Path.GetDirectoryName(rom), romname + ".autorun");
+            if (File.Exists(autorunFile))
+            {
+                if (File.ReadAllText(autorunFile) != null)
+                {
+                    commandArray.Add("-autoboot_delay");
+                    commandArray.Add("3");
+                    commandArray.Add("-autoboot_command");
+                    commandArray.Add(File.ReadAllText(autorunFile));
+                }
+            }
 
             //Specific autostart for Camputers lynx based on hashfile (for now only for MAME standalone)
-            if (standalone && system == "camplynx" && SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
+            else if (standalone && system == "camplynx" && SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
             {
                 string hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", SystemConfig["force_softlist"] + ".xml");
                 if (File.Exists(hashfile))
                 {
-                    var romname = Path.GetFileNameWithoutExtension(rom);
-
                     XDocument doc = XDocument.Load(hashfile);
                     string idToFind = romname;
                     XElement selectedElement = doc.Descendants()
                             .Where(x => (string)x.Attribute("name") == idToFind).FirstOrDefault();
-                    
+
                     if (selectedElement != null)
                     {
                         XElement commandElement = selectedElement.Descendants()
@@ -798,9 +805,17 @@ namespace EmulatorLauncher
                             commandArray.Add("3");
                             commandArray.Add("-autoboot_command");
                             commandArray.Add(command);
-                        }   
+                        }
                     }
                 }
+            }
+
+            // Generic boot if only one type is available
+            else
+            {
+                var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
+                if (autoRunCommand != null)
+                    commandArray.AddRange(autoRunCommand.Arguments);
             }
 
             // Additional disks if required
