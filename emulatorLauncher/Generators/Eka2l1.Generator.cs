@@ -5,6 +5,7 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System.Threading;
 
 namespace EmulatorLauncher
 {
@@ -32,6 +33,13 @@ namespace EmulatorLauncher
             if (fullscreen)
                 args.Add("--fullscreen");
 
+            string device = "NEM-4";
+            if (SystemConfig.isOptSet("eka2l1_device") && !string.IsNullOrEmpty(SystemConfig["eka2l1_device"]))
+                device = SystemConfig["eka2l1_device"];
+
+            args.Add("--device");
+            args.Add(device);
+
             if (Directory.Exists(rom))
             {
                 string aif = Directory.EnumerateFiles(rom, "*.aif", SearchOption.AllDirectories).FirstOrDefault();
@@ -39,9 +47,6 @@ namespace EmulatorLauncher
                     return null;
 
                 var uuid = ExtractUUID(aif);
-
-                args.Add("--device");
-                args.Add("NEM-4");
 
                 args.Add("--mount");
                 args.Add(rom);     
@@ -52,6 +57,21 @@ namespace EmulatorLauncher
                 _gameUUID = uuid;
 
             }
+
+            else if (Path.GetExtension(rom) == ".symbian")
+            {
+                string[] lines = File.ReadAllLines(rom);
+                string appName;
+
+                if (lines.Length > 0 && !string.IsNullOrEmpty(lines[0]))
+                    appName = lines[0];
+                else
+                    appName = Path.GetFileNameWithoutExtension(rom);
+
+                args.Add("--run");
+                args.Add(appName);
+            }
+
             /*else if (Path.GetExtension(rom).ToLowerInvariant() == ".n-gage")
             {                    
                 string ngage2registry = Path.Combine(path, "Data", "drives", "c", "sys", "install", "sisregistry", "2000a2ae");
@@ -114,7 +134,7 @@ namespace EmulatorLauncher
                 args.Add("0x" + uuid);
             }*/
 
-            SetupConfiguration(path, fullscreen);
+            SetupConfiguration(path);
             SetupGame(path);
             SetupControllers(path);
 
@@ -127,7 +147,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path, bool fullscreen)
+        private void SetupConfiguration(string path)
         {
             var yml = YmlFile.Load(Path.Combine(path, "config.yml"));
 
@@ -216,6 +236,5 @@ namespace EmulatorLauncher
 
             return part4 + part3 + part2 + part1;            
         }
-
     }
 }
