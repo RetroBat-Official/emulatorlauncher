@@ -49,6 +49,7 @@ namespace EmulatorLauncher
                 string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
                 SdlToDirectInput ctrlr = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+                bool analogtodpad = SystemConfig.getOptBoolean("psxmame_analog_to_dpad");
 
                 // Get dinput mapping information
                 if (!File.Exists(gamecontrollerDB))
@@ -110,21 +111,43 @@ namespace EmulatorLauncher
                             new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_9")));
 
                     // Standard joystick buttons and directions
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_UP"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "dpup", xinputCtrl) + " OR KEYCODE_UP")));
+                    if (analogtodpad)
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_UP"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefty", xinputCtrl, -1) + " OR " + joy + GetDinputMapping(ctrlr, "dpup", xinputCtrl) + " OR KEYCODE_UP")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "dpdown", xinputCtrl) + " OR KEYCODE_DOWN")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefty", xinputCtrl, 1) + " OR " + joy + GetDinputMapping(ctrlr, "dpdown", xinputCtrl) + " OR KEYCODE_DOWN")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "dpleft", xinputCtrl) + " OR KEYCODE_LEFT")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftx", xinputCtrl, -1) + " OR " + joy + GetDinputMapping(ctrlr, "dpleft", xinputCtrl) + " OR KEYCODE_LEFT")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "dpright", xinputCtrl) + " OR KEYCODE_RIGHT")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftx", xinputCtrl, 1) + " OR " + joy + GetDinputMapping(ctrlr, "dpright", xinputCtrl) + " OR KEYCODE_RIGHT")));
+                    }
+
+                    else
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_UP"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "dpup", xinputCtrl) + " OR KEYCODE_UP")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_DOWN"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "dpdown", xinputCtrl) + " OR KEYCODE_DOWN")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_LEFT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "dpleft", xinputCtrl) + " OR KEYCODE_LEFT")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICK_RIGHT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "dpright", xinputCtrl) + " OR KEYCODE_RIGHT")));
+                    }
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_JOYSTICKRIGHT_UP"),
@@ -142,21 +165,43 @@ namespace EmulatorLauncher
                         ("port", new XAttribute("type", "P" + i + "_JOYSTICKRIGHT_RIGHT"),
                             new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightx", xinputCtrl, 1) + " OR KEYCODE_L")));
 
-                    input.Add(new XElement
+                    if (!analogtodpad)
+                    {
+                        input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_UP"),
                             new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefty", xinputCtrl, -1) + " OR KEYCODE_E")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_DOWN"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefty", xinputCtrl, 1) + " OR KEYCODE_D")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_DOWN"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefty", xinputCtrl, 1) + " OR KEYCODE_D")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_LEFT"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftx", xinputCtrl, -1) + " OR KEYCODE_S")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_LEFT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftx", xinputCtrl, -1) + " OR KEYCODE_S")));
 
-                    input.Add(new XElement
-                        ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_RIGHT"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftx", xinputCtrl, 1) + " OR KEYCODE_F")));
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_RIGHT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftx", xinputCtrl, 1) + " OR KEYCODE_F")));
+                    }
+
+                    else
+                    {
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_UP"),
+                                new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_E")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_DOWN"),
+                                new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_D")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_LEFT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + "KEYCODE_S")));
+
+                        input.Add(new XElement
+                            ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_RIGHT"),
+                                new XElement("newseq", new XAttribute("type", "standard"), joy + "KEYCODE_F")));
+                    }
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P" + i + "_BUTTON1"),

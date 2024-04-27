@@ -30,14 +30,15 @@ namespace EmulatorLauncher
             _resolution = resolution;
             _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            string args = null;
+            string args;
 
-            List<string> commandArray = new List<string>();
-
-            commandArray.Add("-skip_gameinfo");
+            List<string> commandArray = new List<string>
+            {
+                "-skip_gameinfo",                
+                "-rompath"
+            };
 
             // rompath
-            commandArray.Add("-rompath");
             string rompath = Path.Combine(AppConfig.GetFullPath("bios"), "psxmame", "bios");
             if (!Directory.Exists(rompath))
             { try { Directory.CreateDirectory(rompath); }
@@ -338,8 +339,10 @@ namespace EmulatorLauncher
 
         public static PSXMameIniFile FromFile(string file)
         {
-            var ret = new PSXMameIniFile();
-            ret._fileName = file;
+            var ret = new PSXMameIniFile
+            {
+                _fileName = file
+            };
 
             try
             {
