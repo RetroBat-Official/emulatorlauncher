@@ -27,23 +27,33 @@ namespace EmulatorLauncher
             string path = AppConfig.GetFullPath("openbor");
             string newPath;
             string newExe;
-
             string exe = Path.Combine(path, "OpenBOR.exe");
-            if (!File.Exists(exe))
-                return null;
 
             string build = GetBuildToUse(rom, core);
             if (!string.IsNullOrEmpty(build))
             {
                 newPath = Path.Combine(path, build);
+
+                if (!Directory.Exists(newPath))
+                    throw new ApplicationException("Folder for OpenBOR version '" + build + "' does not exist");
+
                 newExe = Path.Combine(newPath, "OpenBOR.exe");
 
-                if (Directory.Exists(newPath) && File.Exists(newExe))
+                if (!File.Exists(newExe))
+                {
+                    var exes = Directory.GetFiles(newPath, "*.exe");
+                    newExe = exes.FirstOrDefault();
+                }
+
+                if (File.Exists(newExe))
                 {
                     path = newPath;
                     exe = newExe;
                 }
             }
+
+            if (!File.Exists(exe))
+                return null;
 
             _path = path;
 
@@ -54,7 +64,7 @@ namespace EmulatorLauncher
             }
             catch { }
 
-            if (setupConfigIni(path))
+            if (SetupConfigIni(path))
             {
                 UseEsPadToKey = false;
 
@@ -122,7 +132,7 @@ namespace EmulatorLauncher
         }
 
         #region Custom Ini file format
-        private bool setupConfigIni(string path)
+        private bool SetupConfigIni(string path)
         {
             string ini = Path.Combine(path, "config.ini");
             if (!_isCustomRetrobatOpenBor)
@@ -151,7 +161,7 @@ namespace EmulatorLauncher
                 string dir = AppConfig.GetFullPath("screenshots");
 
                 Uri relRoot = new Uri(path, UriKind.Absolute);
-                string relPath = relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
+                relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
 
                 conf["screenShotsDir"] = Path.GetFullPath(dir)+"\\";
             }
@@ -161,7 +171,7 @@ namespace EmulatorLauncher
                 string dir = Path.Combine(AppConfig.GetFullPath("saves"), "openbor");
 
                 Uri relRoot = new Uri(path, UriKind.Absolute);
-                string relPath = relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
+                relRoot.MakeRelativeUri(new Uri(dir, UriKind.Absolute)).ToString().Replace("/", "\\");
 
                 Directory.CreateDirectory(dir);
                 conf["savesDir"] = Path.GetFullPath(dir) + "\\";
@@ -179,8 +189,6 @@ namespace EmulatorLauncher
         {
             if (core != "openbor-specific-version")
                 return null;
-            
-            string path = AppConfig.GetFullPath("openbor");
 
             int buildIndex = rom.LastIndexOf(']');
             if (buildIndex >= 5)
@@ -196,7 +204,7 @@ namespace EmulatorLauncher
         }
 
 
-        private void setupControllersCfg(savedata conf)
+        /*private void SetupControllersCfg(Savedata conf)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -285,12 +293,12 @@ namespace EmulatorLauncher
                 else
                     conf.keys[idx].esc = 0;
             }
-        }
+        }*/
         
-        private bool setupConfigBorCfg(string path)
+        /*private bool setupConfigBorCfg(string path)
         {
-            savedata conf = new savedata();
-            conf.init();
+            savedata conf = new Savedata();
+            conf.Init();
 
             Directory.CreateDirectory(Path.Combine(path, "Saves"));
             foreach (var file in Directory.GetFiles(Path.Combine(path, "Saves"), "*.cfg"))
@@ -306,7 +314,7 @@ namespace EmulatorLauncher
                     if (bytes.Length >= 320 && bytes[0] == 0x48 && bytes[1] == 0x37 && bytes[2] == 0x03 && bytes[3] == 0x00)
                     {
                         GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-                        conf = (savedata)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(savedata));
+                        conf = (savedata)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(Savedata));
                         handle.Free();
                     }
                 }
@@ -316,7 +324,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            setupControllersCfg(conf);
+            SetupControllersCfg(conf);
 
             conf.fullscreen = 1;
             conf.vsync = 1;
@@ -340,13 +348,13 @@ namespace EmulatorLauncher
                 return false;
             }
             return true;
-        }
+        }*/
 
-        private bool setupConfigBor4432Cfg(string path)
+        /*private bool SetupConfigBor4432Cfg(string path)
         {
-            savedata4432 conf = new savedata4432();
+            savedata4432 conf = new Savedata4432();
             // 324 ??
-            conf.init();
+            conf.Init();
 
             Directory.CreateDirectory(Path.Combine(path, "Saves"));
             foreach (var file in Directory.GetFiles(Path.Combine(path, "Saves"), "*.cfg"))
@@ -362,7 +370,7 @@ namespace EmulatorLauncher
                     if (bytes.Length >= 320 && bytes[0] == 0x47 && bytes[1] == 0x37 && bytes[2] == 0x03 && bytes[3] == 0x00)
                     {
                         GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-                        conf = (savedata4432)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(savedata));
+                        conf = (savedata4432)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(Savedata));
                         handle.Free();
                     }
                 }
@@ -375,8 +383,8 @@ namespace EmulatorLauncher
            // setupControllersCfg(conf);
 
             conf.fullscreen = 1;
-       //     conf.vsync = 1;
-       //     conf.usegl = 1;
+           //     conf.vsync = 1;
+           //     conf.usegl = 1;
 
             try
             {
@@ -395,13 +403,13 @@ namespace EmulatorLauncher
                 return false;
             }
             return true;
-        }
+        }*/
         #endregion
     }
 
     #region v6330
     [StructLayoutAttribute(LayoutKind.Sequential, Pack = 4)]
-    struct savekey
+    struct Savekey
     {
         [MarshalAs(UnmanagedType.I4)]
         public int up;
@@ -432,11 +440,11 @@ namespace EmulatorLauncher
     }
 
     [StructLayoutAttribute(LayoutKind.Sequential, Pack = 4)]
-    struct savedata
+    struct Savedata
     {        
-        public void init()
+        public void Init()
         {
-            keys = new savekey[4];
+            keys = new Savekey[4];
             joyrumble = new int[4];
             screen = new int[2];
 
@@ -486,7 +494,7 @@ namespace EmulatorLauncher
         public int windowpos;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-        public savekey[] keys;
+        public Savekey[] keys;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4, ArraySubType = UnmanagedType.I4)]
         public int[] joyrumble;
@@ -526,7 +534,7 @@ namespace EmulatorLauncher
     //  3318-3400 - 3698
     // #define		COMPATIBLEVERSION	0x00030000
     [StructLayoutAttribute(LayoutKind.Sequential, Pack = 4)]
-    struct savedata30000
+    struct Savedata30000
     {
         [MarshalAs(UnmanagedType.I4)]
         public int compatibleversion;
@@ -556,7 +564,7 @@ namespace EmulatorLauncher
         public char windowpos;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-        public savekey33747[] keys; //[MAX_PLAYERS][12];
+        public Savekey33747[] keys; //[MAX_PLAYERS][12];
 
         [MarshalAs(UnmanagedType.I1)]
         public char showtitles;
@@ -586,7 +594,7 @@ namespace EmulatorLauncher
 
     // #define		COMPATIBLEVERSION	0x00033747
     [StructLayoutAttribute(LayoutKind.Sequential, Pack = 4)]
-    struct savekey33747
+    struct Savekey33747
     {
         [MarshalAs(UnmanagedType.I4)]
         public int up;
@@ -618,11 +626,11 @@ namespace EmulatorLauncher
     #region v4432
     // 4432
     [StructLayoutAttribute(LayoutKind.Sequential, Pack = 4)]
-    struct savedata4432
+    struct Savedata4432
     {
-        public void init()
+        public void Init()
         {
-            keys = new savekey[4];
+            keys = new Savekey[4];
             screen = new int[2];
 
             compatibleversion = 0x00033747;
@@ -680,7 +688,7 @@ namespace EmulatorLauncher
 	    public int windowpos;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-	    public savekey[] keys;
+	    public Savekey[] keys;
 
         [MarshalAs(UnmanagedType.I4)]
 	    public int showtitles;        
@@ -728,7 +736,7 @@ namespace EmulatorLauncher
     #region Pak file Reader
     class BorPak
     {
-        struct pn_t
+        struct Pn_t
         {
             public uint pns;
             public uint off;
@@ -862,7 +870,7 @@ namespace EmulatorLauncher
             Read(filename, (fd, pn) =>
                 {
                     if (fileNameAndPath.Equals(pn.name, StringComparison.InvariantCultureIgnoreCase))
-                        ret = GetFile(fd, pn.name, pn.off, pn.size);
+                        ret = GetFile(fd, pn.off, pn.size);
                 });
 
             return ret;
@@ -874,7 +882,7 @@ namespace EmulatorLauncher
             Read(filename, (fd, pn) =>
                 {
                     if (fileNameAndPath.Equals(pn.name, StringComparison.InvariantCultureIgnoreCase))
-                        ret = GetFile(fd, pn.name, pn.off, pn.size);
+                        ret = GetFile(fd, pn.off, pn.size);
                 });
 
             if (ret != null)
@@ -883,7 +891,7 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private static void Read(string filename, Action<BinaryReader, pn_t> action)
+        private static void Read(string filename, Action<BinaryReader, Pn_t> action)
         {
             using (FileStream fs = new FileStream(filename, FileMode.Open))
             using (BinaryReader fd = new BinaryReader(fs))
@@ -892,21 +900,21 @@ namespace EmulatorLauncher
                 if (new string(pack) != "PACK")
                     return;
 
-                var packver = fdrinum(fd, 32);
+                var packver = Fdrinum(fd, 32);
 
                 fs.Seek(-4, SeekOrigin.End);
 
-                var off = fdrinum(fd, 32);
+                var off = Fdrinum(fd, 32);
 
                 fs.Seek(off, SeekOrigin.Begin);
 
-                pn_t pn = new pn_t();
+                Pn_t pn = new Pn_t();
 
                 for (; ; )
                 {
-                    pn.pns = fdrinum(fd, 32);
-                    pn.off = fdrinum(fd, 32);
-                    pn.size = fdrinum(fd, 32);
+                    pn.pns = Fdrinum(fd, 32);
+                    pn.off = Fdrinum(fd, 32);
+                    pn.size = Fdrinum(fd, 32);
 
                     int len = (int) pn.pns - 12;
                     if (len <= 0)
@@ -914,12 +922,11 @@ namespace EmulatorLauncher
 
                     pn.name = new string(fd.ReadChars(len - 1)); // remove \0
 
-                    if (action != null)
-                        action(fd, pn);
+                    action?.Invoke(fd, pn);
                     // Debug.WriteLine(name);
 
                     if (pn.name.ToLower().Contains("video.txt"))
-                        GetFile(fd, pn.name, pn.off, pn.size);
+                        GetFile(fd, pn.off, pn.size);
 
                     off += pn.pns;
 
@@ -931,7 +938,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static byte[] GetFile(BinaryReader fd, string name, uint off, uint size)
+        private static byte[] GetFile(BinaryReader fd, uint off, uint size)
         {
             var fs = fd.BaseStream;
 
@@ -939,7 +946,7 @@ namespace EmulatorLauncher
            return fd.ReadBytes((int) size);
         }
 
-        static uint fdrinum(BinaryReader fd, int size)
+        static uint Fdrinum(BinaryReader fd, int size)
         {
             uint num = 0;
 
