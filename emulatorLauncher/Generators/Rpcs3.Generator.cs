@@ -49,8 +49,10 @@ namespace EmulatorLauncher
             // Fullscreen
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            var commandArray = new List<string>();
-            commandArray.Add("\"" + rom + "\"");
+            var commandArray = new List<string>
+            {
+                "\"" + rom + "\""
+            };
             
             if (fullscreen)
             {
@@ -81,9 +83,12 @@ namespace EmulatorLauncher
                 else if (!File.Exists(firmware) && File.Exists(biosPs3))
                 {
                     SimpleLogger.Instance.Info("[INFO] Firmware not installed, launching RPCS3 with 'installfirmware' command.");
-                    List<string> commandArrayfirmware = new List<string>();
-                    commandArrayfirmware.Add("--installfw");
-                    commandArrayfirmware.Add(biosPs3);
+                    List<string> commandArrayfirmware = new List<string>
+                    {
+                        "--installfw",
+                        biosPs3
+                    };
+                    
                     string argsfirmware = string.Join(" ", commandArrayfirmware);
                     return new ProcessStartInfo()
                     {
@@ -116,8 +121,7 @@ namespace EmulatorLauncher
 
             // In some cases, the process seems to be launched again by the main one
             process = Process.GetProcessesByName("rpcs3").FirstOrDefault();
-            if (process != null)
-                process.WaitForExit();
+            process?.WaitForExit();
 
             return 0;
         }
@@ -371,8 +375,7 @@ namespace EmulatorLauncher
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                string ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
             return "English (US)";

@@ -84,7 +84,7 @@ namespace EmulatorLauncher
             if (computersystem.Contains(system))
                 ConfigureKeyboardSystem(json, system);
             else if (controller.IsKeyboard)
-                ConfigureKeyboard(controller, json, system, core, controller.PlayerIndex);
+                ConfigureKeyboard(controller, json, system, core);
             else
                 ConfigureJoystick(controller, json, system, core);
 
@@ -144,7 +144,7 @@ namespace EmulatorLauncher
                 if (n64StyleControllersInfo.ContainsKey(guid))
                 {
                     Dictionary<string, bool> n64ControllerInfo = n64StyleControllersInfo[guid];
-                    useDInput = n64ControllerInfo.ContainsKey("dinput") ? n64ControllerInfo["dinput"] : false;
+                    useDInput = n64ControllerInfo.ContainsKey("dinput") && n64ControllerInfo["dinput"];
                 }
 
                 Dictionary<InputKey, string> buttons = n64StyleControllers[guid];
@@ -240,9 +240,9 @@ namespace EmulatorLauncher
                 if (n64StyleControllersInfo.ContainsKey(guid))
                 {
                     Dictionary<string, bool> n64ControllerInfo = n64StyleControllersInfo[guid];
-                    revertXAxis = n64ControllerInfo.ContainsKey("XInvert") ? n64ControllerInfo["XInvert"] : false;
-                    revertYAxis = n64ControllerInfo.ContainsKey("YInvert") ? n64ControllerInfo["YInvert"] : false;
-                    useDInput = n64ControllerInfo.ContainsKey("dinput") ? n64ControllerInfo["dinput"] : false;
+                    revertXAxis = n64ControllerInfo.ContainsKey("XInvert") && n64ControllerInfo["XInvert"];
+                    revertYAxis = n64ControllerInfo.ContainsKey("YInvert") && n64ControllerInfo["YInvert"];
+                    useDInput = n64ControllerInfo.ContainsKey("dinput") && n64ControllerInfo["dinput"];
                 }
 
                 xAxis["Value"] = useDInput ? "J" + index + " X Axis" : "X" + index + " LeftThumbX Axis";
@@ -324,7 +324,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void ConfigureKeyboard(Controller controller, DynamicJson json, string system, string core, int playerindex)
+        private static void ConfigureKeyboard(Controller controller, DynamicJson json, string system, string core)
         {
             if (controller == null)
                 return;
@@ -487,7 +487,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static InputKeyMapping atariMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping atariMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -496,7 +496,7 @@ namespace EmulatorLauncher
             { InputKey.a,               "Button" }
         };
 
-        private static InputKeyMapping colecoMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping colecoMapping = new InputKeyMapping()
         {
             { InputKey.up,                  "Up"},
             { InputKey.down,                "Down"},
@@ -516,7 +516,7 @@ namespace EmulatorLauncher
             { InputKey.start,               "Pound" }
         };
 
-        private static InputKeyMapping dualshockNymaMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping dualshockNymaMapping = new InputKeyMapping()
         {
             { InputKey.up,              "D-Pad Up"},
             { InputKey.down,            "D-Pad Down"},
@@ -536,7 +536,7 @@ namespace EmulatorLauncher
             { InputKey.r3,              "Right Stick, Button" }
         };
 
-        private static InputKeyMapping dualshockOctoMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping dualshockOctoMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -556,7 +556,7 @@ namespace EmulatorLauncher
             { InputKey.r3,              "R3" }
         };
 
-        private static InputKeyMapping gbMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping gbMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -568,7 +568,7 @@ namespace EmulatorLauncher
             { InputKey.b,               "A" }
         };
 
-        private static InputKeyMapping gbaMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping gbaMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -582,7 +582,7 @@ namespace EmulatorLauncher
             { InputKey.pagedown,        "R" }
         };
 
-        private static InputKeyMapping ggMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping ggMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -593,7 +593,7 @@ namespace EmulatorLauncher
             { InputKey.start,           "Start" }
         };
 
-        private static InputKeyMapping jaguarMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping jaguarMapping = new InputKeyMapping()
         {
             { InputKey.up,                  "Up"},
             { InputKey.down,                "Down"},
@@ -613,7 +613,7 @@ namespace EmulatorLauncher
             { InputKey.r3,                  "6" }
         };
 
-        private static InputKeyMapping lynxMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping lynxMapping = new InputKeyMapping()
         {
             { InputKey.up,                  "Up"},
             { InputKey.down,                "Down"},
@@ -626,7 +626,7 @@ namespace EmulatorLauncher
             { InputKey.start,               "Pause" }
         };
 
-        private static InputKeyMapping mdMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping mdMapping = new InputKeyMapping()
         {
             { InputKey.up,                  "Up"},
             { InputKey.down,                "Down"},
@@ -642,7 +642,7 @@ namespace EmulatorLauncher
             { InputKey.select,              "Mode" },
         };
 
-        private static InputKeyMapping n64Mapping = new InputKeyMapping()
+        private static readonly InputKeyMapping n64Mapping = new InputKeyMapping()
         {
             { InputKey.leftanalogup,        "A Up" },
             { InputKey.leftanalogdown,      "A Down" },
@@ -664,7 +664,7 @@ namespace EmulatorLauncher
             { InputKey.pagedown,            "R" }
         };
 
-        private static InputKeyMapping ndsMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping ndsMapping = new InputKeyMapping()
         {
             { InputKey.b,                   "A" },
             { InputKey.a,                   "B" },
@@ -680,7 +680,7 @@ namespace EmulatorLauncher
             { InputKey.start,               "Start" },
         };
 
-        private static InputKeyMapping nesMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping nesMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -692,7 +692,7 @@ namespace EmulatorLauncher
             { InputKey.a,               "A" }
         };
 
-        private static InputKeyMapping ngpMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping ngpMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -703,7 +703,7 @@ namespace EmulatorLauncher
             { InputKey.start,           "Option"}
         };
 
-        private static InputKeyMapping o2Mapping = new InputKeyMapping()
+        private static readonly InputKeyMapping o2Mapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -712,7 +712,7 @@ namespace EmulatorLauncher
             { InputKey.b,               "F" }
         };
 
-        private static InputKeyMapping pceMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping pceMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -730,7 +730,7 @@ namespace EmulatorLauncher
             { InputKey.r2,              "Mode: Set 6-button" }
         };
 
-        private static InputKeyMapping pcfxMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping pcfxMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -750,7 +750,7 @@ namespace EmulatorLauncher
             { InputKey.r3,              "P1 Mode 2: Set B" }
         };
 
-        private static InputKeyMapping psxOctoMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping psxOctoMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -768,7 +768,7 @@ namespace EmulatorLauncher
             { InputKey.r2,              "R2" }
         };
 
-        private static InputKeyMapping psxNymaMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping psxNymaMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -786,7 +786,7 @@ namespace EmulatorLauncher
             { InputKey.r2,              "R2" }
         };
 
-        private static InputKeyMapping saturnMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping saturnMapping = new InputKeyMapping()
         {
             { InputKey.up,                  "Up"},
             { InputKey.down,                "Down"},
@@ -803,7 +803,7 @@ namespace EmulatorLauncher
             { InputKey.r2,                  "R" }
         };
 
-        private static InputKeyMapping smsMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping smsMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -813,7 +813,7 @@ namespace EmulatorLauncher
             { InputKey.b,               "B2" }
         };
 
-        private static InputKeyMapping snesMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping snesMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -829,7 +829,7 @@ namespace EmulatorLauncher
             { InputKey.pagedown,        "R" }
         };
 
-        private static InputKeyMapping tic80Mapping = new InputKeyMapping()
+        private static readonly InputKeyMapping tic80Mapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -841,7 +841,7 @@ namespace EmulatorLauncher
             { InputKey.x,               "X" }
         };
 
-        private static InputKeyMapping vbMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping vbMapping = new InputKeyMapping()
         {
             { InputKey.leftanalogup,        "L_Up"},
             { InputKey.leftanalogdown,      "L_Down"},
@@ -859,7 +859,7 @@ namespace EmulatorLauncher
             { InputKey.start,               "Start" }
         };
 
-        private static InputKeyMapping vbKbMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping vbKbMapping = new InputKeyMapping()
         {
             { InputKey.up,                  "L_Up"},
             { InputKey.down,                "L_Down"},
@@ -877,7 +877,7 @@ namespace EmulatorLauncher
             { InputKey.start,               "Start" }
         };
 
-        private static InputKeyMapping vecMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping vecMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -889,7 +889,7 @@ namespace EmulatorLauncher
             { InputKey.y,               "Button 4" }
         };
 
-        private static InputKeyMapping wswanMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping wswanMapping = new InputKeyMapping()
         {
             { InputKey.up,              "X1"},
             { InputKey.down,            "X3"},
@@ -904,7 +904,7 @@ namespace EmulatorLauncher
             { InputKey.pageup,          "A" }
         };
 
-        private static InputKeyMapping zxMapping = new InputKeyMapping()
+        private static readonly InputKeyMapping zxMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
             { InputKey.down,            "Down"},
@@ -915,11 +915,10 @@ namespace EmulatorLauncher
 
         private static string GetXInputKeyName(Controller c, InputKey key)
         {
-            Int64 pid = -1;
+            Int64 pid;
             bool isxinput = c.IsXInputDevice;
-            bool revertAxis = false;
             
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -1006,7 +1005,7 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private static Dictionary<string, string> systemController = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> systemController = new Dictionary<string, string>()
         {
             { "apple2", "Apple IIe Keyboard" },
             { "atari2600", "Atari 2600 Basic Controller" },
@@ -1045,7 +1044,7 @@ namespace EmulatorLauncher
             { "zxspectrum", "ZXSpectrum Controller" },
         };
 
-        private static Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
+        private static readonly Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
         {
             { "atari2600", atariMapping },
             { "atari7800", atariMapping },
@@ -1118,7 +1117,6 @@ namespace EmulatorLauncher
                 foreach (var x in mapping)
                 {
                     string value = x.Value;
-                    InputKey key = x.Key;
                     controllerConfig[value] = "";
                 }
             }
@@ -1130,7 +1128,6 @@ namespace EmulatorLauncher
                     foreach (var x in mapping)
                     {
                         string value = x.Value;
-                        InputKey key = x.Key;
                         controllerConfig["P" + i + " " + value] = "";
                     }
                 }
@@ -1293,7 +1290,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static Dictionary<string, string> apple2Mapping = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> apple2Mapping = new Dictionary<string, string>()
         {
             { "Delete", "Delete" },
             { "Left", "Left" },
@@ -1360,7 +1357,7 @@ namespace EmulatorLauncher
             { "Next Disk", "PageDown" }
         };
 
-        private static Dictionary<string, string> o2KbMapping = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> o2KbMapping = new Dictionary<string, string>()
         {
             { "0", "Number0" },
             { "1", "Number1" },
@@ -1410,7 +1407,7 @@ namespace EmulatorLauncher
             { "CLR", "Backspace" },
         };
 
-        private static Dictionary<string, string> zxkbMapping = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> zxkbMapping = new Dictionary<string, string>()
         {
             { "Play Tape", "F2" },
             { "Stop Tape", "F3" },
@@ -1481,7 +1478,7 @@ namespace EmulatorLauncher
             { "Key Comma", "Comma" }
         };
 
-        static Dictionary<string, Dictionary<InputKey, string>> n64StyleControllers = new Dictionary<string, Dictionary<InputKey, string>>()
+        static readonly Dictionary<string, Dictionary<InputKey, string>> n64StyleControllers = new Dictionary<string, Dictionary<InputKey, string>>()
         {
            {
                 // Nintendo Switch Online N64 Controller
@@ -1562,7 +1559,7 @@ namespace EmulatorLauncher
             },
         };
 
-        static Dictionary<string, Dictionary<string, bool>> n64StyleControllersInfo = new Dictionary<string, Dictionary<string, bool>>()
+        static readonly Dictionary<string, Dictionary<string, bool>> n64StyleControllersInfo = new Dictionary<string, Dictionary<string, bool>>()
         {
             {
                 // Nintendo Switch Online N64 Controller
