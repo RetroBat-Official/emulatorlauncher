@@ -1264,7 +1264,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fbneo-neogeo-mode", "fbneo_neogeo_mode", "UNIBIOS");
             BindFeature(coreSettings, "fbneo-vertical-mode", "fbneo-vertical-mode", "disabled");
             BindFeature(coreSettings, "fbneo-diagnostic-input", "fbneo_diagkey", "Start + L + R");
-            BindFeature(coreSettings, "fbneo-cpu-speed-adjust", "fbneo_cpu_overclock", "100");
+            BindFeature(coreSettings, "fbneo-cpu-speed-adjust", "fbneo_cpu_overclock", "100%");
             BindFeature(coreSettings, "fbneo-samplerate", "fbneo_samplerate", "44100");
             BindFeature(coreSettings, "fbneo-lowpass-filter", "fbneo_lowpass_filter", "disabled");
             BindFeature(coreSettings, "fbneo-hiscores", "fbneo_hiscore", "enabled");
