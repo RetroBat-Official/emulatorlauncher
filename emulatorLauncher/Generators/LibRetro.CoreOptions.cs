@@ -263,8 +263,7 @@ namespace EmulatorLauncher.Libretro
                 { "yabause", "Yabause" }
             };
 
-            string ret;
-            if (coreNames.TryGetValue(core, out ret))
+            if (coreNames.TryGetValue(core, out string ret))
                 return ret;
 
             var sb = new StringBuilder(core.Replace("_", " "));
@@ -2928,7 +2927,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "openlara_resolution", "openlara_resolution", "320x240");
         }
 
-        static List<KeyValuePair<string, string>> operaHacks = new List<KeyValuePair<string, string>>()
+        static readonly List<KeyValuePair<string, string>> operaHacks = new List<KeyValuePair<string, string>>()
             {
                 new KeyValuePair<string, string>("crashnburn", "hack_timing_1"),
                 new KeyValuePair<string, string>("dinopark tycoon", "hack_timing_3"),

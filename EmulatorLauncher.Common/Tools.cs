@@ -1,19 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Xml.Serialization;
-using System.IO;
-using System.Xml;
-using Microsoft.Win32;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using System.Net;
-using System.ComponentModel;
-using System.Management;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace EmulatorLauncher.Common
 {

@@ -19,7 +19,7 @@ namespace EmulatorLauncher
         private string _exename;
         private string _corename;
 
-        private static List<string> pinballfxsystems = new List<string>() { "pinballfx", "pinballfx2", "pinballfx3", "pinballm" };
+        private static readonly List<string> pinballfxsystems = new List<string>() { "pinballfx", "pinballfx2", "pinballfx3", "pinballm" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
