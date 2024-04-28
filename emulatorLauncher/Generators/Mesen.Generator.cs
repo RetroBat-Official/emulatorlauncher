@@ -290,6 +290,7 @@ namespace EmulatorLauncher
                 case "sgb":
                     return "Gameboy";
                 case "pcengine":
+                case "supergrafx":
                     return "PcEngine";
             }
             return "none";
