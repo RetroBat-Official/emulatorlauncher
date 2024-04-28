@@ -117,10 +117,11 @@ namespace EmulatorLauncher
                     commandArray.Add(cfgPath);
                 }
 
-                // Delete default.cfg files if they exist
+                /* Delete default.cfg files if they exist
                 string defaultCfg = Path.Combine(cfgPath, "default.cfg");
                 if (File.Exists(defaultCfg))
                     File.Delete(defaultCfg);
+                */
 
                 // Ini path
                 string iniPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "ini") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini");
