@@ -191,6 +191,7 @@ namespace EmulatorLauncher
                 return;
 
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
+            BindFeature(section, "ConsoleType", "mesen_pce_console", "Auto");
         }
 
         private void ConfigureGameboy(DynamicJson section, string system, string path)
@@ -289,6 +290,7 @@ namespace EmulatorLauncher
                 case "sgb":
                     return "Gameboy";
                 case "pcengine":
+                case "supergrafx":
                     return "PcEngine";
             }
             return "none";
