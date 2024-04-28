@@ -23,8 +23,7 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private LoadingForm _splash;
-        private string _rom;        
+        private LoadingForm _splash;       
         private Version _version;
         private string _processName;
         private string _exe;        
@@ -54,7 +53,6 @@ namespace EmulatorLauncher
                     return null;
             }
 
-            _rom = rom;
             _splash = ShowSplash(rom);
 
             ScreenResolution.SetHighDpiAware(exe);
@@ -230,16 +228,18 @@ namespace EmulatorLauncher
 
                     try
                     {
-                        Bulb item = new Bulb();
-                        item.ID = bulb.GetAttribute("ID").ToInteger();
-                        item.LightColor = bulb.GetAttribute("LightColor");
-                        item.LocX = bulb.GetAttribute("LocX").ToInteger();
-                        item.LocY = bulb.GetAttribute("LocY").ToInteger();
-                        item.Width = bulb.GetAttribute("Width").ToInteger();
-                        item.Height = bulb.GetAttribute("Height").ToInteger();
-                        item.Visible = bulb.GetAttribute("Visible") == "1";
-                        item.IsImageSnippit = bulb.GetAttribute("IsImageSnippit") == "1";
-                        item.Image = Misc.Base64ToImage(bulb.GetAttribute("Image"));
+                        Bulb item = new Bulb
+                        {
+                            ID = bulb.GetAttribute("ID").ToInteger(),
+                            LightColor = bulb.GetAttribute("LightColor"),
+                            LocX = bulb.GetAttribute("LocX").ToInteger(),
+                            LocY = bulb.GetAttribute("LocY").ToInteger(),
+                            Width = bulb.GetAttribute("Width").ToInteger(),
+                            Height = bulb.GetAttribute("Height").ToInteger(),
+                            Visible = bulb.GetAttribute("Visible") == "1",
+                            IsImageSnippit = bulb.GetAttribute("IsImageSnippit") == "1",
+                            Image = Misc.Base64ToImage(bulb.GetAttribute("Image"))
+                        };
 
                         if (item.Visible && item.Image != null)
                             bulbs.Add(item);
@@ -348,8 +348,10 @@ namespace EmulatorLauncher
                 int last = Environment.TickCount;
                 int index = 0;
 
-                var frm = new LoadingForm();
-                frm.Image = data.RenderBackglass(index);
+                var frm = new LoadingForm
+                {
+                    Image = data.RenderBackglass(index)
+                };
                 frm.Timer += (a, b) =>
                     {
                         int now = Environment.TickCount;
@@ -433,8 +435,10 @@ namespace EmulatorLauncher
 
                 if (File.Exists(ultraDMD))
                 {
-                    Process px = new Process();
-                    px.EnableRaisingEvents = true;
+                    Process px = new Process
+                    {
+                        EnableRaisingEvents = true
+                    };
                     px.StartInfo.Verb = "RunAs";
                     px.StartInfo.FileName = ultraDMD;
                     px.StartInfo.Arguments = " /i";
@@ -504,9 +508,11 @@ namespace EmulatorLauncher
                 return;
 
             try
-            {            
-                Process px = new Process();
-                px.EnableRaisingEvents = true;
+            {
+                Process px = new Process
+                {
+                    EnableRaisingEvents = true
+                };
                 px.StartInfo.Verb = "RunAs";
                 px.StartInfo.FileName = Path.Combine(GetRegAsmPath(view), "regasm.exe");
                 px.StartInfo.Arguments = "\"" + dllPath + "\" /codebase";
@@ -599,8 +605,10 @@ namespace EmulatorLauncher
 
             try
             {
-                Process px = new Process();
-                px.EnableRaisingEvents = true;
+                Process px = new Process
+                {
+                    EnableRaisingEvents = true
+                };
                 px.StartInfo.Verb = "RunAs";
                 px.StartInfo.FileName = Path.Combine(FileTools.GetSystemDirectory(view), "regsvr32.exe");
                 px.StartInfo.Arguments = "/s \"" + dllPath + "\"";
@@ -615,14 +623,14 @@ namespace EmulatorLauncher
         private void SetupOptions(string path, string romPath, ScreenResolution resolution)
         {
             if (_version >= new Version(10, 8, 0, 0))
-                SetupOptionsIniFile(path, romPath, resolution);
+                SetupOptionsIniFile(path, resolution);
             else
-                SetupOptionsRegistry(path, romPath, resolution);
+                SetupOptionsRegistry(resolution);
 
             SetupVPinMameOptions(path, romPath);
         }
 
-        private void SetupOptionsIniFile(string path, string romPath, ScreenResolution resolution)
+        private void SetupOptionsIniFile(string path, ScreenResolution resolution)
         {
             string iniFile = Path.Combine(path, "VPinballX.ini");
 
@@ -715,7 +723,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void SetupOptionsRegistry(string path, string romPath, ScreenResolution resolution)
+        private void SetupOptionsRegistry(ScreenResolution resolution)
         {
             //HKEY_CURRENT_USER\Software\Visual Pinball\VP10\Player
 
@@ -907,8 +915,7 @@ namespace EmulatorLauncher
                 if (romKey == null)
                 {
                     romKey = visualPinMame.CreateSubKey(rom);
-                    if (romKey != null)
-                        romKey.SetValue(null, 1);
+                    romKey?.SetValue(null, 1);
                 }
                 
                 if (romKey != null)
