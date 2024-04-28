@@ -42,7 +42,6 @@ namespace EmulatorLauncher
             {
                 string bios1 = Path.Combine(path, "lynx96-1.rom");
                 string bios2 = Path.Combine(path, "lynx96-2.rom");
-                string bios3 = Path.Combine(path, "lynx96-3.rom");
                 if (!File.Exists(bios1) || !File.Exists(bios2) || !File.Exists(bios2))
                     throw new ApplicationException("Machine Lynx96k has missing BIOS file(s) in 'emulators\\jynx' folder.");
 
@@ -56,12 +55,14 @@ namespace EmulatorLauncher
 
             _fullscreen = (!IsEmulationStationWindowed() && !SystemConfig.getOptBoolean("jynx_fullscreen")) || SystemConfig.getOptBoolean("forcefullscreen");
 
-            var commandArray = new List<string>();
-            commandArray.Add("--settings");
-            commandArray.Add("\".\\settings.txt\"");
-            commandArray.Add("--run");
-            commandArray.Add("\"" + rom + "\"");
-            commandArray.Add("--games");
+            var commandArray = new List<string>
+            {
+                "--settings",
+                "\".\\settings.txt\"",
+                "--run",
+                "\"" + rom + "\"",
+                "--games"
+            };
 
             string args = string.Join(" ", commandArray);
 
@@ -127,8 +128,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             return ret;
         }
@@ -140,8 +140,10 @@ namespace EmulatorLauncher
 
             public static JynxConfigFile FromFile(string file)
             {
-                var ret = new JynxConfigFile();
-                ret._fileName = file;
+                var ret = new JynxConfigFile
+                {
+                    _fileName = file
+                };
 
                 try
                 {

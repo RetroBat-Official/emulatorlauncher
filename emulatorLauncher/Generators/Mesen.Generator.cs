@@ -28,9 +28,10 @@ namespace EmulatorLauncher
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             // command line parameters
-            var commandArray = new List<string>();
-
-            commandArray.Add("\"" + rom + "\"");
+            var commandArray = new List<string>
+            {
+                "\"" + rom + "\""
+            };
 
             if (fullscreen)
                 commandArray.Add("--fullscreen");
@@ -61,10 +62,10 @@ namespace EmulatorLauncher
 
             // System preferences
             var systemSection = json.GetOrCreateContainer(mesenSystem);
-            ConfigureNes(systemSection, system, rom);
-            ConfigurePCEngine(systemSection, system, rom);
-            ConfigureSnes(systemSection, system, rom);
-            ConfigureGameboy(systemSection, system, rom, path);
+            ConfigureNes(systemSection, system);
+            ConfigurePCEngine(systemSection, system);
+            ConfigureSnes(systemSection, system);
+            ConfigureGameboy(systemSection, system, path);
 
             // Emulator preferences
             var preference = json.GetOrCreateContainer("Preferences");
@@ -167,7 +168,7 @@ namespace EmulatorLauncher
             json.Save();
         }
 
-        private void ConfigureNes(DynamicJson section, string system, string rom)
+        private void ConfigureNes(DynamicJson section, string system)
         {
             if (system != "nes" && system != "fds")
                 return;
@@ -184,7 +185,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigurePCEngine(DynamicJson section, string system, string rom)
+        private void ConfigurePCEngine(DynamicJson section, string system)
         {
             if (system != "pcengine")
                 return;
@@ -192,7 +193,7 @@ namespace EmulatorLauncher
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
         }
 
-        private void ConfigureGameboy(DynamicJson section, string system, string rom, string path)
+        private void ConfigureGameboy(DynamicJson section, string system, string path)
         {
             if (system != "gb" && system != "gbc" && system != "sgb")
                 return;
@@ -227,7 +228,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureSnes(DynamicJson section, string system, string rom)
+        private void ConfigureSnes(DynamicJson section, string system)
         {
             if (system != "snes")
                 return;
@@ -243,9 +244,11 @@ namespace EmulatorLauncher
                 {
                     var portSection = section.GetOrCreateContainer(SystemConfig["mesen_zapper"]);
                     var mapping = portSection.GetOrCreateContainer("Mapping1");
-                    List<int> mouseID = new List<int>();
-                    mouseID.Add(512);
-                    mouseID.Add(513);
+                    List<int> mouseID = new List<int>
+                    {
+                        512,
+                        513
+                    };
                     mapping.SetObject("ZapperButtons", mouseID);
 
                     portSection["Type"] = "Zapper";
@@ -258,11 +261,13 @@ namespace EmulatorLauncher
                 {
                     var portSection = section.GetOrCreateContainer(SystemConfig["mesen_superscope"]);
                     var mapping = portSection.GetOrCreateContainer("Mapping1");
-                    List<int> mouseID = new List<int>();
-                    mouseID.Add(512);
-                    mouseID.Add(513);
-                    mouseID.Add(514);
-                    mouseID.Add(6);
+                    List<int> mouseID = new List<int>
+                    {
+                        512,
+                        513,
+                        514,
+                        6
+                    };
                     mapping.SetObject("SuperScopeButtons", mouseID);
 
                     portSection["Type"] = "SuperScope";
@@ -298,8 +303,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             if (ret == 1)
                 return 0;

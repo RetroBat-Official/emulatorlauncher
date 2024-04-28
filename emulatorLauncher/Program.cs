@@ -42,7 +42,7 @@ namespace EmulatorLauncher
             { "duckstation", () => new DuckstationGenerator() },
             { "kega-fusion", () => new KegaFusionGenerator() },
             { "mesen", () => new MesenGenerator() },
-            { "mgba", () => new mGBAGenerator() },
+            { "mgba", () => new MGBAGenerator() },
             { "model2", () => new Model2Generator() }, { "m2emulator", () => new Model2Generator() },
             { "model3", () => new Model3Generator() }, { "supermodel", () => new Model3Generator() },
             { "openbor", () => new OpenBorGenerator() },

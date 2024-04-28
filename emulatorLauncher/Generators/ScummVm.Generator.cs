@@ -43,7 +43,7 @@ namespace EmulatorLauncher
 
             string iniPath = Path.ChangeExtension(exe, ".ini");
 
-            SetupConfiguration(iniPath, system, rom, fullscreen);
+            SetupConfiguration(iniPath, system, fullscreen);
 
             List<string> commandArray = new List<string>();
 
@@ -74,7 +74,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string iniPath, string system, string rom, bool fullscreen = true)
+        private void SetupConfiguration(string iniPath, string system, bool fullscreen = true)
         {
             using (IniFile ini = new IniFile(iniPath))
             {
@@ -261,7 +261,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void SetupGameSettings(IniFile ini, string rom)
+        /*private void SetupGameSettings(IniFile ini, string rom)
         {
             if (!File.Exists(rom) || !rom.EndsWith(".scummvm", StringComparison.OrdinalIgnoreCase))
                 return;
@@ -335,7 +335,7 @@ namespace EmulatorLauncher
             // platform
             // extra
             // enhancements
-        }
+        }*/
 
         public override int RunAndWait(ProcessStartInfo path)
         {
@@ -412,8 +412,7 @@ namespace EmulatorLauncher
             else
                 ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 

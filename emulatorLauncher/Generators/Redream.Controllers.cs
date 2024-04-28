@@ -52,9 +52,10 @@ namespace EmulatorLauncher
 
             ini.WriteValue("", portNr, "dev:2,desc:keyboard,type:controller");
 
-            var profileList = new List<string>();
-
-            profileList.Add("name:keyboard0,type:controller,deadzone:12,crosshair:1");
+            var profileList = new List<string>
+            {
+                "name:keyboard0,type:controller,deadzone:12,crosshair:1"
+            };
 
             Action<string, InputKey> WriteKeyboardMapping = (v, k) =>
             {
@@ -116,23 +117,23 @@ namespace EmulatorLauncher
 
             ini.WriteValue("", portNr, "dev:" + index + ",desc:" + guid + ",type:controller");
 
-            var profileList = new List<string>();
-
-            profileList.Add("name:" + guid + ",type:controller,deadzone:12,crosshair:1");
-
-            profileList.Add("a:" + GetInputKeyName(ctrl, InputKey.a, tech));
-            profileList.Add("b:" + GetInputKeyName(ctrl, InputKey.b, tech));
-            profileList.Add("x:" + GetInputKeyName(ctrl, InputKey.y, tech));
-            profileList.Add("y:" + GetInputKeyName(ctrl, InputKey.x, tech));
-            profileList.Add("start:" + GetInputKeyName(ctrl, InputKey.start, tech));
-            profileList.Add("dpad_up:" + GetInputKeyName(ctrl, InputKey.up, tech));
-            profileList.Add("dpad_down:" + GetInputKeyName(ctrl, InputKey.down, tech));
-            profileList.Add("dpad_left:" + GetInputKeyName(ctrl, InputKey.left, tech));
-            profileList.Add("dpad_right:" + GetInputKeyName(ctrl, InputKey.right, tech));
-            profileList.Add("ljoy_up:" + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
-            profileList.Add("ljoy_down:" + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
-            profileList.Add("ljoy_left:" + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
-            profileList.Add("ljoy_right:" + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
+            var profileList = new List<string>
+            {
+                "name:" + guid + ",type:controller,deadzone:12,crosshair:1",
+                "a:" + GetInputKeyName(ctrl, InputKey.a, tech),
+                "b:" + GetInputKeyName(ctrl, InputKey.b, tech),
+                "x:" + GetInputKeyName(ctrl, InputKey.y, tech),
+                "y:" + GetInputKeyName(ctrl, InputKey.x, tech),
+                "start:" + GetInputKeyName(ctrl, InputKey.start, tech),
+                "dpad_up:" + GetInputKeyName(ctrl, InputKey.up, tech),
+                "dpad_down:" + GetInputKeyName(ctrl, InputKey.down, tech),
+                "dpad_left:" + GetInputKeyName(ctrl, InputKey.left, tech),
+                "dpad_right:" + GetInputKeyName(ctrl, InputKey.right, tech),
+                "ljoy_up:" + GetInputKeyName(ctrl, InputKey.leftanalogup, tech),
+                "ljoy_down:" + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech),
+                "ljoy_left:" + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech),
+                "ljoy_right:" + GetInputKeyName(ctrl, InputKey.leftanalogright, tech)
+            };
 
             if (SystemConfig.isOptSet("redream_use_digital_triggers") && SystemConfig.getOptBoolean("redream_use_digital_triggers"))
             {
@@ -153,13 +154,10 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
         {
-            Int64 pid = -1;
-
-            bool isNintendo = c.VendorID == USB_VENDOR.NINTENDO;
+            Int64 pid;
             bool isXinput = tech == "xinput";
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
 

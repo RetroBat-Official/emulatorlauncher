@@ -23,9 +23,10 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            var commandArray = new List<string>();
-
-            commandArray.Add("--graphics");
+            var commandArray = new List<string>
+            {
+                "--graphics"
+            };
             if (SystemConfig.isOptSet("ruffle_renderer") && !string.IsNullOrEmpty(SystemConfig["ruffle_renderer"]))
                 commandArray.Add(SystemConfig["ruffle_renderer"]);
             else

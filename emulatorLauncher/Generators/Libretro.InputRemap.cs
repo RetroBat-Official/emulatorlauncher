@@ -8,9 +8,9 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
-        static List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb" };
-        static List<string> systemButtonRotate = new List<string>() { "nes", "fds" };
-        static List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
+        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb" };
+        static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds" };
+        static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
 
         private static int _playerCount = 1;
 
@@ -156,13 +156,13 @@ namespace EmulatorLauncher.Libretro
             }
         }
 
-        private enum mame_remap
+        private enum Mame_remap
         {
             L3 = 14,
             R3 = 15,
         };
 
-        private enum atari800_remap
+        private enum Atari800_remap
         {
             FIRE1 = 0,
             FIRE2 = 8,
@@ -170,7 +170,7 @@ namespace EmulatorLauncher.Libretro
             NUMPAD_STAR = 9,
         };
 
-        private enum dolphin_gamecube_remap
+        private enum Dolphin_gamecube_remap
         {
             X = 9,
             A = 8,
@@ -181,7 +181,7 @@ namespace EmulatorLauncher.Libretro
             EMPTY = -1,
         };
 
-        private enum snes_remap
+        private enum Snes_remap
         {
             X = 9,
             A = 8,
@@ -189,7 +189,7 @@ namespace EmulatorLauncher.Libretro
             B = 0,
         };
 
-        private enum nes_remap
+        private enum Nes_remap
         {
             TURBO_A = 9,
             A = 8,
@@ -197,7 +197,7 @@ namespace EmulatorLauncher.Libretro
             B = 0,
         };
 
-        private enum flycast_remap
+        private enum Flycast_remap
         {
             LP = 0,
             BLOW_OFF = 1,

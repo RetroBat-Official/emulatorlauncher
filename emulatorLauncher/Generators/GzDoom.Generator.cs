@@ -25,12 +25,13 @@ namespace EmulatorLauncher
 
             string configFile = Path.Combine(path, "gzdoom_portable.ini");
             string romPath = Path.GetDirectoryName(rom);
-            SetupConfiguration(configFile, romPath, resolution, fullscreen);
+            SetupConfiguration(configFile, romPath, fullscreen);
 
-            var commandArray = new List<string>();
-
-            commandArray.Add("-config");
-            commandArray.Add("\"" + configFile + "\"");
+            var commandArray = new List<string>
+            {
+                "-config",
+                "\"" + configFile + "\""
+            };
 
             if (Path.GetExtension(rom).ToLower() == ".gzdoom" && File.Exists(rom))
             {
@@ -80,7 +81,7 @@ namespace EmulatorLauncher
         }
 
         //Setup configuration file
-        private void SetupConfiguration(string configFile, string romPath, ScreenResolution resolution, bool fullscreen)
+        private void SetupConfiguration(string configFile, string romPath, bool fullscreen)
         {
             if (!File.Exists(configFile))
                 File.WriteAllText(configFile, "");
@@ -161,7 +162,7 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private static List<string> iwadList = new List<string>()
+        private readonly static List<string> iwadList = new List<string>()
         {
             // Doom
             "doom.wad",

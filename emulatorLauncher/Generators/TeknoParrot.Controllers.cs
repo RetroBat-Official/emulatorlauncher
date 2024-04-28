@@ -261,19 +261,20 @@ namespace EmulatorLauncher
             if (start == null)
                 return;
 
-            bool reverseAxis;
-            key = key.GetRevertedAxis(out reverseAxis);
+            key = key.GetRevertedAxis(out bool reverseAxis);
 
             var input = ctrl.GetDirectInputMapping(key);
             if (input != null)
             {
-                start.DirectInputButton = new JoystickButton();
-                start.DirectInputButton.JoystickGuid = info.InstanceGuid;
-                start.DirectInputButton.IsAxis = false;
-                start.DirectInputButton.IsAxisMinus = false;
-                start.DirectInputButton.IsFullAxis = false;
-                start.DirectInputButton.IsReverseAxis = false;
-                start.DirectInputButton.PovDirection = 0;
+                start.DirectInputButton = new JoystickButton
+                {
+                    JoystickGuid = info.InstanceGuid,
+                    IsAxis = false,
+                    IsAxisMinus = false,
+                    IsFullAxis = false,
+                    IsReverseAxis = false,
+                    PovDirection = 0
+                };
                 start.DirectInputButton.IsReverseAxis = false;
                 start.DirectInputButton.Button = 0;
 

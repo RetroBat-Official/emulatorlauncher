@@ -35,9 +35,11 @@ namespace EmulatorLauncher
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
 
-            var commandArray = new List<string>();
-            commandArray.Add("-c");
-            commandArray.Add("\"" + cfgFile + "\"");
+            var commandArray = new List<string>
+            {
+                "-c",
+                "\"" + cfgFile + "\""
+            };
             
             if (Path.GetExtension(rom).ToLower() == ".gemdos")
             {
@@ -52,7 +54,6 @@ namespace EmulatorLauncher
                     
                     if (autoRun.Length > 0)
                     {
-                        string autorunCmd = autoRun[0];
                         commandArray.Add("--auto");
                         commandArray.Add("\"" + autoRun[0] + "\"");
                     }
@@ -263,8 +264,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             if (ret == 1)
                 return 0;

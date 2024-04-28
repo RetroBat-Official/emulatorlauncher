@@ -115,7 +115,7 @@ namespace EmulatorLauncher
             File.WriteAllText(ymlFile, ymlContent);
         }
 
-        private Dictionary<string, string> inputKeys = new Dictionary<string, string>()
+        private readonly Dictionary<string, string> inputKeys = new Dictionary<string, string>()
         {
             { "164", "6" },         // Left softkey - Select
             { "165", "7" },         // Right softkey - Start
@@ -140,7 +140,7 @@ namespace EmulatorLauncher
             { "127", "309" },       // diese - R2
         };
 
-        private Dictionary<string, string> keyboardDefaults = new Dictionary<string, string>()
+        private readonly Dictionary<string, string> keyboardDefaults = new Dictionary<string, string>()
         {
             { "164", "16777264" },
             { "165", "16777265" },

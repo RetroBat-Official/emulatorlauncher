@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
-using System.Configuration;
 
 namespace EmulatorLauncher
 {

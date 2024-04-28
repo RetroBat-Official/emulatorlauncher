@@ -14,7 +14,6 @@ namespace EmulatorLauncher
                 return;
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
-            int nsamepad = 0;
 
             // clear existing pad sections of ini file
             for (int i = 0; i < 4; i++)
@@ -29,10 +28,10 @@ namespace EmulatorLauncher
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
-                ConfigureInput(ini, controller, double_pads, nsamepad); // ini has one section for each pad (from Pad1 to Pad4)
+                ConfigureInput(ini, controller, double_pads); // ini has one section for each pad (from Pad1 to Pad4)
         }
 
-        private void ConfigureInput(IniFile ini, Controller controller, Dictionary<string, int> double_pads, int nsamepad)
+        private void ConfigureInput(IniFile ini, Controller controller, Dictionary<string, int> double_pads)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -40,7 +39,7 @@ namespace EmulatorLauncher
             if (controller.IsKeyboard)
                 ConfigureKeyboard(ini, controller, controller.PlayerIndex);
             else
-                ConfigureJoystick(ini, controller, controller.PlayerIndex, double_pads, nsamepad);
+                ConfigureJoystick(ini, controller, controller.PlayerIndex, double_pads);
         }
 
         /// <summary>
@@ -109,7 +108,7 @@ namespace EmulatorLauncher
                 ConfigureGun(ini, playerIndex);
         }
 
-        private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex, Dictionary<string, int> double_pads, int nsamepad)
+        private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex, Dictionary<string, int> double_pads)
         {
             if (ctrl == null)
                 return;
@@ -125,7 +124,7 @@ namespace EmulatorLauncher
             string controllerName = isXinput ? "Gamepad" : ctrl.Name;
             string shortDeviceName = tech + controllerName;
             string padType = "1";
-
+            int nsamepad;
             if (double_pads.ContainsKey(shortDeviceName))
                 nsamepad = double_pads[shortDeviceName];
             else
@@ -191,10 +190,9 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key, bool isXinput)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)

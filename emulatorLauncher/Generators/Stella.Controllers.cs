@@ -9,7 +9,7 @@ namespace EmulatorLauncher
 {
     partial class StellaGenerator : Generator
     {
-        private void CreateControllerConfiguration(SQLiteConnection db, string path)
+        private void CreateControllerConfiguration(SQLiteConnection db)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -281,8 +281,7 @@ namespace EmulatorLauncher
             // If controller is nintendo, A/B and X/Y are reversed
             //bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)

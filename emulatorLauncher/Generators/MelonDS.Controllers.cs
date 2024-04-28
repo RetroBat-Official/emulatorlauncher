@@ -70,10 +70,9 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)

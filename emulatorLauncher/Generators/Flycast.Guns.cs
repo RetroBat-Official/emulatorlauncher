@@ -9,11 +9,11 @@ namespace EmulatorLauncher
 {
     partial class FlycastGenerator
     {
-        private static List<string> reloadWithButtonB = new List<string> 
+        private static readonly List<string> reloadWithButtonB = new List<string> 
         { "confmiss", "hotd2", "hotd2e", "hotd2o", "hotd2p", "manicpnc", "mok", "otrigger", "tduno", "tduno2", "zunou", "claychal", 
             "rangrmsn", "sprtshot", "waidrive", "xtrmhnt2", "xtrmhunt" };
-        private static List<string> useXandB = new List<string> { "kick4csh" };
-        private static List<string> useXandA = new List<string> { "shootopl", "shootpl", "shootplm", "shootplmp" };
+        private static readonly List<string> useXandB = new List<string> { "kick4csh" };
+        private static readonly List<string> useXandA = new List<string> { "shootopl", "shootpl", "shootplm", "shootplmp" };
 
         private void ConfigureFlycastGuns(IniFile ini, string mappingPath)
         {
@@ -105,7 +105,7 @@ namespace EmulatorLauncher
                 string query1 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath1 + "'").Replace("\\", "\\\\");
                 ManagementObjectSearcher moSearch1 = new ManagementObjectSearcher(query1);
                 ManagementObjectCollection moCollection1 = moSearch1.Get();
-                foreach (ManagementObject mo in moCollection1)
+                foreach (ManagementObject mo in moCollection1.Cast<ManagementObject>())
                 {
                     string desc1 = mo["Description"].ToString();
                     mouseList.Add(mo, desc1);
@@ -114,7 +114,7 @@ namespace EmulatorLauncher
                 string query2 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath2 + "'").Replace("\\", "\\\\");
                 ManagementObjectSearcher moSearch2 = new ManagementObjectSearcher(query2);
                 ManagementObjectCollection moCollection2 = moSearch2.Get();
-                foreach (ManagementObject mo in moCollection2)
+                foreach (ManagementObject mo in moCollection2.Cast<ManagementObject>())
                 {
                     string desc2 = mo["Description"].ToString();
                     mouseList.Add(mo, desc2);

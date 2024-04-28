@@ -1,21 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
+﻿using System.IO;
 using System.Diagnostics;
-using System.Threading;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.PadToKeyboard;
 using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
     partial class GemRBGenerator : Generator
     {
-        private ScreenResolution _resolution;
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("gemrb");
@@ -30,9 +22,7 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            _resolution = resolution;
-
-            SetupConfiguration(path, rom, conf, system, fullscreen, resolution);
+            SetupConfiguration(rom, conf, system, fullscreen, resolution);
 
             return new ProcessStartInfo()
             {
@@ -42,7 +32,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path, string rom, string conf, string system, bool fullscreen, ScreenResolution resolution)
+        private void SetupConfiguration(string rom, string conf, string system, bool fullscreen, ScreenResolution resolution)
         {
             string gamePath = AppConfig.GetFullPath(rom);          
             string gameExtension = Path.GetExtension(rom).Replace(".", "");

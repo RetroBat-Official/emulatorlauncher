@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {

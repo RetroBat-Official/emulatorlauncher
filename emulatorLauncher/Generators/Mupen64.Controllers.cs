@@ -14,13 +14,13 @@ namespace EmulatorLauncher
         /// Cf. https://github.com/Rosalie241/RMG/tree/master/Source/RMG-Input/Utilities
         /// </summary>
         /// <param name="mupen64plus.cfg"></param>
-        private void UpdateSdlControllersWithHints()
+        /*private void UpdateSdlControllersWithHints()
         {
             var hints = new List<string>();
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
-        }
+        }*/
 
         private void CreateControllerConfiguration(IniFile ini)
         {
@@ -99,12 +99,12 @@ namespace EmulatorLauncher
 
             if (n64StyleControllers.ContainsKey(guid))
             {
-                ConfigureN64Controller(ini, iniSection, controller, guid);
+                ConfigureN64Controller(ini, iniSection, guid);
 
                 if (playerIndex == 1)
                 {
-                    ConfigureHotkeysN64Controllers(ini, iniSection, controller, guid);
-                    ConfigureEmptyHotkeys(controller, ini, iniSection);
+                    ConfigureHotkeysN64Controllers(ini, iniSection, guid);
+                    ConfigureEmptyHotkeys(ini, iniSection);
                 }
 
                 return;
@@ -272,12 +272,12 @@ namespace EmulatorLauncher
 
             if (playerIndex == 1)
             {
-                ConfigureHotkeys(controller, ini, iniSection);
-                ConfigureEmptyHotkeys(controller, ini, iniSection);
+                ConfigureHotkeys(ini, iniSection);
+                ConfigureEmptyHotkeys(ini, iniSection);
             }
         }
 
-        private void ConfigureHotkeys(Controller controller, IniFile ini, string iniSection)
+        private void ConfigureHotkeys(IniFile ini, string iniSection)
         {
             ini.WriteValue(iniSection, "Hotkey_Exit_InputType", "0;0");
             ini.WriteValue(iniSection, "Hotkey_Exit_Name", "back;start");
@@ -313,7 +313,7 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_LoadState_ExtraData", "0;0");
         }
 
-        private void ConfigureEmptyHotkeys(Controller controller, IniFile ini, string iniSection)
+        private void ConfigureEmptyHotkeys(IniFile ini, string iniSection)
         {
             ini.WriteValue(iniSection, "Hotkey_Shutdown_InputType", "");
             ini.WriteValue(iniSection, "Hotkey_Shutdown_Name", "");
@@ -461,7 +461,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureN64Controller(IniFile ini, string iniSection, Controller controller, string guid)
+        private void ConfigureN64Controller(IniFile ini, string iniSection, string guid)
         {
             Dictionary<string, string> buttons = n64StyleControllers[guid];
 
@@ -469,7 +469,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(iniSection, button.Key, button.Value);
         }
 
-        private void ConfigureHotkeysN64Controllers(IniFile ini, string iniSection, Controller controller, string guid)
+        private void ConfigureHotkeysN64Controllers(IniFile ini, string iniSection, string guid)
         {
             Dictionary<string, string> buttons = n64StyleControllersHotkeys[guid];
 
@@ -477,7 +477,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(iniSection, button.Key, button.Value);
         }
 
-        static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 // Nintendo Switch Online N64 Controller
@@ -721,7 +721,7 @@ namespace EmulatorLauncher
             },
         };
 
-        static Dictionary<string, Dictionary<string, string>> n64StyleControllersHotkeys = new Dictionary<string, Dictionary<string, string>>()
+        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllersHotkeys = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 // Nintendo Switch Online N64 Controller

@@ -12,10 +12,10 @@ namespace EmulatorLauncher.Libretro
     {
         private static bool _n64specialController = false;
         private static string _inputDriver = "sdl2";
-        private static HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
+        private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
 
-        static List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
-        static List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
+        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
+        static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
 
 
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
@@ -153,10 +153,7 @@ namespace EmulatorLauncher.Libretro
                             config[string.Format("input_{0}", specialkey.Value)] = GetConfigValue(input);
                     }
 
-                    var wiiMoteHotKey = GetInputCode(keyB, InputKey.hotkey);
-                    if (wiiMoteHotKey == null)
-                        wiiMoteHotKey = GetInputCode(keyB, InputKey.select);
-
+                    var wiiMoteHotKey = GetInputCode(keyB, InputKey.hotkey) ?? GetInputCode(keyB, InputKey.select);
                     if (wiiMoteHotKey != null && wiiMoteHotKey.Type == "key")
                         config["input_enable_hotkey"] = GetConfigValue(wiiMoteHotKey);
                 }
@@ -648,7 +645,7 @@ namespace EmulatorLauncher.Libretro
             RETROK_LAST
         }
 
-        static Dictionary<string, retro_key> input_config_names = new Dictionary<string, retro_key>()
+        static readonly Dictionary<string, retro_key> input_config_names = new Dictionary<string, retro_key>()
         {
            { "left", retro_key.RETROK_LEFT },
            { "right", retro_key.RETROK_RIGHT },
@@ -772,7 +769,7 @@ namespace EmulatorLauncher.Libretro
            { "nul", retro_key.RETROK_UNKNOWN }
         };        
         
-        static Dictionary<SDL.SDL_Keycode, retro_key> input_config_key_map = new Dictionary<SDL.SDL_Keycode, retro_key>()
+        static readonly Dictionary<SDL.SDL_Keycode, retro_key> input_config_key_map = new Dictionary<SDL.SDL_Keycode, retro_key>()
         {
            { SDL.SDL_Keycode.SDLK_BACKSPACE, retro_key.RETROK_BACKSPACE },
            { SDL.SDL_Keycode.SDLK_TAB, retro_key.RETROK_TAB },
@@ -909,7 +906,7 @@ namespace EmulatorLauncher.Libretro
       //     { 0, retro_key.RETROK_UNKNOWN },*/
         };
 
-        static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 // Mayflash N64 Adapter
@@ -968,7 +965,7 @@ namespace EmulatorLauncher.Libretro
             },
         };
 
-        static Dictionary<string, Dictionary<string, string>> n64StyleControllersSpecial = new Dictionary<string, Dictionary<string, string>>()
+        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllersSpecial = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 // Mayflash N64 Adapter

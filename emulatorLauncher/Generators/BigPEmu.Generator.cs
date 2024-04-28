@@ -33,13 +33,14 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            List<string> commandArray = new List<string>();
-
-            //arguments:
-            //first argument must always be the rom
-            //-localdata : specify to use the config file stored in "userdata" folder within emulator folder instead of the one in %APPDATA%
-            commandArray.Add("\"" + rom + "\"");
-            commandArray.Add("-localdata");
+            List<string> commandArray = new List<string>
+            {
+                //arguments:
+                //first argument must always be the rom
+                //-localdata : specify to use the config file stored in "userdata" folder within emulator folder instead of the one in %APPDATA%
+                "\"" + rom + "\"",
+                "-localdata"
+            };
 
             string args = string.Join(" ", commandArray);
 
@@ -155,8 +156,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             if (ret == 1)
             {

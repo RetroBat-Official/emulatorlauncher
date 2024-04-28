@@ -12,13 +12,13 @@ namespace EmulatorLauncher
         /// Cf. n/a
         /// </summary>
         /// <param name="input-profiles.ini"></param>
-        private void UpdateSdlControllersWithHints()
+        /*private void UpdateSdlControllersWithHints()
         {
             var hints = new List<string>();
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
-        }
+        }*/
 
         private void CreateControllerConfiguration(string path)
         {
@@ -84,7 +84,7 @@ namespace EmulatorLauncher
 
             if (n64StyleControllers.ContainsKey(guid))
             {
-                ConfigureN64Controller(profileIni, iniSection, controller, guid);
+                ConfigureN64Controller(profileIni, iniSection, guid);
 
                 profileIni.WriteValue(iniSection, "Deadzone", deadzone);
                 profileIni.WriteValue(iniSection, "Sensitivity", sensitivity);
@@ -213,12 +213,12 @@ namespace EmulatorLauncher
         }
 
         // Controller hotkeys are not available in Simple64 yet
-        private void ConfigureHotkeys(Controller controller, IniFile ini, string iniSection)
+        /*private void ConfigureHotkeys(Controller controller, IniFile ini, string iniSection)
         {
            //TBD
-        }
+        }*/
 
-        private void ConfigureN64Controller(IniFile profileIni, string iniSection, Controller controller, string guid)
+        private void ConfigureN64Controller(IniFile profileIni, string iniSection, string guid)
         {
             Dictionary<string, string> buttons = n64StyleControllers[guid];
 
@@ -226,7 +226,7 @@ namespace EmulatorLauncher
                 profileIni.WriteValue(iniSection, button.Key, button.Value);
         }
 
-        static Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 // Nintendo Switch Online N64 Controller
