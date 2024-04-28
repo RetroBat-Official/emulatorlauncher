@@ -37,16 +37,15 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            var cfg = FbneoConfigFile.FromFile(Path.Combine(path, "config", "fbneo64.ini"));
-
             // Configure cfg file
-            SetupConfig(path, fullscreen, rom);
+            SetupConfig(path, rom);
             CreateControllerConfiguration(path, rom, system);
 
             // Command line arguments
-            List<string> commandArray = new List<string>();
-
-            commandArray.Add(_romName);
+            List<string> commandArray = new List<string>
+            {
+                _romName
+            };
 
             if (!fullscreen)
                 commandArray.Add("-w");
@@ -60,7 +59,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfig(string path, bool fullscreen, string rom)
+        private void SetupConfig(string path, string rom)
         {          
             string configFolder = Path.Combine(path, "config");
             if (!Directory.Exists(configFolder)) try { Directory.CreateDirectory(configFolder); }
@@ -172,8 +171,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             if (ret == 1)
             {
@@ -192,8 +190,10 @@ namespace EmulatorLauncher
 
         public static FbneoConfigFile FromFile(string file)
         {
-            var ret = new FbneoConfigFile();
-            ret._fileName = file;
+            var ret = new FbneoConfigFile
+            {
+                _fileName = file
+            };
 
             try
             {

@@ -181,11 +181,8 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (process != null)
-                process.WaitForExit();
-
-            if (bezel != null)
-                bezel.Dispose();
+            process?.WaitForExit();
+            bezel?.Dispose();
 
             if (process != null)
             {

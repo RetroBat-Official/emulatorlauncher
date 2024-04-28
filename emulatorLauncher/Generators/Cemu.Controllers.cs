@@ -18,17 +18,19 @@ namespace EmulatorLauncher
         /// <param name="pcsx2ini"></param>
         private void UpdateSdlControllersWithHints()
         {
-            var hints = new List<string>();            
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4 = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5 = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_GAMECUBE = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_SWITCH = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_STADIA = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_STEAM = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_LUNA = 1");
+            var hints = new List<string>
+            {
+                "SDL_HINT_JOYSTICK_HIDAPI_PS4 = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_PS5 = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_GAMECUBE = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_SWITCH = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_STADIA = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_STEAM = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_LUNA = 1"
+            };            
 
             _sdlMapping = SdlDllControllersMapping.FromDll(_sdl2dll, string.Join(",", hints));
             if (_sdlMapping == null)
@@ -420,10 +422,10 @@ namespace EmulatorLauncher
                 var a = joy[k];
                 if (a != null)
                 {
-                    var val = GetInputValuexml(ctrl, k, api, r);
+                    var val = GetInputValuexml(ctrl, k, r);
                     writer.WriteStartElement("entry");
                     writer.WriteElementString("mapping", v);
-                    writer.WriteElementString("button", GetInputValuexml(ctrl, k, api, r));
+                    writer.WriteElementString("button", GetInputValuexml(ctrl, k, r));
                     writer.WriteEndElement();
                 }
             };
@@ -608,13 +610,13 @@ namespace EmulatorLauncher
         /// <param name="api"></param>
         /// <param name="invertAxis"></param>
         /// <returns></returns>
-        private static string GetInputValuexml(Controller ctrl, InputKey ik, string api, bool invertAxis = false)
+        private static string GetInputValuexml(Controller ctrl, InputKey ik, bool invertAxis = false)
         {
             InputConfig joy = ctrl.Config;
 
             var a = joy[ik];        //inputkey
             Int64 val = a.Id;       //id from es_input config file
-            Int64 pid = 1;          //pid will be used to retrieve value in es_input config file for hat and axis
+            Int64 pid;          //pid will be used to retrieve value in es_input config file for hat and axis
 
             //L1 and R1 for XInput sends wrong id, cemu is based on SDl id's
             if (ctrl.IsXInputDevice && a.Type == "button" && val == 5)
@@ -746,7 +748,7 @@ namespace EmulatorLauncher
                 case 0x40000045: return 123; // F12
             }
 
-            sdlCode = sdlCode & 0xFFFF;
+            sdlCode &= 0xFFFF;
             byte value = (byte)((char)sdlCode).ToString().ToUpper()[0];
             return value;
         }

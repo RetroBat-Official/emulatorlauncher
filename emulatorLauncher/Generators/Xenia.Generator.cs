@@ -65,7 +65,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private string getXboxLangFromEnvironment()
+        private string GetXboxLangFromEnvironment()
         {
             var availableLanguages = new Dictionary<string, string>()
             {
@@ -93,8 +93,7 @@ namespace EmulatorLauncher
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                string ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
 
@@ -227,7 +226,7 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
                         ini.AppendValue("XConfig", "user_language", SystemConfig["xenia_lang"]);
                     else if (Features.IsSupported("xenia_lang"))
-                        ini.AppendValue("XConfig", "user_language", getXboxLangFromEnvironment());
+                        ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
                 }
             }
             catch { }

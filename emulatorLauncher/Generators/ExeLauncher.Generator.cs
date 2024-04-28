@@ -8,7 +8,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
-using System.Windows.Media;
 using System.Xml.Linq;
 
 namespace EmulatorLauncher
@@ -24,11 +23,10 @@ namespace EmulatorLauncher
         private string _exename = null;
         private bool _isGameExePath;
         private bool _exeFile;
-        private BezelFiles _bezelFileInfo;
 
         private GameLauncher _gameLauncher;
 
-        static Dictionary<string, Func<Uri, GameLauncher>> launchers = new Dictionary<string, Func<Uri, GameLauncher>>()
+        static readonly Dictionary<string, Func<Uri, GameLauncher>> launchers = new Dictionary<string, Func<Uri, GameLauncher>>()
         {
             { "com.epicgames.launcher", (uri) => new EpicGameLauncher(uri) },
             { "steam", (uri) => new SteamGameLauncher(uri) },
@@ -141,8 +139,7 @@ namespace EmulatorLauncher
                 {
                     var uri = new Uri(IniFile.FromFile(rom).GetValue("InternetShortcut", "URL"));
 
-                    Func<Uri, GameLauncher> gameLauncherInstanceBuilder;
-                    if (launchers.TryGetValue(uri.Scheme, out gameLauncherInstanceBuilder))
+                    if (launchers.TryGetValue(uri.Scheme, out Func<Uri, GameLauncher> gameLauncherInstanceBuilder))
                         _gameLauncher = gameLauncherInstanceBuilder(uri);
                 }
                 catch (Exception ex)
@@ -341,10 +338,9 @@ namespace EmulatorLauncher
             if (_systemName != "ikemen")
                 return;
 
-            var json = DynamicJson.Load(Path.Combine(path, "save", "config.json"));     
-                        
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            var json = DynamicJson.Load(Path.Combine(path, "save", "config.json"));
+
+            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
 
             if (resolution == null)
                 resolution = ScreenResolution.CurrentResolution;

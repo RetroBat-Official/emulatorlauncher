@@ -41,8 +41,10 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            List<string> commandArray = new List<string>();
-            commandArray.Add("\"" + batFile + "\"");
+            List<string> commandArray = new List<string>
+            {
+                "\"" + batFile + "\""
+            };
 
             if (File.Exists(gameConfFile))
             {

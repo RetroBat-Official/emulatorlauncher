@@ -102,7 +102,6 @@ namespace EmulatorLauncher
         }
 
         string _bam;
-        string _rom;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -124,7 +123,6 @@ namespace EmulatorLauncher
                     throw new ApplicationException("Unable to find any table in the provided folder");
             }
             
-            _rom = rom;
             _splash = ShowSplash(rom);
 
             if ("bam".Equals(emulator, StringComparison.InvariantCultureIgnoreCase) || "bam".Equals(core, StringComparison.InvariantCultureIgnoreCase))
@@ -204,7 +202,7 @@ namespace EmulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            Process process = null;
+            Process process;
 
             if (_bam != null && File.Exists(_bam))
             {
@@ -431,8 +429,10 @@ namespace EmulatorLauncher
                 var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
                 if (controller != null)
                 {
-                    LoadingForm frm = new LoadingForm();
-                    frm.WarningText = Properties.Resources.FPinballDeveloperMode;
+                    LoadingForm frm = new LoadingForm
+                    {
+                        WarningText = Properties.Resources.FPinballDeveloperMode
+                    };
                     frm.Show();
                 }
             }

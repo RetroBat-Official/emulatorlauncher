@@ -18,8 +18,6 @@ namespace EmulatorLauncher
         }
 
         #region XboxIsoVfs management
-        private string _dokanDriveLetter;
-
         private string MountIso(string rom)
         {
             if (Path.GetExtension(rom).ToLowerInvariant() != ".iso")
@@ -44,9 +42,7 @@ namespace EmulatorLauncher
                 throw new ApplicationException("Dokan 2 is required and is not installed");
             }
 
-            var drive = FileTools.FindFreeDriveLetter();
-            if (drive == null)
-                throw new ApplicationException("Unable to find a free drive letter to mount");
+            var drive = FileTools.FindFreeDriveLetter() ?? throw new ApplicationException("Unable to find a free drive letter to mount");
 
             var xboxIsoVfs = Process.Start(new ProcessStartInfo()
             {
@@ -68,8 +64,6 @@ namespace EmulatorLauncher
                 if (Directory.Exists(drive))
                 {
                     Job.Current.AddProcess(xboxIsoVfs);
-
-                    _dokanDriveLetter = drive;
                     return drive;
                 }
 
@@ -146,9 +140,7 @@ namespace EmulatorLauncher
             //Configuration of .ini file
             using (var ini = IniFile.FromFile(Path.Combine(path, "settings.ini"), IniOptions.KeepEmptyValues | IniOptions.AllowDuplicateValues | IniOptions.UseSpaces))
             {
-                var res = resolution;
-                if (res == null)
-                    res = ScreenResolution.CurrentResolution;
+                var res = resolution ?? ScreenResolution.CurrentResolution;
 
                 //Fulscreen Management
                 if (_isUsingCxBxLoader && !_chihiro)
@@ -218,7 +210,7 @@ namespace EmulatorLauncher
         /// <summary>
         /// Get XBOX language to write to eeprom, value from features or default language of ES.
         /// </summary>
-        private int getXboxLangFromEnvironment()
+        private int GetXboxLangFromEnvironment()
         {
             var availableLanguages = new Dictionary<string, int>()
             {
@@ -237,8 +229,7 @@ namespace EmulatorLauncher
             var lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                int ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out int ret))
                     return ret;
             }
 
@@ -254,12 +245,12 @@ namespace EmulatorLauncher
             if (!File.Exists(path))
                 return;
 
-            int langId = 1;
+            int langId;
 
             if (SystemConfig.isOptSet("xbox_language") && !string.IsNullOrEmpty(SystemConfig["xbox_language"]))
                 langId = SystemConfig["xbox_language"].ToInteger();
             else
-                langId = getXboxLangFromEnvironment();
+                langId = GetXboxLangFromEnvironment();
 
             // Read eeprom file
             byte[] bytes = File.ReadAllBytes(path);
@@ -358,11 +349,9 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (process != null)
-                process.WaitForExit();
+            process?.WaitForExit();
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             if (process != null)
             {

@@ -27,13 +27,14 @@ namespace EmulatorLauncher
 
             SetupConfiguration(path, grp, resolution);
 
-            var commandArray = new List<string>();
-
-            commandArray.Add("-gamegrp");
-            commandArray.Add("\"" + grp + "\"");
-            commandArray.Add("-j");
-            commandArray.Add("\"" + Path.GetDirectoryName(rom) + "\"");
-            commandArray.Add("-nosetup");
+            var commandArray = new List<string>
+            {
+                "-gamegrp",
+                "\"" + grp + "\"",
+                "-j",
+                "\"" + Path.GetDirectoryName(rom) + "\"",
+                "-nosetup"
+            };
 
             string args = string.Join(" ", commandArray);
 

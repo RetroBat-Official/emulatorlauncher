@@ -107,7 +107,7 @@ namespace EmulatorLauncher
                 SetupiniConfiguration(path, eepromPath, hddPath, flashPath, bootRom, rom);
 
                 // Save to new TOML format
-                SetupTOMLConfiguration(path, eepromPath, hddPath, flashPath, bootRom, rom);
+                SetupTOMLConfiguration(path, eepromPath, hddPath, flashPath, bootRom);
                 
             }
             catch { }
@@ -117,8 +117,7 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            Rectangle emulationStationBounds;
-            if (IsEmulationStationWindowed(out emulationStationBounds, true) && !SystemConfig.getOptBoolean("forcefullscreen"))
+            if (IsEmulationStationWindowed(out Rectangle emulationStationBounds, true) && !SystemConfig.getOptBoolean("forcefullscreen"))
             {
                 _windowRect = emulationStationBounds;
                 _bezelFileInfo = null;
@@ -158,7 +157,7 @@ namespace EmulatorLauncher
         /// <summary>
         /// Get XBOX language to write to eeprom, value from features or default language of ES.
         /// </summary>
-        private int getXboxLangFromEnvironment()
+        private int GetXboxLangFromEnvironment()
         {
             var availableLanguages = new Dictionary<string, int>()
             {
@@ -177,8 +176,7 @@ namespace EmulatorLauncher
             var lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                int ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out int ret))
                     return ret;
             }
 
@@ -193,8 +191,7 @@ namespace EmulatorLauncher
         /// <param name="hddPath"></param>
         /// <param name="flashPath"></param>
         /// <param name="bootRom"></param>
-        /// <param name="rom"></param>
-        private void SetupTOMLConfiguration(string path, string eepromPath, string hddPath, string flashPath, string bootRom, string rom)
+        private void SetupTOMLConfiguration(string path, string eepromPath, string hddPath, string flashPath, string bootRom)
         {
             using (IniFile ini = new IniFile(Path.Combine(path, "xemu.toml"), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
             {
@@ -334,12 +331,12 @@ namespace EmulatorLauncher
             if (!File.Exists(path))
                 return;
 
-            int langId = 1;
+            int langId;
 
             if (SystemConfig.isOptSet("xbox_language") && !string.IsNullOrEmpty(SystemConfig["xbox_language"]))
                 langId = SystemConfig["xbox_language"].ToInteger();
             else
-                langId = getXboxLangFromEnvironment();
+                langId = GetXboxLangFromEnvironment();
 
             // Read eeprom file
             byte[] bytes = File.ReadAllBytes(path);
@@ -436,8 +433,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 

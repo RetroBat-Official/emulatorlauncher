@@ -8,15 +8,15 @@ namespace EmulatorLauncher
 {
     partial class OpenMSXGenerator : Generator
     {
-        private void UpdateSdlControllersWithHints()
+        /*private void UpdateSdlControllersWithHints()
         {
             var hints = new List<string>();
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
-        }
+        }*/
 
-        private List<string> configureControllers(string path)
+        private List<string> ConfigureControllers(string path)
         {
             var retList = new List<string>();
             bool useMouse = SystemConfig.isOptSet("msx_mouse") && SystemConfig.getOptBoolean("msx_mouse");
@@ -91,7 +91,6 @@ namespace EmulatorLauncher
         private void ConfigureJoystick(StreamWriter sw, Controller c1, Controller c2 = null)
         {
             bool useMouse = SystemConfig.isOptSet("msx_mouse") && SystemConfig.getOptBoolean("msx_mouse");
-            var retList = new List<string>();
 
             if (c1 == null || c1.Config == null)
                 return;

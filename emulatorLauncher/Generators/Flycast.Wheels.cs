@@ -4,8 +4,6 @@ using System.IO;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
-using EmulatorLauncher.Common.EmulationStation;
-using System.Windows;
 
 namespace EmulatorLauncher
 {

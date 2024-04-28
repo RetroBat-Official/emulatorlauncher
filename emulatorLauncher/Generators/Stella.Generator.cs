@@ -24,8 +24,10 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            var commandArray = new List<string>();
-            commandArray.Add("-baseinappdir");
+            var commandArray = new List<string>
+            {
+                "-baseinappdir"
+            };
             ConfigureCommandLineArguments(commandArray);
             commandArray.Add("\"" + rom + "\"");
             string args = string.Join(" ", commandArray);
@@ -117,7 +119,7 @@ namespace EmulatorLauncher
                         ForceStellaSetting(db, "autofirerate", SystemConfig["stella_autofire"]);
                     }
 
-                    CreateControllerConfiguration(db, path);
+                    CreateControllerConfiguration(db);
 
                     db.Close();
                 }
@@ -151,8 +153,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 

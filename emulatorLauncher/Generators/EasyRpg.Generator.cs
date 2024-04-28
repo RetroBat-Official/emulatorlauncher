@@ -33,10 +33,11 @@ namespace EmulatorLauncher
                 rom = rom + "/" + Path.GetFileNameWithoutExtension(rom);
 
             // Command lines
-            var commandArray = new List<string>();
-
-            commandArray.Add("--project-path");
-            commandArray.Add("\"" + rom + "\"");
+            var commandArray = new List<string>
+            {
+                "--project-path",
+                "\"" + rom + "\""
+            };
 
             if (fullscreen)
                 commandArray.Add("--fullscreen");

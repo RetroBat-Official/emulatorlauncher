@@ -31,11 +31,10 @@ namespace EmulatorLauncher
             var yml = YmlFile.Load(controllerSettings);
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
-            int nsamepad = 1;
 
             //Create a single Player block in the file for each player
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-                ConfigureInput(yml, controller, double_pads, nsamepad);
+                ConfigureInput(yml, controller, double_pads);
 
             // Save to yml file
             yml.Save();
@@ -47,7 +46,7 @@ namespace EmulatorLauncher
         /// <param name="controllerSettings"></param>
         /// <param name="controller"></param>
         /// <param name="yml"></param>
-        private void ConfigureInput(YmlContainer yml, Controller controller, Dictionary<string, int> double_pads, int nsamepad)
+        private void ConfigureInput(YmlContainer yml, Controller controller, Dictionary<string, int> double_pads)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -55,7 +54,7 @@ namespace EmulatorLauncher
             if (controller.IsKeyboard)
                 ConfigureKeyboard(yml, controller.Config, controller.PlayerIndex);
             else
-                ConfigureJoystick(yml, controller, controller.PlayerIndex, double_pads, nsamepad);
+                ConfigureJoystick(yml, controller, controller.PlayerIndex, double_pads);
         }
 
         /// <summary>
@@ -178,7 +177,7 @@ namespace EmulatorLauncher
         /// <param name="ctrl"></param>
         /// <param name="playerIndex"></param>
         /// <param name="yml"></param>
-        private void ConfigureJoystick(YmlContainer yml, Controller ctrl, int playerIndex, Dictionary<string, int> double_pads, int nsamepad)
+        private void ConfigureJoystick(YmlContainer yml, Controller ctrl, int playerIndex, Dictionary<string, int> double_pads)
         {
             if (ctrl == null)
                 return;
@@ -189,7 +188,6 @@ namespace EmulatorLauncher
 
             //set type of controller
             string devicename = joy.DeviceName;
-            string guid = ctrl.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
             var prod = ctrl.ProductID;
 
             //define type of controller
@@ -220,7 +218,7 @@ namespace EmulatorLauncher
                 player["Handler"] = "SDL";
 
             //Set device & index (incremental for Dualshocks and XInput, actual device index for SDL)
-            
+            int nsamepad;
             if (double_pads.ContainsKey(tech + "/" + devicename))
                 nsamepad = double_pads[tech + "/" + devicename];
             else
@@ -301,31 +299,31 @@ namespace EmulatorLauncher
 
             else if (tech == "SDL")
             {
-                config["Left Stick Left"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1left, tech);    //LS X-
-                config["Left Stick Down"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1down, tech);    //LS Y-
-                config["Left Stick Right"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1right, tech);  //LS X+
-                config["Left Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1up, tech);        //LS Y+
-                config["Right Stick Left"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2left, tech);   //RS X-
-                config["Right Stick Down"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2down, tech);   //LS Y-
-                config["Right Stick Right"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2right, tech); //LS X+
-                config["Right Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2up, tech);       //LS Y+
-                config["Start"] = GetInputKeyNameSDL(ctrl, InputKey.start, tech);                      //Start
-                config["Select"] = GetInputKeyNameSDL(ctrl, InputKey.select, tech);                    //Back
-                config["PS Button"] = "Guide";                                                         //Guide
-                config["Square"] = GetInputKeyNameSDL(ctrl, InputKey.x, tech);                         //X (or Y on nintendo)
-                config["Cross"] = GetInputKeyNameSDL(ctrl, InputKey.a, tech);                          //A (or B on nintendo)
-                config["Circle"] = GetInputKeyNameSDL(ctrl, InputKey.b, tech);                         //B (or A on nintendo)
-                config["Triangle"] = GetInputKeyNameSDL(ctrl, InputKey.y, tech);                       //Y (or X on nintendo)
-                config["Left"] = GetInputKeyNameSDL(ctrl, InputKey.left, tech);                        //Left
-                config["Down"] = GetInputKeyNameSDL(ctrl, InputKey.down, tech);                        //Down
-                config["Right"] = GetInputKeyNameSDL(ctrl, InputKey.right, tech);                      //Right
-                config["Up"] = GetInputKeyNameSDL(ctrl, InputKey.up, tech);                            //Up
-                config["R1"] = GetInputKeyNameSDL(ctrl, InputKey.r1, tech);                            //RB
-                config["R2"] = GetInputKeyNameSDL(ctrl, InputKey.r2, tech);                            //RT
-                config["R3"] = GetInputKeyNameSDL(ctrl, InputKey.r3, tech);                            //RS
-                config["L1"] = GetInputKeyNameSDL(ctrl, InputKey.l1, tech);                            //LB
-                config["L2"] = GetInputKeyNameSDL(ctrl, InputKey.l2, tech);                            //LT
-                config["L3"] = GetInputKeyNameSDL(ctrl, InputKey.l3, tech);                            //LS
+                config["Left Stick Left"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1left);    //LS X-
+                config["Left Stick Down"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1down);    //LS Y-
+                config["Left Stick Right"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1right);  //LS X+
+                config["Left Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1up);        //LS Y+
+                config["Right Stick Left"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2left);   //RS X-
+                config["Right Stick Down"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2down);   //LS Y-
+                config["Right Stick Right"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2right); //LS X+
+                config["Right Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2up);       //LS Y+
+                config["Start"] = GetInputKeyNameSDL(ctrl, InputKey.start);                      //Start
+                config["Select"] = GetInputKeyNameSDL(ctrl, InputKey.select);                    //Back
+                config["PS Button"] = "Guide";                                                   //Guide
+                config["Square"] = GetInputKeyNameSDL(ctrl, InputKey.x);                         //X (or Y on nintendo)
+                config["Cross"] = GetInputKeyNameSDL(ctrl, InputKey.a);                          //A (or B on nintendo)
+                config["Circle"] = GetInputKeyNameSDL(ctrl, InputKey.b);                         //B (or A on nintendo)
+                config["Triangle"] = GetInputKeyNameSDL(ctrl, InputKey.y);                       //Y (or X on nintendo)
+                config["Left"] = GetInputKeyNameSDL(ctrl, InputKey.left);                        //Left
+                config["Down"] = GetInputKeyNameSDL(ctrl, InputKey.down);                        //Down
+                config["Right"] = GetInputKeyNameSDL(ctrl, InputKey.right);                      //Right
+                config["Up"] = GetInputKeyNameSDL(ctrl, InputKey.up);                            //Up
+                config["R1"] = GetInputKeyNameSDL(ctrl, InputKey.r1);                            //RB
+                config["R2"] = GetInputKeyNameSDL(ctrl, InputKey.r2);                            //RT
+                config["R3"] = GetInputKeyNameSDL(ctrl, InputKey.r3);                            //RS
+                config["L1"] = GetInputKeyNameSDL(ctrl, InputKey.l1);                            //LB
+                config["L2"] = GetInputKeyNameSDL(ctrl, InputKey.l2);                            //LT
+                config["L3"] = GetInputKeyNameSDL(ctrl, InputKey.l3);                            //LS
             }
             
             //motion controls
@@ -402,10 +400,9 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyNameDS(Controller c, InputKey key, string tech)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -463,10 +460,9 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyNameX(Controller c, InputKey key)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -527,15 +523,14 @@ namespace EmulatorLauncher
                 return "\"\"";
         }
 
-        private static string GetInputKeyNameSDL(Controller c, InputKey key, string tech)
+        private static string GetInputKeyNameSDL(Controller c, InputKey key)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
             // If controller is nintendo, A/B and X/Y are reversed
             bool revertbuttons = (c.VendorID == USB_VENDOR.NINTENDO) || (Program.SystemConfig.isOptSet("rpcs3_gamepadbuttons") && Program.SystemConfig.getOptBoolean("rpcs3_gamepadbuttons"));
 
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
 

@@ -19,7 +19,7 @@ namespace EmulatorLauncher
 {
     partial class TeknoParrotGenerator : Generator
     {        
-        static Dictionary<string, string> executables = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
         {                        
             { "Batman",                          @"Batman\ZeusSP\sdaemon.exe" },
             { "BBCF",                            @"Blazblue - Central Fiction\game.exe" },
@@ -262,8 +262,10 @@ namespace EmulatorLauncher
             _exename = Path.GetFileNameWithoutExtension(userProfile.GamePath);
             _gameProfile = userProfile;
 
-            List<string> commandArray = new List<string>();
-            commandArray.Add("--profile=" + profileName);
+            List<string> commandArray = new List<string>
+            {
+                "--profile=" + profileName
+            };
             if (!SystemConfig.isOptSet("tp_minimize") || SystemConfig.getOptBoolean("tp_minimize"))
                 commandArray.Add("--startMinimized");
             string args = string.Join(" ", commandArray);
@@ -281,7 +283,7 @@ namespace EmulatorLauncher
         {
             string parrotData = Path.Combine(path, "ParrotData.xml");
 
-            ParrotData data = null;
+            ParrotData data;
 
             try { data = XmlExtensions.FromXml<ParrotData>(parrotData); }
             catch { data = new ParrotData(); }
@@ -313,7 +315,7 @@ namespace EmulatorLauncher
             File.WriteAllText(parrotData, data.ToXml());
         }
 
-        private static void ExtractUserProfiles(string path)
+        /*private static void ExtractUserProfiles(string path)
         {
 
             StringBuilder sb = new StringBuilder();
@@ -338,6 +340,7 @@ namespace EmulatorLauncher
 
             var str = sb.ToString();
         }
+        */
 
         // <string name="teknoparrot.disableautocontrollers" value="1" />
 
@@ -484,7 +487,9 @@ namespace EmulatorLauncher
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
             ManagementObjectCollection moc = searcher.Get();
             foreach (ManagementObject mo in moc)
+            {
                 KillProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
+            }
 
             try
             {
@@ -497,12 +502,11 @@ namespace EmulatorLauncher
             }
         }
 
-        private void killIDZ()
+        private void KillIDZ()
         {
             if (_gameProfile == null || _gameProfile.EmulationProfile != "SegaToolsIDZ")
                 return;
 
-            var currentId = Process.GetCurrentProcess().Id;
             Regex regex = new Regex(@"amdaemon.*");
 
             foreach (Process p in Process.GetProcesses("."))
@@ -559,7 +563,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private int GetParentProcess(int Id)
+        /*private int GetParentProcess(int Id)
         {
             int parentPid = 0;
             using (ManagementObject mo = new ManagementObject("win32_process.handle='" + Id.ToString() + "'"))
@@ -569,6 +573,7 @@ namespace EmulatorLauncher
             }
             return parentPid;
         }
+        */
 
         private static string FindExecutable(string path, string profileName)
         {
@@ -633,8 +638,6 @@ namespace EmulatorLauncher
                 return 0;
             }
 
-            int ret = base.RunAndWait(path);
-
             KillProcessTree("TeknoParrotUI");
             KillProcessTree(_exename);
 
@@ -648,7 +651,7 @@ namespace EmulatorLauncher
 
             KillProcessTree("BudgieLoader");
             KillProcessTree("OpenParrotKonamiLoader");
-            killIDZ();
+            KillIDZ();
 
             return 0;
         }

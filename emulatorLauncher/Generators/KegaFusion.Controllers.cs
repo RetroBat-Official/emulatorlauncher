@@ -5,10 +5,7 @@ using EmulatorLauncher.Common.Joysticks;
 using System.Collections.Generic;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
-using System.Windows;
-using EmulatorLauncher.Common.IMapi2;
 using System;
-using System.Reflection;
 
 namespace EmulatorLauncher
 {

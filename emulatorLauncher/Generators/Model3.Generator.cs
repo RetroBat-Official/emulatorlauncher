@@ -22,7 +22,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool isWideScreen = false;
+            bool isWideScreen;
 
             List<string> commandArray = new List<string>();
 
@@ -137,8 +137,7 @@ namespace EmulatorLauncher
             catch { }
             finally
             {
-                if (bezel != null)
-                    bezel.Dispose();
+                bezel?.Dispose();
             }
             return -1;
         }

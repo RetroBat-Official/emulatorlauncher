@@ -28,7 +28,7 @@ namespace EmulatorLauncher
             if (lines.Length > 0)
                 mod = lines[0];
 
-            SetupForceEngine(path, rom);
+            SetupForceEngine(rom);
 
             var commandArray = new List<string>();
 
@@ -51,7 +51,7 @@ namespace EmulatorLauncher
                 Arguments = args,
             };
         }
-        private void SetupForceEngine(string path, string rom)
+        private void SetupForceEngine(string rom)
         {
             string settings = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TheForceEngine", "settings.ini");
 

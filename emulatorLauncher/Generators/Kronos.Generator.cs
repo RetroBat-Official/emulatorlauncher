@@ -99,8 +99,7 @@ namespace EmulatorLauncher
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                string ret;
-                if (availableLanguages.TryGetValue(lang, out ret))
+                if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
 
@@ -175,7 +174,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "1.0", "Sound\\SoundCore", "kronos_audiocore", "2");
                     BindIniFeature(ini, "1.0", "Cartridge\\Type", "kronos_cartridge", "7");
 
-                    CreateControllerConfiguration(path, ini);
+                    CreateControllerConfiguration(ini);
                     ConfigureGun(path, ini);
                 }
             }

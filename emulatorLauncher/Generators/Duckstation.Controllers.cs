@@ -18,8 +18,10 @@ namespace EmulatorLauncher
         /// <param name="settings.ini"></param>
         private void UpdateSdlControllersWithHints(IniFile ini)
         {
-            var hints = new List<string>();
-            hints.Add("SDL_JOYSTICK_HIDAPI_WII = 1");
+            var hints = new List<string>
+            {
+                "SDL_JOYSTICK_HIDAPI_WII = 1"
+            };
 
             if (ini.GetValue("InputSources", "SDLControllerEnhancedMode") == "true")
             {
@@ -316,13 +318,11 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
             // If controller is nintendo, A/B and X/Y are reversed
             //bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);
-
-            bool revertAxis = false;
-            key = key.GetRevertedAxis(out revertAxis);
+            key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
             if (input != null)
@@ -545,7 +545,7 @@ namespace EmulatorLauncher
             return "None";
         }
 
-        static Dictionary<int, int> multitapPadNb = new Dictionary<int, int>()
+        static readonly Dictionary<int, int> multitapPadNb = new Dictionary<int, int>()
         {
             { 1, 1 },
             { 2, 3 },

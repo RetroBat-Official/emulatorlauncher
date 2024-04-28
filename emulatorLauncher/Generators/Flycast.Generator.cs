@@ -40,9 +40,10 @@ namespace EmulatorLauncher
 
             SetupConfiguration(path, system, resolution);
 
-            List<string> commandArray = new List<string>();
-
-            commandArray.Add("\"" + rom + "\"");
+            List<string> commandArray = new List<string>
+            {
+                "\"" + rom + "\""
+            };
 
             string args = string.Join(" ", commandArray);
 
@@ -215,8 +216,7 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
-            if (bezel != null)
-                bezel.Dispose();
+            bezel?.Dispose();
 
             return ret;
         }

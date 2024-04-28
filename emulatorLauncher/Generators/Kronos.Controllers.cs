@@ -14,15 +14,15 @@ namespace EmulatorLauncher
         /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
         /// </summary>
         /// <param name="pcsx2ini"></param>
-        private void UpdateSdlControllersWithHints(IniFile ini)
+        /*private void UpdateSdlControllersWithHints(IniFile ini)
         {
             var hints = new List<string>();
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
-        }
+        }*/
 
-        private void CreateControllerConfiguration(string path, IniFile ini)
+        private void CreateControllerConfiguration(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -85,10 +85,8 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("kronos_padlayout") && !string.IsNullOrEmpty(SystemConfig["kronos_padlayout"]))
                 padlayout = SystemConfig["kronos_padlayout"];
 
-            int incrementValue = playerindex - 1;
-
             string port = GetControllerPort(playerindex);
-            string controllerId = GetControllerId(playerindex, port);
+            string controllerId = GetControllerId(playerindex);
             string cType = "2";
 
             ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", cType);
@@ -119,7 +117,7 @@ namespace EmulatorLauncher
             }
         }
 
-        static Dictionary<string, InputKey> lr_yz_profile = new Dictionary<string, InputKey>
+        static readonly Dictionary<string, InputKey> lr_yz_profile = new Dictionary<string, InputKey>
         {
             { "7", InputKey.y },
             { "8", InputKey.a },
@@ -129,7 +127,7 @@ namespace EmulatorLauncher
             { "12", InputKey.pagedown },
         };
 
-        static Dictionary<string, InputKey> lr_zc_profile = new Dictionary<string, InputKey>
+        static readonly Dictionary<string, InputKey> lr_zc_profile = new Dictionary<string, InputKey>
         {
             { "7", InputKey.a },
             { "8", InputKey.b },
@@ -139,7 +137,7 @@ namespace EmulatorLauncher
             { "12", InputKey.pageup },
         };
 
-        static Dictionary<string, InputKey> lr_xz_profile = new Dictionary<string, InputKey>
+        static readonly Dictionary<string, InputKey> lr_xz_profile = new Dictionary<string, InputKey>
         {
             { "7", InputKey.y },
             { "8", InputKey.a },
@@ -155,7 +153,7 @@ namespace EmulatorLauncher
                 return;
 
             string port = GetControllerPort(playerindex);
-            string controllerId = GetControllerId(playerindex, port);
+            string controllerId = GetControllerId(playerindex);
 
             ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", "2");
 
@@ -180,7 +178,7 @@ namespace EmulatorLauncher
             }
         }
 
-        static Dictionary<string, string> keyboardMapping = new Dictionary<string, string>
+        static readonly Dictionary<string, string> keyboardMapping = new Dictionary<string, string>
         {
             { "0", "16777235" },            // up
             { "1", "16777236" },            // Right
@@ -197,7 +195,7 @@ namespace EmulatorLauncher
             { "12", "68" },                 // D
         };
 
-        static Dictionary<string, string> AzertyLayout = new Dictionary<string, string>
+        static readonly Dictionary<string, string> AzertyLayout = new Dictionary<string, string>
         {
             { "0", "16777235" },            // up
             { "1", "16777236" },            // Right
@@ -234,7 +232,7 @@ namespace EmulatorLauncher
             return "1";
         }
 
-        private string GetControllerId(int playerindex, string port)
+        private string GetControllerId(int playerindex)
         {
             if (playerindex < 13)
                 return multitap_id[playerindex];
@@ -242,7 +240,7 @@ namespace EmulatorLauncher
             return "1";
         }
 
-        static Dictionary<int, string> multitap_port1 = new Dictionary<int, string>
+        static readonly Dictionary<int, string> multitap_port1 = new Dictionary<int, string>
         {
             { 1, "1" },
             { 2, "2" },
@@ -253,7 +251,7 @@ namespace EmulatorLauncher
             { 7, "1" },
         };
 
-        static Dictionary<int, string> multitap_port2 = new Dictionary<int, string>
+        static readonly Dictionary<int, string> multitap_port2 = new Dictionary<int, string>
         {
             { 1, "1" },
             { 2, "2" },
@@ -264,7 +262,7 @@ namespace EmulatorLauncher
             { 7, "2" },
         };
 
-        static Dictionary<int, string> multitap_ports = new Dictionary<int, string>
+        static readonly Dictionary<int, string> multitap_ports = new Dictionary<int, string>
         {
             { 1, "1" },
             { 2, "2" },
@@ -280,7 +278,7 @@ namespace EmulatorLauncher
             { 12, "2" },
         };
 
-        static Dictionary<int, string> multitap_id = new Dictionary<int, string>
+        static readonly Dictionary<int, string> multitap_id = new Dictionary<int, string>
         {
             { 1, "1" },
             { 2, "1" },
@@ -298,7 +296,7 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key, int index)
         {
-            Int64 pid = -1;
+            Int64 pid;
             string ret = "";
 
             var input = c.Config[key];
