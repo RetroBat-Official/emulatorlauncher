@@ -2,6 +2,7 @@
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -10,9 +11,6 @@ namespace EmulatorLauncher
         private void SetupControllers(DynamicJson pref, DynamicJson systemSection, string mesenSystem)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
-                return;
-
-            if (this.Controllers.Count == 1 && this.Controllers[0].IsKeyboard)
                 return;
 
             // clear existing mapping sections of json file
@@ -61,7 +59,7 @@ namespace EmulatorLauncher
                 return;
 
             if (controller.IsKeyboard)
-                return;
+                ConfigureKeyboard(pref, systemSection, controller.Config, mesenSystem);
             else
                 ConfigureJoystick(pref, systemSection, controller, mesenSystem);
         }
@@ -99,6 +97,11 @@ namespace EmulatorLauncher
 
             if (mesenSystem == "Nes" || mesenSystem == "Gameboy")
             {
+                if (portSection == "Port1A")
+                {
+                    port = systemSection.GetOrCreateContainer("Port1");
+                    mapping = port.GetOrCreateContainer("Mapping1");
+                }
                 if (revertButtons)
                 {
                     mapping["A"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a])).ToString();
@@ -131,6 +134,11 @@ namespace EmulatorLauncher
 
             else if (mesenSystem == "Snes")
             {
+                if (portSection == "Port1A")
+                {
+                    port = systemSection.GetOrCreateContainer("Port1");
+                    mapping = port.GetOrCreateContainer("Mapping1");
+                }
                 if (controllerType == "SnesMouse")
                 {
                     List<int> mouseID = new List<int>
@@ -177,6 +185,110 @@ namespace EmulatorLauncher
 
             if (playerIndex == 1)
                 WriteHotkeys(pref, index, isXInput);
+        }
+
+        private void ConfigureKeyboard(DynamicJson pref, DynamicJson systemSection, InputConfig keyboard, string mesenSystem)
+        {
+            if (keyboard == null)
+                return;
+
+            // Define port to use
+            string portSection = DefineKBPortToUse(mesenSystem);
+
+            if (portSection == null)
+                return;
+
+            var port = systemSection.GetOrCreateContainer(portSection);
+            var mapping = port.GetOrCreateContainer("Mapping2");
+
+            string controllerType = "None";
+            if (SystemConfig.isOptSet("mesen_controller1") && !string.IsNullOrEmpty(SystemConfig["mesen_controller1"]))
+                controllerType = SystemConfig["mesen_controller1"];
+            else if (systemDefaultController.ContainsKey(mesenSystem))
+                controllerType = systemDefaultController[mesenSystem];
+
+            port["Type"] = controllerType;
+
+            Action<DynamicJson, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
+            {
+                var a = keyboard[k];
+                if (a != null)
+                {
+                    v[w] = SdlToKeyCode(a.Id).ToString();
+                }
+                else
+                    v[w] = "Unbound";
+            };
+
+            if (mesenSystem == "Nes" || mesenSystem == "Gameboy")
+            {
+                if (portSection == "Port1A")
+                {
+                    port = systemSection.GetOrCreateContainer("Port1");
+                    mapping = port.GetOrCreateContainer("Mapping2");
+                }
+                WriteKeyboardMapping(mapping, "A", InputKey.b);
+                WriteKeyboardMapping(mapping, "B", InputKey.a);
+                WriteKeyboardMapping(mapping, "Select", InputKey.select);
+                WriteKeyboardMapping(mapping, "Start", InputKey.start);
+                WriteKeyboardMapping(mapping, "Up", InputKey.up);
+                WriteKeyboardMapping(mapping, "Down", InputKey.down);
+                WriteKeyboardMapping(mapping, "Left", InputKey.left);
+                WriteKeyboardMapping(mapping, "Right", InputKey.right);
+                WriteKeyboardMapping(mapping, "TurboA", InputKey.x);
+                WriteKeyboardMapping(mapping, "TurboB", InputKey.y);
+            }
+
+            else if (mesenSystem == "Snes")
+            {
+                if (portSection == "Port1A")
+                {
+                    port = systemSection.GetOrCreateContainer("Port1");
+                    mapping = port.GetOrCreateContainer("Mapping2");
+                }
+                if (controllerType == "SnesMouse")
+                {
+                    List<int> mouseID = new List<int>
+                    {
+                        512,
+                        513
+                    };
+                    mapping.SetObject("MouseButtons", mouseID);
+                }
+                WriteKeyboardMapping(mapping, "A", InputKey.b);
+                WriteKeyboardMapping(mapping, "B", InputKey.a);
+                WriteKeyboardMapping(mapping, "X", InputKey.x);
+                WriteKeyboardMapping(mapping, "Y", InputKey.y);
+                WriteKeyboardMapping(mapping, "L", InputKey.pageup);
+                WriteKeyboardMapping(mapping, "R", InputKey.pagedown);
+                WriteKeyboardMapping(mapping, "Up", InputKey.up);
+                WriteKeyboardMapping(mapping, "Down", InputKey.down);
+                WriteKeyboardMapping(mapping, "Left", InputKey.left);
+                WriteKeyboardMapping(mapping, "Right", InputKey.right);
+                WriteKeyboardMapping(mapping, "Select", InputKey.select);
+                WriteKeyboardMapping(mapping, "Start", InputKey.start);
+            }
+
+            else if (mesenSystem == "PcEngine")
+            {
+                if (portSection == "Port1A")
+                {
+                    port = systemSection.GetOrCreateContainer("Port1");
+                    mapping = port.GetOrCreateContainer("Mapping2");
+                }
+                WriteKeyboardMapping(mapping, "A", InputKey.b);
+                WriteKeyboardMapping(mapping, "B", InputKey.a);
+                WriteKeyboardMapping(mapping, "X", InputKey.x);
+                WriteKeyboardMapping(mapping, "Y", InputKey.y);
+                WriteKeyboardMapping(mapping, "L", InputKey.pageup);
+                WriteKeyboardMapping(mapping, "R", InputKey.pagedown);
+                WriteKeyboardMapping(mapping, "Up", InputKey.up);
+                WriteKeyboardMapping(mapping, "Down", InputKey.down);
+                WriteKeyboardMapping(mapping, "Left", InputKey.left);
+                WriteKeyboardMapping(mapping, "Right", InputKey.right);
+                WriteKeyboardMapping(mapping, "Select", InputKey.select);
+                WriteKeyboardMapping(mapping, "Start", InputKey.start);
+            }
         }
 
         private string DefinePortToUse(int playerIndex, string mesenSystem)
@@ -342,6 +454,38 @@ namespace EmulatorLauncher
             {
                 return "Controller";
             }
+
+            return null;
+        }
+
+        private string DefineKBPortToUse(string mesenSystem)
+        {
+            if (mesenSystem == "Nes")
+            {
+                if (SystemConfig.isOptSet("mesen_nes_multitap") && (!string.IsNullOrEmpty(SystemConfig["mesen_nes_multitap"]) || SystemConfig["mesen_nes_multitap"] != "none"))
+                    return "Port1A";
+                else
+                    return "Port1";
+
+            }
+            else if (mesenSystem == "Snes")
+            {
+                if (SystemConfig.isOptSet("mesen_snes_multitap") && SystemConfig["mesen_snes_multitap"] == "dual")
+                    return "Port1A";
+                else if (SystemConfig.isOptSet("mesen_snes_multitap") && SystemConfig["mesen_snes_multitap"] == "single")
+                    return "Port1A";
+                else
+                    return "Port1";
+            }
+            else if (mesenSystem == "PcEngine")
+            {
+                if (SystemConfig.isOptSet("mesen_pce_multitap") && SystemConfig.getOptBoolean("mesen_pce_multitap"))
+                    return "Port1A";
+                else
+                    return "Port1";
+            }
+            else if (mesenSystem == "Gameboy")
+                return "Controller";
 
             return null;
         }
@@ -538,5 +682,108 @@ namespace EmulatorLauncher
             { "Gameboy", "GameboyController" },
             { "PcEngine", "PceController" }
         };
+
+        private static string SdlToKeyCode(long sdlCode)
+        {
+
+            //The following list of keys has been verified, ryujinx will not allow wrong string so do not add a key until the description has been tested in the emulator first
+            switch (sdlCode)
+            {
+                case 0x0D: return "6";      // ENTER
+                case 0x08: return "2";      // Backspace
+                case 0x09: return "3";      // TAB
+                case 0x20: return "18";     // SPACE
+                case 0x2B: return "0";      // Plus
+                case 0x2C: return "142";    // Comma
+                case 0x2D: return "0";      // Minus
+                case 0x2E: return "144";    // Period
+                case 0x2F: return "145";    // Slash
+                case 0x30: return "34";     // Number 0
+                case 0x31: return "35";
+                case 0x32: return "36";
+                case 0x33: return "37";
+                case 0x34: return "38";
+                case 0x35: return "39";
+                case 0x36: return "40";
+                case 0x37: return "41";
+                case 0x38: return "42";
+                case 0x39: return "43";     // Number 9
+                case 0x3B: return "140";    // Semi column
+                case 0x61: return "44";     // A
+                case 0x62: return "45";
+                case 0x63: return "46";
+                case 0x64: return "47";
+                case 0x65: return "48";
+                case 0x66: return "49";
+                case 0x67: return "50";
+                case 0x68: return "51";
+                case 0x69: return "52";
+                case 0x6A: return "53";
+                case 0x6B: return "54";
+                case 0x6C: return "55";
+                case 0x6D: return "56";
+                case 0x6E: return "57";
+                case 0x6F: return "58";
+                case 0x70: return "59";
+                case 0x71: return "60";
+                case 0x72: return "61";
+                case 0x73: return "62";
+                case 0x74: return "63";
+                case 0x75: return "64";
+                case 0x76: return "65";
+                case 0x77: return "66";
+                case 0x78: return "67";
+                case 0x79: return "68";
+                case 0x7A: return "69";             // Z
+                case 0x7F: return "32";             // Delete
+                case 0x4000003A: return "90";       // F1
+                case 0x4000003B: return "91";
+                case 0x4000003C: return "92";
+                case 0x4000003D: return "93";
+                case 0x4000003E: return "94";
+                case 0x4000003F: return "95";
+                case 0x40000040: return "96";
+                case 0x40000041: return "97";
+                case 0x40000042: return "98";
+                case 0x40000043: return "99";
+                case 0x40000044: return "100";
+                case 0x40000045: return "101";      // F12
+                case 0x40000047: return "0";        // Scrolllock
+                case 0x40000048: return "0";        // Pause
+                case 0x40000049: return "31";       // Insert
+                case 0x4000004A: return "22";       // Home
+                case 0x4000004B: return "19";       // PageUp
+                case 0x4000004D: return "21";       // End
+                case 0x4000004E: return "20";       // Page Down
+                case 0x4000004F: return "25";       // Right  
+                case 0x40000050: return "23";       // Left
+                case 0x40000051: return "26";       // Down
+                case 0x40000052: return "24";       // Up
+                case 0x40000053: return "114";      // Numlock  
+                case 0x40000054: return "89";       // KeypadDivide
+                case 0x40000055: return "84";       // KeypadMultiply
+                case 0x40000056: return "87";       // KeypadSubtract
+                case 0x40000057: return "85";       // KeypadAdd
+                case 0x40000058: return "6";        // Enter
+                case 0x40000059: return "75";       // Numpad 1
+                case 0x4000005A: return "76";
+                case 0x4000005B: return "77";
+                case 0x4000005C: return "78";
+                case 0x4000005D: return "79";
+                case 0x4000005E: return "80";
+                case 0x4000005F: return "81";
+                case 0x40000060: return "82";
+                case 0x40000061: return "83";
+                case 0x40000062: return "74";       // Numpad 0
+                case 0x40000063: return "88";       // KeypadDecimal
+                case 0x40000085: return "88";
+                case 0x400000E0: return "118";      // Left control
+                case 0x400000E1: return "116";      // Left shift
+                case 0x400000E2: return "120";      // Left ALT
+                case 0x400000E4: return "119";      // Right control
+                case 0x400000E5: return "117";      // Right shift
+            }
+            return "0";
+        }
     }
 }
