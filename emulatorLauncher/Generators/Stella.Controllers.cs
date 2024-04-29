@@ -49,8 +49,6 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            bool isxinput = c.IsXInputDevice;
-
             // Define controller name (if multiple controllers with same name, set number at the end)
             int nsamepad;
             string name = c.Name;
@@ -69,27 +67,27 @@ namespace EmulatorLauncher
             var kCommonMode = new List<DynamicJson>();
 
             var leftDiff = new DynamicJson();
-            leftDiff["button"] = GetInputKeyName(c, InputKey.pageup, isxinput);
+            leftDiff["button"] = GetInputKeyName(c, InputKey.pageup);
             leftDiff["event"] = "ConsoleLeftDiffToggle";
             kCommonMode.Add(leftDiff);
 
             var rightDiff = new DynamicJson();
-            rightDiff["button"] = GetInputKeyName(c, InputKey.pagedown, isxinput);
+            rightDiff["button"] = GetInputKeyName(c, InputKey.pagedown);
             rightDiff["event"] = "ConsoleRightDiffToggle";
             kCommonMode.Add(rightDiff);
 
             var consoleSelect = new DynamicJson();
-            consoleSelect["button"] = GetInputKeyName(c, InputKey.start, isxinput);
+            consoleSelect["button"] = GetInputKeyName(c, InputKey.start);
             consoleSelect["event"] = "ConsoleSelect";
             kCommonMode.Add(consoleSelect);
 
             var colorToggle = new DynamicJson();
-            colorToggle["button"] = GetInputKeyName(c, InputKey.l3, isxinput);
+            colorToggle["button"] = GetInputKeyName(c, InputKey.l3);
             colorToggle["event"] = "ConsoleColorToggle";
             kCommonMode.Add(colorToggle);
 
             var reset = new DynamicJson();
-            reset["button"] = GetInputKeyName(c, InputKey.r3, isxinput);
+            reset["button"] = GetInputKeyName(c, InputKey.r3);
             reset["event"] = "ConsoleReset";
             kCommonMode.Add(reset);
 
@@ -100,7 +98,7 @@ namespace EmulatorLauncher
             var kJoystickMode = new List<DynamicJson>();
             
             var joyUp = new DynamicJson();
-            if (GetInputKeyName(c, InputKey.up, isxinput) == "up")
+            if (GetInputKeyName(c, InputKey.up) == "up")
             {
                 joyUp["event"] = playerIndex == 1 ? "LeftJoystickUp" : "RightJoystickUp";
                 joyUp["hat"] = "0";
@@ -108,13 +106,13 @@ namespace EmulatorLauncher
             }
             else
             {
-                joyUp["button"] = GetInputKeyName(c, InputKey.up, isxinput);
+                joyUp["button"] = GetInputKeyName(c, InputKey.up);
                 joyUp["event"] = playerIndex == 1 ? "LeftJoystickUp" : "RightJoystickUp";
             }
             kJoystickMode.Add(joyUp);
 
             var joyDown = new DynamicJson();
-            if (GetInputKeyName(c, InputKey.down, isxinput) == "down")
+            if (GetInputKeyName(c, InputKey.down) == "down")
             {
                 joyDown["event"] = playerIndex == 1 ? "LeftJoystickDown" : "RightJoystickDown";
                 joyDown["hat"] = "0";
@@ -122,13 +120,13 @@ namespace EmulatorLauncher
             }
             else
             {
-                joyDown["button"] = GetInputKeyName(c, InputKey.down, isxinput);
+                joyDown["button"] = GetInputKeyName(c, InputKey.down);
                 joyDown["event"] = playerIndex == 1 ? "LeftJoystickDown" : "RightJoystickDown";
             }
             kJoystickMode.Add(joyDown);
 
             var joyLeft = new DynamicJson();
-            if (GetInputKeyName(c, InputKey.left, isxinput) == "left")
+            if (GetInputKeyName(c, InputKey.left) == "left")
             {
                 joyLeft["event"] = playerIndex == 1 ? "LeftJoystickLeft" : "RightJoystickLeft";
                 joyLeft["hat"] = "0";
@@ -136,13 +134,13 @@ namespace EmulatorLauncher
             }
             else
             {
-                joyLeft["button"] = GetInputKeyName(c, InputKey.left, isxinput);
+                joyLeft["button"] = GetInputKeyName(c, InputKey.left);
                 joyLeft["event"] = playerIndex == 1 ? "LeftJoystickLeft" : "RightJoystickLeft";
             }
             kJoystickMode.Add(joyLeft);
 
             var joyRight = new DynamicJson();
-            if (GetInputKeyName(c, InputKey.right, isxinput) == "right")
+            if (GetInputKeyName(c, InputKey.right) == "right")
             {
                 joyRight["event"] = playerIndex == 1 ? "LeftJoystickRight" : "RightJoystickRight";
                 joyRight["hat"] = "0";
@@ -150,23 +148,23 @@ namespace EmulatorLauncher
             }
             else
             {
-                joyRight["button"] = GetInputKeyName(c, InputKey.right, isxinput);
+                joyRight["button"] = GetInputKeyName(c, InputKey.right);
                 joyRight["event"] = playerIndex == 1 ? "LeftJoystickRight" : "RightJoystickRight";
             }
             kJoystickMode.Add(joyRight);
 
             var joyFire = new DynamicJson();
-            joyFire["button"] = GetInputKeyName(c, InputKey.a, isxinput);
+            joyFire["button"] = GetInputKeyName(c, InputKey.a);
             joyFire["event"] = playerIndex == 1 ? "LeftJoystickFire" : "RightJoystickFire";
             kJoystickMode.Add(joyFire);
 
             var joyFire5 = new DynamicJson();
-            joyFire5["button"] = GetInputKeyName(c, InputKey.y, isxinput);
+            joyFire5["button"] = GetInputKeyName(c, InputKey.y);
             joyFire5["event"] = playerIndex == 1 ? "LeftJoystickFire5" : "RightJoystickFire5";
             kJoystickMode.Add(joyFire5);
 
             var joyFire9 = new DynamicJson();
-            joyFire9["button"] = GetInputKeyName(c, InputKey.x, isxinput);
+            joyFire9["button"] = GetInputKeyName(c, InputKey.x);
             joyFire9["event"] = playerIndex == 1 ? "LeftJoystickFire9" : "RightJoystickFire9";
             kJoystickMode.Add(joyFire9);
 
@@ -177,7 +175,7 @@ namespace EmulatorLauncher
             var kMenuMode = new List<DynamicJson>();
 
             var uiUp = new DynamicJson();
-            if (GetInputKeyName(c, InputKey.up, isxinput) == "up")
+            if (GetInputKeyName(c, InputKey.up) == "up")
             {
                 uiUp["event"] = "UIUp";
                 uiUp["hat"] = "0";
@@ -185,13 +183,13 @@ namespace EmulatorLauncher
             }
             else
             {
-                uiUp["button"] = GetInputKeyName(c, InputKey.up, isxinput);
+                uiUp["button"] = GetInputKeyName(c, InputKey.up);
                 uiUp["event"] = "UIUp";
             }
             kMenuMode.Add(uiUp);
 
             var uiDown = new DynamicJson();
-            if (GetInputKeyName(c, InputKey.down, isxinput) == "down")
+            if (GetInputKeyName(c, InputKey.down) == "down")
             {
                 uiDown["event"] = "UIDown";
                 uiDown["hat"] = "0";
@@ -199,13 +197,13 @@ namespace EmulatorLauncher
             }
             else
             {
-                uiDown["button"] = GetInputKeyName(c, InputKey.down, isxinput);
+                uiDown["button"] = GetInputKeyName(c, InputKey.down);
                 uiDown["event"] = "UIDown";
             }
             kMenuMode.Add(uiDown);
 
             var navPrev = new DynamicJson();
-            if (GetInputKeyName(c, InputKey.left, isxinput) == "left")
+            if (GetInputKeyName(c, InputKey.left) == "left")
             {
                 navPrev["event"] = "UINavPrev";
                 navPrev["hat"] = "0";
@@ -213,13 +211,13 @@ namespace EmulatorLauncher
             }
             else
             {
-                navPrev["button"] = GetInputKeyName(c, InputKey.left, isxinput);
+                navPrev["button"] = GetInputKeyName(c, InputKey.left);
                 navPrev["event"] = "UINavPrev";
             }
             kMenuMode.Add(navPrev);
 
             var navNext = new DynamicJson();
-            if (GetInputKeyName(c, InputKey.right, isxinput) == "right")
+            if (GetInputKeyName(c, InputKey.right) == "right")
             {
                 navNext["event"] = "UINavNext";
                 navNext["hat"] = "0";
@@ -227,33 +225,33 @@ namespace EmulatorLauncher
             }
             else
             {
-                navNext["button"] = GetInputKeyName(c, InputKey.right, isxinput);
+                navNext["button"] = GetInputKeyName(c, InputKey.right);
                 navNext["event"] = "UINavNext";
             }
             kMenuMode.Add(navNext);
 
             var menuOK = new DynamicJson();
-            menuOK["button"] = GetInputKeyName(c, InputKey.start, isxinput);
+            menuOK["button"] = GetInputKeyName(c, InputKey.start);
             menuOK["event"] = "UIOK";
             kMenuMode.Add(menuOK);
 
             var menuCancel = new DynamicJson();
-            menuCancel["button"] = GetInputKeyName(c, InputKey.b, isxinput);
+            menuCancel["button"] = GetInputKeyName(c, InputKey.b);
             menuCancel["event"] = "UICancel";
             kMenuMode.Add(menuCancel);
 
             var menuPrevTab = new DynamicJson();
-            menuPrevTab["button"] = GetInputKeyName(c, InputKey.pageup, isxinput);
+            menuPrevTab["button"] = GetInputKeyName(c, InputKey.pageup);
             menuPrevTab["event"] = "UITabPrev";
             kMenuMode.Add(menuPrevTab);
 
             var menuNextTab = new DynamicJson();
-            menuNextTab["button"] = GetInputKeyName(c, InputKey.pagedown, isxinput);
+            menuNextTab["button"] = GetInputKeyName(c, InputKey.pagedown);
             menuNextTab["event"] = "UITabNext";
             kMenuMode.Add(menuNextTab);
 
             var menuSelect = new DynamicJson();
-            menuSelect["button"] = GetInputKeyName(c, InputKey.a, isxinput);
+            menuSelect["button"] = GetInputKeyName(c, InputKey.a);
             menuSelect["event"] = "UISelect";
             kMenuMode.Add(menuSelect);
 
@@ -274,9 +272,9 @@ namespace EmulatorLauncher
             jsonList.Add(jsonc);
         }
 
-        private static string GetInputKeyName(Controller c, InputKey key, bool isxinput)
+        private static string GetInputKeyName(Controller c, InputKey key)
         {
-            Int64 pid = -1;
+            Int64 pid;
 
             // If controller is nintendo, A/B and X/Y are reversed
             //bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);

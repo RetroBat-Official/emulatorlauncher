@@ -484,7 +484,7 @@ namespace EmulatorLauncher
                 case 0x40000052: return "Up";
                 case 0x40000053: return "NumLock";
                 case 0x40000054: return "KeypadDivide";
-                case 0x40000055: return "KeypadMultiply*";
+                case 0x40000055: return "KeypadMultiply";
                 case 0x40000056: return "KeypadSubtract";
                 case 0x40000057: return "KeypadAdd";
                 case 0x40000058: return "Enter";

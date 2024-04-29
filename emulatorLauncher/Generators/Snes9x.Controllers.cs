@@ -61,7 +61,7 @@ namespace EmulatorLauncher
 
             // Initializing controller information
             string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
-            SdlToDirectInput controller = null;
+            SdlToDirectInput controller;
             int index = ctrl.DirectInput != null ? ctrl.DirectInput.JoystickID : ctrl.DeviceIndex;
             string joyNb = "Joypad" + playerindex;
             bool isxinput = ctrl.IsXInputDevice;
@@ -76,7 +76,6 @@ namespace EmulatorLauncher
             if (!File.Exists(gamecontrollerDB))
             {
                 SimpleLogger.Instance.Info("[INFO] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
-                gamecontrollerDB = null;
                 return;
             }
             else
