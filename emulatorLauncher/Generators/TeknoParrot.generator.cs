@@ -14,12 +14,13 @@ using EmulatorLauncher.VPinballLauncher;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using System.Runtime.InteropServices;
 
 namespace EmulatorLauncher
 {
     partial class TeknoParrotGenerator : Generator
-    {        
-        static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
+    {
+        static Dictionary<string, string> executables = new Dictionary<string, string>()
         {                        
             { "Batman",                          @"Batman\ZeusSP\sdaemon.exe" },
             { "BBCF",                            @"Blazblue - Central Fiction\game.exe" },
@@ -159,11 +160,6 @@ namespace EmulatorLauncher
         private string _exename;
         private GameProfile _gameProfile;
 
-        public TeknoParrotGenerator()
-        {
-            DependsOnDesktopResolution = true;
-        }
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("TeknoParrot");
@@ -262,10 +258,9 @@ namespace EmulatorLauncher
             _exename = Path.GetFileNameWithoutExtension(userProfile.GamePath);
             _gameProfile = userProfile;
 
-            List<string> commandArray = new List<string>
-            {
-                "--profile=" + profileName
-            };
+            List<string> commandArray = new List<string>();
+            commandArray.Add("--profile=" + profileName);
+
             if (!SystemConfig.isOptSet("tp_minimize") || SystemConfig.getOptBoolean("tp_minimize"))
                 commandArray.Add("--startMinimized");
             string args = string.Join(" ", commandArray);
@@ -283,7 +278,7 @@ namespace EmulatorLauncher
         {
             string parrotData = Path.Combine(path, "ParrotData.xml");
 
-            ParrotData data;
+            ParrotData data = null;
 
             try { data = XmlExtensions.FromXml<ParrotData>(parrotData); }
             catch { data = new ParrotData(); }
@@ -310,12 +305,10 @@ namespace EmulatorLauncher
             else
                 data.UseDiscordRPC = false;
 
-            data.CheckForUpdates = false;
-
             File.WriteAllText(parrotData, data.ToXml());
         }
 
-        /*private static void ExtractUserProfiles(string path)
+        private static void ExtractUserProfiles(string path)
         {
 
             StringBuilder sb = new StringBuilder();
@@ -340,7 +333,6 @@ namespace EmulatorLauncher
 
             var str = sb.ToString();
         }
-        */
 
         // <string name="teknoparrot.disableautocontrollers" value="1" />
 
@@ -487,9 +479,7 @@ namespace EmulatorLauncher
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
             ManagementObjectCollection moc = searcher.Get();
             foreach (ManagementObject mo in moc)
-            {
                 KillProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
-            }
 
             try
             {
@@ -563,7 +553,7 @@ namespace EmulatorLauncher
             }
         }
 
-        /*private int GetParentProcess(int Id)
+        private int GetParentProcess(int Id)
         {
             int parentPid = 0;
             using (ManagementObject mo = new ManagementObject("win32_process.handle='" + Id.ToString() + "'"))
@@ -573,7 +563,6 @@ namespace EmulatorLauncher
             }
             return parentPid;
         }
-        */
 
         private static string FindExecutable(string path, string profileName)
         {
@@ -637,6 +626,8 @@ namespace EmulatorLauncher
 
                 return 0;
             }
+
+            int ret = base.RunAndWait(path);
 
             KillProcessTree("TeknoParrotUI");
             KillProcessTree(_exename);
