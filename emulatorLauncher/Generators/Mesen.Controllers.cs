@@ -21,6 +21,8 @@ namespace EmulatorLauncher
                 portList = gbPorts;
             else if (mesenSystem == "PcEngine")
                 portList = pcePorts;
+            else if (mesenSystem == "Sms")
+                portList = smsPorts;
 
             foreach (string port in portList)
             {
@@ -95,7 +97,7 @@ namespace EmulatorLauncher
 
             port["Type"] = controllerType;
 
-            if (mesenSystem == "Nes" || mesenSystem == "Gameboy")
+            if (mesenSystem == "Nes" || mesenSystem == "Gameboy" || mesenSystem == "Sms")
             {
                 if (portSection == "Port1A")
                 {
@@ -289,6 +291,20 @@ namespace EmulatorLauncher
                 WriteKeyboardMapping(mapping, "Select", InputKey.select);
                 WriteKeyboardMapping(mapping, "Start", InputKey.start);
             }
+
+            else if (mesenSystem == "Sms")
+            {
+                WriteKeyboardMapping(mapping, "A", InputKey.b);
+                WriteKeyboardMapping(mapping, "B", InputKey.a);
+                WriteKeyboardMapping(mapping, "Up", InputKey.up);
+                WriteKeyboardMapping(mapping, "Down", InputKey.down);
+                WriteKeyboardMapping(mapping, "Left", InputKey.left);
+                WriteKeyboardMapping(mapping, "Right", InputKey.right);
+                WriteKeyboardMapping(mapping, "Select", InputKey.select);
+                WriteKeyboardMapping(mapping, "Start", InputKey.start);
+                WriteKeyboardMapping(mapping, "TurboA", InputKey.x);
+                WriteKeyboardMapping(mapping, "TurboB", InputKey.y);
+            }
         }
 
         private string DefinePortToUse(int playerIndex, string mesenSystem)
@@ -454,6 +470,29 @@ namespace EmulatorLauncher
             {
                 return "Controller";
             }
+            else if (mesenSystem == "Sms")
+            {
+                if (SystemConfig.getOptBoolean("mesen_sms_guncontroller") && SystemConfig["mesen_zapper"] == "Port1")
+                {
+                    switch (playerIndex)
+                    {
+                        case 1:
+                            return "Port2";
+                        case 2:
+                            return null;
+                    }
+                }
+                else
+                {
+                    switch (playerIndex)
+                    {
+                        case 1:
+                            return "Port1";
+                        case 2:
+                            return "Port2";
+                    }
+                }
+            }
 
             return null;
         }
@@ -486,6 +525,8 @@ namespace EmulatorLauncher
             }
             else if (mesenSystem == "Gameboy")
                 return "Controller";
+            else if (mesenSystem == "Sms")
+                return "Port1";
 
             return null;
         }
@@ -494,7 +535,7 @@ namespace EmulatorLauncher
         {
             if (mesenSystem == "Nes")
             {
-                if (SystemConfig.isOptSet("mesen_nes_multitap") &&  SystemConfig["mesen_nes_multitap"] == "dual")
+                if (SystemConfig.isOptSet("mesen_nes_multitap") && SystemConfig["mesen_nes_multitap"] == "dual")
                 {
                     var port1 = systemSection.GetOrCreateContainer("Port1");
                     port1["Type"] = "FourScore";
@@ -638,6 +679,7 @@ namespace EmulatorLauncher
         static readonly List<string> snesPorts = new List<string>() { "Port1", "Port2", "Port1A", "Port1B", "Port1C", "Port1D", "Port2A", "Port2B", "Port2C", "Port2D" };
         static readonly List<string> gbPorts = new List<string>() { "Controller" };
         static readonly List<string> pcePorts = new List<string>() { "Port1", "Port1A", "Port1B", "Port1C", "Port1D", "Port1E" };
+        static readonly List<string> smsPorts = new List<string>() { "Port1", "Port2" };
 
         static readonly Dictionary<InputKey, string> inputKeyMapping = new Dictionary<InputKey, string>()
         {
@@ -672,7 +714,8 @@ namespace EmulatorLauncher
             { "Nes", 8 },
             { "Snes", 8 },
             { "Gameboy", 1 },
-            { "PcEngine", 5 }
+            { "PcEngine", 5 },
+            { "Sms", 2 }
         };
 
         static readonly Dictionary<string, string> systemDefaultController = new Dictionary<string, string>()
@@ -680,7 +723,8 @@ namespace EmulatorLauncher
             { "Nes", "NesController" },
             { "Snes", "SnesController" },
             { "Gameboy", "GameboyController" },
-            { "PcEngine", "PceController" }
+            { "PcEngine", "PceController" },
+            { "Sms", "SmsController" }
         };
 
         private static string SdlToKeyCode(long sdlCode)

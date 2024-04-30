@@ -63,6 +63,7 @@ namespace EmulatorLauncher
             // System preferences
             var systemSection = json.GetOrCreateContainer(mesenSystem);
             ConfigureNes(systemSection, system);
+            ConfigureSMS(systemSection, system);
             ConfigurePCEngine(systemSection, system);
             ConfigureSnes(systemSection, system);
             ConfigureGameboy(systemSection, system, path);
@@ -172,7 +173,7 @@ namespace EmulatorLauncher
         {
             if (system != "nes" && system != "fds")
                 return;
-
+            section["AutoConfigureInput"] = "false";
             BindBoolFeature(section, "EnableHdPacks", "mesen_customtextures", "true", "false");
             BindFeature(section, "Region", "mesen_region", "Auto");
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
@@ -183,6 +184,16 @@ namespace EmulatorLauncher
                 BindBoolFeature(section, "FdsFastForwardOnLoad", "mesen_fdsfastforwardload", "true", "false");
                 section["FdsAutoLoadDisk"] = "true";
             }
+        }
+
+        private void ConfigureSMS(DynamicJson section, string system)
+        {
+            if (system != "mastersystem")
+                return;
+            BindFeature(section, "Region", "mesen_region", "Auto");
+            BindFeature(section, "Revision", "mesen_sms_revision", "Compatibility");
+            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
+            BindBoolFeature(section, "EnableFmAudio", "mesen_sms_fmaudio", "false", "true");
         }
 
         private void ConfigurePCEngine(DynamicJson section, string system)
@@ -239,6 +250,13 @@ namespace EmulatorLauncher
 
         private void SetupGuns(DynamicJson section, string mesenSystem)
         {
+            foreach (var port in nesPorts)
+            {
+                var portSection = section.GetOrCreateContainer(port);
+                var mapping = portSection.GetOrCreateContainer("Mapping1");
+                mapping.SetObject("ZapperButtons", null);
+            }
+
             if (mesenSystem == "Nes")
             {
                 if (SystemConfig.isOptSet("mesen_zapper") && !string.IsNullOrEmpty(SystemConfig["mesen_zapper"]) && SystemConfig["mesen_zapper"] != "none")
@@ -256,8 +274,39 @@ namespace EmulatorLauncher
                 }
             }
 
+            else if (mesenSystem == "Sms")
+            {
+                foreach (var port in smsPorts)
+                {
+                    var portSection = section.GetOrCreateContainer(port);
+                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    mapping.SetObject("LightPhaserButtons", null);
+                }
+                
+                if (SystemConfig.isOptSet("mesen_zapper") && !string.IsNullOrEmpty(SystemConfig["mesen_zapper"]) && SystemConfig["mesen_zapper"] != "none")
+                {
+                    var portSection = section.GetOrCreateContainer(SystemConfig["mesen_zapper"]);
+                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    List<int> mouseID = new List<int>
+                    {
+                        512,
+                        513
+                    };
+                    mapping.SetObject("LightPhaserButtons", mouseID);
+
+                    portSection["Type"] = "SmsLightPhaser";
+                }
+            }
+
             else if (mesenSystem == "Snes")
             {
+                foreach (var port in snesPorts)
+                {
+                    var portSection = section.GetOrCreateContainer(port);
+                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    mapping.SetObject("SuperScopeButtons", null);
+                }
+
                 if (SystemConfig.isOptSet("mesen_superscope") && !string.IsNullOrEmpty(SystemConfig["mesen_superscope"]) && SystemConfig["mesen_superscope"] != "none")
                 {
                     var portSection = section.GetOrCreateContainer(SystemConfig["mesen_superscope"]);
@@ -292,6 +341,8 @@ namespace EmulatorLauncher
                 case "pcengine":
                 case "supergrafx":
                     return "PcEngine";
+                case "mastersystem":
+                    return "Sms";
             }
             return "none";
         }
