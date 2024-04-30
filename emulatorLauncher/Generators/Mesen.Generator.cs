@@ -172,7 +172,7 @@ namespace EmulatorLauncher
         {
             if (system != "nes" && system != "fds")
                 return;
-
+            section["AutoConfigureInput"] = "false";
             BindBoolFeature(section, "EnableHdPacks", "mesen_customtextures", "true", "false");
             BindFeature(section, "Region", "mesen_region", "Auto");
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
