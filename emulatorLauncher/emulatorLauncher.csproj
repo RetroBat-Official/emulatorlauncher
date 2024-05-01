@@ -186,6 +186,10 @@
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\GzDoom.Generator.cs" />
     <Compile Include="Generators\Hatari.Generator.cs" />
+    <Compile Include="Generators\Jgenesis.Generator.cs" />
+    <Compile Include="Generators\Jgenesis.Controllers.cs">
+      <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Jynx.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Controllers.cs">
