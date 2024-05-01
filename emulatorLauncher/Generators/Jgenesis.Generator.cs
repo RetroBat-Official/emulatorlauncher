@@ -87,12 +87,13 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "common", "force_integer_height_scaling", "integerscale", "true", "false");
                 BindIniFeature(ini, "common", "filter_mode", "jgen_filter", "Linear");
                 BindIniFeature(ini, "common", "preprocess_shader", "jgen_shader", "None");
+                BindIniFeature(ini, "common", "scanlines", "jgen_scanlines", "None");
 
-                ConfigureSMS(ini, jgenSystem);
+                ConfigureGameboy(ini, jgenSystem);
                 ConfigureGenesis(ini, jgenSystem);
                 ConfigureNes(ini, jgenSystem);
                 ConfigureSnes(ini, jgenSystem);
-                ConfigureGameboy(ini, jgenSystem);
+                ConfigureSMS(ini, jgenSystem, system);
 
                 SetupControllers(jgenSystem);
 
@@ -101,30 +102,17 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureNes(IniFile ini, string system)
+        private void ConfigureGameboy(IniFile ini, string system)
         {
-            if (system != "nes")
+            if (system != "game_boy")
                 return;
 
-            BindIniFeature(ini, "nes", "forced_timing_mode", "jgen_nes_timing", "Auto");
-            BindIniFeature(ini, "nes", "aspect_ratio", "jgen_nes_ratio", "Ntsc");
-            BindBoolIniFeature(ini, "nes", "remove_sprite_limit", "jgen_spritelimit", "true", "false");
-            BindBoolIniFeature(ini, "nes", "pal_black_border", "jgen_nes_palborder", "true", "false");
-            BindBoolIniFeature(ini, "nes", "audio_60hz_hack", "jgen_nes_audiohack", "false", "true");
-        }
-
-        private void ConfigureSMS(IniFile ini, string system)
-        {
-            if (system != "smsgg")
-                return;
-
-            BindBoolIniFeature(ini, "smsgg", "remove_sprite_limit", "jgen_spritelimit", "true", "false");
-            BindIniFeature(ini, "smsgg", "sms_aspect_ratio", "jgen_sms_ratio", "Ntsc");
-            BindIniFeature(ini, "smsgg", "gg_aspect_ratio", "jgen_gg_ratio", "GgLcd");
-            BindIniFeature(ini, "smsgg", "sms_region", "jgen_sms_region", "International");
-            BindIniFeature(ini, "smsgg", "sms_timing_mode", "jgen_sms_timing", "Ntsc");
-            BindIniFeature(ini, "smsgg", "sms_model", "jgen_sms_model", "Sms2");
-            BindBoolIniFeature(ini, "smsgg", "fm_sound_unit_enabled", "jgen_sms_fmchip", "false", "true");
+            BindIniFeature(ini, "game_boy", "gb_palette", "jgen_gb_palette", "GreenTint");
+            BindIniFeature(ini, "game_boy", "aspect_ratio", "jgen_gb_ratio", "SquarePixels");
+            BindIniFeature(ini, "game_boy", "gbc_color_correction", "jgen_gbc_colorcorrect", "GbcLcd");
+            BindBoolIniFeature(ini, "game_boy", "audio_60hz_hack", "jgen_gb_60fps", "true", "false");
+            BindBoolIniFeature(ini, "game_boy", "force_dmg_mode", "jgen_gb_dmg", "true", "false");
+            BindBoolIniFeature(ini, "game_boy", "pretend_to_be_gba", "jgen_gb_gba", "true", "false");
         }
 
         private void ConfigureGenesis(IniFile ini, string system)
@@ -159,21 +147,33 @@ namespace EmulatorLauncher
                 ini.WriteValue("sega_cd", "bios_path", "'" + segaCdBios + "'");
                 BindBoolIniFeature(ini, "sega_cd", "enable_ram_cartridge", "jgen_segacd_ramcart", "false", "true");
                 BindBoolIniFeature(ini, "sega_cd", "load_disc_into_ram", "jgen_segacd_loadtoram", "true", "false");
-            }   
+            }
         }
 
-
-        private void ConfigureGameboy(IniFile ini, string system)
+        private void ConfigureNes(IniFile ini, string system)
         {
-            if (system != "game_boy")
+            if (system != "nes")
                 return;
 
-            BindIniFeature(ini, "game_boy", "gb_palette", "jgen_gb_palette", "GreenTint");
-            BindIniFeature(ini, "game_boy", "aspect_ratio", "jgen_gb_ratio", "SquarePixels");
-            BindBoolIniFeature(ini, "game_boy", "force_dmg_mode", "jgen_gb_dmg", "true", "false");
-            BindBoolIniFeature(ini, "game_boy", "pretend_to_be_gba", "jgen_gb_gba", "true", "false");
-            BindIniFeature(ini, "game_boy", "gbc_color_correction", "jgen_gb_colorcorrect", "GbcLcd");
-            BindBoolIniFeature(ini, "game_boy", "audio_60hz_hack", "jgen_gb_60fps", "true", "false");
+            BindIniFeature(ini, "nes", "forced_timing_mode", "jgen_nes_timing", "Auto");
+            BindIniFeature(ini, "nes", "aspect_ratio", "jgen_nes_ratio", "Ntsc");
+            BindBoolIniFeature(ini, "nes", "remove_sprite_limit", "jgen_spritelimit", "true", "false");
+            BindBoolIniFeature(ini, "nes", "pal_black_border", "jgen_nes_palborder", "true", "false");
+            BindBoolIniFeature(ini, "nes", "audio_60hz_hack", "jgen_nes_audiohack", "false", "true");
+        }
+
+        private void ConfigureSMS(IniFile ini, string system, string esSystem)
+        {
+            if (system != "smsgg")
+                return;
+
+            BindBoolIniFeature(ini, "smsgg", "remove_sprite_limit", "jgen_spritelimit", "true", "false");
+            BindIniFeature(ini, "smsgg", "sms_aspect_ratio", "jgen_sms_ratio", "Ntsc");
+            BindIniFeature(ini, "smsgg", "gg_aspect_ratio", "jgen_gg_ratio", "GgLcd");
+            BindIniFeature(ini, "smsgg", "sms_region", "jgen_sms_region", "International");
+            BindIniFeature(ini, "smsgg", "sms_timing_mode", "jgen_sms_timing", "Ntsc");
+            BindIniFeature(ini, "smsgg", "sms_model", "jgen_sms_model", esSystem == "gamegear" ? "Sms1" : "Sms2");
+            BindBoolIniFeature(ini, "smsgg", "fm_sound_unit_enabled", "jgen_sms_fmchip", "false", "true");
         }
 
         private void ConfigureSnes(IniFile ini, string system)
