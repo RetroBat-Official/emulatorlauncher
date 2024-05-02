@@ -3,7 +3,6 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Compression;
 using System.Linq;
 using System;
 
@@ -188,7 +187,20 @@ namespace EmulatorLauncher
             {
                 string regionbios = "bios_CD_U.bin";
                 if (SystemConfig.isOptSet("jgen_genesis_region") && !string.IsNullOrEmpty(SystemConfig["jgen_genesis_region"]))
-                    regionbios = SystemConfig["jgen_genesis_region"];
+                {
+                    switch (SystemConfig["jgen_genesis_region"])
+                    {
+                        case "Europe":
+                            regionbios = "bios_CD_E.bin";
+                            break;
+                        case "Americas":
+                            regionbios = "bios_CD_J.bin";
+                            break;
+                        case "Japan":
+                            regionbios = "bios_CD_U.bin";
+                            break;
+                    }
+                }
 
                 string segaCdBios = Path.Combine(AppConfig.GetFullPath("bios"), regionbios);
 
