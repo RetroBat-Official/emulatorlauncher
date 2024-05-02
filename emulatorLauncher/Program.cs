@@ -122,7 +122,8 @@ namespace EmulatorLauncher
             { "sonicmania", () => new PortsLauncherGenerator() },
             { "sonicretro", () => new PortsLauncherGenerator() },
             { "sonicretrocd", () => new PortsLauncherGenerator() },
-            { "devilutionx", () => new DevilutionXGenerator() }
+            { "devilutionx", () => new DevilutionXGenerator() },
+            { "jgenesis", () => new JgenesisGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

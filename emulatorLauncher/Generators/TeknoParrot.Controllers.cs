@@ -101,17 +101,22 @@ namespace EmulatorLauncher
                         ImportXInputButton(userProfile, c, InputKey.pageup, InputMapping.JvsTwoP1Button5, InputMapping.P1Button5);
                         ImportXInputButton(userProfile, c, InputKey.pagedown, InputMapping.JvsTwoP1Button6, InputMapping.P1Button6);
 
+
+                        // Assignation of ExtensionOne buttons
                         if (userProfile.HasAnyXInputButton(InputMapping.ExtensionOne2) && !userProfile.HasAnyXInputButton(InputMapping.P1Button2))
                             ImportXInputButton(userProfile, c, InputKey.b, InputMapping.ExtensionOne2);
-                        else
-                            ImportXInputButton(userProfile, c, InputKey.b, InputMapping.JvsTwoP1Button2, InputMapping.P1Button2);
+                        else if (userProfile.HasAnyXInputButton(InputMapping.ExtensionOne2) && !userProfile.HasAnyXInputButton(InputMapping.P1Button4))
+                            ImportXInputButton(userProfile, c, InputKey.y, InputMapping.ExtensionOne2);
+                        else if (userProfile.HasAnyXInputButton(InputMapping.ExtensionOne2) && !userProfile.HasAnyXInputButton(InputMapping.P1Button3))
+                            ImportXInputButton(userProfile, c, InputKey.x, InputMapping.ExtensionOne2);
+                        else if (userProfile.HasAnyXInputButton(InputMapping.ExtensionOne2) && !userProfile.HasAnyXInputButton(InputMapping.P1Button6))
+                            ImportXInputButton(userProfile, c, InputKey.pagedown, InputMapping.ExtensionOne2);
+                        else if (userProfile.HasAnyXInputButton(InputMapping.ExtensionOne2) && !userProfile.HasAnyXInputButton(InputMapping.P1Button5))
+                            ImportXInputButton(userProfile, c, InputKey.pageup, InputMapping.ExtensionOne2);
                     }
                 }
-                else
+                else   // DirectInput
                 {
-                    //         foreach (var btn in userProfile.JoystickButtons)
-                    //              btn.DirectInputButton = null;
-
                     if (c.Config[InputKey.leftanalogleft] != null)
                     {
                         ImportDirectInputButton(userProfile, c, InputKey.leftanalogup, InputMapping.JvsTwoP1ButtonUp, InputMapping.P1ButtonUp, InputMapping.P1RelativeUp);

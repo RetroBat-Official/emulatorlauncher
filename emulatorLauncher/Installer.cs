@@ -103,7 +103,8 @@ namespace EmulatorLauncher
             { new Installer("sonicmania", "sonicmania", "RSDKv5U_x64.exe") },
             { new Installer("sonicretro", "sonicretro", "RSDKv4_64.exe") },
             { new Installer("sonicretrocd", "sonicretrocd", "RSDKv3_64.exe") },
-            { new Installer("devilutionx", "devilutionx", "devilutionx.exe") }
+            { new Installer("devilutionx", "devilutionx", "devilutionx.exe") },
+            { new Installer("jgenesis", "jgenesis", "jgenesis-gui.exe") }
         };
 
         static List<string>noVersionExe = new List<string>()
