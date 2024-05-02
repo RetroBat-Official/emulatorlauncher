@@ -66,6 +66,17 @@ namespace EmulatorLauncher
         {
             string settingsFile = Path.Combine(path, "jgenesis-config.toml");
 
+            if (!File.Exists(settingsFile))
+            {
+                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "jgenesis", "jgenesis-config-template.toml");
+                if (!File.Exists(templateFile))
+                    return;
+
+                try { File.Copy(templateFile, settingsFile); }
+                catch
+                { }
+            }
+
             using (IniFile ini = new IniFile(settingsFile, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
             {
 
