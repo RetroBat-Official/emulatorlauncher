@@ -227,16 +227,16 @@ namespace EmulatorLauncher
             string iniSection = "inputs.hotkeys";
 
             ini.WriteValue(iniSection, "quit", "\"Escape\"");
-            ini.WriteValue(iniSection, "toggle_fullscreen", "\"F9\"");
-            ini.WriteValue(iniSection, "save_state", "\"F7\"");
-            ini.WriteValue(iniSection, "load_state", "\"F8\"");
-            ini.WriteValue(iniSection, "soft_reset", "\"F1\"");
-            ini.WriteValue(iniSection, "hard_reset", "\"F2\"");
-            ini.WriteValue(iniSection, "pause", "\"F3\"");
-            ini.WriteValue(iniSection, "step_frame", "\"F4\"");
-            ini.WriteValue(iniSection, "fast_forward", "\"F6\"");
-            ini.WriteValue(iniSection, "rewind", "\"F5\"");
-            ini.WriteValue(iniSection, "open_debugger", "\"M\"");
+            ini.WriteValue(iniSection, "toggle_fullscreen", "\"Tab\"");
+            ini.WriteValue(iniSection, "save_state", "\"F1\"");
+            ini.WriteValue(iniSection, "load_state", "\"F2\"");
+            ini.WriteValue(iniSection, "soft_reset", "\"F3\"");
+            ini.WriteValue(iniSection, "hard_reset", "\"F4\"");
+            ini.WriteValue(iniSection, "pause", "\"F6\"");
+            ini.WriteValue(iniSection, "step_frame", "\"F11\"");
+            ini.WriteValue(iniSection, "fast_forward", "\"F9\"");
+            ini.WriteValue(iniSection, "rewind", "\"F8\"");
+            ini.WriteValue(iniSection, "open_debugger", "\"F12\"");
         }
 
         private void CleanupKBSections(IniFile ini, string jgenSystem)
