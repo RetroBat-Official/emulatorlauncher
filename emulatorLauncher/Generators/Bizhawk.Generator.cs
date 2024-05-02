@@ -30,10 +30,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            if (Path.GetExtension(rom) == ".chd")
-                throw new ApplicationException("Extension CHD not compatible with Bizhawk");
-
-            string[] romExtensions = new string[] { ".m3u", ".cue", ".ccd", ".cdi", ".iso", ".mds", ".nrg", ".z64", ".n64", ".v64", ".ndd", ".vec", ".uze", ".o2"};
+            string[] romExtensions = new string[] { ".m3u", ".chd", ".cue", ".ccd", ".cdi", ".iso", ".mds", ".nrg", ".z64", ".n64", ".v64", ".ndd", ".vec", ".uze", ".o2"};
 
             if (zipSystems.Contains(system) && (Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".7z"))
             {
@@ -45,6 +42,9 @@ namespace EmulatorLauncher
                     ValidateUncompressedGame();
                 }
             }
+
+            if (Path.GetExtension(rom) == ".chd")
+                throw new ApplicationException("Extension CHD not compatible with Bizhawk");
 
             // Json Config file
             string configFile = Path.Combine(path, "config.ini");
