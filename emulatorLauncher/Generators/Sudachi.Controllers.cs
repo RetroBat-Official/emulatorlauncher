@@ -126,8 +126,17 @@ namespace EmulatorLauncher
 
             ini.WriteValue("Controls", player + "type" + "\\default",  playerTypeId == 0 ? "true" : "false");
             ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
-            ini.WriteValue("Controls", player + "connected" + "\\default", playerTypeId == 4 ? "false" : "true");
-            ini.WriteValue("Controls", player + "connected", "true");
+            
+            if (controller.PlayerIndex == 1)
+            {
+                ini.WriteValue("Controls", player + "connected" + "\\default", playerTypeId == 4 ? "false" : "true");
+                ini.WriteValue("Controls", player + "connected", "true");
+            }
+            else
+            {
+                ini.WriteValue("Controls", player + "connected" + "\\default", "false");
+                ini.WriteValue("Controls", player + "connected", "true");
+            }
 
             //Vibration settings
             ini.WriteValue("Controls", player + "vibration_enabled" + "\\default", "true");
