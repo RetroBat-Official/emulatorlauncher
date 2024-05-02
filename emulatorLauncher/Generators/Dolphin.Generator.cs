@@ -84,6 +84,18 @@ namespace EmulatorLauncher
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
 
+            string[] extensions = new string[] { ".m3u", ".gcz", ".iso", ".ciso", ".wbfs", ".wad", ".rvz", ".wia" };
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".7z")
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath);
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
+
             string saveState = "";
             if (File.Exists(SystemConfig["state_file"]))
                 saveState = " --save_state=\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"";
