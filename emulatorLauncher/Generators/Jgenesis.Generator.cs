@@ -5,6 +5,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Compression;
 using System.Linq;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -24,26 +25,17 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
+            string[] extensions = new string[] { ".cue", ".sms", ".gg", ".md", ".chd", ".nes", ".sfc", ".gb", ".gbc", ".bin" };
+
+            if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z")
             {
-                string romFile = null;
-                var entries = Zip.ListEntries(rom).Where(e => !e.IsDirectory).Select(e => e.Filename).ToArray();
-
-                if (entries.Length == 0)
-                    return null;
-
-                romFile = entries[0];
-
-                if (romFile == null)
-                    return null;
-
-                _destRom = Path.Combine(Path.GetTempPath(), Path.GetFileName(romFile));
-
-                Zip.Extract(rom, Path.GetTempPath());
-                if (!File.Exists(_destRom))
-                    return null;
-
-                rom = _destRom;
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath);
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
             }
 
             // settings (toml configuration)

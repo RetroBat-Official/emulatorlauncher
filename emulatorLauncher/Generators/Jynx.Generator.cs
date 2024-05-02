@@ -26,6 +26,19 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            string[] extensions = new string[] { ".bin", ".tap" };
+
+            if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z")
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath);
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
+
             // Check BIOS files based on machine type
             string machineType = "0";
             if (SystemConfig.isOptSet("jynx_machine") && !string.IsNullOrEmpty(SystemConfig["jynx_machine"]))
