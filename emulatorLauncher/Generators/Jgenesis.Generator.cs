@@ -82,20 +82,41 @@ namespace EmulatorLauncher
                     return;
 
                 ini.WriteValue("common", "launch_in_fullscreen", fullscreen ? "true" : "false");
-                BindIniFeature(ini, "common", "wgpu_backend", "jgen_renderer", "Auto");
-                BindIniFeature(ini, "common", "vsync_mode", "jgen_vsync", "Enabled");
+                
+                if (SystemConfig.isOptSet("jgen_renderer") && !string.IsNullOrEmpty(SystemConfig["jgen_renderer"]))
+                    ini.WriteValue("common", "wgpu_backend", "\"" + SystemConfig["jgen_renderer"] + "\"");
+                else
+                    ini.WriteValue("common", "wgpu_backend", "\"" + "Auto" + "\"");
+
+                if (SystemConfig.isOptSet("jgen_vsync") && !string.IsNullOrEmpty(SystemConfig["jgen_vsync"]))
+                    ini.WriteValue("common", "vsync_mode", "\"" + SystemConfig["jgen_vsync"] + "\"");
+                else
+                    ini.WriteValue("common", "vsync_mode", "\"" + "Enabled" + "\"");
+
                 BindBoolIniFeature(ini, "common", "force_integer_height_scaling", "integerscale", "true", "false");
-                BindIniFeature(ini, "common", "filter_mode", "jgen_filter", "Linear");
-                BindIniFeature(ini, "common", "preprocess_shader", "jgen_shader", "None");
-                BindIniFeature(ini, "common", "scanlines", "jgen_scanlines", "None");
+
+                if (SystemConfig.isOptSet("jgen_filter") && !string.IsNullOrEmpty(SystemConfig["jgen_filter"]))
+                    ini.WriteValue("common", "filter_mode", "\"" + SystemConfig["jgen_filter"] + "\"");
+                else
+                    ini.WriteValue("common", "filter_mode", "\"" + "Linear" + "\"");
+
+                if (SystemConfig.isOptSet("jgen_shader") && !string.IsNullOrEmpty(SystemConfig["jgen_shader"]))
+                    ini.WriteValue("common", "preprocess_shader", "\"" + SystemConfig["jgen_shader"] + "\"");
+                else
+                    ini.WriteValue("common", "preprocess_shader", "\"" + "None" + "\"");
+
+                if (SystemConfig.isOptSet("jgen_scanlines") && !string.IsNullOrEmpty(SystemConfig["jgen_scanlines"]))
+                    ini.WriteValue("common", "scanlines", "\"" + SystemConfig["jgen_scanlines"] + "\"");
+                else
+                    ini.WriteValue("common", "scanlines", "\"" + "None" + "\"");
 
                 ConfigureGameboy(ini, jgenSystem);
                 ConfigureGenesis(ini, jgenSystem);
                 ConfigureNes(ini, jgenSystem);
-                ConfigureSnes(ini, jgenSystem);
                 ConfigureSMS(ini, jgenSystem, system);
+                ConfigureSnes(ini, jgenSystem);
 
-                SetupControllers(jgenSystem);
+                SetupControllers(ini, jgenSystem);
 
                 // Save toml file
                 ini.Save();
@@ -107,9 +128,21 @@ namespace EmulatorLauncher
             if (system != "game_boy")
                 return;
 
-            BindIniFeature(ini, "game_boy", "gb_palette", "jgen_gb_palette", "GreenTint");
-            BindIniFeature(ini, "game_boy", "aspect_ratio", "jgen_gb_ratio", "SquarePixels");
-            BindIniFeature(ini, "game_boy", "gbc_color_correction", "jgen_gbc_colorcorrect", "GbcLcd");
+            if (SystemConfig.isOptSet("jgen_gb_palette") && !string.IsNullOrEmpty(SystemConfig["jgen_gb_palette"]))
+                ini.WriteValue("game_boy", "gb_palette", "\"" + SystemConfig["jgen_gb_palette"] + "\"");
+            else
+                ini.WriteValue("game_boy", "gb_palette", "\"" + "GreenTint" + "\"");
+
+            if (SystemConfig.isOptSet("jgen_gb_ratio") && !string.IsNullOrEmpty(SystemConfig["jgen_gb_ratio"]))
+                ini.WriteValue("game_boy", "aspect_ratio", "\"" + SystemConfig["jgen_gb_ratio"] + "\"");
+            else
+                ini.WriteValue("game_boy", "aspect_ratio", "\"" + "SquarePixels" + "\"");
+
+            if (SystemConfig.isOptSet("jgen_gbc_colorcorrect") && !string.IsNullOrEmpty(SystemConfig["jgen_gbc_colorcorrect"]))
+                ini.WriteValue("game_boy", "gbc_color_correction", "\"" + SystemConfig["jgen_gbc_colorcorrect"] + "\"");
+            else
+                ini.WriteValue("game_boy", "gbc_color_correction", "\"" + "GbcLcd" + "\"");
+
             BindBoolIniFeature(ini, "game_boy", "audio_60hz_hack", "jgen_gb_60fps", "true", "false");
             BindBoolIniFeature(ini, "game_boy", "force_dmg_mode", "jgen_gb_dmg", "true", "false");
             BindBoolIniFeature(ini, "game_boy", "pretend_to_be_gba", "jgen_gb_gba", "true", "false");
@@ -120,20 +153,32 @@ namespace EmulatorLauncher
             if (system != "genesis" && system != "sega_cd")
                 return;
 
-            BindIniFeature(ini, "genesis", "forced_region", "jgen_genesis_region", "Auto");
-            BindIniFeature(ini, "genesis", "forced_timing_mode", "jgen_genesis_timing", "Auto");
+            if (SystemConfig.isOptSet("jgen_genesis_region") && !string.IsNullOrEmpty(SystemConfig["jgen_genesis_region"]))
+                ini.WriteValue("genesis", "forced_region", "\"" + SystemConfig["jgen_genesis_region"] + "\"");
+            else
+                ini.Remove("genesis", "forced_region");
+
+            if (SystemConfig.isOptSet("jgen_genesis_timing") && !string.IsNullOrEmpty(SystemConfig["jgen_genesis_timing"]))
+                ini.WriteValue("genesis", "forced_timing_mode", "\"" + SystemConfig["jgen_genesis_timing"] + "\"");
+            else
+                ini.Remove("genesis", "forced_timing_mode");
+
+            if (SystemConfig.isOptSet("jgen_genesis_ratio") && !string.IsNullOrEmpty(SystemConfig["jgen_genesis_ratio"]))
+                ini.WriteValue("genesis", "aspect_ratio", "\"" + SystemConfig["jgen_genesis_ratio"] + "\"");
+            else
+                ini.WriteValue("genesis", "aspect_ratio", "\"" + "Ntsc" + "\"");
+
             BindBoolIniFeature(ini, "genesis", "remove_sprite_limits", "jgen_spritelimit", "true", "false");
-            BindIniFeature(ini, "genesis", "aspect_ratio", "jgen_genesis_ratio", "Ntsc");
 
             if (SystemConfig["jgen_genesis_pad"] == "3btn")
             {
-                ini.WriteValue("inputs", "genesis_p1_type", "ThreeButton");
-                ini.WriteValue("inputs", "genesis_p2_type", "ThreeButton");
+                ini.WriteValue("inputs", "genesis_p1_type", "\"" + "ThreeButton" + "\"");
+                ini.WriteValue("inputs", "genesis_p2_type", "\"" + "ThreeButton" + "\"");
             }
             else
             {
-                ini.WriteValue("inputs", "genesis_p1_type", "SixButton");
-                ini.WriteValue("inputs", "genesis_p2_type", "SixButton");
+                ini.WriteValue("inputs", "genesis_p1_type", "\"" + "SixButton" + "\"");
+                ini.WriteValue("inputs", "genesis_p2_type", "\"" + "SixButton" + "\"");
             }
 
             if (system == "sega_cd")
@@ -155,8 +200,16 @@ namespace EmulatorLauncher
             if (system != "nes")
                 return;
 
-            BindIniFeature(ini, "nes", "forced_timing_mode", "jgen_nes_timing", "Auto");
-            BindIniFeature(ini, "nes", "aspect_ratio", "jgen_nes_ratio", "Ntsc");
+            if (SystemConfig.isOptSet("jgen_nes_timing") && !string.IsNullOrEmpty(SystemConfig["jgen_nes_timing"]))
+                ini.WriteValue("nes", "forced_timing_mode", "\"" + SystemConfig["jgen_nes_timing"] + "\"");
+            else
+                ini.Remove("nes", "forced_timing_mode");
+
+            if (SystemConfig.isOptSet("jgen_nes_ratio") && !string.IsNullOrEmpty(SystemConfig["jgen_nes_ratio"]))
+                ini.WriteValue("nes", "aspect_ratio", "\"" + SystemConfig["jgen_nes_ratio"] + "\"");
+            else
+                ini.WriteValue("nes", "aspect_ratio", "\"" + "Ntsc" + "\"");
+
             BindBoolIniFeature(ini, "nes", "remove_sprite_limit", "jgen_spritelimit", "true", "false");
             BindBoolIniFeature(ini, "nes", "pal_black_border", "jgen_nes_palborder", "true", "false");
             BindBoolIniFeature(ini, "nes", "audio_60hz_hack", "jgen_nes_audiohack", "false", "true");
@@ -168,11 +221,32 @@ namespace EmulatorLauncher
                 return;
 
             BindBoolIniFeature(ini, "smsgg", "remove_sprite_limit", "jgen_spritelimit", "true", "false");
-            BindIniFeature(ini, "smsgg", "sms_aspect_ratio", "jgen_sms_ratio", "Ntsc");
-            BindIniFeature(ini, "smsgg", "gg_aspect_ratio", "jgen_gg_ratio", "GgLcd");
-            BindIniFeature(ini, "smsgg", "sms_region", "jgen_sms_region", "International");
-            BindIniFeature(ini, "smsgg", "sms_timing_mode", "jgen_sms_timing", "Ntsc");
-            BindIniFeature(ini, "smsgg", "sms_model", "jgen_sms_model", esSystem == "gamegear" ? "Sms1" : "Sms2");
+
+            if (SystemConfig.isOptSet("jgen_sms_ratio") && !string.IsNullOrEmpty(SystemConfig["jgen_sms_ratio"]))
+                ini.WriteValue("smsgg", "sms_aspect_ratio", "\"" + SystemConfig["jgen_sms_ratio"] + "\"");
+            else
+                ini.WriteValue("smsgg", "sms_aspect_ratio", "\"" + "Ntsc" + "\"");
+
+            if (SystemConfig.isOptSet("jgen_gg_ratio") && !string.IsNullOrEmpty(SystemConfig["jgen_gg_ratio"]))
+                ini.WriteValue("smsgg", "gg_aspect_ratio", "\"" + SystemConfig["jgen_gg_ratio"] + "\"");
+            else
+                ini.WriteValue("smsgg", "gg_aspect_ratio", "\"" + "GgLcd" + "\"");
+
+            if (SystemConfig.isOptSet("jgen_sms_region") && !string.IsNullOrEmpty(SystemConfig["jgen_sms_region"]))
+                ini.WriteValue("smsgg", "sms_region", "\"" + SystemConfig["jgen_sms_region"] + "\"");
+            else
+                ini.WriteValue("smsgg", "sms_region", "\"" + "International" + "\"");
+
+            if (SystemConfig.isOptSet("jgen_sms_timing") && !string.IsNullOrEmpty(SystemConfig["jgen_sms_timing"]))
+                ini.WriteValue("smsgg", "sms_timing_mode", "\"" + SystemConfig["jgen_sms_timing"] + "\"");
+            else
+                ini.WriteValue("smsgg", "sms_timing_mode", "\"" + "Ntsc" + "\"");
+
+            if (SystemConfig.isOptSet("jgen_sms_model") && !string.IsNullOrEmpty(SystemConfig["jgen_sms_model"]))
+                ini.WriteValue("smsgg", "sms_model", "\"" + SystemConfig["jgen_sms_model"] + "\"");
+            else
+                ini.WriteValue("smsgg", "sms_model", esSystem == "gamegear" ? "\"" + "Sms1" + "\"" : "\"" + "Sms2" + "\"");
+
             BindBoolIniFeature(ini, "smsgg", "fm_sound_unit_enabled", "jgen_sms_fmchip", "false", "true");
         }
 
@@ -181,8 +255,16 @@ namespace EmulatorLauncher
             if (system != "snes")
                 return;
 
-            BindIniFeature(ini, "snes", "forced_timing_mode", "jgen_snes_timing", "Auto");
-            BindIniFeature(ini, "snes", "aspect_ratio", "jgen_snes_ratio", "Ntsc");
+            if (SystemConfig.isOptSet("jgen_snes_timing") && !string.IsNullOrEmpty(SystemConfig["jgen_snes_timing"]))
+                ini.WriteValue("snes", "forced_timing_mode", "\"" + SystemConfig["jgen_snes_timing"] + "\"");
+            else
+                ini.Remove("snes", "forced_timing_mode");
+
+            if (SystemConfig.isOptSet("jgen_snes_ratio") && !string.IsNullOrEmpty(SystemConfig["jgen_snes_ratio"]))
+                ini.WriteValue("snes", "aspect_ratio", "\"" + SystemConfig["jgen_snes_ratio"] + "\"");
+            else
+                ini.WriteValue("snes", "aspect_ratio", "\"" + "Ntsc" + "\"");
+
             BindBoolIniFeature(ini, "snes", "audio_60hz_hack", "jgen_snes_audiohack", "false", "true");
             BindIniFeature(ini, "snes", "gsu_overclock_factor", "jgen_snes_superfx_overclock", "1");
 
@@ -192,15 +274,22 @@ namespace EmulatorLauncher
         private void SetupGuns(IniFile ini, string jgenSystem)
         {
             if (!SystemConfig.getOptBoolean("use_guns"))
+            {
+                ini.WriteValue("inputs", "snes_p2_type", "\"" + "Gamepad" + "\"");
                 return;
+            }
 
             if (jgenSystem == "snes")
             {
-                ini.WriteValue("inputs", "snes_p2_type", "SuperScope");
+                ini.WriteValue("inputs", "snes_p2_type", "\"" + "SuperScope" + "\"");
 
-                ini.WriteValue("inputs.snes_keyboard.super_scope", "fire", "MouseLeft");
-                ini.WriteValue("inputs.snes_keyboard.super_scope", "cursor", "MouseRight");
-                ini.WriteValue("inputs.snes_keyboard.super_scope", "pause", "MouseMiddle");
+                ini.WriteValue("inputs.snes_keyboard.super_scope", "fire", "\"" + "MouseLeft" + "\"");
+                ini.WriteValue("inputs.snes_keyboard.super_scope", "cursor", "\"" + "MouseRight" + "\"");
+                ini.WriteValue("inputs.snes_keyboard.super_scope", "pause", "\"" + "MouseMiddle" + "\"");
+
+                ini.WriteValue("inputs.snes_super_scope", "fire", "\"" + "MouseLeft" + "\"");
+                ini.WriteValue("inputs.snes_super_scope", "cursor", "\"" + "MouseRight" + "\"");
+                ini.WriteValue("inputs.snes_super_scope", "pause", "\"" + "MouseMiddle" + "\"");
             }
         }
 
