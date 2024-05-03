@@ -12,7 +12,6 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-        private string _destRom;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -38,7 +37,7 @@ namespace EmulatorLauncher
             }
 
             // settings (toml configuration)
-            SetupTomlConfiguration(path, system, rom, fullscreen);
+            SetupTomlConfiguration(path, system, fullscreen);
 
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
@@ -61,7 +60,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupTomlConfiguration(string path, string system, string rom, bool fullscreen)
+        private void SetupTomlConfiguration(string path, string system, bool fullscreen)
         {
             string settingsFile = Path.Combine(path, "jgenesis-config.toml");
 
