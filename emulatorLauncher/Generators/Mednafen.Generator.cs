@@ -3,6 +3,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using EmulatorLauncher.Common;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -13,8 +14,8 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private readonly string[] _unzipSystems = { "psx", "ss", "pce" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -28,9 +29,18 @@ namespace EmulatorLauncher
 
             var mednafenCore = GetMednafenCoreName(core);
 
-            //Applying bezels
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            string[] romExtensions = new string[] { ".m3u", ".cue", ".img", ".mdf", ".pbp", ".toc", ".cbn", ".ccd", ".iso", ".cso", ".pce", ".bin", ".mds" };
+
+            if (_unzipSystems.Contains(mednafenCore) && (Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".zip"))
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath).OrderBy(file => Array.IndexOf(romExtensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                    rom = romFiles.FirstOrDefault(file => romExtensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
 
             _resolution = resolution;
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
@@ -115,9 +125,6 @@ namespace EmulatorLauncher
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
             int ret = base.RunAndWait(path);
 
