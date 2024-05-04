@@ -165,35 +165,15 @@ namespace EmulatorLauncher
             // Handle Core part of yml file
             var core = yml.GetOrCreateContainer("Core");
             BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)"); //this option changes in the latest version of RCPS3 (es_features only)
-            BindFeature(core, "PPU LLVM Precompilation", "lvmprecomp", "true");
+            BindFeature(core, "LLVM Precompilation", "lvmprecomp", "true");
             BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)"); //this option changes in the latest version of RCPS3 (es_features only)
-            BindFeature(core, "Lower SPU thread priority", "lowerspuprio", "false");
             BindFeature(core, "Preferred SPU Threads", "sputhreads", "0");
             BindFeature(core, "SPU loop detection", "spuloopdetect", "false");
             BindFeature(core, "SPU Block Size", "spublocksize", "Safe");
             BindFeature(core, "Accurate RSX reservation access", "accuratersx", "false");
-            BindFeature(core, "PPU LLVM Accurate Vector NaN values", "vectornan", "false");
+            BindFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "false");
             BindFeature(core, "Full Width AVX-512", "fullavx", "false");
-
-            // xfloat is managed through 3 options now in latest release
-            if (SystemConfig.isOptSet("xfloat") && (SystemConfig["xfloat"] == "Accurate"))
-            {
-                core["Accurate xfloat"] = "true";
-                core["Approximate xfloat"] = "false";
-                core["Relaxed xfloat"] = "false";
-            }
-            else if (SystemConfig.isOptSet("xfloat") && (SystemConfig["xfloat"] == "Relaxed"))
-            {
-                core["Accurate xfloat"] = "false";
-                core["Approximate xfloat"] = "false";
-                core["Relaxed xfloat"] = "true";
-            }
-            else if (Features.IsSupported("xfloat")) 
-            {
-                core["Accurate xfloat"] = "false";
-                core["Approximate xfloat"] = "true";
-                core["Relaxed xfloat"] = "false";
-            }
+            BindFeature(core, "XFloat Accuracy", "xfloat", "false");
 
             // Handle Video part of yml file
             var video = yml.GetOrCreateContainer("Video");
@@ -214,34 +194,7 @@ namespace EmulatorLauncher
             BindFeature(video, "Disable Vertex Cache", "disablevertex", "false");
             BindFeature(video, "Multithreaded RSX", "multithreadedrsx", "false");
             BindFeature(video, "Output Scaling Mode", "rpcs3_scaling_filter", "Nearest");
-
-            if (SystemConfig.isOptSet("enable3d") && !string.IsNullOrEmpty(SystemConfig["enable3d"]))
-            {
-                switch(SystemConfig["enable3d"])
-                {
-                    case "disabled":
-                        video["Enable 3D"] = "false";
-                        video["3D Display Mode"] = "Disabled";
-                        break;
-                    case "anaglyph":
-                        video["Enable 3D"] = "false";
-                        video["3D Display Mode"] = "Anaglyph";
-                        break;
-                    case "sidebyside":
-                        video["Enable 3D"] = "false";
-                        video["3D Display Mode"] = "Side-by-Side";
-                        break;
-                    case "overunder":
-                        video["Enable 3D"] = "false";
-                        video["3D Display Mode"] = "Over-Under";
-                        break;
-                }
-            }
-            else
-            {
-                video["Enable 3D"] = "false";
-                video["3D Display Mode"] = "Disabled";
-            }
+            BindFeature(video, "3D Display Mode", "enable3d", "Disabled");
             
             BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
             BindFeature(video, "Shader Precision", "shader_quality", "Auto");
@@ -252,24 +205,23 @@ namespace EmulatorLauncher
             // ZCULL Accuracy
             if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))
             {
-                core["Relaxed ZCULL Sync"] = "false";
-                core["Accurate ZCULL stats"] = "false";
+                video["Relaxed ZCULL Sync"] = "false";
+                video["Accurate ZCULL stats"] = "false";
             }
             else if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Relaxed"))
             {
-                core["Relaxed ZCULL Sync"] = "true";
-                core["Accurate ZCULL stats"] = "false";
+                video["Relaxed ZCULL Sync"] = "true";
+                video["Accurate ZCULL stats"] = "false";
             }
             else if (Features.IsSupported("zcull_accuracy"))
             {
-                core["Relaxed ZCULL Sync"] = "false";
-                core["Accurate ZCULL stats"] = "true";
+                video["Relaxed ZCULL Sync"] = "false";
+                video["Accurate ZCULL stats"] = "true";
             }
 
             // Handle Vulkan part of yml file
             var vulkan = video.GetOrCreateContainer("Vulkan");
             BindFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "false");
-            BindFeature(vulkan, "Enable FidelityFX Super Resolution Upscaling", "fsr_upscaling", "false");
 
             // Handle Performance Overlay part of yml file
             var performance = video.GetOrCreateContainer("Performance Overlay");
