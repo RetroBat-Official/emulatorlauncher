@@ -2093,8 +2093,25 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_pcfx")
                 return;
 
+            BindBoolFeature(coreSettings, "sgx_nospritelimit", "sgx_nospritelimit", "enabled", "disabled");
+
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pcfx_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pcfx_controller2", "1");
+
+            if (SystemConfig.isOptSet("pcfx_2button") && SystemConfig.getOptBoolean("pcfx_2button"))
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    coreSettings["sgx_default_joypad_type_p" + i] = "2 Buttons";
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    coreSettings["sgx_default_joypad_type_p" + i] = "6 Buttons";
+                }
+            }
         }
 
         private void ConfigureMednafenPce(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2103,6 +2120,8 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             coreSettings["pce_show_advanced_input_settings"] = "enabled";
+
+            BindBoolFeature(coreSettings, "pce_nospritelimit", "pce_nospritelimit", "enabled", "disabled");
 
             BindFeature(coreSettings, "pce_psgrevision", "pce_psgrevision", "auto");
             BindFeature(coreSettings, "pce_resamp_quality", "pce_resamp_quality", "3");
@@ -2121,8 +2140,24 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "pce_cdpsgvolume", "pcecdvolume", "100");
 
             // Controls
+            BindFeature(retroarchConfig, "pce_multitap", "pce_multitap", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
+
+            if (SystemConfig.isOptSet("pce_2button") && SystemConfig.getOptBoolean("pce_2button"))
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    coreSettings["pce_default_joypad_type_p" + i] = "2 Buttons";
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    coreSettings["pce_default_joypad_type_p" + i] = "6 Buttons";
+                }
+            }
         }
 
         private void ConfigureMednafenPceFast(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2130,9 +2165,26 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_pce_fast")
                 return;
 
+            BindBoolFeature(coreSettings, "pce_fast_nospritelimit", "pce_fast_nospritelimit", "enabled", "disabled");
+
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
+            
+            if (SystemConfig.isOptSet("pce_fast_2button") && SystemConfig.getOptBoolean("pce_fast_2button"))
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    coreSettings["pce_fast_default_joypad_type_p" + i] = "2 Buttons";
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    coreSettings["pce_fast_default_joypad_type_p" + i] = "6 Buttons";
+                }
+            }
         }
 
         private void ConfigureMednafenPsxHW(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
