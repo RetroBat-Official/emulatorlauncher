@@ -2093,7 +2093,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_pcfx")
                 return;
 
-            BindBoolFeature(retroarchConfig, "sgx_nospritelimit", "sgx_nospritelimit", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "sgx_nospritelimit", "sgx_nospritelimit", "enabled", "disabled");
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pcfx_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pcfx_controller2", "1");
@@ -2121,7 +2121,7 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["pce_show_advanced_input_settings"] = "enabled";
 
-            BindBoolFeature(retroarchConfig, "pce_nospritelimit", "pce_nospritelimit", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pce_nospritelimit", "pce_nospritelimit", "enabled", "disabled");
 
             BindFeature(coreSettings, "pce_psgrevision", "pce_psgrevision", "auto");
             BindFeature(coreSettings, "pce_resamp_quality", "pce_resamp_quality", "3");
@@ -2165,7 +2165,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_pce_fast")
                 return;
 
-            BindBoolFeature(retroarchConfig, "pce_fast_nospritelimit", "pce_fast_nospritelimit", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pce_fast_nospritelimit", "pce_fast_nospritelimit", "enabled", "disabled");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
