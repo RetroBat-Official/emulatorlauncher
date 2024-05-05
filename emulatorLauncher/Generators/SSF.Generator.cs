@@ -11,7 +11,9 @@ namespace EmulatorLauncher
         {
             string path = AppConfig.GetFullPath("ssf");
 
-            string exe = Path.Combine(path, "SSF.exe");
+            string exe = Path.Combine(path, "SSF64.exe");
+            if (!File.Exists(exe))
+                exe = Path.Combine(path, "SSF.exe");
             if (!File.Exists(exe))
                 return null;
 
