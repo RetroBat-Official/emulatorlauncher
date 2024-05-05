@@ -3,6 +3,8 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System.Linq;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -19,6 +21,18 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "BigPEmu.exe");
             if (!File.Exists(exe))
                 return null;
+
+            string[] extensions = new string[] { ".cue", ".cdi", ".j64",".jag", ".rom", ".bin", ".prg", ".cof", ".abs" };
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".7z")
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
