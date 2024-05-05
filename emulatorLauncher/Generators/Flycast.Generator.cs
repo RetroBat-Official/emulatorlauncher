@@ -3,6 +3,7 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -60,8 +61,29 @@ namespace EmulatorLauncher
         {
             string configfile = Path.Combine(path, "emu.cfg");
 
-            using (var ini = IniFile.FromFile(configfile, IniOptions.UseSpaces))
+            using (var ini = IniFile.FromFile(configfile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
+                // RetroAchievements
+                if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
+                {
+                    ini.WriteValue("achievements", "Enabled", "yes");
+                    ini.WriteValue("achievements", "HardcoreMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "yes" : "no");
+
+                    // Inject credentials
+                    if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
+                    {
+                        ini.WriteValue("achievements", "Token", SystemConfig["retroachievements.token"]);
+                        ini.WriteValue("achievements", "UserName", SystemConfig["retroachievements.username"]);
+                    }
+                }
+                else
+                {
+                    ini.WriteValue("achievements", "Enabled", "no");
+                    ini.WriteValue("achievements", "HardcoreMode", "no");
+                    ini.WriteValue("achievements", "Token", null);
+                    ini.WriteValue("achievements", "UserName", null);
+                }
+
                 // General
                 BindIniFeature(ini, "config", "Dreamcast.Language", "flycast_language", "6");
                 BindIniFeature(ini, "config", "Dreamcast.Broadcast", "flycast_broadcast", "4");
