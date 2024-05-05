@@ -39,9 +39,15 @@ namespace EmulatorLauncher
             _path = path;
 
             //Applying bezels
-            if (fullscreen)
+            if (fullscreen && (!SystemConfig.isOptSet("bigpemu_renderer") || SystemConfig["bigpemu_renderer"] == "BigPEmu_Video_OpenGL"))
             {
                 if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            }
+
+            else if (fullscreen && (SystemConfig["bigpemu_renderer"] == "BigPEmu_Video_D3D12"))
+            {
+                if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x64, system, rom, path, resolution))
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             }
 
@@ -85,6 +91,8 @@ namespace EmulatorLauncher
             {
                 var json = DynamicJson.Load(configfile);
                 var bigpemucore = json.GetOrCreateContainer("BigPEmuConfig");
+
+                BindFeature(bigpemucore, "VideoPlugin", "bigpemu_renderer", "BigPEmu_Video_OpenGL");
 
                 //system part
                 var jsonSystem = bigpemucore.GetOrCreateContainer("System");
@@ -175,10 +183,12 @@ namespace EmulatorLauncher
             if (ret == 1)
             {
                 ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
+                ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, _path);
                 return 0;
             }
 
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, _path);
             return ret;
         }
     }
