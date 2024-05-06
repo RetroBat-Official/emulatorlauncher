@@ -14,14 +14,26 @@ namespace EmulatorLauncher
         private string _singeFile = null;
         private string _symLink;
         private bool _emuDirExists = false;
+        private bool _actionMax;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath(emulator);
             string exe = Path.Combine(AppConfig.GetFullPath(emulator), "Singe-v2.10-Windows-x86_64.exe");
-            string directoryName = Path.GetFileName(rom).Replace(".singe", "");
+            string romName = Path.GetFileName(rom);
+            string directoryName = romName.Replace(".singe", "");
             string originalRom = rom;
+            string actionMaxRom = Path.Combine(Path.GetDirectoryName(rom), "ActionMax.singe");
+            if (!Directory.Exists(actionMaxRom))
+            {
+                actionMaxRom = Path.Combine(Path.GetDirectoryName(rom), "ActionMax");
+            }
+
             //bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _actionMax = system == "actionmax";
+
+            if (_actionMax && !Directory.Exists(actionMaxRom))
+                throw new Exception("ActionMax rom folder not found: ensure it is named 'ActionMax.singe' or 'ActionMax'");
 
             if (!File.Exists(exe))
             {
@@ -29,10 +41,13 @@ namespace EmulatorLauncher
                 return null;
             }
 
-            _symLink = Path.Combine(path, directoryName);
+            if (!_actionMax)
+                _symLink = Path.Combine(path, directoryName);
+            else
+                _symLink = Path.Combine(path, "ActionMax");
 
             if (!Directory.Exists(_symLink))
-                FileTools.CreateSymlink(_symLink, rom, true);
+                FileTools.CreateSymlink(_symLink, _actionMax ? actionMaxRom : rom, true);
             else
                 _emuDirExists = true;
 
@@ -44,16 +59,26 @@ namespace EmulatorLauncher
             }
 
             // Find the videofile & the .singe file
-            if (!ReadDatFile(_symLink))
-            {
-                SimpleLogger.Instance.Info("[Generator] Using '.game' file to find script & video.");
 
-                if (!ReadGameFile(_symLink, originalRom))
+            if (system != "actionmax")
+            {
+                if (!ReadDatFile(_symLink))
                 {
-                    SimpleLogger.Instance.Info("[Generator] Trying to find script & video based on folder structure.");
-                    if (!TryToFindVideoAndScriptPaths(_symLink))
-                        return null;
+                    SimpleLogger.Instance.Info("[Generator] Using '.game' file to find script & video.");
+
+                    if (!ReadGameFile(_symLink, originalRom))
+                    {
+                        SimpleLogger.Instance.Info("[Generator] Trying to find script & video based on folder structure.");
+                        if (!TryToFindVideoAndScriptPaths(_symLink))
+                            return null;
+                    }
                 }
+            }
+            else
+            {
+                string gameName = romName.Replace(".actionmax", "");
+                _videoFile = Path.Combine(AppConfig.GetFullPath(emulator), "ActionMax", ActionMaxVideoFiles[gameName]);
+                _singeFile = Path.Combine(AppConfig.GetFullPath(emulator), "ActionMax", ActionMaxScriptFiles[gameName]);
             }
 
             // Define command line arguments
@@ -256,6 +281,24 @@ namespace EmulatorLauncher
             else
                 return false;
         }
+
+        private readonly Dictionary<string, string> ActionMaxVideoFiles = new Dictionary<string, string>()
+        {
+            { "38ambushalley", "video_38AmbushAlley.mkv" },
+            { "bluethunder", "video_BlueThunder.mkv" },
+            { "hydrosub2021", "video_Hydrosub2021.mkv" },
+            { "popsghostly", "video_PopsGhostly.mkv" },
+            { "sonicfury", "video_SonicFury.mkv" },
+        };
+
+        private readonly Dictionary<string, string> ActionMaxScriptFiles = new Dictionary<string, string>()
+        {
+            { "38ambushalley", "38AmbushAlley.singe" },
+            { "bluethunder", "BlueThunder.singe" },
+            { "hydrosub2021", "Hydrosub2021.singe" },
+            { "popsghostly", "PopsGhostly.singe" },
+            { "sonicfury", "SonicFury.singe" },
+        };
 
         public override void Cleanup()
         {
