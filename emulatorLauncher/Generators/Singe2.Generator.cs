@@ -13,6 +13,7 @@ namespace EmulatorLauncher
         private string _videoFile = null;
         private string _singeFile = null;
         private string _symLink;
+        private bool _emuDirExists = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -30,14 +31,10 @@ namespace EmulatorLauncher
 
             _symLink = Path.Combine(path, directoryName);
 
-            try
-            {
-                if (Directory.Exists(_symLink))
-                    Directory.Delete(_symLink);
-            }
-            catch { }
-
-            FileTools.CreateSymlink(_symLink, rom, true);
+            if (!Directory.Exists(_symLink))
+                FileTools.CreateSymlink(_symLink, rom, true);
+            else
+                _emuDirExists = true;
 
             if (!Directory.Exists(_symLink))
             {
@@ -264,12 +261,15 @@ namespace EmulatorLauncher
         {
             base.Cleanup();
 
-            try
+            if (!_emuDirExists)
             {
-                if (!string.IsNullOrEmpty(_symLink) && Directory.Exists(_symLink))
-                    Directory.Delete(_symLink);
+                try
+                {
+                    if (!string.IsNullOrEmpty(_symLink) && Directory.Exists(_symLink))
+                        Directory.Delete(_symLink);
+                }
+                catch { }
             }
-            catch { }
         }
     }
 }
