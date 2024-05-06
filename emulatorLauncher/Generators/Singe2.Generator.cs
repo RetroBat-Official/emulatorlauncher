@@ -5,6 +5,7 @@ using System.Diagnostics;
 using EmulatorLauncher.Common;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -25,11 +26,9 @@ namespace EmulatorLauncher
             string originalRom = rom;
             string actionMaxRom = Path.Combine(Path.GetDirectoryName(rom), "ActionMax.singe");
             if (!Directory.Exists(actionMaxRom))
-            {
                 actionMaxRom = Path.Combine(Path.GetDirectoryName(rom), "ActionMax");
-            }
 
-            //bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             _actionMax = system == "actionmax";
 
             if (_actionMax && !Directory.Exists(actionMaxRom))
@@ -85,12 +84,26 @@ namespace EmulatorLauncher
             List<string> commandArray = new List<string>()
             {
                 "-k",
-                "-w",
-                "-z",
-                "-v",
-                "\"" + _videoFile + "\"",
-                "\"" + _singeFile + "\""
             };
+
+            if (fullscreen)
+                commandArray.Add("-w");
+            else
+            {
+                int height = resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height;
+                int width = resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width;
+                commandArray.Add("-x");
+                commandArray.Add(width.ToString());
+                commandArray.Add("-y");
+                commandArray.Add(height.ToString());
+            }
+             
+            if (!SystemConfig.isOptSet("singe2_debug") || !SystemConfig.getOptBoolean("singe2_debug"))
+                commandArray.Add("-z");
+
+            commandArray.Add("-v");
+            commandArray.Add("\"" + _videoFile + "\"");
+            commandArray.Add("\"" + _singeFile + "\"");
 
             string args = string.Join(" ", commandArray);
 
