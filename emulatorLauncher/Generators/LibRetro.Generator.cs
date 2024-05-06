@@ -544,7 +544,7 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["video_hard_sync_frames"] = "0";
                 }
             }
-            BindFeature(retroarchConfig, "video_swap_interval", "video_swap_interval", "1");
+            BindFeature(retroarchConfig, "video_swap_interval", "video_swap_interval", "0");
             BindFeature(retroarchConfig, "video_black_frame_insertion", "video_black_frame_insertion", "0");
             BindFeature(retroarchConfig, "vrr_runloop_enable", "vrr_runloop_enable", "false");
 
