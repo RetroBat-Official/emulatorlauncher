@@ -123,7 +123,8 @@ namespace EmulatorLauncher
             { "sonicretro", () => new PortsLauncherGenerator() },
             { "sonicretrocd", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() },
-            { "jgenesis", () => new JgenesisGenerator() }
+            { "jgenesis", () => new JgenesisGenerator() },
+            { "singe2", () => new Singe2Generator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

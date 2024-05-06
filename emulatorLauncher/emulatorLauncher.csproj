@@ -337,6 +337,7 @@
     <Compile Include="Generators\Simple64.Controllers.cs">
       <DependentUpon>Simple64.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Singe2.Generator.cs" />
     <Compile Include="Generators\Snes9x.Generator.cs" />
     <Compile Include="Generators\Snes9x.Controllers.cs">
       <DependentUpon>Snes9x.Generator.cs</DependentUpon>
