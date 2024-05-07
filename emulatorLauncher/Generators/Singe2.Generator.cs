@@ -80,6 +80,8 @@ namespace EmulatorLauncher
                 _singeFile = Path.Combine(AppConfig.GetFullPath(emulator), "ActionMax", ActionMaxScriptFiles[gameName]);
             }
 
+
+
             // Define command line arguments
             List<string> commandArray = new List<string>()
             {
@@ -100,6 +102,9 @@ namespace EmulatorLauncher
              
             if (!SystemConfig.isOptSet("singe2_debug") || !SystemConfig.getOptBoolean("singe2_debug"))
                 commandArray.Add("-z");
+
+            if (SystemConfig.getOptBoolean("singe2_crosshair"))
+                commandArray.Add("-n");
 
             commandArray.Add("-v");
             commandArray.Add("\"" + _videoFile + "\"");
