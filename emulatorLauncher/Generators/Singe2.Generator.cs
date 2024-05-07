@@ -16,6 +16,8 @@ namespace EmulatorLauncher
         private string _symLink;
         private bool _emuDirExists = false;
         private bool _actionMax;
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -80,6 +82,9 @@ namespace EmulatorLauncher
                 _singeFile = Path.Combine(AppConfig.GetFullPath(emulator), "ActionMax", ActionMaxScriptFiles[gameName]);
             }
 
+            if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+
             // Define command line arguments
             List<string> commandArray = new List<string>()
             {
@@ -100,6 +105,9 @@ namespace EmulatorLauncher
              
             if (!SystemConfig.isOptSet("singe2_debug") || !SystemConfig.getOptBoolean("singe2_debug"))
                 commandArray.Add("-z");
+
+            if (SystemConfig.getOptBoolean("singe2_crosshair"))
+                commandArray.Add("-n");
 
             commandArray.Add("-v");
             commandArray.Add("\"" + _videoFile + "\"");
@@ -326,6 +334,23 @@ namespace EmulatorLauncher
                 }
                 catch { }
             }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            bezel?.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
     }
 }
