@@ -155,6 +155,20 @@ namespace EmulatorLauncher
                     }
                 }
 
+                if (Features.IsSupported("citra_texture_filter"))
+                {
+                    if (SystemConfig.isOptSet("citra_texture_filter"))
+                    {
+                        ini.WriteValue("Renderer", "texture_filter\\default", "false");
+                        ini.WriteValue("Renderer", "texture_filter", SystemConfig["citra_texture_filter"]);
+                    }
+                    else
+                    {
+                        ini.WriteValue("Renderer", "texture_filter\\default", "true");
+                        ini.WriteValue("Renderer", "texture_filter", "0");
+                    }
+                }
+
                 if (Features.IsSupported("citra_layout_option"))
                 {
                     if (SystemConfig.isOptSet("citra_layout_option"))
