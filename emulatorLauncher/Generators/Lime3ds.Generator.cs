@@ -154,6 +154,20 @@ namespace EmulatorLauncher
                     }
                 }
 
+                if (Features.IsSupported("lime_texture_filter"))
+                {
+                    if (SystemConfig.isOptSet("lime_texture_filter"))
+                    {
+                        ini.WriteValue("Renderer", "texture_filter\\default", "false");
+                        ini.WriteValue("Renderer", "texture_filter", SystemConfig["lime_texture_filter"]);
+                    }
+                    else
+                    {
+                        ini.WriteValue("Renderer", "texture_filter\\default", "true");
+                        ini.WriteValue("Renderer", "texture_filter", "0");
+                    }
+                }
+
                 if (Features.IsSupported("lime_layout_option"))
                 {
                     if (SystemConfig.isOptSet("lime_layout_option"))
