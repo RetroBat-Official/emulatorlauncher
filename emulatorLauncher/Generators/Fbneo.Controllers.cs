@@ -11,6 +11,8 @@ namespace EmulatorLauncher
     partial class FbneoGenerator : Generator
     {
         private bool _noPlayer = false;
+        private int _nbGamepads;
+        private int _players = 2;
 
         private void CreateControllerConfiguration(string path, string rom, string system)
         {
@@ -40,7 +42,7 @@ namespace EmulatorLauncher
                     game = ymlFile.Elements.Where(g => g.Name == _romName).FirstOrDefault() as YmlContainer;
 
                 if (game == null)
-                    game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name)).FirstOrDefault() as YmlContainer;
+                    game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name) && g.Name != "").FirstOrDefault() as YmlContainer;
 
                 if (game == null)
                     game = ymlFile.Elements.Where(g => g.Name == "default_" + system).FirstOrDefault() as YmlContainer;
@@ -57,9 +59,7 @@ namespace EmulatorLauncher
                     {
                         YmlElement button = buttonEntry as YmlElement;
                         if (button != null)
-                        {
                             buttonMap.Add(button.Name, button.Value);
-                        }
                     }
 
                     if (buttonMap.Count == 0)
@@ -72,15 +72,16 @@ namespace EmulatorLauncher
             }
 
             if (gameMapping == null || gameMapping.Count == 0)
+            {
+                SimpleLogger.Instance.Info("[INFO] Game not found in fbneo.yml mapping file : " + _romName + " . No automatic mapping can be performed.");
                 return;
+            }
 
             // Define number of players
-            int players = 2;
-
             if (gameMapping.Values.FirstOrDefault().ContainsKey("players"))
             {
                 if (gameMapping.Values.FirstOrDefault()["players"].ToInteger() > 0)
-                    players = gameMapping.Values.FirstOrDefault()["players"].ToInteger();
+                    _players = gameMapping.Values.FirstOrDefault()["players"].ToInteger();
             }
 
             if (gameMapping.Values.FirstOrDefault().ContainsKey("noplayer"))
@@ -96,14 +97,14 @@ namespace EmulatorLauncher
 
             if (!Controllers.Any(c => !c.IsKeyboard))
             {
-                var controller = Controllers.FirstOrDefault(c => c.IsKeyboard);
-                if (controller != null)
-                    ConfigureKeyboard(controller, cfgFile);
+                ConfigureKeyboard(cfgFile);
+                return;
             }
 
             else
             {
-                foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(players))
+                _nbGamepads = this.Controllers.Where(c => !c.IsKeyboard).Count();
+                foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(_players))
                     ConfigureJoystick(controller, cfg, gameMapping);
 
                 cfg.Save();
@@ -137,7 +138,13 @@ namespace EmulatorLauncher
                 return;
 
             // Define index
-            int index = controller.dinputCtrl != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex;
+            int dinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex;
+            int index = dinputIndex;
+
+            if (SystemConfig.isOptSet("fbneo_dinput_index") && SystemConfig.getOptBoolean("fbneo_dinput_index") && dinputIndex > 0)
+                index = dinputIndex - 1;
+            
+            SimpleLogger.Instance.Info("[INFO] index for player " + controller.PlayerIndex + ": " + index);
 
             string joy = "0x4" + index.ToString();
 
@@ -306,15 +313,8 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void ConfigureKeyboard(Controller controller, string cfgFile)
+        private static void ConfigureKeyboard(string cfgFile)
         {
-            if (controller == null)
-                return;
-
-            InputConfig keyboard = controller.Config;
-            if (keyboard == null)
-                return;
-
             string backupFile = cfgFile + ".bak";
 
             if (File.Exists(backupFile))
