@@ -17,9 +17,20 @@ namespace EmulatorLauncher
         {
             string path = AppConfig.GetFullPath("jgenesis");
 
-            string exe = Path.Combine(path, "jgenesis-gui.exe");
+            bool gui = false;
+
+            string exe = Path.Combine(path, "jgenesis-cli.exe");
+
+            if (SystemConfig.isOptSet("jgen_gui") && SystemConfig.getOptBoolean("jgen_gui"))
+            {
+                exe = Path.Combine(path, "jgenesis-gui.exe");
+                gui = true;
+            }
+            
             if (!File.Exists(exe))
                 return null;
+
+            string hardware = GetJgenesisHardware(system);
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -41,14 +52,18 @@ namespace EmulatorLauncher
 
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             _resolution = resolution;
-            
+
 
             // command line parameters
-            var commandArray = new List<string>
+            var commandArray = new List<string>();
+            commandArray.Add("-f");
+            commandArray.Add("\"" + rom + "\"");
+
+            if (hardware != null && gui == false)
             {
-                "-f",
-                "\"" + rom + "\""
-            };
+                commandArray.Add("--hardware");
+                commandArray.Add(hardware);
+            }
 
             string args = string.Join(" ", commandArray);
 
@@ -325,6 +340,28 @@ namespace EmulatorLauncher
                 case "gb":
                 case "gbc":
                     return "game_boy";
+            }
+            return null;
+        }
+
+        private string GetJgenesisHardware(string System)
+        {
+            switch (System)
+            {
+                case "nes":
+                    return "Nes";
+                case "snes":
+                    return "Snes";
+                case "segacd":
+                    return "SegaCd";
+                case "megadrive":
+                    return "Genesis";
+                case "mastersystem":
+                case "gamegear":
+                    return "MasterSystem";
+                case "gb":
+                case "gbc":
+                    return "GameBoy";
             }
             return null;
         }
