@@ -156,7 +156,7 @@ namespace EmulatorLauncher
                 string [] lines = File.ReadAllLines(rom);
 
                 if (lines.Length == 0)
-                    throw new Exception("No path specified in .gamepass file.");
+                    throw new Exception("No path specified in .game file.");
                 else
                     linkTarget = lines[0];
 
