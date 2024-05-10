@@ -171,28 +171,30 @@ namespace EmulatorLauncher.Common.Joysticks
                     .Where(r => r.VendorId == this.VendorId && r.ProductId == this.ProductId)
                     .FirstOrDefault();
 
-                if (ctrl != null && !string.IsNullOrEmpty(ctrl.Name) && !string.IsNullOrEmpty(ctrl.Manufacturer))
+                if (ctrl != null)
                 {
-                    ushort crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Manufacturer));
-                    crc = SDL.SDL_crc16(new byte[] { 32 }, crc);
-                    crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Name), crc);
+                    if (!string.IsNullOrEmpty(ctrl.Name) && !string.IsNullOrEmpty(ctrl.Manufacturer))
+                    {
+                        ushort crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Manufacturer));
+                        crc = SDL.SDL_crc16(new byte[] { 32 }, crc);
+                        crc = SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Name), crc);
 
-                    var crc16 = SDL.SDL_Swap16(crc).ToString("X4");
+                        var crc16 = SDL.SDL_Swap16(crc).ToString("X4");
 
-                    var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
-                    return new SdlJoystickGuid(ggs);
-                }
+                        var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
+                        return new SdlJoystickGuid(ggs);
+                    }
 
-                if (ctrl != null && !string.IsNullOrEmpty(ctrl.Name))
-                {
-                    var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Name))).ToString("X4");
+                    if (!string.IsNullOrEmpty(ctrl.Name))
+                    {
+                        var crc16 = SDL.SDL_Swap16(SDL.SDL_crc16(System.Text.Encoding.UTF8.GetBytes(ctrl.Name))).ToString("X4");
 
-                    var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
-                    return new SdlJoystickGuid(ggs);
-                }
-
-                if (string.IsNullOrEmpty(ctrl.Name))
+                        var ggs = _guid.Substring(0, 4) + crc16 + _guid.Substring(8);
+                        return new SdlJoystickGuid(ggs);
+                    }
+                    
                     return new SdlJoystickGuid(_guid.Substring(0, 4) + "0000" + _guid.Substring(8));
+                }
             }
             
             if (version >= SdlVersion.SDL2_26 && name != null)
