@@ -82,6 +82,8 @@ namespace EmulatorLauncher
                 _singeFile = Path.Combine(AppConfig.GetFullPath(emulator), "ActionMax", ActionMaxScriptFiles[gameName]);
             }
 
+            ConfigureControls(_symLink, Path.Combine(path, "Singe"));
+
             if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
@@ -121,6 +123,86 @@ namespace EmulatorLauncher
                 Arguments = args,
                 WorkingDirectory = path,
             };
+        }
+
+        private void ConfigureControls(string path, string singePath)
+        {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            if (Program.Controllers.Count == 0)
+                return;
+
+            if (Controllers.Any(c => !c.IsKeyboard))
+            {
+
+                SimpleLogger.Instance.Info("[SINGE2] Configuring controls.");
+
+                // Define gamepad index in LUA file controls.cfg
+                var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+                int index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex : c1.DeviceIndex;
+
+                if (SystemConfig.isOptSet("singe2_padIndex") && !string.IsNullOrEmpty(SystemConfig["singe2_padIndex"]))
+                    index = SystemConfig["singe2_padIndex"].ToInteger();
+
+                SimpleLogger.Instance.Info("[SINGE2] Gamepad index : " + index);
+
+                int mouseIndex = 0;
+                if (SystemConfig.isOptSet("singe2_mouseIndex") && !string.IsNullOrEmpty(SystemConfig["singe2_mouseIndex"]))
+                    mouseIndex = SystemConfig["singe2_mouseIndex"].ToInteger();
+
+                SimpleLogger.Instance.Info("[SINGE2] MOUSE index : " + mouseIndex);
+
+                string deadzone = "15000";
+                if (SystemConfig.isOptSet("singe2_deadzone") && !string.IsNullOrEmpty(SystemConfig["singe2_deadzone"]))
+                    deadzone = SystemConfig["singe2_deadzone"];
+
+                string file = Path.Combine(path, "controls.cfg");
+                string[] lines = 
+                {
+                    "myGamePad = GAMEPAD_" + index,
+                    "myMouse = MOUSE_" + mouseIndex,
+                    "",
+                    "-- Default Mappings",
+                    "",
+                    "DEAD_ZONE = " + deadzone,
+                    "",
+                    "INPUT_UP           = { SCANCODE.UP,    SCANCODE.KP_8, myGamePad.AXIS_LEFT_Y_U, myGamePad.AXIS_RIGHT_Y_U, myGamePad.DPAD_UP    }",
+                    "INPUT_LEFT         = { SCANCODE.LEFT,  SCANCODE.KP_4, myGamePad.AXIS_LEFT_X_L, myGamePad.AXIS_RIGHT_X_L, myGamePad.DPAD_LEFT  }",
+                    "INPUT_DOWN         = { SCANCODE.DOWN,  SCANCODE.KP_2, myGamePad.AXIS_LEFT_Y_D, myGamePad.AXIS_RIGHT_Y_D, myGamePad.DPAD_DOWN  }",
+                    "INPUT_RIGHT        = { SCANCODE.RIGHT, SCANCODE.KP_6, myGamePad.AXIS_LEFT_X_R, myGamePad.AXIS_RIGHT_X_R, myGamePad.DPAD_RIGHT }",
+                    "INPUT_1P_COIN      = { SCANCODE.MAIN_5, SCANCODE.C, myGamePad.BUTTON_BACK }",
+                    "INPUT_2P_COIN      = { SCANCODE.MAIN_6 }",
+                    "INPUT_1P_START     = { SCANCODE.MAIN_1, myGamePad.BUTTON_START }",
+                    "INPUT_2P_START     = { SCANCODE.MAIN_2 }",
+                    "INPUT_ACTION_1     = { SCANCODE.SPACE, SCANCODE.LCTRL, myGamePad.BUTTON_A, myMouse.BUTTON_RIGHT }",
+                    "INPUT_ACTION_2     = { SCANCODE.LALT,   myGamePad.BUTTON_B, myMouse.BUTTON_MIDDLE }",
+                    "INPUT_ACTION_3     = { SCANCODE.LSHIFT, myGamePad.BUTTON_X, myMouse.BUTTON_LEFT }",
+                    "INPUT_ACTION_4     = { SCANCODE.RSHIFT, myGamePad.BUTTON_Y, myMouse.BUTTON_X1 }",
+                    "INPUT_SKILL_EASY   = { SCANCODE.KP_DIVIDE }",
+                    "INPUT_SKILL_MEDIUM = { SCANCODE.KP_MULTIPLY }",
+                    "INPUT_SKILL_HARD   = { SCANCODE.KP_MINUS }",
+                    "INPUT_SERVICE      = { SCANCODE.MAIN_9 }",
+                    "INPUT_TEST_MODE    = { SCANCODE.F2 }",
+                    "INPUT_RESET_CPU    = { SCANCODE.F3 }",
+                    "INPUT_SCREENSHOT   = { SCANCODE.F12, SCANCODE.F11 }",
+                    "INPUT_QUIT         = { SCANCODE.ESCAPE, SCANCODE.Q }",
+                    "INPUT_PAUSE        = { SCANCODE.P }",
+                    "INPUT_CONSOLE      = { SCANCODE.GRAVE }",
+                    "INPUT_TILT         = { SCANCODE.T }",
+                    "INPUT_GRAB         = { SCANCODE.G }"
+                };
+
+                SimpleLogger.Instance.Info("[SINGE2] Generating controls.cfg file.");
+
+                try { File.WriteAllLines(file, lines); }
+                catch { }
+                
+                string singeFile = Path.Combine(singePath, "controls.cfg");
+
+                try { File.Copy(file, singeFile, true); }
+                catch { }
+            }
         }
 
         private bool ReadDatFile(string path)
