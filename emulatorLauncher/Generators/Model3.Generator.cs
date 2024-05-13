@@ -62,6 +62,10 @@ namespace EmulatorLauncher
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
             }
 
+            // outputs for mamehook
+            if (SystemConfig.isOptSet("supermodel_output") && !string.IsNullOrEmpty(SystemConfig["supermodel_output"]))
+                commandArray.Add("-outputs=" + SystemConfig["supermodel_output"]);
+
             // quad rendering
             if (SystemConfig.isOptSet("quadRendering") && SystemConfig.getOptBoolean("quadRendering"))
                 commandArray.Add("-quad-rendering");
@@ -164,6 +168,11 @@ namespace EmulatorLauncher
                         BindIniFeature(ini, " Global ", "PowerPCFrequency", "m3_ppc_frequency", "50");
                         BindBoolIniFeature(ini, " Global ", "ShowFrameRate", "m3_fps", "1", "0");
                         BindBoolIniFeature(ini, " Global ", "WideBackground", "widescreen", "true", "false");
+
+                        if (SystemConfig.isOptSet("supermodel_output") && !string.IsNullOrEmpty(SystemConfig["supermodel_output"]))
+                            ini.WriteValue(" Global ", "Outputs", SystemConfig["supermodel_output"]);
+                        else
+                            ini.Remove(" Global ", "Outputs");
 
                         //force rompath in GUI
                         string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "model3");

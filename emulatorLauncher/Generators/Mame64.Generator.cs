@@ -590,6 +590,7 @@ namespace EmulatorLauncher
 
         private void ConfigureMameini(string path)
         {
+            // MAME.ini
             var ini = MameIniFile.FromFile(Path.Combine(path, "mame.ini"));
 
             if (ini["writeconfig"] != "0")
@@ -603,6 +604,21 @@ namespace EmulatorLauncher
                 ini["output"] = "auto";
             
             ini.Save();
+
+            // Plugin.ini
+            var pluginsIni = MameIniFile.FromFile(Path.Combine(path, "plugin.ini"));
+
+            if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
+                pluginsIni["cheat"] = "1";
+            else
+                pluginsIni["cheat"] = "0";
+
+            if (SystemConfig.isOptSet("mame_hiscore") && SystemConfig.getOptBoolean("mame_hiscore"))
+                pluginsIni["hiscore"] = "1";
+            else
+                pluginsIni["hiscore"] = "0";
+
+            pluginsIni.Save();
         }
     }
 
