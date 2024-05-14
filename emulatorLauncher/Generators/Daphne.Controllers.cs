@@ -12,8 +12,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            if (!this.Controllers.Any(c => !c.IsKeyboard))
-                return;
+            //if (!this.Controllers.Any(c => !c.IsKeyboard))
+            //    return;
 
             string iniFile = Path.Combine(path, "hypinput.ini");
 
@@ -56,9 +56,21 @@ namespace EmulatorLauncher
                     ini.WriteValue("KEYBOARD", "KEY_PAUSE", "SDLK_p 0 0");
                     ini.WriteValue("KEYBOARD", "KEY_CONSOLE", "SDLK_BACKSLASH 0 0");
                     ini.WriteValue("KEYBOARD", "KEY_TILT", "SDLK_t 0 0");
+                    ini.Save();
                 }
                 catch { }
             }
+
+            string lastLine = File.ReadLines(iniFile).LastOrDefault();
+
+            if (lastLine != null && lastLine.Trim().Equals("END"))
+                return;
+
+            using (StreamWriter sw = File.AppendText(iniFile))
+            {
+                sw.WriteLine("END");
+            }
+
         }
 
         private static string GetInputKeyName(Controller c, InputKey key)
