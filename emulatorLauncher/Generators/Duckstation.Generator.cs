@@ -261,7 +261,7 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                         ini.WriteValue("GPU", "Renderer", SystemConfig["gfxbackend"]);
                     else if (Features.IsSupported("gfxbackend"))
-                        ini.WriteValue("GPU", "Renderer", "Vulkan");
+                        ini.WriteValue("GPU", "Renderer", "Automatic");
 
                     if (SystemConfig.isOptSet("Texture_Enhancement") && !string.IsNullOrEmpty(SystemConfig["Texture_Enhancement"]))
                         ini.WriteValue("GPU", "TextureFilter", SystemConfig["Texture_Enhancement"]);
@@ -361,15 +361,25 @@ namespace EmulatorLauncher
                         ini.WriteValue("Display", "ShowGPU", "false");
                     }
 
-                    if (SystemConfig["shaderset"] == "none" && SystemConfig.isOptSet("duck_shaders") && !string.IsNullOrEmpty(SystemConfig["duck_shaders"]))
+                    // Internal shaders
+                    // First delete existing shaders
+
+                    for (int i = 1; i <= 8; i++)
                     {
-                        ini.WriteValue("Display", "PostProcessing", "true");
-                        ini.WriteValue("Display", "PostProcessChain", SystemConfig["duck_shaders"].Replace("_", "/"));
+                        string section = "PostProcessing/Stage" + i;
+                        ini.ClearSection(section);
+                    }
+
+                    if (SystemConfig.isOptSet("duck_shaders") && !string.IsNullOrEmpty(SystemConfig["duck_shaders"]))
+                    {
+                        ini.WriteValue("PostProcessing", "Enabled", "true");
+                        ini.WriteValue("PostProcessing", "StageCount", "1");
+                        ini.WriteValue("PostProcessing/Stage1", "ShaderName", SystemConfig["duck_shaders"].Replace("_", "/"));
                     }
                     else
                     {
-                        ini.WriteValue("Display", "PostProcessing", "false");
-                        ini.WriteValue("Display", "PostProcessChain", "");
+                        ini.WriteValue("PostProcessing", "Enabled", "false");
+                        ini.WriteValue("PostProcessing", "StageCount", "0");
                     }
 
                     if (SystemConfig.isOptSet("duckstation_osd_enabled") && !SystemConfig.getOptBoolean("duckstation_osd_enabled"))
