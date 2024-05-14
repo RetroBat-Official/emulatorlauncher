@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows.Forms;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
@@ -1085,7 +1086,7 @@ namespace EmulatorLauncher
                 ini.AppendValue("GameList", "RecursivePaths", romPath);
         }
         #endregion
-        
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             int ret = 0;
@@ -1161,6 +1162,11 @@ namespace EmulatorLauncher
                     continue;
 
                 User32.SetWindowPos(hWnd, IntPtr.Zero, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP.ASYNCWINDOWPOS);
+                if (SystemConfig["pcsx2_crosshair"] == "disabled")
+                {
+                    Thread.Sleep(500);
+                    User32.ShowWindow(hWnd, SW.SHOWMAXIMIZED);
+                }
                 break;
             }
             return process;
