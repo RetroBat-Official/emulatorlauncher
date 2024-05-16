@@ -8,7 +8,7 @@ using System;
 
 namespace EmulatorLauncher
 {
-    class BigPEmuGenerator : Generator
+    partial class BigPEmuGenerator : Generator
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -163,6 +163,8 @@ namespace EmulatorLauncher
                     bigpemucore["ScreenEffect"] = SystemConfig["bigpemu_shader"];
                 else
                     bigpemucore["ScreenEffect"] = "";
+
+                ConfigureControllers(bigpemucore);
 
                 //save
                 json.Save();
