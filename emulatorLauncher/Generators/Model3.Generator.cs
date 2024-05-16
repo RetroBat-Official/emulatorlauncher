@@ -42,7 +42,7 @@ namespace EmulatorLauncher
             bool wideScreen = SystemConfig["widescreen"] == "1" || SystemConfig["widescreen"] == "2" || (!SystemConfig.isOptSet("widescreen") && isWideScreen);
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            if (fullscreen)
+            if ((fullscreen && !SystemConfig.isOptSet("videomode")) || SystemConfig.getOptBoolean("forcefullscreen"))
                 commandArray.Add("-fullscreen");
 
             if (wideScreen)
@@ -155,10 +155,17 @@ namespace EmulatorLauncher
                     using (IniFile ini = new IniFile(iniPath, IniOptions.UseSpaces))
                     {
                         //Fullscreen and widescreen values (should we keep these as commandline take precedent ?
-                        if (fullscreen)
+                        ini.WriteValue(" Global ", "BorderlessWindow", "True");
+                        if ((fullscreen && !SystemConfig.isOptSet("videomode")) || SystemConfig.getOptBoolean("forcefullscreen"))
                             ini.WriteValue(" Global ", "FullScreen", "1");
                         else
+                        {
                             ini.WriteValue(" Global ", "FullScreen", "0");
+                            ini.WriteValue(" Global ", "XResolution", _resolution == null ? Screen.PrimaryScreen.Bounds.Width.ToString() : _resolution.Width.ToString());
+                            ini.WriteValue(" Global ", "YResolution", _resolution == null ? Screen.PrimaryScreen.Bounds.Height.ToString() : _resolution.Height.ToString());
+                            ini.WriteValue(" Global ", "WindowXPosition", "0");
+                            ini.WriteValue(" Global ", "WindowYPosition", "0");
+                        }
 
                         ini.WriteValue(" Global ", "WideScreen", wideScreen ? "1" : "0");
 
