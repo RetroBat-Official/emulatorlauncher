@@ -69,6 +69,7 @@ namespace EmulatorLauncher.Libretro
                 { "emux_gb", "Emux GB" },
                 { "emux_nes", "Emux NES" },
                 { "emux_sms", "Emux SMS" },
+                { "fake08", "fake-08" },
                 { "fbalpha2012_cps1", "FB Alpha 2012 CPS-1" },
                 { "fbalpha2012_cps2", "FB Alpha 2012 CPS-2" },
                 { "fbalpha2012_cps3", "FB Alpha 2012 CPS-3" },
@@ -310,6 +311,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureDoublecherrygb(retroarchConfig, coreSettings, system, core);
             Configureecwolf(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
+            ConfigureFake08(retroarchConfig, coreSettings, system, core);
             ConfigureFbalpha(retroarchConfig, coreSettings, system, core);
             ConfigureFbalpha2012(retroarchConfig, coreSettings, system, core);
             ConfigureFbalpha2012Neogeo(retroarchConfig, coreSettings, system, core);
@@ -369,6 +371,7 @@ namespace EmulatorLauncher.Libretro
             ConfigurePX68k(retroarchConfig, coreSettings, system, core);
             ConfigureQuasi88(retroarchConfig, coreSettings, system, core);
             ConfigureRace(retroarchConfig, coreSettings, system, core);
+            ConfigureRetro8(retroarchConfig, coreSettings, system, core);
             ConfigureSameBoy(retroarchConfig, coreSettings, system, core);
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
@@ -1028,6 +1031,16 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "emuscv_palette", "emuscv_palette", "AUTO");
             BindFeature(coreSettings, "emuscv_pixelaspect", "emuscv_pixelaspect", "AUTO");
             BindFeature(coreSettings, "emuscv_resolution", "emuscv_resolution", "AUTO");
+        }
+
+        private void ConfigureFake08(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "fake08")
+                return;
+
+            string rom = SystemConfig["rom"];
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".png")
+                retroarchConfig["builtin_imageviewer_enable"] = "false";
         }
 
         private void ConfigureFbalpha(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -3552,6 +3565,16 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "race_language", "race_language", "english");
+        }
+
+        private void ConfigureRetro8(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "retro8")
+                return;
+
+            string rom = SystemConfig["rom"];
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".png")
+                retroarchConfig["builtin_imageviewer_enable"] = "false";
         }
 
         private void ConfigureSameBoy(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
