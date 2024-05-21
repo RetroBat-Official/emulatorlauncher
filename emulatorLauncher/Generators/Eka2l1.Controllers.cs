@@ -29,7 +29,7 @@ namespace EmulatorLauncher
             if (controller.Config == null)
                 return;
 
-            string index = controller.DirectInput != null ? controller.DirectInput.DeviceIndex.ToString() : controller.DeviceIndex.ToString();
+            string index = controller.DeviceIndex.ToString();
 
             if (SystemConfig.isOptSet("eka2l1_controllerindex") && !string.IsNullOrEmpty(SystemConfig["eka2l1_controllerindex"]))
                 index = SystemConfig["eka2l1_controllerindex"];
