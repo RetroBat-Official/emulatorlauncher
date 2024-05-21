@@ -305,6 +305,7 @@ namespace EmulatorLauncher
             if (!SystemConfig.getOptBoolean("use_guns"))
             {
                 ini.WriteValue("inputs", "snes_p2_type", "\"" + "Gamepad" + "\"");
+                ini.WriteValue("inputs", "nes_p2_type", "\"" + "Gamepad" + "\"");
                 return;
             }
 
@@ -319,6 +320,15 @@ namespace EmulatorLauncher
                 ini.WriteValue("inputs.snes_super_scope", "fire", "\"" + "MouseLeft" + "\"");
                 ini.WriteValue("inputs.snes_super_scope", "cursor", "\"" + "MouseRight" + "\"");
                 ini.WriteValue("inputs.snes_super_scope", "pause", "\"" + "MouseMiddle" + "\"");
+                return;
+            }
+
+            if (jgenSystem == "nes")
+            {
+                ini.WriteValue("inputs", "nes_p2_type", "\"" + "Zapper" + "\"");
+
+                ini.WriteValue("inputs.nes_zapper", "fire", "\"" + "MouseLeft" + "\"");
+                ini.WriteValue("inputs.nes_zapper", "force_offscreen", "\"" + "MouseRight" + "\"");
             }
         }
 
