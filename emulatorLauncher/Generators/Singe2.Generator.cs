@@ -87,6 +87,8 @@ namespace EmulatorLauncher
             if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
 
+            _resolution = resolution;
+
             // Define command line arguments
             List<string> commandArray = new List<string>()
             {
@@ -320,61 +322,89 @@ namespace EmulatorLauncher
                 return false;
         }
 
-        private readonly string[] excludeList = { "globals", "hscore", "main", "map", "service", "toolbox" };
-
         private bool TryToFindVideoAndScriptPaths(string rom)
         {
             bool foundScript = false;
             bool foundVideo = false;
-            string videoFolder = Path.Combine(rom, "video");
-            string scriptsFolder = Path.Combine(rom, "Script");
-            string firstChar = Path.GetFileNameWithoutExtension(rom).Substring(0, 1);
+            string[] videoFolders = { Path.Combine(rom, "video"), Path.Combine(rom, "Video") };
+            string[] scriptFolders = { Path.Combine(rom, "script"), Path.Combine(rom, "Script"), Path.Combine(rom, "Scripts"), Path.Combine(rom, "scripts") };
+            string[] videoExtensions = { ".mp4", ".m2v" };
+            string videoFolder = null;
+            string scriptFolder = null;
+            List<string> singeScripts = new List<string>() { "addons", "globals", "hscore", "main", "map", "save", "service", "toolbox"};
+            string romBeginning = Path.GetFileNameWithoutExtension(rom).Substring(0, 2);
 
-            if (!Directory.Exists(videoFolder) || !Directory.Exists(scriptsFolder))
-                return false;
+            // Video file
+            bool videoFolderExists = false;
 
-            // Get video file
-            string[] videoFiles = Directory.GetFiles(videoFolder, "*.mp4");
-            if (videoFiles.Length == 0)
+            foreach (string folder in videoFolders)
             {
-                SimpleLogger.Instance.Info("[Generator] No video files found in 'video' folder.");
-                return false;
-            }
-            else
-            {
-                var filteredVideoFiles = videoFiles.Where(file => Path.GetFileNameWithoutExtension(file).Substring(0, 1) == firstChar).ToArray();
-
-                if (filteredVideoFiles.Length == 0)
+                if (Directory.Exists(folder))
                 {
-                    SimpleLogger.Instance.Info("[Generator] No video files found in 'video' folder that match the first character of the rom.");
-                    return false;
+                    videoFolder = folder;
+                    videoFolderExists = true;
+                    break;
+                }
+            }
+
+            if (videoFolderExists)
+            {
+                var files = Directory.GetFiles(videoFolder).Where(file => videoExtensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)).ToList();
+
+                if (files.Any())
+                {
+                    _videoFile = files.First();
+                    foundVideo = true;
                 }
                 else
                 {
-                    _videoFile = filteredVideoFiles[0];
+                    SimpleLogger.Instance.Info("[Generator] No video files found in 'video' folder.");
+                    return false;
+                }
+            }
+            else
+            {
+                var files = Directory.GetFiles(rom).Where(file => videoExtensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)).ToList();
+                if (files.Any())
+                {
+                    _videoFile = files.First();
                     foundVideo = true;
+                }
+                else
+                {
+                    SimpleLogger.Instance.Info("[Generator] No video files found in game folder.");
+                    return false;
                 }
             }
 
             // Get script file
-            string[] scriptFiles = Directory.GetFiles(scriptsFolder, "*.singe");
-            if (scriptFiles.Length == 0)
-            {
-                SimpleLogger.Instance.Info("[Generator] No script files found in 'Script' folder.");
-                return false;
-            }
-            else
-            {
-                var filteredScriptFiles = scriptFiles.Where(file => !excludeList.Any(excludeItem => Path.GetFileNameWithoutExtension(file).Equals(excludeItem, StringComparison.OrdinalIgnoreCase)) && Path.GetFileNameWithoutExtension(file).Substring(0, 1) == firstChar).ToArray();
+            bool scriptFolderExists = false;
 
-                if (filteredScriptFiles.Length == 0)
+            foreach (string folder in scriptFolders)
+            {
+                if (Directory.Exists(folder))
                 {
-                    SimpleLogger.Instance.Info("[Generator] No script files found in 'Script' folder that match the first character of the rom.");
-                    return false;
+                    scriptFolder = folder;
+                    scriptFolderExists = true;
+                    break;
                 }
-                else
+            }
+
+            var singeFiles = Directory.GetFiles(rom).Where(file => file.EndsWith("singe", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (singeFiles.Any())
+            {
+                _singeFile = singeFiles.First();
+                foundScript = true;
+            }
+
+            else if (scriptFolderExists)
+            {
+                var scriptFiles = Directory.GetFiles(scriptFolder, "*.singe").Where(file => !singeScripts.Contains(Path.GetFileNameWithoutExtension(file)) && Path.GetFileNameWithoutExtension(file).StartsWith(romBeginning)).ToList();
+
+                if (scriptFiles.Any())
                 {
-                    _singeFile = filteredScriptFiles[0];
+                    _singeFile = scriptFiles.First();
                     foundScript = true;
                 }
             }
