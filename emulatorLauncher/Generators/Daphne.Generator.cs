@@ -160,6 +160,9 @@ namespace EmulatorLauncher
                 if (directoryName == "actionmax")
                     directoryName = Path.ChangeExtension(directoryName, ".daphne");
 
+                if (directoryName.EndsWith(".singe"))
+                    directoryName = directoryName.Replace(".singe", ".daphne");
+
                 _symLink = Path.Combine(emulatorPath, directoryName);
 
                 try
