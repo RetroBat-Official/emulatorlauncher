@@ -160,6 +160,9 @@ namespace EmulatorLauncher
                 if (directoryName == "actionmax")
                     directoryName = Path.ChangeExtension(directoryName, ".daphne");
 
+                if (directoryName.EndsWith(".singe"))
+                    directoryName = directoryName.Replace(".singe", ".daphne");
+
                 _symLink = Path.Combine(emulatorPath, directoryName);
 
                 try
@@ -206,6 +209,13 @@ namespace EmulatorLauncher
 
             if (fullscreen)
                 commandArray.Add("-fullscreen");
+
+            /* 
+            In future we can use -gamepad to use SDL codes for controller settings, however this does not currently allow to specify the controller index...
+            It will also need modification of daphne.controllers.cs with SDL codes instead of dinput numbers
+            if (this.Controllers.Any(c => !c.IsKeyboard))
+                commandArray.Add("-gamepad");
+            */
 
             commandArray.Add("-x");
             commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
