@@ -151,7 +151,7 @@ namespace EmulatorLauncher
         /// </summary> 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            return PadToKey.AddOrUpdateKeyMapping(mapping, "xemu", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "xemu", InputKey.hotkey | InputKey.start, "(%{CLOSE})");
         }
 
         /// <summary>
