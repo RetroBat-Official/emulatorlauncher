@@ -20,7 +20,10 @@ namespace EmulatorLauncher
         {
             string path = AppConfig.GetFullPath(emulator);
 
-            string exe = Path.Combine(path, "lime-qt.exe");
+            string exe = Path.Combine(path, "lime3ds-gui.exe");
+            if (!File.Exists(exe))
+                exe = Path.Combine(path, "lime3ds-qt.exe");
+
             if (!File.Exists(exe))
                 return null;
 
