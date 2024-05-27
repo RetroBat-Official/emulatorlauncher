@@ -1342,35 +1342,61 @@ namespace EmulatorLauncher.Libretro
             if (core != "fceumm")
                 return;
 
-            if (Features.IsSupported("fceumm_cropoverscan"))
+            if (SystemConfig.isOptSet("fceumm_cropoverscan") && !string.IsNullOrEmpty(SystemConfig["fceumm_cropoverscan"]))
             {
-                if (SystemConfig.isOptSet("fceumm_cropoverscan") && SystemConfig["fceumm_cropoverscan"] == "none")
+                if (SystemConfig["fceumm_cropoverscan"] == "none")
                 {
-                    coreSettings["fceumm_overscan_h"] = "disabled";
-                    coreSettings["fceumm_overscan_v"] = "disabled";
+                    coreSettings["fceumm_overscan_h_left"] = "0";
+                    coreSettings["fceumm_overscan_h_right"] = "0";
+                    coreSettings["fceumm_overscan_v_top"] = "0";
+                    coreSettings["fceumm_overscan_v_bottom"] = "0";
                 }
-                else if (SystemConfig.isOptSet("fceumm_cropoverscan") && SystemConfig["fceumm_cropoverscan"] == "h")
+
+                else if (SystemConfig["fceumm_cropoverscan"] == "core_default")
                 {
-                    coreSettings["fceumm_overscan_h"] = "enabled";
-                    coreSettings["fceumm_overscan_v"] = "disabled";
+                    coreSettings["fceumm_overscan_h_left"] = "0";
+                    coreSettings["fceumm_overscan_h_right"] = "0";
+                    coreSettings["fceumm_overscan_v_top"] = "8";
+                    coreSettings["fceumm_overscan_v_bottom"] = "8";
                 }
-                else if (SystemConfig.isOptSet("fceumm_cropoverscan") && SystemConfig["fceumm_cropoverscan"] == "v")
-                {
-                    coreSettings["fceumm_overscan_h"] = "disabled";
-                    coreSettings["fceumm_overscan_v"] = "enabled";
-                }
+
                 else
                 {
-                    coreSettings["fceumm_overscan_h"] = "enabled";
-                    coreSettings["fceumm_overscan_v"] = "enabled";
+                    string[] overscans = SystemConfig["fceumm_cropoverscan"].Split('_');
+                    string overscanType = overscans[0];
+                    string overscanValue = overscans[1];
+
+                    if (overscanType == "h")
+                    {
+                        coreSettings["fceumm_overscan_h_left"] = overscanValue;
+                        coreSettings["fceumm_overscan_h_right"] = overscanValue;
+                        coreSettings["fceumm_overscan_v_top"] = "0";
+                        coreSettings["fceumm_overscan_v_bottom"] = "0";
+                    }
+                    else if (overscanType == "v")
+                        {
+                        coreSettings["fceumm_overscan_h_left"] = "0";
+                        coreSettings["fceumm_overscan_h_right"] = "0";
+                        coreSettings["fceumm_overscan_v_top"] = overscanValue;
+                        coreSettings["fceumm_overscan_v_bottom"] = overscanValue;
+                    }
+                    else if (overscanType == "both")
+                    {
+                        coreSettings["fceumm_overscan_h_left"] = overscanValue;
+                        coreSettings["fceumm_overscan_h_right"] = overscanValue;
+                        coreSettings["fceumm_overscan_v_top"] = overscanValue;
+                        coreSettings["fceumm_overscan_v_bottom"] = overscanValue;
+                    }
                 }
             }
 
+            BindFeature(coreSettings, "fceumm_aspect", "fceumm_aspect", "8:7 PAR");
+            BindFeature(coreSettings, "fceumm_turbo_enable", "fceumm_turbo_enable", "None");
             BindFeature(coreSettings, "fceumm_palette", "fceumm_palette", "default");
             BindFeature(coreSettings, "fceumm_ntsc_filter", "fceumm_ntsc_filter", "disabled");
             BindFeature(coreSettings, "fceumm_sndquality", "fceumm_sndquality", "Low");
             BindFeature(coreSettings, "fceumm_overclocking", "fceumm_overclocking", "disabled");
-            BindFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "enabled");
+            BindFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "disabled");
             BindFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled");
             BindFeature(coreSettings, "fceumm_zapper_mode", "gun_input", "clightgun");
 
@@ -2391,8 +2417,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "mesen")
                 return;
 
-            coreSettings["mesen_aspect_ratio"] = "Auto";
-
+            BindFeature(coreSettings, "mesen_aspect_ratio", "mesen_aspect_ratio", "Auto");
             BindFeature(coreSettings, "mesen_hdpacks", "hd_packs", "disabled");
             BindFeature(coreSettings, "mesen_ntsc_filter", "ntsc_filter", "Disabled");
             BindFeature(coreSettings, "mesen_palette", "palette", "Default");
@@ -2402,6 +2427,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mesen_overclock", "mesen_overclock", "None");
             BindBoolFeature(coreSettings, "mesen_fdsautoinsertdisk", "mesen_fdsautoinsertdisk", "enabled", "disabled");
             BindBoolFeature(coreSettings, "mesen_fdsfastforwardload", "mesen_fdsfastforwardload", "enabled", "disabled");
+            BindFeature(coreSettings, "mesen_controllerturbospeed", "mesen_nes_turbo", "Disabled");
 
             bool overscan = SystemConfig.isOptSet("mesen_overscan_pixels") && !string.IsNullOrEmpty(SystemConfig["mesen_overscan_pixels"]);
 
