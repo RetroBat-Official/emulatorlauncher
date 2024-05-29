@@ -31,12 +31,6 @@ namespace EmulatorLauncher
             string exe = Path.Combine(_path, _exeName);
             if (!File.Exists(exe))
                 return null;
-            
-            _resolution = resolution;
-
-            List<string> commandArray = new List<string>();
-
-            ConfigurePort(commandArray, rom, exe);
 
             if (systemBezels.ContainsKey(emulator) && systemBezels[emulator] != "no")
             {
@@ -52,6 +46,12 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+
+            _resolution = resolution;
+
+            List<string> commandArray = new List<string>();
+
+            ConfigurePort(commandArray, rom, exe);
 
             string args = null;
             if (commandArray.Count > 0)
@@ -71,6 +71,7 @@ namespace EmulatorLauncher
             { "sonicmania", "RSDKv5U_x64.exe"},
             { "sonicretro", "RSDKv4_64.exe"},
             { "sonicretrocd", "RSDKv3_64.exe"},
+            { "opengoal", "gk.exe"},
         };
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
@@ -79,6 +80,7 @@ namespace EmulatorLauncher
             { "sonicmania", "no"},
             { "sonicretro", "no"},
             { "sonicretrocd", "no"},
+            { "opengoal", "yes"},
         };
 
         public override int RunAndWait(ProcessStartInfo path)
