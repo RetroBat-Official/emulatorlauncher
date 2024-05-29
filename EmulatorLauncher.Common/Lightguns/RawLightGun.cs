@@ -64,6 +64,10 @@ namespace EmulatorLauncher.Common.Lightguns
                 string[] mayFlashWiimoteIds = new string[] { "VID_0079&PID_1802" };  // Mayflash Wiimote, using mode 1
                 if (mayFlashWiimoteIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.MayFlashWiimote;
+
+                string[] retroShooterIds = new string[] { "VID_0483&PID_5750", "VID_0483&PID_5751" };
+                if (retroShooterIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.RetroShooter;
             }
 
             return RawLighGunType.Mouse;
@@ -101,33 +105,41 @@ namespace EmulatorLauncher.Common.Lightguns
             {
                 case RawLighGunType.Gun4Ir:
                     if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8042"))
-                        return 1;
+                        return 10;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8043"))
-                        return 2;
+                        return 11;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8044"))
-                        return 3;
+                        return 12;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8045"))
-                        return 4;
+                        return 13;
                     else
-                        return 5 + Index;
+                        return 14 + Index;
 
                 case RawLighGunType.SindenLightgun:
-                    return 20 + Index;
+                    return 50 + Index;
+
+                case RawLighGunType.RetroShooter:
+                    if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5750"))
+                        return 100;
+                    else if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5751"))
+                        return 101;
+                    else
+                        return 102 + Index;
 
                 case RawLighGunType.MayFlashWiimote:
-                    return 100 + Index;
+                    return 200 + Index;
 
                 default:
                     if (Name != null && Name.IndexOf("lightgun", StringComparison.InvariantCultureIgnoreCase) >= 0)
-                        return 200 + Index;
-
-                    if (Name != null && Name.IndexOf("wiimote", StringComparison.InvariantCultureIgnoreCase) >= 0)
                         return 300 + Index;
 
+                    if (Name != null && Name.IndexOf("wiimote", StringComparison.InvariantCultureIgnoreCase) >= 0)
+                        return 400 + Index;
+                    
                     break;
             }
 
-            return 10000 + Index;
+            return 1000 + Index;
         }
 
         public override string ToString()
@@ -136,11 +148,13 @@ namespace EmulatorLauncher.Common.Lightguns
         }
     }
 
+    // When adding new type, don't forget about MAME64 vidpid forcing
     public enum RawLighGunType
     {
         SindenLightgun,
         MayFlashWiimote, // Using mode 1
         Gun4Ir,
+        RetroShooter,
         Mouse
     }
 }

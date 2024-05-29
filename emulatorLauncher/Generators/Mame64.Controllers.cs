@@ -132,6 +132,24 @@ namespace EmulatorLauncher
                 return true;
             }
 
+            else if (guns[0] != null && guns[0].Type == RawLighGunType.RetroShooter && SystemConfig["mame_gun_config"] == "retroshooter")
+            {
+                bool multiRetroshooters = guns[1] != null && guns[1].Type == RawLighGunType.RetroShooter;
+                ConfigureLightguns(input, RawLighGunType.RetroShooter, multiRetroshooters, hbmame);
+
+                XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
+                xdocgun.Add(mameconfig);
+                mameconfig.Add(system);
+                system.Add(input);
+
+                xdocgun.Save(inputConfig);
+
+                if (!File.Exists(inputConfig))
+                    return false;
+
+                return true;
+            }
+
             // Generate controller mapping
             foreach (var controller in mameControllers)
             {
@@ -1335,6 +1353,8 @@ namespace EmulatorLauncher
                 input.Add(new XElement("mapdevice", new XAttribute("device", "VID_16C0&PID_0F38"), new XAttribute("controller", "GUNCODE_1")));
                 input.Add(new XElement("mapdevice", new XAttribute("device", "VID_16C0&PID_0F01"), new XAttribute("controller", "GUNCODE_1")));
             }
+            else if (lightgunType == RawLighGunType.RetroShooter)
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_0483&PID_5750"), new XAttribute("controller", "GUNCODE_1")));
 
             if (multi && lightgunType == RawLighGunType.Gun4Ir)
                 input.Add(new XElement("mapdevice", new XAttribute("device", "VID_2341&PID_8043"), new XAttribute("controller", "GUNCODE_2")));
@@ -1343,6 +1363,8 @@ namespace EmulatorLauncher
                 input.Add(new XElement("mapdevice", new XAttribute("device", "VID_16C0&PID_0F39"), new XAttribute("controller", "GUNCODE_2")));
                 input.Add(new XElement("mapdevice", new XAttribute("device", "VID_16C0&PID_0F02"), new XAttribute("controller", "GUNCODE_2")));
             }
+            else if (multi && lightgunType == RawLighGunType.RetroShooter)
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_0483&PID_5751"), new XAttribute("controller", "GUNCODE_2")));
 
             if (hbmame)
             {
