@@ -5,6 +5,7 @@ using System.IO;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -53,8 +54,12 @@ namespace EmulatorLauncher
             //create new input_config section
             var input_configs = new List<DynamicJson>();
 
+            int maxPad = 8;
+            if (SystemConfig.isOptSet("ryujinx_maxcontrollers") && !string.IsNullOrEmpty(SystemConfig["ryujinx_maxcontrollers"]))
+                maxPad = SystemConfig["ryujinx_maxcontrollers"].ToInteger();
+
             //loop controllers
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(json, controller, input_configs);
         }
 
