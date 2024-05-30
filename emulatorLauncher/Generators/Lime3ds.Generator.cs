@@ -15,6 +15,8 @@ namespace EmulatorLauncher
         }
 
         private SdlVersion _sdlVersion = SdlVersion.SDL2_30;
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -42,6 +44,9 @@ namespace EmulatorLauncher
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
             SetupConfigurationLime3ds(path, fullscreen);
+
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _resolution = resolution;
 
             List<string> commandArray = new List<string>();
             if (fullscreen)
@@ -291,6 +296,23 @@ namespace EmulatorLauncher
             }
 
             return 1;
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            bezel?.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
     }
 }
