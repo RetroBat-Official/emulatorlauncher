@@ -107,7 +107,7 @@ namespace EmulatorLauncher
                 SetupiniConfiguration(path, eepromPath, hddPath, flashPath, bootRom, rom);
 
                 // Save to new TOML format
-                SetupTOMLConfiguration(path, eepromPath, hddPath, flashPath, bootRom);
+                SetupTOMLConfiguration(path, system, eepromPath, hddPath, bootRom);
                 
             }
             catch { }
@@ -191,7 +191,7 @@ namespace EmulatorLauncher
         /// <param name="hddPath"></param>
         /// <param name="flashPath"></param>
         /// <param name="bootRom"></param>
-        private void SetupTOMLConfiguration(string path, string eepromPath, string hddPath, string flashPath, string bootRom)
+        private void SetupTOMLConfiguration(string path, string system, string eepromPath, string hddPath, string bootRom)
         {
             using (IniFile ini = new IniFile(Path.Combine(path, "xemu.toml"), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
             {
@@ -262,8 +262,11 @@ namespace EmulatorLauncher
                 if (!string.IsNullOrEmpty(hddPath))
                     ini.WriteValue("sys.files", "hdd_path", "'" + hddPath + "'");
 
-                if (!string.IsNullOrEmpty(flashPath))
-                    ini.WriteValue("sys.files", "flashrom_path", "'" + flashPath + "'");
+                string flashromPath = Path.Combine(AppConfig.GetFullPath("bios"));
+                if (SystemConfig.isOptSet("xemu_flashrom") && !string.IsNullOrEmpty(SystemConfig["xemu_flashrom"]))
+                    ini.WriteValue("sys.files", "flashrom_path", "'" + Path.Combine(flashromPath, SystemConfig["xemu_flashrom"] + "'"));
+                else
+                    ini.WriteValue("sys.files", "flashrom_path", system == "chihiro" ? "'" + Path.Combine(flashromPath, "Cerbios.bin") + "'" : "'" + Path.Combine(flashromPath, "Complex_4627.bin") + "'");
 
                 if (!string.IsNullOrEmpty(bootRom))
                     ini.WriteValue("sys.files", "bootrom_path", "'" + bootRom + "'");
