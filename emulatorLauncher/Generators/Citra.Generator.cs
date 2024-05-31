@@ -43,7 +43,7 @@ namespace EmulatorLauncher
 
             SetupConfigurationCitra(path, fullscreen);
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
 
             List<string> commandArray = new List<string>();
@@ -174,12 +174,12 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("citra_layout_option"))
+                if (Features.IsSupported("citraqt_layout_option"))
                 {
-                    if (SystemConfig.isOptSet("citra_layout_option"))
+                    if (SystemConfig.isOptSet("citraqt_layout_option"))
                     {
                         ini.WriteValue("Layout", "layout_option\\default", "false");
-                        ini.WriteValue("Layout", "layout_option", SystemConfig["citra_layout_option"]);
+                        ini.WriteValue("Layout", "layout_option", SystemConfig["citraqt_layout_option"]);
                     }
                     else
                     {

@@ -45,7 +45,7 @@ namespace EmulatorLauncher
 
             SetupConfigurationLime3ds(path, fullscreen);
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
 
             List<string> commandArray = new List<string>();
