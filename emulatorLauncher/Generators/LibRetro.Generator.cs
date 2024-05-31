@@ -917,7 +917,7 @@ namespace EmulatorLauncher.Libretro
             if (systemName == "wii" && (!SystemConfig.isOptSet("ratio")))
                 return;
 
-            var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution);
+            var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution, "libretro");
             if (bezelInfo == null)
                 return;
 

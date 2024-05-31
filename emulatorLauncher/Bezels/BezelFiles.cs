@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.FileFormats;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
@@ -196,9 +197,31 @@ namespace EmulatorLauncher
             return false;
         }
 
-        private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName, string perGameSystem)
+        private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName, string perGameSystem, string emulator)
         {
+            List<string> n3dsEmulators = new List<string> () { "citra", "citra-canary", "libretro", "lime3ds" };
             string indexedRomName = romName.AsIndexedRomName();
+
+            // specific case for 3ds (depending on layout)
+            if (systemName == "3ds" && n3dsEmulators.Contains(emulator))
+            {
+                switch (emulator)
+                {
+                    case "citra":
+                    case "citra-canary":
+                        if (Program.SystemConfig.isOptSet("citraqt_layout_option") && Program.SystemConfig["citraqt_layout_option"] == "3")
+                            systemName = "3ds_side_by_side";
+                        break;
+                    case "libretro":
+                        if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Side by Side")
+                            systemName = "3ds_side_by_side";
+                        break;
+                    case "lime3ds":
+                        if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "3")
+                            systemName = "3ds_side_by_side";
+                        break;
+                }
+            }
 
             foreach (var path in bezelPaths)
             {
@@ -261,7 +284,7 @@ namespace EmulatorLauncher
             return null;
         }
       
-        public static BezelFiles GetBezelFiles(string systemName, string rom, ScreenResolution resolution)
+        public static BezelFiles GetBezelFiles(string systemName, string rom, ScreenResolution resolution, string emulator = null)
         {
             if (systemName == null || rom == null)
                 return null;
@@ -322,7 +345,7 @@ namespace EmulatorLauncher
             if (systemName == "fbneo" && bezel == "thebezelproject" && Directory.Exists(Path.Combine(overlayUser, bezel, "games", "mame")) && !Directory.Exists(Path.Combine(overlayUser, bezel, "games", "fbneo")))
                 perGameSystem = "mame";
 
-            string overlay_png_file = FindBezel(overlayUser, overlaySystem, bezel, systemName, Path.GetFileNameWithoutExtension(rom), perGameSystem);
+            string overlay_png_file = FindBezel(overlayUser, overlaySystem, bezel, systemName, Path.GetFileNameWithoutExtension(rom), perGameSystem, emulator);
             if (string.IsNullOrEmpty(overlay_png_file))
             {
                 if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
