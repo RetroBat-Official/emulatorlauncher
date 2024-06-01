@@ -199,29 +199,10 @@ namespace EmulatorLauncher
 
         private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName, string perGameSystem, string emulator)
         {
-            List<string> n3dsEmulators = new List<string> () { "citra", "citra-canary", "libretro", "lime3ds" };
             string indexedRomName = romName.AsIndexedRomName();
 
-            // specific case for 3ds (depending on layout)
-            if (systemName == "3ds" && n3dsEmulators.Contains(emulator))
-            {
-                switch (emulator)
-                {
-                    case "citra":
-                    case "citra-canary":
-                        if (Program.SystemConfig.isOptSet("citraqt_layout_option") && Program.SystemConfig["citraqt_layout_option"] == "3")
-                            systemName = "3ds_side_by_side";
-                        break;
-                    case "libretro":
-                        if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Side by Side")
-                            systemName = "3ds_side_by_side";
-                        break;
-                    case "lime3ds":
-                        if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "3")
-                            systemName = "3ds_side_by_side";
-                        break;
-                }
-            }
+            // specific cases (eg for 3ds (depending on layout))
+            systemName = GetSpecificBezels(systemName, emulator);
 
             foreach (var path in bezelPaths)
             {
@@ -367,7 +348,38 @@ namespace EmulatorLauncher
 
             return ret;
         }
-        
+
+        private static string GetSpecificBezels(string system, string emulator)
+        {
+            if (system == "3ds")
+            {
+                switch (emulator)
+                {
+                    case "citra":
+                    case "citra-canary":
+                        if (Program.SystemConfig.isOptSet("citraqt_layout_option") && Program.SystemConfig["citraqt_layout_option"] == "3")
+                            return "3ds_side_by_side";
+                        else if (Program.SystemConfig.isOptSet("citraqt_layout_option") && Program.SystemConfig["citraqt_layout_option"] == "2")
+                            return "3ds_hybrid";
+                        break;
+                    case "libretro":
+                        if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Side by Side")
+                            return "3ds_side_by_side";
+                        else if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Large Screen, Small Screen")
+                            return "3ds_lr_hybrid";
+                        break;
+                    case "lime3ds":
+                        if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "3")
+                            return "3ds_side_by_side";
+                        else if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "2")
+                            return "3ds_hybrid";
+                        break;
+                }
+            }
+
+            return system;
+        }
+
         public static BezelFiles CreateSindenBorderBezel(BezelFiles input, ScreenResolution resolution = null)
         {
             if (input == null)
