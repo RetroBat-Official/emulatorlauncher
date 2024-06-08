@@ -337,7 +337,7 @@ namespace EmulatorLauncher.Common.FileFormats
 
             ConfigItem item;
             if (_data.TryGetValue(FormatKey(key), out item) && item != null)
-                return item.Value != null && (item.Value.ToLower() == "true" || item.Value == "1" || item.Value.ToLower() == "enabled");
+                return item.Value != null && (item.Value.ToLower() == "true" || item.Value == "1" || item.Value.ToLower() == "enabled" || item.Value.ToLower() == "on" || item.Value.ToLower() == "yes");
 
             return false;
         }
