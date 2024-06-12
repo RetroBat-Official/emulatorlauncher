@@ -89,18 +89,37 @@ namespace EmulatorLauncher
             // Reset hotkeys
             ResetHotkeysToDefault(pcsx2ini);
 
-            // Inject controllers                
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+            // Inject controllers
+            if (Controllers.Any(c => !c.IsKeyboard))
             {
-                int padSectionNumber = controller.PlayerIndex;
-                if (_multitap)
+                foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex))
                 {
-                    padSectionNumber = multitapPadNb[controller.PlayerIndex];
+                    int padSectionNumber = controller.PlayerIndex;
+                    if (_multitap)
+                    {
+                        padSectionNumber = multitapPadNb[controller.PlayerIndex];
+                    }
+
+                    string padNumber = "Pad" + padSectionNumber.ToString();
+
+                    ConfigureInput(pcsx2ini, controller, padNumber); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
                 }
+            }
 
-                string padNumber = "Pad" + padSectionNumber.ToString();
+            else
+            {
+                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+                {
+                    int padSectionNumber = controller.PlayerIndex;
+                    if (_multitap)
+                    {
+                        padSectionNumber = multitapPadNb[controller.PlayerIndex];
+                    }
 
-                ConfigureInput(pcsx2ini, controller, padNumber); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
+                    string padNumber = "Pad" + padSectionNumber.ToString();
+
+                    ConfigureInput(pcsx2ini, controller, padNumber); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
+                }
             }
         }
 
