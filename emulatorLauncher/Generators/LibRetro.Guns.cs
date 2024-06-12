@@ -387,7 +387,7 @@ namespace EmulatorLauncher.Libretro
                 {
                     int deviceIndex = guns[i - 1].Index; // i-1;
 
-                    SimpleLogger.Instance.Info("[LightGun] Assigned player " + i + " to -> " + guns[i-1].Name.ToString() + " index: " + guns[i-1].Index.ToString());
+                    SimpleLogger.Instance.Info("[LightGun core] Assigned player " + i + " to -> " + guns[i-1].Name.ToString() + " index: " + guns[i-1].Index.ToString());
 
                     retroarchConfig["input_libretro_device_p" + i] = deviceType;
                     retroarchConfig["input_player" + i + "_mouse_index"] = deviceIndex.ToString();
