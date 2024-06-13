@@ -60,9 +60,9 @@ namespace EmulatorLauncher
             if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.IsKeyboard)
+            if (controller.IsKeyboard && !Controllers.Any(c => !c.IsKeyboard))
                 ConfigureKeyboard(pref, systemSection, controller.Config, mesenSystem);
-            else
+            else if (!controller.IsKeyboard)
                 ConfigureJoystick(pref, systemSection, controller, mesenSystem);
         }
 
