@@ -125,7 +125,8 @@ namespace EmulatorLauncher
             { "opengoal", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() },
             { "jgenesis", () => new JgenesisGenerator() },
-            { "singe2", () => new Singe2Generator() }
+            { "singe2", () => new Singe2Generator() },
+            { "capriceforever", () => new CapriceForever() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
