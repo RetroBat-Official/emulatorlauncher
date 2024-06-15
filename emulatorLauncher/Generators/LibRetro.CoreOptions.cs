@@ -2183,18 +2183,18 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
 
-            if (SystemConfig.isOptSet("pce_2button") && SystemConfig.getOptBoolean("pce_2button"))
+            if (SystemConfig.isOptSet("pce_6button") && SystemConfig.getOptBoolean("pce_6button"))
             {
                 for (int i = 1; i < 6; i++)
                 {
-                    coreSettings["pce_default_joypad_type_p" + i] = "2 Buttons";
+                    coreSettings["pce_default_joypad_type_p" + i] = "6 Buttons";
                 }
             }
             else
             {
                 for (int i = 1; i < 6; i++)
                 {
-                    coreSettings["pce_default_joypad_type_p" + i] = "6 Buttons";
+                    coreSettings["pce_default_joypad_type_p" + i] = "2 Buttons";
                 }
             }
         }
@@ -2210,18 +2210,18 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
             
-            if (SystemConfig.isOptSet("pce_fast_2button") && SystemConfig.getOptBoolean("pce_fast_2button"))
+            if (SystemConfig.isOptSet("pce_fast_6button") && SystemConfig.getOptBoolean("pce_fast_6button"))
             {
                 for (int i = 1; i < 6; i++)
                 {
-                    coreSettings["pce_fast_default_joypad_type_p" + i] = "2 Buttons";
+                    coreSettings["pce_fast_default_joypad_type_p" + i] = "6 Buttons";
                 }
             }
             else
             {
                 for (int i = 1; i < 6; i++)
                 {
-                    coreSettings["pce_fast_default_joypad_type_p" + i] = "6 Buttons";
+                    coreSettings["pce_fast_default_joypad_type_p" + i] = "2 Buttons";
                 }
             }
         }

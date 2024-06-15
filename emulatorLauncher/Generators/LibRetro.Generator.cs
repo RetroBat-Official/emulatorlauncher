@@ -480,6 +480,11 @@ namespace EmulatorLauncher.Libretro
                 _video_driver = retroarchConfig["video_driver"];
                 retroarchConfig["video_driver"] = "d3d11";
             }
+            if (core.StartsWith("mupen64") && SystemConfig["RDP_Plugin"] == "parallel")
+            {
+                _video_driver = "vulkan";
+                retroarchConfig["video_driver"] = "vulkan";
+            }
 
             // Set default video driver per core
             if (!SystemConfig.isOptSet("video_driver") && defaultVideoDriver.ContainsKey(core))
