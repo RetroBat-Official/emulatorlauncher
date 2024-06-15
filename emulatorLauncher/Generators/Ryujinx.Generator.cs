@@ -114,6 +114,13 @@ namespace EmulatorLauncher
             BindFeature(json, "system_language", "switch_language", GetDefaultswitchLanguage());
             BindFeature(json, "enable_vsync", "vsync", "true");
             BindFeature(json, "enable_ptc", "enable_ptc", "true");
+
+            // internet access
+            if (SystemConfig.isOptSet("ryujinx_network") && SystemConfig["ryujinx_network"] == "internet")
+                json["enable_internet_access"] = "true";
+            else
+                json["enable_internet_access"] = "false";
+
             BindFeature(json, "enable_fs_integrity_checks", "enable_fs_integrity_checks", "true");
             BindFeature(json, "audio_backend", "audio_backend", "SDL2");
             BindFeature(json, "memory_manager_mode", "memory_manager_mode", "HostMappedUnsafe");
@@ -154,6 +161,25 @@ namespace EmulatorLauncher
             CreateControllerConfiguration(json);
 
             BindFeature(json, "graphics_backend", "backend", "Vulkan");
+
+            // Networking
+            if (SystemConfig.isOptSet("ryujinx_network") && !string.IsNullOrEmpty(SystemConfig["ryujinx_network"]))
+            {
+                string network = SystemConfig["ryujinx_network"];
+
+                switch(network)
+                {
+                    case "no":
+                        json["multiplayer_mode"] = "0";
+                        break;
+                    case "local":
+                    case "internet":
+                        json["multiplayer_mode"] = "1";
+                        break;
+                }
+            }
+            else
+                json["multiplayer_mode"] = "0";
 
             //save config file
             json.Save();
