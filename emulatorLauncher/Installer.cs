@@ -106,7 +106,8 @@ namespace EmulatorLauncher
             { new Installer("devilutionx", "devilutionx", "devilutionx.exe") },
             { new Installer("jgenesis", "jgenesis", "jgenesis-gui.exe") },
             { new Installer("singe2", "singe2", "Singe-v2.10-Windows-x86_64.exe") },
-            { new Installer("opengoal", "opengoal", "gk.exe") }
+            { new Installer("opengoal", "opengoal", "gk.exe") },
+            { new Installer("capriceforever", "capriceforever", "Caprice64.exe") }
         };
 
         static List<string>noVersionExe = new List<string>()

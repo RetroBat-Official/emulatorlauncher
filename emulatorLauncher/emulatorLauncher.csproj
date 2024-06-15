@@ -114,6 +114,10 @@
     <Compile Include="Generators\Bizhawk.Guns.cs">
       <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\CapriceForever.Generator.cs" />
+    <Compile Include="Generators\CapriceForever.Controllers.cs">
+      <DependentUpon>CapriceForever.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Cemu.Generator.cs" />
     <Compile Include="Generators\Cemu.Controllers.cs">
       <DependentUpon>Cemu.Generator.cs</DependentUpon>
