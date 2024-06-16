@@ -23,6 +23,7 @@ namespace EmulatorLauncher
         private bool _rxAxis = false;
         private bool _ryAxis = false;
         private bool _rzAxis = false;
+        private bool _gx4000;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -34,7 +35,9 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            string[] extensions = new string[] { ".m3u", ".dsk", ".tap" };
+            _gx4000 = system == "gx4000";
+
+            string[] extensions = new string[] { ".m3u", ".dsk", ".tap", ".cpr" };
             if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z")
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
@@ -81,16 +84,22 @@ namespace EmulatorLauncher
             else
                 driveBDisk = null;
 
+            if (Path.GetExtension(rom).ToLower() == ".cpr")
+                romType = "cart";
+
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             _resolution = resolution;
 
             SetupConfig(path, system, fullscreen, romType, driveADisk, driveBDisk, rom);
-            SetupDevice(path);
+            SetupDevice(path, system, rom, romType);
 
             string drive = "/DriveA=";
             if (SystemConfig.getOptBoolean("caprice_driveB"))
                 drive = "/DriveB=";
+
+            if (romType == "cart")
+                drive = "/Cartridge=";
 
             List<string> commandArray = new List<string>();
             commandArray.Add(drive + "\"" + rom + "\"");
@@ -105,7 +114,7 @@ namespace EmulatorLauncher
             // autorun file management
             string autorunFile = rom.Replace(Path.GetExtension(rom), ".autorun");
 
-            if (File.Exists(autorunFile))
+            if (File.Exists(autorunFile) && !_gx4000)
             {
                 var lines = File.ReadAllLines(autorunFile);
 
@@ -167,9 +176,9 @@ namespace EmulatorLauncher
                     ini.WriteValue("MainForm", "ControlPanelVisible", "1");
 
                     // Drives and autostart
-                    ini.WriteValue("Drives", "DriveADiskFilename", driveADisk);
+                    ini.WriteValue("Drives", "DriveADiskFilename", romType == "cart" ? null : driveADisk);
                     if (driveBDisk != null)
-                        ini.WriteValue("Drives", "DriveBDiskFilename", driveBDisk);
+                        ini.WriteValue("Drives", "DriveBDiskFilename", romType == "cart" ? null : driveBDisk);
                     else
                         ini.WriteValue("Drives", "DriveBDiskFilename", null);
 
@@ -186,10 +195,6 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Emulator", "FastLoading", "caprice_fastload", "0", "1");
                     BindBoolIniFeature(ini, "Emulator", "TurboFullSpeed", "caprice_turbo", "1", "0");
                     BindBoolIniFeature(ini, "Emulator", "ColorMonitor", "caprice_monochrome", "0", "1");
-
-                    string device = "CPC_6128_UK";
-                    if (SystemConfig.isOptSet("caprice_device") && !string.IsNullOrEmpty(SystemConfig["caprice_device"]))
-                        device = SystemConfig["caprice_device"];
 
                     ini.WriteValue("Emulator", "DeviceSettings", null);
 
@@ -235,7 +240,9 @@ namespace EmulatorLauncher
                     ini.WriteValue("Screenshot", "ScreenshotDirectory", screenshotPath);
                     ini.WriteValue("CheatScripts", "CheatScriptsDirectory", cheatsPath);
 
-                    ini.WriteValue("Roms", "CartridgesDirectory", "Cartridges\\");
+                    // Cartridges (gx4000)
+                    string cartFolder = Path.GetFullPath(rom).Replace(Path.GetFileName(rom), "");
+                    ini.WriteValue("Roms", "CartridgesDirectory", cartFolder);
 
                     // Keyboard as joystick
                     ini.WriteValue("Joystick Keyboard", "JoystickKey129", "38");
@@ -252,7 +259,7 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private void SetupDevice(string path)
+        private void SetupDevice(string path, string system, string rom, string romType)
         {
             string iniFile = Path.Combine(path, "Device.ini");
 
@@ -260,9 +267,13 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, IniOptions.KeepEmptyValues))
                 {
-                    BindIniFeature(ini, "Emulator", "Device", "caprice_device", "CPC_6128_UK");
+                    BindIniFeature(ini, "Emulator", "Device", "caprice_device", _gx4000? "PLUS_6128_UK" : "CPC_6128_UK");
                     BindIniFeature(ini, "Emulator", "Brand", "caprice_brand", "Amstrad");
                     BindIniFeature(ini, "Emulator", "CRTCType", "caprice_crtc", "0");
+                    
+                    if (_gx4000)
+                        ini.WriteValue("Emulator", "CRTCType", "3");
+
                     ini.WriteValue("Emulator", "FloppyDrive", "1");
                     BindIniFeature(ini, "Emulator", "256kMemoryExtension", "caprice_256k", "0");
 
@@ -375,8 +386,10 @@ namespace EmulatorLauncher
                     ini.WriteValue("Roms", "Multiface2Directory", "Roms\\Multiface 2\\");
                     ini.WriteValue("Roms", "XMEMDirectory", "Roms\\X-Mem\\");
                     ini.WriteValue("Roms", "XMemROM", "New X-Mem.xmem");
-                    ini.WriteValue("Roms", "UpperROM0", null);
-                    ini.WriteValue("Roms", "UpperROM7", "Default AMSDOS");
+                    ini.WriteValue("Roms", "LowerROM", _gx4000 ? "Empty" : null);
+                    ini.WriteValue("Roms", "CartridgeFilename", romType == "cart" ? Path.GetFileName(rom) : null);
+                    ini.WriteValue("Roms", "UpperROM0", _gx4000 ? "Empty" : null);
+                    ini.WriteValue("Roms", "UpperROM7", _gx4000 ? "Empty" : "Default AMSDOS");
                 }
             }
             catch { }
