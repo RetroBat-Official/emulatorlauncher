@@ -160,7 +160,7 @@ namespace EmulatorLauncher
                     
                     BindBoolIniFeature(ini, "MainForm", "DrawScanlines", "caprice_scanlines", "1", "0");
                     ini.WriteValue("MainForm", "ScanlinesDirectory", "Scanlines\\");
-                    ini.WriteValue("MainForm", "Fullscreen", fullscreen? "1" : "0");
+                    ini.WriteValue("MainForm", "Fullscreen", "0");
                     ini.WriteValue("MainForm", "KeepFullscreen", "0");
                     ini.WriteValue("MainForm", "SettingsDirectory", "Settings\\");
                     BindBoolIniFeature(ini, "MainForm", "FullscreenMenu", "caprice_gui", "1", "0");
