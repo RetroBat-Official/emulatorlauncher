@@ -15,8 +15,6 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private ScreenResolution _resolution;
-        private BezelFiles _bezelFileInfo;
         private bool _xAxis = false;
         private bool _yAxis = false;
         private bool _zAxis = false;
@@ -89,10 +87,8 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            _resolution = resolution;
-
-            SetupConfig(path, system, fullscreen, romType, driveADisk, driveBDisk, rom);
-            SetupDevice(path, system, rom, romType);
+            SetupConfig(path, system, romType, driveADisk, driveBDisk, rom);
+            SetupDevice(path, rom, romType);
 
             string drive = "/DriveA=";
             if (SystemConfig.getOptBoolean("caprice_driveB"))
@@ -101,8 +97,10 @@ namespace EmulatorLauncher
             if (romType == "cart")
                 drive = "/Cartridge=";
 
-            List<string> commandArray = new List<string>();
-            commandArray.Add(drive + "\"" + rom + "\"");
+            List<string> commandArray = new List<string>
+            {
+                drive + "\"" + rom + "\""
+            };
 
             // Keyboard as joystick
             if (SystemConfig.getOptBoolean("caprice_keyboardasjoystick"))
@@ -134,7 +132,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfig(string path, string system, bool fullscreen, string romType, string driveADisk, string driveBDisk, string rom)
+        private void SetupConfig(string path, string system, string romType, string driveADisk, string driveBDisk, string rom)
         {
             string iniFile = Path.Combine(path, "Caprice.ini");
 
@@ -259,7 +257,7 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private void SetupDevice(string path, string system, string rom, string romType)
+        private void SetupDevice(string path, string rom, string romType)
         {
             string iniFile = Path.Combine(path, "Device.ini");
 
@@ -393,25 +391,6 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
-        }
-
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            FakeBezelFrm bezel = null;
-
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
-
-            int ret = base.RunAndWait(path);
-
-            bezel?.Dispose();
-
-            if (ret == 1)
-            {
-                return 0;
-            }
-
-            return ret;
         }
     }
 }

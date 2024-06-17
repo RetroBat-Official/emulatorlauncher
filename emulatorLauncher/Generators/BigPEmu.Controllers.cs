@@ -12,13 +12,16 @@ namespace EmulatorLauncher
     partial class BigPEmuGenerator : Generator
     {
         private bool _teamTapRight = false;
+        private bool _useSdl;
         private void ConfigureControllers(DynamicJson json)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            _useSdl = !SystemConfig.isOptSet("bigpemu_sdl") || SystemConfig["bigpemu_sdl"] == "1";
+
             // Set input plugin to dInput
-            json["InputPlugin"] = "BigPEmu_Input_DirectInput";
+            json["InputPlugin"] = _useSdl? "BigPEmu_Various_SDL2" : "BigPEmu_Input_DirectInput";
 
             var input = json.GetOrCreateContainer("Input");
 
@@ -185,15 +188,18 @@ namespace EmulatorLauncher
             string shortGuid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput sdlController = null;
 
-            SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + shortGuid);
-
-            try { sdlController = GameControllerDBParser.ParseByGuid(gamecontrollerDB, shortGuid); }
-            catch { }
-
-            if (sdlController == null || sdlController.ButtonMappings.Count == 0)
+            if (!_useSdl)
             {
-                SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". No mapping found for the controller, autoconfiguration not possible.");
-                return;
+                SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + shortGuid);
+
+                try { sdlController = GameControllerDBParser.ParseByGuid(gamecontrollerDB, shortGuid); }
+                catch { }
+
+                if (sdlController == null || sdlController.ButtonMappings.Count == 0)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". No mapping found for the controller, autoconfiguration not possible.");
+                    return;
+                }
             }
 
             // Compute the Guid used by BigPEmu
@@ -201,6 +207,11 @@ namespace EmulatorLauncher
             Guid tempGuid = new Guid(instanceGuid);
             byte[] bytes = tempGuid.ToByteArray();
             string guid = BitConverter.ToString(bytes).Replace("-", "").ToUpperInvariant();
+
+            if (_useSdl)
+            {
+                guid = ctrl.GetSdlGuid(SdlVersion.SDL2_30, true);
+            }
 
             // Define Device section
             string deviceNb = "Device" + (playerindex - 1);
@@ -297,8 +308,14 @@ namespace EmulatorLauncher
             };
 
             bool hotkey = true;
-            if (!sdlController.ButtonMappings.ContainsKey("lefttrigger"))
+            if (!_useSdl)
+            {
+                if (!sdlController.ButtonMappings.ContainsKey("lefttrigger"))
+                    hotkey = false;
+            }
+            else if (ctrl.Config[InputKey.l2] == null)
                 hotkey = false;
+
 
             foreach (var x in triggerList)
             {
@@ -328,7 +345,7 @@ namespace EmulatorLauncher
                     switch (x.Value)
                     {
                         case "C":
-                            string button_c = GetDinputMapping(sdlController, "x", useHat);
+                            string button_c = _useSdl? GetSDLInputMapping(ctrl, InputKey.y, useHat) : GetDinputMapping(sdlController, "x", useHat);
                             if (button_c != null)
                             {
                                 string button_c_id = button_c.Split('_')[0];
@@ -341,7 +358,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "B":
-                            string button_b = GetDinputMapping(sdlController, "a", useHat);
+                            string button_b = _useSdl ? GetSDLInputMapping(ctrl, InputKey.a, useHat) : GetDinputMapping(sdlController, "a", useHat);
                             if (button_b != null)
                             {
                                 string button_b_id = button_b.Split('_')[0];
@@ -354,7 +371,7 @@ namespace EmulatorLauncher
                             break;
                         
                         case "A":
-                            string button_a = GetDinputMapping(sdlController, "b", useHat);
+                            string button_a = _useSdl ? GetSDLInputMapping(ctrl, InputKey.b, useHat) : GetDinputMapping(sdlController, "b", useHat);
                             if (button_a != null)
                             {
                                 string button_a_id = button_a.Split('_')[0];
@@ -367,7 +384,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "pause":
-                            string pause = GetDinputMapping(sdlController, "back", useHat);
+                            string pause = _useSdl ? GetSDLInputMapping(ctrl, InputKey.select, useHat) : GetDinputMapping(sdlController, "back", useHat);
                             if (pause != null)
                             {
                                 string pause_id = pause.Split('_')[0];
@@ -380,7 +397,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "option":
-                            string option = GetDinputMapping(sdlController, "start", useHat);
+                            string option = _useSdl ? GetSDLInputMapping(ctrl, InputKey.start, useHat) : GetDinputMapping(sdlController, "start", useHat);
                             if (option != null)
                             {
                                 string option_id = option.Split('_')[0];
@@ -393,7 +410,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "up":
-                            string up = GetDinputMapping(sdlController, "dpup", useHat);
+                            string up = _useSdl ? GetSDLInputMapping(ctrl, InputKey.up, useHat) : GetDinputMapping(sdlController, "dpup", useHat);
                             if (up != null)
                             {
                                 string up_id = up.Split('_')[0];
@@ -406,7 +423,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "down":
-                            string down = GetDinputMapping(sdlController, "dpdown", useHat);
+                            string down = _useSdl ? GetSDLInputMapping(ctrl, InputKey.down, useHat) : GetDinputMapping(sdlController, "dpdown", useHat);
                             if (down != null)
                             {
                                 string down_id = down.Split('_')[0];
@@ -419,7 +436,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "left":
-                            string left = GetDinputMapping(sdlController, "dpleft", useHat);
+                            string left = _useSdl ? GetSDLInputMapping(ctrl, InputKey.left, useHat) : GetDinputMapping(sdlController, "dpleft", useHat);
                             if (left != null)
                             {
                                 string left_id = left.Split('_')[0];
@@ -432,7 +449,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "right":
-                            string right = GetDinputMapping(sdlController, "dpright", useHat);
+                            string right = _useSdl ? GetSDLInputMapping(ctrl, InputKey.right, useHat) : GetDinputMapping(sdlController, "dpright", useHat);
                             if (right != null)
                             {
                                 string right_id = right.Split('_')[0];
@@ -445,7 +462,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "0":
-                            string zero = GetDinputMapping(sdlController, "righty", useHat, 1);
+                            string zero = _useSdl ? GetSDLInputMapping(ctrl, InputKey.rightanalogdown, useHat) : GetDinputMapping(sdlController, "righty", useHat, 1);
                             if (zero != null)
                             {
                                 string zero_id = zero.Split('_')[0];
@@ -458,7 +475,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "1":
-                            string one = GetDinputMapping(sdlController, "leftshoulder", useHat);
+                            string one = _useSdl ? GetSDLInputMapping(ctrl, InputKey.pageup, useHat) : GetDinputMapping(sdlController, "leftshoulder", useHat);
                             if (one != null)
                             {
                                 string one_id = one.Split('_')[0];
@@ -473,7 +490,7 @@ namespace EmulatorLauncher
                         case "2":
                             if (!useHat)
                                 break;
-                            string two = GetDinputMapping(sdlController, "lefty", useHat, -1);
+                            string two = _useSdl ? GetSDLInputMapping(ctrl, InputKey.leftanalogup, useHat) : GetDinputMapping(sdlController, "lefty", useHat, -1);
                             if (two != null)
                             {
                                 string two_id = two.Split('_')[0];
@@ -486,7 +503,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "3":
-                            string three = GetDinputMapping(sdlController, "rightshoulder", useHat);
+                            string three = _useSdl ? GetSDLInputMapping(ctrl, InputKey.pagedown, useHat) : GetDinputMapping(sdlController, "rightshoulder", useHat);
                             if (three != null)
                             {
                                 string three_id = three.Split('_')[0];
@@ -501,7 +518,7 @@ namespace EmulatorLauncher
                         case "4":
                             if (!useHat)
                                 break;
-                            string four = GetDinputMapping(sdlController, "leftx", useHat, -1);
+                            string four = _useSdl ? GetSDLInputMapping(ctrl, InputKey.leftanalogleft, useHat) : GetDinputMapping(sdlController, "leftx", useHat, -1);
                             if (four != null)
                             {
                                 string four_id = four.Split('_')[0];
@@ -514,7 +531,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "5":
-                            string five = GetDinputMapping(sdlController, "righty", useHat, -1);
+                            string five = _useSdl ? GetSDLInputMapping(ctrl, InputKey.rightanalogup, useHat) : GetDinputMapping(sdlController, "righty", useHat, -1);
                             if (five != null)
                             {
                                 string five_id = five.Split('_')[0];
@@ -529,7 +546,7 @@ namespace EmulatorLauncher
                         case "6":
                             if (!useHat)
                                 break;
-                            string six = GetDinputMapping(sdlController, "leftx", useHat, 1);
+                            string six = _useSdl ? GetSDLInputMapping(ctrl, InputKey.leftanalogright, useHat) : GetDinputMapping(sdlController, "leftx", useHat, 1);
                             if (six != null)
                             {
                                 string six_id = six.Split('_')[0];
@@ -542,7 +559,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "7":
-                            string seven = GetDinputMapping(sdlController, "rightx", useHat, -1);
+                            string seven = _useSdl ? GetSDLInputMapping(ctrl, InputKey.rightanalogleft, useHat) : GetDinputMapping(sdlController, "rightx", useHat, -1);
                             if (seven != null)
                             {
                                 string seven_id = seven.Split('_')[0];
@@ -557,7 +574,7 @@ namespace EmulatorLauncher
                         case "8":
                             if (!useHat)
                                 break;
-                            string eight = GetDinputMapping(sdlController, "lefty", useHat, 1);
+                            string eight = _useSdl ? GetSDLInputMapping(ctrl, InputKey.leftanalogdown, useHat) : GetDinputMapping(sdlController, "lefty", useHat, 1);
                             if (eight != null)
                             {
                                 string eight_id = eight.Split('_')[0];
@@ -570,7 +587,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "9":
-                            string nine = GetDinputMapping(sdlController, "rightx", useHat, 1);
+                            string nine = _useSdl ? GetSDLInputMapping(ctrl, InputKey.rightanalogright, useHat) : GetDinputMapping(sdlController, "rightx", useHat, 1);
                             if (nine != null)
                             {
                                 string nine_id = nine.Split('_')[0];
@@ -583,7 +600,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "asterisk":
-                            string asterisk = GetDinputMapping(sdlController, "leftstick", useHat);
+                            string asterisk = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l3, useHat) : GetDinputMapping(sdlController, "leftstick", useHat);
                             if (asterisk != null)
                             {
                                 string asterisk_id = asterisk.Split('_')[0];
@@ -596,7 +613,7 @@ namespace EmulatorLauncher
                             break;
 
                         case "pound":
-                            string pound = GetDinputMapping(sdlController, "rightstick", useHat);
+                            string pound = _useSdl ? GetSDLInputMapping(ctrl, InputKey.r3, useHat) : GetDinputMapping(sdlController, "rightstick", useHat);
                             if (pound != null)
                             {
                                 string pound_id = pound.Split('_')[0];
@@ -611,8 +628,8 @@ namespace EmulatorLauncher
                         case "menu":
                             if (!hotkey)
                                 break;
-                            string menu_button = GetDinputMapping(sdlController, "a", useHat);
-                            string menu_hotkey = GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
+                            string menu_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.a, useHat) : GetDinputMapping(sdlController, "a", useHat);
+                            string menu_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
                             
                             if (menu_hotkey != null && menu_button != null)
                             {
@@ -635,8 +652,8 @@ namespace EmulatorLauncher
                         case "ff":
                             if (!hotkey)
                                 break;
-                            string ff_button = GetDinputMapping(sdlController, "dpright", useHat);
-                            string ff_hotkey = GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
+                            string ff_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.right, useHat) : GetDinputMapping(sdlController, "dpright", useHat);
+                            string ff_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (ff_hotkey != null && ff_button != null)
                             {
@@ -659,8 +676,8 @@ namespace EmulatorLauncher
                         case "rewind":
                             if (!hotkey)
                                 break;
-                            string rewind_button = GetDinputMapping(sdlController, "dpleft", useHat);
-                            string rewind_hotkey = GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
+                            string rewind_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.left, useHat) : GetDinputMapping(sdlController, "dpleft", useHat);
+                            string rewind_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (rewind_hotkey != null && rewind_button != null)
                             {
@@ -683,8 +700,8 @@ namespace EmulatorLauncher
                         case "savestate":
                             if (!hotkey)
                                 break;
-                            string savestate_button = GetDinputMapping(sdlController, "x", useHat);
-                            string savestate_hotkey = GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
+                            string savestate_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.y, useHat) : GetDinputMapping(sdlController, "x", useHat);
+                            string savestate_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (savestate_hotkey != null && savestate_button != null)
                             {
@@ -707,8 +724,8 @@ namespace EmulatorLauncher
                         case "loadstate":
                             if (!hotkey)
                                 break;
-                            string loadstate_button = GetDinputMapping(sdlController, "y", useHat);
-                            string loadstate_hotkey = GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
+                            string loadstate_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.x, useHat) : GetDinputMapping(sdlController, "y", useHat);
+                            string loadstate_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (loadstate_hotkey != null && loadstate_button != null)
                             {
@@ -731,8 +748,8 @@ namespace EmulatorLauncher
                         case "screenshot":
                             if (!hotkey)
                                 break;
-                            string screenshot_button = GetDinputMapping(sdlController, "rightstick", useHat);
-                            string screenshot_hotkey = GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
+                            string screenshot_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.r3, useHat) : GetDinputMapping(sdlController, "rightstick", useHat);
+                            string screenshot_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (screenshot_hotkey != null && screenshot_button != null)
                             {
@@ -852,6 +869,66 @@ namespace EmulatorLauncher
             return null;
         }
 
+        private string GetSDLInputMapping(Controller c, InputKey buttonkey, bool useHat)
+        {
+            Int64 pid;
+            buttonkey = buttonkey.GetRevertedAxis(out bool revertAxis);
+
+            
+            if (!useHat)
+            {
+                if (buttonkey == InputKey.up)
+                {
+                    buttonkey = InputKey.leftanalogup;
+                }
+                else if (buttonkey == InputKey.down)
+                {
+                    buttonkey = InputKey.leftanalogdown;
+                }
+                else if (buttonkey == InputKey.left)
+                {
+                    buttonkey = InputKey.leftanalogleft;
+                }
+                else if (buttonkey == InputKey.right)
+                {
+                    buttonkey = InputKey.leftanalogright;
+                }
+            }
+
+            var input = c.Config[buttonkey];
+
+            if (input == null)
+                return null;
+
+
+            if (input.Type == "button")
+            {
+                return input.Id.ToString() + "_0.0";
+            }
+
+            else if (input.Type == "hat")
+            {
+                pid = input.Value;
+                switch (pid)
+                {
+                    case 1: return "134_1.0";
+                    case 2: return "134_2.0";
+                    case 4: return "134_4.0";
+                    case 8: return "134_8.0";
+                }
+            }
+
+            else if (input.Type == "axis")
+            {
+                pid = input.Id;
+
+                if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return ((128 + pid).ToString() + "_1.0");
+                else return ((128 + pid).ToString() + "_-1.0");
+            }
+
+            return null;
+        }
+
         private void CleanInputConfig(DynamicJson json)
         {
             for (int i = 0; i < 8; i++)
@@ -881,7 +958,7 @@ namespace EmulatorLauncher
             string ret = null;
 
             if (button != null)
-                ret = SdlToDinputKeyCode(button.Id);
+                ret = _useSdl? SdlKeyCode(button.Id) : SdlToDinputKeyCode(button.Id);
 
             if (ret == "")
                 ret = null;
@@ -894,69 +971,61 @@ namespace EmulatorLauncher
             switch (key)
             {
                 case "C":
-                    return "30";
-
+                    return _useSdl ? "20" : "30";
                 case "B":
-                    return "31";
-
+                    return _useSdl ? "22" : "31";
                 case "A":
-                    return "32";
-
+                    return _useSdl ? "7" : "32";
                 case "pause":
-                    return "16";
-
+                    return _useSdl ? "4" : "16";
                 case "option":
-                    return "17";
-
+                    return _useSdl ? "29" : "17";
                 case "up":
-                    return "200";
-
+                    return _useSdl ? "82" : "200";
                 case "down":
-                    return "208";
-
+                    return _useSdl ? "81" : "208";
                 case "left":
-                    return "203";
-
+                    return _useSdl ? "80" : "203";
                 case "right":
-                    return "205";
+                    return _useSdl ? "79" : "205";
                 case "0":
-                    return "11";
+                    return _useSdl ? "39" : "11";
                 case "1":
-                    return "2";
+                    return _useSdl ? "30" : "2";
                 case "2":
-                    return "3";
+                    return _useSdl ? "31" : "3";
                 case "3":
-                    return "4";
+                    return _useSdl ? "32" : "4";
                 case "4":
-                    return "5";
+                    return _useSdl ? "33" : "5";
                 case "5":
-                    return "6";
+                    return _useSdl ? "34" : "6";
                 case "6":
-                    return "7";
+                    return _useSdl ? "35" : "7";
                 case "7":
-                    return "8";
+                    return _useSdl ? "36" : "8";
                 case "8":
-                    return "9";
+                    return _useSdl ? "37" : "9";
                 case "9":
-                    return "10";
+                    return _useSdl ? "38" : "10";
                 case "asterisk":
-                    return "24";
+                    return _useSdl ? "18" : "24";
                 case "pound":
-                    return "25";
+                    return _useSdl ? "19" : "25";
                 case "menu":
-                    return "1";
+                    return _useSdl ? "41" : "1";
                 case "ff":
-                    return "60";
+                    return _useSdl ? "59" : "60";
                 case "rewind":
-                    return "59";
+                    return _useSdl ? "58" : "59";
                 case "savestate":
-                    return "61";
+                    return _useSdl ? "60" : "61";
                 case "loadstate":
-                    return "62";
+                    return _useSdl ? "61" : "62";
                 case "screenshot":
-                    return "68";
+                    return _useSdl ? "67" : "68";
                 case "chat":
-                    return "20";
+                    return _useSdl ? "23" : "20";
             }
 
             return null;
@@ -1116,6 +1185,164 @@ namespace EmulatorLauncher
                 case 0x40000102: return "";     // Media next
                 case 0x40000103: return "";     // Media previous
                 case 0x40000105: return "";     // Media play
+            }
+            return "";
+        }
+
+        private static string SdlKeyCode(long sdlCode)
+        {
+            switch (sdlCode)
+            {
+                case 0x0D: return "40"; // ENTREE
+                case 0x00: return "";
+                case 0x08: return "42"; // Backspace
+                case 0x09: return "43"; // Tab
+                case 0x1B: return "41";   // Escape
+                case 0x20: return "44"; // Space
+                case 0x21: return "";   // Exclam
+                case 0x22: return "";
+                case 0x23: return "";   // Diese
+                case 0x24: return "";   // Dollar
+                case 0x25: return "";   // Percent
+                case 0x26: return "";   // Ampersand (esperluette)
+                case 0x27: return "49";   // Antislash
+                case 0x28: return "";   // Parent left
+                case 0x29: return "";   // Parent right
+                case 0x2A: return ""; // *
+                case 0x2B: return ""; // +
+                case 0x2C: return "54"; // Comma
+                case 0x2D: return "45"; // Minus
+                case 0x2E: return "55";   // dot
+                case 0x2F: return "56";   // Slash
+                case 0x30: return "39"; // 0
+                case 0x31: return "30";  // 1
+                case 0x32: return "31";
+                case 0x33: return "32";
+                case 0x34: return "33";
+                case 0x35: return "34";
+                case 0x36: return "35";
+                case 0x37: return "36";
+                case 0x38: return "37";
+                case 0x39: return "38"; // 9
+                case 0x3A: return ""; // :
+                case 0x3B: return "51";
+                case 0x3C: return "";
+                case 0x3D: return "46"; // Equals
+                case 0x3F: return "";   // >
+                case 0x40: return "";
+                case 0x5B: return "47";   // Left bracket
+                case 0x5C: return "49";   // Antislash
+                case 0x5D: return "48";   // Right bracket
+                case 0x5E: return "";   // Chapeau
+                case 0x5F: return "";   // Underscore
+                case 0x60: return "";   // '
+                case 0x61: return "4";  // A - done
+                case 0x62: return "5";
+                case 0x63: return "6";
+                case 0x64: return "7"; // D
+                case 0x65: return "8";
+                case 0x66: return "9";
+                case 0x67: return "10";
+                case 0x68: return "11";
+                case 0x69: return "12";
+                case 0x6A: return "13";
+                case 0x6B: return "14"; // K
+                case 0x6C: return "15";
+                case 0x6D: return "16";
+                case 0x6E: return "17";
+                case 0x6F: return "18"; // O
+                case 0x70: return "19"; // P
+                case 0x71: return "20"; // Q
+                case 0x72: return "21";
+                case 0x73: return "22";
+                case 0x74: return "23";
+                case 0x75: return "24";
+                case 0x76: return "25";
+                case 0x77: return "26";
+                case 0x78: return "27";
+                case 0x79: return "28";
+                case 0x7A: return "29"; // Z
+                case 0x7F: return "76";        // Delete
+                case 0x40000039: return "57";   // Capslock
+                case 0x4000003A: return "58";   // F1
+                case 0x4000003B: return "59";   // F2
+                case 0x4000003C: return "60";
+                case 0x4000003D: return "61";
+                case 0x4000003E: return "62";
+                case 0x4000003F: return "63";
+                case 0x40000040: return "64";
+                case 0x40000041: return "65";
+                case 0x40000042: return "66";   // F9
+                case 0x40000043: return "67";   // F10
+                case 0x40000044: return "68";   // F11
+                case 0x40000045: return "69";   // F12
+                case 0x40000046: return "70";     // Printscreen
+                case 0x40000047: return "";     // Scrolllock
+                case 0x40000048: return "72";     // Pause
+                case 0x40000049: return "73";  // INSERT
+                case 0x4000004A: return "74";  // Home
+                case 0x4000004B: return "75";  // PageUp
+                case 0x4000004D: return "77";  // End
+                case 0x4000004E: return "78";  // PageDown
+                case 0x4000004F: return "79";  // Right
+                case 0x40000050: return "80";  // Left
+                case 0x40000051: return "81";  // Down
+                case 0x40000052: return "82";  // Up
+                case 0x40000053: return "83";   // Numlock
+                case 0x40000054: return "84";  // Num divide
+                case 0x40000055: return "85";   // Num multiply
+                case 0x40000056: return "86";   // Num -
+                case 0x40000057: return "87";   // Num+
+                case 0x40000058: return "88";  // Num ENTER
+                case 0x40000059: return "89";   // Num 1
+                case 0x4000005A: return "90";
+                case 0x4000005B: return "91";
+                case 0x4000005C: return "92";
+                case 0x4000005D: return "93";
+                case 0x4000005E: return "94";
+                case 0x4000005F: return "95";
+                case 0x40000060: return "96";
+                case 0x40000061: return "97";
+                case 0x40000062: return "98";   // Num 0
+                case 0x40000063: return "99";   // Num .
+                case 0x40000067: return "103";     // Num =
+                case 0x40000068: return "104";     // F13
+                case 0x40000069: return "105";
+                case 0x4000006A: return "106";
+                case 0x4000006B: return "107";
+                case 0x4000006C: return "108";
+                case 0x4000006D: return "109";
+                case 0x4000006E: return "110";
+                case 0x4000006F: return "111";
+                case 0x40000070: return "112";
+                case 0x40000071: return "113";
+                case 0x40000072: return "114";
+                case 0x40000073: return "115";     // F24
+                case 0x40000074: return "116";     // Execute
+                case 0x40000075: return "117";     // Help
+                case 0x40000076: return "118";     // Menu
+                case 0x40000077: return "119";     // Select
+                case 0x40000078: return "120";     // Stop
+                case 0x40000079: return "121";     // Again
+                case 0x4000007A: return "122";     // Undo
+                case 0x4000007B: return "123";     // Cut
+                case 0x4000007C: return "124";     // Copy
+                case 0x4000007D: return "125";     // Paste
+                case 0x4000007E: return "126";     // Find
+                case 0x4000007F: return "127";     // Mute
+                case 0x40000080: return "128";     // Volume up
+                case 0x40000081: return "129";     // Volume down
+                case 0x40000085: return "133";     // Num ,
+                case 0x400000E0: return "224";   // Left CTRL
+                case 0x400000E1: return "225";   // Left SHIFT
+                case 0x400000E2: return "226";   // Left ALT
+                case 0x400000E4: return "228";  // Right CTRL
+                case 0x400000E5: return "229";   // Right SHIFT
+                case 0x400000E6: return "230";  // Right ALT
+                case 0x40000101: return "257";     // Mode
+                case 0x40000102: return "258";     // Media next
+                case 0x40000103: return "259";     // Media previous
+                case 0x40000105: return "261";     // Media play
             }
             return "";
         }
