@@ -116,7 +116,7 @@ namespace EmulatorLauncher.Libretro
                 { "lutro", "Lutro" },
                 { "mame2000", "MAME 2000" },
                 { "mame2003", "MAME 2003 (0.78)" },
-                { "mame2003_midway", "MAME 2003 Midway (0.78)" },
+                { "mame2003_midway", "MAME 2003 Midway" },
                 { "mame2003_plus", "MAME 2003-Plus" },
                 { "mame2009", "MAME 2009 (0.135u4)" },
                 { "mame2010", "MAME 2010" },
@@ -347,6 +347,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSaturn(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSuperGrafx(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenWswan(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMesenS(retroarchConfig, coreSettings, system, core);
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
@@ -1760,7 +1761,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "handy")
                 return;
 
-            BindFeature(coreSettings, "handy_rot", "handy_rot", "None");
+            BindFeature(coreSettings, "handy_rot", "handy_rot", "Auto");
             BindFeature(coreSettings, "handy_gfx_colors", "handy_gfx_colors", "16bit");
             BindFeature(coreSettings, "handy_lcd_ghosting", "handy_lcd_ghosting", "disabled");
         }
@@ -2433,6 +2434,28 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "supergrafx_controller2", "1");
         }
 
+        private void ConfigureMednafenWswan(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_wswan")
+                return;
+
+            BindFeature(coreSettings, "wswan_rotate_display", "mednafen_wswan_rotate", "manual");
+
+            if (!SystemConfig.isOptSet("mednafen_wswan_rotatekeymap"))
+            {
+                if (SystemConfig["mednafen_wswan_rotate"] == "landscape")
+                    coreSettings["wswan_rotate_keymap"] = "disabled";
+                else if (SystemConfig["mednafen_wswan_rotate"] == "portrait")
+                    coreSettings["wswan_rotate_keymap"] = "enabled";
+                else
+                    coreSettings["wswan_rotate_keymap"] = "auto";
+            }
+            else if (!string.IsNullOrEmpty(SystemConfig["mednafen_wswan_rotatekeymap"]))
+            {
+                coreSettings["wswan_rotate_keymap"] = SystemConfig["mednafen_wswan_rotatekeymap"];
+            }
+        }
+
         private void ConfigureMesen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "mesen")
@@ -2637,7 +2660,7 @@ namespace EmulatorLauncher.Libretro
                 SystemConfig["bezel"] = "none";
             }
             else
-                coreSettings["mupen64plus-aspect"] = "4/3";
+                coreSettings["mupen64plus-aspect"] = "4:3";
 
             // Player packs
             BindFeature(coreSettings, "mupen64plus-pak1", "mupen64plus-pak1", "memory");
@@ -3331,7 +3354,6 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "picodrive_aspect", "core_aspect", "PAR");
             BindFeature(coreSettings, "picodrive_overclk68k", "overclk68k", "disabled");
-            BindFeature(coreSettings, "picodrive_overscan", "overscan", "disabled");
             BindFeature(coreSettings, "picodrive_region", "region", "Auto");
             BindFeature(coreSettings, "picodrive_renderer", "renderer", "accurate");
             BindFeature(coreSettings, "picodrive_drc", "dynamic_recompiler", "disabled");
