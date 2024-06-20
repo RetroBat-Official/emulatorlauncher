@@ -13,10 +13,12 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            //get emulator path based on emulator name
-            string path = AppConfig.GetFullPath("vita3k");
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
-            //get the executable file
+            string path = AppConfig.GetFullPath("vita3k");
+            if (!Directory.Exists(path))
+                return null;
+
             string exe = Path.Combine(path, "vita3k.exe");
             if (!File.Exists(exe))
                 return null;
@@ -168,7 +170,7 @@ namespace EmulatorLauncher
             BindFeature(yml, "resolution-multiplier", "resolution-multiplier", "1");
             BindFeature(yml, "disable-surface-sync", "disable_surfacesync", "false");
             BindFeature(yml, "screen-filter", "vita_screenfilter", "Bilinear");
-            BindFeature(yml, "v-sync", "vsync", "false");
+            BindFeature(yml, "v-sync", "vita_vsync", "false");
             BindFeature(yml, "anisotropic-filtering", "anisotropic-filtering", "1");
             BindFeature(yml, "cpu-opt", "cpu-opt", "true");
             BindFeature(yml, "shader-cache", "shader-cache", "true");
