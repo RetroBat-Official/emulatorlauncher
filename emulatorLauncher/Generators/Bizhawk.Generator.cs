@@ -18,15 +18,13 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            // Define path
-            string path = AppConfig.GetFullPath("bizhawk");
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
+            string path = AppConfig.GetFullPath("bizhawk");
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            // Define exe
             string exe = Path.Combine(path, "EmuHawk.exe");
-
             if (!File.Exists(exe))
                 return null;
 

@@ -20,7 +20,11 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("applewin");
+            if (!Directory.Exists(path))
+                return null;
 
             string exe = Path.Combine(path, "applewin.exe");
             if (!File.Exists(exe))

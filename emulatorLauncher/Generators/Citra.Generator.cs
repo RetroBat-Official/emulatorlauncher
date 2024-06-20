@@ -20,8 +20,11 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string folderName = emulator;
-            string path = AppConfig.GetFullPath(folderName);
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
+            string path = AppConfig.GetFullPath(emulator);
+            if (string.IsNullOrEmpty(path))
+                return null;
 
             string exe = Path.Combine(path, "citra-qt.exe");
             if (!File.Exists(exe))

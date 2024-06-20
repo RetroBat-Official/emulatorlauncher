@@ -58,12 +58,15 @@ namespace EmulatorLauncher.Common.FileFormats
             return ret;
         }
 
-        private static string EmptyLine = "------------EmptyLine----------------";
+        private readonly static string EmptyLine = "------------EmptyLine----------------";
 
         public static ConfigFile FromFile(string file, ConfigFileOptions options = null)
         {
-            var ret = new ConfigFile();
-            ret.Options = options;
+            var ret = new ConfigFile
+            {
+                Options = options
+            };
+
             if (!File.Exists(file))
                 return ret;
 

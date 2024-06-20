@@ -14,7 +14,6 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private ScreenResolution _resolution;
         private readonly string[] _unzipSystems = { "psx", "ss", "pce" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -42,7 +41,6 @@ namespace EmulatorLauncher
                 }
             }
 
-            _resolution = resolution;
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             // Configure cfg file
