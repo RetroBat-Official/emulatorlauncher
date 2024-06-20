@@ -801,7 +801,6 @@ namespace EmulatorLauncher.Libretro
             new UIModeSetting("menu_show_latency", "false", "true", "true"),
             new UIModeSetting("menu_show_legacy_thumbnail_updater", "false", "false", "true"),
             new UIModeSetting("menu_show_load_content", "false", "false", "true"),
-            //new UIModeSetting("menu_show_load_content_animation", "false", "false", "true"), // not a menu element but a notification
             new UIModeSetting("menu_show_load_core", "false", "false", "true"),
             new UIModeSetting("menu_show_load_disc", "false", "false", "true"),
             new UIModeSetting("menu_show_online_updater", "false", "true", "true"),
@@ -1081,7 +1080,6 @@ namespace EmulatorLauncher.Libretro
         }
 
         private string _dosBoxTempRom;
-        private string _gemdosTempFolder;
 
         public override void Cleanup()
         {
@@ -1090,12 +1088,6 @@ namespace EmulatorLauncher.Libretro
 
             if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
                 File.Delete(_dosBoxTempRom);
-
-            if (_gemdosTempFolder != null && Directory.Exists(_gemdosTempFolder))
-            {
-                try { Directory.Delete(_gemdosTempFolder, true); }
-                catch { }
-            }
 
             if (!string.IsNullOrEmpty(_video_driver))
             {

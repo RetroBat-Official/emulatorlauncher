@@ -287,10 +287,12 @@ namespace EmulatorLauncher
             try { SetProcessDPIAware(); }
             catch { }
 
+            SimpleLogger.Instance.Info("[Startup] Loading configuration.");
             LocalPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             AppConfig = ConfigFile.FromFile(Path.Combine(LocalPath, "emulatorLauncher.cfg"));
             AppConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
+            SimpleLogger.Instance.Info("[Startup] Loading ES settings.");
             SystemConfig = ConfigFile.LoadEmulationStationSettings(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_settings.cfg"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll("global"));
@@ -299,7 +301,10 @@ namespace EmulatorLauncher
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
             if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun"))
+            {
                 SystemConfig["use_guns"] = "true";
+                SimpleLogger.Instance.Info("[GUNS] Lightgun game : setting default lightung value to true.");
+            }
 
             /* for later wheels
             if (!SystemConfig.isOptSet("use_wheel") && args.Any(a => a == "-wheel"))
@@ -528,8 +533,13 @@ namespace EmulatorLauncher
             if (installer != null)
             {
                 bool updatesEnabled = !SystemConfig.isOptSet("updates.enabled") || SystemConfig.getOptBoolean("updates.enabled");
+
+                if (!updatesEnabled)
+                    SimpleLogger.Instance.Info("[Startup] Updates not enabled, not looking for updates.");
+
                 if ((!installer.IsInstalled() || (updatesEnabled && installer.HasUpdateAvailable())) && installer.CanInstall())
                 {
+                    SimpleLogger.Instance.Info("[Startup] Emulator update found : proposing to update.");
                     using (InstallerFrm frm = new InstallerFrm(installer))
                         if (frm.ShowDialog() != DialogResult.OK)
                             return;
@@ -551,6 +561,7 @@ namespace EmulatorLauncher
                     return;
                 }
 
+                SimpleLogger.Instance.Info("[Generator] Loading features.");
                 Features.SetFeaturesContext(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"]);
 
                 using (var screenResolution = ScreenResolution.Parse(SystemConfig["videomode"]))
@@ -733,9 +744,11 @@ namespace EmulatorLauncher
                     if (!Enum.TryParse<InputKey>(string.Join(", ", action.Triggers.ToArray()).ToLower(), out k))
                         continue;
 
-                    PadToKeyInput input = new PadToKeyInput();
-                    input.Name = k;
-                    input.ControllerIndex = controller == null ? playerIndex : controller.DeviceIndex;
+                    PadToKeyInput input = new PadToKeyInput
+                    {
+                        Name = k,
+                        ControllerIndex = controller == null ? playerIndex : controller.DeviceIndex
+                    };
 
                     bool custom = false;
 
@@ -800,6 +813,7 @@ namespace EmulatorLauncher
 
         private static InputConfig[] LoadControllerConfiguration(string[] args)
         {
+            SimpleLogger.Instance.Info("[Startup] Loading Controller configuration.");
             var controllers = new Dictionary<int, Controller>();
 
             for (int i = 0; i < args.Length; i++)

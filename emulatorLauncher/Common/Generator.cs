@@ -107,6 +107,7 @@ namespace EmulatorLauncher
 
         public virtual void Cleanup()
         {
+            SimpleLogger.Instance.Info("[Generator] Cleanup.");
             if (_mountFile != null)
             {
                 // Delete overlay path if it's emptt
