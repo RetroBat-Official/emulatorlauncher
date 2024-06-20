@@ -63,7 +63,7 @@ namespace EmulatorLauncher
 			commandArray.Add("-video.disable_composition 1");
             commandArray.Add("-video.driver opengl");
             
-            if (mednafenCore == "pce" && AppConfig.isOptSet("bios"))
+            if (mednafenCore == "pce" && system == "pcenginecd")
                 commandArray.Add("-pce.cdbios \"" + Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce") + "\"");
          
             commandArray.Add("-" + mednafenCore + ".shader none");
@@ -302,8 +302,8 @@ namespace EmulatorLauncher
             
             for(int i=1; i<9; i++)
             {
-                BindMednafenFeature(cfg, "mednafen_pcfx_mode1", "pcfx.input.port" + i + ".gamepad.mode1.defpos", "auto");
-                BindMednafenFeature(cfg, "mednafen_pcfx_mode2", "pcfx.input.port" + i + ".gamepad.mode2.defpos", "auto");
+                BindMednafenFeature(cfg, "mednafen_pcfx_mode1", "pcfx.input.port" + i + ".gamepad.mode1.defpos", "a");
+                BindMednafenFeature(cfg, "mednafen_pcfx_mode2", "pcfx.input.port" + i + ".gamepad.mode2.defpos", "a");
             }
 
             if (SystemConfig.isOptSet("mednafen_pcfx_multitap") && SystemConfig["mednafen_pcfx_multitap"] == "1")

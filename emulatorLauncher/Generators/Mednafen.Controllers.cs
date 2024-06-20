@@ -111,14 +111,14 @@ namespace EmulatorLauncher
 
             if (gamecontrollerDB != null)
             {
-                SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
+                SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid1);
 
                 dinputCtrl = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1);
 
                 if (dinputCtrl == null)
-                    SimpleLogger.Instance.Info("[INFO] Player 1. No controller found in gamecontrollerdb.txt file for guid : " + guid1);
+                    SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + ". No controller found in gamecontrollerdb.txt file for guid : " + guid1);
                 else
-                    SimpleLogger.Instance.Info("[INFO] Player 1: " + guid1 + " found in gamecontrollerDB file.");
+                    SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + " : " + guid1 + " found in gamecontrollerDB file.");
             }
 
             int playerIndex = controller.PlayerIndex;
@@ -1433,18 +1433,6 @@ namespace EmulatorLauncher
             if (c == null)
                 return "";
 
-            if (c.ButtonMappings == null)
-            {
-                SimpleLogger.Instance.Info("[INFO] No mapping found for the controller.");
-                return "";
-            }
-
-            if (!c.ButtonMappings.ContainsKey(buttonkey))
-            {
-                SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
-                return "";
-            }
-
             int direction = 1;
 
             if (buttonkey.StartsWith("-"))
@@ -1455,6 +1443,18 @@ namespace EmulatorLauncher
             else if (buttonkey.StartsWith("+"))
             {
                 buttonkey = buttonkey.Substring(1);
+            }
+
+            if (c.ButtonMappings == null)
+            {
+                SimpleLogger.Instance.Info("[INFO] No mapping found for the controller.");
+                return "";
+            }
+
+            if (!c.ButtonMappings.ContainsKey(buttonkey))
+            {
+                SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
+                return "";
             }
 
             string button = c.ButtonMappings[buttonkey];
