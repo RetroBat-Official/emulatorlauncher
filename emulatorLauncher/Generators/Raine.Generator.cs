@@ -7,7 +7,7 @@ using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-    class RaineGenerator : Generator
+    partial class RaineGenerator : Generator
     {
         private string _path;
         private BezelFiles _bezelFileInfo;
@@ -87,7 +87,7 @@ namespace EmulatorLauncher
 
                     if (!string.IsNullOrEmpty(biosPath))
                     {
-                        ini.WriteValue("Directories", "rom_dir_0", biosPath);
+                        ini.WriteValue("Directories", "rom_dir_1", biosPath);
                         ini.WriteValue("neocd", "neocd_bios", Path.Combine(biosPath, "neocdz.zip"));
                         ini.WriteValue("Directories", "emudx", Path.Combine(_path, "emudx") + "\\");
                         ini.WriteValue("Directories", "artwork", Path.Combine(_path, "artwork") + "\\"); ;
@@ -95,7 +95,7 @@ namespace EmulatorLauncher
 
                     if (!string.IsNullOrEmpty(romPath))
                     {
-                        ini.WriteValue("Directories", "rom_dir_1", romPath);
+                        ini.WriteValue("Directories", "rom_dir_0", romPath);
                         ini.WriteValue("neocd", "neocd_dir", Path.Combine(AppConfig.GetFullPath("roms"), "neogeocd") + "\\");
                     }
 
@@ -110,7 +110,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Display", "ogl_shader", "None");
                     */
 
-                    BindIniFeature(ini, "General", "LimitSpeed", "raine_throttle", "0");
+                    BindIniFeature(ini, "General", "LimitSpeed", "raine_throttle", "1");
                     BindIniFeature(ini, "General", "frame_skip", "raine_frame_skip", "0");
                     BindIniFeature(ini, "General", "ShowFPS", "raine_showfps", "0");
 
@@ -137,6 +137,8 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "neocd", "cdrom_speed", "raine_cd_speed", "8");
 
                     BindIniFeature(ini, "emulator_joy_config", "hat_for_moves", "raine_hat_for_moves", "1");
+
+                    CreateControllerConfiguration(ini);
                 }
             }
             catch { }
