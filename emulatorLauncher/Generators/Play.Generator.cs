@@ -20,18 +20,20 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("play");
             if (!Directory.Exists(path))
+                return null;
+
+            string exe = Path.Combine(path, "Play.exe");
+            if (!File.Exists(exe))
                 return null;
 
             // Create portable file if it does not exist
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
                 File.WriteAllText(portableFile, "");
-
-            string exe = Path.Combine(path, "Play.exe");
-            if (!File.Exists(exe))
-                return null;
 
             _isArcade = system == "namco2x6";
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
@@ -113,7 +115,15 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("play_language") && !string.IsNullOrEmpty(SystemConfig["play_language"]))
                     language.SetAttributeValue("Value", SystemConfig["play_language"]);
                 else
-                    language.SetAttributeValue("Value", "0");
+                    language.SetAttributeValue("Value", "1");
+
+                // Limit framerate
+                XElement limitframerate = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "ps2.limitframerate").FirstOrDefault();
+
+                if (SystemConfig.isOptSet("play_limitframerate") && !string.IsNullOrEmpty(SystemConfig["play_limitframerate"]))
+                    limitframerate.SetAttributeValue("Value", SystemConfig["play_limitframerate"]);
+                else
+                    limitframerate.SetAttributeValue("Value", "true");
 
                 // Resolution
                 XElement resolution = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "renderer.opengl.resfactor").FirstOrDefault();
@@ -122,6 +132,14 @@ namespace EmulatorLauncher
                     resolution.SetAttributeValue("Value", SystemConfig["play_resolution"]);
                 else
                     resolution.SetAttributeValue("Value", "1");
+
+                // Aspect ratio
+                XElement aspect = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "renderer.presentationmode").FirstOrDefault();
+
+                if (SystemConfig.isOptSet("play_presentation") && !string.IsNullOrEmpty(SystemConfig["play_presentation"]))
+                    aspect.SetAttributeValue("Value", SystemConfig["play_presentation"]);
+                else
+                    aspect.SetAttributeValue("Value", "1");
 
                 // Bilinear filtering
                 XElement forcebilineartextures = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "renderer.opengl.forcebilineartextures").FirstOrDefault();

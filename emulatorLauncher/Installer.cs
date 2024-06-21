@@ -307,6 +307,15 @@ namespace EmulatorLauncher
                     if (Version.TryParse(output, out ver))
                         return ver.ToString();
                 }
+                /*else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "play")
+                {
+                    var output = versionInfo.ProductVersion.Substring(0, 7);
+                    output = StringExtensions.FormatVersionString(output);
+
+                    Version ver = new Version();
+                    if (Version.TryParse(output, out ver))
+                        return ver.ToString();
+                }*/
                 else
                 {
                     // Fake version number based on last write time
