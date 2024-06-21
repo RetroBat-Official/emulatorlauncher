@@ -174,6 +174,8 @@ namespace EmulatorLauncher
                         }
                     }
 
+                    BindBoolIniFeature(ini, "BIOS", "PatchFastBoot", "fullboot", "false", "true");
+
                     if (SystemConfig.isOptSet("duckstation_memcardtype") && !string.IsNullOrEmpty(SystemConfig["duckstation_memcardtype"]))
                     {
                         ini.WriteValue("MemoryCards", "Card1Type", SystemConfig["duckstation_memcardtype"]);
@@ -194,6 +196,8 @@ namespace EmulatorLauncher
                         ini.WriteValue("MemoryCards", "Card1Path", "shared_card_1.mcd");
                         ini.WriteValue("MemoryCards", "Card2Path", "shared_card_2.mcd");
                     }
+
+                    ini.WriteValue("MemoryCards", "UsePlaylistTitle", "true");
 
                     // SaveStates
                     bool newSaveStates = Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported("duckstation");
@@ -236,15 +240,13 @@ namespace EmulatorLauncher
                     if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
                     {
                         ini.WriteValue("Cheevos", "Enabled", "true");
-                        ini.WriteValue("Cheevos", "TestMode", "false");
                         ini.WriteValue("Cheevos", "UnofficialTestMode", "false");
                         ini.WriteValue("Cheevos", "UseFirstDiscFromPlaylist", "true");
                         ini.WriteValue("Cheevos", "SoundEffects", "true");
                         ini.WriteValue("Cheevos", "Notifications", "true");
-                        ini.WriteValue("Cheevos", "RichPresence", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false");
                         ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
-                        ini.WriteValue("Cheevos", "Leaderboards", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
-                        ini.WriteValue("Cheevos", "PrimedIndicators", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "LeaderboardNotifications", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "EncoreMode", SystemConfig.getOptBoolean("retroachievements.encore") ? "true" : "false");
 
                         // Inject credentials
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
@@ -267,6 +269,14 @@ namespace EmulatorLauncher
                         ini.WriteValue("Display", "AspectRatio", SystemConfig["psx_ratio"]);
                     else if (Features.IsSupported("psx_ratio"))
                         ini.WriteValue("Display", "AspectRatio", "Auto (Game Native)");
+
+                    if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
+                        ini.WriteValue("Display", "VSync", SystemConfig["VSync"]);
+                    else if (Features.IsSupported("VSync"))
+                        ini.WriteValue("Display", "VSync", "true");
+
+                    BindBoolIniFeature(ini, "Display", "OptimalFramePacing", "duckstation_optimalframepacing", "true", "false");
+                    BindIniFeature(ini, "Display", "DeinterlacingMode", "duckstation_deinterlace", "Adaptive");
 
                     if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
                         ini.WriteValue("GPU", "ResolutionScale", SystemConfig["internal_resolution"]);
@@ -325,25 +335,29 @@ namespace EmulatorLauncher
                         ini.WriteValue("GPU", "PGXPPreserveProjFP", "false");
                     }
 
-                    if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
-                        ini.WriteValue("Display", "VSync", SystemConfig["VSync"]);
-                    else if (Features.IsSupported("VSync"))
-                        ini.WriteValue("Display", "VSync", "true");
+                    if (SystemConfig.isOptSet("duck_msaa") && !string.IsNullOrEmpty(SystemConfig["duck_msaa"]))
+                    {
+                        string[] msaaValues = SystemConfig["duck_msaa"].Split('_');
 
-                    if (SystemConfig.isOptSet("Linear_Filtering") && !string.IsNullOrEmpty(SystemConfig["Linear_Filtering"]))
-                        ini.WriteValue("Display", "LinearFiltering", SystemConfig["Linear_Filtering"]);
-                    else if (Features.IsSupported("Linear_Filtering"))
-                        ini.WriteValue("Display", "LinearFiltering", "true");
-
-                    if (SystemConfig.isOptSet("Integer_Scaling") && !string.IsNullOrEmpty(SystemConfig["Integer_Scaling"]))
-                        ini.WriteValue("Display", "IntegerScaling", SystemConfig["Integer_Scaling"]);
-                    else if (Features.IsSupported("Integer_Scaling"))
-                        ini.WriteValue("Display", "IntegerScaling", "false");
+                        if (msaaValues.Length == 2)
+                        {
+                            ini.WriteValue("GPU", "Multisamples", msaaValues[1]);
+                            ini.WriteValue("GPU", "PerSampleShading", msaaValues[0] == "msaa" ? "false" : "true");
+                        }
+                    }
+                    else if (Features.IsSupported("duck_msaa"))
+                    {
+                        ini.WriteValue("GPU", "Multisamples", "1");
+                        ini.WriteValue("GPU", "PerSampleShading", "false");
+                    }
 
                     if (SystemConfig.isOptSet("psx_region") && !string.IsNullOrEmpty(SystemConfig["psx_region"]))
                         ini.WriteValue("Console", "Region", SystemConfig["psx_region"]);
                     else if (Features.IsSupported("psx_region"))
                         ini.WriteValue("Console", "Region", "Auto");
+
+                    BindBoolIniFeature(ini, "Console", "EnableCheats", "duckstation_cheats", "true", "false");
+                    BindBoolIniFeature(ini, "Console", "Enable8MBRAM", "duckstation_ram", "true", "false");
 
                     if (SystemConfig.isOptSet("ExecutionMode") && !string.IsNullOrEmpty(SystemConfig["ExecutionMode"]))
                         ini.WriteValue("CPU", "ExecutionMode", SystemConfig["ExecutionMode"]);
@@ -431,8 +445,6 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Main", "StartFullscreen", "true");
 
-                    ini.WriteValue("Main", "ApplyGameSettings", "true");
-
                     if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                         ini.WriteValue("Main", "EnableDiscordPresence", "true");
                     else
@@ -442,6 +454,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("Main", "DoubleClickTogglesFullscreen", "false");
                     ini.WriteValue("Main", "Language", GetDefaultpsxLanguage());
                     
+                    BindIniFeature(ini, "Main", "DisableAllEnhancements", "duckstation_disable_enhancement", "false");
+
                     ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
 
                     // Controller configuration
