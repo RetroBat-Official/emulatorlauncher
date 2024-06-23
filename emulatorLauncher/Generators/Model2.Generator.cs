@@ -18,6 +18,7 @@ namespace EmulatorLauncher
         private bool _dinput;
         private string _destFile;
         private string _destParent;
+        private string _path;
 
         public Model2Generator()
         {
@@ -26,7 +27,13 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("m2emulator");
+            if (!Directory.Exists(path))
+                return null;
+
+            _path = path;
 
             string exe = Path.Combine(path, "emulator_multicpu.exe");
             if (core != null && core.ToLower().Contains("singlecpu"))
@@ -34,6 +41,10 @@ namespace EmulatorLauncher
 
             if (!File.Exists(exe))
                 return null;
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
 
             string pakDir = Path.Combine(path, "roms");
             if (!Directory.Exists(pakDir))
@@ -72,14 +83,14 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            if (fullscreen)
+                ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution);
 
             _dinput = false;
             if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
                 _dinput = true;
 
-            SetupConfig(path, resolution, rom);
+            SetupConfig(path, resolution, rom, fullscreen);
             SetupLUAScript(path, rom);
 
             string arg = Path.GetFileNameWithoutExtension(_destFile);
@@ -92,11 +103,9 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfig(string path, ScreenResolution resolution, string rom)
+        private void SetupConfig(string path, ScreenResolution resolution, string rom, bool fullscreen)
         {
             string iniFile = Path.Combine(path, "Emulator.ini");
-
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             try
             {
@@ -168,6 +177,12 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            if (!Controllers.Any(c => c.IsXInputDevice) && SystemConfig["m2_joystick_driver"] != "xinput")
+            {
+                SimpleLogger.Instance.Info("No XInput controllers found, switching to DirectInput");
+                ini.WriteValue("Input", "XInput", "0");
+            }
 
             else if (Program.SystemConfig.isOptSet("m2_joystick_autoconfig") && Program.SystemConfig["m2_joystick_autoconfig"] == "template")
             {
