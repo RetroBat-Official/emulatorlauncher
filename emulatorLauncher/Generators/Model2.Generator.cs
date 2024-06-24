@@ -12,7 +12,6 @@ namespace EmulatorLauncher
 {
     partial class Model2Generator : Generator
     {
-
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _dinput;

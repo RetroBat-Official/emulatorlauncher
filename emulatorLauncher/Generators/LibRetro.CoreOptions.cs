@@ -3679,7 +3679,6 @@ namespace EmulatorLauncher.Libretro
                             }
                         }
                     }
-
                 }
             }
             catch { }

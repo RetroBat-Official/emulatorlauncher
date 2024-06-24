@@ -32,14 +32,17 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            string path = AppConfig.GetFullPath("duckstation");
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
-            _resolution = resolution;
+            string path = AppConfig.GetFullPath("duckstation");
+            if (!Directory.Exists(path))
+                return null;
 
             string exe = Path.Combine(path, "duckstation-qt-x64-ReleaseLTCG.exe");
-
             if (!File.Exists(exe))
                 return null;
+
+            _resolution = resolution;
 
             string[] extensions = new string[] { ".m3u", ".chd", ".cue", ".img", ".pbp", ".iso", ".cso" };
 
