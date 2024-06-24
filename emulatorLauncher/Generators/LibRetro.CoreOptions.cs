@@ -3620,8 +3620,8 @@ namespace EmulatorLauncher.Libretro
             if (core != "px68k")
                 return;
 
-            BindFeature(coreSettings, "px68k_cpuspeed", "px68k_cpuspeed", "25Mhz");
-            BindFeature(coreSettings, "px68k_ramsize", "px68k_ramsize", "4MB");
+            BindFeature(coreSettings, "px68k_cpuspeed", "px68k_cpuspeed", "10Mhz");
+            BindFeature(coreSettings, "px68k_ramsize", "px68k_ramsize", "1MB");
             BindFeature(coreSettings, "px68k_frameskip", "px68k_frameskip", "Full Frame");
             BindFeature(coreSettings, "px68k_joytype1", "px68k_joytype", "Default (2 Buttons)");
             BindFeature(coreSettings, "px68k_joytype2", "px68k_joytype", "Default (2 Buttons)");
