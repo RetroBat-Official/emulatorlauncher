@@ -356,8 +356,8 @@ namespace EmulatorLauncher
                     if (_isPcsx17)
                         ini.WriteValue("EmuCore", "EnableRecordingTools", "disabled");
 
-                    if (!string.IsNullOrEmpty(SystemConfig["VSync"]))
-                        ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["VSync"]);
+                    if (!string.IsNullOrEmpty(SystemConfig["pcsx2_vsync"]))
+                        ini.WriteValue("EmuCore/GS", "VsyncEnable", SystemConfig["pcsx2_vsync"] == "false" ? "0" : "1");
                     else
                         ini.WriteValue("EmuCore/GS", "VsyncEnable", "1");
 
@@ -715,13 +715,13 @@ namespace EmulatorLauncher
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
                 {
                     ini.WriteValue("Achievements", "Enabled", "true");
-                    ini.WriteValue("Achievements", "TestMode", "false");
-                    ini.WriteValue("Achievements", "UnofficialTestMode", "false");
-                    ini.WriteValue("Achievements", "SoundEffects", "true");
-                    ini.WriteValue("Achievements", "RichPresence", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false");
-                    ini.WriteValue("Achievements", "PrimedIndicators", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
-                    ini.WriteValue("Achievements", "Leaderboards", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
                     ini.WriteValue("Achievements", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
+                    ini.WriteValue("Achievements", "EncoreMode", SystemConfig.getOptBoolean("retroachievements.encore") ? "true" : "false");
+                    ini.WriteValue("Achievements", "UnofficialTestMode", "false");
+                    ini.WriteValue("Achievements", "Notifications", "true");
+                    ini.WriteValue("Achievements", "LeaderboardNotifications", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
+                    ini.WriteValue("Achievements", "SoundEffects", "true");
+                    ini.WriteValue("Achievements", "Overlays", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
                     
                     // Inject credentials
                     if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
@@ -801,7 +801,7 @@ namespace EmulatorLauncher
                     if (newSaveStates)
                     {
                         // Keep the original folder, we'll listen to it, and inject in our custom folder
-                        ini.WriteValue("Folders", "Savestates", "sstates");
+                        ini.WriteValue("Folders", "Savestates ", "sstates");
 
                         _saveStatesWatcher = new Pcsx2SaveStatesMonitor(rom, Path.Combine(path, "sstates"), savesPath);
                         _saveStatesWatcher.PrepareEmulatorRepository();
@@ -809,7 +809,7 @@ namespace EmulatorLauncher
                     else
                     {
                         FileTools.TryCreateDirectory(savesPath);
-                        ini.WriteValue("Folders", "Savestates", savesPath);
+                        ini.WriteValue("Folders", "Savestates ", savesPath);
                     }
                 }
 
@@ -844,6 +844,8 @@ namespace EmulatorLauncher
                 // Emucore section
                 ini.WriteValue("EmuCore", "SavestateZstdCompression", "true");
                 ini.WriteValue("EmuCore", "SaveStateOnShutdown", "false");
+                ini.WriteValue("EmuCore", "EnableFastBoot", SystemConfig.getOptBoolean("fullboot") ? "false" : "true");
+                ini.WriteValue("EmuCore", "EnableFastBootFastForward", SystemConfig.getOptBoolean("pcsx2_fastboot") ? "true" : "false");
 
                 //Enable cheats automatically on load if Retroachievements-hardcore is not set only
                 if (SystemConfig.isOptSet("enable_cheats") && !SystemConfig.getOptBoolean("retroachievements.hardcore") && !string.IsNullOrEmpty(SystemConfig["enable_cheats"]))
@@ -861,11 +863,11 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "EmuCore/GS", "FMVAspectRatioSwitch", "fmv_ratio", "Off");
                 BindIniFeature(ini, "EmuCore/GS", "Renderer", "renderer", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "deinterlace_mode", "interlace", "0");
-                BindIniFeature(ini, "EmuCore/GS", "VsyncEnable", "VSync", "1");
+                BindIniFeature(ini, "EmuCore/GS", "VsyncEnable", "pcsx2_vsync", "true");
                 BindBoolIniFeature(ini, "EmuCore/GS", "pcrtc_offsets", "pcrtc_offsets", "true", "false");
                 BindIniFeature(ini, "EmuCore/GS", "pcrtc_antiblur", "pcrtc_antiblur", "true");
                 BindIniFeature(ini, "EmuCore/GS", "upscale_multiplier", "internalresolution", "1");
-                BindIniFeature(ini, "EmuCore/GS", "mipmap_hw", "mipmap", "-1");
+                BindIniFeature(ini, "EmuCore/GS", "hw_mipmap", "mipmap", "true");
                 BindIniFeature(ini, "EmuCore/GS", "filter", "texture_filtering", "2");
                 BindIniFeature(ini, "EmuCore/GS", "TriFilter", "trilinear_filtering", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "MaxAnisotropy", "anisotropic_filtering", "0");
@@ -981,11 +983,11 @@ namespace EmulatorLauncher
                 // User hacks Wild Arms offset
                 if (SystemConfig.isOptSet("UserHacks_WildHack") && !string.IsNullOrEmpty(SystemConfig["UserHacks_WildHack"]))
                 {
-                    ini.WriteValue("EmuCore/GS", "UserHacks_WildHack", SystemConfig["UserHacks_WildHack"]);
+                    ini.WriteValue("EmuCore/GS", "UserHacks_forceEvenSpritePosition", SystemConfig["UserHacks_WildHack"]);
                     ini.WriteValue("EmuCore/GS", "UserHacks", "true");
                 }
                 else if (Features.IsSupported("UserHacks_WildHack"))
-                    ini.WriteValue("EmuCore/GS", "UserHacks_WildHack", "false");
+                    ini.WriteValue("EmuCore/GS", "UserHacks_forceEvenSpritePosition", "false");
 
                 //texture offset
                 if (SystemConfig.isOptSet("TextureOffsets") && !string.IsNullOrEmpty(SystemConfig["TextureOffsets"]))
@@ -1051,7 +1053,7 @@ namespace EmulatorLauncher
                 }
 
                 // AUDIO section
-                BindIniFeature(ini, "SPU2/Output", "OutputModule", "apu", "cubeb");
+                BindIniFeature(ini, "SPU2/Output", "Backend", "pcsx2_apu", "Cubeb");
 
                 // Game fixes
                 BindBoolIniFeature(ini, "EmuCore/Gamefixes", "FpuNegDivHack", "FpuNegDivHack", "true", "false");
