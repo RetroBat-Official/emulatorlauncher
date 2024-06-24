@@ -3627,6 +3627,61 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "px68k_joytype2", "px68k_joytype", "Default (2 Buttons)");
             BindFeature(coreSettings, "px68k_joy1_select", "px68k_joy1_select", "Default");
             BindFeature(coreSettings, "px68k_joy_mouse", "px68k_joy_mouse", "Mouse");
+
+            // Write config.ini file
+            string iniFile = Path.Combine(AppConfig.GetFullPath("bios"), "keropi", "config");
+
+            try
+            {
+                using (var ini = new IniFile(iniFile, IniOptions.KeepEmptyValues))
+                {
+                    if (SystemConfig["rom"] != null)
+                    {
+                        string rom = SystemConfig["rom"];
+                        string romPath = Path.GetDirectoryName(SystemConfig["rom"]);
+                        string ext = Path.GetExtension(rom).ToLowerInvariant();
+                        ini.WriteValue("WinX68k", "StartDir", romPath);
+
+                        if (ext == ".hdf")
+                        {
+                            ini.WriteValue("WinX68k", "HDD0", rom);
+                            ini.WriteValue("WinX68k", "FDD0", null);
+                            ini.WriteValue("WinX68k", "FDD1", null);
+
+                        }
+                        else if (ext == ".dim")
+                        {
+                            ini.WriteValue("WinX68k", "FDD0", rom);
+                            for (int i = 0; i < 16; i++)
+                            {
+                                ini.WriteValue("WinX68k", "HDD" + i, null);
+                            }
+                        }
+                        else if (ext == ".m3u")
+                        {
+                            var lines = File.ReadAllLines(rom);
+                            if (lines.Length > 1 && lines[0].EndsWith(".dim"))
+                            {
+                                ini.WriteValue("WinX68k", "FDD0", Path.Combine(romPath, lines[0]));
+                                ini.WriteValue("WinX68k", "FDD1", Path.Combine(romPath, lines[1]));
+                                for (int i = 0; i < 16; i++)
+                                {
+                                    ini.WriteValue("WinX68k", "HDD" + i, null);
+                                }
+                            }
+                            else if (lines.Length > 0 && lines[0].EndsWith(".dim"))
+                            {
+                                ini.WriteValue("WinX68k", "FDD0", Path.Combine(romPath, lines[0]));
+                                for (int i = 0; i < 16; i++)
+                                {
+                                    ini.WriteValue("WinX68k", "HDD" + i, null);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
         }
 
         private void ConfigureQuasi88(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

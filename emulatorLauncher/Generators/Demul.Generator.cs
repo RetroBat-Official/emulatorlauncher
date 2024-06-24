@@ -22,6 +22,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string folderName = (emulator == "demul-old" || core == "demul-old") ? "demul-old" : "demul";
             if (folderName == "demul-old")
                 _oldVersion = true;
@@ -29,6 +31,9 @@ namespace EmulatorLauncher
             string path = AppConfig.GetFullPath(folderName);
             if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("demul");
+
+            if (!Directory.Exists(path))
+                return null;
 
             string exe = Path.Combine(path, "demul.exe");
             if (!File.Exists(exe))

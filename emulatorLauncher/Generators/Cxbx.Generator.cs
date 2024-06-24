@@ -87,6 +87,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = null;
 
             if ((core != null && core == "chihiro") || (emulator != null && emulator == "chihiro"))
@@ -100,6 +102,9 @@ namespace EmulatorLauncher
 
             if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("cxbx-r");
+
+            if (string.IsNullOrEmpty(path))
+                return null;
 
             _isUsingCxBxLoader = true;
 
