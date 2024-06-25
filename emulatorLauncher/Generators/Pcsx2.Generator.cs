@@ -112,6 +112,25 @@ namespace EmulatorLauncher
             if (!_fullscreen)
                 SystemConfig["bezel"] = "none";
 
+            // Manage .m3u files
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
+            {
+                string[] lines = File.ReadAllLines(rom);
+                string targetRom;
+                if (lines.Length > 0)
+                {
+                    targetRom = Path.Combine(Path.GetDirectoryName(rom), lines[0]);
+
+                    if (File.Exists(targetRom))
+                        rom = targetRom;
+
+                    else
+                        SimpleLogger.Instance.Error("PCSX2: M3U file target not found: " + targetRom);
+                }
+                else
+                    SimpleLogger.Instance.Error("PCSX2: M3U file is empty: " + rom);
+            }
+
             // Configuration files
             // QT version has now only 1 ini file versus multiple for wxwidgets version
             if (_isPcsxqt)
@@ -1074,6 +1093,21 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "EmuCore/Gamefixes", "VUSyncHack", "VUSyncHack", "true", "false");
                 BindBoolIniFeature(ini, "EmuCore/Gamefixes", "XgKickHack", "XgKickHack", "true", "false");
                 BindBoolIniFeature(ini, "EmuCore/Gamefixes", "BlitInternalFPSHack", "BlitInternalFPSHack", "true", "false");
+
+                // Memory cards management
+                ini.WriteValue("MemoryCards", "Slot1_Enable", "true");
+                ini.WriteValue("MemoryCards", "Slot2_Enable", "true");
+
+                if (SystemConfig.isOptSet("pcsx2_pergame_memory") && SystemConfig.getOptBoolean("pcsx2_pergame_memory"))
+                {
+                    ini.WriteValue("MemoryCards", "Slot1_Filename", Path.GetFileNameWithoutExtension(rom) + ".ps2");
+                    ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
+                }
+                else
+                {
+                    ini.WriteValue("MemoryCards", "Slot1_Filename", "Mcd001.ps2");
+                    ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
+                }
             }
         }
 
