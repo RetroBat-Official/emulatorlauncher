@@ -180,6 +180,7 @@ namespace EmulatorLauncher
             BindFeature(yml, "fps-hack", "vita3k_fpshack", "false");
             BindFeature(yml, "show-gui", "vita3k_gui", "false");
             BindFeature(yml, "show-compile-shaders", "vita3k_showShaderCompile", "false");
+            yml["check-for-updates"] = "false";
 
             //Performance overlay options
             if (SystemConfig.isOptSet("performance-overlay") && SystemConfig["performance-overlay"] != "false")
