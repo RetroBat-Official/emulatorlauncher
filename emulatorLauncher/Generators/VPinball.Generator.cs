@@ -694,8 +694,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("Player", "SyncMode", "3");
 
                 // Video options
-                ini.WriteValue("Player", "BallReflection", SystemConfig["vp_ballreflection"] == "1" ? "1" : "0");
-
                 if (SystemConfig.isOptSet("vp_ambient_occlusion") && SystemConfig["vp_ambient_occlusion"] == "dynamic")
                 {
                     ini.WriteValue("Player", "DisableAO", "0");
