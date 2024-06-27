@@ -649,7 +649,7 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
-                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
+                if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
                     ini.WriteValue("Controller", "ForceDisableB2S", "0");
                 else
                     ini.WriteValue("Controller", "ForceDisableB2S", "1");
@@ -747,7 +747,7 @@ namespace EmulatorLauncher
             regKeyc = vp.CreateSubKey("Controller");
             if (regKeyc != null)
             {
-                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
+                if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
                     SetOption(regKeyc, "ForceDisableB2S", 0);
                 else
                     SetOption(regKeyc, "ForceDisableB2S", 1);
