@@ -45,18 +45,9 @@ namespace EmulatorLauncher
             _version = new Version(10, 0, 0, 0);
 
             // Get version from executable
-            string versionString = FileVersionInfo.GetVersionInfo(exe).ProductVersion
-                                .Replace(",", ".")
-                                .Replace(" ", "");
-            
-            string[] parts = versionString.Split('.');
-            
-            //Vpinball has more than 4 parts in version string, let's remove the suffix
-            if (parts.Length > 4)
-                parts = new string[] { parts[0], parts[1], parts[2], parts[3] };
-
-            string formattedVersionString = string.Join(".", parts);
-            Version.TryParse(formattedVersionString, out _version);
+            var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+            string versionString = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
+            Version.TryParse(versionString, out _version);
 
             rom = this.TryUnZipGameIfNeeded(system, rom, true, false);
             if (Directory.Exists(rom))
