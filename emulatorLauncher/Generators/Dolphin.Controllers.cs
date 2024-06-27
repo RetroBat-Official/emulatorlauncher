@@ -1060,6 +1060,12 @@ namespace EmulatorLauncher
                             ini.WriteValue(gcpad, "IR/Auto-Hide", "True");
                         else
                             ini.WriteValue(gcpad, "IR/Auto-Hide", "False");
+
+                        // Relative input for IR cusros
+                        if (Program.SystemConfig.getOptBoolean("wii_relativecursor"))
+                            ini.WriteValue(gcpad, "IR/Relative Input", "False");
+                        else
+                            ini.WriteValue(gcpad, "IR/Relative Input", "True");
                     }
                 }
 

@@ -43,7 +43,20 @@ namespace EmulatorLauncher
             _exe = exe;
             _processName = Path.GetFileNameWithoutExtension(exe);
             _version = new Version(10, 0, 0, 0);
-            Version.TryParse(FileVersionInfo.GetVersionInfo(exe).ProductVersion.Replace(",", ".").Replace(" ", ""), out _version);
+
+            // Get version from executable
+            string versionString = FileVersionInfo.GetVersionInfo(exe).ProductVersion
+                                .Replace(",", ".")
+                                .Replace(" ", "");
+            
+            string[] parts = versionString.Split('.');
+            
+            //Vpinball has more than 4 parts in version string, let's remove the suffix
+            if (parts.Length > 4)
+                parts = new string[] { parts[0], parts[1], parts[2], parts[3] };
+
+            string formattedVersionString = string.Join(".", parts);
+            Version.TryParse(formattedVersionString, out _version);
 
             rom = this.TryUnZipGameIfNeeded(system, rom, true, false);
             if (Directory.Exists(rom))
@@ -636,7 +649,7 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
-                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
+                if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
                     ini.WriteValue("Controller", "ForceDisableB2S", "0");
                 else
                     ini.WriteValue("Controller", "ForceDisableB2S", "1");
@@ -681,8 +694,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("Player", "SyncMode", "3");
 
                 // Video options
-                ini.WriteValue("Player", "BallReflection", SystemConfig["vp_ballreflection"] == "1" ? "1" : "0");
-
                 if (SystemConfig.isOptSet("vp_ambient_occlusion") && SystemConfig["vp_ambient_occlusion"] == "dynamic")
                 {
                     ini.WriteValue("Player", "DisableAO", "0");
@@ -736,7 +747,7 @@ namespace EmulatorLauncher
             regKeyc = vp.CreateSubKey("Controller");
             if (regKeyc != null)
             {
-                if (Screen.AllScreens.Length >= 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
+                if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
                     SetOption(regKeyc, "ForceDisableB2S", 0);
                 else
                     SetOption(regKeyc, "ForceDisableB2S", 1);

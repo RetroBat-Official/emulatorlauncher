@@ -65,7 +65,7 @@ namespace EmulatorLauncher
             { new Installer("snes9x", "snes9x", "snes9x-x64.exe") }, 
             { new Installer("solarus", "solarus", "solarus-run.exe") },             
             { new Installer("tsugaru", "tsugaru", "tsugaru_cui.exe") }, 
-            { new Installer("vpinball", "vpinball", "vpinballx.exe") }, 
+            { new Installer("vpinball", new string[] {"vpinball" }, new string[] { "VPinballX.exe", "vpinballx.exe", "VPinballX64.exe" }) }, 
             { new Installer("winuae", "winuae", "winuae64.exe") }, 
             { new Installer("xemu", "xemu") },
             { new Installer("nosgba", "nosgba", "no$gba.exe") },
