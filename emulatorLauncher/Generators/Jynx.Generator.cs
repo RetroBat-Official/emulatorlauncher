@@ -28,12 +28,12 @@ namespace EmulatorLauncher
 
             string[] extensions = new string[] { ".bin", ".tap" };
 
-            if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z")
+            if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower() == ".squashfs")
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
                 if (Directory.Exists(uncompressedRomPath))
                 {
-                    string[] romFiles = Directory.GetFiles(uncompressedRomPath);
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories);
                     rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
                     ValidateUncompressedGame();
                 }

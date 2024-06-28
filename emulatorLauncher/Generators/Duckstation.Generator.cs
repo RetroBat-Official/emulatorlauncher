@@ -46,12 +46,12 @@ namespace EmulatorLauncher
 
             string[] extensions = new string[] { ".m3u", ".chd", ".cue", ".img", ".pbp", ".iso", ".cso" };
 
-            if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z")
+            if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower() == ".squashfs")
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
                 if (Directory.Exists(uncompressedRomPath))
                 {
-                    string[] romFiles = Directory.GetFiles(uncompressedRomPath).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
                     rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
                     ValidateUncompressedGame();
                 }
