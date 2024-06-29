@@ -132,65 +132,38 @@ namespace EmulatorLauncher
             }
         }
 
-        class MameGameInfo
+        public class MameGameInfo
         {
             public static MameGameInfo GetGameInfo(string rom)
             {
-                var file = Path.Combine(Program.SystemConfig.GetFullPath("resources"), "mamenames.xml");
+                var file = Path.Combine(Program.SystemConfig.GetFullPath("resources"), "arcaderoms.xml");
                 if (!File.Exists(file))
                     return null;
 
-                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+                using (XmlReader reader = XmlReader.Create(file))
                 {
-                    using (var reader = XmlReader.Create(fs, new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true }))
+                    while (reader.Read())
                     {
-                        while (reader.IsStartElement())
+                        if (reader.IsStartElement("rom"))
                         {
-                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "game")
+                            string id = reader.GetAttribute("id");
+                            if (id == rom)
                             {
+                                string name = reader.GetAttribute("name");
+                                string vert = reader.GetAttribute("vert");
+
                                 var game = new MameGameInfo();
-
-                                if (reader.GetAttribute("vert") == "true")
-                                    game.Vertical = true;
-
-                                if (reader.GetAttribute("gun") == "true")
-                                    game.Lightgun = true;
-
-                                reader.Read();
-
-                                while (reader.IsStartElement())
                                 {
-                                    if (reader.NodeType == XmlNodeType.Element)
-                                    {
-                                        switch (reader.Name)
-                                        {
-                                            case "mamename":
-                                                game.RomName = reader.ReadElementContentAsString();
-                                                break;
-                                            case "realname":
-                                                game.DisplayName = reader.ReadElementContentAsString();
-                                                break;
-                                            default:
-                                                reader.Skip();
-                                                break;
-                                        }
-                                    }
-                                    else
-                                        reader.Read();
+                                    game.RomName = id;
+                                    game.DisplayName = name;
+                                    game.Vertical = vert != null && vert.Equals("true", StringComparison.OrdinalIgnoreCase);
+                                };
 
-                                    if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "game")
-                                    {
-                                        if (rom.Equals(game.RomName, StringComparison.InvariantCultureIgnoreCase))
-                                            return game;
-                                    }
-                                }
+                                return game;
                             }
-
-                            reader.Read();
                         }
                     }
                 }
-
                 return null;
             }
 
@@ -199,7 +172,6 @@ namespace EmulatorLauncher
             public string RomName { get; set; }
             public string DisplayName { get; set; }
             public bool Vertical { get; set; }
-            public bool Lightgun { get; set; }
 
             public override string ToString()
             {

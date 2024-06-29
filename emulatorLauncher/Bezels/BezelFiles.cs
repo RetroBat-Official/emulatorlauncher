@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.FileFormats;
-using System.Collections.Generic;
+using EmulatorLauncher;
 
 namespace EmulatorLauncher
 {
@@ -151,30 +151,30 @@ namespace EmulatorLauncher
         static string[] bezelPaths =
         {            
             // Bezels with exact rom name -> Uses {rom} for rom name
-            "{userpath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",
-            "{systempath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",
-            "{userpath}\\{bezel}\\games\\{rom}.png",
-            "{systempath}\\{bezel}\\games\\{rom}.png",
+            "{userpath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",              // decorations\thebezelproject\games\mame\1942.png
+            "{systempath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",            // system\decorations\thebezelproject\games\mame\1942.png
+            "{userpath}\\{bezel}\\games\\{rom}.png",                            // decorations\thebezelproject\games\1942.png
+            "{systempath}\\{bezel}\\games\\{rom}.png",                          // system\decorations\thebezelproject\games\1942.png
 
             // Bezels with same IndexedRomName -> Uses * instead of rom name
-            "{userpath}\\{bezel}\\games\\{gamesystem}\\*.png",
-            "{systempath}\\{bezel}\\games\\{gamesystem}\\*.png",
-            "{userpath}\\{bezel}\\games\\*.png",
-            "{systempath}\\{bezel}\\games\\*.png",
+            "{userpath}\\{bezel}\\games\\{gamesystem}\\*.png",                  // decorations\thebezelproject\games\mame\*.png
+            "{systempath}\\{bezel}\\games\\{gamesystem}\\*.png",                // system\decorations\thebezelproject\games\mame\*.png
+            "{userpath}\\{bezel}\\games\\*.png",                                // decorations\thebezelproject\games\1942.png
+            "{systempath}\\{bezel}\\games\\*.png",                              // system\decorations\thebezelproject\games\1942.png
 
             // System bezels
-            "{userpath}\\{bezel}\\systems\\{system}.png",
-            "{systempath}\\{bezel}\\systems\\{system}.png",
-            "{userpath}\\{bezel}\\default.png",
-            "{systempath}\\{bezel}\\default.png",
+            "{userpath}\\{bezel}\\systems\\{system}.png",                       // decorations\thebezelproject\systems\mame.png
+            "{systempath}\\{bezel}\\systems\\{system}.png",                     // system\decorations\thebezelproject\systems\mame.png
+            "{userpath}\\{bezel}\\default.png",                                 // decorations\thebezelproject\default.png
+            "{systempath}\\{bezel}\\default.png",                               // system\decorations\thebezelproject\default.png
             
             // Default_unglazed
-            "{userpath}\\default_unglazed\\systems\\{system}.png",
-            "{systempath}\\default_unglazed\\systems\\{system}.png",
+            "{userpath}\\default_unglazed\\systems\\{system}.png",              // decorations\default_unglazed\systems\mame.png
+            "{systempath}\\default_unglazed\\systems\\{system}.png",            // system\decorations\default_unglazed\systems\mame.png
 
             // Default
-            "{userpath}\\default\\systems\\{system}.png",
-            "{systempath}\\default\\systems\\{system}.png"
+            "{userpath}\\default\\systems\\{system}.png",                       // decorations\default\systems\mame.png
+            "{systempath}\\default\\systems\\{system}.png"                      // system\decorations\default\systems\mame.png
         };
 
         private static bool IsPng(string filename)
@@ -333,6 +333,21 @@ namespace EmulatorLauncher
                     return CreateSindenBorderBezel(null, resolution);
 
                 return null;
+            }
+
+            // If default bezel and game is vertcial, switch to default vertical bezel
+            if (systemName == "mame" || systemName == "fbneo")
+            {
+                var romInfo = Mame64Generator.MameGameInfo.GetGameInfo(Path.GetFileNameWithoutExtension(rom));
+
+                if (romInfo != null && romInfo.Vertical)
+                {
+                    if ((overlay_png_file.Contains("default\\systems") || overlay_png_file.Contains("default_unglazed\\systems")) && overlay_png_file.EndsWith(systemName + ".png"))
+                    {
+                        bezel = "arcade_vertical_default";
+                        overlay_png_file = FindBezel(overlayUser, overlaySystem, bezel, systemName, Path.GetFileNameWithoutExtension(rom), perGameSystem, emulator);
+                    }
+                }
             }
 
             string overlay_info_file = Path.ChangeExtension(overlay_png_file, ".info");
