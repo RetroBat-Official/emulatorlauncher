@@ -173,7 +173,7 @@ namespace EmulatorLauncher
             BindFeature(core, "Accurate RSX reservation access", "accuratersx", "false");
             BindFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "false");
             BindFeature(core, "Full Width AVX-512", "fullavx", "false");
-            BindFeature(core, "XFloat Accuracy", "xfloat", "Accurate");
+            BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
 
             // Handle Video part of yml file
             var video = yml.GetOrCreateContainer("Video");
