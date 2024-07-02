@@ -138,6 +138,29 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
+                    // Draw FPS
+                    if (SystemConfig.isOptSet("dolphin_showfps") && SystemConfig["dolphin_showfps"] == "full")
+                    {
+                        ini.WriteValue("Settings", "ShowFTimes", "True");
+                        ini.WriteValue("Settings", "ShowFPS", "True");
+                        ini.WriteValue("Settings", "ShowGraphs", "True");
+                        ini.WriteValue("Settings", "ShowSpeed", "True");
+                    }
+                    else if (SystemConfig.isOptSet("dolphin_showfps") && SystemConfig["dolphin_showfps"] == "fps_only")
+                    {
+                        ini.WriteValue("Settings", "ShowFTimes", "False");
+                        ini.WriteValue("Settings", "ShowFPS", "True");
+                        ini.WriteValue("Settings", "ShowGraphs", "False");
+                        ini.WriteValue("Settings", "ShowSpeed", "False");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Settings", "ShowFTimes", "False");
+                        ini.WriteValue("Settings", "ShowFPS", "False");
+                        ini.WriteValue("Settings", "ShowGraphs", "False");
+                        ini.WriteValue("Settings", "ShowSpeed", "False");
+                    }
+
                     // Fullscreen
                     if (_bezelFileInfo != null)
                         ini.WriteValue("Settings", "BorderlessFullscreen", "True");
@@ -232,10 +255,10 @@ namespace EmulatorLauncher
                     // HiResTextures
                     BindBoolIniFeature(ini, "Settings", "HiresTextures", "hires_textures", "True", "False");
                     BindBoolIniFeature(ini, "Settings", "CacheHiresTextures", "CacheHiresTextures", "True", "False");
+                    BindBoolIniFeature(ini, "Settings", "EnableMods", "dolphin_graphicsmods", "True", "False");
 
                     // Other settings
                     BindIniFeature(ini, "Hardware", "VSync", "dolphin_vsync", "True");
-                    BindBoolIniFeature(ini, "Settings", "ShowFPS", "DrawFramerate", "True", "False");
                     BindIniFeature(ini, "Settings", "InternalResolution", "internal_resolution", "0");
                     BindIniFeature(ini, "Enhancements", "ForceTextureFiltering", "ForceFiltering", "0");
                     BindIniFeature(ini, "Enhancements", "PostProcessingShader", "dolphin_shaders", "(off)");
@@ -272,7 +295,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Achievements", "EncoreEnabled", SystemConfig.getOptBoolean("retroachievements.encore") ? "True" : "False");
                         ini.WriteValue("Achievements", "HardcoreEnabled", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "True" : "False");
                         ini.WriteValue("Achievements", "LeaderboardsEnabled", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "True" : "False");
-                        ini.WriteValue("Achievements", "RichPresenceEnabled", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "True" : "False");
+                        ini.WriteValue("Achievements", "DiscordPresenceEnabled", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "True" : "False");
                         ini.WriteValue("Achievements", "UnofficialEnabled", "False");
                         ini.WriteValue("Achievements", "BadgesEnabled", "True");
                         ini.WriteValue("Achievements", "ProgressEnabled", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "True" : "False");
@@ -409,18 +432,6 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Display", "Fullscreen", "True");
 
-                    // Draw FPS
-                    if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
-                    {
-                        ini.WriteValue("General", "ShowLag", "True");
-                        ini.WriteValue("General", "ShowFrameCount", "True");
-                    }
-                    else
-                    {
-                        ini.WriteValue("General", "ShowLag", "False");
-                        ini.WriteValue("General", "ShowFrameCount", "False");
-                    }
-
                     // Discord
                     BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "True", "False");
 
@@ -432,6 +443,7 @@ namespace EmulatorLauncher
 
                     // don't ask about statistics
                     ini.WriteValue("Analytics", "PermissionAsked", "True");
+                    ini.WriteValue("Analytics", "Enabled", "False");
 
                     // don't confirm at stop
                     ini.WriteValue("Interface", "ConfirmStop", "False");
@@ -440,15 +452,9 @@ namespace EmulatorLauncher
 
                     // language (for gamecube at least)
                     if (Features.IsSupported("gamecube_language") && SystemConfig.isOptSet("gamecube_language"))
-                    {
                         ini.WriteValue("Core", "SelectedLanguage", SystemConfig["gamecube_language"]);
-                        ini.WriteValue("Core", "GameCubeLanguage", SystemConfig["gamecube_language"]);
-                    }
                     else
-                    {
                         ini.WriteValue("Core", "SelectedLanguage", GetGameCubeLangFromEnvironment());
-                        ini.WriteValue("Core", "GameCubeLanguage", GetGameCubeLangFromEnvironment());
-                    }
 
                     // Audio
                     if (SystemConfig.isOptSet("enable_dpl2") && SystemConfig.getOptBoolean("enable_dpl2"))
@@ -464,10 +470,10 @@ namespace EmulatorLauncher
                         ini.WriteValue("DSP", "EnableJIT", "False");
                     }
 
-                    BindIniFeature(ini, "DSP", "Backend", "audiobackend", "Cubeb");
+                    BindIniFeature(ini, "DSP", "Backend", "dolphin_audiobackend", "Cubeb");
 
                     // Video backend - Default
-                    BindIniFeature(ini, "Core", "GFXBackend", "gfxbackend", "Vulkan");
+                    BindIniFeature(ini, "Core", "GFXBackend", "dolphin_gfxbackend", "Vulkan");
 
                     // Cheats - default false
                     if (!_triforce)
@@ -480,7 +486,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Core", "MMU", "enable_mmu", "True", "False");
 
                     // CPU Thread (Dual Core)
-                    BindBoolIniFeature(ini, "Core", "CPUThread", "CPUThread", "True", "False");
+                    BindBoolIniFeature(ini, "Core", "CPUThread", "dolphin_cputhread", "False", "True");
 
                     // gamecube pads forced as standard pad
                     bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
@@ -519,6 +525,17 @@ namespace EmulatorLauncher
                             _saveStatesWatcher = new DolphinSaveStatesMonitor(rom, Path.Combine(path, "User", "StateSaves"), localPath);
                             _saveStatesWatcher.PrepareEmulatorRepository();
                         }
+                        // DumpPath
+                        string dumpPath = Path.Combine(savesPath, "dolphin", "User", "Dump");
+                        if (!Directory.Exists(dumpPath)) try { Directory.CreateDirectory(dumpPath); }
+                            catch { }
+                        ini.WriteValue("General", "DumpPath", dumpPath);
+
+                        // WFSPath
+                        string wfsPath = Path.Combine(savesPath, "dolphin", "User", "WFS");
+                        if (!Directory.Exists(wfsPath)) try { Directory.CreateDirectory(wfsPath); }
+                            catch { }
+                        ini.WriteValue("General", "WFSPath", wfsPath);
 
                         // Wii NAND path
                         string wiiNandPath = Path.Combine(savesPath, "dolphin", "User", "Wii");
