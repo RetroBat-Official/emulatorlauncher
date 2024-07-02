@@ -529,7 +529,25 @@ namespace EmulatorLauncher
                     WriteMappingXinput("22", "47");
                     WriteMappingXinput("23", "46");
                     WriteMappingXinput("24", "40");
-                }
+
+                    if (SystemConfig.isOptSet("cemu_gamepadscreen") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadscreen"]))
+                    {
+                        string screenButton = SystemConfig["cemu_gamepadscreen"];
+
+                        switch (screenButton)
+                        {
+                            case "leftstick":
+                                WriteMappingXinput("26", "7");
+                                break;
+                            case "rightstick":
+                                WriteMappingXinput("26", "8");
+                                break;
+                            case "select":
+                                WriteMappingXinput("26", "5");
+                                break;
+                        }
+                    }
+                } 
             }
             
             // Other
@@ -592,6 +610,24 @@ namespace EmulatorLauncher
                     WriteMapping("22", InputKey.rightanalogup, true);
                     WriteMapping("23", InputKey.rightanalogleft, false);
                     WriteMapping("24", InputKey.rightanalogleft, true);
+
+                    if (SystemConfig.isOptSet("cemu_gamepadscreen") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadscreen"]))
+                    {
+                        string screenButton = SystemConfig["cemu_gamepadscreen"];
+
+                        switch (screenButton)
+                        {
+                            case "leftstick":
+                                WriteMapping("26", InputKey.l3, false);
+                                break;
+                            case "rightstick":
+                                WriteMapping("26", InputKey.r3, false);
+                                break;
+                            case "select":
+                                WriteMapping("26", InputKey.select, false);
+                                break;
+                        }
+                    }
                 }
             }
 
