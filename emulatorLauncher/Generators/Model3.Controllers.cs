@@ -402,20 +402,41 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputSteeringRight", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputSteering", "\"JOY" + j1index + "_XAXIS\"");
 
-                //Pedals - accelerate with R2, brake with L2
-                ini.WriteValue(" Global ", "InputAccelerator", "\"JOY" + j1index + "_RZAXIS_POS\"");
-                ini.WriteValue(" Global ", "InputBrake", "\"JOY" + j1index + "_RYAXIS_POS\"");
+                if (SystemConfig.getOptBoolean("model3_racingshoulder"))
+                {
+                    //Pedals - accelerate with R1, brake with L1
+                    ini.WriteValue(" Global ", "InputAccelerator", "\"JOY" + j1index + "_BUTTON11\"");
+                    ini.WriteValue(" Global ", "InputBrake", "\"JOY" + j1index + "_BUTTON10\"");
 
-                //Up/down shifter manual transmission (all racers) - L1 gear down and R1 gear up
-                ini.WriteValue(" Global ", "InputGearShiftUp", "\"JOY" + j1index + "_BUTTON11\"");
-                ini.WriteValue(" Global ", "InputGearShiftDown", "\"JOY" + j1index + "_BUTTON10\"");
+                    //Up/down shifter manual transmission (all racers) - DPAD up and DOWN
+                    ini.WriteValue(" Global ", "InputGearShiftUp", "\"JOY" + j1index + "_POV1_UP\"");
+                    ini.WriteValue(" Global ", "InputGearShiftDown", "\"JOY" + j1index + "_POV1_DOWN\"");
 
-                //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with right stick (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
-                ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + j1index + "_RXAXIS_NEG\"");
-                ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + j1index + "_RXAXIS_POS\"");
-                ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + j1index + "_ZAXIS_NEG\"");
-                ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + j1index + "_ZAXIS_POS\"");
-                ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                    //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with D-PAD (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
+                    ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + j1index + "_POV1_UP\"");
+                    ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + j1index + "_POV1_DOWN\"");
+                    ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + j1index + "_POV1_LEFT\"");
+                    ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + j1index + "_POV1_RIGHT\"");
+                    ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                }
+
+                else
+                {
+                    //Pedals - accelerate with R2, brake with L2
+                    ini.WriteValue(" Global ", "InputAccelerator", "\"JOY" + j1index + "_RZAXIS_POS\"");
+                    ini.WriteValue(" Global ", "InputBrake", "\"JOY" + j1index + "_RYAXIS_POS\"");
+
+                    //Up/down shifter manual transmission (all racers) - L1 gear down and R1 gear up
+                    ini.WriteValue(" Global ", "InputGearShiftUp", "\"JOY" + j1index + "_BUTTON11\"");
+                    ini.WriteValue(" Global ", "InputGearShiftDown", "\"JOY" + j1index + "_BUTTON10\"");
+
+                    //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with right stick (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
+                    ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + j1index + "_RXAXIS_NEG\"");
+                    ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + j1index + "_RXAXIS_POS\"");
+                    ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + j1index + "_ZAXIS_NEG\"");
+                    ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + j1index + "_ZAXIS_POS\"");
+                    ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                }
 
                 //VR4 view change buttons (Daytona 2, Le Mans 24, Scud Race) - the 4 buttons will be used to change view in the games listed
                 ini.WriteValue(" Global ", "InputVR1", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON3\"" : "\"JOY" + j1index + "_BUTTON4\"");
@@ -758,20 +779,40 @@ namespace EmulatorLauncher
                         ini.WriteValue(" Global ", "InputSteeringRight", "\"NONE\"");
                         ini.WriteValue(" Global ", "InputSteering", "\"" + GetDinputMapping(j1index, ctrl1, "leftx", 0) + "\"");
 
-                        //Pedals - accelerate with R2, brake with L2
-                        ini.WriteValue(" Global ", "InputAccelerator", "\"" + GetDinputMapping(j1index, ctrl1, "righttrigger", 1) + "\"");
-                        ini.WriteValue(" Global ", "InputBrake", "\"" + GetDinputMapping(j1index, ctrl1, "lefttrigger", 1) + "\"");
+                        if (SystemConfig.getOptBoolean("model3_racingshoulder"))
+                        {
+                            //Pedals - accelerate with R1, brake with L1
+                            ini.WriteValue(" Global ", "InputAccelerator", "\"" + GetDinputMapping(j1index, ctrl1, "rightshoulder") + "\"");
+                            ini.WriteValue(" Global ", "InputBrake", "\"" + GetDinputMapping(j1index, ctrl1, "leftshoulder") + "\"");
 
-                        //Up/down shifter manual transmission (all racers) - L1 gear down and R1 gear up
-                        ini.WriteValue(" Global ", "InputGearShiftUp", "\"" + GetDinputMapping(j1index, ctrl1, "rightshoulder") + "\"");
-                        ini.WriteValue(" Global ", "InputGearShiftDown", "\"" + GetDinputMapping(j1index, ctrl1, "leftshoulder") + "\"");
+                            //Up/down shifter manual transmission (all racers) - DPAD up and DOWN
+                            ini.WriteValue(" Global ", "InputGearShiftUp", "\"" + GetDinputMapping(j1index, ctrl1, "dpup") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShiftDown", "\"" + GetDinputMapping(j1index, ctrl1, "dpdown") + "\"");
 
-                        //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with right stick (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
-                        ini.WriteValue(" Global ", "InputGearShift1", "\"" + GetDinputMapping(j1index, ctrl1, "righty", -1) + "\"");
-                        ini.WriteValue(" Global ", "InputGearShift2", "\"" + GetDinputMapping(j1index, ctrl1, "righty", 1) + "\"");
-                        ini.WriteValue(" Global ", "InputGearShift3", "\"" + GetDinputMapping(j1index, ctrl1, "righty", -1) + "\"");
-                        ini.WriteValue(" Global ", "InputGearShift4", "\"" + GetDinputMapping(j1index, ctrl1, "righty", 1) + "\"");
-                        ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                            //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with D-PAD (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
+                            ini.WriteValue(" Global ", "InputGearShift1", "\"" + GetDinputMapping(j1index, ctrl1, "dpup") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift2", "\"" + GetDinputMapping(j1index, ctrl1, "dpdown") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift3", "\"" + GetDinputMapping(j1index, ctrl1, "dpleft") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift4", "\"" + GetDinputMapping(j1index, ctrl1, "dpright") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                        }
+                        else
+                        {
+                            //Pedals - accelerate with R2, brake with L2
+                            ini.WriteValue(" Global ", "InputAccelerator", "\"" + GetDinputMapping(j1index, ctrl1, "righttrigger", 1) + "\"");
+                            ini.WriteValue(" Global ", "InputBrake", "\"" + GetDinputMapping(j1index, ctrl1, "lefttrigger", 1) + "\"");
+
+                            //Up/down shifter manual transmission (all racers) - L1 gear down and R1 gear up
+                            ini.WriteValue(" Global ", "InputGearShiftUp", "\"" + GetDinputMapping(j1index, ctrl1, "rightshoulder") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShiftDown", "\"" + GetDinputMapping(j1index, ctrl1, "leftshoulder") + "\"");
+
+                            //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with right stick (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
+                            ini.WriteValue(" Global ", "InputGearShift1", "\"" + GetDinputMapping(j1index, ctrl1, "righty", -1) + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift2", "\"" + GetDinputMapping(j1index, ctrl1, "righty", 1) + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift3", "\"" + GetDinputMapping(j1index, ctrl1, "righty", -1) + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift4", "\"" + GetDinputMapping(j1index, ctrl1, "righty", 1) + "\"");
+                            ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                        }
 
                         //VR4 view change buttons (Daytona 2, Le Mans 24, Scud Race) - the 4 buttons will be used to change view in the games listed
                         ini.WriteValue(" Global ", "InputVR1", "\"" + GetDinputMapping(j1index, ctrl1, "y") + "\"");
@@ -1105,20 +1146,41 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputSteeringRight", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputSteering", "\"JOY" + j1index + "_XAXIS\"");
 
-                //Pedals
-                ini.WriteValue(" Global ", "InputAccelerator", "\"JOY" + j1index + "_RZAXIS_POS\"");
-                ini.WriteValue(" Global ", "InputBrake", "\"JOY" + j1index + "_ZAXIS_POS\"");
+                if (SystemConfig.getOptBoolean("model3_racingshoulder"))
+                {
+                    //Pedals - accelerate with R1, brake with L1
+                    ini.WriteValue(" Global ", "InputAccelerator", "\"JOY" + j1index + "_BUTTON6\"");
+                    ini.WriteValue(" Global ", "InputBrake", "\"JOY" + j1index + "_BUTTON5\"");
 
-                //Up/down shifter manual transmission (all racers)
-                ini.WriteValue(" Global ", "InputGearShiftUp", "\"JOY" + j1index + "_BUTTON6\"");
-                ini.WriteValue(" Global ", "InputGearShiftDown", "\"JOY" + j1index + "_BUTTON5\"");
+                    //Up/down shifter manual transmission (all racers) - DPAD up and DOWN
+                    ini.WriteValue(" Global ", "InputGearShiftUp", "\"JOY" + j2index + "_POV1_UP\"");
+                    ini.WriteValue(" Global ", "InputGearShiftDown", "\"JOY" + j2index + "_POV1_DOWN\"");
 
-                //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race)
-                ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + j1index + "_RYAXIS_NEG\"");
-                ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + j1index + "_RYAXIS_POS\"");
-                ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + j1index + "_RXAXIS_NEG\"");
-                ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + j1index + "_RXAXIS_POS\"");
-                ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                    //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with D-PAD (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
+                    ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + j2index + "_POV1_UP\"");
+                    ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + j2index + "_POV1_DOWN\"");
+                    ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + j2index + "_POV1_LEFT\"");
+                    ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + j2index + "_POV1_RIGHT\"");
+                    ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                }
+
+                else
+                {
+                    //Pedals
+                    ini.WriteValue(" Global ", "InputAccelerator", "\"JOY" + j1index + "_RZAXIS_POS\"");
+                    ini.WriteValue(" Global ", "InputBrake", "\"JOY" + j1index + "_ZAXIS_POS\"");
+
+                    //Up/down shifter manual transmission (all racers)
+                    ini.WriteValue(" Global ", "InputGearShiftUp", "\"JOY" + j1index + "_BUTTON6\"");
+                    ini.WriteValue(" Global ", "InputGearShiftDown", "\"JOY" + j1index + "_BUTTON5\"");
+
+                    //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race)
+                    ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + j1index + "_RYAXIS_NEG\"");
+                    ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + j1index + "_RYAXIS_POS\"");
+                    ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + j1index + "_RXAXIS_NEG\"");
+                    ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + j1index + "_RXAXIS_POS\"");
+                    ini.WriteValue(" Global ", "InputGearShiftN", "NONE");
+                }
 
                 //VR4 view change buttons (Daytona 2, Le Mans 24, Scud Race)
                 ini.WriteValue(" Global ", "InputVR1", "\"JOY" + j1index + "_BUTTON4\"");
