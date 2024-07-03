@@ -747,6 +747,16 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             coreSettings["cap32_autorun"] = "enabled";
+            
+            // disable autorun if m3u file contains #COMMAND
+            string rom = SystemConfig["rom"];
+            if (Path.GetExtension(rom).ToLower() == ".m3u")
+            {
+                string[] lines = File.ReadAllLines(rom);
+
+                if (lines.Length > 0 && lines.Any(line => line.StartsWith("#COMMAND")))
+                    coreSettings["cap32_autorun"] = "disabled";
+            }            
 
             // Virtual Keyboard by default (select+start) change to (start+Y)
             coreSettings["cap32_combokey"] = "y";
