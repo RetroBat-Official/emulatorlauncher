@@ -110,7 +110,7 @@ namespace EmulatorLauncher
             { new Installer("capriceforever", "capriceforever", "Caprice64.exe") }
         };
 
-        static List<string>noVersionExe = new List<string>()
+        static readonly List<string>noVersionExe = new List<string>()
         {
             "flycast", "rmg", "play", "eduke32", "mesen", "fbneo"
         };

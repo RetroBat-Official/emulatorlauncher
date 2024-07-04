@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
-using System.Windows.Input;
 
 namespace EmulatorLauncher
 {
     partial class RaineGenerator : Generator
     {
+        /*
         /// <summary>
         /// Cf. 
         /// </summary>
@@ -21,7 +20,7 @@ namespace EmulatorLauncher
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
-        }
+        }*/
 
         private void CreateControllerConfiguration(IniFile ini)
         {

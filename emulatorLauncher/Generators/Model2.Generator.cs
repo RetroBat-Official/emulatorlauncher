@@ -83,7 +83,10 @@ namespace EmulatorLauncher
             _resolution = resolution;
 
             if (fullscreen)
-                ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution);
+            {
+                if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            }
 
             _dinput = false;
             if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
