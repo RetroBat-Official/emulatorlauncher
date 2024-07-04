@@ -63,12 +63,11 @@ namespace EmulatorLauncher
                 // if the target is not found in the link, see if a .gameexe file or a .uwp file exists
                 else
                 {
-                    string uwpexecutableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".uwp");
-
                     // First case : use has directly specified the executable name in a .gameexe file
                     _exeFile = GetProcessFromFile(rom);
 
                     // Second case : user has specified the UWP app name in a .uwp file
+                    string uwpexecutableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".uwp");
                     if (File.Exists(uwpexecutableFile) && !_exeFile)
                     {
                         var romLines = File.ReadAllLines(uwpexecutableFile);
@@ -116,9 +115,7 @@ namespace EmulatorLauncher
                     }
 
                     else if (!_exeFile)
-                    {
                         SimpleLogger.Instance.Info("[INFO] Impossible to find executable name, using rom file name.");
-                    }
                 }
 
                 if (_isGameExePath)
