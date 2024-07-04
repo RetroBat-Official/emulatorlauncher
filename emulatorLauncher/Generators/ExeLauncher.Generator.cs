@@ -50,30 +50,26 @@ namespace EmulatorLauncher
             if (extension == ".lnk")
             {
                 string target = FileTools.GetShortcutTarget(rom);
-                
+                string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
+
                 if (target != "" && target != null)
+                {
                     _isGameExePath = File.Exists(target);
-                
+                    
+                    // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
+                    _exeFile = GetProcessFromFile(rom);
+                }
+
                 // if the target is not found in the link, see if a .gameexe file or a .uwp file exists
                 else
                 {
-                    string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
                     string uwpexecutableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".uwp");
 
                     // First case : use has directly specified the executable name in a .gameexe file
-                    if (File.Exists(executableFile))
-                    {
-                        var lines = File.ReadAllLines(executableFile);
-                        if (lines.Length > 0)
-                        {
-                            _exename = lines[0];
-                            _exeFile = true;
-                            SimpleLogger.Instance.Info("[INFO] Executable name specified in .gameexe file: " + _exename);
-                        }
-                    }
+                    _exeFile = GetProcessFromFile(rom);
 
                     // Second case : user has specified the UWP app name in a .uwp file
-                    else if (File.Exists(uwpexecutableFile))
+                    if (File.Exists(uwpexecutableFile) && !_exeFile)
                     {
                         var romLines = File.ReadAllLines(uwpexecutableFile);
                         if (romLines.Length > 0)
@@ -119,7 +115,7 @@ namespace EmulatorLauncher
                         }
                     }
 
-                    else
+                    else if (!_exeFile)
                     {
                         SimpleLogger.Instance.Info("[INFO] Impossible to find executable name, using rom file name.");
                     }
@@ -133,7 +129,7 @@ namespace EmulatorLauncher
             }
 
             // Define if shortcut is an EpicGame or Steam shortcut
-            if (extension == ".url")
+            else if (extension == ".url")
             {
                 try
                 {
@@ -150,7 +146,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (extension == ".game")
+            else if (extension == ".game")
             {
                 string linkTarget = null;
                 string [] lines = File.ReadAllLines(rom);
@@ -252,6 +248,7 @@ namespace EmulatorLauncher
                 ret.Arguments = arguments;
 
             string ext = Path.GetExtension(rom).ToLower();
+            
             if (ext == ".bat" || ext == ".cmd")
             {
                 ret.WindowStyle = ProcessWindowStyle.Hidden;
@@ -382,7 +379,24 @@ namespace EmulatorLauncher
             BindFeature(json, "VRetrace", "VRetrace", "1");
 
             json.Save();
+        }
 
+        private bool GetProcessFromFile(string rom)
+        {
+            string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
+
+            if (!File.Exists(executableFile))
+                return false;
+
+            var lines = File.ReadAllLines(executableFile);
+            if (lines.Length < 1)
+                return false;
+            else
+            {
+                _exename = lines[0].ToString();
+                SimpleLogger.Instance.Info("[INFO] Executable name specified in .gameexe file: " + _exename);
+                return true;
+            }
         }
 
         static string GetStoreAppVersion(string appName)
