@@ -197,6 +197,11 @@ namespace EmulatorLauncher
             string gamepad  = index + ":" + devicename;
             settingsIni.WriteValue("Controller" + playerIndex, "Gamepad", gamepad);
 
+            string pakDevice = "simple64_pak" + playerIndex;
+            if (SystemConfig.isOptSet(pakDevice) && !string.IsNullOrEmpty(SystemConfig[pakDevice]))
+                settingsIni.WriteValue("Controller" + playerIndex, "Pak", SystemConfig[pakDevice]);
+            else
+                settingsIni.WriteValue("Controller" + playerIndex, "Pak", "Memory");
 
             /*if (playerIndex == 1)
                 ConfigureHotkeys(controller, ini, iniSection);*/
