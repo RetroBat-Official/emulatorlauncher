@@ -921,8 +921,9 @@ namespace EmulatorLauncher.Libretro
             if (systemName == "wii" && (!SystemConfig.isOptSet("ratio")))
                 return;
 
+            bool animatedBezel = SystemConfig["bezel"] == "animated";
             var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution, "libretro");
-            if (bezelInfo == null)
+            if (bezelInfo == null && !animatedBezel)
                 return;
 
             string overlay_png_file = bezelInfo.PngFile;
@@ -989,11 +990,25 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString(); // overwritten from the beginning of this file
             }
 
+            string animatedBezelPath = null;
+
+            if (animatedBezel)
+            {
+                animatedBezelPath = Path.Combine(AppConfig.GetFullPath("decorations"), "animated", "systems", systemName, systemName + ".cfg") ;
+
+                if (!File.Exists(animatedBezelPath))
+                {
+                    animatedBezelPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "decorations", "animated", "systems", systemName, systemName + ".cfg");
+                    if (!File.Exists(animatedBezelPath))
+                        animatedBezel = false;
+                }
+            }
+
             string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
-            
+
             retroarchConfig["input_overlay_enable"] = "true";
             retroarchConfig["input_overlay_scale"] = "1.0";
-            retroarchConfig["input_overlay"] = overlay_cfg_file;
+            retroarchConfig["input_overlay"] = animatedBezel ? animatedBezelPath : overlay_cfg_file;
             retroarchConfig["input_overlay_hide_in_menu"] = "true";
                     
             if (!infos.opacity.HasValue)
