@@ -5,6 +5,7 @@ using System.Globalization;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -204,6 +205,19 @@ namespace EmulatorLauncher.Libretro
                 // Invert Dip switches and set it on r3 instead ( less annoying )
                 retroarchbtns[InputKey.l3] = "r3";
                 retroarchbtns[InputKey.r3] = "l3";
+            }
+
+            if (system == "psx" && Program.SystemConfig.getOptBoolean("psx_triggerswap"))
+            {
+                retroarchbtns.Remove(InputKey.l2);
+                retroarchbtns.Remove(InputKey.r2);
+                retroarchjoysticks.Remove(InputKey.joystick2up);
+
+                var inputr2 = GetInputCode(controller, InputKey.r2);
+                var inputl2 = GetInputCode(controller, InputKey.l2);
+
+                config[string.Format("input_player{0}_r_y_minus_axis", controller.PlayerIndex)] = inputr2.Value < 0 ? "-" + inputr2.Id.ToString() : "+" + inputr2.Id.ToString();
+                config[string.Format("input_player{0}_r_y_plus_axis", controller.PlayerIndex)] = inputl2.Value < 0 ? "-" + inputl2.Id.ToString() : "+" + inputl2.Id.ToString();
             }
 
             if (system == "n64")

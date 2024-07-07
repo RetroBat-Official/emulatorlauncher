@@ -4122,6 +4122,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "swanstation_GPU_TrueColor", "truecolor", "false");
             BindFeature(coreSettings, "swanstation_BIOS_PatchFastBoot", "skip_bios", "true");
             BindFeature(coreSettings, "swanstation_CPU_ExecutionMode", "swanstation_cpucore", "Interpreter");
+            BindFeature(coreSettings, "swanstation_MemoryCards_Card1Type", "swanstation_memcard1", "Libretro");
+            BindFeature(coreSettings, "swanstation_MemoryCards_Card2Type", "swanstation_memcard2", "None");
 
             // PGXP
             if (SystemConfig.isOptSet("swanstation_pgxp") && SystemConfig.getOptBoolean("swanstation_pgxp"))

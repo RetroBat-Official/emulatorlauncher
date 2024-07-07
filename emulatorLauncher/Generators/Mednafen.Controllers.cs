@@ -6,6 +6,7 @@ using System.Globalization;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
+using ValveKeyValue;
 
 namespace EmulatorLauncher
 {
@@ -225,6 +226,16 @@ namespace EmulatorLauncher
 
             if (mappingToUse.ContainsKey(mapping))
                 newmapping = mappingToUse[mapping];
+
+            // Special case for psx dualshock and driving games
+            if (mednafenCore == "psx" && SystemConfig.getOptBoolean("mednafen_triggerswap"))
+            {
+                padType = "dualshock";
+                mapping = mednafenCore + "_" + padType + "_gtspecial";
+                newmapping = mappingToUse[mapping];
+                cfg["psx.input.port" + playerIndex + ".dualshock.l2"] = "none";
+                cfg["psx.input.port" + playerIndex + ".dualshock.r2"] = "none";
+            }
             
             // apple2 only accepts atari joystick in port 2
             if (mednafenCore == "apple2" && playerIndex == 2)
@@ -836,6 +847,32 @@ namespace EmulatorLauncher
             { "up", InputKey.up }
         };
 
+        static readonly Dictionary<string, InputKey> psxdualshockgt = new Dictionary<string, InputKey>()
+        {
+            { "circle", InputKey.b },
+            { "cross", InputKey.a },
+            { "down", InputKey.down },
+            { "l1", InputKey.pageup },
+            { "l3", InputKey.l3 },
+            { "left", InputKey.left },
+            { "lstick_down", InputKey.leftanalogdown },
+            { "lstick_left", InputKey.leftanalogleft },
+            { "lstick_right", InputKey.leftanalogright },
+            { "lstick_up", InputKey.leftanalogup },
+            { "r1", InputKey.pagedown },
+            { "r3", InputKey.r3 },
+            { "right", InputKey.right },
+            { "rstick_down", InputKey.l2 },
+            { "rstick_left", InputKey.rightanalogleft },
+            { "rstick_right", InputKey.rightanalogright },
+            { "rstick_up", InputKey.r2 },
+            { "select", InputKey.select },
+            { "square", InputKey.y },
+            { "start", InputKey.start },
+            { "triangle", InputKey.x },
+            { "up", InputKey.up }
+        };
+
         static readonly Dictionary<string, InputKey> snesgamepad = new Dictionary<string, InputKey>()
         {
             { "a", InputKey.b },
@@ -1065,6 +1102,7 @@ namespace EmulatorLauncher
             { "ss_gamepad", ssgamepad },
             { "psx_gamepad", psxgamepad },
             { "psx_dualshock", psxdualshock },
+            { "psx_dualshock_gtspecial", psxdualshockgt },
             { "wswan_gamepad", wswanhorizontal },
             { "wswan_gamepadraa", wswanvertical }
         };
