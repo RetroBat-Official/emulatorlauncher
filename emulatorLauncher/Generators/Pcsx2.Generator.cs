@@ -725,7 +725,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "HideMouseCursor", "true");
                 CreateControllerConfiguration(ini);
                 SetupGunQT(ini, path);
-                SetupWheelQT(ini);
+
+                if (!SystemConfig.isOptSet("pcsx2_emulatedwheel"))
+                    SetupWheelQT(ini);
 
                 // Disable auto-update
                 ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
