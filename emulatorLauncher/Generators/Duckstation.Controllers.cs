@@ -274,6 +274,14 @@ namespace EmulatorLauncher
                     ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
             }
 
+            if (SystemConfig.getOptBoolean("duck_triggerswap"))
+            {
+                ini.Remove(padNumber, "L2");
+                ini.Remove(padNumber, "R2");
+                ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
+                ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
+            }
+
             // Write Hotkeys for player 1
             if (playerIndex == 1)
             {
