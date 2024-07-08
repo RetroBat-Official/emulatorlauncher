@@ -1890,7 +1890,7 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            BindFeature(coreSettings, "kronos_addon_cartridge", "kronos_addon_cartridge", "512K_backup_ram");
+            BindFeature(coreSettings, "kronos_addon_cartridge", "kronos_addon_cartridge", "none");
             BindFeature(coreSettings, "kronos_bandingmode", "kronos_bandingmode", "disabled");
             BindFeature(coreSettings, "kronos_force_downsampling", "kronos_force_downsampling", "disabled");
             BindFeature(coreSettings, "kronos_language_id", "kronos_language_id", "English");
@@ -2547,7 +2547,6 @@ namespace EmulatorLauncher.Libretro
 
             if (system == "n64dd")
             {
-
                 // Nintendo 64DD IPL bios selection workaround
                 // mupen64plus doesn't allow multiple bios selection and looks only for a IPL.n64 file in bios\mupen64plus
                 string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus");
@@ -2563,11 +2562,8 @@ namespace EmulatorLauncher.Libretro
 
                         if (File.Exists(biosFileSource))
                             File.Copy(biosFileSource, biosFileTarget);
-
                     }
-
                 }
-
             }
 
             coreSettings["mupen64plus-rsp-plugin"] = "hle";
@@ -2584,7 +2580,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mupen64plus-Framerate", "mupen64plus_framerate", "Original");
 
             // Set RSP plugin: HLE for Glide, LLE for Parallel
-            if (SystemConfig.isOptSet("RDP_Plugin") && coreSettings["mupen64plus-rdp-plugin"] == "parallel")
+            if (SystemConfig.isOptSet("RDP_Plugin") && SystemConfig["RDP_Plugin"] == "parallel")
                 coreSettings["mupen64plus-rsp-plugin"] = "parallel";
             else
                 coreSettings["mupen64plus-rsp-plugin"] = "hle";
