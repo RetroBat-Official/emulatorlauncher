@@ -165,8 +165,6 @@ namespace EmulatorLauncher
                 // Default settings                
                 ini.WriteValue("Rosalie's Mupen GUI", "HideCursorInFullscreenEmulation", "True");
 
-                BindIniFeature(ini, "Rosalie's Mupen GUI", "OpenGLES", "mupen64_openglES", "False");
-
                 if (SystemConfig.isOptSet("mupen64_pause_on_focus_lost") && SystemConfig.getOptBoolean("mupen64_pause_on_focus_lost"))
                 {
                     ini.WriteValue("Rosalie's Mupen GUI", "PauseEmulationOnFocusLoss", "True");
