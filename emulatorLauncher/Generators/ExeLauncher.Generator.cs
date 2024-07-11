@@ -478,7 +478,7 @@ namespace EmulatorLauncher
 
                 foreach (var processName in launcherProcessStatusAfter)
                 {
-                    if (!launcherProcessStatusBefore.ContainsKey(processName.Key) && Program.SystemConfig.getOptBoolean("killsteam"))
+                    if (!launcherProcessStatusBefore.ContainsKey(processName.Key) || Program.SystemConfig.getOptBoolean("killsteam"))
                     {
                         foreach (var ui in Process.GetProcessesByName(processName.Key))
                         {
