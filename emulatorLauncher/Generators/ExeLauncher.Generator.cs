@@ -425,15 +425,28 @@ namespace EmulatorLauncher
             return output;
         }
 
+        string[] launcherPprocessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam" };
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             if (_isGameExePath || _exeFile)
             {
+                Dictionary<string, bool> launcherProcessStatusBefore = new Dictionary<string, bool>();
+                Dictionary<string, bool> launcherProcessStatusAfter = new Dictionary<string, bool>();
+                
+                foreach (string processName in launcherPprocessNames)
+                {
+                    bool uiExists = Process.GetProcessesByName(processName).Any();
+
+                    if (uiExists)
+                        launcherProcessStatusBefore.Add(processName, true);
+                }
+                
                 Process process = Process.Start(path);
                 SimpleLogger.Instance.Info("Process started : " + _exename);
                 
                 Thread.Sleep(8000);
-                
+
                 int i = 1;
                 Process[] gamelist = Process.GetProcessesByName(_exename);
 
@@ -452,10 +465,35 @@ namespace EmulatorLauncher
 
                 else
                 {
+                    foreach (string processName in launcherPprocessNames)
+                    {
+                        bool uihasStarted = Process.GetProcessesByName(processName).Any();
+
+                        if (uihasStarted)
+                            launcherProcessStatusAfter.Add(processName, true);
+                    }
+
                     SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
                     Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
                     game.WaitForExit();
                 }
+
+                foreach (var processName in launcherProcessStatusAfter)
+                {
+                    if (!launcherProcessStatusBefore.ContainsKey(processName.Key) && Program.SystemConfig.getOptBoolean("killsteam"))
+                    {
+                        foreach (var ui in Process.GetProcessesByName(processName.Key))
+                        {
+                            try
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Killing process " + processName.Key);
+                                ui.Kill();
+                            }
+                            catch { }
+                        }
+                    }
+                }
+
                 return 0;
             }
 
@@ -510,18 +548,18 @@ namespace EmulatorLauncher
 
             protected Process GetLauncherExeProcess()
             {
-                Process epicGame = null;
+                Process launcherprocess = null;
 
                 for (int i = 0; i < 30; i++)
                 {
-                    epicGame = Process.GetProcessesByName(LauncherExe).FirstOrDefault();
-                    if (epicGame != null)
+                    launcherprocess = Process.GetProcessesByName(LauncherExe).FirstOrDefault();
+                    if (launcherprocess != null)
                         break;
 
                     Thread.Sleep(1000);
                 }
 
-                return epicGame;
+                return launcherprocess;
             }
         }
     }
