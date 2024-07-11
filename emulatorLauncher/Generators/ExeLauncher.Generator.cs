@@ -52,8 +52,6 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] link file, searching for target.");
                 string target = FileTools.GetShortcutTarget(rom);
 
-                SimpleLogger.Instance.Info("[INFO] Link : " + target == null ? "null" : target);
-
                 string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
 
                 if (target != "" && target != null)
