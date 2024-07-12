@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
@@ -322,16 +321,19 @@ namespace EmulatorLauncher.Common
                         string firstPart = link.Substring(0, begin);
                         string secondPart = link.Substring(end);
 
+                        SimpleLogger.Instance.Info("[INFO] link target found : " + firstPart + secondPart);
                         return firstPart + secondPart;
                     }
                     else
                     {
+                        SimpleLogger.Instance.Info("[INFO] link target found : " + link);
                         return link;
                     }
                 }
             }
             catch
             {
+                SimpleLogger.Instance.Info("[INFO] Impossible to find link: returning empty");
                 return "";
             }
         }
