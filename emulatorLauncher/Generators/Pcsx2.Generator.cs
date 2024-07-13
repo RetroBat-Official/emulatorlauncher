@@ -42,7 +42,6 @@ namespace EmulatorLauncher
             string path = AppConfig.GetFullPath(emulator);
             _path = path;
 
-            // v1.7 new-QT filename
             string exe = Path.Combine(_path, "pcsx2-qt.exe");
             if (File.Exists(exe))
                 _isPcsxqt = true;
@@ -335,7 +334,7 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        //Setup GS.ini (v1.7) and GSdx.ini (v1.6) 
+        //Setup GSdx.ini file
         private void SetupGSDx(ScreenResolution resolution)
         {
             if (SystemConfig.getOptBoolean("disableautoconfig"))
@@ -418,13 +417,13 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("Offset"))
                         ini.WriteValue("Settings", "UserHacks_round_sprite_offset", "0");
 
-                    //Shader - Texture filtering of display (both 1.6 & 1.7)
+                    //Shader - Texture filtering of display
                     if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
                         ini.WriteValue("Settings", "linear_present", SystemConfig["bilinear_filtering"]);
                     else if (Features.IsSupported("bilinear_filtering"))
                         ini.WriteValue("Settings", "linear_present", "0");
 
-                    //Shader - FXAA Shader (both 1.6 & 1.7)
+                    //Shader - FXAA Shader
                     if (SystemConfig.isOptSet("fxaa") && !string.IsNullOrEmpty(SystemConfig["fxaa"]))
                         ini.WriteValue("Settings", "fxaa", SystemConfig["fxaa"]);
                     else if (Features.IsSupported("fxaa"))
