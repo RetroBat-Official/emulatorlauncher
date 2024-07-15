@@ -136,12 +136,12 @@ namespace EmulatorLauncher
                         ini.AppendValue("General", "discord", "false");
 
                     //D3D12 section
-                    if (SystemConfig.isOptSet("d3d12_allow_variable_refresh_rate_and_tearing") && !string.IsNullOrEmpty(SystemConfig["d3d12_allow_variable_refresh_rate_and_tearing"]))
+                    if (SystemConfig.isOptSet("xenia_allow_variable_refresh_rate_and_tearing") && !string.IsNullOrEmpty(SystemConfig["xenia_allow_variable_refresh_rate_and_tearing"]))
                     {
-                        ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", SystemConfig["d3d12_allow_variable_refresh_rate_and_tearing"]);
-                        ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", SystemConfig["d3d12_allow_variable_refresh_rate_and_tearing"]);
+                        ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", SystemConfig["xenia_allow_variable_refresh_rate_and_tearing"]);
+                        ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", SystemConfig["xenia_allow_variable_refresh_rate_and_tearing"]);
                     }
-                    else if (Features.IsSupported("d3d12_allow_variable_refresh_rate_and_tearing"))
+                    else if (Features.IsSupported("xenia_allow_variable_refresh_rate_and_tearing"))
                     {
                         ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", "true");
                         ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "true");
