@@ -392,6 +392,64 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (system == "nds")
+            {
+                switch (emulator)
+                {
+                    case "melonds":
+                        if (Program.SystemConfig.isOptSet("melonds_screen_layout") && Program.SystemConfig["melonds_screen_layout"] == "2")
+                            return "nds_side_by_side";
+                        else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && Program.SystemConfig["melonds_screen_layout"] == "3")
+                            return "nds_hybrid";
+                        break;
+                    case "bizhawk":
+                        if (Program.SystemConfig.isOptSet("bizhawk_melonds_layout") && Program.SystemConfig["bizhawk_melonds_layout"] == "1")
+                            return "nds_side_by_side";
+                        break;
+                    case "libretro":
+                        if (Program.SystemConfig.isOptSet("nds.core"))
+                        {
+                            string nds_core = Program.SystemConfig["nds.core"];
+                            switch (nds_core)
+                            {
+                                case "melondsds":
+                                    if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "left-right" || Program.SystemConfig["melondsds_screen_layout"] == "right-left"))
+                                        return "nds_side_by_side";
+                                    else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top" || Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom"))
+                                        return "nds_lr_hybrid";
+                                    break;
+                                case "desmume":
+                                case "desmume2015":
+                                    if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "left/right" || Program.SystemConfig["desmume_screens_layout"] == "right/left"))
+                                        return "nds_side_by_side";
+                                    else if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "hybrid/top" || Program.SystemConfig["desmume_screens_layout"] == "hybrid/bottom"))
+                                        return "nds_lr_hybrid";
+                                    else if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "top only" || Program.SystemConfig["desmume_screens_layout"] == "bottom only"))
+                                        return "nds_single_screen";
+                                    break;
+                                case "melonds":
+                                    if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Left/Right" || Program.SystemConfig["melonds_screen_layout"] == "Right/Left"))
+                                        return "nds_side_by_side";
+                                    else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Hybrid Top" || Program.SystemConfig["melonds_screen_layout"] == "duplicate"))
+                                        return "nds_lr_hybrid";
+                                    else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Top Only" || Program.SystemConfig["melonds_screen_layout"] == "Bottom Only"))
+                                        return "nds_single_screen";
+                                    break;
+                            }
+                            break;
+                        }
+                        else
+                        {
+                            if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "left-right" || Program.SystemConfig["melondsds_screen_layout"] == "right-left"))
+                                return "nds_side_by_side";
+                            else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top" || Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom"))
+                                return "nds_lr_hybrid";
+                            break;
+                        }
+                        
+                }
+            }
+
             return system;
         }
 
