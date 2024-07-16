@@ -14,6 +14,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _bezelsEnabled = false;
+        private string _path;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -23,13 +24,16 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            _path = path;
+
             bool bootToDSINand = Path.GetExtension(rom).ToLowerInvariant() == ".bin";
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             //Applying bezels
             if (fullscreen)
             {
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
                 _bezelsEnabled = true;
             }
 
@@ -211,7 +215,12 @@ namespace EmulatorLauncher
             bezel?.Dispose();
 
             if (ret == 1)
+            {
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
                 return 0;
+            }
+
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
 
             return ret;
         }
