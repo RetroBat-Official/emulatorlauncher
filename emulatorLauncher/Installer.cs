@@ -9,6 +9,8 @@ using System.Xml.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.EmulationStation;
+using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher
 {
@@ -42,7 +44,7 @@ namespace EmulatorLauncher
             { new Installer("daphne") },
             { new Installer("demul") }, 
             { new Installer("demul-old", "demul-old", "demul.exe") }, 
-            { new Installer("dolphin", new string[] { "dolphin-emu", "dolphin" }, "dolphin.exe") },
+            { new Installer("dolphin", "dolphin-emu", "dolphin.exe") },
             { new Installer("flycast", "flycast", "flycast.exe") },
             { new Installer("simple64", "simple64", "simple64-gui.exe") },
             { new Installer("mupen64", "mupen64", "RMG.exe") },
@@ -283,9 +285,49 @@ namespace EmulatorLauncher
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "flycast")
                 {
                     var output = versionInfo.FileVersion.Substring(1);
-                    output = StringExtensions.FormatVersionString(output);
-
                     Version ver = new Version();
+                    int firstDashIndex = output.IndexOf('-');
+                    if (firstDashIndex == -1 || output.IndexOf('-', firstDashIndex + 1) == -1)
+                    {
+                        output = StringExtensions.FormatVersionString(output);
+                        
+                        if (Version.TryParse(output, out ver))
+                            return ver.ToString();
+                    }
+
+                    int secondDashIndex = output.IndexOf('-', firstDashIndex + 1);
+                    output = output.Substring(0, secondDashIndex).Replace('-', '.');
+                    string[] parts = output.Split('.');
+                    if (parts.Length == 4)
+                    {
+                        if (Version.TryParse(output, out ver))
+                            return ver.ToString();
+                    }
+                    else if (parts.Length == 3)
+                    {
+                        output = parts[0] + "." + parts[1] + ".0" + "." + parts[2];
+                        if (Version.TryParse(output, out ver))
+                            return ver.ToString();
+                    }
+                    else if (parts.Length == 2)
+                    {
+                        output = parts[0] + "." + parts[1] + ".0" + ".0";
+                        if (Version.TryParse(output, out ver))
+                            return ver.ToString();
+                    }
+                    else if (parts.Length == 1)
+                    {
+                        output = parts[0] + ".0" + ".0" + ".0";
+                        if (Version.TryParse(output, out ver))
+                            return ver.ToString();
+                    }
+                    else if (parts.Length > 4)
+                    {
+                        output = parts[0] + "." + parts[1] + "." + parts[2] + "." + parts[3];
+                        if (Version.TryParse(output, out ver))
+                            return ver.ToString();
+                    }
+
                     if (Version.TryParse(output, out ver))
                         return ver.ToString();
                 }
