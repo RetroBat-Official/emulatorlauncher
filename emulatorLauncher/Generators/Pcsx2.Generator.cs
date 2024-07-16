@@ -741,6 +741,9 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "EmuCore", "EnableWideScreenPatches", "widescreen_patch", "true", "false");
                 BindBoolIniFeature(ini, "EmuCore", "EnableNoInterlacingPatches", "interlacing_patch", "true", "false");
 
+                // Emucore/Speedhacks
+                BindBoolIniFeature(ini, "EmuCore/Speedhacks", "vuThread", "pcsx2_vuthread", "false", "true");
+
                 // EmuCore/GS
                 BindBoolIniFeature(ini, "EmuCore/GS", "IntegerScaling", "integerscale", "true", "false");
                 BindIniFeature(ini, "EmuCore/GS", "AspectRatio", "ratio", "Auto 4:3/3:2");

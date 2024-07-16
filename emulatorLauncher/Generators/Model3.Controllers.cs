@@ -77,13 +77,11 @@ namespace EmulatorLauncher
             //only index of player 1 is initialized as there might be only 1 controller at that point
             int j2index = -1;
             int j1index = c1.SdlController !=null ? c1.SdlController.Index + 1 : c1.DeviceIndex + 1;
-            SimpleLogger.Instance.Info("[INFO] setting index of joystick 1 to " + j1index.ToString());
 
             //If a secod controller is connected, get controller index of player 2, if there is no 2nd controller, just increment the index
             if (c2 != null && c2.Config != null)
             {
                 j2index = c2.SdlController != null ? c2.SdlController.Index + 1 : c2.DeviceIndex + 1;
-                SimpleLogger.Instance.Info("[INFO] setting index of joystick 2 to " + j2index.ToString());
             }
 
             //initialize tech : as default we will use sdl instead of dinput, as there are less differences in button mappings in sdl !
@@ -122,13 +120,16 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] setting " + tech + " inputdriver in SuperModel.");
 
             // Not sure about the index used by supermodel but it seems to be dinput
-            if (tech == "dinput")
+            if (tech != "sdl")
             {
                 j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
 
                 if (c2 != null && c2.Config != null)
                     j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
             }
+
+            SimpleLogger.Instance.Info("[INFO] setting index of joystick 1 to " + j1index.ToString());
+            SimpleLogger.Instance.Info("[INFO] setting index of joystick 2 to " + j2index.ToString());
 
             // Guns
             int gunCount = RawLightgun.GetUsableLightGunCount();
@@ -293,7 +294,7 @@ namespace EmulatorLauncher
             bool multiplayer = j2index != -1;
             bool enableServiceMenu = SystemConfig.isOptSet("m3_service") && SystemConfig.getOptBoolean("m3_service");
 
-            SimpleLogger.Instance.Info("[INFO] Setting up controls with device index = " + j1index);
+            SimpleLogger.Instance.Info("[INFO] Writing controls to emulator .ini file.");
 
             #region sdl
             //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT)
