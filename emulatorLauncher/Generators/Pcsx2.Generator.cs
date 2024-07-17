@@ -738,8 +738,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("EmuCore", "EnableCheats", "false");
 
                 BindBoolIniFeature(ini, "EmuCore", "EnableDiscordPresence", "discord", "true", "false");
-                BindBoolIniFeature(ini, "EmuCore", "EnableWideScreenPatches", "widescreen_patch", "true", "false");
-                BindBoolIniFeature(ini, "EmuCore", "EnableNoInterlacingPatches", "interlacing_patch", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore", "EnableWideScreenPatches", "widescreen_patch", "false", "true");
+                BindBoolIniFeature(ini, "EmuCore", "EnableNoInterlacingPatches", "interlacing_patch", "false", "true");
 
                 // Emucore/Speedhacks
                 BindBoolIniFeature(ini, "EmuCore/Speedhacks", "vuThread", "pcsx2_vuthread", "false", "true");
@@ -750,6 +750,15 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "EmuCore/GS", "FMVAspectRatioSwitch", "fmv_ratio", "Off");
                 BindIniFeature(ini, "EmuCore/GS", "Renderer", "renderer", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "deinterlace_mode", "interlace", "0");
+                
+                if (SystemConfig.isOptSet("deinterlace_mode") && !string.IsNullOrEmpty(SystemConfig["deinterlace_mode"]) && SystemConfig["deinterlace_mode"] != "1")
+                    ini.WriteValue("EmuCore/GS", "disable_interlace_offset", "true");
+                else if (Features.IsSupported("deinterlace_mode"))
+                    ini.WriteValue("EmuCore/GS", "disable_interlace_offset", "false");
+
+                if (SystemConfig.isOptSet("disable_interlace_offset") && !string.IsNullOrEmpty(SystemConfig["disable_interlace_offset"]))
+                    ini.WriteValue("EmuCore/GS", "disable_interlace_offset", SystemConfig["disable_interlace_offset"]);
+
                 BindIniFeature(ini, "EmuCore/GS", "VsyncEnable", "pcsx2_vsync", "true");
                 BindBoolIniFeature(ini, "EmuCore/GS", "pcrtc_offsets", "pcrtc_offsets", "true", "false");
                 BindIniFeature(ini, "EmuCore/GS", "pcrtc_antiblur", "pcrtc_antiblur", "true");
@@ -771,6 +780,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("EmuCore/GS", "linear_present_mode", "1");
 
                 BindIniFeature(ini, "EmuCore/GS", "texture_preloading", "texture_preloading", "2");
+                BindIniFeature(ini, "EmuCore/GS", "CASMode", "pcsx2_casmode", "0");
 
                 // User hacks
                 BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks", "UserHacks", "true", "false");
