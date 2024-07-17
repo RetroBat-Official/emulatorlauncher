@@ -1897,7 +1897,6 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "kronos_meshmode", "kronos_meshmode", "disabled");
             BindFeature(coreSettings, "kronos_polygon_mode", "kronos_polygon_mode", "cpu_tesselation");
             BindFeature(coreSettings, "kronos_resolution_mode", "kronos_resolution_mode", "original");
-            BindFeature(coreSettings, "kronos_use_cs", "kronos_use_cs", "disabled");
             BindFeature(coreSettings, "kronos_videocoretype", "kronos_videocoretype", "opengl");
             BindFeature(coreSettings, "kronos_videoformattype", "kronos_videoformattype", "auto");
             BindFeature(coreSettings, "kronos_skipframe", "kronos_skipframe", "0");
@@ -2762,6 +2761,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_hybrid_ratio", "melondsds_hybrid_ratio", "2");
             BindFeature(coreSettings, "melonds_hybrid_small_screen", "melondsds_hybrid_smallscreen", "both");
             BindFeature(coreSettings, "melonds_screen_gap", "melondsds_screengap", "0");
+            BindBoolFeature(coreSettings, "melonds_show_current_layout", "melonds_show_current_layout", "enabled", "disabled");
 
             coreSettings["melonds_number_of_screen_layouts"] = "8";
 
