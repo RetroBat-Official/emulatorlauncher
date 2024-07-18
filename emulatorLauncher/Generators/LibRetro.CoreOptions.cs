@@ -2704,17 +2704,15 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_boot_directly", "nds_boot", "enabled");
             BindFeature(coreSettings, "melonds_console_mode", "nds_console", "DS");
 
-            if (SystemConfig.isOptSet("melonds_screen_layout") && SystemConfig["melonds_screen_layout"] == "duplicate")
+            if (SystemConfig.isOptSet("melonds_screen_layout") && (SystemConfig["melonds_screen_layout"] == "Hybrid Top" || SystemConfig["melonds_screen_layout"] == "Hybrid Bottom"))
             {
-                coreSettings["melonds_screen_layout"] = "Hybrid Top";
-                coreSettings["melonds_hybrid_small_screen"] = "Duplicate";
+                coreSettings["melonds_screen_layout"] = SystemConfig["melonds_screen_layout"];
+                BindFeature(coreSettings, "melonds_hybrid_small_screen", "melonds_hybrid_small_screen", "Bottom");
             }
             else
-            {
                 BindFeature(coreSettings, "melonds_screen_layout", "melonds_screen_layout", "Top/Bottom");
-                coreSettings["melonds_hybrid_small_screen"] = "Bottom";
-            }
 
+            BindFeature(coreSettings, "melonds_hybrid_ratio", "melonds_hybrid_ratio", "3");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
 
             // Boot to firmware directly if a .bin file is loaded
@@ -2758,7 +2756,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_show_cursor", "melondsds_cursor_mode", "touching");
             coreSettings["melonds_cursor_timeout"] = "3";
             BindFeature(coreSettings, "melonds_touch_mode", "melondsds_touch_mode", "auto");
-            BindFeature(coreSettings, "melonds_hybrid_ratio", "melondsds_hybrid_ratio", "2");
+            BindFeature(coreSettings, "melonds_hybrid_ratio", "melondsds_hybrid_ratio", "3");
             BindFeature(coreSettings, "melonds_hybrid_small_screen", "melondsds_hybrid_smallscreen", "both");
             BindFeature(coreSettings, "melonds_screen_gap", "melondsds_screengap", "0");
             BindBoolFeature(coreSettings, "melonds_show_current_layout", "melonds_show_current_layout", "enabled", "disabled");
