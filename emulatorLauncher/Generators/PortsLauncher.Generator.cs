@@ -39,10 +39,10 @@ namespace EmulatorLauncher
                 switch (bezelType)
                 {
                     case "reshade":
-                        ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, _path, resolution);   // TO BE DONE LATER
+                        ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, _path, resolution, emulator);   // TO BE DONE LATER
                         break;
                     default:
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                         break;
                 }
             }

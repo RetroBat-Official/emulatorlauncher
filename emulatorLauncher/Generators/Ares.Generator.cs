@@ -46,13 +46,13 @@ namespace EmulatorLauncher
             {
                 case "OpenGL 3.2":
                     ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
-                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                     break;
                 case "Direct3D 9.0":
                     ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
-                    if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution))
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                     break;
                 case "GDI":
                     ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);

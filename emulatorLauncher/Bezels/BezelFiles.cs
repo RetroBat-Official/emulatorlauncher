@@ -397,14 +397,18 @@ namespace EmulatorLauncher
                 switch (emulator)
                 {
                     case "melonds":
-                        if (Program.SystemConfig.isOptSet("melonds_screen_layout") && Program.SystemConfig["melonds_screen_layout"] == "2")
+                        if (Program.SystemConfig.isOptSet("melonds_screen_sizing") && (Program.SystemConfig["melonds_screen_sizing"] == "4" || Program.SystemConfig["melonds_screen_sizing"] == "5"))
+                            return "nds_single_screen";
+                        else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && Program.SystemConfig["melonds_screen_layout"] == "2")
                             return "nds_side_by_side";
                         else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && Program.SystemConfig["melonds_screen_layout"] == "3")
                             return "nds_hybrid";
                         break;
                     case "bizhawk":
-                        if (Program.SystemConfig.isOptSet("bizhawk_melonds_layout") && Program.SystemConfig["bizhawk_melonds_layout"] == "1")
+                        if (Program.SystemConfig.isOptSet("bizhawk_melonds_layout") && Program.SystemConfig["bizhawk_melonds_layout"] == "2")
                             return "nds_side_by_side";
+                        else if (Program.SystemConfig.isOptSet("bizhawk_melonds_layout") && (Program.SystemConfig["bizhawk_melonds_layout"] == "3" || Program.SystemConfig["bizhawk_melonds_layout"] == "4"))
+                            return "nds_single_screen";
                         break;
                     case "libretro":
                         if (Program.SystemConfig.isOptSet("nds.core"))
@@ -417,6 +421,8 @@ namespace EmulatorLauncher
                                         return "nds_side_by_side";
                                     else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top" || Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom"))
                                         return "nds_lr_hybrid";
+                                    else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "top" || Program.SystemConfig["melondsds_screen_layout"] == "bottom"))
+                                        return "nds_single_screen";
                                     break;
                                 case "desmume":
                                 case "desmume2015":
@@ -444,6 +450,8 @@ namespace EmulatorLauncher
                                 return "nds_side_by_side";
                             else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top" || Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom"))
                                 return "nds_lr_hybrid";
+                            else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "top" || Program.SystemConfig["melondsds_screen_layout"] == "bottom"))
+                                return "nds_single_screen";
                             break;
                         }
                         

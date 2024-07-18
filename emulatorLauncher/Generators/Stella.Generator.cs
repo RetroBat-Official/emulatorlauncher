@@ -39,9 +39,9 @@ namespace EmulatorLauncher
             if (!stretch)
             {
                 if (SystemConfig["stella_renderer"] != "opengl")
-                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                 else
-                    ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
+                    ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator);
             }
             else
                 SystemConfig["forceNoBezel"] = "1";

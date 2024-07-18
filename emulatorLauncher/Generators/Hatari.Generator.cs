@@ -32,7 +32,7 @@ namespace EmulatorLauncher
             string disk = "--disk-a";
             bool diskImage = false;
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
 
             var commandArray = new List<string>

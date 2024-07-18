@@ -23,7 +23,7 @@ namespace EmulatorLauncher
             // settings (xml configuration)
             SetupJsonConfiguration(path, system, rom);
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 

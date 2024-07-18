@@ -33,7 +33,7 @@ namespace EmulatorLauncher
                 SystemConfig["bezel"] = "none";
 
             if (fullscreen)
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
 

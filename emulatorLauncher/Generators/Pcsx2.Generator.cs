@@ -93,7 +93,7 @@ namespace EmulatorLauncher
 
             //Applying bezels
             if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] == "4:3")
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
 

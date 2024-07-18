@@ -68,20 +68,20 @@ namespace EmulatorLauncher
             {
                 case "OpenGL":
                     ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
-                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                     break;
                 case "Vulkan":
                 case "Software":
                     ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
                     ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
-                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                     break;
                 case "D3D11":
                 case "D3D12":
                     ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
-                    if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x64, system, rom, path, resolution))
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                     break;
             }
 

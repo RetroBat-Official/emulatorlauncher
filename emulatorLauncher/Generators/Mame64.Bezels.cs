@@ -24,7 +24,7 @@ namespace EmulatorLauncher
     </view>
 </mamelayout>";
 
-        private void ConfigureBezels(string artworkPath, string system, string rom, ScreenResolution resolution)
+        private void ConfigureBezels(string artworkPath, string system, string rom, ScreenResolution resolution, string emulator)
         {
             string zipFile = Path.Combine(artworkPath, Path.GetFileNameWithoutExtension(rom) + ".zip");
             if (File.Exists(zipFile))
@@ -33,7 +33,7 @@ namespace EmulatorLauncher
                 catch { }
             }
 
-            var bezelInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            var bezelInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             if (bezelInfo == null)
                 return;
 

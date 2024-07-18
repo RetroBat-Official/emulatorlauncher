@@ -36,7 +36,7 @@ namespace EmulatorLauncher
 
             //Applying bezels
             if (_fullscreen && !wide)
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
 

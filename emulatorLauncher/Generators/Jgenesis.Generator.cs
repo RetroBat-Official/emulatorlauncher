@@ -50,7 +50,7 @@ namespace EmulatorLauncher
             // settings (toml configuration)
             SetupTomlConfiguration(path, system, fullscreen);
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
 
 

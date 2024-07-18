@@ -98,10 +98,10 @@ namespace EmulatorLauncher
             }
 
             // Shader & Bezel
-            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
+            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             var platform = ReshadeManager.GetPlatformFromFile(exe);
 
-            if (ReshadeManager.Setup(ReshadeBezelType.opengl, platform, system, rom, path, resolution, bezels != null) && bezels != null)
+            if (ReshadeManager.Setup(ReshadeBezelType.opengl, platform, system, rom, path, resolution, emulator, bezels != null) && bezels != null)
                 commandArray.Add("-" + mednafenCore + ".stretch full");
             else if (SystemConfig.isOptSet("mednafen_ratio") && !string.IsNullOrEmpty(SystemConfig["mednafen_ratio"]))
                 commandArray.Add("-" + mednafenCore + ".stretch " + SystemConfig["mednafen_ratio"]);

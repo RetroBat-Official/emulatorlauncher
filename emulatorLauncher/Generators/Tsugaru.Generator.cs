@@ -18,7 +18,7 @@ namespace EmulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             _resolution = resolution;
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             string path = AppConfig.GetFullPath("tsugaru");
 
