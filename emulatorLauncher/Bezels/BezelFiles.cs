@@ -429,7 +429,7 @@ namespace EmulatorLauncher
                                     if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "left/right" || Program.SystemConfig["desmume_screens_layout"] == "right/left"))
                                         return "nds_side_by_side";
                                     else if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "hybrid/top" || Program.SystemConfig["desmume_screens_layout"] == "hybrid/bottom"))
-                                        return "nds_lr_hybrid";
+                                        return "nds_lr_desmume_hybrid";
                                     else if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "top only" || Program.SystemConfig["desmume_screens_layout"] == "bottom only"))
                                         return "nds_single_screen";
                                     break;
