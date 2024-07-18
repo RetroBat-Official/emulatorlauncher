@@ -15,7 +15,7 @@ namespace EmulatorLauncher
     class ReshadeManager
     {
         // Update this version number, if shipped reshader version changes.
-        private static Version ShippedVersion = new Version(5, 9, 2, 2);
+        private static readonly Version ShippedVersion = new Version(5, 9, 2, 2);
 
         private const string ReshadeFolder = "reshade-shaders";
 
