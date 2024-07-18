@@ -687,6 +687,16 @@ namespace EmulatorLauncher.Libretro
 
                 // Netplay hide the gameplay
                 BindBoolFeature(retroarchConfig, "netplay_public_announce", "netplay_public_announce", "true", "false");
+
+                // custom relay server
+                if (SystemConfig.isOptSet("netplay_custom_mitm_server") && !string.IsNullOrEmpty(SystemConfig["netplay_custom_mitm_server"]))
+                {
+                    retroarchConfig["netplay_custom_mitm_server"] = SystemConfig["netplay_custom_mitm_server"];
+                    retroarchConfig["netplay_mitm_server"] = "custom";
+                    retroarchConfig["netplay_use_mitm_server"] = "true";
+                }
+                else
+                    retroarchConfig["netplay_custom_mitm_server"] = "";
             }
 
             BindBoolFeature(retroarchConfig, "content_show_netplay", "netplay", "true", "false");
