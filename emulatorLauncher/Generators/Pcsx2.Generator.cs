@@ -1048,6 +1048,51 @@ namespace EmulatorLauncher
                     ini.WriteValue("MemoryCards", "Slot1_Filename", "Mcd001.ps2");
                     ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
                 }
+
+                // Network
+                if (SystemConfig.isOptSet("pcsx2_ethenable") && !string.IsNullOrEmpty(SystemConfig["pcsx2_ethenable"]))
+                {
+                     if (SystemConfig["pcsx2_ethenable"] == "true")
+                        ini.WriteValue("DEV9/Eth", "EthEnable", "true");
+                    else if (SystemConfig["pcsx2_ethenable"] == "false")
+                        ini.WriteValue("DEV9/Eth", "EthEnable", "false");
+
+                    ini.WriteValue("DEV9/Eth", "EthApi", "Sockets");
+                    ini.WriteValue("DEV9/Eth", "EthLogDHCP", "false");
+                    ini.WriteValue("DEV9/Eth", "EthLogDNS", "false");
+                    ini.WriteValue("DEV9/Eth", "InterceptDHCP", "false");
+                    ini.WriteValue("DEV9/Eth", "PS2IP", "0.0.0.0");
+                    ini.WriteValue("DEV9/Eth", "Mask", "0.0.0.0");
+                    ini.WriteValue("DEV9/Eth", "Gateway", "0.0.0.0");
+
+                    if (SystemConfig.isOptSet("pcsx2_modedns1") && !string.IsNullOrEmpty(SystemConfig["pcsx2_modedns1"]))
+                        ini.WriteValue("DEV9/Eth", "ModeDNS1", SystemConfig["pcsx2_modedns1"]);
+                    else
+                        ini.WriteValue("DEV9/Eth", "ModeDNS1", "Auto");
+
+                    if (SystemConfig.isOptSet("pcsx2_modedns2") && !string.IsNullOrEmpty(SystemConfig["pcsx2_modedns2"]))
+                        ini.WriteValue("DEV9/Eth", "ModeDNS2", SystemConfig["pcsx2_modedns2"]);
+                    else
+                        ini.WriteValue("DEV9/Eth", "ModeDNS2", "Auto");
+
+                    // DNS
+                    if (SystemConfig.isOptSet("pcsx2_dns1") && !string.IsNullOrEmpty(SystemConfig["pcsx2_dns1"]))
+                    {
+                        ini.WriteValue("DEV9/Eth", "DNS1", SystemConfig["pcsx2_dns1"]);
+                        ini.WriteValue("DEV9/Eth", "ModeDNS1", "Manual");
+                    }
+
+                    if (SystemConfig.isOptSet("pcsx2_dns2") && !string.IsNullOrEmpty(SystemConfig["pcsx2_dns2"]))
+                    {
+                        ini.WriteValue("DEV9/Eth", "DNS2", SystemConfig["pcsx2_dns2"]);
+                        ini.WriteValue("DEV9/Eth", "ModeDNS2", "Manual");
+                    }
+
+                    string ethdevice = ini.GetValue("DEV9/Eth", "EthDevice");
+                    if (ethdevice == null || ethdevice == "")
+                        ini.WriteValue("DEV9/Eth", "EthDevice", "Auto");
+                }
+                    
             }
         }
 
