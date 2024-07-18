@@ -64,7 +64,7 @@ namespace EmulatorLauncher
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             // Bezels
             if (fullscreen)
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
 

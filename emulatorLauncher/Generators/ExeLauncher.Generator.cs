@@ -240,7 +240,7 @@ namespace EmulatorLauncher
             }
 
             UpdateMugenConfig(path, fullscreen, resolution);
-            UpdateIkemenConfig(path, system, rom, fullscreen, resolution);
+            UpdateIkemenConfig(path, system, rom, fullscreen, resolution, emulator);
 
             var ret = new ProcessStartInfo()
             {
@@ -334,14 +334,14 @@ namespace EmulatorLauncher
             }
         }
 
-        private void UpdateIkemenConfig(string path, string system, string rom, bool fullscreen, ScreenResolution resolution)
+        private void UpdateIkemenConfig(string path, string system, string rom, bool fullscreen, ScreenResolution resolution, string emulator)
         {
             if (_systemName != "ikemen")
                 return;
 
             var json = DynamicJson.Load(Path.Combine(path, "save", "config.json"));
 
-            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
+            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator);
 
             if (resolution == null)
                 resolution = ScreenResolution.CurrentResolution;

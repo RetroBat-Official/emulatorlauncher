@@ -67,7 +67,7 @@ namespace EmulatorLauncher
             {
                 UseEsPadToKey = false;
 
-                SetupBezelAndShaders(system, rom, resolution, path);
+                SetupBezelAndShaders(system, rom, resolution, path, emulator);
 
                 return new ProcessStartInfo()
                 {
@@ -101,7 +101,7 @@ namespace EmulatorLauncher
             if (!File.Exists(_destFile))
                 File.Copy(rom, _destFile);
 
-            SetupBezelAndShaders(system, rom, resolution, path);
+            SetupBezelAndShaders(system, rom, resolution, path, emulator);
 
             return new ProcessStartInfo()
             {
@@ -110,13 +110,13 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupBezelAndShaders(string system, string rom, ScreenResolution resolution, string path)
+        private void SetupBezelAndShaders(string system, string rom, ScreenResolution resolution, string path, string emulator)
         {
-            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
+            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             if (bezels != null && ((SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1")))
                 SystemConfig["forceNoBezel"] = "1";
             
-            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, false);
+            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator, false);
         }
 
         public override void Cleanup()

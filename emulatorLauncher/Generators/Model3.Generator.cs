@@ -51,7 +51,7 @@ namespace EmulatorLauncher
             {
                 SystemConfig["forceNoBezel"] = "1";
 
-                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
+                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator);
 
                 if (SystemConfig["widescreen"] == "2")
                     commandArray.Add("-stretch");
@@ -60,8 +60,8 @@ namespace EmulatorLauncher
             }
             else
             {
-                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
 
             // outputs for mamehook

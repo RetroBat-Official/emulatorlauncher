@@ -42,7 +42,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution);
+            ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution, emulator);
             ConfigureUIini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
             ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
 

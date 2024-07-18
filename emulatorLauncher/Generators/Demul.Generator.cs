@@ -45,8 +45,8 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("demul_ratio") && SystemConfig["demul_ratio"] != "1")
                 SystemConfig["bezel"] = "none";
 
-            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution);
-            _isUsingReshader = ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x86, system, rom, path, resolution, bezels != null);
+            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            _isUsingReshader = ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x86, system, rom, path, resolution, emulator, bezels != null);
             if (_isUsingReshader)
             {
                 if (bezels != null)

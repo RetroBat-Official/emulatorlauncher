@@ -39,8 +39,8 @@ namespace EmulatorLauncher
                 return null;
 
             //Applying bezels
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
 
@@ -134,7 +134,7 @@ namespace EmulatorLauncher
             if (!SystemConfig.isOptSet("bezel") && SystemConfig["scale"] == "stretch")
             {
                 SystemConfig["forceNoBezel"] = "1";
-                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution);
+                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator);
             }
 
             // Launch emulator

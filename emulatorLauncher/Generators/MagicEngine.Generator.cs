@@ -41,7 +41,7 @@ namespace EmulatorLauncher
 
             //Applying bezels
             if (_fullscreen && SystemConfig["magicengine_renderer"] != "0")
-                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution);
+                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator);
 
             return new ProcessStartInfo()
             {

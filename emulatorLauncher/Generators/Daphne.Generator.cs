@@ -266,12 +266,12 @@ namespace EmulatorLauncher
                 if (SystemConfig["ratio"] == "16/9")
                     SystemConfig["bezel"] = "none";
 
-                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadeManager.GetPlatformFromFile(exe), system, rom, emulatorPath, resolution);
+                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadeManager.GetPlatformFromFile(exe), system, rom, emulatorPath, resolution, emulator);
             }
 
             else if (emulator == "hypseus")
             {
-                BezelFiles bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                BezelFiles bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                 if (bezelFileInfo != null)
                 {
                     string bezelFile = bezelFileInfo.PngFile;

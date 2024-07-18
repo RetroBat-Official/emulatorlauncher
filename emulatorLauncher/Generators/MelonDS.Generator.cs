@@ -32,8 +32,8 @@ namespace EmulatorLauncher
             //Applying bezels
             if (fullscreen)
             {
-                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution))
-                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution);
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                 _bezelsEnabled = true;
             }
 
@@ -190,8 +190,16 @@ namespace EmulatorLauncher
                 
                 if (_bezelsEnabled)
                 {
-                    BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "3");
-                    BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "3");
+                    if (SystemConfig.isOptSet("melonds_screen_sizing") && (SystemConfig["melonds_screen_sizing"] == "4" || SystemConfig["melonds_screen_sizing"] == "5"))
+                    {
+                        BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "0");
+                        BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "0");
+                    }
+                    else
+                    {
+                        BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "3");
+                        BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "3");
+                    }
                 }
                 else
                 {

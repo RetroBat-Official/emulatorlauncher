@@ -19,9 +19,9 @@ namespace EmulatorLauncher
 
         private const string ReshadeFolder = "reshade-shaders";
 
-        public static bool Setup(ReshadeBezelType type, ReshadePlatform platform, string system, string rom, string path, ScreenResolution resolution, bool displayIsStretched = false)
+        public static bool Setup(ReshadeBezelType type, ReshadePlatform platform, string system, string rom, string path, ScreenResolution resolution, string emulator,  bool displayIsStretched = false)
         {
-            var bezel = BezelFiles.GetBezelFiles(system, rom, resolution);
+            var bezel = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             string shaderName = Program.SystemConfig["shader"] ?? "";
 
             if (bezel == null && (string.IsNullOrEmpty(shaderName) || !shaderName.Contains("@")))
