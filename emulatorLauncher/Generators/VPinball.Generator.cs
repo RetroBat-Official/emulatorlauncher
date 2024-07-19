@@ -642,6 +642,8 @@ namespace EmulatorLauncher
             {
                 if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
                     ini.WriteValue("Controller", "ForceDisableB2S", "0");
+                else if (SystemConfig.getOptBoolean("enableb2s"))
+                    ini.WriteValue("Controller", "ForceDisableB2S", "0");
                 else
                     ini.WriteValue("Controller", "ForceDisableB2S", "1");
 
