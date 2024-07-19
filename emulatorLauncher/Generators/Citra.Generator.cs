@@ -63,6 +63,9 @@ namespace EmulatorLauncher
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
 
+            if (_bezelFileInfo.PngFile != null)
+                SimpleLogger.Instance.Info("[INFO] Bezel file selected : " + _bezelFileInfo.PngFile);
+
             List<string> commandArray = new List<string>();
             if (fullscreen)
                 commandArray.Add("-f");
@@ -213,6 +216,7 @@ namespace EmulatorLauncher
                     {
                         ini.WriteValue("Layout", "layout_option\\default", "false");
                         ini.WriteValue("Layout", "layout_option", SystemConfig["citraqt_layout_option"]);
+                        SimpleLogger.Instance.Info("[INFO] Setting layout option to : " + SystemConfig["lime_layout_option"]);
                     }
                     else
                     {
@@ -252,6 +256,7 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("Utility", "custom_textures\\default", "false");
                     ini.WriteValue("Utility", "custom_textures", "true");
+                    SimpleLogger.Instance.Info("[INFO] Custom textures enabled.");
                 }
                 else if (Features.IsSupported("citra_custom_textures"))
                 {
