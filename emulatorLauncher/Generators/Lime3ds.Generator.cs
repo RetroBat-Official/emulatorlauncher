@@ -6,6 +6,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.FileFormats;
 using System.Linq;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -22,11 +23,13 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath(emulator);
 
             string exe = Path.Combine(path, "lime3ds-gui.exe");
             if (!File.Exists(exe))
-                exe = Path.Combine(path, "lime3ds-qt.exe");
+                exe = Path.Combine(path, "lime-qt.exe");    // old executable name
 
             if (!File.Exists(exe))
                 return null;
@@ -57,10 +60,13 @@ namespace EmulatorLauncher
                 }
             }
 
-            SetupConfigurationLime3ds(path, fullscreen);
+            SetupConfigurationLime3ds(path, rom, fullscreen);
 
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
+
+            if (_bezelFileInfo.PngFile != null)
+                SimpleLogger.Instance.Info("[INFO] Bezel file selected : " + _bezelFileInfo.PngFile);
 
             List<string> commandArray = new List<string>();
             if (fullscreen)
@@ -79,7 +85,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfigurationLime3ds(string path, bool fullscreen = true)
+        private void SetupConfigurationLime3ds(string path, string rom, bool fullscreen = true)
         {
             if (SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
@@ -91,6 +97,23 @@ namespace EmulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
+                SimpleLogger.Instance.Info("Writing Lime3ds configuration file: " + conf);
+
+                // Define rom path
+                string romPath = Path.GetDirectoryName(rom);
+
+                if (!string.IsNullOrEmpty(romPath))
+                {
+                    ini.WriteValue("UI", "Paths\\gamedirs\\3\\path", romPath.Replace("\\", "/"));
+                    ini.WriteValue("UI", "Paths\\gamedirs\\3\\deep_scan\\default", "false");
+                    ini.WriteValue("UI", "Paths\\gamedirs\\3\\deep_scan", "true");
+                }
+                
+                int gameDirsSize = ini.GetValue("UI", "Paths\\gamedirs\\size").ToInteger();
+                if (gameDirsSize < 3)
+                    ini.WriteValue("UI", "Paths\\gamedirs\\size", "3");
+                
+                // Write settings
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
                 ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");
 
@@ -196,6 +219,7 @@ namespace EmulatorLauncher
                     {
                         ini.WriteValue("Layout", "layout_option\\default", "false");
                         ini.WriteValue("Layout", "layout_option", SystemConfig["lime_layout_option"]);
+                        SimpleLogger.Instance.Info("[INFO] Setting layout option to : " + SystemConfig["lime_layout_option"]);
                     }
                     else
                     {
@@ -235,6 +259,7 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("Utility", "custom_textures\\default", "false");
                     ini.WriteValue("Utility", "custom_textures", "true");
+                    SimpleLogger.Instance.Info("[INFO] Custom textures enabled.");
                 }
                 else if (Features.IsSupported("lime_custom_textures"))
                 {
@@ -262,6 +287,8 @@ namespace EmulatorLauncher
         {
             if (!File.Exists(path))
                 return;
+
+            SimpleLogger.Instance.Info("[Generator] Writing to 3DS nand file.");
 
             int langId;
 
@@ -297,6 +324,8 @@ namespace EmulatorLauncher
                 { "pt", 9 },
                 { "ru", 10 },
             };
+
+            SimpleLogger.Instance.Info("[Generator] Getting language from RetroBat language.");
 
             // Special case for Taiwanese which is zh_TW
             if (SystemConfig["Language"] == "zh_TW")

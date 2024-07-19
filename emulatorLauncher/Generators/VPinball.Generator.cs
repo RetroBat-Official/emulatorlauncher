@@ -425,6 +425,8 @@ namespace EmulatorLauncher
         {
             try
             {
+                SimpleLogger.Instance.Info("[Generator] Ensuring UltraDMD is registered.");
+
                 // Check for valid out-of-process COM server ( UltraDMD ) 
                 if (IsComServerAvailable(@"CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}\LocalServer32"))
                     return;
@@ -513,6 +515,8 @@ namespace EmulatorLauncher
 
             try
             {
+                SimpleLogger.Instance.Info("[Generator] Ensuring BackGlass Server is registered.");
+
                 Process px = new Process
                 {
                     EnableRaisingEvents = true
@@ -609,6 +613,8 @@ namespace EmulatorLauncher
 
             try
             {
+                SimpleLogger.Instance.Info("[Generator] Ensuring VpinMame is registered.");
+
                 Process px = new Process
                 {
                     EnableRaisingEvents = true
@@ -640,7 +646,11 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
+                SimpleLogger.Instance.Info("[Generator] Writing config to VPinballX.ini file.");
+
                 if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
+                    ini.WriteValue("Controller", "ForceDisableB2S", "0");
+                else if (SystemConfig.getOptBoolean("enableb2s"))
                     ini.WriteValue("Controller", "ForceDisableB2S", "0");
                 else
                     ini.WriteValue("Controller", "ForceDisableB2S", "1");
@@ -738,6 +748,8 @@ namespace EmulatorLauncher
             regKeyc = vp.CreateSubKey("Controller");
             if (regKeyc != null)
             {
+                SimpleLogger.Instance.Info("[Generator] Writing config to registry.");
+
                 if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
                     SetOption(regKeyc, "ForceDisableB2S", 0);
                 else
@@ -865,6 +877,8 @@ namespace EmulatorLauncher
             var visualPinMame = softwareKey.CreateSubKey("Freeware").CreateSubKey("Visual PinMame");
             if (visualPinMame != null)
             {
+                SimpleLogger.Instance.Info("[Generator] Writing VPinMame config to Registry.");
+
                 DisableVPinMameLicenceDialogs(romPath, visualPinMame);
 
                 visualPinMame.CreateSubKey("default");
@@ -909,6 +923,8 @@ namespace EmulatorLauncher
         {
             if (romPath == null || !Directory.Exists(romPath))
                 return;
+
+            SimpleLogger.Instance.Info("[Generator] Disabling VPinMame Licence prompts for all available table roms.");
 
             string[] romList = Directory.GetFiles(romPath, "*.zip").Select(r => Path.GetFileNameWithoutExtension(r)).Distinct().ToArray();
             foreach (var rom in romList)
