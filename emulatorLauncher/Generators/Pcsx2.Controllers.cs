@@ -321,6 +321,10 @@ namespace EmulatorLauncher
 
                     switch (triggersDriving)
                     {
+                        case "square_cross":
+                            pcsx2ini.WriteValue(padNumber, "Cross", techPadNumber + GetDInputKeyName(dinputController, "righttrigger", -1, isXinput));
+                            pcsx2ini.WriteValue(padNumber, "Square", techPadNumber + GetDInputKeyName(dinputController, "lefttrigger", 1, isXinput));
+                            break;
                         case "righty":
                             pcsx2ini.WriteValue(padNumber, "RUp", techPadNumber + GetDInputKeyName(dinputController, "righttrigger", -1, isXinput));
                             pcsx2ini.WriteValue(padNumber, "RDown", techPadNumber + GetDInputKeyName(dinputController, "lefttrigger", 1, isXinput));
@@ -441,6 +445,10 @@ namespace EmulatorLauncher
 
                     switch (triggersDriving)
                     {
+                        case "square_cross":
+                            pcsx2ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
+                            pcsx2ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
+                            break;
                         case "righty":
                             pcsx2ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
                             pcsx2ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));

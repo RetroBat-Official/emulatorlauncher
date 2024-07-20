@@ -58,7 +58,8 @@ namespace EmulatorLauncher
 
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
-                var lines = File.ReadAllLines(rom);
+                var rawLines = File.ReadAllLines(rom);
+                var lines = rawLines.Where(line => !line.TrimStart().StartsWith("#")).ToArray();
                 if (lines.Length == 0)
                 {
                     SimpleLogger.Instance.Error("M3U file is empty: " + rom);
@@ -99,10 +100,12 @@ namespace EmulatorLauncher
             if (romType == "cart")
                 drive = "/Cartridge=";
 
-            List<string> commandArray = new List<string>
-            {
-                drive + "\"" + rom + "\""
-            };
+            List<string> commandArray = new List<string>();
+            
+            if (driveBDisk != null)
+                commandArray.Add("/DriveA=" + "\"" + driveADisk + "\" /DriveB=\"" + driveBDisk + "\"");
+            else
+                commandArray.Add(drive + "\"" + driveADisk + "\"");
 
             // Keyboard as joystick
             if (SystemConfig.getOptBoolean("caprice_keyboardasjoystick"))

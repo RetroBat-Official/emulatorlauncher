@@ -44,7 +44,7 @@ namespace EmulatorLauncher
             { new Installer("daphne") },
             { new Installer("demul") }, 
             { new Installer("demul-old", "demul-old", "demul.exe") }, 
-            { new Installer("dolphin", "dolphin-emu", "dolphin.exe") },
+            { new Installer("dolphin", "dolphin-emu", "Dolphin.exe") },
             { new Installer("flycast", "flycast", "flycast.exe") },
             { new Installer("simple64", "simple64", "simple64-gui.exe") },
             { new Installer("mupen64", "mupen64", "RMG.exe") },
