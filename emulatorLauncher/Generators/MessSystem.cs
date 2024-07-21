@@ -12,6 +12,20 @@ namespace EmulatorLauncher
     {
         // mame -listfull nom*
         // mame -listmedias nom*
+        static readonly Dictionary<string, string> softlists = new Dictionary<string, string>()
+        {
+            { "adam_cart1", "adam_cart" },
+            { "adam_flop1", "adam_flop" },
+            { "adam_cass1", "adam_cass" },
+            { "apple2_cass", "apple2_cass" },
+            { "atom_cass", "atom_cass" },
+            { "atom_cart", "atom_rom" },
+            { "atom_flop1", "atom_flop" },
+            { "camplynx_cass", "camplynx_cass" },
+            { "camplynx_flop1", "camplynx_flop" },
+            { "coco_flop1", "coco_flop" },
+            { "coco_cart", "coco_cart" }
+        };
 
         static readonly MessSystem[] MessSystems = new MessSystem[]
             {
@@ -770,6 +784,17 @@ namespace EmulatorLauncher
             // User autostart if autorun file exists
             var romname = Path.GetFileNameWithoutExtension(rom);
             string autorunFile = Path.Combine(Path.GetDirectoryName(rom), romname + ".autorun");
+            var romMedia = this.GetRomType(rom);
+            string hashfile = null;
+
+            if (SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
+                hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", SystemConfig["force_softlist"] + ".xml");
+            else
+            {
+                romMedia = softlists[this.Name + "_" + romMedia];
+                hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", romMedia  + ".xml");
+            }
+
             if (File.Exists(autorunFile))
             {
                 if (File.ReadAllText(autorunFile) != null)
@@ -781,31 +806,27 @@ namespace EmulatorLauncher
                 }
             }
 
-            //Specific autostart for Camputers lynx based on hashfile (for now only for MAME standalone)
-            else if (standalone && system == "camplynx" && SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
+            //Specific autostart based on hash file (for now only for MAME standalone)
+            else if (standalone && File.Exists(hashfile))
             {
-                string hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", SystemConfig["force_softlist"] + ".xml");
-                if (File.Exists(hashfile))
+                XDocument doc = XDocument.Load(hashfile);
+                string idToFind = romname;
+                XElement selectedElement = doc.Descendants()
+                        .Where(x => (string)x.Attribute("name") == idToFind).FirstOrDefault();
+
+                if (selectedElement != null)
                 {
-                    XDocument doc = XDocument.Load(hashfile);
-                    string idToFind = romname;
-                    XElement selectedElement = doc.Descendants()
-                            .Where(x => (string)x.Attribute("name") == idToFind).FirstOrDefault();
+                    XElement commandElement = selectedElement.Descendants()
+                        .Where(x => (string)x.Attribute("name") == "usage").FirstOrDefault();
 
-                    if (selectedElement != null)
+                    if (commandElement != null)
                     {
-                        XElement commandElement = selectedElement.Descendants()
-                            .Where(x => (string)x.Attribute("name") == "usage").FirstOrDefault();
-
-                        if (commandElement != null)
-                        {
-                            string command = commandElement.Attribute("value").Value + "\\n";
-                            command = command.Replace("\"", "\\\"");
-                            commandArray.Add("-autoboot_delay");
-                            commandArray.Add("3");
-                            commandArray.Add("-autoboot_command");
-                            commandArray.Add(command);
-                        }
+                        string command = commandElement.Attribute("value").Value + "\\n";
+                        command = command.Replace("\"", "\\\"");
+                        commandArray.Add("-autoboot_delay");
+                        commandArray.Add("3");
+                        commandArray.Add("-autoboot_command");
+                        commandArray.Add(command);
                     }
                 }
             }
