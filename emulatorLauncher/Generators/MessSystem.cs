@@ -14,17 +14,14 @@ namespace EmulatorLauncher
         // mame -listmedias nom*
         static readonly Dictionary<string, string> softlists = new Dictionary<string, string>()
         {
-            { "adam_cart1", "adam_cart" },
-            { "adam_flop1", "adam_flop" },
-            { "adam_cass1", "adam_cass" },
             { "apple2_cass", "apple2_cass" },
             { "atom_cass", "atom_cass" },
             { "atom_cart", "atom_rom" },
             { "atom_flop1", "atom_flop" },
+            { "bbcmicro_cass", "bbc_cass" },
             { "camplynx_cass", "camplynx_cass" },
             { "camplynx_flop1", "camplynx_flop" },
-            { "coco_flop1", "coco_flop" },
-            { "coco_cart", "coco_cart" }
+            { "coco_flop1", "coco_flop" }
         };
 
         static readonly MessSystem[] MessSystems = new MessSystem[]
@@ -46,13 +43,13 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
                         }),
 
-                new MessSystem("apple2e"       ,"apple2e"      , new MessRomType[]
+                new MessSystem("apple2"       ,"apple2e"      , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav" } ),
                             new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
                         }),
 
-                new MessSystem("apple2p"       ,"apple2p"      , new MessRomType[]
+                new MessSystem("apple2"       ,"apple2p"      , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav" } ),
                             new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
@@ -82,21 +79,21 @@ namespace EmulatorLauncher
                             new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
                         }),
 
-                new MessSystem("bbcm"     ,"bbcm"     , new MessRomType[]
+                new MessSystem("bbcmicro"     ,"bbcm"     , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
                             new MessRomType("cart1", new string[] { "rom", "bin" }),
                             new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
                         }),
 
-                new MessSystem("bbcm512"     ,"bbcm512"     , new MessRomType[]
+                new MessSystem("bbcmicro"     ,"bbcm512"     , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
                             new MessRomType("cart1", new string[] { "rom", "bin" }),
                             new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
                         }),
 
-                new MessSystem("bbcmc"     ,"bbcmc"     , new MessRomType[]
+                new MessSystem("bbcmicro"     ,"bbcmc"     , new MessRomType[]
                         {
                             new MessRomType("rom3", new string[] { "rom", "bin" }),
                             new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
@@ -108,13 +105,13 @@ namespace EmulatorLauncher
                             new MessRomType("cass", new string[] { "wav", "tap" })
                         }),
 
-                new MessSystem("lynx96k"     ,"lynx96k"  , new MessRomType[]
+                new MessSystem("camplynx"     ,"lynx128k"  , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "tap" }),
                             new MessRomType("flop1" )
                         }),
 
-                new MessSystem("lynx128k"     ,"lynx128k"  , new MessRomType[]
+                new MessSystem("camplynx"     ,"lynx96k"  , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "tap" }),
                             new MessRomType("flop1" )
@@ -129,7 +126,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" ),
                         }),
 
-                new MessSystem("cocoh"         ,"cocoh"     , new MessRomType[]
+                new MessSystem("coco"         ,"coco3p"     , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
@@ -137,7 +134,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" ),
                         }),
 
-                new MessSystem("coco1"        ,"coco"     , new MessRomType[]
+                new MessSystem("coco"        ,"coco"     , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
@@ -145,7 +142,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" ),
                         }),
 
-               new MessSystem("coco2b"        ,"coco2b"     , new MessRomType[]
+               new MessSystem("coco"        ,"coco2b"     , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
@@ -153,7 +150,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" ),
                         }),
 
-               new MessSystem("coco2bh"        ,"coco2bh"     , new MessRomType[]
+               new MessSystem("coco"         ,"cocoh"     , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
@@ -161,7 +158,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" ),
                         }),
 
-                new MessSystem("coco3p"         ,"coco3p"     , new MessRomType[]
+               new MessSystem("coco"        ,"coco2bh"     , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
@@ -169,7 +166,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" ),
                         }),
 
-                new MessSystem("coco3h"         ,"coco3h"     , new MessRomType[]
+                new MessSystem("coco"         ,"coco3h"     , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
                             new MessRomType("cart", new string[] { "ccc", "rom" } ),
@@ -191,7 +188,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
                         }),
 
-                new MessSystem("fm77av"          ,"fm77av"      , new MessRomType[]
+                new MessSystem("fm7"          ,"fm77av"      , new MessRomType[]
                         {
                             new MessRomType("cass", new string[] { "t77", "wav" }, "LOADM\\\"\\\",,R\\n", "5"),
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
@@ -205,7 +202,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
                         }) { InGameMouse = true },
 
-                new MessSystem("fmtownsux"      ,"fmtownsux" , new MessRomType[]
+                new MessSystem("fmtowns"      ,"fmtownsux" , new MessRomType[]
                         {
                             new MessRomType("cdrm", new string[] { "iso", "cue", "chd", "toc", "nrg", "gdi", "cdr" }),
                             new MessRomType("hard1", new string[] { "hd", "hdv", "2mg", "hdi" }),
@@ -213,7 +210,7 @@ namespace EmulatorLauncher
                             new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
                         }) { InGameMouse = true },
 
-                new MessSystem("fmtmarty"     ,"fmtmarty"      , new MessRomType[]  // Fujitsu FM Towns Marty
+                new MessSystem("fmtowns"     ,"fmtmarty"      , new MessRomType[]  // Fujitsu FM Towns Marty
                         {
                             new MessRomType("cdrm", new string[] { "chd", "cue", "toc", "nrg", "gdi", "iso", "cdr" }),
                             new MessRomType("memc", new string[] { "icm" }),
@@ -249,26 +246,26 @@ namespace EmulatorLauncher
 
                 // Archimedes
                 new MessSystem("archimedes"         ,"aa4401"     , "flop"),
-                new MessSystem("aa305"        ,"aa305"    ,"flop"  ),
-                new MessSystem("aa440"        ,"aa440"    ,"flop"  ),
-                new MessSystem("aa310"        ,"aa310"    ,"flop"  ),
-                new MessSystem("aa4101"        ,"aa4101"    ,"flop"  ),
-                new MessSystem("aa4201"        ,"aa4201"    ,"flop"  ),
-                new MessSystem("aa3000"        ,"aa3000"    ,"flop"  ),
-                new MessSystem("aa540"        ,"aa540"    ,"flop"  ),
-                new MessSystem("aa5000"        ,"aa5000"    ,new MessRomType[]
+                new MessSystem("archimedes"        ,"aa305"    ,"flop"  ),
+                new MessSystem("archimedes"        ,"aa310"    ,"flop"  ),
+                new MessSystem("archimedes"        ,"aa440"    ,"flop"  ),
+                new MessSystem("archimedes"        ,"aa4101"    ,"flop"  ),
+                new MessSystem("archimedes"        ,"aa4201"    ,"flop"  ),
+                new MessSystem("archimedes"        ,"aa3000"    ,"flop"  ),
+                new MessSystem("archimedes"        ,"aa540"    ,"flop"  ),
+                new MessSystem("archimedes"        ,"aa5000"    ,new MessRomType[]
                         {
                             new MessRomType("rom", new string[] { "bin", "rom" }),
                             new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
                             new MessRomType("flop")
                         }),
-                new MessSystem("aa3010"        ,"aa3010"    ,"flop"  ),
-                new MessSystem("aa3020"        ,"aa3020"    ,new MessRomType[]
+                new MessSystem("archimedes"        ,"aa3010"    ,"flop"  ),
+                new MessSystem("archimedes"        ,"aa3020"    ,new MessRomType[]
                         {
                             new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
                             new MessRomType("flop")
                         }),
-                new MessSystem("aa4000"        ,"aa4000"    ,new MessRomType[]
+                new MessSystem("archimedes"        ,"aa4000"    ,new MessRomType[]
                         {
                             new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
                             new MessRomType("flop")
@@ -283,8 +280,8 @@ namespace EmulatorLauncher
                 new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),           // GameCom
                 new MessSystem("gp32"         ,"gp32"     ,"memc"  ),           // GamePark 32             
                 new MessSystem("vsmile"       ,"vsmile"   ,"cart"  ),           // VSMILE
-                new MessSystem("vsmilem"      ,"vsmilem"  ,"cart"  ),           // VSMILE
-                new MessSystem("vsmilpro"     ,"vsmilpro" ,"cdrm"  ),           // VSMILE
+                new MessSystem("vsmile"       ,"vsmilem"  ,"cart"  ),           // VSMILE
+                new MessSystem("vsmile"       ,"vsmilpro" ,"cdrm"  ),           // VSMILE
                 new MessSystem("supracan"     ,"supracan" ,"cart"  ),           // Supracan
                 new MessSystem("megaduck"     ,"megaduck" ,"cart"  ),           // Megaduck
                 new MessSystem("gamate"       ,"gamate"   ,"cart"  ),           // Gamate
@@ -294,7 +291,7 @@ namespace EmulatorLauncher
                 new MessSystem("gmaster"      ,"gmaster"  ,"cart"  ),           // Game Master
                 new MessSystem("vc4000"       ,"vc4000"        , "cart"  ),     // Interton VC 4000
                 new MessSystem("pegasus"      ,"pegasus"       , "rom1"  ),     // Amber Pegasus
-                new MessSystem("pegasusm"      ,"pegasusm"     , "rom1"  ),     // Amber Pegasus (memory expansion)
+                new MessSystem("pegasus"      ,"pegasusm"     , "rom1"  ),      // Amber Pegasus (memory expansion)
 
                 // NOT IN RETROBAT
                 new MessSystem("x1"           ,"x1" , new MessRomType[] 
@@ -522,11 +519,8 @@ namespace EmulatorLauncher
             {
                 string altModel = SystemConfig["altmodel"];
 
-                if (messMode == null && !string.IsNullOrEmpty(system))
-                    messMode = MessSystems.FirstOrDefault(m => system.Equals(altModel, StringComparison.InvariantCultureIgnoreCase));
-
-                if (messMode == null && !string.IsNullOrEmpty(system))
-                    messMode = MessSystems.FirstOrDefault(m => system.Equals(altModel, StringComparison.InvariantCultureIgnoreCase));                
+                if (messMode == null && !string.IsNullOrEmpty(altModel))
+                    messMode = MessSystems.FirstOrDefault(m => altModel.Equals(m.MachineName, StringComparison.InvariantCultureIgnoreCase));              
             }
 
             if (messMode == null && !string.IsNullOrEmpty(system))
@@ -789,7 +783,7 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
                 hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", SystemConfig["force_softlist"] + ".xml");
-            else
+            else if (softlists.ContainsKey(this.Name + "_" + romMedia))
             {
                 romMedia = softlists[this.Name + "_" + romMedia];
                 hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", romMedia  + ".xml");
@@ -807,7 +801,7 @@ namespace EmulatorLauncher
             }
 
             //Specific autostart based on hash file (for now only for MAME standalone)
-            else if (standalone && File.Exists(hashfile))
+            else if (File.Exists(hashfile) && SystemConfig.getOptBoolean("mess_hashboot"))
             {
                 XDocument doc = XDocument.Load(hashfile);
                 string idToFind = romname;
@@ -821,8 +815,32 @@ namespace EmulatorLauncher
 
                     if (commandElement != null)
                     {
+                        
                         string command = commandElement.Attribute("value").Value + "\\n";
-                        command = command.Replace("\"", "\\\"");
+                        if (romMedia == "bbc_cass")
+                        {
+                            if (commandElement.Attribute("value").Value == "Load with *RUN")
+                                command = "*tape\\*RUN\\n";
+                        }
+                        else if (romMedia == "bbc_cass" || romMedia == "atom_flop")
+                        {
+                            if (commandElement.Attribute("value").Value.StartsWith("Load with"))
+                            {
+                                command = commandElement.Attribute("value").Value.Substring(10) + "\\n";
+                                command = command.Replace("\"", "\\\"");
+                            }
+                        }
+                        else if (romMedia == "atom_rom")
+                        {
+                            if (commandElement.Attribute("value").Value.StartsWith("Type"))
+                            {
+                                command = commandElement.Attribute("value").Value.Substring(5) + "\\n";
+                                command = command.Replace("\"", "\\\"");
+                            }
+                        }
+                        else
+                            command = command.Replace("\"", "\\\"");
+
                         commandArray.Add("-autoboot_delay");
                         commandArray.Add("3");
                         commandArray.Add("-autoboot_command");
