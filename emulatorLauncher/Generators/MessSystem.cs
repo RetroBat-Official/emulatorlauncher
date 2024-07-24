@@ -21,8 +21,7 @@ namespace EmulatorLauncher
             { "bbcmicro_cass", "bbc_cass" },
             { "camplynx_cass", "camplynx_cass" },
             { "camplynx_flop1", "camplynx_flop" },
-            { "coco_flop1", "coco_flop" },
-            { "coco_cart", "coco_cart" }
+            { "coco_flop1", "coco_flop" }
         };
 
         static readonly MessSystem[] MessSystems = new MessSystem[]
