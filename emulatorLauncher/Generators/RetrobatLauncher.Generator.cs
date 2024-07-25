@@ -32,6 +32,16 @@ namespace EmulatorLauncher
                         return null;            
             }
 
+            bool updatesEnabled = !SystemConfig.isOptSet("updates.enabled") || SystemConfig.getOptBoolean("updates.enabled");
+
+            if (updatesEnabled && installer.HasUpdateAvailable() && installer.CanInstall())
+            {
+                SimpleLogger.Instance.Info("[Startup] Emulator update found : proposing to update.");
+                using (InstallerFrm frm = new InstallerFrm(installer))
+                    if (frm.ShowDialog() != DialogResult.OK)
+                        return null;
+            }
+
             string fullPath = AppConfig.GetFullPath(folder);
             if (string.IsNullOrEmpty(fullPath))
                 return null;
