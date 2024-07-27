@@ -17,6 +17,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath(emulator);
             if (string.IsNullOrEmpty(path) && emulator != "rpcs3")
                 path = AppConfig.GetFullPath("rpcs3");
@@ -132,6 +134,8 @@ namespace EmulatorLauncher
         /// <param name="path"></param>
         private void SetupGuiConfiguration(string path)
         {
+            SimpleLogger.Instance.Info("[GENERATOR] Writing to GuiConfigs\\CurrentSettings.ini file.");
+
             string guiSettings = Path.Combine(path, "GuiConfigs", "CurrentSettings.ini");
             using (var ini = new IniFile(guiSettings))
             {
@@ -160,7 +164,28 @@ namespace EmulatorLauncher
         /// <param name="path"></param>
         private void SetupConfiguration(string path, bool fullscreen)
         {
+            SimpleLogger.Instance.Info("[GENERATOR] Writing to config.yml file.");
+
             var yml = YmlFile.Load(Path.Combine(path, "config.yml"));
+            // Initialize IO settings
+            var io = yml.GetOrCreateContainer("Input/Output");
+            BindFeature(io, "Keyboard", "rpcs3_keyboard", "\"Null\"");
+            BindFeature(io, "Mouse", "rpcs3_mouse", "\"Null\"");
+            BindFeature(io, "Move", "rpcs3_move", "\"Null\"");
+            BindFeature(io, "Keyboard", "rpcs3_keyboard", "\"Null\"");
+            BindFeature(io, "Camera", "rpcs3_camera", "\"Null\"");
+
+            if (SystemConfig.isOptSet("rpcs3_cameraType") && !string.IsNullOrEmpty(SystemConfig["rpcs3_cameraType"]))
+            {
+                io["Camera type"] = SystemConfig["rpcs3_cameraType"];
+                if (!SystemConfig.isOptSet("rpcs3_camera"))
+                    io["Camera"] = "Fake";
+
+                string camera = io["Camera ID"];
+
+                if (string.IsNullOrEmpty(camera) || camera == "\"\"")
+                    io["Camera ID"] = "Default";
+            }
 
             // Handle Core part of yml file
             var core = yml.GetOrCreateContainer("Core");

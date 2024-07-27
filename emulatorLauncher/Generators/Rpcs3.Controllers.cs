@@ -5,6 +5,7 @@ using System.IO;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -18,6 +19,8 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            SimpleLogger.Instance.Info("[GENERATOR] Configuring controllers.");
 
             //Path does not exist by default so create it if inexistent
             string folder = Path.Combine(path, "config", "input_configs", "global");

@@ -1,4 +1,5 @@
-﻿using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
@@ -13,14 +14,14 @@ namespace EmulatorLauncher
             if (!Program.SystemConfig.isOptSet("rpcs3_guns") || Program.SystemConfig["rpcs3_guns"] == "none")
                 return;
 
+            SimpleLogger.Instance.Info("[GENERATOR] Setting up guns.");
+
             // set borderless window mode for guns
             vulkan["Exclusive Fullscreen Mode"] = "Disable";
             var io = yml.GetOrCreateContainer("Input/Output");
 
             if (Program.SystemConfig["rpcs3_guns"] == "pseye")
             {
-                io["Keyboard"] = "\"Null\"";
-                io["Mouse"] = "\"Null\"";
                 io["Camera"] = "Fake";
                 io["Camera type"] = "PS Eye";
                 io["Move"] = "Mouse";
