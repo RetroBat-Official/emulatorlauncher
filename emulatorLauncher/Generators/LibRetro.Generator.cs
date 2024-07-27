@@ -10,6 +10,8 @@ using System.Globalization;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Lightguns;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -27,6 +29,7 @@ namespace EmulatorLauncher.Libretro
 
         private LibRetroStateFileManager _stateFileManager;
         private ScreenShotsWatcher _screenShotWatcher;
+        private bool _noHotkey = false;
 
         public LibRetroGenerator()
         {
@@ -400,6 +403,10 @@ namespace EmulatorLauncher.Libretro
             if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
                 UseEsPadToKey = false;
 
+            // If no hotkey if configured, add pad2key to exit retroarch
+            if (retroarchConfig["input_enable_hotkey"] == "nul" && retroarchConfig["input_enable_hotkey_btn"] == "nul" && retroarchConfig["input_enable_hotkey_axis"] == "nul" && retroarchConfig["input_enable_hotkey_mbtn"] == "nul")
+                _noHotkey = true;
+
             // Core, services & bezel configs
             ConfigureRetroachievements(retroarchConfig);
             ConfigureNetPlay(retroarchConfig);
@@ -429,7 +436,7 @@ namespace EmulatorLauncher.Libretro
             foreach (var user_config in SystemConfig)
                 if (user_config.Name.StartsWith("retroarch."))
                     retroarchConfig[user_config.Name.Substring("retroarch.".Length)] = user_config.Value;
-                        
+                
             if (retroarchConfig.IsDirty)
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
         }
@@ -1622,7 +1629,18 @@ namespace EmulatorLauncher.Libretro
 
             return false;
         }
-    
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_noHotkey)
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] No hotkey defined, adding select + start to exit in padtokey.");
+                return PadToKey.AddOrUpdateKeyMapping(mapping, "retroarch", InputKey.select | InputKey.start, "(%{CLOSE})");
+            }
+            else
+                return mapping;
+        }
+
     }
 
     // https://github.com/libretro/RetroArch/blob/master/libretro-common/include/libretro.h#L260
