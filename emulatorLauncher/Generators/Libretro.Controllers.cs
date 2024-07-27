@@ -5,13 +5,13 @@ using System.Globalization;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
-using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher.Libretro
 {
     class LibretroControllers
     {
         private static bool _n64specialController = false;
+        private static bool _noHotkey = false;
         private static string _inputDriver = "sdl2";
         private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
 
@@ -309,7 +309,14 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            if (controller.PlayerIndex == 1)
+            var hotKey = GetInputCode(controller, InputKey.hotkey);
+            if (hotKey == null)
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] No hotkey configured, all retroarch shortcuts will be disabled.");
+                _noHotkey = true;
+            }
+            
+            if (controller.PlayerIndex == 1 && !_noHotkey)
             {
                 foreach (var specialkey in retroarchspecials)
                 {
