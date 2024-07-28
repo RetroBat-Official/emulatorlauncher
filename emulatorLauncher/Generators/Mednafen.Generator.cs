@@ -14,7 +14,7 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private readonly string[] _unzipSystems = { "psx", "ss", "pce" };
+        private readonly string[] _unzipSystems = { "psx", "saturn", "pcengine", "pcenginecd", "supergrafx" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -30,7 +30,7 @@ namespace EmulatorLauncher
 
             string[] romExtensions = new string[] { ".m3u", ".cue", ".img", ".mdf", ".pbp", ".toc", ".cbn", ".ccd", ".iso", ".cso", ".pce", ".bin", ".mds" };
 
-            if (_unzipSystems.Contains(mednafenCore) && (Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs"))
+            if (_unzipSystems.Contains(system) && (Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs"))
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
                 if (Directory.Exists(uncompressedRomPath))
@@ -186,7 +186,7 @@ namespace EmulatorLauncher
             ConfigureMednafenWswan(cfg, mednafenCore);
 
             // controllers
-            CreateControllerConfiguration(cfg, mednafenCore);
+            CreateControllerConfiguration(cfg, mednafenCore, system);
 
             cfg.Save();
         }

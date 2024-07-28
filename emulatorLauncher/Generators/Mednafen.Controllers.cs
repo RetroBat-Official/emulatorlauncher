@@ -53,7 +53,7 @@ namespace EmulatorLauncher
             { "wswan", 1 }
         };
 
-        private void CreateControllerConfiguration(MednafenConfigFile cfg, string mednafenCore)
+        private void CreateControllerConfiguration(MednafenConfigFile cfg, string mednafenCore, string system)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -70,22 +70,22 @@ namespace EmulatorLauncher
             int maxPad = inputPortNb[mednafenCore];
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
-                ConfigureInput(controller, cfg, mednafenCore, double_pads);
+                ConfigureInput(controller, cfg, mednafenCore, double_pads, system);
         }
 
-        private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<string, int> double_pads)
+        private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<string, int> double_pads, string system)
         {
             if (controller == null || controller.Config == null)
                 return;
 
             if (controller.IsKeyboard && this.Controllers.Count(i => !i.IsKeyboard) == 0)
-                ConfigureKeyboard(controller, cfg, mednafenCore);
+                ConfigureKeyboard(controller, cfg, mednafenCore, system);
             else
-                ConfigureJoystick(controller, cfg, mednafenCore, double_pads);
+                ConfigureJoystick(controller, cfg, mednafenCore, double_pads, system);
         }
 
         #region joystick
-        private void ConfigureJoystick(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<string, int> double_pads)
+        private void ConfigureJoystick(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<string, int> double_pads, string system)
         {
             if (controller == null)
                 return;
@@ -237,6 +237,7 @@ namespace EmulatorLauncher
                 cfg["psx.input.port" + playerIndex + ".dualshock.r2"] = "none";
             }
             
+            // Specifics per system
             // apple2 only accepts atari joystick in port 2
             if (mednafenCore == "apple2" && playerIndex == 2)
             {
@@ -377,11 +378,27 @@ namespace EmulatorLauncher
                         cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
             }
+
+            if (system == "segastv" && playerIndex == 1)
+            {
+                if (dinput)
+                {
+                    cfg["command.insert_coin"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis);
+                    cfg["ss.input.builtin.builtin.stv_test"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r3], nbAxis);
+                    cfg["ss.input.builtin.builtin.stv_service"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.l3], nbAxis);
+                }
+                else
+                {
+                    cfg["command.insert_coin"] = "joystick " + deviceID + " " + buttonMapping[InputKey.select];
+                    cfg["ss.input.builtin.builtin.stv_test"] = "joystick " + deviceID + " " + buttonMapping[InputKey.r3];
+                    cfg["ss.input.builtin.builtin.stv_service"] = "joystick " + deviceID + " " + buttonMapping[InputKey.l3];
+                }
+            }
         }
         #endregion
 
         #region keyboard
-        private static void ConfigureKeyboard(Controller controller, MednafenConfigFile cfg, string mednafenCore)
+        private static void ConfigureKeyboard(Controller controller, MednafenConfigFile cfg, string mednafenCore, string system)
         {
             if (controller == null)
                 return;
@@ -623,6 +640,63 @@ namespace EmulatorLauncher
 
                 foreach (var entry in newmapping)
                     WriteKeyboardMapping(mednafenCore, 1, padType, entry.Key, entry.Value);
+            }
+
+            if (system == "segastv")
+            {
+                var coin = keyboard[InputKey.select];
+                if (coin != null)
+                {
+                    int id = (int)coin.Id;
+
+                    SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                    List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                    if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                        keycode = azertyLayoutMapping[keycode];
+
+                    int mednafenKey = mednafenKeyCodes[keycode];
+
+                    cfg["command.insert_coin"] = "keyboard 0x0 " + mednafenKey;
+                }
+                else
+                    cfg["command.insert_coin"] = "keyboard 0x0 62"; //F5
+
+                var test = keyboard[InputKey.l3];
+                if (test != null)
+                {
+                    int id = (int)test.Id;
+
+                    SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                    List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                    if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                        keycode = azertyLayoutMapping[keycode];
+
+                    int mednafenKey = mednafenKeyCodes[keycode];
+
+                    cfg["ss.input.builtin.builtin.stv_test"] = "keyboard 0x0 " + mednafenKey;
+                }
+                else
+                    cfg["ss.input.builtin.builtin.stv_test"] = "keyboard 0x0 65"; //F8
+
+                var service = keyboard[InputKey.r3];
+                if (service != null)
+                {
+                    int id = (int)service.Id;
+
+                    SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
+
+                    List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                    if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
+                        keycode = azertyLayoutMapping[keycode];
+
+                    int mednafenKey = mednafenKeyCodes[keycode];
+
+                    cfg["ss.input.builtin.builtin.stv_service"] = "keyboard 0x0 " + mednafenKey;
+                }
+                else
+                    cfg["ss.input.builtin.builtin.stv_service"] = "keyboard 0x0 66";
             }
         }
         #endregion
