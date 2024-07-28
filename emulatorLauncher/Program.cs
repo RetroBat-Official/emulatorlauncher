@@ -300,7 +300,8 @@ namespace EmulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
-            if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun"))
+            // Automatically switch on lightgun if -lightgun is passed and not disabled in the config (except for wii where we do not want to switch on with real wiimote)
+            if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun") && SystemConfig["system"] != "wii")
             {
                 SystemConfig["use_guns"] = "true";
                 SimpleLogger.Instance.Info("[GUNS] Lightgun game : setting default lightung value to true.");
