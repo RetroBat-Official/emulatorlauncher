@@ -405,7 +405,10 @@ namespace EmulatorLauncher.Libretro
 
             // If no hotkey if configured, add pad2key to exit retroarch
             if (retroarchConfig["input_enable_hotkey"] == "nul" && retroarchConfig["input_enable_hotkey_btn"] == "nul" && retroarchConfig["input_enable_hotkey_axis"] == "nul" && retroarchConfig["input_enable_hotkey_mbtn"] == "nul")
-                _noHotkey = true;
+            {
+                if (Controllers.Any(c => !c.IsKeyboard))
+                    _noHotkey = true;
+            }
 
             // Core, services & bezel configs
             ConfigureRetroachievements(retroarchConfig);
@@ -1481,6 +1484,14 @@ namespace EmulatorLauncher.Libretro
                     throw new ApplicationException("Libretro:melonDS requires a '.nds' game file to load a nand file.");
 
                 rom = romToLaunch;
+            }
+
+            // Special treatment for super gameboy MSU games
+            if (system == "snes-msu1")
+            {
+                string sgbRom = Path.ChangeExtension(rom, ".gb");
+                if (File.Exists(sgbRom))
+                    rom = sgbRom;
             }
 
             string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
