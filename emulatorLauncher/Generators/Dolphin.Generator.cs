@@ -364,6 +364,7 @@ namespace EmulatorLauncher
             int langId;
             int barPos = 0;
             int ratio = 1;
+            int progScan = 0;
 
             if (SystemConfig.isOptSet("wii_language") && !string.IsNullOrEmpty(SystemConfig["wii_language"]))
                 langId = SystemConfig["wii_language"].ToInteger();
@@ -375,6 +376,9 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("wii_tvmode") && !string.IsNullOrEmpty(SystemConfig["wii_tvmode"]))
                 ratio = SystemConfig["wii_tvmode"].ToInteger();
+
+            if (SystemConfig.isOptSet("wii_progscan") && !string.IsNullOrEmpty(SystemConfig["wii_progscan"]))
+                progScan = SystemConfig["wii_progscan"].ToInteger();
 
             // Read SYSCONF file
             byte[] bytes = File.ReadAllBytes(path);
@@ -393,7 +397,7 @@ namespace EmulatorLauncher
             // Search BT.BAR pattern and replace with target position
             byte[] barPositionPattern = new byte[] { 0x42, 0x54, 0x2E, 0x42, 0x41, 0x52 };
             int index2 = bytes.IndexOf(barPositionPattern);
-            if (index >= 0 && index + langPattern.Length + 1 < bytes.Length)
+            if (index2 >= 0 && index2 + barPositionPattern.Length + 1 < bytes.Length)
             {
                 var toSet = new byte[] { 0x42, 0x54, 0x2E, 0x42, 0x41, 0x52, (byte)barPos };
                 for (int i = 0; i < toSet.Length; i++)
@@ -404,13 +408,24 @@ namespace EmulatorLauncher
             // Search IPL.AR pattern and replace with target position
             byte[] ratioPositionPattern = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x41, 0x52 };
             int index3 = bytes.IndexOf(ratioPositionPattern);
-            if (index >= 0 && index + langPattern.Length + 1 < bytes.Length)
+            if (index3 >= 0 && index3 + ratioPositionPattern.Length + 1 < bytes.Length)
             {
                 var toSet = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x41, 0x52, (byte)ratio };
                 for (int i = 0; i < toSet.Length; i++)
                     bytes[index3 + i] = toSet[i];
             }
             SimpleLogger.Instance.Info("[INFO] Writing wii screen ratio " + ratio.ToString() + " to wii system nand");
+
+            // Search IPL.PGS pattern and replace with target position
+            byte[] pgsPositionPattern = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x50, 0x47, 0x53 };
+            int index4 = bytes.IndexOf(pgsPositionPattern);
+            if (index4 >= 0 && index4 + pgsPositionPattern.Length + 1 < bytes.Length)
+            {
+                var toSet = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x50, 0x47, 0x53, (byte)ratio };
+                for (int i = 0; i < toSet.Length; i++)
+                    bytes[index4 + i] = toSet[i];
+            }
+            SimpleLogger.Instance.Info("[INFO] Writing wii Progressive Scan " + progScan.ToString() + " to wii system nand");
 
             File.WriteAllBytes(path, bytes);
         }
