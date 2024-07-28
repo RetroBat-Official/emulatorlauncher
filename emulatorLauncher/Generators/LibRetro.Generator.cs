@@ -1486,14 +1486,6 @@ namespace EmulatorLauncher.Libretro
                 rom = romToLaunch;
             }
 
-            // Special treatment for super gameboy MSU games
-            if (system == "snes-msu1")
-            {
-                string sgbRom = Path.ChangeExtension(rom, ".gb");
-                if (File.Exists(sgbRom))
-                    rom = sgbRom;
-            }
-
             string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
             if (emulator != "angle" && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
                 retroarch = GetNetPlayPatchedRetroarch();
