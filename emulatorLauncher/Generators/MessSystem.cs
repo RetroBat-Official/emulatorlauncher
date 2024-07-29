@@ -21,12 +21,30 @@ namespace EmulatorLauncher
             { "bbcmicro_cass", "bbc_cass" },
             { "camplynx_cass", "camplynx_cass" },
             { "camplynx_flop1", "camplynx_flop" },
-            { "coco_flop1", "coco_flop" }
+            { "coco_flop1", "coco_flop" },
+            { "electron_cass", "electron_cass" },
+            { "electron_flop", "electron_flop" }
         };
 
         static readonly MessSystem[] MessSystems = new MessSystem[]
             {
                 // IN RETROBAT
+
+                // Acorn Electron
+                
+                new MessSystem("electron"     ,"electron64" , new MessRomType[]
+                        {
+                            new MessRomType("cart1", new string[] { "bin", "rom" } ),
+                            new MessRomType("cass", new string[] { "wav", "csw", "uef", "flac" }, "*TAPE\\nCHAIN\\\"\\\"\\n", "3" ),
+                            new MessRomType("flop")
+                        }),
+
+                new MessSystem("electron"     ,"electron" , new MessRomType[]
+                        {
+                            new MessRomType("cart1", new string[] { "bin", "rom" } ),
+                            new MessRomType("cass", new string[] { "wav", "csw", "uef", "flac" }, "*TAPE\\nCHAIN\\\"\\\"\\n", "3" ),
+                            new MessRomType("flop")
+                        }),
 
                 // ADAM
                 new MessSystem("adam"         ,"adam"     , new MessRomType[]
@@ -321,13 +339,6 @@ namespace EmulatorLauncher
                             new MessRomType("cart")
                         }),
 
-                new MessSystem("electron"     ,"electron" , new MessRomType[] 
-                        { 
-                            new MessRomType("cart", new string[] { "bin", "rom" } ), 
-                            new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*T.\\nCH.\\\"\\\"\\n" ), 
-                            new MessRomType("flop")
-                        }),
-
                 new MessSystem("c64"          ,"c64" , new MessRomType[] 
                         { 
                             new MessRomType("cart", new string[] { "80", "a0", "e0", "crt" } ), 
@@ -549,7 +560,8 @@ namespace EmulatorLauncher
 
             return path;
         }
-        
+
+        private string _romExtension;
         public List<string> GetMameCommandLineArguments(string system, string rom, bool standalone = false)
         {
             bool useSoftList = SystemConfig.isOptSet("force_softlist") && SystemConfig["force_softlist"] != "none";
@@ -838,11 +850,16 @@ namespace EmulatorLauncher
                                 command = command.Replace("\"", "\\\"");
                             }
                         }
+                        else if (romMedia == "electron_cass")
+                        {
+                            if (commandElement.Attribute("value").Value.StartsWith("Load with "))
+                                command = "*TAPE\\n*RUN\\n";
+                        }
                         else
                             command = command.Replace("\"", "\\\"");
 
                         commandArray.Add("-autoboot_delay");
-                        commandArray.Add("3");
+                        commandArray.Add("5");
                         commandArray.Add("-autoboot_command");
                         commandArray.Add(command);
                     }
@@ -850,6 +867,25 @@ namespace EmulatorLauncher
             }
 
             // Generic boot if only one type is available
+            else if (romMedia == "electron_flop")
+            {
+                if (_romExtension == "ssd")
+                {
+                    commandArray.Add("-exp");
+                    commandArray.Add("plus3,bios=4");
+                    commandArray.Add("-autoboot_delay");
+                    commandArray.Add("3");
+                    commandArray.Add("-autoboot_command");
+                    commandArray.Add("*CAT\\n\\n\\n\\n\\n\\n*EXEC!BOOT\\n");
+                }
+                else
+                {
+                    commandArray.Add("-autoboot_delay");
+                    commandArray.Add("3");
+                    commandArray.Add("-autoboot_command");
+                    commandArray.Add("*CAT\\n\\n\\n\\n\\n\\n\\n*RUN!BOOT\\n");
+                }
+            }
             else
             {
                 var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
@@ -1032,7 +1068,10 @@ namespace EmulatorLauncher
             {
                 var e = Zip.ListEntries(rom).Where(f => !f.IsDirectory).Select(f => f.Filename).ToArray();
                 if (e.Length == 1 && !string.IsNullOrEmpty(Path.GetExtension(e[0])))
+                {
                     ext = Path.GetExtension(e[0]).ToLowerInvariant().Substring(1);
+                    _romExtension = ext;
+                }
             }
 
             var ret = RomTypes.Where(t => t.Extensions != null && t.Extensions.Contains(ext)).Select(t => t.Type).FirstOrDefault();
