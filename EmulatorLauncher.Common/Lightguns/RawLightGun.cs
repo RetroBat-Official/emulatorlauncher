@@ -116,7 +116,16 @@ namespace EmulatorLauncher.Common.Lightguns
                         return 14 + Index;
 
                 case RawLighGunType.SindenLightgun:
-                    return 50 + Index;
+                    if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F01"))
+                        return 50;
+                    else if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F38"))
+                        return 51;
+                    else if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F02"))
+                        return 52;
+                    else if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F39"))
+                        return 53;
+                    else
+                        return 55 + Index;
 
                 case RawLighGunType.RetroShooter:
                     if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5750"))
