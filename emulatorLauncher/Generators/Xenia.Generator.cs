@@ -157,6 +157,11 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("xenia_queue_priority"))
                         ini.AppendValue("D3D12", "d3d12_queue_priority", "0");
 
+                    if (SystemConfig.isOptSet("xenia_d3d12_debug") && !string.IsNullOrEmpty(SystemConfig["xenia_d3d12_debug"]))
+                        ini.AppendValue("D3D12", "d3d12_debug", SystemConfig["xenia_d3d12_debug"]);
+                    else if (Features.IsSupported("xenia_d3d12_debug"))
+                        ini.AppendValue("D3D12", "d3d12_debug", "false");
+
                     //Display section
                     string fxaa = "\"" + SystemConfig["postprocess_antialiasing"] + "\"";
                     if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
