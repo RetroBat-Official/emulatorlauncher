@@ -96,58 +96,61 @@ namespace EmulatorLauncher
             }
 
             // Specific Gun4IR & Sinden mapping
-            if (guns[0] != null && guns[0].Type == RawLighGunType.Gun4Ir && SystemConfig["mame_gun_config"] == "gun4ir")
+            if (guns.Length > 0 && SystemConfig.isOptSet("mame_gun_config"))
             {
-                bool multigun4ir = guns[1] != null && guns[1].Type == RawLighGunType.Gun4Ir;
-                ConfigureLightguns(input, RawLighGunType.Gun4Ir, multigun4ir, hbmame);
+                if (guns[0] != null && guns[0].Type == RawLighGunType.Gun4Ir && SystemConfig["mame_gun_config"] == "gun4ir")
+                {
+                    bool multigun4ir = guns[1] != null && guns[1].Type == RawLighGunType.Gun4Ir;
+                    ConfigureLightguns(input, RawLighGunType.Gun4Ir, multigun4ir, hbmame);
 
-                XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
-                xdocgun.Add(mameconfig);
-                mameconfig.Add(system);
-                system.Add(input);
+                    XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
+                    xdocgun.Add(mameconfig);
+                    mameconfig.Add(system);
+                    system.Add(input);
 
-                xdocgun.Save(inputConfig);
+                    xdocgun.Save(inputConfig);
 
-                if (!File.Exists(inputConfig))
-                    return false;
+                    if (!File.Exists(inputConfig))
+                        return false;
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (guns[0] != null && guns[0].Type == RawLighGunType.SindenLightgun && SystemConfig["mame_gun_config"] == "sinden")
-            {
-                bool multiSinden = guns[1] != null && guns[1].Type == RawLighGunType.SindenLightgun;
-                ConfigureLightguns(input, RawLighGunType.SindenLightgun, multiSinden, hbmame);
+                else if (guns[0] != null && guns[0].Type == RawLighGunType.SindenLightgun && SystemConfig["mame_gun_config"] == "sinden")
+                {
+                    bool multiSinden = guns[1] != null && guns[1].Type == RawLighGunType.SindenLightgun;
+                    ConfigureLightguns(input, RawLighGunType.SindenLightgun, multiSinden, hbmame);
 
-                XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
-                xdocgun.Add(mameconfig);
-                mameconfig.Add(system);
-                system.Add(input);
+                    XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
+                    xdocgun.Add(mameconfig);
+                    mameconfig.Add(system);
+                    system.Add(input);
 
-                xdocgun.Save(inputConfig);
+                    xdocgun.Save(inputConfig);
 
-                if (!File.Exists(inputConfig))
-                    return false;
+                    if (!File.Exists(inputConfig))
+                        return false;
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (guns[0] != null && guns[0].Type == RawLighGunType.RetroShooter && SystemConfig["mame_gun_config"] == "retroshooter")
-            {
-                bool multiRetroshooters = guns[1] != null && guns[1].Type == RawLighGunType.RetroShooter;
-                ConfigureLightguns(input, RawLighGunType.RetroShooter, multiRetroshooters, hbmame);
+                else if (guns[0] != null && guns[0].Type == RawLighGunType.RetroShooter && SystemConfig["mame_gun_config"] == "retroshooter")
+                {
+                    bool multiRetroshooters = guns[1] != null && guns[1].Type == RawLighGunType.RetroShooter;
+                    ConfigureLightguns(input, RawLighGunType.RetroShooter, multiRetroshooters, hbmame);
 
-                XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
-                xdocgun.Add(mameconfig);
-                mameconfig.Add(system);
-                system.Add(input);
+                    XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
+                    xdocgun.Add(mameconfig);
+                    mameconfig.Add(system);
+                    system.Add(input);
 
-                xdocgun.Save(inputConfig);
+                    xdocgun.Save(inputConfig);
 
-                if (!File.Exists(inputConfig))
-                    return false;
+                    if (!File.Exists(inputConfig))
+                        return false;
 
-                return true;
+                    return true;
+                }
             }
 
             // Generate controller mapping
