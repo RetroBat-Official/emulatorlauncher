@@ -46,6 +46,12 @@ namespace EmulatorLauncher
                 else
                     commandArray.Add("-force_aspect_ratio");
 
+                if (SystemConfig.isOptSet("hypseus_scalefactor") && !string.IsNullOrEmpty(SystemConfig["hypseus_scalefactor"]))
+                {
+                    commandArray.Add("-scalefactor");
+                    commandArray.Add(SystemConfig["hypseus_scalefactor"]);
+                }
+
                 if (SystemConfig.isOptSet("hypseus_renderer") && SystemConfig["hypseus_renderer"] == "vulkan")
                 {
                     commandArray.Remove("-opengl");
@@ -174,6 +180,7 @@ namespace EmulatorLauncher
                 }
                 catch { }
 
+                SimpleLogger.Instance.Info("[Generator] Creating symbolic link for " + rom + " to " + _symLink);
                 FileTools.CreateSymlink(_symLink, rom, true);
 
                 if (!Directory.Exists(_symLink))
