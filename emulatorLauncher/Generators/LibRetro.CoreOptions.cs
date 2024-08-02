@@ -357,6 +357,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
+            ConfigureNp2kai(retroarchConfig, coreSettings, system, core);
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureOpenLara(retroarchConfig, coreSettings, system, core);
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
@@ -3031,6 +3032,17 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["nestopia_zapper_device"] = "lightgun";
             SetupLightGuns(retroarchConfig, "262", core, 2);
+        }
+
+        private void ConfigureNp2kai(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "np2kai")
+                return;
+
+            BindFeature(coreSettings, "np2kai_model", "np2kai_model", "PC-9801VX");
+
+            // Controls
+            BindFeature(coreSettings, "np2kai_joymode", "np2kai_joymode", "OFF");
         }
 
         private void ConfigureO2em(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
