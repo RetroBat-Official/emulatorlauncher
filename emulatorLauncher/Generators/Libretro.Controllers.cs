@@ -222,12 +222,15 @@ namespace EmulatorLauncher.Libretro
 
             if (system == "n64")
             {
-                string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
+                string guid = controller.Guid.ToString().ToLowerInvariant();
                 if (n64StyleControllers.ContainsKey(guid))
                 {
                     Dictionary<string, string> buttons = n64StyleControllers[guid];
                     Dictionary<string, string> hotkeys = n64StyleControllersSpecial[guid];
 
+                    if (guid == "030000007e050000192000000000680c")
+                        retroconfig["input_analog_sensitivity"] = "1.500000";
+                    
                     foreach (var button in buttons)
                         config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
 
@@ -930,6 +933,34 @@ namespace EmulatorLauncher.Libretro
         static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
+                // Nintendo Switch online controller
+                "030000007e050000192000000000680c",
+                new Dictionary<string, string>()
+                {
+                    { "analog_dpad_mode", "0" },
+                    { "b_btn", "1" },
+                    { "down_btn", "h0down" },
+                    { "l2_btn", "6" },
+                    { "l_btn", "4" },
+                    { "l_x_minus_axis", "-0" },
+                    { "l_x_plus_axis", "+0" },
+                    { "l_y_minus_axis", "-1" },
+                    { "l_y_plus_axis", "+1" },
+                    { "left_btn", "h0left" },
+                    { "r_btn", "5" },
+                    { "r_x_minus_btn", "3" },
+                    { "r_x_plus_btn", "8" },
+                    { "r_y_minus_btn", "2" },
+                    { "r_y_plus_btn", "7" },
+                    { "right_btn", "h0right" },
+                    { "select_btn", "13" },
+                    { "start_btn", "9" },
+                    { "up_btn", "h0up" },
+                    { "y_btn", "0" },
+                }
+            },
+
+            {
                 // Mayflash N64 Adapter
                 "03000000d620000010a7000000000000",
                 new Dictionary<string, string>()
@@ -988,6 +1019,25 @@ namespace EmulatorLauncher.Libretro
 
         static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllersSpecial = new Dictionary<string, Dictionary<string, string>>()
         {
+            {
+                // Nintendo Switch online controller
+                "030000007e050000192000000000680c",
+                new Dictionary<string, string>()
+                {
+                    { "input_enable_hotkey_btn", "13" },
+                    { "input_joypad_driver", "sdl2" },
+                    { "input_exit_emulator_btn", "9" },
+                    { "input_pause_toggle_btn", "7" },
+                    { "input_menu_toggle_btn", "1" },
+                    { "input_load_state_btn", "3" },
+                    { "input_save_state_btn", "0" },
+                    { "input_ai_service_btn", "5" },
+                    { "input_state_slot_decrease_btn", "h0down" },
+                    { "input_state_slot_increase_btn", "h0up" },
+                    { "input_rewind_btn", "h0left" },
+                    { "input_hold_fast_forward_btn", "h0right" },
+                }
+            },
             {
                 // Mayflash N64 Adapter
                 "03000000d620000010a7000000000000",

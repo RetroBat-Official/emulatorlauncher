@@ -58,6 +58,9 @@ namespace EmulatorLauncher
                     commandArray.Add("-vulkan");
                 }
 
+                if (SystemConfig.getOptBoolean("hypseus_nocrosshair"))
+                    commandArray.Add("-nocrosshair");
+
                 return;
             }
         }

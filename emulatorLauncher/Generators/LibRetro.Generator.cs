@@ -77,6 +77,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
             BindFeature(retroarchConfig, "input_analog_deadzone", "analog_deadzone", "0.000000");
+            BindFeature(retroarchConfig, "input_analog_sensitivity", "analog_sensitivity", "1.000000");
             retroarchConfig["input_remap_binds_enable"] = "true";
             retroarchConfig["input_remapping_directory"] = ":\\config\\remaps";
 

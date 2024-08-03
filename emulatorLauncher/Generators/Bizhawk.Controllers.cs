@@ -135,7 +135,7 @@ namespace EmulatorLauncher
             // Perform mapping
             int playerIndex = controller.PlayerIndex;
             int index = controller.SdlController != null ? controller.SdlController.Index + 1 : controller.DeviceIndex + 1;
-            string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
+            string guid = controller.Guid.ToString().ToLowerInvariant();
 
             if (n64StyleControllers.ContainsKey(guid) && system == "n64")
             {
@@ -1482,7 +1482,7 @@ namespace EmulatorLauncher
         {
            {
                 // Nintendo Switch Online N64 Controller
-                "0300b7e67e050000192000000000680c",
+                "030000007e050000192000000000680c",
                 new Dictionary<InputKey, string>()
                 {
                     { InputKey.leftanalogup, "X AxisUp" },
@@ -1563,7 +1563,7 @@ namespace EmulatorLauncher
         {
             {
                 // Nintendo Switch Online N64 Controller
-                "0300b7e67e050000192000000000680c",
+                "030000007e050000192000000000680c",
                 new Dictionary<string, bool>()
                 {
                     { "XInvert", false },

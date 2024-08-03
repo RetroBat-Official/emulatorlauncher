@@ -167,23 +167,23 @@ namespace EmulatorLauncher
 
                     // Ratio
                     if (SystemConfig.isOptSet("ratio"))
-					{
-						if (SystemConfig["ratio"] == "4/3")
-						{
-							ini.WriteValue("Settings", "AspectRatio", "2");
-						}
-						else if (SystemConfig["ratio"] == "16/9")
-							ini.WriteValue("Settings", "AspectRatio", "1");
-						else if (SystemConfig["ratio"] == "Stretched")
-							ini.WriteValue("Settings", "AspectRatio", "3");
-					}
-					else
-						ini.WriteValue("Settings", "AspectRatio", "0");
+                    {
+                        if (SystemConfig["ratio"] == "4/3")
+	                    {
+		                    ini.WriteValue("Settings", "AspectRatio", "2");
+	                    }
+	                    else if (SystemConfig["ratio"] == "16/9")
+		                    ini.WriteValue("Settings", "AspectRatio", "1");
+	                    else if (SystemConfig["ratio"] == "Stretched")
+		                    ini.WriteValue("Settings", "AspectRatio", "3");
+                    }
+                    else
+	                    ini.WriteValue("Settings", "AspectRatio", "0");
 					
-					// widescreen hack but only if enable cheats is not enabled - Default Off
-					if (SystemConfig.isOptSet("widescreen_hack") && SystemConfig.getOptBoolean("widescreen_hack"))
-					{
-						ini.WriteValue("Settings", "wideScreenHack", "True");
+                    // widescreen hack but only if enable cheats is not enabled - Default Off
+                    if (SystemConfig.isOptSet("widescreen_hack") && SystemConfig.getOptBoolean("widescreen_hack"))
+                    {
+	                    ini.WriteValue("Settings", "wideScreenHack", "True");
 
                         // Set Stretched only if ratio is not forced to 16/9 
                         if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] != "16/9")
@@ -191,7 +191,7 @@ namespace EmulatorLauncher
                             _bezelFileInfo = null;
                             ini.WriteValue("Settings", "AspectRatio", "3");
                         }
-					}
+                    }
                     else
                         ini.Remove("Settings", "wideScreenHack");
 

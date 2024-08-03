@@ -89,7 +89,7 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            string guid = ctrl.SdlController != null ? ctrl.SdlController.Guid.ToString().ToLower() : ctrl.Guid.ToString().ToLower();
+            string guid = ctrl.Guid.ToLowerInvariant();
 
             var vpad = bml.GetOrCreateContainer("VirtualPad" + playerindex);
             
@@ -320,7 +320,7 @@ namespace EmulatorLauncher
         {
             {
                 // Nintendo Switch Online N64 Controller
-                "0300b7e67e050000192000000000680c",
+                "030000007e050000192000000000680c",
                 new Dictionary<string, string>()
                 {
                     { "Pad.Up", "3/11" },
