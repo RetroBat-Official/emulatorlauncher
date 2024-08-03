@@ -67,6 +67,7 @@ namespace EmulatorLauncher
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
             bool zAsLeftTrigger = SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
             string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
+            string n64guid = controller.Guid.ToLowerInvariant();
 
             string iniSection = "RetroBatAuto-" + playerIndex;
 
@@ -82,9 +83,9 @@ namespace EmulatorLauncher
             // ButtonID (SDL)
             // 3 = hat / 4 = button / 5 = axis / 1 or -1 = axis direction (if axis)
 
-            if (n64StyleControllers.ContainsKey(guid))
+            if (n64StyleControllers.ContainsKey(n64guid))
             {
-                ConfigureN64Controller(profileIni, iniSection, guid);
+                ConfigureN64Controller(profileIni, iniSection, n64guid);
 
                 profileIni.WriteValue(iniSection, "Deadzone", deadzone);
                 profileIni.WriteValue(iniSection, "Sensitivity", sensitivity);
@@ -235,7 +236,7 @@ namespace EmulatorLauncher
         {
             {
                 // Nintendo Switch Online N64 Controller
-                "0300b7e67e050000192000000000680c",
+                "030000007e050000192000000000680c",
                 new Dictionary<string, string>()
                 {
                     { "A", "\"" + "0,4" + "\"" },

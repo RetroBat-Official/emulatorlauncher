@@ -64,6 +64,7 @@ namespace EmulatorLauncher
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
             bool zAsLeftTrigger = SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
             string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
+            string n64guid = controller.Guid.ToLowerInvariant();
 
             string iniSection = "Rosalie's Mupen GUI - Input Plugin Profile " + (playerIndex - 1);
 
@@ -97,13 +98,13 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "FilterEventsForButtons", "True");
             ini.WriteValue(iniSection, "FilterEventsForAxis", "True");
 
-            if (n64StyleControllers.ContainsKey(guid))
+            if (n64StyleControllers.ContainsKey(n64guid))
             {
-                ConfigureN64Controller(ini, iniSection, guid);
+                ConfigureN64Controller(ini, iniSection, n64guid);
 
                 if (playerIndex == 1)
                 {
-                    ConfigureHotkeysN64Controllers(ini, iniSection, guid);
+                    ConfigureHotkeysN64Controllers(ini, iniSection, n64guid);
                     ConfigureEmptyHotkeys(ini, iniSection);
                 }
 
@@ -481,7 +482,7 @@ namespace EmulatorLauncher
         {
             {
                 // Nintendo Switch Online N64 Controller
-                "0300b7e67e050000192000000000680c",
+                "030000007e050000192000000000680c",
                 new Dictionary<string, string>()
                 {
                     { "A_InputType", "0" },
@@ -725,40 +726,40 @@ namespace EmulatorLauncher
         {
             {
                 // Nintendo Switch Online N64 Controller
-                "0300b7e67e050000192000000000680c",
+                "030000007e050000192000000000680c",
                 new Dictionary<string, string>()
                 {
                     { "Hotkey_Exit_InputType", "0;0" },
-                    { "Hotkey_Exit_Name", "start;leftstick" },
-                    { "Hotkey_Exit_Data", "6;7" },
+                    { "Hotkey_Exit_Name", "misc1;start" },
+                    { "Hotkey_Exit_Data", "15;6" },
                     { "Hotkey_Exit_ExtraData", "0;0" },
-                    { "Hotkey_Resume_InputType", "0;1" },
-                    { "Hotkey_Resume_Name", "leftstick;righttrigger+" },
-                    { "Hotkey_Resume_Data", "7;5" },
-                    { "Hotkey_Resume_ExtraData", "0;1" },
+                    { "Hotkey_Resume_InputType", "1;0" },
+                    { "Hotkey_Resume_Name", "righttrigger+;misc1" },
+                    { "Hotkey_Resume_Data", "5;15" },
+                    { "Hotkey_Resume_ExtraData", "1;0" },
                     { "Hotkey_Screenshot_InputType", "0;1" },
-                    { "Hotkey_Screenshot_Name", "leftstick;lefttrigger+" },
-                    { "Hotkey_Screenshot_Data", "7;4" },
+                    { "Hotkey_Screenshot_Name", "misc1;lefttrigger+" },
+                    { "Hotkey_Screenshot_Data", "15;4" },
                     { "Hotkey_Screenshot_ExtraData", "0;1" },
                     { "Hotkey_SpeedFactor50_InputType", "0;0" },
-                    { "Hotkey_SpeedFactor50_Name", "leftstick;dpleft" },
-                    { "Hotkey_SpeedFactor50_Data", "7;13" },
+                    { "Hotkey_SpeedFactor50_Name", "misc1;dpleft" },
+                    { "Hotkey_SpeedFactor50_Data", "15;13" },
                     { "Hotkey_SpeedFactor50_ExtraData", "0;0" },
                     { "Hotkey_SpeedFactor100_InputType", "0;0" },
-                    { "Hotkey_SpeedFactor100_Name", "leftstick;dpup" },
-                    { "Hotkey_SpeedFactor100_Data", "7;11" },
+                    { "Hotkey_SpeedFactor100_Name", "misc1;dpup" },
+                    { "Hotkey_SpeedFactor100_Data", "15;11" },
                     { "Hotkey_SpeedFactor100_ExtraData", "0;0" },
                     { "Hotkey_SpeedFactor250_InputType", "0;0" },
-                    { "Hotkey_SpeedFactor250_Name", "leftstick;dpright" },
-                    { "Hotkey_SpeedFactor250_Data", "7;14" },
+                    { "Hotkey_SpeedFactor250_Name", "misc1;dpright" },
+                    { "Hotkey_SpeedFactor250_Data", "15;14" },
                     { "Hotkey_SpeedFactor250_ExtraData", "0;0" },
                     { "Hotkey_SaveState_InputType", "0;0" },
-                    { "Hotkey_SaveState_Name", "leftstick;b" },
-                    { "Hotkey_SaveState_Data", "7;1" },
+                    { "Hotkey_SaveState_Name", "misc1;b" },
+                    { "Hotkey_SaveState_Data", "15;1" },
                     { "Hotkey_SaveState_ExtraData", "0;0" },
                     { "Hotkey_LoadState_InputType", "0;0" },
-                    { "Hotkey_LoadState_Name", "leftstick;x" },
-                    { "Hotkey_LoadState_Data", "7;2" },
+                    { "Hotkey_LoadState_Name", "misc1;x" },
+                    { "Hotkey_LoadState_Data", "15;2" },
                     { "Hotkey_LoadState_ExtraData", "0;0" },
                 }
             },
