@@ -258,7 +258,7 @@ namespace EmulatorLauncher
                 ret.WindowStyle = ProcessWindowStyle.Hidden;
                 ret.UseShellExecute = true;
             }
-            else if (string.IsNullOrEmpty(_exename))
+            else if (string.IsNullOrEmpty(_exename) && _gameLauncher == null)
             {
                 _exename = Path.GetFileNameWithoutExtension(rom);
                 SimpleLogger.Instance.Info("[INFO] Executable name : " + _exename);

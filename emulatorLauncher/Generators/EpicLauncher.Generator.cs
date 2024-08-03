@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Diagnostics;
 using EmulatorLauncher.Common.Launchers;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -17,7 +18,7 @@ namespace EmulatorLauncher
             public override int RunAndWait(ProcessStartInfo path)
             {
                 bool epicLauncherExists = Process.GetProcessesByName("EpicGamesLauncher").Any();
-
+                SimpleLogger.Instance.Info("[INFO] Executable name : " + LauncherExe);
                 KillExistingLauncherExes();
 
                 Process.Start(path);
