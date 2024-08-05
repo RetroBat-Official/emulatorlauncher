@@ -24,10 +24,13 @@ namespace EmulatorLauncher.Libretro
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
 
+            var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
+            bool forceDInput = c1 != null && c1.SdlController == null && !c1.IsXInputDevice;
+
             if (Program.SystemConfig["input_driver"] == "xinput")
                 _inputDriver = "xinput";
 
-            if (Program.SystemConfig["input_driver"] == "dinput")
+            if (Program.SystemConfig["input_driver"] == "dinput" || forceDInput)
                 _inputDriver = "dinput";
 
             // no menu in non full uimode
