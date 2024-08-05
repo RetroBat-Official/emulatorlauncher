@@ -93,8 +93,8 @@ namespace EmulatorLauncher
 
             var vpad = bml.GetOrCreateContainer("VirtualPad" + playerindex);
             
-            string prodID = ctrl.DirectInput.ProductId.ToString("X4");
-            string vendorID = ctrl.DirectInput.VendorId.ToString("X");
+            string prodID = ctrl.DirectInput.ProductId.ToString("X4").ToLowerInvariant();
+            string vendorID = ctrl.DirectInput.VendorId.ToString("X4").ToLowerInvariant();
             string padId = "0x";
             
             int index = ctrl.DeviceIndex;
@@ -102,7 +102,7 @@ namespace EmulatorLauncher
             if (index == 0)
                 padId = padId + vendorID + prodID + "/";
             else
-                padId = padId + index + "0" + vendorID + prodID + "/";
+                padId = padId + index + vendorID + prodID + "/";
 
             if (n64StyleControllers.ContainsKey(guid))
             {
