@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Joysticks;
+using System.IO;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -136,6 +139,10 @@ namespace EmulatorLauncher
             int playerIndex = controller.PlayerIndex;
             int index = controller.SdlController != null ? controller.SdlController.Index + 1 : controller.DeviceIndex + 1;
             string guid = controller.Guid.ToString().ToLowerInvariant();
+            bool isDInput = false;
+
+            if (controller.SdlController == null && !controller.IsXInputDevice)
+                isDInput = true;
 
             if (n64StyleControllers.ContainsKey(guid) && system == "n64")
             {
@@ -166,9 +173,19 @@ namespace EmulatorLauncher
                     InputKey key = x.Key;
 
                     if (!monoplayer)
-                        controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                    {
+                        if (isDInput)
+                            controllerConfig["P" + playerIndex + " " + value] = "J" + index + " " + GetDInputKeyName(controller, key);
+                        else
+                            controllerConfig["P" + playerIndex + " " + value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                    }
                     else
-                        controllerConfig[value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                    {
+                        if (isDInput)
+                            controllerConfig[value] = "J" + index + " " + GetDInputKeyName(controller, key);
+                        else
+                            controllerConfig[value] = "X" + index + " " + GetXInputKeyName(controller, key);
+                    }
                 }
             }
 
@@ -999,6 +1016,63 @@ namespace EmulatorLauncher
                         case 2: return "DpadRight";
                         case 4: return "DpadDown";
                         case 8: return "DpadLeft";
+                    }
+                }
+            }
+            return "";
+        }
+
+        private static string GetDInputKeyName(Controller c, InputKey key)
+        {
+            Int64 pid;
+
+            key = key.GetRevertedAxis(out bool revertAxis);
+
+            var input = c.Config[key];
+            if (input != null)
+            {
+                if (input.Type == "button")
+                {
+                    return "B" + (input.Id + 1);
+                }
+
+                if (input.Type == "axis")
+                {
+                    pid = input.Id;
+                    switch (pid)
+                    {
+                        case 0:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "X AxisRight";
+                            else return "X AxisLeft";
+                        case 1:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "X AxisDown";
+                            else return "X AxisUp";
+                        case 2:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "";
+                            else return "";
+                        case 3:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "";
+                            else return "";
+                        case 4:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "";
+                            else return "";
+                        case 5:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0)) return "";
+                            else return "";
+                    }
+                }
+
+                if (input.Type == "hat")
+                {
+                    pid = input.Value;
+                    long hatID = input.Id;
+                    string pov = "POV" + hatID;
+                    switch (pid)
+                    {
+                        case 1: return pov + "U";
+                        case 2: return pov + "R";
+                        case 4: return pov + "D";
+                        case 8: return pov + "L";
                     }
                 }
             }
