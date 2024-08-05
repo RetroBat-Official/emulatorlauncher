@@ -239,7 +239,10 @@ namespace EmulatorLauncher
                     }
                 }
             }
-
+            
+            if (!c.ButtonMappings.ContainsKey(buttonkey))
+                return "Unassigned";
+                
             string button = c.ButtonMappings[buttonkey];
 
             if (button.StartsWith("-a"))

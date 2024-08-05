@@ -88,7 +88,7 @@ namespace EmulatorLauncher
                 cfg["szAppRomPaths[2]"] = fbneoBiosPath + "\\";
                 cfg["szAppHiscorePath"] = fbneoBiosPath + "\\";
 
-                string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "fbneo");
+                string cheatsPath = Path.Combine(fbneoBiosPath, "cheats");
                 if (!Directory.Exists(cheatsPath)) try { Directory.CreateDirectory(cheatsPath); }
                     catch { }
                 cfg["szAppCheatsPath"] = cheatsPath + "\\";
@@ -102,6 +102,11 @@ namespace EmulatorLauncher
                 if (!Directory.Exists(eepromPath)) try { Directory.CreateDirectory(eepromPath); }
                     catch { }
                 cfg["szAppEEPROMPath"] = eepromPath + "\\";
+
+                string blendPath = Path.Combine(eepromPath, "blend");
+                if (!Directory.Exists(blendPath)) try { Directory.CreateDirectory(blendPath); }
+                    catch { }
+                cfg["szAppBlendPath"] = blendPath + "\\";
 
                 // Video driver
                 if (SystemConfig.isOptSet("fbneo_renderer") && !string.IsNullOrEmpty(SystemConfig["fbneo_renderer"]))
