@@ -114,6 +114,12 @@ namespace EmulatorLauncher.Libretro
             string coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "libretro_" + core + "_" + system + ".yml");
 
             if (!File.Exists(coreMapping))
+                coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "libretro_" + core + ".yml");
+
+            if (!File.Exists(coreMapping))
+                coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "libretro" + ".yml");
+
+            if (!File.Exists(coreMapping))
                 return;
 
             YmlFile ymlFile = YmlFile.Load(coreMapping);
