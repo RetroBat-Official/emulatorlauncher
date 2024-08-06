@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
@@ -143,34 +144,52 @@ namespace EmulatorLauncher
             if (controller.SdlController == null && !controller.IsXInputDevice)
                 isDInput = true;
 
-            N64Controller n64Gamepad = N64Controller.GetN64Controller("bizhawk", guid);
-            if (system == "n64" && n64Gamepad != null)
+            // Special treatment for N64 controllers
+            N64Controller n64Gamepad = null;
+            bool n64ControllerFound = false;
+            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            if (File.Exists(n64json) && system == "n64")
             {
-                SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
-
-                bool useDInput = false;
-
-                if (n64Gamepad.ControllerInfo != null)
+                try
                 {
-                    if (n64Gamepad.ControllerInfo.ContainsKey("dinput"))
-                        useDInput = n64Gamepad.ControllerInfo["dinput"] == "true";
-                }
+                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
+                    if (n64Controllers != null)
+                    {
+                        n64Gamepad = N64Controller.GetN64Controller("bizhawk", guid, n64Controllers);
 
-                if (n64Gamepad.Mapping == null)
-                {
-                    SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for N64 controller.");
-                    return;
-                }
+                        if (n64Gamepad != null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
-                foreach (var x in n64Gamepad.Mapping)
-                {
-                    string key = x.Key;
-                    string value = x.Value;
-                    controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value : "X" + index + " " + value;
+                            bool useDInput = false;
+
+                            if (n64Gamepad.ControllerInfo != null)
+                            {
+                                if (n64Gamepad.ControllerInfo.ContainsKey("dinput"))
+                                    useDInput = n64Gamepad.ControllerInfo["dinput"] == "true";
+                            }
+
+                            if (n64Gamepad.Mapping != null)
+                            {
+                                foreach (var x in n64Gamepad.Mapping)
+                                {
+                                    string key = x.Key;
+                                    string value = x.Value;
+                                    controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value : "X" + index + " " + value;
+                                }
+                                n64ControllerFound = true;
+                            }
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for N64 controller.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
                 }
+                catch { }
             }
-
-            else
+                
+            if (!n64ControllerFound)
             {
                 foreach (var x in mapping)
                 {

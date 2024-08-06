@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
@@ -106,15 +107,35 @@ namespace EmulatorLauncher
             else
                 padId = padId + index + vendorID + prodID + "/";
 
-            N64Controller n64Gamepad = N64Controller.GetN64Controller("ares", guid);
-            if (n64Gamepad != null && n64Gamepad.Mapping != null)
+            // Special treatment for N64 controllers
+            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+
+            if (File.Exists(n64json))
             {
-                SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
+                try
+                {
+                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
 
-                foreach (var button in n64Gamepad.Mapping)
-                    vpad[button.Key] = padId + button.Value + ";;";
+                    if (n64Controllers != null)
+                    {
+                        N64Controller n64Gamepad = N64Controller.GetN64Controller("ares", guid, n64Controllers);
 
-                return;
+                        if (n64Gamepad != null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
+
+                            foreach (var button in n64Gamepad.Mapping)
+                                vpad[button.Key] = padId + button.Value + ";;";
+
+                            return;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for N64 controller.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                }
+                catch { }
             }
 
             vpad["Pad.Up"] = GetInputKeyName(ctrl, InputKey.up, padId);

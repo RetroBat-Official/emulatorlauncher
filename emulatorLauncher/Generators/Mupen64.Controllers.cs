@@ -61,7 +61,6 @@ namespace EmulatorLauncher
             int index = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex;
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
             bool zAsLeftTrigger = SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
-            string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
             string n64guid = controller.Guid.ToLowerInvariant();
 
             string iniSection = "Rosalie's Mupen GUI - Input Plugin Profile " + (playerIndex - 1);
@@ -96,22 +95,41 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "FilterEventsForButtons", "True");
             ini.WriteValue(iniSection, "FilterEventsForAxis", "True");
 
-            N64Controller n64Gamepad = N64Controller.GetN64Controller("mupen64", n64guid);
-            if (n64Gamepad != null)
+            // Special mapping for n64 style controllers
+            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            if (File.Exists(n64json))
             {
-                SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
-
-                ConfigureN64Controller(ini, iniSection, n64Gamepad);
-
-                if (playerIndex == 1)
+                try
                 {
-                    ConfigureHotkeysN64Controllers(ini, iniSection, n64Gamepad);
-                    ConfigureEmptyHotkeys(ini, iniSection);
-                }
+                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
 
-                return;
+                    if (n64Controllers != null)
+                    {
+                        N64Controller n64Gamepad = N64Controller.GetN64Controller("mupen64", n64guid, n64Controllers);
+
+                        if (n64Gamepad != null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
+
+                            ConfigureN64Controller(ini, iniSection, n64Gamepad);
+
+                            if (playerIndex == 1)
+                            {
+                                ConfigureHotkeysN64Controllers(ini, iniSection, n64Gamepad);
+                                ConfigureEmptyHotkeys(ini, iniSection);
+                            }
+                            return;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Gamepad not in JSON file.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                }
+                catch { }
             }
 
+            // Default mapping
             if (SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl"))
             {
                 ini.WriteValue(iniSection, "A_InputType", "0");
@@ -467,7 +485,7 @@ namespace EmulatorLauncher
         {
             if (n64Gamepad.Mapping == null)
             {
-                SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for N64 controller.");
+                SimpleLogger.Instance.Info("[Controller] Missing mapping for N64 controller.");
                 return;
             }
 
@@ -479,7 +497,7 @@ namespace EmulatorLauncher
         {
             if (n64Gamepad.HotKeyMapping == null)
             {
-                SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for N64 controller hotkeys.");
+                SimpleLogger.Instance.Info("[Controller] Missing mapping for N64 controller hotkeys.");
                 return;
             }
 

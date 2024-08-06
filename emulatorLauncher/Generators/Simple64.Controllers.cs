@@ -83,22 +83,48 @@ namespace EmulatorLauncher
             // ButtonID (SDL)
             // 3 = hat / 4 = button / 5 = axis / 1 or -1 = axis direction (if axis)
 
-            N64Controller n64Gamepad = N64Controller.GetN64Controller("simple64", n64guid);
-            if (n64Gamepad != null)
+            // Special mapping for n64 style controllers
+            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            if (File.Exists(n64json))
             {
-                SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
+                try
+                {
+                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
 
-                ConfigureN64Controller(profileIni, iniSection, n64Gamepad);
+                    if (n64Controllers != null)
+                    {
+                        N64Controller n64Gamepad = N64Controller.GetN64Controller("simple64", n64guid, n64Controllers);
 
-                profileIni.WriteValue(iniSection, "Deadzone", deadzone);
-                profileIni.WriteValue(iniSection, "Sensitivity", sensitivity);
+                        if (n64Gamepad != null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
-                settingsIni.WriteValue("Controller" + playerIndex, "Profile", iniSection);
+                            ConfigureN64Controller(profileIni, iniSection, n64Gamepad);
 
-                string gamepadN64 = index + ":" + devicename;
-                settingsIni.WriteValue("Controller" + playerIndex, "Gamepad", gamepadN64);
+                            profileIni.WriteValue(iniSection, "Deadzone", deadzone);
+                            profileIni.WriteValue(iniSection, "Sensitivity", sensitivity);
 
-                return;
+                            settingsIni.WriteValue("Controller" + playerIndex, "Profile", iniSection);
+
+                            string gamepadN64 = index + ":" + devicename;
+                            settingsIni.WriteValue("Controller" + playerIndex, "Gamepad", gamepadN64);
+
+                            string pakDevice64 = "simple64_pak" + playerIndex;
+                            if (SystemConfig.isOptSet(pakDevice64) && !string.IsNullOrEmpty(SystemConfig[pakDevice64]))
+                                settingsIni.WriteValue("Controller" + playerIndex, "Pak", SystemConfig[pakDevice64]);
+                            else
+                                settingsIni.WriteValue("Controller" + playerIndex, "Pak", "Memory");
+
+                            return;
+                        }
+
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Gamepad not in JSON file.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                }
+                catch { }
             }
 
             if (SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl"))
@@ -225,7 +251,7 @@ namespace EmulatorLauncher
         {
             if (gamepad.Mapping == null)
             {
-                SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for N64 controller.");
+                SimpleLogger.Instance.Info("[Controller] Missing mapping for N64 controller.");
                 return;
             }
 

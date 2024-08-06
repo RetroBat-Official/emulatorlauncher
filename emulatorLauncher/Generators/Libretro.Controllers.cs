@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
@@ -227,44 +228,58 @@ namespace EmulatorLauncher.Libretro
             if (system == "n64")
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
-                N64Controller n64Gamepad = N64Controller.GetN64Controller("libretro", guid);
-                if (n64Gamepad != null)
+                string n64json = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+
+                if (File.Exists(n64json))
                 {
-                    SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
-
-                    if (n64Gamepad.ControllerInfo != null)
+                    try
                     {
-                        if (n64Gamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
-                            retroconfig["input_analog_sensitivity"] = n64Gamepad.ControllerInfo["input_analog_sensitivity"];
-                    }
+                        var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
 
-                    if (n64Gamepad.Mapping != null)
-                    {
-                        foreach (var button in n64Gamepad.Mapping)
-                            config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
-                    }
-                    else
-                    {
-                        SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for libretro : " + n64Gamepad.Name);
-                    }
+                        if (n64Controllers != null)
+                        {
+                            N64Controller n64Gamepad = N64Controller.GetN64Controller("libretro", guid, n64Controllers);
+                            if (n64Gamepad != null)
+                            {
+                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
-                    if (n64Gamepad.HotKeyMapping != null)
-                    {
-                        foreach (var hotkey in n64Gamepad.HotKeyMapping)
-                            config[hotkey.Key] = hotkey.Value;
+                                if (n64Gamepad.ControllerInfo != null)
+                                {
+                                    if (n64Gamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                                        retroconfig["input_analog_sensitivity"] = n64Gamepad.ControllerInfo["input_analog_sensitivity"];
+                                }
+
+                                if (n64Gamepad.Mapping != null)
+                                {
+                                    foreach (var button in n64Gamepad.Mapping)
+                                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+                                }
+                                else
+                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + n64Gamepad.Name);
+
+                                if (n64Gamepad.HotKeyMapping != null)
+                                {
+                                    foreach (var hotkey in n64Gamepad.HotKeyMapping)
+                                        config[hotkey.Key] = hotkey.Value;
+                                }
+                                else
+                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + n64Gamepad.Name);
+
+                                _inputDriver = "sdl2";
+
+                                if (config["input_joypad_driver"] != null)
+                                    _inputDriver = config["input_joypad_driver"];
+
+                                _n64specialController = true;
+                                return config;
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for N64 controller.");
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
                     }
-                    else
-                    {
-                        SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for libretro hotkeys : " + n64Gamepad.Name);
-                    }
-
-                    _inputDriver = "sdl2";
-
-                    if (config["input_joypad_driver"] != null)
-                        _inputDriver = config["input_joypad_driver"];
-
-                    _n64specialController = true;
-                    return config;
+                    catch { }
                 }
 
                 // some input adaptations for some cores...
