@@ -1,12 +1,18 @@
 using System.Linq;
 using System;
+using System.IO;
 using System.Collections.Generic;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
     public class N64Controller
     {
-        static readonly N64Controller[] N64Controllers = new N64Controller[]
+        static readonly N64Controller[] N64Controllers;
+
+        static N64Controller()
+        {
+            N64Controllers = new N64Controller[]
             {
                 new N64Controller("mupen64", "Nintendo Switch Online N64 Controller", "030000007e050000192000000000680c", mupen64_nso, mupen64_nso_hk),
                 new N64Controller("mupen64", "Raphnet N64 Adapter", "030000009b2800006300000000000000", mupen64_raphnet, mupen64_raphnet_hk),
@@ -24,6 +30,7 @@ namespace EmulatorLauncher.Common.Joysticks
                 new N64Controller("libretro", "Raphnet N64 Adapter", "030000009b2800006300000000000000", libretro_raphnet, libretro_raphnet_hk),
                 new N64Controller("libretro", "Mayflash N64 Adapter", "03000000d620000010a7000000000000", libretro_mayflash, libretro_mayflash_hk),
             };
+        }
 
         public string Emulator { get; private set; }
         public string Name { get; private set; }
@@ -32,6 +39,7 @@ namespace EmulatorLauncher.Common.Joysticks
         public Dictionary<string, string> HotKeyMapping { get; private set; }
         public Dictionary<string, string> ControllerInfo { get; private set; }
 
+        #region Private methods
         private N64Controller(string emulator, string name, string guid, Dictionary<string, string> mapping, Dictionary<string, string> hotkeymapping = null, Dictionary<string, string> controllerInfo = null)
         {
             Emulator = emulator;
@@ -41,16 +49,47 @@ namespace EmulatorLauncher.Common.Joysticks
             HotKeyMapping = hotkeymapping;
             ControllerInfo = controllerInfo;
         }
+        #endregion
 
         #region public methods
         public static N64Controller GetN64Controller(string emulator, string guid)
         {
-            N64Controller n64Gamepad = null;
+            if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid))
+                return null;
 
-            if (!string.IsNullOrEmpty(emulator) && !string.IsNullOrEmpty(guid))
-                n64Gamepad = N64Controllers.FirstOrDefault(c => emulator.ToLowerInvariant().Equals(c.Emulator, StringComparison.InvariantCultureIgnoreCase) && guid.ToLowerInvariant().Equals(c.Guid, StringComparison.InvariantCulture));
+            return N64Controllers.FirstOrDefault(c =>
+                emulator.Equals(c.Emulator, StringComparison.InvariantCultureIgnoreCase) &&
+                guid.Equals(c.Guid, StringComparison.InvariantCultureIgnoreCase));
+        }
 
-            return n64Gamepad;
+        public static N64Controller GetN64Controller(string emulator, string guid, List<N64Controller> controllers)
+        {
+            if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid) || controllers == null)
+                return null;
+
+            return controllers.FirstOrDefault(c =>
+                string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
+                string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        public static List<N64Controller> LoadControllersFromJson(string jsonFilePath)
+        {
+            if (!File.Exists(jsonFilePath))
+                throw new FileNotFoundException($"The JSON file '{jsonFilePath}' was not found.");
+
+            var jsonString = File.ReadAllText(jsonFilePath);
+            var controllerModels = JsonSerializer.DeserializeFile<List<N64ControllerJsonModel>>(jsonString);
+
+            if (controllerModels == null)
+                throw new Exception("Deserialization returned null. Ensure that the JSON mapping file is correctly formatted.");
+
+            return controllerModels.Select(model => new N64Controller(
+                model.Emulator,
+                model.Name,
+                model.Guid,
+                model.Mapping,
+                model.HotKeyMapping,
+                model.ControllerInfo)).ToList();
         }
         #endregion
 
@@ -740,5 +779,15 @@ namespace EmulatorLauncher.Common.Joysticks
             { "input_analog_sensitivity", "1.500000" },
         };
         #endregion
+    }
+
+    public class N64ControllerJsonModel
+    {
+        public string Emulator { get; set; }
+        public string Name { get; set; }
+        public string Guid { get; set; }
+        public Dictionary<string, string> Mapping { get; set; }
+        public Dictionary<string, string> HotKeyMapping { get; set; }
+        public Dictionary<string, string> ControllerInfo { get; set; }
     }
 }
