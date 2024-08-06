@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
@@ -104,11 +106,12 @@ namespace EmulatorLauncher
             else
                 padId = padId + index + vendorID + prodID + "/";
 
-            if (n64StyleControllers.ContainsKey(guid))
+            N64Controller n64Gamepad = N64Controller.GetN64Controller("ares", guid);
+            if (n64Gamepad != null && n64Gamepad.Mapping != null)
             {
-                Dictionary<string, string> buttons = n64StyleControllers[guid];
+                SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
 
-                foreach (var button in buttons)
+                foreach (var button in n64Gamepad.Mapping)
                     vpad[button.Key] = padId + button.Value + ";;";
 
                 return;
@@ -316,7 +319,7 @@ namespace EmulatorLauncher
             "X", "Y", "Left", "Middle", "Right", "Extra"
         };
 
-        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        /*static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 // Nintendo Switch Online N64 Controller
@@ -413,6 +416,6 @@ namespace EmulatorLauncher
                     { "R-Right", "0/2/Hi" },
                 }
             },
-        };
+        };*/
     }
 }

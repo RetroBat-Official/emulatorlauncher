@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 
@@ -98,13 +96,16 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "FilterEventsForButtons", "True");
             ini.WriteValue(iniSection, "FilterEventsForAxis", "True");
 
-            if (n64StyleControllers.ContainsKey(n64guid))
+            N64Controller n64Gamepad = N64Controller.GetN64Controller("mupen64", n64guid);
+            if (n64Gamepad != null)
             {
-                ConfigureN64Controller(ini, iniSection, n64guid);
+                SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
+
+                ConfigureN64Controller(ini, iniSection, n64Gamepad);
 
                 if (playerIndex == 1)
                 {
-                    ConfigureHotkeysN64Controllers(ini, iniSection, n64guid);
+                    ConfigureHotkeysN64Controllers(ini, iniSection, n64Gamepad);
                     ConfigureEmptyHotkeys(ini, iniSection);
                 }
 
@@ -462,23 +463,31 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureN64Controller(IniFile ini, string iniSection, string guid)
+        private void ConfigureN64Controller(IniFile ini, string iniSection, N64Controller n64Gamepad)
         {
-            Dictionary<string, string> buttons = n64StyleControllers[guid];
+            if (n64Gamepad.Mapping == null)
+            {
+                SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for N64 controller.");
+                return;
+            }
 
-            foreach (var button in buttons)
+            foreach (var button in n64Gamepad.Mapping)
                 ini.WriteValue(iniSection, button.Key, button.Value);
         }
 
-        private void ConfigureHotkeysN64Controllers(IniFile ini, string iniSection, string guid)
+        private void ConfigureHotkeysN64Controllers(IniFile ini, string iniSection, N64Controller n64Gamepad)
         {
-            Dictionary<string, string> buttons = n64StyleControllersHotkeys[guid];
+            if (n64Gamepad.HotKeyMapping == null)
+            {
+                SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for N64 controller hotkeys.");
+                return;
+            }
 
-            foreach (var button in buttons)
+            foreach (var button in n64Gamepad.HotKeyMapping)
                 ini.WriteValue(iniSection, button.Key, button.Value);
         }
 
-        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        /*static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 // Nintendo Switch Online N64 Controller
@@ -842,6 +851,6 @@ namespace EmulatorLauncher
                     { "Hotkey_LoadState_ExtraData", "0;0" },
                 }
             },
-        };
+        };*/
     }
 }

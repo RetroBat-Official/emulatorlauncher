@@ -5,6 +5,7 @@ using System.Globalization;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -226,19 +227,36 @@ namespace EmulatorLauncher.Libretro
             if (system == "n64")
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
-                if (n64StyleControllers.ContainsKey(guid))
+                N64Controller n64Gamepad = N64Controller.GetN64Controller("libretro", guid);
+                if (n64Gamepad != null)
                 {
-                    Dictionary<string, string> buttons = n64StyleControllers[guid];
-                    Dictionary<string, string> hotkeys = n64StyleControllersSpecial[guid];
+                    SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
 
-                    if (guid == "030000007e050000192000000000680c")
-                        retroconfig["input_analog_sensitivity"] = "1.500000";
-                    
-                    foreach (var button in buttons)
-                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+                    if (n64Gamepad.ControllerInfo != null)
+                    {
+                        if (n64Gamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                            retroconfig["input_analog_sensitivity"] = n64Gamepad.ControllerInfo["input_analog_sensitivity"];
+                    }
 
-                    foreach (var hotkey in hotkeys)
-                        config[hotkey.Key] = hotkey.Value;
+                    if (n64Gamepad.Mapping != null)
+                    {
+                        foreach (var button in n64Gamepad.Mapping)
+                            config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+                    }
+                    else
+                    {
+                        SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for libretro : " + n64Gamepad.Name);
+                    }
+
+                    if (n64Gamepad.HotKeyMapping != null)
+                    {
+                        foreach (var hotkey in n64Gamepad.HotKeyMapping)
+                            config[hotkey.Key] = hotkey.Value;
+                    }
+                    else
+                    {
+                        SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for libretro hotkeys : " + n64Gamepad.Name);
+                    }
 
                     _inputDriver = "sdl2";
 
@@ -933,7 +951,7 @@ namespace EmulatorLauncher.Libretro
       //     { 0, retro_key.RETROK_UNKNOWN },*/
         };
 
-        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
+        /*static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
         {
             {
                 // Nintendo Switch online controller
@@ -1081,6 +1099,6 @@ namespace EmulatorLauncher.Libretro
                     { "input_hold_fast_forward_btn", "13" },
                 }
             },
-        };
+        };*/
     }
 }

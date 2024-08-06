@@ -4,7 +4,6 @@ using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
-using System.IO;
 using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
@@ -144,24 +143,30 @@ namespace EmulatorLauncher
             if (controller.SdlController == null && !controller.IsXInputDevice)
                 isDInput = true;
 
-            if (n64StyleControllers.ContainsKey(guid) && system == "n64")
+            N64Controller n64Gamepad = N64Controller.GetN64Controller("bizhawk", guid);
+            if (system == "n64" && n64Gamepad != null)
             {
+                SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
+
                 bool useDInput = false;
 
-                if (n64StyleControllersInfo.ContainsKey(guid))
+                if (n64Gamepad.ControllerInfo != null)
                 {
-                    Dictionary<string, bool> n64ControllerInfo = n64StyleControllersInfo[guid];
-                    useDInput = n64ControllerInfo.ContainsKey("dinput") && n64ControllerInfo["dinput"];
+                    if (n64Gamepad.ControllerInfo.ContainsKey("dinput"))
+                        useDInput = n64Gamepad.ControllerInfo["dinput"] == "true";
                 }
 
-                Dictionary<InputKey, string> buttons = n64StyleControllers[guid];
-
-                foreach (var x in mapping)
+                if (n64Gamepad.Mapping == null)
                 {
-                    string value = x.Value;
-                    InputKey key = x.Key;
+                    SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for N64 controller.");
+                    return;
+                }
 
-                    controllerConfig["P" + playerIndex + " " + value] = useDInput ? "J" + index + " " + buttons[key] : "X" + index + " " + buttons[key];
+                foreach (var x in n64Gamepad.Mapping)
+                {
+                    string key = x.Key;
+                    string value = x.Value;
+                    controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value : "X" + index + " " + value;
                 }
             }
 
@@ -254,12 +259,14 @@ namespace EmulatorLauncher
                 var xAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " X Axis");
                 var yAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " Y Axis");
 
-                if (n64StyleControllersInfo.ContainsKey(guid))
+                if (n64Gamepad != null && n64Gamepad.ControllerInfo != null)
                 {
-                    Dictionary<string, bool> n64ControllerInfo = n64StyleControllersInfo[guid];
-                    revertXAxis = n64ControllerInfo.ContainsKey("XInvert") && n64ControllerInfo["XInvert"];
-                    revertYAxis = n64ControllerInfo.ContainsKey("YInvert") && n64ControllerInfo["YInvert"];
-                    useDInput = n64ControllerInfo.ContainsKey("dinput") && n64ControllerInfo["dinput"];
+                    if (n64Gamepad.ControllerInfo.ContainsKey("XInvert"))
+                        revertXAxis = n64Gamepad.ControllerInfo["XInvert"] == "true";
+                    if (n64Gamepad.ControllerInfo.ContainsKey("YInvert"))
+                        revertYAxis = n64Gamepad.ControllerInfo["YInvert"] == "true";
+                    if (n64Gamepad.ControllerInfo.ContainsKey("dinput"))
+                        useDInput = n64Gamepad.ControllerInfo["dinput"] == "true";
                 }
 
                 xAxis["Value"] = useDInput ? "J" + index + " X Axis" : "X" + index + " LeftThumbX Axis";
@@ -1552,7 +1559,7 @@ namespace EmulatorLauncher
             { "Key Comma", "Comma" }
         };
 
-        static readonly Dictionary<string, Dictionary<InputKey, string>> n64StyleControllers = new Dictionary<string, Dictionary<InputKey, string>>()
+        /*static readonly Dictionary<string, Dictionary<InputKey, string>> n64StyleControllers = new Dictionary<string, Dictionary<InputKey, string>>()
         {
            {
                 // Nintendo Switch Online N64 Controller
@@ -1667,6 +1674,6 @@ namespace EmulatorLauncher
                     { "dinput", true },
                 }
             },
-        };
+        };*/
     }
 }

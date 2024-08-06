@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 
@@ -83,9 +83,12 @@ namespace EmulatorLauncher
             // ButtonID (SDL)
             // 3 = hat / 4 = button / 5 = axis / 1 or -1 = axis direction (if axis)
 
-            if (n64StyleControllers.ContainsKey(n64guid))
+            N64Controller n64Gamepad = N64Controller.GetN64Controller("simple64", n64guid);
+            if (n64Gamepad != null)
             {
-                ConfigureN64Controller(profileIni, iniSection, n64guid);
+                SimpleLogger.Instance.Info("[CONTROLLER] Performing specific mapping for " + n64Gamepad.Name);
+
+                ConfigureN64Controller(profileIni, iniSection, n64Gamepad);
 
                 profileIni.WriteValue(iniSection, "Deadzone", deadzone);
                 profileIni.WriteValue(iniSection, "Sensitivity", sensitivity);
@@ -218,18 +221,22 @@ namespace EmulatorLauncher
             }
         }
 
+        private void ConfigureN64Controller(IniFile profileIni, string iniSection, N64Controller gamepad)
+        {
+            if (gamepad.Mapping == null)
+            {
+                SimpleLogger.Instance.Info("[CONTROLLER] Missing mapping for N64 controller.");
+                return;
+            }
+
+            foreach (var button in gamepad.Mapping)
+                profileIni.WriteValue(iniSection, button.Key, button.Value);
+        }
+
         // Controller hotkeys are not available in Simple64 yet
         /*private void ConfigureHotkeys(Controller controller, IniFile ini, string iniSection)
         {
            //TBD
-        }*/
-
-        private void ConfigureN64Controller(IniFile profileIni, string iniSection, string guid)
-        {
-            Dictionary<string, string> buttons = n64StyleControllers[guid];
-
-            foreach (var button in buttons)
-                profileIni.WriteValue(iniSection, button.Key, button.Value);
         }
 
         static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
@@ -312,6 +319,6 @@ namespace EmulatorLauncher
                     { "AxisDown", "\"" + "1,5,1" + "\"" },
                 }
             },
-        };
+        };*/
     }
 }
