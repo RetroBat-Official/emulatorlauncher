@@ -105,7 +105,7 @@ namespace EmulatorLauncher
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.left));
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.right));
 
-                if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_yz")
+                if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_yz")
                 {
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
@@ -115,7 +115,7 @@ namespace EmulatorLauncher
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
                 }
-                else if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_zc")
+                else if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_zc")
                 {
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.b));
@@ -310,7 +310,7 @@ namespace EmulatorLauncher
                 AddKeyboardMapping(InputKey.left);
                 AddKeyboardMapping(InputKey.right);
 
-                if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_yz")
+                if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_yz")
                 {
                     AddKeyboardMapping(InputKey.y);
                     AddKeyboardMapping(InputKey.a);
@@ -320,7 +320,7 @@ namespace EmulatorLauncher
                     AddKeyboardMapping(InputKey.pageup);
                     AddKeyboardMapping(InputKey.pagedown);
                 }
-                else if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_xz")
+                else if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_xz")
                 {
                     AddKeyboardMapping(InputKey.y);
                     AddKeyboardMapping(InputKey.a);
