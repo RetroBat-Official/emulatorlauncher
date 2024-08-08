@@ -191,6 +191,7 @@ namespace EmulatorLauncher
                 
             if (!n64ControllerFound)
             {
+                mapping = ConfigureMappingPerSystem(mapping, system);
                 foreach (var x in mapping)
                 {
                     string value = x.Value;
@@ -731,8 +732,20 @@ namespace EmulatorLauncher
             { InputKey.right,           "Right"},
             { InputKey.start,           "Start" },
             { InputKey.select,          "Select" },
-            { InputKey.x,               "B" },
+            { InputKey.y,               "B" },
             { InputKey.a,               "A" }
+        };
+
+        private static readonly InputKeyMapping nesMapping_rotate = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.b,               "A" },
+            { InputKey.a,               "B" }
         };
 
         private static readonly InputKeyMapping ngpMapping = new InputKeyMapping()
@@ -1103,6 +1116,15 @@ namespace EmulatorLauncher
                 }
             }
             return "";
+        }
+
+        private static InputKeyMapping ConfigureMappingPerSystem(InputKeyMapping mapping, string system)
+        {
+            InputKeyMapping newMapping = mapping;
+            if (system == "nes" && Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                return nesMapping_rotate;
+            
+            return newMapping;
         }
 
         private static readonly Dictionary<string, string> systemController = new Dictionary<string, string>()

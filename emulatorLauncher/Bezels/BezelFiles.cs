@@ -289,6 +289,12 @@ namespace EmulatorLauncher
                 {
                     var customBz = new BezelFiles() { PngFile = Program.CurrentGame.Bezel };
 
+                    if (Program.SystemConfig.getOptBoolean("tattoo"))
+                    {
+                        string newPngFile = Program.CurrentGame.Bezel.Replace(".png", "_tattoo.png");
+                        customBz.PngFile = GetTattooImage(customBz.PngFile, newPngFile, emulator);
+                    }
+
                     if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
                         return CreateSindenBorderBezel(customBz);
                     else
@@ -356,6 +362,12 @@ namespace EmulatorLauncher
 
             var ret = new BezelFiles() { PngFile = overlay_png_file, InfoFile = overlay_info_file };
 
+            if (Program.SystemConfig.getOptBoolean("tattoo"))
+            {
+                string newPngFile = overlay_png_file.Replace(".png", "_tattoo.png");
+                ret.PngFile = GetTattooImage(overlay_png_file, newPngFile, emulator);
+            }
+
             if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
                 return CreateSindenBorderBezel(ret);
             else if (overlay_info_file == null)
@@ -366,6 +378,7 @@ namespace EmulatorLauncher
 
         private static string GetSpecificBezels(string system, string emulator)
         {
+            string core = Program.SystemConfig["core"];
             if (system == "3ds")
             {
                 switch (emulator)
@@ -411,53 +424,39 @@ namespace EmulatorLauncher
                             return "nds_single_screen";
                         break;
                     case "libretro":
-                        if (Program.SystemConfig.isOptSet("nds.core"))
+                    {
+                        switch (core)
                         {
-                            string nds_core = Program.SystemConfig["nds.core"];
-                            switch (nds_core)
-                            {
-                                case "melondsds":
-                                    if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "left-right" || Program.SystemConfig["melondsds_screen_layout"] == "right-left"))
-                                        return "nds_side_by_side";
-                                    else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top" || Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom"))
-                                        return "nds_lr_hybrid";
-                                    else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "top" || Program.SystemConfig["melondsds_screen_layout"] == "bottom"))
-                                        return "nds_single_screen";
-                                    break;
-                                case "desmume":
-                                case "desmume2015":
-                                    if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "left/right" || Program.SystemConfig["desmume_screens_layout"] == "right/left"))
-                                        return "nds_side_by_side";
-                                    else if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "hybrid/top" || Program.SystemConfig["desmume_screens_layout"] == "hybrid/bottom"))
-                                        return "nds_lr_desmume_hybrid";
-                                    else if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "top only" || Program.SystemConfig["desmume_screens_layout"] == "bottom only"))
-                                        return "nds_single_screen";
-                                    break;
-                                case "melonds":
-                                    if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Left/Right" || Program.SystemConfig["melonds_screen_layout"] == "Right/Left"))
-                                        return "nds_side_by_side";
-                                    else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Hybrid Top" || Program.SystemConfig["melonds_screen_layout"] == "duplicate"))
-                                        return "nds_lr_hybrid";
-                                    else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Top Only" || Program.SystemConfig["melonds_screen_layout"] == "Bottom Only"))
-                                        return "nds_single_screen";
-                                    break;
-                            }
-                            break;
+                            case "melondsds":
+                                if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "left-right" || Program.SystemConfig["melondsds_screen_layout"] == "right-left"))
+                                    return "nds_side_by_side";
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top" || Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom"))
+                                    return "nds_lr_hybrid";
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "top" || Program.SystemConfig["melondsds_screen_layout"] == "bottom"))
+                                    return "nds_single_screen";
+                                break;
+                            case "desmume":
+                            case "desmume2015":
+                                if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "left/right" || Program.SystemConfig["desmume_screens_layout"] == "right/left"))
+                                    return "nds_side_by_side";
+                                else if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "hybrid/top" || Program.SystemConfig["desmume_screens_layout"] == "hybrid/bottom"))
+                                    return "nds_lr_desmume_hybrid";
+                                else if (Program.SystemConfig.isOptSet("desmume_screens_layout") && (Program.SystemConfig["desmume_screens_layout"] == "top only" || Program.SystemConfig["desmume_screens_layout"] == "bottom only"))
+                                    return "nds_single_screen";
+                                break;
+                            case "melonds":
+                                if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Left/Right" || Program.SystemConfig["melonds_screen_layout"] == "Right/Left"))
+                                    return "nds_side_by_side";
+                                else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Hybrid Top" || Program.SystemConfig["melonds_screen_layout"] == "duplicate"))
+                                    return "nds_lr_hybrid";
+                                else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Top Only" || Program.SystemConfig["melonds_screen_layout"] == "Bottom Only"))
+                                    return "nds_single_screen";
+                                break;
                         }
-                        else
-                        {
-                            if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "left-right" || Program.SystemConfig["melondsds_screen_layout"] == "right-left"))
-                                return "nds_side_by_side";
-                            else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top" || Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom"))
-                                return "nds_lr_hybrid";
-                            else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "top" || Program.SystemConfig["melondsds_screen_layout"] == "bottom"))
-                                return "nds_single_screen";
-                            break;
-                        }
-                        
+                        break;
+                    }
                 }
             }
-
             return system;
         }
 
@@ -616,6 +615,181 @@ namespace EmulatorLauncher
                 catch { }
             }
             return overlay_png_file;
+        }
+
+        public static string GetTattooImage(string inputPng, string outputPng, string emulator)
+        {
+            string tattooFile = "";
+            Image tattoo = null;
+            string system = Program.SystemConfig["system"];
+            string core = Program.SystemConfig["core"];
+
+            string tattooName = GetTattooName(system, core, emulator);
+
+            try
+            {
+                if (Program.SystemConfig.getOptBoolean("tattoo"))
+                {
+                    tattooFile = Path.Combine(Program.AppConfig.GetFullPath("tattoos"), "default", tattooName);
+                    if (!File.Exists(tattooFile))
+                        tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "default", tattooName);
+                    if (!File.Exists(tattooFile))
+                        return inputPng;
+                    tattoo = Image.FromFile(tattooFile);
+                }
+            }
+            catch
+            {
+                Console.Error.WriteLine($"Error opening controller overlay: {tattooFile}");
+                return inputPng;
+            }
+
+            Image back = Image.FromFile(inputPng);
+            back = ConvertToRgba(back);
+            tattoo = ConvertToRgba(tattoo);
+
+            var backSize = FastImageSize(inputPng);
+            var tattooSize = FastImageSize(tattooFile);
+            int w = backSize.Item1, h = backSize.Item2;
+            int tw = tattooSize.Item1, th = tattooSize.Item2;
+
+            if (Program.SystemConfig.isOptSet("resize_tattoo") && Program.SystemConfig.getOptBoolean("resize_tattoo"))
+            {
+                if (tw > w || th > h)
+                {
+                    float pcent = (float)w / tw;
+                    th = (int)(th * pcent);
+                    tattoo = ResizeImage(tattoo, w, th);
+                }
+            }
+            else
+            {
+                int twtemp = (int)((225.0 / 1920) * w);
+                float pcent = (float)twtemp / tw;
+                th = (int)(th * pcent);
+                tattoo = ResizeImage(tattoo, twtemp, th);
+                tw = twtemp;
+            }
+
+            Bitmap tattooCanvas = new Bitmap(back.Width, back.Height);
+            using (Graphics g = Graphics.FromImage(tattooCanvas))
+            {
+                g.Clear(Color.Transparent);
+            }
+
+            int margin = (int)((20.0 / 1080) * h);
+            string corner = Program.SystemConfig.isOptSet("tattoo_corner") ? Program.SystemConfig["tattoo_corner"] : "NW";
+
+            using (Graphics g = Graphics.FromImage(tattooCanvas))
+            {
+                switch (corner)
+                {
+                    case "NE":
+                        g.DrawImage(tattoo, w - tw, margin);
+                        break;
+                    case "SE":
+                        g.DrawImage(tattoo, w - tw, h - th - margin);
+                        break;
+                    case "SW":
+                        g.DrawImage(tattoo, 0, h - th - margin);
+                        break;
+                    default: // NW
+                        g.DrawImage(tattoo, 0, margin);
+                        break;
+                }
+            }
+
+            Bitmap finalImage = new Bitmap(w, h);
+            using (Graphics g = Graphics.FromImage(finalImage))
+            {
+                g.Clear(Color.Transparent);
+                g.DrawImage(back, 0, 0);
+                g.DrawImage(tattooCanvas, 0, 0);
+            }
+
+            finalImage.Save(outputPng, ImageFormat.Png);
+
+            return outputPng;
+        }
+
+        private static string GetTattooName(string system, string core, string emulator)
+        {
+            string ret = system;
+
+            if (system == "nes")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "fceumm":
+                            case "nestopia":
+                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_rotate_turbo";
+                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_rotate";
+                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_turbo";
+                                break;
+                            case "mesen":
+                                bool turbo = Program.SystemConfig["mesen_nes_turbo"] != "Disabled" || !Program.SystemConfig.isOptSet("mesen_nes_turbo");
+                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
+                                    ret = "nes_rotate_turbo";
+                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !turbo)
+                                    ret = "nes_rotate";
+                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
+                                    ret = "nes_turbo";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                    case "mesen":
+                        if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_rotate_turbo";
+                        else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_rotate";
+                        else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_turbo";
+                        break;
+                    case "ares":
+                    case "bizhawk":
+                    case "jgenesis":
+                        if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                            ret = "nes_rotate";
+                        break;
+                }
+            }
+            return ret + ".png";
+        }
+
+        private static Image ConvertToRgba(Image image)
+        {
+            Bitmap bmp = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.DrawImage(image, 0, 0);
+            }
+            return bmp;
+        }
+
+        private static Image ResizeImage(Image image, int width, int height)
+        {
+            Bitmap resized = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(resized))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.DrawImage(image, 0, 0, width, height);
+            }
+            return resized;
+        }
+
+        private static Tuple<int, int> FastImageSize(string filePath)
+        {
+            using (Image img = Image.FromFile(filePath))
+            {
+                return Tuple.Create(img.Width, img.Height);
+            }
         }
 
     }

@@ -85,6 +85,8 @@ namespace EmulatorLauncher
             if (mapping == null)
                 return;
 
+            mapping = ConfigureMappingPerSystem(mapping, jgenSystem);
+
             foreach (var kv in mapping)
             {
                 string iniSection = "inputs." + jgenSystem + "_joystick.p" + playerIndex + "." + kv.Key;
@@ -376,8 +378,8 @@ namespace EmulatorLauncher
             { "left", InputKey.left },
             { "right", InputKey.right },
             { "down", InputKey.down },
-            { "a", InputKey.b },
-            { "b", InputKey.a },
+            { "a", InputKey.a },
+            { "b", InputKey.y },
             { "start", InputKey.start },
             { "select", InputKey.select }
         };
@@ -490,6 +492,20 @@ namespace EmulatorLauncher
                     return "Hat";
             }
             return null;
+        }
+
+        private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string jGenSystem)
+        {
+            Dictionary<string, InputKey> newMapping = mapping;
+            if (jGenSystem == "nes")
+            {
+                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                {
+                    newMapping["a"] = InputKey.b;
+                    newMapping["b"] = InputKey.a;
+                }
+            }
+            return newMapping;
         }
 
         private static string SdlToKeyCode(long sdlCode)

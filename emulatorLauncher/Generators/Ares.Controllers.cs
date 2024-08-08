@@ -144,10 +144,20 @@ namespace EmulatorLauncher
             vpad["Pad.Right"] = GetInputKeyName(ctrl, InputKey.right, padId);
             vpad["Select"] = GetInputKeyName(ctrl, InputKey.select, padId);
             vpad["Start"] = GetInputKeyName(ctrl, InputKey.start, padId);
-            vpad["A..South"] = GetInputKeyName(ctrl, InputKey.a, padId);
-            vpad["B..East"] = GetInputKeyName(ctrl, InputKey.b, padId);
-            vpad["X..West"] = GetInputKeyName(ctrl, InputKey.y, padId);
-            vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.x, padId);
+            if (SystemConfig.getOptBoolean("rotate_buttons"))
+            {
+                vpad["A..South"] = GetInputKeyName(ctrl, InputKey.b, padId);
+                vpad["B..East"] = GetInputKeyName(ctrl, InputKey.x, padId);
+                vpad["X..West"] = GetInputKeyName(ctrl, InputKey.a, padId);
+                vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.y, padId);
+            }
+            else
+            {
+                vpad["A..South"] = GetInputKeyName(ctrl, InputKey.a, padId);
+                vpad["B..East"] = GetInputKeyName(ctrl, InputKey.b, padId);
+                vpad["X..West"] = GetInputKeyName(ctrl, InputKey.y, padId);
+                vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.x, padId);
+            }
             vpad["L-Bumper"] = GetInputKeyName(ctrl, InputKey.pageup, padId);
             vpad["R-Bumper"] = GetInputKeyName(ctrl, InputKey.pagedown, padId);
             vpad["L-Trigger"] = GetInputKeyName(ctrl, InputKey.l2, padId);

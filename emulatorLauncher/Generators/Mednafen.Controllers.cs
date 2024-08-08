@@ -367,6 +367,8 @@ namespace EmulatorLauncher
                 if (!noType)
                     cfg[mednafenCore + ".input.port" + playerIndex] = padType;
 
+                newmapping = ConfigureMappingPerSystem(newmapping, system, cfg);
+
                 foreach (var entry in newmapping)
                 {
                     InputKey joyButton = entry.Value;
@@ -633,7 +635,9 @@ namespace EmulatorLauncher
                     noType = true;
 
                 if (mappingToUse.ContainsKey(mapping))
+                {
                     newmapping = mappingToUse[mapping];
+                }
 
                 if (!noType)
                     cfg[mednafenCore + ".input.port1"] = padType;
@@ -815,12 +819,12 @@ namespace EmulatorLauncher
 
         static readonly Dictionary<string, InputKey> nesgamepad = new Dictionary<string, InputKey>()
         {
-            { "a", InputKey.b },
-            { "b", InputKey.a },
+            { "a", InputKey.a },
+            { "b", InputKey.y },
             { "down", InputKey.down },
             { "left", InputKey.left },
-            { "rapid_a", InputKey.x },
-            { "rapid_b", InputKey.y },
+            { "rapid_a", InputKey.b },
+            { "rapid_b", InputKey.x },
             { "right", InputKey.right },
             { "select", InputKey.select },
             { "start", InputKey.start },
@@ -1618,6 +1622,33 @@ namespace EmulatorLauncher
             }
 
             return "";
+        }
+
+        private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string system, MednafenConfigFile cfg)
+        {
+            Dictionary<string, InputKey> newMapping = mapping;
+            if (system == "nes")
+            {
+                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                {
+                    newMapping["a"] = InputKey.b;
+                    newMapping["b"] = InputKey.a;
+                    newMapping["rapid_a"] = InputKey.x;
+                    newMapping["rapid_b"] = InputKey.y;
+                }
+                if (!Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                {
+                    newMapping.Remove("rapid_a");
+                    newMapping.Remove("rapid_b");
+
+                    for (int i = 1; i <= 4; i++)
+                    {
+                        cfg["nes.input.port" + i + ".gamepad.rapid_a"] = "";
+                        cfg["nes.input.port" + i + ".gamepad.rapid_b"] = "";
+                    }
+                }
+            }
+            return newMapping;
         }
     }
 }
