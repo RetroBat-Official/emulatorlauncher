@@ -1,10 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -226,27 +228,58 @@ namespace EmulatorLauncher.Libretro
             if (system == "n64")
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
-                if (n64StyleControllers.ContainsKey(guid))
+                string n64json = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+
+                if (File.Exists(n64json))
                 {
-                    Dictionary<string, string> buttons = n64StyleControllers[guid];
-                    Dictionary<string, string> hotkeys = n64StyleControllersSpecial[guid];
+                    try
+                    {
+                        var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
 
-                    if (guid == "030000007e050000192000000000680c")
-                        retroconfig["input_analog_sensitivity"] = "1.500000";
-                    
-                    foreach (var button in buttons)
-                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+                        if (n64Controllers != null)
+                        {
+                            N64Controller n64Gamepad = N64Controller.GetN64Controller("libretro", guid, n64Controllers);
+                            if (n64Gamepad != null)
+                            {
+                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
-                    foreach (var hotkey in hotkeys)
-                        config[hotkey.Key] = hotkey.Value;
+                                if (n64Gamepad.ControllerInfo != null)
+                                {
+                                    if (n64Gamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                                        retroconfig["input_analog_sensitivity"] = n64Gamepad.ControllerInfo["input_analog_sensitivity"];
+                                }
 
-                    _inputDriver = "sdl2";
+                                if (n64Gamepad.Mapping != null)
+                                {
+                                    foreach (var button in n64Gamepad.Mapping)
+                                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+                                }
+                                else
+                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + n64Gamepad.Name);
 
-                    if (config["input_joypad_driver"] != null)
-                        _inputDriver = config["input_joypad_driver"];
+                                if (n64Gamepad.HotKeyMapping != null)
+                                {
+                                    foreach (var hotkey in n64Gamepad.HotKeyMapping)
+                                        config[hotkey.Key] = hotkey.Value;
+                                }
+                                else
+                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + n64Gamepad.Name);
 
-                    _n64specialController = true;
-                    return config;
+                                _inputDriver = "sdl2";
+
+                                if (config["input_joypad_driver"] != null)
+                                    _inputDriver = config["input_joypad_driver"];
+
+                                _n64specialController = true;
+                                return config;
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for N64 controller.");
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                    }
+                    catch { }
                 }
 
                 // some input adaptations for some cores...
@@ -931,156 +964,6 @@ namespace EmulatorLauncher.Libretro
            { SDL.SDL_Keycode.SDLK_POWER, retro_key.RETROK_POWER },
            { SDL.SDL_Keycode.SDLK_UNDO, retro_key.RETROK_UNDO },
       //     { 0, retro_key.RETROK_UNKNOWN },*/
-        };
-
-        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllers = new Dictionary<string, Dictionary<string, string>>()
-        {
-            {
-                // Nintendo Switch online controller
-                "030000007e050000192000000000680c",
-                new Dictionary<string, string>()
-                {
-                    { "analog_dpad_mode", "0" },
-                    { "b_btn", "1" },
-                    { "down_btn", "h0down" },
-                    { "l2_btn", "6" },
-                    { "l_btn", "4" },
-                    { "l_x_minus_axis", "-0" },
-                    { "l_x_plus_axis", "+0" },
-                    { "l_y_minus_axis", "-1" },
-                    { "l_y_plus_axis", "+1" },
-                    { "left_btn", "h0left" },
-                    { "r_btn", "5" },
-                    { "r_x_minus_btn", "3" },
-                    { "r_x_plus_btn", "8" },
-                    { "r_y_minus_btn", "2" },
-                    { "r_y_plus_btn", "7" },
-                    { "right_btn", "h0right" },
-                    { "select_btn", "13" },
-                    { "start_btn", "9" },
-                    { "up_btn", "h0up" },
-                    { "y_btn", "0" },
-                }
-            },
-
-            {
-                // Mayflash N64 Adapter
-                "03000000d620000010a7000000000000",
-                new Dictionary<string, string>()
-                {
-                    { "b_btn", "1" },
-                    { "a_axis", "+3" },
-                    { "down_btn", "h0down" },
-                    { "l2_btn", "6" },
-                    { "l_btn", "4" },
-                    { "l_x_minus_axis", "-0" },
-                    { "l_x_plus_axis", "+0" },
-                    { "l_y_minus_axis", "-1" },
-                    { "l_y_plus_axis", "+1" },
-                    { "left_btn", "h0left" },
-                    { "r_btn", "5" },
-                    { "r_x_minus_axis", "-2" },
-                    { "r_x_plus_axis", "+2" },
-                    { "r_y_minus_axis", "-3" },
-                    { "r_y_plus_axis", "+3" },
-                    { "right_btn", "h0right" },
-                    { "select_btn", "4" },
-                    { "start_btn", "9" },
-                    { "up_btn", "h0up" },
-                    { "y_btn", "2" },
-                }
-            },
-
-            {
-                // Raphnet N64 Adapter
-                "030000009b2800006300000000000000",
-                new Dictionary<string, string>()
-                {
-                    { "a_btn", "7" },
-                    { "b_btn", "0" },
-                    { "down_btn", "11" },
-                    { "l2_btn", "2" },
-                    { "l_btn", "4" },
-                    { "l_x_minus_axis", "-0" },
-                    { "l_x_plus_axis", "+0" },
-                    { "l_y_minus_axis", "-1" },
-                    { "l_y_plus_axis", "+1" },
-                    { "left_btn", "12" },
-                    { "r_btn", "5" },
-                    { "r_x_minus_btn", "8" },
-                    { "r_x_plus_btn", "9" },
-                    { "r_y_minus_btn", "6" },
-                    { "r_y_plus_btn", "7" },
-                    { "right_btn", "13" },
-                    { "select_btn", "4" },
-                    { "start_btn", "3" },
-                    { "up_btn", "10" },
-                    { "y_btn", "1" },
-                }
-            },
-        };
-
-        static readonly Dictionary<string, Dictionary<string, string>> n64StyleControllersSpecial = new Dictionary<string, Dictionary<string, string>>()
-        {
-            {
-                // Nintendo Switch online controller
-                "030000007e050000192000000000680c",
-                new Dictionary<string, string>()
-                {
-                    { "input_enable_hotkey_btn", "13" },
-                    { "input_joypad_driver", "sdl2" },
-                    { "input_exit_emulator_btn", "9" },
-                    { "input_pause_toggle_btn", "7" },
-                    { "input_menu_toggle_btn", "1" },
-                    { "input_load_state_btn", "3" },
-                    { "input_save_state_btn", "0" },
-                    { "input_ai_service_btn", "5" },
-                    { "input_state_slot_decrease_btn", "h0down" },
-                    { "input_state_slot_increase_btn", "h0up" },
-                    { "input_rewind_btn", "h0left" },
-                    { "input_hold_fast_forward_btn", "h0right" },
-                }
-            },
-            {
-                // Mayflash N64 Adapter
-                "03000000d620000010a7000000000000",
-                new Dictionary<string, string>()
-                {
-                    { "input_enable_hotkey_btn", "4" },
-                    { "input_joypad_driver", "sdl2" },
-                    { "input_exit_emulator_btn", "9" },
-                    { "input_pause_toggle_axis", "+3" },
-                    { "input_pause_toggle_btn", "nul" },
-                    { "input_menu_toggle_btn", "1" },
-                    { "input_load_state_axis", "-2" },
-                    { "input_load_state_btn", "nul" },
-                    { "input_save_state_btn", "2" },
-                    { "input_ai_service_btn", "5" },
-                    { "input_state_slot_decrease_btn", "h0down" },
-                    { "input_state_slot_increase_btn", "h0up" },
-                    { "input_rewind_btn", "h0left" },
-                    { "input_hold_fast_forward_btn", "h0right" },
-                }
-            },
-            {
-                // Raphnet N64 Adapter
-                "030000009b2800006300000000000000",
-                new Dictionary<string, string>()
-                {
-                    { "input_enable_hotkey_btn", "4" },
-                    { "input_joypad_driver", "sdl2" },
-                    { "input_exit_emulator_btn", "3" },
-                    { "input_pause_toggle_btn", "7" },
-                    { "input_menu_toggle_btn", "0" },
-                    { "input_load_state_btn", "8" },
-                    { "input_save_state_btn", "1" },
-                    { "input_ai_service_btn", "5" },
-                    { "input_state_slot_decrease_btn", "11" },
-                    { "input_state_slot_increase_btn", "10" },
-                    { "input_rewind_btn", "12" },
-                    { "input_hold_fast_forward_btn", "13" },
-                }
-            },
         };
     }
 }

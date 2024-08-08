@@ -1404,7 +1404,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             BindFeature(coreSettings, "fceumm_aspect", "fceumm_aspect", "8:7 PAR");
-            BindFeature(coreSettings, "fceumm_turbo_enable", "fceumm_turbo_enable", "None");
+            BindBoolFeature(coreSettings, "fceumm_turbo_enable", "nes_turbo_enable", "Both", "None");
             BindFeature(coreSettings, "fceumm_palette", "fceumm_palette", "default");
             BindFeature(coreSettings, "fceumm_ntsc_filter", "fceumm_ntsc_filter", "disabled");
             BindFeature(coreSettings, "fceumm_sndquality", "fceumm_sndquality", "Low");
@@ -2475,7 +2475,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mesen_hdpacks", "hd_packs", "disabled");
             BindFeature(coreSettings, "mesen_ntsc_filter", "ntsc_filter", "Disabled");
             BindFeature(coreSettings, "mesen_palette", "palette", "Default");
-            BindFeature(coreSettings, "mesen_shift_buttons_clockwise", "mesen_shift_buttons", "disabled");
+            BindBoolFeature(coreSettings, "mesen_shift_buttons_clockwise", "rotate_buttons", "disabled", "enabled");
             BindFeature(coreSettings, "mesen_fake_stereo", "fake_stereo", "disabled");
             BindBoolFeature(coreSettings, "mesen_nospritelimit", "mesen_nospritelimit", "enabled", "disabled");
             BindFeature(coreSettings, "mesen_overclock", "mesen_overclock", "None");
@@ -3024,7 +3024,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "nestopia_select_adapter", "nestopia_select_adapter", "auto");
             BindFeature(coreSettings, "nestopia_show_crosshair", "nestopia_show_crosshair", "disabled");
             BindFeature(coreSettings, "nestopia_favored_system", "nestopia_favored_system", "auto");
-            BindFeature(coreSettings, "nestopia_button_shift", "nestopia_button_shift", "disabled");
+            BindBoolFeature(coreSettings, "nestopia_button_shift", "rotate_buttons", "disabled", "enabled");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "nestopia_controller1", "1");

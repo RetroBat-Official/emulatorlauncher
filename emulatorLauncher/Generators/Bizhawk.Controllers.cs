@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
-using System.IO;
 using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
@@ -144,29 +144,54 @@ namespace EmulatorLauncher
             if (controller.SdlController == null && !controller.IsXInputDevice)
                 isDInput = true;
 
-            if (n64StyleControllers.ContainsKey(guid) && system == "n64")
+            // Special treatment for N64 controllers
+            N64Controller n64Gamepad = null;
+            bool n64ControllerFound = false;
+            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            if (File.Exists(n64json) && system == "n64")
             {
-                bool useDInput = false;
-
-                if (n64StyleControllersInfo.ContainsKey(guid))
+                try
                 {
-                    Dictionary<string, bool> n64ControllerInfo = n64StyleControllersInfo[guid];
-                    useDInput = n64ControllerInfo.ContainsKey("dinput") && n64ControllerInfo["dinput"];
+                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
+                    if (n64Controllers != null)
+                    {
+                        n64Gamepad = N64Controller.GetN64Controller("bizhawk", guid, n64Controllers);
+
+                        if (n64Gamepad != null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
+
+                            bool useDInput = false;
+
+                            if (n64Gamepad.ControllerInfo != null)
+                            {
+                                if (n64Gamepad.ControllerInfo.ContainsKey("dinput"))
+                                    useDInput = n64Gamepad.ControllerInfo["dinput"] == "true";
+                            }
+
+                            if (n64Gamepad.Mapping != null)
+                            {
+                                foreach (var x in n64Gamepad.Mapping)
+                                {
+                                    string key = x.Key;
+                                    string value = x.Value;
+                                    controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value : "X" + index + " " + value;
+                                }
+                                n64ControllerFound = true;
+                            }
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for N64 controller.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
                 }
-
-                Dictionary<InputKey, string> buttons = n64StyleControllers[guid];
-
-                foreach (var x in mapping)
-                {
-                    string value = x.Value;
-                    InputKey key = x.Key;
-
-                    controllerConfig["P" + playerIndex + " " + value] = useDInput ? "J" + index + " " + buttons[key] : "X" + index + " " + buttons[key];
-                }
+                catch { }
             }
-
-            else
+                
+            if (!n64ControllerFound)
             {
+                mapping = ConfigureMappingPerSystem(mapping, system);
                 foreach (var x in mapping)
                 {
                     string value = x.Value;
@@ -254,12 +279,14 @@ namespace EmulatorLauncher
                 var xAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " X Axis");
                 var yAxis = analogConfig.GetOrCreateContainer("P" + playerIndex + " Y Axis");
 
-                if (n64StyleControllersInfo.ContainsKey(guid))
+                if (n64Gamepad != null && n64Gamepad.ControllerInfo != null)
                 {
-                    Dictionary<string, bool> n64ControllerInfo = n64StyleControllersInfo[guid];
-                    revertXAxis = n64ControllerInfo.ContainsKey("XInvert") && n64ControllerInfo["XInvert"];
-                    revertYAxis = n64ControllerInfo.ContainsKey("YInvert") && n64ControllerInfo["YInvert"];
-                    useDInput = n64ControllerInfo.ContainsKey("dinput") && n64ControllerInfo["dinput"];
+                    if (n64Gamepad.ControllerInfo.ContainsKey("XInvert"))
+                        revertXAxis = n64Gamepad.ControllerInfo["XInvert"] == "true";
+                    if (n64Gamepad.ControllerInfo.ContainsKey("YInvert"))
+                        revertYAxis = n64Gamepad.ControllerInfo["YInvert"] == "true";
+                    if (n64Gamepad.ControllerInfo.ContainsKey("dinput"))
+                        useDInput = n64Gamepad.ControllerInfo["dinput"] == "true";
                 }
 
                 xAxis["Value"] = useDInput ? "J" + index + " X Axis" : "X" + index + " LeftThumbX Axis";
@@ -705,8 +732,20 @@ namespace EmulatorLauncher
             { InputKey.right,           "Right"},
             { InputKey.start,           "Start" },
             { InputKey.select,          "Select" },
-            { InputKey.x,               "B" },
+            { InputKey.y,               "B" },
             { InputKey.a,               "A" }
+        };
+
+        private static readonly InputKeyMapping nesMapping_rotate = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.b,               "A" },
+            { InputKey.a,               "B" }
         };
 
         private static readonly InputKeyMapping ngpMapping = new InputKeyMapping()
@@ -1077,6 +1116,15 @@ namespace EmulatorLauncher
                 }
             }
             return "";
+        }
+
+        private static InputKeyMapping ConfigureMappingPerSystem(InputKeyMapping mapping, string system)
+        {
+            InputKeyMapping newMapping = mapping;
+            if (system == "nes" && Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                return nesMapping_rotate;
+            
+            return newMapping;
         }
 
         private static readonly Dictionary<string, string> systemController = new Dictionary<string, string>()
@@ -1550,123 +1598,6 @@ namespace EmulatorLauncher
             { "Key Up Cursor", "Up" },
             { "Key Down Cursor", "Down" },
             { "Key Comma", "Comma" }
-        };
-
-        static readonly Dictionary<string, Dictionary<InputKey, string>> n64StyleControllers = new Dictionary<string, Dictionary<InputKey, string>>()
-        {
-           {
-                // Nintendo Switch Online N64 Controller
-                "030000007e050000192000000000680c",
-                new Dictionary<InputKey, string>()
-                {
-                    { InputKey.leftanalogup, "X AxisUp" },
-                    { InputKey.leftanalogdown, "X AxisDown" },
-                    { InputKey.leftanalogleft, "X AxisLeft" },
-                    { InputKey.leftanalogright, "X AxisRight" },
-                    { InputKey.up, "DpadUp" },
-                    { InputKey.down, "DpadDown" },
-                    { InputKey.left, "DpadLeft" },
-                    { InputKey.right, "DpadRight" },
-                    { InputKey.start, "Start" },
-                    { InputKey.r2, "LeftTrigger" },
-                    { InputKey.y, "B" },
-                    { InputKey.a, "A" },
-                    { InputKey.rightanalogup, "Y" },
-                    { InputKey.rightanalogdown, "RightTrigger" },
-                    { InputKey.rightanalogleft, "X" },
-                    { InputKey.rightanalogright, "Back" },
-                    { InputKey.pageup, "LeftShoulder" },
-                    { InputKey.pagedown, "RightShoulder" },
-                }
-            },
-
-            {
-                // Raphnet 2x N64 Adapter
-                "030000009b2800006300000000000000",
-                new Dictionary<InputKey, string>()
-                {
-                    { InputKey.leftanalogup, "X AxisUp" },
-                    { InputKey.leftanalogdown, "X AxisDown" },
-                    { InputKey.leftanalogleft, "X AxisLeft" },
-                    { InputKey.leftanalogright, "X AxisRight" },
-                    { InputKey.up, "B11" },
-                    { InputKey.down, "B12" },
-                    { InputKey.left, "B13" },
-                    { InputKey.right, "B14" },
-                    { InputKey.start, "B4" },
-                    { InputKey.r2, "B3" },
-                    { InputKey.y, "B2" },
-                    { InputKey.a, "B1" },
-                    { InputKey.rightanalogup, "B7" },
-                    { InputKey.rightanalogdown, "B8" },
-                    { InputKey.rightanalogleft, "B9" },
-                    { InputKey.rightanalogright, "B10" },
-                    { InputKey.pageup, "B5" },
-                    { InputKey.pagedown, "B6" },
-                }
-            },
-
-            {
-                // Mayflash N64 Adapter
-                "03000000d620000010a7000000000000",
-                new Dictionary<InputKey, string>()
-                {
-                    { InputKey.leftanalogup, "X AxisUp" },
-                    { InputKey.leftanalogdown, "X AxisDown" },
-                    { InputKey.leftanalogleft, "X AxisLeft" },
-                    { InputKey.leftanalogright, "X AxisRight" },
-                    { InputKey.up, "POV0U" },
-                    { InputKey.down, "POV0D" },
-                    { InputKey.left, "POV0L" },
-                    { InputKey.right, "POV0R" },
-                    { InputKey.start, "B10" },
-                    { InputKey.r2, "B7" },
-                    { InputKey.y, "B3" },
-                    { InputKey.a, "B2" },
-                    { InputKey.rightanalogup, "W-" },
-                    { InputKey.rightanalogdown, "W+" },
-                    { InputKey.rightanalogleft, "Z-" },
-                    { InputKey.rightanalogright, "Z+" },
-                    { InputKey.pageup, "B5" },
-                    { InputKey.pagedown, "B6" },
-                }
-            },
-        };
-
-        static readonly Dictionary<string, Dictionary<string, bool>> n64StyleControllersInfo = new Dictionary<string, Dictionary<string, bool>>()
-        {
-            {
-                // Nintendo Switch Online N64 Controller
-                "030000007e050000192000000000680c",
-                new Dictionary<string, bool>()
-                {
-                    { "XInvert", false },
-                    { "YInvert", false },
-                    { "dinput", false },
-                }
-            },
-
-            {
-                // Raphnet 2x N64 Adapter
-                "030000009b2800006300000000000000",
-                new Dictionary<string, bool>()
-                {
-                    { "XInvert", false },
-                    { "YInvert", true },
-                    { "dinput", true },
-                }
-            },
-
-            {
-                // Mayflash N64 Adapter
-                "03000000d620000010a7000000000000",
-                new Dictionary<string, bool>()
-                {
-                    { "XInvert", false },
-                    { "YInvert", true },
-                    { "dinput", true },
-                }
-            },
         };
     }
 }

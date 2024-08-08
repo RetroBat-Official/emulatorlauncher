@@ -1,5 +1,6 @@
 ﻿using EmulatorLauncher.Common.FileFormats;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 
@@ -26,7 +27,7 @@ namespace EmulatorLauncher.Libretro
                 romName = System.IO.Path.GetFileNameWithoutExtension(rom);
 
             bool invertButtons = systemButtonInvert.Contains(system) && Program.Features.IsSupported("buttonsInvert") && Program.SystemConfig.getOptBoolean("buttonsInvert");
-            bool rotateButtons = systemButtonRotate.Contains(system) && Program.Features.IsSupported("shift_buttons") && Program.SystemConfig.getOptBoolean("shift_buttons");
+            bool rotateButtons = systemButtonRotate.Contains(system) && Program.Features.IsSupported("rotate_buttons") && Program.SystemConfig.getOptBoolean("rotate_buttons");
 
             for (int i = 1; i <= _playerCount; i++)
             {
@@ -38,12 +39,26 @@ namespace EmulatorLauncher.Libretro
                     inputremap["input_player" + i + "_btn_y"] = "9";
                 }
 
-                if (rotateButtons && !coreNoRemap.Contains(core))
+                if (core == "fceumm" && !rotateButtons)
                 {
                     inputremap["input_player" + i + "_btn_a"] = "9";
                     inputremap["input_player" + i + "_btn_b"] = "8";
                     inputremap["input_player" + i + "_btn_x"] = "1";
                     inputremap["input_player" + i + "_btn_y"] = "0";
+                }
+
+                if (core == "nestopia" && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                {
+                    if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                    {
+                        inputremap["input_player" + i + "_btn_x"] = "-1";
+                        inputremap["input_player" + i + "_btn_y"] = "-1";
+                    }
+                    else
+                    {
+                        inputremap["input_player" + i + "_btn_x"] = "-1";
+                        inputremap["input_player" + i + "_btn_a"] = "-1";
+                    }
                 }
 
                 if (core == "atari800")
