@@ -14,8 +14,6 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private readonly string[] _unzipSystems = { "psx", "saturn", "pcengine", "pcenginecd", "supergrafx" };
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("mednafen");
@@ -30,7 +28,7 @@ namespace EmulatorLauncher
 
             string[] romExtensions = new string[] { ".m3u", ".cue", ".img", ".mdf", ".pbp", ".toc", ".cbn", ".ccd", ".iso", ".cso", ".pce", ".bin", ".mds" };
 
-            if (_unzipSystems.Contains(system) && (Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs"))
+            if ((Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs") || (system == "psx" && Path.GetExtension(rom).ToLowerInvariant() == ".zip"))
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
                 if (Directory.Exists(uncompressedRomPath))
@@ -44,7 +42,7 @@ namespace EmulatorLauncher
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             // Configure cfg file
-            SetupConfig(cfg, mednafenCore, system);
+            SetupConfig(cfg, mednafenCore, system, rom);
 
             // Command line arguments
             List<string> commandArray = new List<string>
@@ -138,8 +136,8 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        private void SetupConfig(MednafenConfigFile cfg, string mednafenCore, string system)
-        {          
+        private void SetupConfig(MednafenConfigFile cfg, string mednafenCore, string system, string rom)
+        {
             // Inject path loop
             Dictionary<string, string> userPath = new Dictionary<string, string>
                 {
@@ -168,6 +166,11 @@ namespace EmulatorLauncher
             BindMednafenBoolFeature(cfg, "autosave", "autosave", "1", "0");
             BindMednafenBoolFeature(cfg, "mednafen_cheats", "cheats", "1", "0");
             BindMednafenBoolFeature(cfg, "mednafen_fps_enable", "fps.autoenable", "1", "0");
+
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
+                cfg["cd.image_memcache"] = "1";
+            else
+                cfg["cd.image_memcache"] = "0";
 
             // Core Specific settings
             ConfigureMednafenApple2(cfg, mednafenCore);
