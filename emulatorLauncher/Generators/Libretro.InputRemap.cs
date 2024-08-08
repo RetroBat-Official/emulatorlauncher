@@ -73,6 +73,13 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
 
+                if (core == "fbneo" && system == "megadrive")
+                {
+                    inputremap["input_player" + i + "btn_l"] = "9";
+                    inputremap["input_player" + i + "btn_r"] = "10";
+                    inputremap["input_player" + i + "btn_x"] = "11";
+                }
+
                 if (system == "gamecube")
                 {
                     bool revertall = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";

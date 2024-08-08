@@ -115,25 +115,25 @@ namespace EmulatorLauncher
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
                 }
-                else if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_xz")
+                else if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_zc")
                 {
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.b));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.start));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.start));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
                 }
                 else
                 {
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.b));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.start));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
                 }
 
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.select));
@@ -145,7 +145,7 @@ namespace EmulatorLauncher
 
                 string input = string.Join(",", buttonMapping);
 
-                ini.WriteValue("", "Joystick" + joy + "Using", index.ToString());
+                ini.WriteValue("", "Joystick" + joy + "Using", (index+1).ToString());
                 ini.WriteValue("", "Joystick" + joy + "Type", "2");
                 ini.WriteValue("", "Player" + joy + "Buttons", input);
             }
@@ -163,7 +163,7 @@ namespace EmulatorLauncher
 
                 string input = string.Join(",", buttonMapping);
 
-                ini.WriteValue("", "Joystick" + joy + "MSUsing", index.ToString());
+                ini.WriteValue("", "Joystick" + joy + "MSUsing", (index+1).ToString());
                 ini.WriteValue("", "Joystick" + joy + "MSType", "1");
                 ini.WriteValue("", "Player" + joy + "MSButtons", input);
             }
