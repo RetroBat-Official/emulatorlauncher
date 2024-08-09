@@ -93,7 +93,7 @@ namespace EmulatorLauncher
                 return;
             }
 
-            int index = ctrl.DirectInput != null ? ctrl.DirectInput.JoystickID : ctrl.DeviceIndex;
+            int index = ctrl.DirectInput != null ? ctrl.DirectInput.DeviceIndex : ctrl.DeviceIndex;
             string joy = joyIndex[ctrl.PlayerIndex.ToString()];
 
             List<string> buttonMapping = new List<string>();
@@ -145,7 +145,7 @@ namespace EmulatorLauncher
 
                 string input = string.Join(",", buttonMapping);
 
-                ini.WriteValue("", "Joystick" + joy + "Using", (index+1).ToString());
+                ini.WriteValue("", "Joystick" + joy + "Using", (index+2).ToString());
                 ini.WriteValue("", "Joystick" + joy + "Type", "2");
                 ini.WriteValue("", "Player" + joy + "Buttons", input);
             }
@@ -163,7 +163,7 @@ namespace EmulatorLauncher
 
                 string input = string.Join(",", buttonMapping);
 
-                ini.WriteValue("", "Joystick" + joy + "MSUsing", (index+1).ToString());
+                ini.WriteValue("", "Joystick" + joy + "MSUsing", (index+2).ToString());
                 ini.WriteValue("", "Joystick" + joy + "MSType", "1");
                 ini.WriteValue("", "Player" + joy + "MSButtons", input);
             }

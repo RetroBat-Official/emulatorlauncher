@@ -85,7 +85,7 @@ namespace EmulatorLauncher
             if (mapping == null)
                 return;
 
-            mapping = ConfigureMappingPerSystem(mapping, jgenSystem);
+            mapping = ConfigureMappingPerSystem(mapping, jgenSystem, playerIndex);
 
             foreach (var kv in mapping)
             {
@@ -494,7 +494,7 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string jGenSystem)
+        private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string jGenSystem, int playerIndex)
         {
             Dictionary<string, InputKey> newMapping = mapping;
             if (jGenSystem == "nes")
@@ -503,6 +503,32 @@ namespace EmulatorLauncher
                 {
                     newMapping["a"] = InputKey.b;
                     newMapping["b"] = InputKey.a;
+                }
+            }
+
+            else if (jGenSystem == "genesis")
+            {
+                string cType = Program.SystemConfig["genesis_p" + playerIndex + "_type"];
+                if (Program.SystemConfig.isOptSet("megadrive_control_layout") && cType != "ThreeButton")
+                {
+                    switch (Program.SystemConfig["megadrive_control_layout"])
+                    {
+                        case "lr_zc":
+                            {
+                                newMapping["a"] = InputKey.a;
+                                newMapping["b"] = InputKey.b;
+                                newMapping["c"] = InputKey.pagedown;
+                                newMapping["x"] = InputKey.y;
+                                newMapping["z"] = InputKey.pageup;
+                            }
+                            break;
+                        case "lr_yz":
+                            {
+                                newMapping["x"] = InputKey.pageup;
+                                newMapping["y"] = InputKey.x;
+                            }
+                            break;
+                    }
                 }
             }
             return newMapping;

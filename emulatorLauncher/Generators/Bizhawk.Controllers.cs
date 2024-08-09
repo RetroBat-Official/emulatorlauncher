@@ -686,6 +686,38 @@ namespace EmulatorLauncher
             { InputKey.select,              "Mode" },
         };
 
+        private static readonly InputKeyMapping mdMapping_lr_zc = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.a,                   "A" },
+            { InputKey.b,                   "B" },
+            { InputKey.pagedown,            "C" },
+            { InputKey.start,               "Start" },
+            { InputKey.y,                   "X" },
+            { InputKey.x,                   "Y" },
+            { InputKey.pageup,              "Z" },
+            { InputKey.select,              "Mode" },
+        };
+
+        private static readonly InputKeyMapping mdMapping_lr_yz = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.y,                   "A" },
+            { InputKey.a,                   "B" },
+            { InputKey.b,                   "C" },
+            { InputKey.start,               "Start" },
+            { InputKey.pageup,              "Y" },
+            { InputKey.x,                   "X" },
+            { InputKey.pagedown,            "Z" },
+            { InputKey.select,              "Mode" },
+        };
+
         private static readonly InputKeyMapping n64Mapping = new InputKeyMapping()
         {
             { InputKey.leftanalogup,        "A Up" },
@@ -1123,7 +1155,21 @@ namespace EmulatorLauncher
             InputKeyMapping newMapping = mapping;
             if (system == "nes" && Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 return nesMapping_rotate;
-            
+
+            if ((system == "megadrive" || system == "sega32x") && !Program.SystemConfig.getOptBoolean("bizhawk_md_buttons"))
+            {
+                if (Program.SystemConfig.isOptSet("megadrive_control_layout"))
+                {
+                    switch (Program.SystemConfig["megadrive_control_layout"])
+                    {
+                        case "lr_zc":
+                            return mdMapping_lr_zc;
+                        case "lr_yz":
+                            return mdMapping_lr_yz;
+                    }
+                }
+            }
+
             return newMapping;
         }
 
