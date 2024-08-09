@@ -93,7 +93,7 @@ namespace EmulatorLauncher
                 return;
             }
 
-            int index = ctrl.DirectInput != null ? ctrl.DirectInput.JoystickID : ctrl.DeviceIndex;
+            int index = ctrl.DirectInput != null ? ctrl.DirectInput.DeviceIndex : ctrl.DeviceIndex;
             string joy = joyIndex[ctrl.PlayerIndex.ToString()];
 
             List<string> buttonMapping = new List<string>();
@@ -105,7 +105,7 @@ namespace EmulatorLauncher
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.left));
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.right));
 
-                if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_yz")
+                if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_yz")
                 {
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
@@ -115,25 +115,25 @@ namespace EmulatorLauncher
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
                 }
-                else if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_xz")
+                else if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_zc")
                 {
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.b));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.start));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.start));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
                 }
                 else
                 {
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.b));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.start));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
-                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
                 }
 
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.select));
@@ -145,7 +145,7 @@ namespace EmulatorLauncher
 
                 string input = string.Join(",", buttonMapping);
 
-                ini.WriteValue("", "Joystick" + joy + "Using", index.ToString());
+                ini.WriteValue("", "Joystick" + joy + "Using", (index+2).ToString());
                 ini.WriteValue("", "Joystick" + joy + "Type", "2");
                 ini.WriteValue("", "Player" + joy + "Buttons", input);
             }
@@ -163,7 +163,7 @@ namespace EmulatorLauncher
 
                 string input = string.Join(",", buttonMapping);
 
-                ini.WriteValue("", "Joystick" + joy + "MSUsing", index.ToString());
+                ini.WriteValue("", "Joystick" + joy + "MSUsing", (index+2).ToString());
                 ini.WriteValue("", "Joystick" + joy + "MSType", "1");
                 ini.WriteValue("", "Player" + joy + "MSButtons", input);
             }
@@ -310,7 +310,7 @@ namespace EmulatorLauncher
                 AddKeyboardMapping(InputKey.left);
                 AddKeyboardMapping(InputKey.right);
 
-                if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_yz")
+                if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_yz")
                 {
                     AddKeyboardMapping(InputKey.y);
                     AddKeyboardMapping(InputKey.a);
@@ -320,7 +320,7 @@ namespace EmulatorLauncher
                     AddKeyboardMapping(InputKey.pageup);
                     AddKeyboardMapping(InputKey.pagedown);
                 }
-                else if (SystemConfig.isOptSet("kega_control_layout") && SystemConfig["kega_control_layout"] == "lr_xz")
+                else if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_xz")
                 {
                     AddKeyboardMapping(InputKey.y);
                     AddKeyboardMapping(InputKey.a);

@@ -367,7 +367,7 @@ namespace EmulatorLauncher
                 if (!noType)
                     cfg[mednafenCore + ".input.port" + playerIndex] = padType;
 
-                newmapping = ConfigureMappingPerSystem(newmapping, system, cfg);
+                newmapping = ConfigureMappingPerSystem(newmapping, system, padType, cfg);
 
                 foreach (var entry in newmapping)
                 {
@@ -1624,7 +1624,7 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string system, MednafenConfigFile cfg)
+        private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string system, string padType, MednafenConfigFile cfg)
         {
             Dictionary<string, InputKey> newMapping = mapping;
             if (system == "nes")
@@ -1646,6 +1646,22 @@ namespace EmulatorLauncher
                         cfg["nes.input.port" + i + ".gamepad.rapid_a"] = "";
                         cfg["nes.input.port" + i + ".gamepad.rapid_b"] = "";
                     }
+                }
+            }
+            else if (system == "megadrive" && padType == "gamepad6")
+            {
+                if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                {
+                    newMapping["a"] = InputKey.a;
+                    newMapping["b"] = InputKey.b;
+                    newMapping["c"] = InputKey.pagedown;
+                    newMapping["x"] = InputKey.y;
+                    newMapping["z"] = InputKey.pageup;
+                }
+                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                {
+                    newMapping["x"] = InputKey.x;
+                    newMapping["y"] = InputKey.pageup;
                 }
             }
             return newMapping;
