@@ -9,6 +9,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
@@ -617,6 +618,7 @@ namespace EmulatorLauncher
             return overlay_png_file;
         }
 
+        #region tattoo
         public static string GetTattooImage(string inputPng, string outputPng, string emulator)
         {
             string tattooFile = "";
@@ -712,8 +714,16 @@ namespace EmulatorLauncher
             return outputPng;
         }
 
+        static List<string> megadriveSystems = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
+        static List<string> nesSystems = new List<string>() { "fds", "nes" };
+        static List<string> md3buttonsLibretro = new List<string>() { "257", "1025", "1537", "773", "2" };
         private static string GetTattooName(string system, string core, string emulator)
         {
+            if (megadriveSystems.Contains(system))
+                system = "megadrive";
+            else if (nesSystems.Contains(system))
+                system = "nes";
+
             string ret = system;
 
             if (system == "nes")
@@ -760,6 +770,97 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "megadrive")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "genesis_plus_gx":
+                            case "genesis_plus_gx_wide":
+                                {
+                                    bool buttons3 = md3buttonsLibretro.Contains(Program.SystemConfig["genesis_plus_gx_controller"]);
+                                    if (buttons3)
+                                        ret = "megadrive_3buttons";
+                                    else if (!buttons3 && Program.SystemConfig.isOptSet("megadrive_control_layout"))
+                                    { 
+                                        if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                                            ret = "megadrive_lr_zc";
+                                        else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                                            ret = "megadrive_lr_yz"; 
+                                    }
+                                }
+                                break;
+                            case "picodrive":
+                                {
+                                    bool buttons3 = Program.SystemConfig.getOptBoolean("md_3buttons");
+                                    if (buttons3)
+                                        ret = "megadrive_3buttons";
+                                    else if (!buttons3 && Program.SystemConfig.isOptSet("megadrive_control_layout"))
+                                    {
+                                        if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                                            ret = "megadrive_lr_zc";
+                                        else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                                            ret = "megadrive_lr_yz";
+                                    }
+                                }
+                                break;
+                            case "fbneo":
+                                {
+                                    if (Program.SystemConfig.isOptSet("megadrive_control_layout"))
+                                    {
+                                        if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                                            ret = "megadrive_lr_zc";
+                                        else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                                            ret = "megadrive_lr_yz";
+                                    }
+                                }
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                        {
+                            bool buttons3 = Program.SystemConfig["mednafen_controller_type"] == "gamepad" || Program.SystemConfig["mednafen_controller_type"] == "gamepad2";
+                            if (buttons3)
+                                ret = "megadrive_3buttons";
+                            else if (!buttons3 && Program.SystemConfig.isOptSet("megadrive_control_layout"))
+                            {
+                                if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                                    ret = "megadrive_lr_zc";
+                                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                                    ret = "megadrive_lr_yz";
+                            }
+                        }
+                        break;
+                    case "kega-fusion":
+                        {
+                            if (Program.SystemConfig.isOptSet("megadrive_control_layout"))
+                            {
+                                if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                                    ret = "megadrive_lr_zc";
+                                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                                    ret = "megadrive_lr_yz";
+                            }
+                        }
+                        break;
+                    case "bizhawk":
+                    case "jgenesis":
+                        {
+                            bool buttons3 = Program.SystemConfig.getOptBoolean("md_3buttons");
+                            if (buttons3)
+                                ret = "megadrive_3buttons";
+                            else if (!buttons3 && Program.SystemConfig.isOptSet("megadrive_control_layout"))
+                            {
+                                if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                                    ret = "megadrive_lr_zc";
+                                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                                    ret = "megadrive_lr_yz";
+                            }
+                        }
+                        break;
+                }
+            }
             return ret + ".png";
         }
 
@@ -791,7 +892,7 @@ namespace EmulatorLauncher
                 return Tuple.Create(img.Width, img.Height);
             }
         }
-
+        #endregion
     }
 
     [DataContract]

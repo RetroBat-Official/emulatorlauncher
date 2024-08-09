@@ -3373,8 +3373,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "picodrive_region", "region", "Auto");
             BindFeature(coreSettings, "picodrive_renderer", "renderer", "accurate");
             BindFeature(coreSettings, "picodrive_drc", "dynamic_recompiler", "disabled");
-            BindFeature(coreSettings, "picodrive_input1", "picodrive_input1", "3 button pad");
-            BindFeature(coreSettings, "picodrive_input2", "picodrive_input2", "3 button pad");
+            BindBoolFeature(coreSettings, "picodrive_input1", "md_3buttons", "3 button pad", "6 button pad");
+            BindBoolFeature(coreSettings, "picodrive_input2", "md_3buttons", "3 button pad", "6 button pad");
             BindFeature(coreSettings, "picodrive_smsfm", "picodrive_smsfm", "off");
             BindFeature(coreSettings, "picodrive_smsmapper", "picodrive_smsmapper", "Auto");
             BindBoolFeature(coreSettings, "picodrive_sprlim", "picodrive_nospritelimit", "enabled", "disabled");
