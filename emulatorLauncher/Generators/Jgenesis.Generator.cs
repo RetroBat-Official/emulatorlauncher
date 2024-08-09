@@ -186,7 +186,7 @@ namespace EmulatorLauncher
 
             BindBoolIniFeature(ini, "genesis", "remove_sprite_limits", "jgen_spritelimit", "true", "false");
 
-            if (SystemConfig["jgen_genesis_pad"] == "3btn")
+            if (SystemConfig.getOptBoolean("md_3buttons"))
             {
                 ini.WriteValue("inputs", "genesis_p1_type", "\"" + "ThreeButton" + "\"");
                 ini.WriteValue("inputs", "genesis_p2_type", "\"" + "ThreeButton" + "\"");

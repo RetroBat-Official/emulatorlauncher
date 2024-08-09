@@ -1156,7 +1156,7 @@ namespace EmulatorLauncher
             if (system == "nes" && Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 return nesMapping_rotate;
 
-            if ((system == "megadrive" || system == "sega32x") && !Program.SystemConfig.getOptBoolean("bizhawk_md_buttons"))
+            if ((system == "megadrive" || system == "sega32x") && !Program.SystemConfig.getOptBoolean("md_3buttons"))
             {
                 if (Program.SystemConfig.isOptSet("megadrive_control_layout"))
                 {

@@ -1,6 +1,5 @@
 ﻿using EmulatorLauncher.Common.FileFormats;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 

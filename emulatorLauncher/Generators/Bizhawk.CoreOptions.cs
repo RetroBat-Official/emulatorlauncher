@@ -287,7 +287,7 @@ namespace EmulatorLauncher
             var genplusgxSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.Sega.gpgx.GPGX");
             genplusgxSync["$type"] = "BizHawk.Emulation.Cores.Consoles.Sega.gpgx.GPGX+GPGXSyncSettings, BizHawk.Emulation.Cores";
             
-            BindBoolFeature(genplusgxSync, "UseSixButton", "bizhawk_md_buttons", "false", "true");
+            BindBoolFeature(genplusgxSync, "UseSixButton", "md_3buttons", "false", "true");
             BindFeature(genplusgxSync, "Region", "bizhawk_md_region", "0");
             BindBoolFeature(genplusgxSync, "Filter", "bizhawk_md_lowpass", "1", "0");
 
