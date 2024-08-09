@@ -39,6 +39,7 @@ namespace EmulatorLauncher.Libretro
                     inputremap["input_player" + i + "_btn_y"] = "9";
                 }
 
+                #region NES
                 if (core == "fceumm" && !rotateButtons)
                 {
                     inputremap["input_player" + i + "_btn_a"] = "9";
@@ -60,6 +61,7 @@ namespace EmulatorLauncher.Libretro
                         inputremap["input_player" + i + "_btn_a"] = "-1";
                     }
                 }
+                #endregion
 
                 if (core == "atari800")
                 {
@@ -80,6 +82,7 @@ namespace EmulatorLauncher.Libretro
                     inputremap["input_player" + i + "btn_x"] = "11";
                 }
 
+                #region gamecube
                 if (system == "gamecube")
                 {
                     bool revertall = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
@@ -120,6 +123,7 @@ namespace EmulatorLauncher.Libretro
                         inputremap["input_player" + i + "_btn_y"] = "0";
                     }
                 }
+                #endregion
             }
             SetupCoreGameRemaps(system, core, romName, inputremap);
             return;
