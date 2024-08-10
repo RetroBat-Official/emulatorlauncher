@@ -85,6 +85,11 @@ namespace EmulatorLauncher.Common.Joysticks
                     // Convert mappings
                     var mapping = item.GetObject("Mapping");
                     var mappingDict = ConvertDynamicJsonToDictionary(mapping);
+                    mappingDict = mappingDict
+                    .ToDictionary(
+                        kvp => kvp.Key.Replace("__", " "),
+                        kvp => kvp.Value.Replace("__", " ")
+                    );
 
                     // Convert HotKeyMapping
                     var hotKeyMapping = item.GetObject("HotKeyMapping");
