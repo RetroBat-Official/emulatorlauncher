@@ -242,33 +242,109 @@ namespace EmulatorLauncher
             //config part
             var config = player.GetOrCreateContainer("Config");
 
-            if (tech == "DualSense" || tech == "DS4" || tech == "DS3")
+            if (tech == "DS4")
             {
-                config["Left Stick Left"] = GetInputKeyNameDS(ctrl, InputKey.joystick1left, tech);    //LS X-
-                config["Left Stick Down"] = GetInputKeyNameDS(ctrl, InputKey.joystick1down, tech);    //LS Y-
-                config["Left Stick Right"] = GetInputKeyNameDS(ctrl, InputKey.joystick1right, tech);  //LS X+
-                config["Left Stick Up"] = GetInputKeyNameDS(ctrl, InputKey.joystick1up, tech);        //LS Y+
-                config["Right Stick Left"] = GetInputKeyNameDS(ctrl, InputKey.joystick2left, tech);   //RS X-
-                config["Right Stick Down"] = GetInputKeyNameDS(ctrl, InputKey.joystick2down, tech);   //RS Y-
-                config["Right Stick Right"] = GetInputKeyNameDS(ctrl, InputKey.joystick2right, tech); //RS X+
-                config["Right Stick Up"] = GetInputKeyNameDS(ctrl, InputKey.joystick2up, tech);       //RS Y+
-                config["Start"] = GetInputKeyNameDS(ctrl, InputKey.start, tech);                      //Options (Start on DS3)
-                config["Select"] = GetInputKeyNameDS(ctrl, InputKey.select, tech);                    //Share (Select on DS3)
-                config["PS Button"] = "PS Button";                                                    //PS Button (fixed)
-                config["Square"] = GetInputKeyNameDS(ctrl, InputKey.y, tech);                         //Square
-                config["Cross"] = GetInputKeyNameDS(ctrl, InputKey.b, tech);                          //Cross
-                config["Circle"] = GetInputKeyNameDS(ctrl, InputKey.a, tech);                         //Circle
-                config["Triangle"] = GetInputKeyNameDS(ctrl, InputKey.x, tech);                       //Triangle
-                config["Left"] = GetInputKeyNameDS(ctrl, InputKey.left, tech);                        //Left
-                config["Down"] = GetInputKeyNameDS(ctrl, InputKey.down, tech);                        //Down
-                config["Right"] = GetInputKeyNameDS(ctrl, InputKey.right, tech);                      //Right
-                config["Up"] = GetInputKeyNameDS(ctrl, InputKey.up, tech);                            //Up
-                config["R1"] = GetInputKeyNameDS(ctrl, InputKey.r1, tech);                            //R1
-                config["R2"] = GetInputKeyNameDS(ctrl, InputKey.r2, tech);                            //R2
-                config["R3"] = GetInputKeyNameDS(ctrl, InputKey.r3, tech);                            //R3
-                config["L1"] = GetInputKeyNameDS(ctrl, InputKey.l1, tech);                            //L1
-                config["L2"] = GetInputKeyNameDS(ctrl, InputKey.l2, tech);                            //L2
-                config["L3"] = GetInputKeyNameDS(ctrl, InputKey.l3, tech);                            //L3
+                config["Left Stick Left"] = "LS X-";
+                config["Left Stick Down"] = "LS Y-";
+                config["Left Stick Right"] = "LS X+";
+                config["Left Stick Up"] = "LS Y+";
+                config["Right Stick Left"] = "RS X-";
+                config["Right Stick Down"] = "RS Y-";
+                config["Right Stick Right"] = "RS X+";
+                config["Right Stick Up"] = "RS Y+";
+                config["Start"] = "Options";
+                config["Select"] = "Share";
+                config["PS Button"] = "PS Button";
+                config["Square"] = "Square";
+                config["Cross"] = "Cross";
+                config["Circle"] = "Circle";
+                config["Triangle"] = "Triangle";
+                config["Left"] = "Left";
+                config["Down"] = "Down";
+                config["Right"] = "Right";
+                config["Up"] = "Up";
+                config["R1"] = "R1";
+                config["R2"] = "R2";
+                config["R3"] = "R3";
+                config["L1"] = "L1";
+                config["L2"] = "L2";
+                config["L3"] = "L3";
+                config["IR Nose"] = "\"\"";
+                config["IR Tail"] = "\"\"";
+                config["IR Left"] = "\"\"";
+                config["IR Right"] = "\"\"";
+                config["Tilt Left"] = "\"\"";
+                config["Tilt Right"] = "\"\"";
+            }
+
+            else if (tech == "DS3")
+            {
+                config["Left Stick Left"] = "LS X-";
+                config["Left Stick Down"] = "LS Y-";
+                config["Left Stick Right"] = "LS X+";
+                config["Left Stick Up"] = "LS Y+";
+                config["Right Stick Left"] = "RS X-";
+                config["Right Stick Down"] = "RS Y-";
+                config["Right Stick Right"] = "RS X+";
+                config["Right Stick Up"] = "RS Y+";
+                config["Start"] = "Start";
+                config["Select"] = "Select";
+                config["PS Button"] = "PS Button";
+                config["Square"] = "Square";
+                config["Cross"] = "Cross";
+                config["Circle"] = "Circle";
+                config["Triangle"] = "Triangle";
+                config["Left"] = "Left";
+                config["Down"] = "Down";
+                config["Right"] = "Right";
+                config["Up"] = "Up";
+                config["R1"] = "R1";
+                config["R2"] = "R2";
+                config["R3"] = "R3";
+                config["L1"] = "L1";
+                config["L2"] = "L2";
+                config["L3"] = "L3";
+                config["IR Nose"] = "\"\"";
+                config["IR Tail"] = "\"\"";
+                config["IR Left"] = "\"\"";
+                config["IR Right"] = "\"\"";
+                config["Tilt Left"] = "\"\"";
+                config["Tilt Right"] = "\"\"";
+            }
+
+            else if (tech == "DualSense")
+            {
+                config["Left Stick Left"] = "LS X-";
+                config["Left Stick Down"] = "LS Y-";
+                config["Left Stick Right"] = "LS X+";
+                config["Left Stick Up"] = "LS Y+";
+                config["Right Stick Left"] = "RS X-";
+                config["Right Stick Down"] = "RS Y-";
+                config["Right Stick Right"] = "RS X+";
+                config["Right Stick Up"] = "RS Y+";
+                config["Start"] = "Options";
+                config["Select"] = "Share";
+                config["PS Button"] = "PS Button";
+                config["Square"] = "Square";
+                config["Cross"] = "Cross";
+                config["Circle"] = "Circle";
+                config["Triangle"] = "Triangle";
+                config["Left"] = "Left";
+                config["Down"] = "Down";
+                config["Right"] = "Right";
+                config["Up"] = "Up";
+                config["R1"] = "R1";
+                config["R2"] = "R2";
+                config["R3"] = "R3";
+                config["L1"] = "L1";
+                config["L2"] = "L2";
+                config["L3"] = "L3";
+                config["IR Nose"] = "\"\"";
+                config["IR Tail"] = "\"\"";
+                config["IR Left"] = "\"\"";
+                config["IR Right"] = "\"\"";
+                config["Tilt Left"] = "\"\"";
+                config["Tilt Right"] = "\"\"";
             }
 
             else if (tech == "XInput")
@@ -350,16 +426,33 @@ namespace EmulatorLauncher
             //other settings
             config["Pressure Intensity Button"] = "\"\"";
             config["Pressure Intensity Percent"] = "50";
+            config["Pressure Intensity Toggle Mode"] = "false";
+            config["Pressure Intensity Deadzone"] = "0";
             config["Left Stick Multiplier"] = "100";
             config["Right Stick Multiplier"] = "100";
+            
             if (tech == "XInput")
-                config["Left Stick Deadzone"] = "7849";         //Maybe add a feature
+                config["Left Stick Deadzone"] = "7849";
+            else if (tech == "DS3" || tech == "DS4" || tech == "DualSense")
+                config["Left Stick Deadzone"] = "40";
             else
-                config["Left Stick Deadzone"] = "50";           //Maybe add a feature
+                config["Left Stick Deadzone"] = "50";
             if (tech == "XInput")
-                config["Right Stick Deadzone"] = "8689";        //Maybe add a feature
+                config["Right Stick Deadzone"] = "8689";
+            else if (tech == "DS3" || tech == "DS4" || tech == "DualSense")
+                config["Right Stick Deadzone"] = "40";
             else
-                config["Right Stick Deadzone"] = "50";          //Maybe add a feature
+                config["Right Stick Deadzone"] = "50";
+
+            if (tech == "DualSense" || tech == "DS4")
+                config["Left Stick Anti-Deadzone"] = "33";
+            else
+                config["Left Stick Anti-Deadzone"] = "0";
+            if (tech == "DualSense" || tech == "DS4")
+                config["Right Stick Anti-Deadzone"] = "33";
+            else
+                config["Right Stick Anti-Deadzone"] = "0";
+
             if (tech == "XInput")
                 config["Left Trigger Threshold"] = "30";
             else
@@ -368,20 +461,31 @@ namespace EmulatorLauncher
                 config["Right Trigger Threshold"] = "30";
             else
                 config["Right Trigger Threshold"] = "0";
-            config["Left Pad Squircling Factor"] = "8000";
-            config["Right Pad Squircling Factor"] = "8000";
+            
+            if (tech == "DS3")
+                config["Left Pad Squircling Factor"] = "0";
+            else
+                config["Left Pad Squircling Factor"] = "8000";
+            if (tech == "DS3")
+                config["Right Pad Squircling Factor"] = "0";
+            else
+                config["Right Pad Squircling Factor"] = "8000";
+            
             config["Color Value R"] = "0";
             config["Color Value G"] = "0";
             if (tech == "DualSense" || tech == "DS4")
                 config["Color Value B"] = "20";
             else
                 config["Color Value B"] = "0";
+            
             config["Blink LED when battery is below 20%"] = "true";
             config["Use LED as a battery indicator"] = "false";
-            if (tech == "DS4")
+
+            if (tech == "DS4" || tech == "DualSense")
                 config["LED battery indicator brightness"] = "10";
             else
                 config["LED battery indicator brightness"] = "50";
+
             config["Player LED enabled"] = "true";
             config["Enable Large Vibration Motor"] = "true";    //Maybe add a feature
             config["Enable Small Vibration Motor"] = "true";    //Maybe add a feature
@@ -398,7 +502,7 @@ namespace EmulatorLauncher
             config["Device Class Type"] = "0";
             config["Vendor ID"] = "1356";
             config["Product ID"] = "616";
-            player["Buddy Device"] = "\"\"";            
+            player["Buddy Device"] = "\"Null\"";            
         }
 
         private static string GetInputKeyNameDS(Controller c, InputKey key, string tech)
