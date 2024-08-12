@@ -111,6 +111,7 @@ namespace EmulatorLauncher
 
         static List<string> megadriveSystems = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static List<string> nesSystems = new List<string>() { "fds", "nes" };
+        static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sufami" };
         static List<string> md3buttonsLibretro = new List<string>() { "257", "1025", "1537", "773", "2" };
         private static string GetTattooName(string system, string core, string emulator)
         {
@@ -118,10 +119,17 @@ namespace EmulatorLauncher
                 system = "megadrive";
             else if (nesSystems.Contains(system))
                 system = "nes";
+            else if (snesSystems.Contains(system))
+                system = "snes";
 
             string ret = system;
 
-            if (system == "nes")
+            if (system == "dreamcast")
+            {
+                if (Program.SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
+                    ret = "dreamcast_lr";
+            }
+            else if (system == "nes")
             {
                 switch (emulator)
                 {
@@ -256,11 +264,12 @@ namespace EmulatorLauncher
                         break;
                 }
             }
-            else if (system == "dreamcast")
-            {
-                if (Program.SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
-                    ret = "dreamcast_lr";
-            }
+            else if (system == "snes")
+                {
+                    if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                        ret = "snes_invert";
+                }
+
             return ret + ".png";
         }
 

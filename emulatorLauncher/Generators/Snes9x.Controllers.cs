@@ -117,10 +117,21 @@ namespace EmulatorLauncher
                 ini.WriteValue("Controls\\Win", joyNb + ":Right", GetDinputMapping(index, controller, "dpright", isxinput));
             }
 
-            ini.WriteValue("Controls\\Win", joyNb + ":A", GetDinputMapping(index, controller, "b", isxinput));
-            ini.WriteValue("Controls\\Win", joyNb + ":B", GetDinputMapping(index, controller, "a", isxinput));
-            ini.WriteValue("Controls\\Win", joyNb + ":Y", GetDinputMapping(index, controller, "x", isxinput));
-            ini.WriteValue("Controls\\Win", joyNb + ":X", GetDinputMapping(index, controller, "y", isxinput));
+            if (SystemConfig.getOptBoolean("buttonsInvert"))
+            {
+                ini.WriteValue("Controls\\Win", joyNb + ":A", GetDinputMapping(index, controller, "a", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":B", GetDinputMapping(index, controller, "b", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":Y", GetDinputMapping(index, controller, "y", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":X", GetDinputMapping(index, controller, "x", isxinput));
+            }
+            else
+            {
+                ini.WriteValue("Controls\\Win", joyNb + ":A", GetDinputMapping(index, controller, "b", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":B", GetDinputMapping(index, controller, "a", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":Y", GetDinputMapping(index, controller, "x", isxinput));
+                ini.WriteValue("Controls\\Win", joyNb + ":X", GetDinputMapping(index, controller, "y", isxinput));
+            }
+
             ini.WriteValue("Controls\\Win", joyNb + ":L", GetDinputMapping(index, controller, "leftshoulder", isxinput));
             ini.WriteValue("Controls\\Win", joyNb + ":R", GetDinputMapping(index, controller, "rightshoulder", isxinput));
             ini.WriteValue("Controls\\Win", joyNb + ":Start", GetDinputMapping(index, controller, "start", isxinput));
