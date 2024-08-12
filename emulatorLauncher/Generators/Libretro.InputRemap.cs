@@ -131,6 +131,18 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
                 #endregion
+                #region dreamcast
+                if (system == "dreamcast")
+                {
+                    if (Program.SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
+                    {
+                        inputremap["input_player" + i + "_btn_l"] = "12";
+                        inputremap["input_player" + i + "_btn_l2"] = "-1";
+                        inputremap["input_player" + i + "_btn_r"] = "13";
+                        inputremap["input_player" + i + "_btn_r2"] = "-1";
+                    }
+                }
+                #endregion
 
                 #region gamecube
                 if (system == "gamecube")

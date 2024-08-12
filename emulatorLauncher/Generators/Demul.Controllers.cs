@@ -188,8 +188,16 @@ namespace EmulatorLauncher
                 ctrlIni.WriteValue(iniSection, "X", isXInput ? GetXInputCode(controller, InputKey.y, index) : GetDInputCode(controller, InputKey.y, sdlCtrl, index));
                 ctrlIni.WriteValue(iniSection, "Y", isXInput ? GetXInputCode(controller, InputKey.x, index) : GetDInputCode(controller, InputKey.x, sdlCtrl, index));
 
-                ctrlIni.WriteValue(iniSection, "LTRIG", isXInput ? GetXInputCode(controller, InputKey.l2, index) : GetDInputCode(controller, InputKey.l2, sdlCtrl, index));
-                ctrlIni.WriteValue(iniSection, "RTRIG", isXInput ? GetXInputCode(controller, InputKey.r2, index) : GetDInputCode(controller, InputKey.r2, sdlCtrl, index));
+                if (SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
+                {
+                    ctrlIni.WriteValue(iniSection, "LTRIG", isXInput ? GetXInputCode(controller, InputKey.pageup, index) : GetDInputCode(controller, InputKey.pageup, sdlCtrl, index));
+                    ctrlIni.WriteValue(iniSection, "RTRIG", isXInput ? GetXInputCode(controller, InputKey.pagedown, index) : GetDInputCode(controller, InputKey.pagedown, sdlCtrl, index));
+                }
+                else
+                {
+                    ctrlIni.WriteValue(iniSection, "LTRIG", isXInput ? GetXInputCode(controller, InputKey.l2, index) : GetDInputCode(controller, InputKey.l2, sdlCtrl, index));
+                    ctrlIni.WriteValue(iniSection, "RTRIG", isXInput ? GetXInputCode(controller, InputKey.r2, index) : GetDInputCode(controller, InputKey.r2, sdlCtrl, index));
+                }
 
                 ctrlIni.WriteValue(iniSection, "START", isXInput ? GetXInputCode(controller, InputKey.start, index) : GetDInputCode(controller, InputKey.start, sdlCtrl, index));
 

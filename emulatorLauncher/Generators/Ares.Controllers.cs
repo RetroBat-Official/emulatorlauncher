@@ -151,6 +151,13 @@ namespace EmulatorLauncher
                 vpad["X..West"] = GetInputKeyName(ctrl, InputKey.a, padId);
                 vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.y, padId);
             }
+            else if (SystemConfig.getOptBoolean("buttonsInvert"))
+            {
+                vpad["A..South"] = GetInputKeyName(ctrl, InputKey.b, padId);
+                vpad["B..East"] = GetInputKeyName(ctrl, InputKey.a, padId);
+                vpad["X..West"] = GetInputKeyName(ctrl, InputKey.x, padId);
+                vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.y, padId);
+            }
             else
             {
                 vpad["A..South"] = GetInputKeyName(ctrl, InputKey.a, padId);

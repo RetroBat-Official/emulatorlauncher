@@ -191,7 +191,7 @@ namespace EmulatorLauncher
                 
             if (!n64ControllerFound)
             {
-                mapping = ConfigureMappingPerSystem(mapping, system);
+                mapping = ConfigureMappingPerSystem(mapping, system, core);
                 foreach (var x in mapping)
                 {
                     string value = x.Value;
@@ -917,6 +917,22 @@ namespace EmulatorLauncher
             { InputKey.pagedown,        "R" }
         };
 
+        private static readonly InputKeyMapping snesMapping_invert = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.b,               "B" },
+            { InputKey.a,               "A" },
+            { InputKey.y,               "X" },
+            { InputKey.x,               "Y" },
+            { InputKey.pageup,          "L" },
+            { InputKey.pagedown,        "R" }
+        };
+
         private static readonly InputKeyMapping tic80Mapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
@@ -1150,7 +1166,7 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private static InputKeyMapping ConfigureMappingPerSystem(InputKeyMapping mapping, string system)
+        private static InputKeyMapping ConfigureMappingPerSystem(InputKeyMapping mapping, string system, string core)
         {
             InputKeyMapping newMapping = mapping;
             if (system == "nes" && Program.SystemConfig.getOptBoolean("rotate_buttons"))
@@ -1167,6 +1183,14 @@ namespace EmulatorLauncher
                         case "lr_yz":
                             return mdMapping_lr_yz;
                     }
+                }
+            }
+
+            if (system == "snes" || (system == "sgb" && core == "BSNES"))
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    return snesMapping_invert;
                 }
             }
 

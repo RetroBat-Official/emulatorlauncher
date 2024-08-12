@@ -135,7 +135,7 @@ namespace EmulatorLauncher
                 "ljoy_right:" + GetInputKeyName(ctrl, InputKey.leftanalogright, tech)
             };
 
-            if (SystemConfig.isOptSet("redream_use_digital_triggers") && SystemConfig.getOptBoolean("redream_use_digital_triggers"))
+            if (SystemConfig.isOptSet("dreamcast_use_shoulders") && SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
             {
                 profileList.Add("ltrig:" + GetInputKeyName(ctrl, InputKey.pageup, tech));
                 profileList.Add("rtrig:" + GetInputKeyName(ctrl, InputKey.pagedown, tech));

@@ -531,6 +531,17 @@ namespace EmulatorLauncher
                     }
                 }
             }
+
+            else if (jGenSystem == "snes")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    newMapping["a"] = InputKey.a;
+                    newMapping["b"] = InputKey.b;
+                    newMapping["x"] = InputKey.y;
+                    newMapping["y"] = InputKey.x;
+                }
+            }
             return newMapping;
         }
 
