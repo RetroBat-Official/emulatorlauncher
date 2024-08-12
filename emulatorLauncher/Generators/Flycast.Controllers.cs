@@ -228,7 +228,7 @@ namespace EmulatorLauncher
             // Test if triggers are analog or digital
             bool analogTriggers = false;
             bool switchToDpad = SystemConfig.isOptSet("flycast_usedpad") && SystemConfig.getOptBoolean("flycast_usedpad");
-            bool useR1L1 = SystemConfig.isOptSet("flycast_r1l1") && SystemConfig.getOptBoolean("flycast_r1l1");
+            bool useR1L1 = SystemConfig.isOptSet("dreamcast_use_shoulders") && SystemConfig.getOptBoolean("dreamcast_use_shoulders");
             
             var r2test = joy[InputKey.r2];
             if (joy[InputKey.r2] != null)
