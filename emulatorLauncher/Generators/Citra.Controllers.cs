@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
@@ -35,6 +36,10 @@ namespace EmulatorLauncher
 
             var guid = controller.GetSdlGuid(_sdlVersion, true);
             var citraGuid = guid.ToString().ToLowerInvariant();
+            string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "citra");
+            if (newGuid != null)
+                citraGuid = newGuid;
 
             //only 1 player so profile is fixed to 1
             ini.WriteValue("Controls", "profile\\default", "true");

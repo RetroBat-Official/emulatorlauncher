@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
@@ -235,6 +235,34 @@ namespace EmulatorLauncher.Common.Joysticks
             }
 
             return ret;
+        }
+
+        public static string GetGuidFromFile(string path, string inputGuid, string emulator)
+        {
+            if (!File.Exists(path))
+                return null;
+
+            try
+            {
+                var yml = YmlFile.Load(path);
+                if (yml != null)
+                {
+                    var controllerInfo = yml.GetContainer(inputGuid.ToLowerInvariant());
+                    if (controllerInfo != null)
+                    {
+                        var emulatorInfo = controllerInfo.GetContainer(emulator);
+                        if (emulatorInfo != null)
+                        {
+                            string outputGuid = emulatorInfo["guid"];
+                            if (!string.IsNullOrEmpty(outputGuid))
+                                return outputGuid.ToLowerInvariant();
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return null;
         }
 
         #endregion

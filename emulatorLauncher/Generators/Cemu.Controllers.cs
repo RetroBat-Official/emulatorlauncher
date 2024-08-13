@@ -300,6 +300,7 @@ namespace EmulatorLauncher
             if (ctrl.IsXInputDevice)
                 xbox = "yes";
 
+            bool replaceGuid = false;
             bool forceXInput = SystemConfig.getOptBoolean("cemu_forcexinput") && xbox =="yes";
 
             // Get joystick data (type, api, guid, index)
@@ -315,13 +316,18 @@ namespace EmulatorLauncher
                 .ToList()
                 .IndexOf(ctrl);
 
-            string uuid = forceXInput ? (ctrl.XInput.DeviceIndex).ToString() : index + "_" + ctrl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant(); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
+            string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.Guid, "cemu");
+            if (newGuid != null)
+                replaceGuid = true;
+
+            string uuid = forceXInput ? (ctrl.XInput.DeviceIndex).ToString() : index + "_" + (replaceGuid ? newGuid : ctrl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant()); //string uuid of the cemu config file, based on old sdl2 guids ( pre 2.26 ) without crc-16
 
             if (_sdlMapping != null && !forceXInput)
             {
                 var sdlTrueGuid = _sdlMapping.GetControllerGuid(ctrl.DevicePath);
                 if (sdlTrueGuid != null)
-                    uuid = index + "_" + sdlTrueGuid.ToLowerInvariant();
+                    uuid = index + "_" + (replaceGuid ? newGuid : sdlTrueGuid.ToLowerInvariant());
             }
 
             // Define type of controller
