@@ -265,10 +265,30 @@ namespace EmulatorLauncher
                 }
             }
             else if (system == "snes")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                    ret = "snes_invert";
+            }
+            else if (system == "gamecube" || system == "gc")
+            {
+                if (emulator == "dolphin" && Program.SystemConfig.getOptBoolean("gamecubepad0"))
+                    ret = "unknown";
+                else if (Program.SystemConfig.isOptSet("gamecube_buttons"))
                 {
-                    if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
-                        ret = "snes_invert";
+                    switch (Program.SystemConfig["gamecube_buttons"])
+                    {
+                        case "position":
+                            ret = "gamecube_position";
+                            break;
+                        case "xbox":
+                            ret = "gamecube_xbox";
+                            break;
+                        case "reverse_ab":
+                            ret = "gamecube_xy";
+                            break;
+                    }
                 }
+            }
 
             return ret + ".png";
         }
