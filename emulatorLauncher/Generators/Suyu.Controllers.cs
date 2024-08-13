@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
@@ -91,6 +92,10 @@ namespace EmulatorLauncher
             }
 
             var suyuGuid = guid.ToString().ToLowerInvariant();
+            string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "suyu");
+            if (newGuid != null)
+                suyuGuid = newGuid;
 
             int index = Program.Controllers
                     .GroupBy(c => c.Guid.ToLowerInvariant())

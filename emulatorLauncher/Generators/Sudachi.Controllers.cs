@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
@@ -91,9 +92,10 @@ namespace EmulatorLauncher
             }
 
             var sudachiGuid = guid.ToString().ToLowerInvariant();
-
-            if (modify_guid.ContainsKey(sudachiGuid))
-                sudachiGuid = modify_guid[sudachiGuid];
+            string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "sudachi");
+            if (newGuid != null)
+                sudachiGuid = newGuid;
 
             int index = Program.Controllers
                     .GroupBy(c => c.Guid.ToLowerInvariant())
@@ -497,11 +499,6 @@ namespace EmulatorLauncher
             { InputKey.a,               "button_a" },
             { InputKey.y,               "button_x" },
             { InputKey.x,               "button_y" },
-        };
-
-        static readonly Dictionary<string, string> modify_guid = new Dictionary<string, string>()
-        {
-            { "03000000c82d00000631000000007801", "03000000c82d00000631000014017801" }
         };
     }
 }

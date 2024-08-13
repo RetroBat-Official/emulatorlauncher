@@ -95,7 +95,7 @@ namespace EmulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
-                SimpleLogger.Instance.Info("Writing Citra configuration file: " + conf);
+                SimpleLogger.Instance.Info("[Generator] Writing Citra configuration file: " + conf);
 
                 // Define rom path
                 string romPath = Path.GetDirectoryName(rom);
