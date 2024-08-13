@@ -132,10 +132,10 @@ namespace EmulatorLauncher
             { InputKey.y,               "Buttons/X" }
         };
 
-        static readonly InputKeyMapping reversedButtonsAB = new InputKeyMapping()
+        static readonly InputKeyMapping reversedButtonsXY = new InputKeyMapping()
         {
-            { InputKey.b,               "Buttons/A" },
-            { InputKey.a,               "Buttons/B" }
+            { InputKey.x,               "Buttons/Y" },
+            { InputKey.y,               "Buttons/X" }
         };
 
         static readonly InputKeyMapping reversedButtonsRotate = new InputKeyMapping()
@@ -208,7 +208,7 @@ namespace EmulatorLauncher
 
             var wiiMapping = new InputKeyMapping(_wiiMapping);
 
-            if (Program.SystemConfig["controller_mode"] != "cc" && Program.SystemConfig["controller_mode"] != "ccp")
+            if (Program.SystemConfig["controller_mode"] != "cc")
             {
                 if (Program.SystemConfig["controller_mode"] == "side")
                 {
@@ -307,10 +307,7 @@ namespace EmulatorLauncher
             // cc : Classic Controller Settings
             else if (Program.SystemConfig["controller_mode"] == "cc" || Program.SystemConfig["controller_mode"] == "ccp")
             {
-                bool revertall = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
-                bool revertAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
-
-                bool pro = Program.SystemConfig["controller_mode"] == "ccp";
+                bool revertall = Program.Features.IsSupported("wii_cc_buttons") && Program.SystemConfig.isOptSet("wii_cc_buttons") && Program.SystemConfig["wii_cc_buttons"] == "xbox";
 
                 extraOptions["Extension"] = "Classic";
 
@@ -325,26 +322,19 @@ namespace EmulatorLauncher
                 {
                     wiiMapping[InputKey.x] = "Classic/Buttons/X";
                     wiiMapping[InputKey.y] = "Classic/Buttons/Y";
-                    wiiMapping[InputKey.b] = revertAB ? "Classic/Buttons/A" : "Classic/Buttons/B";
-                    wiiMapping[InputKey.a] = revertAB ? "Classic/Buttons/B" : "Classic/Buttons/A";
+                    wiiMapping[InputKey.b] = "Classic/Buttons/B";
+                    wiiMapping[InputKey.a] = "Classic/Buttons/A";
                 }
                 wiiMapping[InputKey.select] = "Classic/Buttons/-";
                 wiiMapping[InputKey.start] = "Classic/Buttons/+";
 
-                if (!pro)
-                {
-                    wiiMapping[InputKey.pageup] = "Classic/Buttons/ZL";
-                    wiiMapping[InputKey.pagedown] = "Classic/Buttons/ZR";
-                    wiiMapping[InputKey.l2] = "Classic/Triggers/L";
-                    wiiMapping[InputKey.r2] = "Classic/Triggers/R";
-                }
-                else
-                {
-                    wiiMapping[InputKey.pageup] = "Classic/Triggers/L";
-                    wiiMapping[InputKey.pagedown] = "Classic/Triggers/R";
-                    wiiMapping[InputKey.l2] = "Classic/Buttons/ZL";
-                    wiiMapping[InputKey.r2] = "Classic/Buttons/ZR";
-                }
+                wiiMapping[InputKey.pageup] = "Classic/Buttons/ZL";
+                wiiMapping[InputKey.pagedown] = "Classic/Buttons/ZR";
+                
+                wiiMapping[InputKey.l2] = "Classic/Triggers/L-Analog";
+                wiiMapping[InputKey.r2] = "Classic/Triggers/R-Analog";
+                wiiMapping.Add(InputKey.l2, "Classic/Triggers/L");
+                wiiMapping.Add(InputKey.r2, "Classic/Triggers/R");
 
                 wiiMapping[InputKey.up] = "Classic/D-Pad/Up";
                 wiiMapping[InputKey.down] = "Classic/D-Pad/Down";
@@ -649,22 +639,22 @@ namespace EmulatorLauncher
                         foreach (var xtra in extraOptions)
                             ini.WriteValue(gcpad, xtra.Key, xtra.Value);
 
-                    bool revertButtons = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
-                    bool revertButtonsAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
-                    bool revertRotate = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_rotate";
+                    bool positional = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "position";
+                    bool xboxLayout = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "xbox";
+                    bool revertXY = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
                     bool rumble = !Program.SystemConfig.getOptBoolean("input_rumble");
 
                     foreach (var x in anyMapping)
                     {
                         string value = x.Value;
 
-                        if (revertButtons && reversedButtons.ContainsKey(x.Key))
+                        if (xboxLayout && reversedButtons.ContainsKey(x.Key))
                             value = reversedButtons[x.Key];
 
-                        if (revertButtonsAB && reversedButtonsAB.ContainsKey(x.Key))
-                            value = reversedButtonsAB[x.Key];
+                        if (revertXY && reversedButtonsXY.ContainsKey(x.Key))
+                            value = reversedButtonsXY[x.Key];
 
-                        if (revertRotate && reversedButtonsRotate.ContainsKey(x.Key))
+                        if (positional && reversedButtonsRotate.ContainsKey(x.Key))
                             value = reversedButtonsRotate[x.Key];
 
                         if (triforce && Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4")
@@ -675,19 +665,19 @@ namespace EmulatorLauncher
 
                         if (pad.Config.Type == "keyboard")
                         {
-                            if (x.Key == InputKey.a && (revertButtons || revertButtonsAB))
+                            if (x.Key == InputKey.a && (xboxLayout))
                                 value = "Buttons/B";
                             else if (x.Key == InputKey.a)
                                 value = "Buttons/A";
-                            else if (x.Key == InputKey.b && (revertButtons || revertButtonsAB))
+                            else if (x.Key == InputKey.b && (xboxLayout))
                                 value = "Buttons/A";
                             else if (x.Key == InputKey.b)
                                 value = "Buttons/B";
-                            else if (x.Key == InputKey.x && revertButtons)
+                            else if (x.Key == InputKey.x && xboxLayout || revertXY)
                                 value = "Buttons/Y";
                             else if (x.Key == InputKey.x)
                                 value = "Buttons/X";
-                            else if (x.Key == InputKey.y && revertButtons)
+                            else if (x.Key == InputKey.y && xboxLayout || revertXY)
                                 value = "Buttons/X";
                             else if (x.Key == InputKey.y)
                                 value = "Buttons/Y";

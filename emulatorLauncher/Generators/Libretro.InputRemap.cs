@@ -147,21 +147,26 @@ namespace EmulatorLauncher.Libretro
                 #region gamecube
                 if (system == "gamecube")
                 {
-                    bool revertall = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_all";
-                    bool revertAB = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "reverse_ab";
-                    bool xboxPositions = Program.Features.IsSupported("gamepadbuttons") && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig["gamepadbuttons"] == "xbox";
-                    bool analogTriggers = Program.Features.IsSupported("gamepadanalogtriggers") && Program.SystemConfig.isOptSet("gamepadanalogtriggers") && Program.SystemConfig["gamepadanalogtriggers"] == "true";
+                    bool positional = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "position";
+                    bool revertAB = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
+                    bool xboxPositions = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "xbox";
+                    bool digitalTriggers = Program.Features.IsSupported("gamepaddigitaltriggers") && Program.SystemConfig.isOptSet("gamepaddigitaltriggers") && Program.SystemConfig.getOptBoolean("gamepaddigitaltriggers");
 
-                    if (analogTriggers)
+                    inputremap["input_player" + i + "_btn_l3"] = "-1";
+                    inputremap["input_player" + i + "_btn_r3"] = "-1";
+
+                    if (positional)
                     {
-                        inputremap["input_player" + i + "_btn_l2"] = "14";
-                        inputremap["input_player" + i + "_btn_r2"] = "15";
-                        inputremap["input_player" + i + "_btn_l3"] = "-1";
-                        inputremap["input_player" + i + "_btn_r3"] = "-1";
+                        inputremap["input_player" + i + "_btn_a"] = "9";
+                        inputremap["input_player" + i + "_btn_b"] = "8";
+                        inputremap["input_player" + i + "_btn_x"] = "1";
+                        inputremap["input_player" + i + "_btn_y"] = "0";
+                        if (!digitalTriggers)
+                        {
+                            inputremap["input_player" + i + "_btn_l2"] = "14";
+                            inputremap["input_player" + i + "_btn_r2"] = "15";
+                        }
                     }
-
-                    if (revertall)
-                        continue;
 
                     if (xboxPositions)
                     {
@@ -169,20 +174,33 @@ namespace EmulatorLauncher.Libretro
                         inputremap["input_player" + i + "_btn_b"] = "8";
                         inputremap["input_player" + i + "_btn_x"] = "1";
                         inputremap["input_player" + i + "_btn_y"] = "9";
+                        if (!digitalTriggers)
+                        {
+                            inputremap["input_player" + i + "_btn_l2"] = "14";
+                            inputremap["input_player" + i + "_btn_r2"] = "15";
+                        }
                     }
 
                     else if (revertAB)
                     {
                         inputremap["input_player" + i + "_btn_x"] = "1";
                         inputremap["input_player" + i + "_btn_y"] = "9";
+                        if (!digitalTriggers)
+                        {
+                            inputremap["input_player" + i + "_btn_l2"] = "14";
+                            inputremap["input_player" + i + "_btn_r2"] = "15";
+                        }
                     }
 
                     else
                     {
-                        inputremap["input_player" + i + "_btn_a"] = "9";
-                        inputremap["input_player" + i + "_btn_b"] = "8";
-                        inputremap["input_player" + i + "_btn_x"] = "1";
-                        inputremap["input_player" + i + "_btn_y"] = "0";
+                        if (!digitalTriggers)
+                        {
+                            inputremap["input_player" + i + "_btn_l2"] = "14";
+                            inputremap["input_player" + i + "_btn_r2"] = "15";
+                        }
+                        inputremap["input_player" + i + "_btn_l3"] = "-1";
+                        inputremap["input_player" + i + "_btn_r3"] = "-1";
                     }
                 }
                 #endregion
