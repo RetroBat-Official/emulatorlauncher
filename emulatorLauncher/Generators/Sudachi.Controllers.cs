@@ -92,6 +92,9 @@ namespace EmulatorLauncher
 
             var sudachiGuid = guid.ToString().ToLowerInvariant();
 
+            if (modify_guid.ContainsKey(sudachiGuid))
+                sudachiGuid = modify_guid[sudachiGuid];
+
             int index = Program.Controllers
                     .GroupBy(c => c.Guid.ToLowerInvariant())
                     .Where(c => c.Key == controller.Guid.ToLowerInvariant())
@@ -494,6 +497,11 @@ namespace EmulatorLauncher
             { InputKey.a,               "button_a" },
             { InputKey.y,               "button_x" },
             { InputKey.x,               "button_y" },
+        };
+
+        static readonly Dictionary<string, string> modify_guid = new Dictionary<string, string>()
+        {
+            { "03000000c82d00000631000000007801", "03000000c82d00000631000014017801" }
         };
     }
 }
