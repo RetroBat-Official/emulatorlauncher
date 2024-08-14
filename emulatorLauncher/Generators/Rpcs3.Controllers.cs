@@ -155,8 +155,8 @@ namespace EmulatorLauncher
             config["Use LED as a battery indicator"] = "false";
             config["LED battery indicator brightness"] = "50";
             config["Player LED enabled"] = "true";
-            config["Enable Large Vibration Motor"] = "true";
-            config["Enable Small Vibration Motor"] = "true";
+            config["Enable Large Vibration Motor"] = "false";
+            config["Enable Small Vibration Motor"] = "false";
             config["Switch Vibration Motors"] = "false";
             config["Mouse Movement Mode"] = "Relative";
             config["Mouse Deadzone X Axis"] = "60";
@@ -487,9 +487,21 @@ namespace EmulatorLauncher
                 config["LED battery indicator brightness"] = "50";
 
             config["Player LED enabled"] = "true";
-            config["Enable Large Vibration Motor"] = "true";    //Maybe add a feature
-            config["Enable Small Vibration Motor"] = "true";    //Maybe add a feature
-            config["Switch Vibration Motors"] = "false";
+
+            // Rumble settings
+            if (SystemConfig.getOptBoolean("rpcs3_norumble"))
+            {
+                config["Enable Large Vibration Motor"] = "false";
+                config["Enable Small Vibration Motor"] = "false";
+                config["Switch Vibration Motors"] = "false";
+            }
+            else
+            {
+                config["Enable Large Vibration Motor"] = "true";
+                config["Enable Small Vibration Motor"] = "true";
+                config["Switch Vibration Motors"] = "false";
+            }
+            
             config["Mouse Movement Mode"] = "Relative";
             config["Mouse Deadzone X Axis"] = "60";             //Maybe add a feature when managing guns in the future
             config["Mouse Deadzone Y Axis"] = "60";             //Maybe add a feature when managing guns in the future
