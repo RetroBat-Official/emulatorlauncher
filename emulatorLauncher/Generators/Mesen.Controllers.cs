@@ -75,10 +75,10 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            bool revertButtons = SystemConfig.isOptSet("mesen_revertbuttons") && SystemConfig.getOptBoolean("mesen_revertbuttons");
+            bool revertButtons = SystemConfig.isOptSet("rotate_buttons") && SystemConfig.getOptBoolean("rotate_buttons");
             if (mesenSystem == "Nes")
                 revertButtons = !SystemConfig.getOptBoolean("rotate_buttons");
-            
+
             bool isXInput = ctrl.IsXInputDevice;
             int index = isXInput ? ctrl.XInput.DeviceIndex : (ctrl.DirectInput != null ? ctrl.DirectInput.DeviceIndex : ctrl.DeviceIndex);
             int playerIndex = ctrl.PlayerIndex;

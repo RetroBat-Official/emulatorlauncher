@@ -901,6 +901,16 @@ namespace EmulatorLauncher
             { InputKey.b,               "B2" }
         };
 
+        private static readonly InputKeyMapping smsMapping_rotate = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.y,               "B1" },
+            { InputKey.a,               "B2" }
+        };
+
         private static readonly InputKeyMapping snesMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
@@ -1191,6 +1201,14 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
                 {
                     return snesMapping_invert;
+                }
+            }
+
+            if (system == "mastersystem")
+            {
+                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                {
+                    return smsMapping_rotate;
                 }
             }
 

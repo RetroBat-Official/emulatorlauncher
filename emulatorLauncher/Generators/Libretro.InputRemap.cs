@@ -8,7 +8,7 @@ namespace EmulatorLauncher.Libretro
     partial class LibRetroGenerator : Generator
     {
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb" };
-        static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds" };
+        static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds", "mastersystem" };
         static readonly List<string> systemMegadrive = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
@@ -40,30 +40,6 @@ namespace EmulatorLauncher.Libretro
                     inputremap["input_player" + i + "_btn_y"] = "9";
                 }
 
-                #region NES
-                if (core == "fceumm" && !rotateButtons)
-                {
-                    inputremap["input_player" + i + "_btn_a"] = "9";
-                    inputremap["input_player" + i + "_btn_b"] = "8";
-                    inputremap["input_player" + i + "_btn_x"] = "1";
-                    inputremap["input_player" + i + "_btn_y"] = "0";
-                }
-
-                if (core == "nestopia" && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                {
-                    if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
-                    {
-                        inputremap["input_player" + i + "_btn_x"] = "-1";
-                        inputremap["input_player" + i + "_btn_y"] = "-1";
-                    }
-                    else
-                    {
-                        inputremap["input_player" + i + "_btn_x"] = "-1";
-                        inputremap["input_player" + i + "_btn_a"] = "-1";
-                    }
-                }
-                #endregion
-
                 if (core == "atari800")
                 {
                     inputremap["input_player" + i + "_btn_a"] = "0";
@@ -76,61 +52,6 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
 
-                #region megadrive
-                if (systemMegadrive.Contains(system) && !megadrive3ButtonsList.Contains(Program.SystemConfig["genesis_plus_gx_controller"]))
-                {
-                    switch (core)
-                    {
-                        case "genesis_plus_gx":
-                        case "genesis_plus_gx_wide":
-                        case "picodrive":
-                            if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
-                            {
-                                inputremap["input_player" + i + "_btn_a"] = "0";
-                                inputremap["input_player" + i + "_btn_b"] = "1";
-                                inputremap["input_player" + i + "_btn_l"] = "11";
-                                inputremap["input_player" + i + "_btn_r"] = "8";
-                                inputremap["input_player" + i + "_btn_y"] = "10";
-                            }
-                            else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
-                            {
-                                inputremap["input_player" + i + "_btn_l"] = "9";
-                                inputremap["input_player" + i + "_btn_x"] = "10";
-                            }
-                            break;
-                        case "fbneo":
-                            if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
-                            {
-                                inputremap["input_player" + i + "_btn_a"] = "0";
-                                inputremap["input_player" + i + "_btn_b"] = "1";
-                                inputremap["input_player" + i + "_btn_r"] = "8";
-                                inputremap["input_player" + i + "_btn_x"] = "11";
-                                inputremap["input_player" + i + "_btn_y"] = "9";
-                            }
-                            else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
-                            {
-                                inputremap["input_player" + i + "_btn_l"] = "11";
-                                inputremap["input_player" + i + "_btn_r"] = "10";
-                            }
-                            else
-                            {
-                                inputremap["input_player" + i + "_btn_l"] = "9";
-                                inputremap["input_player" + i + "_btn_r"] = "10";
-                                inputremap["input_player" + i + "_btn_x"] = "11";
-                            }
-                            break;
-                    }
-                }
-                else if (systemMegadrive.Contains(system))
-                {
-                    if (core == "fbneo")
-                    {
-                        inputremap["input_player" + i + "_btn_l"] = "9";
-                        inputremap["input_player" + i + "_btn_r"] = "10";
-                        inputremap["input_player" + i + "_btn_x"] = "11";
-                    }
-                }
-                #endregion
                 #region dreamcast
                 if (system == "dreamcast")
                 {
@@ -201,6 +122,105 @@ namespace EmulatorLauncher.Libretro
                         }
                         inputremap["input_player" + i + "_btn_l3"] = "-1";
                         inputremap["input_player" + i + "_btn_r3"] = "-1";
+                    }
+                }
+                #endregion
+
+                #region mastersystem
+                if (system == "mastersystem" && rotateButtons)
+                {
+                    if (core == "fbneo")
+                    {
+                        inputremap["input_player" + i + "_btn_a"] = "-1";
+                        inputremap["input_player" + i + "_btn_b"] = "8";
+                        inputremap["input_player" + i + "_btn_y"] = "0";
+                    }
+                    else
+                    {
+                        inputremap["input_player" + i + "_btn_a"] = "-1";
+                        inputremap["input_player" + i + "_btn_b"] = "8";
+                        inputremap["input_player" + i + "_btn_x"] = "-1";
+                        inputremap["input_player" + i + "_btn_y"] = "0";
+                    }
+                }
+                #endregion
+
+                #region megadrive
+                if (systemMegadrive.Contains(system) && !megadrive3ButtonsList.Contains(Program.SystemConfig["genesis_plus_gx_controller"]))
+                {
+                    switch (core)
+                    {
+                        case "genesis_plus_gx":
+                        case "genesis_plus_gx_wide":
+                        case "picodrive":
+                            if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                            {
+                                inputremap["input_player" + i + "_btn_a"] = "0";
+                                inputremap["input_player" + i + "_btn_b"] = "1";
+                                inputremap["input_player" + i + "_btn_l"] = "11";
+                                inputremap["input_player" + i + "_btn_r"] = "8";
+                                inputremap["input_player" + i + "_btn_y"] = "10";
+                            }
+                            else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                            {
+                                inputremap["input_player" + i + "_btn_l"] = "9";
+                                inputremap["input_player" + i + "_btn_x"] = "10";
+                            }
+                            break;
+                        case "fbneo":
+                            if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
+                            {
+                                inputremap["input_player" + i + "_btn_a"] = "0";
+                                inputremap["input_player" + i + "_btn_b"] = "1";
+                                inputremap["input_player" + i + "_btn_r"] = "8";
+                                inputremap["input_player" + i + "_btn_x"] = "11";
+                                inputremap["input_player" + i + "_btn_y"] = "9";
+                            }
+                            else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
+                            {
+                                inputremap["input_player" + i + "_btn_l"] = "11";
+                                inputremap["input_player" + i + "_btn_r"] = "10";
+                            }
+                            else
+                            {
+                                inputremap["input_player" + i + "_btn_l"] = "9";
+                                inputremap["input_player" + i + "_btn_r"] = "10";
+                                inputremap["input_player" + i + "_btn_x"] = "11";
+                            }
+                            break;
+                    }
+                }
+                else if (systemMegadrive.Contains(system))
+                {
+                    if (core == "fbneo")
+                    {
+                        inputremap["input_player" + i + "_btn_l"] = "9";
+                        inputremap["input_player" + i + "_btn_r"] = "10";
+                        inputremap["input_player" + i + "_btn_x"] = "11";
+                    }
+                }
+                #endregion
+
+                #region NES
+                if (core == "fceumm" && !rotateButtons)
+                {
+                    inputremap["input_player" + i + "_btn_a"] = "9";
+                    inputremap["input_player" + i + "_btn_b"] = "8";
+                    inputremap["input_player" + i + "_btn_x"] = "1";
+                    inputremap["input_player" + i + "_btn_y"] = "0";
+                }
+
+                if (core == "nestopia" && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                {
+                    if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                    {
+                        inputremap["input_player" + i + "_btn_x"] = "-1";
+                        inputremap["input_player" + i + "_btn_y"] = "-1";
+                    }
+                    else
+                    {
+                        inputremap["input_player" + i + "_btn_x"] = "-1";
+                        inputremap["input_player" + i + "_btn_a"] = "-1";
                     }
                 }
                 #endregion

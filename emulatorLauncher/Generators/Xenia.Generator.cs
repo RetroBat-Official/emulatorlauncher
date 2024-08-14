@@ -236,6 +236,11 @@ namespace EmulatorLauncher
                             ini.AppendValue("GPU", "clear_memory_page_state", SystemConfig["xenia_clear_memory_page_state"]);
                         else if (Features.IsSupported("xenia_clear_memory_page_state"))
                             ini.AppendValue("GPU", "clear_memory_page_state", "false");
+
+                        if (SystemConfig.isOptSet("xenia_framerate_limit") && !string.IsNullOrEmpty(SystemConfig["xenia_framerate_limit"]))
+                            ini.AppendValue("GPU", "framerate_limit", SystemConfig["xenia_framerate_limit"]);
+                        else if (Features.IsSupported("xenia_framerate_limit"))
+                            ini.AppendValue("GPU", "framerate_limit", "60");
                     }
 
                     // Video section (canary only)

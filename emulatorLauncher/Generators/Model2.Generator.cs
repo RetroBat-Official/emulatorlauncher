@@ -43,8 +43,6 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
-
             string pakDir = Path.Combine(path, "roms");
             if (!Directory.Exists(pakDir))
                 Directory.CreateDirectory(pakDir);

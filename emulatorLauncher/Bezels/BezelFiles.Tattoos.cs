@@ -129,49 +129,30 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
                     ret = "dreamcast_lr";
             }
-            else if (system == "nes")
+            else if (system == "gamecube" || system == "gc")
             {
-                switch (emulator)
+                if (emulator == "dolphin" && Program.SystemConfig.getOptBoolean("gamecubepad0"))
+                    ret = "unknown";
+                else if (Program.SystemConfig.isOptSet("gamecube_buttons"))
                 {
-                    case "libretro":
-                        switch (core)
-                        {
-                            case "fceumm":
-                            case "nestopia":
-                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                                    ret = "nes_rotate_turbo";
-                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                                    ret = "nes_rotate";
-                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                                    ret = "nes_turbo";
-                                break;
-                            case "mesen":
-                                bool turbo = Program.SystemConfig["mesen_nes_turbo"] != "Disabled" || !Program.SystemConfig.isOptSet("mesen_nes_turbo");
-                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
-                                    ret = "nes_rotate_turbo";
-                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !turbo)
-                                    ret = "nes_rotate";
-                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
-                                    ret = "nes_turbo";
-                                break;
-                        }
-                        break;
-                    case "mednafen":
-                    case "mesen":
-                        if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                            ret = "nes_rotate_turbo";
-                        else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                            ret = "nes_rotate";
-                        else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                            ret = "nes_turbo";
-                        break;
-                    case "ares":
-                    case "bizhawk":
-                    case "jgenesis":
-                        if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
-                            ret = "nes_rotate";
-                        break;
+                    switch (Program.SystemConfig["gamecube_buttons"])
+                    {
+                        case "position":
+                            ret = "gamecube_position";
+                            break;
+                        case "xbox":
+                            ret = "gamecube_xbox";
+                            break;
+                        case "reverse_ab":
+                            ret = "gamecube_xy";
+                            break;
+                    }
                 }
+            }
+            else if (system == "mastersystem")
+            {
+                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                    ret = "mastersystem_rotate";
             }
             else if (system == "megadrive")
             {
@@ -264,32 +245,56 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "nes")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "fceumm":
+                            case "nestopia":
+                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_rotate_turbo";
+                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_rotate";
+                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_turbo";
+                                break;
+                            case "mesen":
+                                bool turbo = Program.SystemConfig["mesen_nes_turbo"] != "Disabled" || !Program.SystemConfig.isOptSet("mesen_nes_turbo");
+                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
+                                    ret = "nes_rotate_turbo";
+                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !turbo)
+                                    ret = "nes_rotate";
+                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
+                                    ret = "nes_turbo";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                    case "mesen":
+                        if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_rotate_turbo";
+                        else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_rotate";
+                        else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_turbo";
+                        break;
+                    case "ares":
+                    case "bizhawk":
+                    case "jgenesis":
+                        if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                            ret = "nes_rotate";
+                        break;
+                }
+            }
             else if (system == "snes")
             {
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
                     ret = "snes_invert";
             }
-            else if (system == "gamecube" || system == "gc")
-            {
-                if (emulator == "dolphin" && Program.SystemConfig.getOptBoolean("gamecubepad0"))
-                    ret = "unknown";
-                else if (Program.SystemConfig.isOptSet("gamecube_buttons"))
-                {
-                    switch (Program.SystemConfig["gamecube_buttons"])
-                    {
-                        case "position":
-                            ret = "gamecube_position";
-                            break;
-                        case "xbox":
-                            ret = "gamecube_xbox";
-                            break;
-                        case "reverse_ab":
-                            ret = "gamecube_xy";
-                            break;
-                    }
-                }
-            }
-
+            
             return ret + ".png";
         }
 
