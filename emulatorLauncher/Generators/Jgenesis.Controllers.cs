@@ -542,6 +542,15 @@ namespace EmulatorLauncher
                     newMapping["y"] = InputKey.x;
                 }
             }
+
+            else if (jGenSystem == "smsgg")
+            {
+                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                {
+                    newMapping["button1"] = InputKey.y;
+                    newMapping["button2"] = InputKey.a;
+                }
+            }
             return newMapping;
         }
 

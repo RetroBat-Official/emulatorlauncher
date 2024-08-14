@@ -144,7 +144,14 @@ namespace EmulatorLauncher
             vpad["Pad.Right"] = GetInputKeyName(ctrl, InputKey.right, padId);
             vpad["Select"] = GetInputKeyName(ctrl, InputKey.select, padId);
             vpad["Start"] = GetInputKeyName(ctrl, InputKey.start, padId);
-            if (SystemConfig.getOptBoolean("rotate_buttons"))
+            if (_system == "mastersystem" && SystemConfig.getOptBoolean("rotate_buttons"))
+            {
+                vpad["A..South"] = GetInputKeyName(ctrl, InputKey.y, padId);
+                vpad["B..East"] = GetInputKeyName(ctrl, InputKey.a, padId);
+                vpad["X..West"] = GetInputKeyName(ctrl, InputKey.x, padId);
+                vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.b, padId);
+            }
+            else if (SystemConfig.getOptBoolean("rotate_buttons"))
             {
                 vpad["A..South"] = GetInputKeyName(ctrl, InputKey.b, padId);
                 vpad["B..East"] = GetInputKeyName(ctrl, InputKey.x, padId);

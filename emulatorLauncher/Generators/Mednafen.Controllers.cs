@@ -63,14 +63,16 @@ namespace EmulatorLauncher
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
 
             // First, set all controllers to none
-            if (mednafenCore != "lynx" && mednafenCore !="sms" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba" && mednafenCore != "ngp" && mednafenCore != "gg")
+            if (mednafenCore != "lynx" && mednafenCore != "sms" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba" && mednafenCore != "ngp" && mednafenCore != "gg")
                 CleanUpConfigFile(mednafenCore, cfg);
 
             // Define maximum pads accepted by mednafen core
             int maxPad = inputPortNb[mednafenCore];
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
+            {
                 ConfigureInput(controller, cfg, mednafenCore, double_pads, system);
+            }
         }
 
         private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<string, int> double_pads, string system)
@@ -204,6 +206,11 @@ namespace EmulatorLauncher
 
             if (controller.IsXInputDevice)
                 deviceID = "0x000000000000000000010004f3ff0000";
+
+            string newDeviceIDPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+            string newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.Guid, "mednafen");
+            if (newDeviceID != null)
+                deviceID = newDeviceID;
 
             int nsamepad = 0;
             if (double_pads.ContainsKey(deviceID))
@@ -1662,6 +1669,16 @@ namespace EmulatorLauncher
                 {
                     newMapping["x"] = InputKey.x;
                     newMapping["y"] = InputKey.pageup;
+                }
+            }
+            else if (system == "mastersystem")
+            {
+                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                {
+                    newMapping["fire1"] = InputKey.y;
+                    newMapping["fire2"] = InputKey.a;
+                    newMapping["rapid_fire1"] = InputKey.x;
+                    newMapping["rapid_fire2"] = InputKey.b;
                 }
             }
             return newMapping;

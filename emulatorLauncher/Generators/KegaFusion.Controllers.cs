@@ -156,8 +156,16 @@ namespace EmulatorLauncher
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.down));
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.left));
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.right));
-                buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
-                buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.b));
+                if (SystemConfig.getOptBoolean("rotate_buttons"))
+                {
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
+                }
+                else
+                {
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.b));
+                }
                 buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.start));
                 buttonMapping.Add("0");
 

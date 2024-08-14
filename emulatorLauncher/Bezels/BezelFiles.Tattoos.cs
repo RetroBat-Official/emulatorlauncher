@@ -129,49 +129,10 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
                     ret = "dreamcast_lr";
             }
-            else if (system == "nes")
+            else if (system == "mastersystem")
             {
-                switch (emulator)
-                {
-                    case "libretro":
-                        switch (core)
-                        {
-                            case "fceumm":
-                            case "nestopia":
-                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                                    ret = "nes_rotate_turbo";
-                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                                    ret = "nes_rotate";
-                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                                    ret = "nes_turbo";
-                                break;
-                            case "mesen":
-                                bool turbo = Program.SystemConfig["mesen_nes_turbo"] != "Disabled" || !Program.SystemConfig.isOptSet("mesen_nes_turbo");
-                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
-                                    ret = "nes_rotate_turbo";
-                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !turbo)
-                                    ret = "nes_rotate";
-                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
-                                    ret = "nes_turbo";
-                                break;
-                        }
-                        break;
-                    case "mednafen":
-                    case "mesen":
-                        if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                            ret = "nes_rotate_turbo";
-                        else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                            ret = "nes_rotate";
-                        else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                            ret = "nes_turbo";
-                        break;
-                    case "ares":
-                    case "bizhawk":
-                    case "jgenesis":
-                        if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
-                            ret = "nes_rotate";
-                        break;
-                }
+                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                    ret = "mastersystem_rotate";
             }
             else if (system == "megadrive")
             {
@@ -261,6 +222,50 @@ namespace EmulatorLauncher
                                     ret = "megadrive_lr_yz";
                             }
                         }
+                        break;
+                }
+            }
+            else if (system == "nes")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "fceumm":
+                            case "nestopia":
+                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_rotate_turbo";
+                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_rotate";
+                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_turbo";
+                                break;
+                            case "mesen":
+                                bool turbo = Program.SystemConfig["mesen_nes_turbo"] != "Disabled" || !Program.SystemConfig.isOptSet("mesen_nes_turbo");
+                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
+                                    ret = "nes_rotate_turbo";
+                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !turbo)
+                                    ret = "nes_rotate";
+                                else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
+                                    ret = "nes_turbo";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                    case "mesen":
+                        if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_rotate_turbo";
+                        else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_rotate";
+                        else if (!Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            ret = "nes_turbo";
+                        break;
+                    case "ares":
+                    case "bizhawk":
+                    case "jgenesis":
+                        if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                            ret = "nes_rotate";
                         break;
                 }
             }
