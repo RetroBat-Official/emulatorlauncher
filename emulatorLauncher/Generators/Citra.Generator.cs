@@ -66,6 +66,9 @@ namespace EmulatorLauncher
             if (_bezelFileInfo.PngFile != null)
                 SimpleLogger.Instance.Info("[INFO] Bezel file selected : " + _bezelFileInfo.PngFile);
 
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
+                rom = File.ReadAllText(rom);
+
             List<string> commandArray = new List<string>();
             if (fullscreen)
                 commandArray.Add("-f");
