@@ -129,6 +129,26 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
                     ret = "dreamcast_lr";
             }
+            else if (system == "gamecube" || system == "gc")
+            {
+                if (emulator == "dolphin" && Program.SystemConfig.getOptBoolean("gamecubepad0"))
+                    ret = "unknown";
+                else if (Program.SystemConfig.isOptSet("gamecube_buttons"))
+                {
+                    switch (Program.SystemConfig["gamecube_buttons"])
+                    {
+                        case "position":
+                            ret = "gamecube_position";
+                            break;
+                        case "xbox":
+                            ret = "gamecube_xbox";
+                            break;
+                        case "reverse_ab":
+                            ret = "gamecube_xy";
+                            break;
+                    }
+                }
+            }
             else if (system == "mastersystem")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
@@ -274,27 +294,7 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
                     ret = "snes_invert";
             }
-            else if (system == "gamecube" || system == "gc")
-            {
-                if (emulator == "dolphin" && Program.SystemConfig.getOptBoolean("gamecubepad0"))
-                    ret = "unknown";
-                else if (Program.SystemConfig.isOptSet("gamecube_buttons"))
-                {
-                    switch (Program.SystemConfig["gamecube_buttons"])
-                    {
-                        case "position":
-                            ret = "gamecube_position";
-                            break;
-                        case "xbox":
-                            ret = "gamecube_xbox";
-                            break;
-                        case "reverse_ab":
-                            ret = "gamecube_xy";
-                            break;
-                    }
-                }
-            }
-
+            
             return ret + ".png";
         }
 
