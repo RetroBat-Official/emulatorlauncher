@@ -1038,9 +1038,21 @@ namespace EmulatorLauncher
                 ini.WriteValue("MemoryCards", "Slot1_Enable", "true");
                 ini.WriteValue("MemoryCards", "Slot2_Enable", "true");
 
-                if (SystemConfig.isOptSet("pcsx2_pergame_memory") && SystemConfig.getOptBoolean("pcsx2_pergame_memory"))
+                if (SystemConfig.isOptSet("pcsx2_slot1_memory") && SystemConfig["pcsx2_slot1_memory"] == "game")
                 {
                     ini.WriteValue("MemoryCards", "Slot1_Filename", Path.GetFileNameWithoutExtension(rom) + ".ps2");
+                    ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
+                }
+                else if (SystemConfig.isOptSet("pcsx2_slot1_memory") && SystemConfig["pcsx2_slot1_memory"] == "folder")
+                {
+                    string memCardFolder = Path.Combine(memcardsPath, "Mcdf01.ps2");
+                    if (!Directory.Exists(memCardFolder))
+                        try {Directory.CreateDirectory(memCardFolder);} catch { }
+                    string superblock = Path.Combine(memCardFolder, "_pcsx2_superblock");
+                    if (!File.Exists(superblock))
+                        try { File.WriteAllText(superblock, ""); } catch { }
+
+                    ini.WriteValue("MemoryCards", "Slot1_Filename", "Mcdf01.ps2");
                     ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
                 }
                 else
