@@ -68,7 +68,7 @@ namespace EmulatorLauncher
 
             string args = string.Join(" ", commandArray);
 
-            SetupConfiguration(path, system, resolution, fullscreen);
+            SetupConfiguration(path, system, rom, resolution, fullscreen);
 
             return new ProcessStartInfo()
             {
@@ -79,7 +79,7 @@ namespace EmulatorLauncher
         }
 
         //Configuration file in json format "BigPEmuConfig.bigpcfg"
-        private void SetupConfiguration(string path, string system, ScreenResolution resolution = null, bool fullscreen = false)
+        private void SetupConfiguration(string path, string system, string rom, ScreenResolution resolution = null, bool fullscreen = false)
         {
             //open userdata config file
             string folder = Path.Combine(path, "userdata");
@@ -104,7 +104,7 @@ namespace EmulatorLauncher
                 jsonSystem["PerGameSlots"] = "1";
                 jsonSystem["SaveAutoIncr"] = "1";
 
-                if (system == "jaguarcd")
+                if (system == "jaguarcd" || Path.GetExtension(rom).ToLowerInvariant() == ".cue")
                 {
                     jsonSystem["AttachButch"] = "1";
                     jsonSystem["AttachMT"] = "1";
