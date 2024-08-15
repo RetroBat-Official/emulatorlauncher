@@ -40,7 +40,7 @@ namespace EmulatorLauncher
 			
 			string romdir = Path.GetDirectoryName(rom);
 			
-			if (Path.GetExtension(rom).ToLower() == ".m3u")
+			if (Path.GetExtension(rom).ToLower() == ".m3u" || Path.GetExtension(rom).ToLower() == ".xbox360")
             {
                 SimpleLogger.Instance.Info("[INFO] game file is .m3u, reading content of file.");
                 rom = File.ReadAllText(rom);
