@@ -44,6 +44,8 @@ namespace EmulatorLauncher
             if (Path.GetExtension(rom) == ".chd")
                 throw new ApplicationException("Extension CHD not compatible with Bizhawk");
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             // Json Config file
             string configFile = Path.Combine(path, "config.ini");
 
@@ -51,7 +53,7 @@ namespace EmulatorLauncher
             {
                 var json = DynamicJson.Load(configFile);
 
-                SetupGeneralConfig(json,system, core, rom, emulator);
+                SetupGeneralConfig(json,system, core, rom, emulator, fullscreen);
                 SetupCoreOptions(json, system, core, rom);
                 SetupFirmwares(json, system);
                 SetupRetroAchievements(json);
@@ -60,11 +62,33 @@ namespace EmulatorLauncher
                 //save config file
                 json.Save();
             }
-
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            
             // Bezels
-            if (fullscreen)
+            /*if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+
+            _resolution = resolution;*/
+
+            string renderer = "2";
+            if (SystemConfig.isOptSet("bizhawk_renderer") && !string.IsNullOrEmpty(SystemConfig["bizhawk_renderer"]))
+                renderer = SystemConfig["bizhawk_renderer"];
+
+            switch (renderer)
+            {
+                case "2":
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                    break;
+                case "0":
+                    ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
+                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                    break;
+                case "1":
+                    SystemConfig["forceNoBezel"] = "1";
+                    break;
+            }
 
             _resolution = resolution;
 
@@ -115,7 +139,7 @@ namespace EmulatorLauncher
             { "ti83", "TI83" },
         };
 
-        private void SetupGeneralConfig(DynamicJson json, string system, string core, string rom, string emulator)
+        private void SetupGeneralConfig(DynamicJson json, string system, string core, string rom, string emulator, bool fullscreen)
         {
             // First, set core to use !
             if (bizhawkPreferredCore.ContainsKey(system))
@@ -135,10 +159,16 @@ namespace EmulatorLauncher
 
             // General settings
             json["PauseWhenMenuActivated"] = "true";
+            json["MainFormStayOnTop"] = "true";
             json["SingleInstanceMode"] = "true";
             json["ShowContextMenu"] = "false";
             json["UpdateAutoCheckEnabled"] = "false";
             json["HostInputMethod"] = "0";
+
+            if (fullscreen)
+                json["StartFullscreen"] = "true";
+            else
+                json["StartFullscreen"] = "false";
 
             // Set Paths
             var pathEntries = json.GetOrCreateContainer("PathEntries");

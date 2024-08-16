@@ -110,6 +110,7 @@ namespace EmulatorLauncher
         }
 
         static List<string> megadriveSystems = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
+        static List<string> n64Systems = new List<string>() { "n64", "n64dd" };
         static List<string> nesSystems = new List<string>() { "fds", "nes" };
         static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sufami" };
         static List<string> md3buttonsLibretro = new List<string>() { "257", "1025", "1537", "773", "2" };
@@ -121,6 +122,8 @@ namespace EmulatorLauncher
                 system = "nes";
             else if (snesSystems.Contains(system))
                 system = "snes";
+            else if (n64Systems.Contains(system))
+                system = "n64";
 
             string ret = system;
 
@@ -242,6 +245,35 @@ namespace EmulatorLauncher
                                     ret = "megadrive_lr_yz";
                             }
                         }
+                        break;
+                }
+            }
+            else if (system == "n64")
+            {
+                switch (emulator)
+                {
+                    case "ares":
+                    case "bizhawk":
+                        if (Program.SystemConfig.isOptSet("ares64_inputprofile") && Program.SystemConfig["ares64_inputprofile"] == "zr")
+                            ret = "n64-standalone_zr";
+                        else
+                            ret = "n64-standalone";
+                        break;
+                    case "mupen64":
+                    case "simple64":
+                        if (Program.SystemConfig.isOptSet("mupen64_inputprofile1") && !string.IsNullOrEmpty(Program.SystemConfig["mupen64_inputprofile1"]))
+                        {
+                            string profile = Program.SystemConfig["mupen64_inputprofile1"];
+                            if (profile == "c_face_zl")
+                                ret = "n64-standalone_face_zl";
+                            else if (profile == "c_stick")
+                                ret = "n64-standalone_zr";
+                            else if (profile == "c_face")
+                                ret = "n64-standalone_face_zr";
+                            break;
+                        }
+                        else
+                            ret = "n64-standalone";
                         break;
                 }
             }

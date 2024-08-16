@@ -740,6 +740,28 @@ namespace EmulatorLauncher
             { InputKey.pagedown,            "R" }
         };
 
+        private static readonly InputKeyMapping n64Mapping_zl = new InputKeyMapping()
+        {
+            { InputKey.leftanalogup,        "A Up" },
+            { InputKey.leftanalogdown,      "A Down" },
+            { InputKey.leftanalogleft,      "A Left" },
+            { InputKey.leftanalogright,     "A Right" },
+            { InputKey.up,                  "DPad U"},
+            { InputKey.down,                "DPad D"},
+            { InputKey.left,                "DPad L" },
+            { InputKey.right,               "DPad R"},
+            { InputKey.start,               "Start" },
+            { InputKey.l2,                  "Z" },
+            { InputKey.y,                   "B" },
+            { InputKey.a,                   "A" },
+            { InputKey.rightanalogup,       "C Up" },
+            { InputKey.rightanalogdown,     "C Down" },
+            { InputKey.rightanalogleft,     "C Left" },
+            { InputKey.rightanalogright,    "C Right" },
+            { InputKey.pageup,              "L" },
+            { InputKey.pagedown,            "R" }
+        };
+
         private static readonly InputKeyMapping ndsMapping = new InputKeyMapping()
         {
             { InputKey.b,                   "A" },
@@ -1209,6 +1231,15 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 {
                     return smsMapping_rotate;
+                }
+            }
+
+            if (system == "n64")
+            {
+                bool switchTriggers = !Program.SystemConfig.isOptSet("ares64_inputprofile") || Program.SystemConfig["ares64_inputprofile"] == "zl";
+                if (switchTriggers)
+                {
+                    return n64Mapping_zl;
                 }
             }
 
