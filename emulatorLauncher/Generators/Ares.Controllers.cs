@@ -6,6 +6,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
+using System.Diagnostics.Eventing.Reader;
 
 namespace EmulatorLauncher
 {
@@ -92,6 +93,8 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            bool switchTriggers = (_system == "n64" || _system == "n64dd") && (!SystemConfig.isOptSet("ares64_inputprofile") || SystemConfig["ares64_inputprofile"] == "zl");
+
             string guid = ctrl.Guid.ToLowerInvariant();
 
             var vpad = bml.GetOrCreateContainer("VirtualPad" + playerindex);
@@ -174,8 +177,18 @@ namespace EmulatorLauncher
             }
             vpad["L-Bumper"] = GetInputKeyName(ctrl, InputKey.pageup, padId);
             vpad["R-Bumper"] = GetInputKeyName(ctrl, InputKey.pagedown, padId);
-            vpad["L-Trigger"] = GetInputKeyName(ctrl, InputKey.l2, padId);
-            vpad["R-Trigger"] = GetInputKeyName(ctrl, InputKey.r2, padId);
+
+            if (switchTriggers)
+            {
+                vpad["L-Trigger"] = GetInputKeyName(ctrl, InputKey.r2, padId);
+                vpad["R-Trigger"] = GetInputKeyName(ctrl, InputKey.l2, padId);
+            }
+            else
+            {
+                vpad["L-Trigger"] = GetInputKeyName(ctrl, InputKey.l2, padId);
+                vpad["R-Trigger"] = GetInputKeyName(ctrl, InputKey.r2, padId);
+            }
+
             vpad["L-Stick..Click"] = GetInputKeyName(ctrl, InputKey.l3, padId);
             vpad["R-Stick..Click"] = GetInputKeyName(ctrl, InputKey.r3, padId);
             vpad["L-Up"] = GetInputKeyName(ctrl, InputKey.leftanalogup, padId);

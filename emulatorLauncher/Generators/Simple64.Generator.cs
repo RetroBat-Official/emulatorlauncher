@@ -14,6 +14,9 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
@@ -26,9 +29,11 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             // Configure the emulator
             SetupGUIConfig(path, rom);
-            SetupConfiguration(path, system);
+            SetupConfiguration(path, system, fullscreen);
             CreateControllerConfiguration(path);
 
             List<string> commandArray = new List<string>();
@@ -37,6 +42,13 @@ namespace EmulatorLauncher
                 commandArray.Add("--nogui");
 
             commandArray.Add("\"" + rom + "\"");
+
+            if (fullscreen)
+            {
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            }
+
+            _resolution = resolution;
 
             string args = string.Join(" ", commandArray);
 
@@ -62,7 +74,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void SetupConfiguration(string path, string system)
+        private void SetupConfiguration(string path, string system, bool fullscreen)
         {
             string conf = Path.Combine(path, "mupen64plus.cfg");
 
@@ -89,7 +101,6 @@ namespace EmulatorLauncher
                 ini.WriteValue("Core", "AutoStateSlotIncrement", "True");
 
                 // Parallel options
-                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
                 ini.WriteValue("Video-Parallel", "Fullscreen", fullscreen ? "True" : "False");
 
                 // Vsync
@@ -110,6 +121,20 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("Video-Parallel", "Upscaling", "1");
             }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            bezel?.Dispose();
+
+            return ret;
         }
     }
 }

@@ -65,7 +65,7 @@ namespace EmulatorLauncher
             string devicename = joy.DeviceName;
             int index = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex;
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
-            bool zAsLeftTrigger = SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
+            bool zAsLeftTrigger = !SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
             string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
             string n64guid = controller.Guid.ToLowerInvariant();
 
