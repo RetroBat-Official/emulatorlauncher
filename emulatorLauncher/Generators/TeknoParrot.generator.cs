@@ -305,6 +305,9 @@ namespace EmulatorLauncher
             else
                 data.UseDiscordRPC = false;
 
+            data.HideVanguardWarning = true;
+            data.DisableAnalytics = true;
+
             File.WriteAllText(parrotData, data.ToXml());
         }
 
@@ -662,10 +665,13 @@ namespace EmulatorLauncher
             ConfirmExit = true;
             DownloadIcons = true;
             UiDisableHardwareAcceleration = false;
+            HideVanguardWarning = true;
 
             UiColour = "lightblue";
             UiDarkMode = false;
             UiHolidayThemes = true;
+            HasReadPolicies = true;
+            DisableAnalytics = true;
         }
 
         public bool UseSto0ZDrivingHack { get; set; }
@@ -687,13 +693,14 @@ namespace EmulatorLauncher
         public bool UseDiscordRPC { get; set; }
         public bool SilentMode { get; set; }
         public bool CheckForUpdates { get; set; }
-
         public bool ConfirmExit { get; set; }
         public bool DownloadIcons { get; set; }
         public bool UiDisableHardwareAcceleration { get; set; }
-
+        public bool HideVanguardWarning { get; set; }
         public string UiColour { get; set; }
         public bool UiDarkMode { get; set; }
         public bool UiHolidayThemes { get; set; }
+        public bool HasReadPolicies { get; set; }
+        public bool DisableAnalytics { get; set; }
     }
 }
