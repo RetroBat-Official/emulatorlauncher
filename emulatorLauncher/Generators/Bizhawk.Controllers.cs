@@ -1151,9 +1151,7 @@ namespace EmulatorLauncher
             if (input != null)
             {
                 if (input.Type == "button")
-                {
                     return "B" + (input.Id + 1);
-                }
 
                 if (input.Type == "axis")
                 {
@@ -1221,26 +1219,20 @@ namespace EmulatorLauncher
             if (system == "snes" || (system == "sgb" && core == "BSNES"))
             {
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
-                {
                     return snesMapping_invert;
-                }
             }
 
             if (system == "mastersystem")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
-                {
                     return smsMapping_rotate;
-                }
             }
 
             if (system == "n64")
             {
                 bool switchTriggers = !Program.SystemConfig.isOptSet("ares64_inputprofile") || Program.SystemConfig["ares64_inputprofile"] == "zl";
                 if (switchTriggers)
-                {
                     return n64Mapping_zl;
-                }
             }
 
             return newMapping;
