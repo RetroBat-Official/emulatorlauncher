@@ -978,8 +978,8 @@ namespace EmulatorLauncher
 
         static readonly Dictionary<string, InputKey> ssgamepad = new Dictionary<string, InputKey>()
         {
-            { "a", InputKey.b },
-            { "b", InputKey.a },
+            { "a", InputKey.a },
+            { "b", InputKey.b },
             { "c", InputKey.pagedown },
             { "down", InputKey.down },
             { "left", InputKey.left },
@@ -988,8 +988,8 @@ namespace EmulatorLauncher
             { "rs", InputKey.r2 },
             { "start", InputKey.start },
             { "up", InputKey.up },
-            { "x", InputKey.x },
-            { "y", InputKey.y },
+            { "x", InputKey.y },
+            { "y", InputKey.x },
             { "z", InputKey.pageup }
         };
 

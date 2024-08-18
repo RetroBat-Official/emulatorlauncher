@@ -903,12 +903,12 @@ namespace EmulatorLauncher
             { InputKey.left,                "Left" },
             { InputKey.right,               "Right"},
             { InputKey.start,               "Start" },
-            { InputKey.pageup,              "X" },
+            { InputKey.pageup,              "Z" },
             { InputKey.x,                   "Y" },
-            { InputKey.pagedown,            "Z" },
-            { InputKey.y,                   "A" },
-            { InputKey.a,                   "B" },
-            { InputKey.b,                   "C" },
+            { InputKey.pagedown,            "C" },
+            { InputKey.y,                   "X" },
+            { InputKey.a,                   "A" },
+            { InputKey.b,                   "B" },
             { InputKey.l2,                  "L" },
             { InputKey.r2,                  "R" }
         };

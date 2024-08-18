@@ -62,32 +62,35 @@ namespace EmulatorLauncher
                 //save config file
                 json.Save();
             }
-            
+
             // Bezels
             /*if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;*/
 
-            string renderer = "2";
-            if (SystemConfig.isOptSet("bizhawk_renderer") && !string.IsNullOrEmpty(SystemConfig["bizhawk_renderer"]))
-                renderer = SystemConfig["bizhawk_renderer"];
-
-            switch (renderer)
+            if (fullscreen)
             {
-                case "2":
-                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
-                    if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution, emulator))
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-                    break;
-                case "0":
-                    ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
-                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-                    break;
-                case "1":
-                    SystemConfig["forceNoBezel"] = "1";
-                    break;
+                string renderer = "2";
+                if (SystemConfig.isOptSet("bizhawk_renderer") && !string.IsNullOrEmpty(SystemConfig["bizhawk_renderer"]))
+                    renderer = SystemConfig["bizhawk_renderer"];
+
+                switch (renderer)
+                {
+                    case "2":
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                        if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                        break;
+                    case "0":
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
+                        if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                        break;
+                    case "1":
+                        SystemConfig["forceNoBezel"] = "1";
+                        break;
+                }
             }
 
             _resolution = resolution;
