@@ -44,9 +44,9 @@ namespace EmulatorLauncher.Libretro
             foreach (var controller in Program.Controllers)
                 WriteControllerConfig(retroconfig, controller, system, core);
 
+            WriteKBHotKeyConfig(retroconfig, core);
             if (_n64specialController)
                 return true;
-
             WriteHotKeyConfig(retroconfig);
 
             return true;
@@ -115,7 +115,7 @@ namespace EmulatorLauncher.Libretro
                 retroconfig.DisableAll("input_" + specialkey.Value);
         }
 
-        private static void WriteHotKeyConfig(ConfigFile config)
+        private static void WriteKBHotKeyConfig(ConfigFile config, string core)
         {
             // Keyboard defaults
             config["input_enable_hotkey"] = "nul";
@@ -128,7 +128,42 @@ namespace EmulatorLauncher.Libretro
 #else
             config["input_exit_emulator"] = "escape";
 #endif            
+            // Overwrite hotkeys with a file
+            string kbHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "retroarch_kb_hotkeys.yml");
 
+            if (File.Exists(kbHotkeyFile))
+            {
+                YmlFile ymlFile = YmlFile.Load(kbHotkeyFile);
+
+                if (ymlFile != null)
+                {
+                    YmlContainer kbHotkeyList = ymlFile.Elements.Where(c => c.Name == core).FirstOrDefault() as YmlContainer;
+
+                    if (kbHotkeyList == null)
+                        kbHotkeyList = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
+
+                    if (kbHotkeyList != null)
+                    {
+                        SimpleLogger.Instance.Info("[GENERATOR] Overwriting keyboard hotkeys with values from : " + kbHotkeyFile);
+
+                        var kbHotkeys = kbHotkeyList.Elements;
+
+                        if (kbHotkeys != null & kbHotkeys.Count > 0)
+                        {
+                            foreach (var kbHotkey in kbHotkeys)
+                            {
+                                var hotkey = kbHotkey as YmlElement;
+
+                                if (hotkey != null && hotkey.Name.StartsWith("input_") && !hotkey.Name.EndsWith("_btn") && !hotkey.Name.EndsWith("_mbtn") && !hotkey.Name.EndsWith("_axis"))
+                                    config[hotkey.Name] = hotkey.Value;
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // If no file use RetroBat standard
             config["input_menu_toggle"] = "f1";
             config["input_save_state"] = "f2";
             config["input_load_state"] = "f4";
@@ -137,12 +172,14 @@ namespace EmulatorLauncher.Libretro
             config["input_state_slot_increase"] = "f7";
             config["input_screenshot"] = "f8";
             config["input_rewind"] = "backspace";
-            config["hold_fast_forward"] = "l";
+            config["input_hold_fast_forward"] = "l";
             config["input_shader_next"] = "m";
             config["input_shader_prev"] = "n";
             config["input_bind_hold"] = "2";
             config["input_bind_timeout"] = "5";
-
+        }
+        private static void WriteHotKeyConfig(ConfigFile config)
+        {
             var c0 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
             if (c0 == null || c0.Config == null)
                 return;
