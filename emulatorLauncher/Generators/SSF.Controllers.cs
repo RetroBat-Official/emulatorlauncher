@@ -156,7 +156,7 @@ namespace EmulatorLauncher
                 buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.right, dinputController, isXinput)) + (index * 65536)).ToString());
             }
 
-            if (SystemConfig.isOptSet("ssf_padlayout") && SystemConfig["ssf_padlayout"] == "lr_yz")
+            if (SystemConfig.isOptSet("saturn_padlayout") && SystemConfig["saturn_padlayout"] == "lr_yz")
             {
                 buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.y, dinputController, isXinput)) + (index * 65536)).ToString());
                 buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.a, dinputController, isXinput)) + (index * 65536)).ToString());
@@ -166,7 +166,7 @@ namespace EmulatorLauncher
                 buttonMapping.Add("1/" + ((GetInputCode(ctrl, invertTriggers ? InputKey.r2 : InputKey.pagedown, dinputController, isXinput)) + (index * 65536)).ToString());
             }
 
-            else if (SystemConfig.isOptSet("ssf_padlayout") && SystemConfig["ssf_padlayout"] == "lr_xz")
+            else if (SystemConfig.isOptSet("saturn_padlayout") && SystemConfig["saturn_padlayout"] == "lr_xz")
             {
                 buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.y, dinputController, isXinput)) + (index * 65536)).ToString());
                 buttonMapping.Add("1/" + ((GetInputCode(ctrl, InputKey.a, dinputController, isXinput)) + (index * 65536)).ToString());
