@@ -903,12 +903,12 @@ namespace EmulatorLauncher
             { InputKey.left,                "Left" },
             { InputKey.right,               "Right"},
             { InputKey.start,               "Start" },
-            { InputKey.pageup,              "X" },
+            { InputKey.pageup,              "Z" },
             { InputKey.x,                   "Y" },
-            { InputKey.pagedown,            "Z" },
-            { InputKey.y,                   "A" },
-            { InputKey.a,                   "B" },
-            { InputKey.b,                   "C" },
+            { InputKey.pagedown,            "C" },
+            { InputKey.y,                   "X" },
+            { InputKey.a,                   "A" },
+            { InputKey.b,                   "B" },
             { InputKey.l2,                  "L" },
             { InputKey.r2,                  "R" }
         };
@@ -1151,9 +1151,7 @@ namespace EmulatorLauncher
             if (input != null)
             {
                 if (input.Type == "button")
-                {
                     return "B" + (input.Id + 1);
-                }
 
                 if (input.Type == "axis")
                 {
@@ -1221,25 +1219,84 @@ namespace EmulatorLauncher
             if (system == "snes" || (system == "sgb" && core == "BSNES"))
             {
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
-                {
                     return snesMapping_invert;
-                }
             }
 
             if (system == "mastersystem")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
-                {
                     return smsMapping_rotate;
-                }
             }
 
             if (system == "n64")
             {
                 bool switchTriggers = !Program.SystemConfig.isOptSet("ares64_inputprofile") || Program.SystemConfig["ares64_inputprofile"] == "zl";
                 if (switchTriggers)
-                {
                     return n64Mapping_zl;
+            }
+
+            if (system == "saturn")
+            {
+                bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");
+                if (Program.SystemConfig.isOptSet("saturn_padlayout") && !string.IsNullOrEmpty(Program.SystemConfig["saturn_padlayout"]))
+                {
+                    switch (Program.SystemConfig["saturn_padlayout"])
+                    {
+                        case "lr_yz":
+                            if (switchTriggers)
+                            {
+                                newMapping[InputKey.y] = "A";
+                                newMapping[InputKey.a] = "B";
+                                newMapping[InputKey.b] = "C";
+                                newMapping[InputKey.x] = "X";
+                                newMapping[InputKey.pageup] = "L";
+                                newMapping[InputKey.pagedown] = "R";
+                                newMapping[InputKey.l2] = "Y";
+                                newMapping[InputKey.r2] = "Z";
+                                break;
+                            }
+                            else
+                            {
+                                newMapping[InputKey.y] = "A";
+                                newMapping[InputKey.a] = "B";
+                                newMapping[InputKey.b] = "C";
+                                newMapping[InputKey.x] = "X";
+                                newMapping[InputKey.pageup] = "Y";
+                                newMapping[InputKey.pagedown] = "Z";
+                                break;
+                            }
+                        case "lr_xz":
+                            if (switchTriggers)
+                            {
+                                newMapping[InputKey.y] = "A";
+                                newMapping[InputKey.a] = "B";
+                                newMapping[InputKey.b] = "C";
+                                newMapping[InputKey.pageup] = "L";
+                                newMapping[InputKey.pagedown] = "R";
+                                newMapping[InputKey.l2] = "X";
+                                newMapping[InputKey.r2] = "Z";
+                                break;
+                            }
+                            else
+                            {
+                                newMapping[InputKey.y] = "A";
+                                newMapping[InputKey.a] = "B";
+                                newMapping[InputKey.b] = "C";
+                                newMapping[InputKey.pageup] = "X";
+                                newMapping[InputKey.pagedown] = "Z";
+                                break;
+                            }
+                        case "lr_zc":
+                            if (switchTriggers)
+                            {
+                                newMapping[InputKey.pageup] = "L";
+                                newMapping[InputKey.pagedown] = "R";
+                                newMapping[InputKey.l2] = "Z";
+                                newMapping[InputKey.r2] = "C";
+                                break;
+                            }
+                            break;
+                    }
                 }
             }
 

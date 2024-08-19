@@ -3,6 +3,7 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Collections.Generic;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -320,6 +321,33 @@ namespace EmulatorLauncher
                             ret = "nes_rotate";
                         break;
                 }
+            }
+            else if (system == "saturn")
+            {
+                bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");
+                if (Program.SystemConfig.isOptSet("saturn_padlayout") && !string.IsNullOrEmpty(Program.SystemConfig["saturn_padlayout"]))
+                {
+                    switch (Program.SystemConfig["saturn_padlayout"])
+                    {
+                        case "lr_yz":
+                            if (switchTriggers)
+                                ret = "saturn_lr_yz_invert_triggers";
+                            else
+                                ret = "saturn_lr_yz";
+                            break;
+                        case "lr_xz":
+                            if (switchTriggers)
+                                ret = "saturn_lr_xz_invert_triggers";
+                            else
+                                ret = "saturn_lr_xz";
+                            break;
+                        case "lr_zc":
+                            if (switchTriggers)
+                                ret = "saturn_invert_triggers";
+                            break;
+                    }
+                }
+
             }
             else if (system == "snes")
             {

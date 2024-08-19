@@ -978,8 +978,8 @@ namespace EmulatorLauncher
 
         static readonly Dictionary<string, InputKey> ssgamepad = new Dictionary<string, InputKey>()
         {
-            { "a", InputKey.b },
-            { "b", InputKey.a },
+            { "a", InputKey.a },
+            { "b", InputKey.b },
             { "c", InputKey.pagedown },
             { "down", InputKey.down },
             { "left", InputKey.left },
@@ -988,8 +988,8 @@ namespace EmulatorLauncher
             { "rs", InputKey.r2 },
             { "start", InputKey.start },
             { "up", InputKey.up },
-            { "x", InputKey.x },
-            { "y", InputKey.y },
+            { "x", InputKey.y },
+            { "y", InputKey.x },
             { "z", InputKey.pageup }
         };
 
@@ -1679,6 +1679,70 @@ namespace EmulatorLauncher
                     newMapping["fire2"] = InputKey.a;
                     newMapping["rapid_fire1"] = InputKey.x;
                     newMapping["rapid_fire2"] = InputKey.b;
+                }
+            }
+            else if (system == "saturn")
+            {
+                bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");
+                if (Program.SystemConfig.isOptSet("saturn_padlayout") && !string.IsNullOrEmpty(Program.SystemConfig["saturn_padlayout"]))
+                {
+                    switch (Program.SystemConfig["saturn_padlayout"])
+                    {
+                        case "lr_yz":
+                            if (switchTriggers)
+                            {
+                                newMapping["a"] = InputKey.y;
+                                newMapping["b"] = InputKey.a;
+                                newMapping["c"] = InputKey.b;
+                                newMapping["x"] = InputKey.x;
+                                newMapping["ls"] = InputKey.pageup;
+                                newMapping["rs"] = InputKey.pagedown;
+                                newMapping["y"] = InputKey.l2;
+                                newMapping["z"] = InputKey.r2;
+                                break;
+                            }
+                            else
+                            {
+                                newMapping["a"] = InputKey.y;
+                                newMapping["b"] = InputKey.a;
+                                newMapping["c"] = InputKey.b;
+                                newMapping["x"] = InputKey.x;
+                                newMapping["y"] = InputKey.pageup;
+                                newMapping["z"] = InputKey.pagedown;
+                                break;
+                            }
+                        case "lr_xz":
+                            if (switchTriggers)
+                            {
+                                newMapping["a"] = InputKey.y;
+                                newMapping["b"] = InputKey.a;
+                                newMapping["c"] = InputKey.b;
+                                newMapping["ls"] = InputKey.pageup;
+                                newMapping["rs"] = InputKey.pagedown;
+                                newMapping["x"] = InputKey.l2;
+                                newMapping["z"] = InputKey.r2;
+                                break;
+                            }
+                            else
+                            {
+                                newMapping["a"] = InputKey.y;
+                                newMapping["b"] = InputKey.a;
+                                newMapping["c"] = InputKey.b;
+                                newMapping["x"] = InputKey.pageup;
+                                newMapping["z"] = InputKey.pagedown;
+                                break;
+                            }
+                        case "lr_zc":
+                            if (switchTriggers)
+                            {
+                                newMapping["ls"] = InputKey.pageup;
+                                newMapping["rs"] = InputKey.pagedown;
+                                newMapping["z"] = InputKey.l2;
+                                newMapping["c"] = InputKey.r2;
+                                break;
+                            }
+                            break;
+                    }
                 }
             }
             return newMapping;
