@@ -10,6 +10,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb" };
         static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds", "mastersystem" };
         static readonly List<string> systemMegadrive = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
+        static readonly List<string> systemNES = new List<string>() { "nes", "fds" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
 
@@ -202,25 +203,92 @@ namespace EmulatorLauncher.Libretro
                 #endregion
 
                 #region NES
-                if (core == "fceumm" && !rotateButtons)
+                if (systemNES.Contains(system))
                 {
-                    inputremap["input_player" + i + "_btn_a"] = "9";
-                    inputremap["input_player" + i + "_btn_b"] = "8";
-                    inputremap["input_player" + i + "_btn_x"] = "1";
-                    inputremap["input_player" + i + "_btn_y"] = "0";
-                }
-
-                if (core == "nestopia" && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                {
-                    if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                    if (core == "fceumm" && !rotateButtons)
                     {
-                        inputremap["input_player" + i + "_btn_x"] = "-1";
-                        inputremap["input_player" + i + "_btn_y"] = "-1";
+                        inputremap["input_player" + i + "_btn_a"] = "9";
+                        inputremap["input_player" + i + "_btn_b"] = "8";
+                        inputremap["input_player" + i + "_btn_x"] = "1";
+                        inputremap["input_player" + i + "_btn_y"] = "0";
                     }
-                    else
+
+                    if (core == "nestopia" && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
                     {
-                        inputremap["input_player" + i + "_btn_x"] = "-1";
-                        inputremap["input_player" + i + "_btn_a"] = "-1";
+                        if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                        {
+                            inputremap["input_player" + i + "_btn_x"] = "-1";
+                            inputremap["input_player" + i + "_btn_y"] = "-1";
+                        }
+                        else
+                        {
+                            inputremap["input_player" + i + "_btn_x"] = "-1";
+                            inputremap["input_player" + i + "_btn_a"] = "-1";
+                        }
+                    }
+                }
+                #endregion
+
+                #region saturn
+                if (system == "saturn")
+                {
+                    bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");
+                    if (Program.SystemConfig.isOptSet("saturn_padlayout") && !string.IsNullOrEmpty(Program.SystemConfig["saturn_padlayout"]))
+                    {
+                        switch (Program.SystemConfig["saturn_padlayout"])
+                        {
+                            case "lr_yz":
+                                if (switchTriggers)
+                                {
+                                    inputremap["input_player" + i + "_btn_a"] = "11";
+                                    inputremap["input_player" + i + "_btn_b"] = "8";
+                                    inputremap["input_player" + i + "_btn_l"] = "12";
+                                    inputremap["input_player" + i + "_btn_r"] = "13";
+                                    inputremap["input_player" + i + "_btn_x"] = "1";
+                                    inputremap["input_player" + i + "_btn_y"] = "0";
+                                    inputremap["input_player" + i + "_btn_l2"] = "9";
+                                    inputremap["input_player" + i + "_btn_r2"] = "10";
+                                }
+                                else
+                                {
+                                    inputremap["input_player" + i + "_btn_a"] = "11";
+                                    inputremap["input_player" + i + "_btn_b"] = "8";
+                                    inputremap["input_player" + i + "_btn_l"] = "9";
+                                    inputremap["input_player" + i + "_btn_r"] = "10";
+                                    inputremap["input_player" + i + "_btn_x"] = "1";
+                                    inputremap["input_player" + i + "_btn_y"] = "0";
+                                }
+                                break;
+                            case "lr_xz":
+                                if (switchTriggers)
+                                {
+                                    inputremap["input_player" + i + "_btn_a"] = "11";
+                                    inputremap["input_player" + i + "_btn_b"] = "8";
+                                    inputremap["input_player" + i + "_btn_l"] = "12";
+                                    inputremap["input_player" + i + "_btn_l2"] = "1";
+                                    inputremap["input_player" + i + "_btn_r"] = "13";
+                                    inputremap["input_player" + i + "_btn_r2"] = "10";
+                                    inputremap["input_player" + i + "_btn_y"] = "0";
+                                }
+                                else
+                                {
+                                    inputremap["input_player" + i + "_btn_a"] = "11";
+                                    inputremap["input_player" + i + "_btn_b"] = "8";
+                                    inputremap["input_player" + i + "_btn_l"] = "1";
+                                    inputremap["input_player" + i + "_btn_r"] = "10";
+                                    inputremap["input_player" + i + "_btn_y"] = "0";
+                                }
+                                break;
+                            case "lr_zc":
+                                if (switchTriggers)
+                                {
+                                    inputremap["input_player" + i + "_btn_l"] = "12";
+                                    inputremap["input_player" + i + "_btn_l2"] = "10";
+                                    inputremap["input_player" + i + "_btn_r"] = "13";
+                                    inputremap["input_player" + i + "_btn_r2"] = "11";
+                                }
+                                break;
+                        }
                     }
                 }
                 #endregion

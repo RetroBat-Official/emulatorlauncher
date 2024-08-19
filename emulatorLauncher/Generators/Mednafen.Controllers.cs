@@ -1681,6 +1681,70 @@ namespace EmulatorLauncher
                     newMapping["rapid_fire2"] = InputKey.b;
                 }
             }
+            else if (system == "saturn")
+            {
+                bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");
+                if (Program.SystemConfig.isOptSet("saturn_padlayout") && !string.IsNullOrEmpty(Program.SystemConfig["saturn_padlayout"]))
+                {
+                    switch (Program.SystemConfig["saturn_padlayout"])
+                    {
+                        case "lr_yz":
+                            if (switchTriggers)
+                            {
+                                newMapping["a"] = InputKey.y;
+                                newMapping["b"] = InputKey.a;
+                                newMapping["c"] = InputKey.b;
+                                newMapping["x"] = InputKey.x;
+                                newMapping["ls"] = InputKey.pageup;
+                                newMapping["rs"] = InputKey.pagedown;
+                                newMapping["y"] = InputKey.l2;
+                                newMapping["z"] = InputKey.r2;
+                                break;
+                            }
+                            else
+                            {
+                                newMapping["a"] = InputKey.y;
+                                newMapping["b"] = InputKey.a;
+                                newMapping["c"] = InputKey.b;
+                                newMapping["x"] = InputKey.x;
+                                newMapping["y"] = InputKey.pageup;
+                                newMapping["z"] = InputKey.pagedown;
+                                break;
+                            }
+                        case "lr_xz":
+                            if (switchTriggers)
+                            {
+                                newMapping["a"] = InputKey.y;
+                                newMapping["b"] = InputKey.a;
+                                newMapping["c"] = InputKey.b;
+                                newMapping["ls"] = InputKey.pageup;
+                                newMapping["rs"] = InputKey.pagedown;
+                                newMapping["x"] = InputKey.l2;
+                                newMapping["z"] = InputKey.r2;
+                                break;
+                            }
+                            else
+                            {
+                                newMapping["a"] = InputKey.y;
+                                newMapping["b"] = InputKey.a;
+                                newMapping["c"] = InputKey.b;
+                                newMapping["x"] = InputKey.pageup;
+                                newMapping["z"] = InputKey.pagedown;
+                                break;
+                            }
+                        case "lr_zc":
+                            if (switchTriggers)
+                            {
+                                newMapping["ls"] = InputKey.pageup;
+                                newMapping["rs"] = InputKey.pagedown;
+                                newMapping["z"] = InputKey.l2;
+                                newMapping["c"] = InputKey.r2;
+                                break;
+                            }
+                            break;
+                    }
+                }
+            }
             return newMapping;
         }
     }
