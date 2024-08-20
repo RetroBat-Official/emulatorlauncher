@@ -235,7 +235,7 @@ namespace EmulatorLauncher
                 newmapping = mappingToUse[mapping];
 
             // Special case for psx dualshock and driving games
-            if (mednafenCore == "psx" && SystemConfig.getOptBoolean("mednafen_triggerswap"))
+            if (mednafenCore == "psx" && SystemConfig.getOptBoolean("psx_triggerswap"))
             {
                 padType = "dualshock";
                 mapping = mednafenCore + "_" + padType + "_gtspecial";

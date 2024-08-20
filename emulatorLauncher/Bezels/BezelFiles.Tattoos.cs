@@ -322,6 +322,11 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "psx")
+            {
+                if (Program.SystemConfig.isOptSet("psx_triggerswap"))
+                    ret = "psx_triggers_rstick";
+            }
             else if (system == "saturn")
             {
                 bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");

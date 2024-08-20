@@ -580,6 +580,26 @@ namespace EmulatorLauncher
             { InputKey.r3,              "Right Stick, Button" }
         };
 
+        private static readonly InputKeyMapping dualshockNymaGTMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "D-Pad Up"},
+            { InputKey.down,            "D-Pad Down"},
+            { InputKey.left,            "D-Pad Left" },
+            { InputKey.right,           "D-Pad Right"},
+            { InputKey.a,               "X" },
+            { InputKey.b,               "○" },
+            { InputKey.y,               "□" },
+            { InputKey.x,               "△" },
+            { InputKey.pageup,          "L1" },
+            { InputKey.pagedown,        "R1" },
+            { InputKey.select,          "Select" },
+            { InputKey.start,           "Start" },
+            { InputKey.rightanalogdown, "L2" },
+            { InputKey.rightanalogup,   "R2" },
+            { InputKey.l3,              "Left Stick, Button" },
+            { InputKey.r3,              "Right Stick, Button" }
+        };
+
         private static readonly InputKeyMapping dualshockOctoMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
@@ -596,6 +616,26 @@ namespace EmulatorLauncher
             { InputKey.start,           "Start" },
             { InputKey.l2,              "L2" },
             { InputKey.r2,              "R2" },
+            { InputKey.l3,              "L3" },
+            { InputKey.r3,              "R3" }
+        };
+
+        private static readonly InputKeyMapping dualshockOctoGTMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "Cross" },
+            { InputKey.b,               "Circle" },
+            { InputKey.y,               "Square" },
+            { InputKey.x,               "Triangle" },
+            { InputKey.pageup,          "L1" },
+            { InputKey.pagedown,        "R1" },
+            { InputKey.select,          "Select" },
+            { InputKey.start,           "Start" },
+            { InputKey.rightanalogdown, "L2" },
+            { InputKey.rightanalogup,   "R2" },
             { InputKey.l3,              "L3" },
             { InputKey.r3,              "R3" }
         };
@@ -1300,7 +1340,15 @@ namespace EmulatorLauncher
                 }
             }
 
-            return newMapping;
+            if (system == "psx" && Program.SystemConfig.getOptBoolean("psx_triggerswap"))
+            {
+                if (core == "Nymashock")
+                    return dualshockNymaGTMapping;
+                else
+                    return dualshockOctoGTMapping;
+            }
+
+                return newMapping;
         }
 
         private static readonly Dictionary<string, string> systemController = new Dictionary<string, string>()
