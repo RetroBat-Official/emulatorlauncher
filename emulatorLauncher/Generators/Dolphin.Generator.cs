@@ -103,6 +103,14 @@ namespace EmulatorLauncher
             if (File.Exists(SystemConfig["state_file"]))
                 saveState = " --save_state=\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"";
 
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".wiimenu")
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    Arguments = "-b -n 0000000100000002",
+                    WorkingDirectory = path,
+                };
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
