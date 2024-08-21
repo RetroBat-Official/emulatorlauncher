@@ -280,6 +280,8 @@ namespace EmulatorLauncher
 
                     // Storage section
                     string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia");
+                    if (!Directory.Exists(contentPath))
+                        try { Directory.CreateDirectory(contentPath); } catch { }
                     if (Directory.Exists(contentPath))
                         ini.AppendValue("Storage", "content_root", "\"" + contentPath.Replace("\\", "/") + "\"");
 
