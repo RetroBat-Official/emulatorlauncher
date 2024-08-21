@@ -12,12 +12,12 @@ namespace EmulatorLauncher
     partial class PpssppGenerator
     {
         // see. github.com/batocera-linux/batocera.linux/blob/master/package/batocera/core/batocera-configgen/configgen/configgen/generators/ppsspp/ppssppControllers.py
-        private void CreateControllerConfiguration(string path)
+        private void CreateControllerConfiguration(string path, string memPath)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            string iniFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "controls.ini");
+            string iniFile = Path.Combine(memPath, "SYSTEM", "controls.ini");
 
             try
             {
