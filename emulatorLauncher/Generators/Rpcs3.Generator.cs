@@ -29,6 +29,8 @@ namespace EmulatorLauncher
 
             rom = this.TryUnZipGameIfNeeded(system, rom);
             string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps3", "rpcs3");
+            if (!Directory.Exists(savesPath))
+                savesPath = path;
 
             if (Directory.Exists(rom))
             {
@@ -166,16 +168,14 @@ namespace EmulatorLauncher
 
             var yml = YmlFile.Load(Path.Combine(path, "config", "vfs.yml"));
 
-            
-            if (!Directory.Exists(savesPath))
-                try { Directory.CreateDirectory(savesPath); }
-                catch { }
             string hdd0Path = Path.Combine(savesPath, "dev_hdd0");
             if (!Directory.Exists(hdd0Path))
                 try { Directory.CreateDirectory(hdd0Path); }
                 catch { }
 
             yml["/dev_hdd0/"] = hdd0Path.Replace("\\", "/");
+
+            SimpleLogger.Instance.Info("[Generator] Setting '" + hdd0Path + "' as content path for the emulator");
 
             // Save to yml file
             yml.Save();

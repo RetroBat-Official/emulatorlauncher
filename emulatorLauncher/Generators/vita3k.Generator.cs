@@ -26,6 +26,8 @@ namespace EmulatorLauncher
             if (!GetVita3kPrefPath(path))
                 _prefPath = Path.Combine(AppConfig.GetFullPath("saves"), "psvita", "vita3k");
 
+            SimpleLogger.Instance.Info("[Generator] Setting '" + _prefPath + "' as content path for the emulator");
+
             // Check if firmware is intalled
             string firmware = Path.Combine(_prefPath, "vs0", "vsh", "initialsetup");
             if (!Directory.Exists(firmware))

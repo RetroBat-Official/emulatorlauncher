@@ -144,7 +144,8 @@ namespace EmulatorLauncher
             var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("content");
 
             string mlcPath = Path.Combine(AppConfig.GetFullPath("saves"), "wiiu", "cemu", "mlc01");
-            xdoc.SetElementValue("mlc_path", mlcPath.Replace("\\", "/"));
+            if (Directory.Exists(mlcPath))
+                xdoc.SetElementValue("mlc_path", mlcPath.Replace("\\", "/"));
 
             if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                 xdoc.SetElementValue("use_discord_presence", "true");

@@ -19,6 +19,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("ryujinx");
             if (!Directory.Exists(path))
                 return null;
@@ -34,7 +36,9 @@ namespace EmulatorLauncher
             string portablePath = Path.Combine(AppConfig.GetFullPath("saves"), "switch", "ryujinx", "portable");
             if (Directory.Exists(portablePath))
                 setupPath = portablePath;
-            
+
+            SimpleLogger.Instance.Info("[Generator] Setting '" + setupPath + "' as content path for the emulator");
+
             SetupConfiguration(setupPath);
 
             var commandArray = new List<string>();

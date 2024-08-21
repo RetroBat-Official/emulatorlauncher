@@ -30,6 +30,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("ppsspp");
 
             string exe = Path.Combine(path, "PPSSPPWindows64.exe");
@@ -52,6 +54,7 @@ namespace EmulatorLauncher
             }
 
             string memPath = Path.Combine(AppConfig.GetFullPath("saves"), "psp", "PSP");
+            SimpleLogger.Instance.Info("[Generator] Setting '" + memPath + "' as content path for the emulator");
 
             if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
             {
