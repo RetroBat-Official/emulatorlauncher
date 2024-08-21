@@ -24,7 +24,7 @@ namespace EmulatorLauncher
                 return null;
 
             if (!GetVita3kPrefPath(path))
-                _prefPath = path;
+                _prefPath = Path.Combine(AppConfig.GetFullPath("saves"), "psvita", "vita3k");
 
             // Check if firmware is intalled
             string firmware = Path.Combine(_prefPath, "vs0", "vsh", "initialsetup");
