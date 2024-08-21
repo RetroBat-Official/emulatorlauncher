@@ -348,6 +348,10 @@ namespace EmulatorLauncher
                 else
                     ret = "psx";
             }
+            else if (system == "ps3")
+            {
+                ret = "psx";
+            }
             else if (system == "saturn")
             {
                 bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");
