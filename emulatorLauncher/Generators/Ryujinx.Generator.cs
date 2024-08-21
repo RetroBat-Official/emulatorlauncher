@@ -19,6 +19,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("ryujinx");
             if (!Directory.Exists(path))
                 return null;
@@ -29,13 +31,32 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupConfiguration(path);
+            string setupPath = Path.Combine(path, "portable");
+
+            string portablePath = Path.Combine(AppConfig.GetFullPath("saves"), "switch", "ryujinx", "portable");
+            if (Directory.Exists(portablePath))
+                setupPath = portablePath;
+
+            SimpleLogger.Instance.Info("[Generator] Setting '" + setupPath + "' as content path for the emulator");
+
+            SetupConfiguration(setupPath);
+
+            var commandArray = new List<string>();
+
+            if (Directory.Exists(portablePath))
+            {
+                commandArray.Add("-r");
+                commandArray.Add("\"" + portablePath + "\"");
+            }
+            
+            commandArray.Add("\"" + rom + "\"");
+            string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = "\"" + rom + "\"",
+                Arguments = args,
                 WindowStyle = ProcessWindowStyle.Minimized,
             };
         }
@@ -77,14 +98,14 @@ namespace EmulatorLauncher
         }
 
         //Manage Config.json file settings
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string setupPath)
         {
             if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            var json = DynamicJson.Load(Path.Combine(path, "portable", "Config.json"));
+            var json = DynamicJson.Load(Path.Combine(setupPath, "Config.json"));
 
             //Set fullscreen
             json["start_fullscreen"] = fullscreen ? "true" : "false";

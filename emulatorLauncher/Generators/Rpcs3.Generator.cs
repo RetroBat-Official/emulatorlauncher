@@ -28,6 +28,9 @@ namespace EmulatorLauncher
                 return null;
 
             rom = this.TryUnZipGameIfNeeded(system, rom);
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps3", "rpcs3");
+            if (!Directory.Exists(savesPath))
+                savesPath = path;
 
             if (Directory.Exists(rom))
             {
@@ -45,7 +48,7 @@ namespace EmulatorLauncher
                 if (rom.StartsWith(".\\") || rom.StartsWith("./"))
                     rom = Path.Combine(romPath, rom.Substring(2));
                 else if (rom.StartsWith("\\") || rom.StartsWith("/"))
-                    rom = Path.Combine(path, rom.Substring(1));
+                    rom = Path.Combine(savesPath, rom.Substring(1));
             }
 
             // Fullscreen
@@ -72,6 +75,7 @@ namespace EmulatorLauncher
             {
                 SetupGuiConfiguration(path);
                 SetupConfiguration(path, fullscreen);
+                SetupVFSConfiguration(path, savesPath);
                 CreateControllerConfiguration(path);
 
                 // Check if firmware is installed in emulator, if not and if firmware is available in \bios path then install it instead of running the game
@@ -156,6 +160,25 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("GSFrame", "lockMouseInFullscreen", "true");
             }
+        }
+
+        private void SetupVFSConfiguration(string path, string savesPath)
+        {
+            SimpleLogger.Instance.Info("[GENERATOR] Writing to vfs.yml file.");
+
+            var yml = YmlFile.Load(Path.Combine(path, "config", "vfs.yml"));
+
+            string hdd0Path = Path.Combine(savesPath, "dev_hdd0");
+            if (!Directory.Exists(hdd0Path))
+                try { Directory.CreateDirectory(hdd0Path); }
+                catch { }
+
+            yml["/dev_hdd0/"] = hdd0Path.Replace("\\", "/");
+
+            SimpleLogger.Instance.Info("[Generator] Setting '" + hdd0Path + "' as content path for the emulator");
+
+            // Save to yml file
+            yml.Save();
         }
 
         /// <summary>

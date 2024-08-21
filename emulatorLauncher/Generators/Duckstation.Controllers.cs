@@ -274,7 +274,7 @@ namespace EmulatorLauncher
                     ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
             }
 
-            if (SystemConfig.getOptBoolean("duck_triggerswap"))
+            if (SystemConfig.getOptBoolean("psx_triggerswap"))
             {
                 ini.Remove(padNumber, "L2");
                 ini.Remove(padNumber, "R2");

@@ -27,9 +27,11 @@ namespace EmulatorLauncher
 
             base.Cleanup();
         }
-        
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("ppsspp");
 
             string exe = Path.Combine(path, "PPSSPPWindows64.exe");
@@ -51,22 +53,26 @@ namespace EmulatorLauncher
                 }
             }
 
+            string memPath = Path.Combine(AppConfig.GetFullPath("saves"), "psp", "PSP");
+            SimpleLogger.Instance.Info("[Generator] Setting '" + memPath + "' as content path for the emulator");
+
             if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
             {
                 string savesPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
 
-                _saveStatesWatcher = new PpssppSaveStatesMonitor(rom, Path.Combine(path, "memstick", "PSP", "PPSSPP_STATE"), savesPath);
+                _saveStatesWatcher = new PpssppSaveStatesMonitor(rom, Path.Combine(memPath, "PPSSPP_STATE"), savesPath);
                 _saveStatesWatcher.PrepareEmulatorRepository();
             }
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            SetupConfig(path, fullscreen);
-            CreateControllerConfiguration(path);
+            WriteInstalledFile(path, memPath);
+            SetupConfig(memPath, fullscreen);
+            CreateControllerConfiguration(path, memPath);
 
             var commandArray = new List<string>();
             //commandArray.Add("--escape-exit");
-            
+
             if (fullscreen)
                 commandArray.Add("-fullscreen");
 
@@ -85,19 +91,19 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfig(string path, bool fullscreen = true)
+        private void SetupConfig(string memPath, bool fullscreen = true)
         {
-            string iniFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "ppsspp.ini");
+            string iniFile = Path.Combine(memPath, "SYSTEM", "ppsspp.ini");
             bool cheevosEnable = Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements");
 
             if (cheevosEnable)
             {
-                string cheevosTokenFile = Path.Combine(path, "memstick", "PSP", "SYSTEM", "ppsspp_retroachievements.dat");
+                string cheevosTokenFile = Path.Combine(memPath, "SYSTEM", "ppsspp_retroachievements.dat");
                 string cheevosToken = SystemConfig["retroachievements.token"];
-                try 
-                { 
-                    File.WriteAllText(cheevosTokenFile, cheevosToken); 
-                } 
+                try
+                {
+                    File.WriteAllText(cheevosTokenFile, cheevosToken);
+                }
                 catch { }
             }
 
@@ -107,10 +113,10 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("General", "CheckForNewVersion", "False");
                     ini.WriteValue("General", "FirstRun", "False");
-                    ini.WriteValue("Control", "AllowMappingCombos", "True"); 
+                    ini.WriteValue("Control", "AllowMappingCombos", "True");
 
                     // Make it complex for the user to run another game using the UI ( related to the way the savestates monitor works )
-                    ini.WriteValue("General", "CurrentDirectory", path.Replace("\\", "/"));
+                    ini.WriteValue("General", "CurrentDirectory", Path.Combine(AppConfig.GetFullPath("roms"), "psp").Replace("\\", "/"));
                     ini.ClearSection("Recent");
 
                     // Retroachievements
@@ -134,7 +140,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Achievements", "AchievementsLogBadMemReads", "False");
                         ini.WriteValue("Achievements", "AchievementsChallengeMode", "False");
                     }
-                    
+
                     // Graphics
                     ini.WriteValue("Graphics", "FullScreen", fullscreen ? "True" : "False");
 
@@ -196,7 +202,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Graphics", "TexScalingType", SystemConfig["ppsspp_textureenhancement"]);
                         ini.WriteValue("Graphics", "TexHardwareScaling", "False");
                         ini.WriteValue("Graphics", "TextureShader", "Off");
-                        
+
                         if (SystemConfig.isOptSet("ppsspp_textureenhancement_level") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement_level"]) && SystemConfig["ppsspp_textureenhancement_level"] != "1")
                         {
                             ini.WriteValue("Graphics", "TexScalingLevel", SystemConfig["ppsspp_textureenhancement_level"]);
@@ -223,7 +229,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Graphics", "TextureFiltering", "1");
 
                     if (SystemConfig.isOptSet("Integer_Scaling") && SystemConfig.getOptBoolean("Integer_Scaling"))
-                    { 
+                    {
                         ini.WriteValue("Graphics", "DisplayIntegerScale", "True");
                         ini.WriteValue("Graphics", "DisplayAspectRatio", "1.000000");
                     }
@@ -271,6 +277,16 @@ namespace EmulatorLauncher
                         ini.WriteValue("General", "StateSlot", _saveStatesWatcher.Slot.ToString());
 
                 }
+            }
+            catch { }
+        }
+
+        private void WriteInstalledFile(string path, string memPath)
+        {
+            string installedFile = Path.Combine(path, "installed.txt"); 
+            try
+            {
+                File.WriteAllText(installedFile, memPath);
             }
             catch { }
         }

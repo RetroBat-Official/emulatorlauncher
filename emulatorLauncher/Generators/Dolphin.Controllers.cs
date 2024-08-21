@@ -453,6 +453,8 @@ namespace EmulatorLauncher
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
+            SimpleLogger.Instance.Info("[INFO] Configuring Lightgun buttons in : " + iniFile);
+
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
                 for (int i = 1; i < 5; i++)

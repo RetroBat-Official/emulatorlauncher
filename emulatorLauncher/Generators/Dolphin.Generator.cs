@@ -33,6 +33,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private bool _triforce = false;
         private Rectangle _windowRect = Rectangle.Empty;
+        private bool _runWiiMenu = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -77,6 +78,8 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[WARNING] Wii Nand file not found in : " + sysconf);
             }
             
+            _runWiiMenu = SystemConfig.getOptBoolean("dolphin_wiimenu");
+
             SetupGeneralConfig(path, system, emulator, core, rom);
             SetupGfxConfig(path);
             SetupStateSlotConfig(path);
@@ -102,6 +105,14 @@ namespace EmulatorLauncher
             string saveState = "";
             if (File.Exists(SystemConfig["state_file"]))
                 saveState = " --save_state=\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"";
+
+            if (_runWiiMenu)
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    Arguments = "-b -n 0000000100000002",
+                    WorkingDirectory = path,
+                };
 
             return new ProcessStartInfo()
             {
@@ -613,6 +624,12 @@ namespace EmulatorLauncher
                     string updateTrack = ini.GetValue("AutoUpdate", "UpdateTrack");
                     if (updateTrack != "")
                         ini.WriteValue("AutoUpdate", "UpdateTrack", "\"\"");
+
+                    // Set defaultISO when running the Wii Menu
+                    if (_runWiiMenu)
+                        ini.WriteValue("Core", "DefaultISO", rom);
+                    else
+                        ini.WriteValue("Core", "defaultISO", "\"\"");
                 }
             }
             catch { }

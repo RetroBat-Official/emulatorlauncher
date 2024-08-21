@@ -322,6 +322,36 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "psx")
+            {
+                if (Program.SystemConfig.isOptSet("psx_triggerswap"))
+                    ret = "psx_triggers_rstick";
+            }
+            else if (system == "ps2")
+            {
+                if (Program.SystemConfig.isOptSet("pcsx2_triggersdriving") && !string.IsNullOrEmpty(Program.SystemConfig["pcsx2_triggersdriving"]))
+                {
+                    string triggersDriving = Program.SystemConfig["pcsx2_triggersdriving"];
+                    switch (triggersDriving)
+                    {
+                        case "square_cross":
+                            ret = "psx_triggers_square_cross";
+                            break;
+                        case "righty":
+                            ret = "psx_triggers_rstick";
+                            break;
+                        case "lefty":
+                            ret = "psx_triggers_lstick";
+                            break;
+                    }
+                }
+                else
+                    ret = "psx";
+            }
+            else if (system == "ps3")
+            {
+                ret = "psx";
+            }
             else if (system == "saturn")
             {
                 bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");

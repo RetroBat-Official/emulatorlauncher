@@ -1,4 +1,5 @@
-﻿using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -226,6 +227,14 @@ namespace EmulatorLauncher.Libretro
                             inputremap["input_player" + i + "_btn_a"] = "-1";
                         }
                     }
+                }
+                #endregion
+
+                #region psx
+                if (system == "psx" && Program.SystemConfig.getOptBoolean("psx_triggerswap"))
+                {
+                    inputremap["input_player" + i + "_btn_l2"] = "22";
+                    inputremap["input_player" + i + "_btn_r2"] = "23";
                 }
                 #endregion
 

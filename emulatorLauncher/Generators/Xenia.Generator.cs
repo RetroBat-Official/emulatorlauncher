@@ -281,7 +281,12 @@ namespace EmulatorLauncher
                     // Storage section
                     string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia");
                     if (Directory.Exists(contentPath))
+                    {
                         ini.AppendValue("Storage", "content_root", "\"" + contentPath.Replace("\\", "/") + "\"");
+                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Generator] Setting '" + path + "' as content path for the emulator");
 
                     if (SystemConfig.isOptSet("mount_cache") && !string.IsNullOrEmpty(SystemConfig["mount_cache"]))
                         ini.AppendValue("Storage", "mount_cache", SystemConfig["mount_cache"]);
