@@ -156,6 +156,27 @@ namespace EmulatorLauncher
             {
                 ret = "mastersystem";
             }
+            else if (system == "gba")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "mgba":
+                                ret = "gba_turbo";
+                                break;
+                            case "mednafen_gba":
+                                ret = "gba_solar";
+                                break;
+                        }
+                        break;
+                    case "mgba":
+                    case "nosgba":
+                        ret = "unknown";
+                        break;
+                }
+            }
             else if (system == "mastersystem")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
