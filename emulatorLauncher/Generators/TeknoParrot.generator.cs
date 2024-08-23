@@ -15,6 +15,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher
 {
@@ -279,36 +280,68 @@ namespace EmulatorLauncher
             string parrotData = Path.Combine(path, "ParrotData.xml");
 
             ParrotData data = null;
+            XElement xdoc = null;
 
-            try { data = XmlExtensions.FromXml<ParrotData>(parrotData); }
-            catch { data = new ParrotData(); }
-
-            if (!data.SilentMode || data.ConfirmExit)
+            if (File.Exists(parrotData))
             {
-                data.SilentMode = true;
-                data.ConfirmExit = false; 
+                xdoc = XElement.Load(parrotData);
+
+                xdoc.SetElementValue("SilentMode", true);
+                xdoc.SetElementValue("ConfirmExit", false);
+                xdoc.SetElementValue("HideVanguardWarning", true);
+                xdoc.SetElementValue("DisableAnalytics", true);
+                xdoc.SetElementValue("HasReadPolicies", true);
+
+                if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
+                {
+                    xdoc.SetElementValue("UseSto0ZDrivingHack", true);
+                    xdoc.SetElementValue("StoozPercent", Program.SystemConfig["tp_stooz"].ToInteger());
+                }
+                else
+                {
+                    xdoc.SetElementValue("UseSto0ZDrivingHack", false);
+                    xdoc.SetElementValue("StoozPercent", 0);
+                }
+                
+                if (Program.SystemConfig.isOptSet("discord") && Program.SystemConfig.getOptBoolean("discord"))
+                    xdoc.SetElementValue("UseDiscordRPC", true);
+                else
+                    xdoc.SetElementValue("UseDiscordRPC", false);
+
+                xdoc.Save(parrotData);
             }
 
-            if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
-            {
-                data.UseSto0ZDrivingHack = true;
-                data.StoozPercent = Program.SystemConfig["tp_stooz"].ToInteger();
-            }
             else
             {
-                data.UseSto0ZDrivingHack = false;
-                data.StoozPercent = 0;
+                data = new ParrotData();
+
+                if (!data.SilentMode || data.ConfirmExit)
+                {
+                    data.SilentMode = true;
+                    data.ConfirmExit = false;
+                }
+
+                if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
+                {
+                    data.UseSto0ZDrivingHack = true;
+                    data.StoozPercent = Program.SystemConfig["tp_stooz"].ToInteger();
+                }
+                else
+                {
+                    data.UseSto0ZDrivingHack = false;
+                    data.StoozPercent = 0;
+                }
+
+                if (Program.SystemConfig.isOptSet("discord") && Program.SystemConfig.getOptBoolean("discord"))
+                    data.UseDiscordRPC = true;
+                else
+                    data.UseDiscordRPC = false;
+
+                data.HideVanguardWarning = true;
+                data.DisableAnalytics = true;
+
+                File.WriteAllText(parrotData, data.ToXml());
             }
-            
-            if (Program.SystemConfig.isOptSet("discord") && Program.SystemConfig.getOptBoolean("discord"))
-                data.UseDiscordRPC = true;
-            else
-                data.UseDiscordRPC = false;
-
-            data.HideVanguardWarning = true;
-            data.DisableAnalytics = true;
-
-            File.WriteAllText(parrotData, data.ToXml());
         }
 
         private static void ExtractUserProfiles(string path)
