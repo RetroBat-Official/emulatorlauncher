@@ -3,7 +3,6 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Collections.Generic;
-using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -152,6 +151,10 @@ namespace EmulatorLauncher
                             break;
                     }
                 }
+            }
+            else if (system == "gamegear")
+            {
+                ret = "mastersystem";
             }
             else if (system == "mastersystem")
             {

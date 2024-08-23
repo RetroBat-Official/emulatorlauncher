@@ -128,6 +128,14 @@ namespace EmulatorLauncher.Libretro
                 }
                 #endregion
 
+                #region gamegear
+                if (system == "gamegear")
+                {
+                    inputremap["input_player" + i + "_btn_a"] = "0";
+                    inputremap["input_player" + i + "_btn_b"] = "8";
+                }
+                #endregion
+
                 #region mastersystem
                 if (system == "mastersystem" && rotateButtons)
                 {
