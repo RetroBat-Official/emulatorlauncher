@@ -113,6 +113,7 @@ namespace EmulatorLauncher
         static List<string> megadriveSystems = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static List<string> n64Systems = new List<string>() { "n64", "n64dd" };
         static List<string> nesSystems = new List<string>() { "fds", "nes" };
+        static List<string> pceSystems = new List<string>() { "pcengine", "pcenginecd" };
         static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sufami" };
         static List<string> md3buttonsLibretro = new List<string>() { "257", "1025", "1537", "773", "2" };
         private static string GetTattooName(string system, string core, string emulator)
@@ -127,6 +128,8 @@ namespace EmulatorLauncher
                 system = "n64";
             else if (gbSystems.Contains(system))
                 system = "gb";
+            else if (pceSystems.Contains(system))
+                system = "pcengine";
 
             string ret = system;
 
@@ -425,6 +428,45 @@ namespace EmulatorLauncher
                     case "jgenesis":
                         if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                             ret = "nes_rotate";
+                        break;
+                }
+            }
+            else if (system == "pcengine")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "mednafen_pce":
+                            case "mednafen_pce_fast":
+                                if (Program.SystemConfig.getOptBoolean("pce_6button"))
+                                    ret = "pcengine_6buttons";
+                                else
+                                    ret = "pcengine";
+                                break;
+                            case "fbneo":
+                                ret = "pcengine_simple";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                        ret = "pcengine_6buttons";
+                        break;
+                    case "mesen":
+                        if (Program.SystemConfig["mesen_controller1"] == "PceAvenuePad6")
+                            ret = "pcengine_simple_6buttons";
+                        else
+                            ret = "pcengine_simple";
+                        break;
+                    case "ares":
+                        ret = "pcengine_simple";
+                        break;
+                    case "bizhawk":
+                        ret = "pcengine_bizhawk";
+                        break;
+                    case "magicengine":
+                        ret = "pcengine_simple_6buttons";
                         break;
                 }
             }
