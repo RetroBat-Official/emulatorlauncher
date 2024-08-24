@@ -130,7 +130,32 @@ namespace EmulatorLauncher
 
             string ret = system;
 
-            if (system == "dreamcast")
+            if (system == "3ds")
+            {
+                bool revert = Program.SystemConfig.getOptBoolean("gamepadbuttons");
+                switch (emulator)
+                {
+                    case "libretro":
+                        {
+                            if (Program.SystemConfig["citra_analog_function"] == "C-Stick and Touchscreen Pointer" || !Program.SystemConfig.isOptSet("citra_analog_function"))
+                                ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
+                            else if (Program.SystemConfig["citra_analog_function"] == "Touchscreen Pointer")
+                                ret = revert ? "3ds_stylus_revert" : "3ds_stylus";
+                            else if (Program.SystemConfig["citra_analog_function"] == "C-Stick")
+                                ret = revert ? "3ds_revert" : "3ds";
+                            break;
+                        }
+                    case "citra":
+                    case "citra-canary":
+                    case "lime3ds":
+                        if (Program.SystemConfig["n3ds_motion"] == "sdl")
+                            ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
+                        else
+                            ret = revert ? "3ds_revert" : "3ds";
+                        break;
+                }
+            }
+            else if (system == "dreamcast")
             {
                 if (Program.SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
                     ret = "dreamcast_lr";
@@ -323,6 +348,39 @@ namespace EmulatorLauncher
                         }
                         else
                             ret = "n64-standalone";
+                        break;
+                }
+            }
+            else if (system == "nds")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "melondsds":
+                                ret = "nds_melondsds";
+                                break;
+                            case "desmume":
+                            case "desmume2015":
+                                ret = "nds";
+                                break;
+                            case "melonds":
+                                ret = "nds_melonds";
+                                break;
+                        }
+                        break;
+                    case "melonds":
+                        if (Program.SystemConfig.getOptBoolean("melonds_leftstick"))
+                            ret = "nds_melonds_standalone_ls";
+                        else
+                            ret = "nds_melonds_standalone";
+                        break;
+                    case "bizhawk":
+                        if (Program.SystemConfig.getOptBoolean("bizhawk_nds_mouse"))
+                            ret = "nds_bizhawk_mouse";
+                        else
+                            ret = "nds_bizhawk";
                         break;
                 }
             }

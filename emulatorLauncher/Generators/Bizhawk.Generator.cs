@@ -113,6 +113,11 @@ namespace EmulatorLauncher
             if (fullscreen)
                 commandArray.Add("--fullscreen");
 
+            if (core == "melonDS" && !SystemConfig.getOptBoolean("bizhawk_nds_mouse"))
+            {
+                commandArray.Add("--lua=Lua\\NDS\\StylusInputDisplay.lua");
+            }
+
             string args = string.Join(" ", commandArray);
 
             // start emulator with arguments
@@ -261,7 +266,7 @@ namespace EmulatorLauncher
             pathEntries.SetObject("Paths", paths);
 
             // Display options
-            json["DispFixAspectRatio"] = "true";
+            BindBoolFeature(json, "DispFixAspectRatio", "bizhawk_fixed_ratio", "true", "false");
             json["DispFullscreenHacks"] = "true";
             BindBoolFeature(json, "DisplayFps", "bizhawk_fps", "true", "false");
             BindBoolFeature(json, "DispFixScaleInteger", "integerscale", "true", "false");

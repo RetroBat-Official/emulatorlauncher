@@ -66,6 +66,9 @@ namespace EmulatorLauncher
             ini.WriteValue("", "Joy_X", GetInputKeyName(ctrl, InputKey.x));
             ini.WriteValue("", "Joy_Y", GetInputKeyName(ctrl, InputKey.y));
 
+            ini.WriteValue("", "HKJoy_Lid", GetInputKeyName(ctrl, InputKey.l3));
+            ini.WriteValue("", "HKJoy_Mic", GetInputKeyName(ctrl, InputKey.l2));
+            ini.WriteValue("", "HKJoy_SwapScreens", GetInputKeyName(ctrl, InputKey.r2));
         }
 
         private static string GetInputKeyName(Controller c, InputKey key)

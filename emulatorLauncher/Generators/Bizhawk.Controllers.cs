@@ -303,15 +303,29 @@ namespace EmulatorLauncher
                 var xAxis = analogConfig.GetOrCreateContainer("Touch X");
                 var yAxis = analogConfig.GetOrCreateContainer("Touch Y");
 
-                xAxis["Value"] = "WMouse X";
-                xAxis.SetObject("Mult", 1.0);
-                xAxis.SetObject("Deadzone", 0.0);
+                if (SystemConfig.getOptBoolean("bizhawk_nds_mouse"))
+                {
+                    controllerConfig["Touch"] = "WMouse L";
 
-                yAxis["Value"] = "WMouse Y";
-                yAxis.SetObject("Mult", 1.0);
-                yAxis.SetObject("Deadzone", 0.0);
+                    xAxis["Value"] = "WMouse X";
+                    xAxis.SetObject("Mult", 1.0);
+                    xAxis.SetObject("Deadzone", 0.0);
 
-                controllerConfig["Touch"] = "WMouse L";
+                    yAxis["Value"] = "WMouse Y";
+                    yAxis.SetObject("Mult", 1.0);
+                    yAxis.SetObject("Deadzone", 0.0);
+                }
+
+                else
+                {
+                    xAxis["Value"] = "X" + index + " RightThumbX Axis";
+                    xAxis.SetObject("Mult", 1.0);
+                    xAxis.SetObject("Deadzone", 0.0);
+
+                    yAxis["Value"] = "X" + index + " RightThumbY Axis";
+                    yAxis.SetObject("Mult", -1.0);
+                    yAxis.SetObject("Deadzone", 0.0);
+                }
             }
 
             if (system == "psx")
@@ -816,6 +830,7 @@ namespace EmulatorLauncher
             { InputKey.pagedown,            "R" },
             { InputKey.select,              "Select" },
             { InputKey.start,               "Start" },
+            { InputKey.r2,                  "Touch" },
         };
 
         private static readonly InputKeyMapping nesMapping = new InputKeyMapping()
