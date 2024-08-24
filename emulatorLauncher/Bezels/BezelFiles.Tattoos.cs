@@ -109,6 +109,7 @@ namespace EmulatorLauncher
             return outputPng;
         }
 
+        static List<string> gbSystems = new List<string>() { "gb", "gbc" };
         static List<string> megadriveSystems = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static List<string> n64Systems = new List<string>() { "n64", "n64dd" };
         static List<string> nesSystems = new List<string>() { "fds", "nes" };
@@ -124,6 +125,8 @@ namespace EmulatorLauncher
                 system = "snes";
             else if (n64Systems.Contains(system))
                 system = "n64";
+            else if (gbSystems.Contains(system))
+                system = "gb";
 
             string ret = system;
 
@@ -155,6 +158,27 @@ namespace EmulatorLauncher
             else if (system == "gamegear")
             {
                 ret = "mastersystem";
+            }
+            else if (system == "gb")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "gambatte":
+                                ret = "gb_gambatte";
+                                break;
+                        }
+                        break;
+                    case "mgba":
+                        ret = "unknown";
+                        break;
+                    case "mesen":
+                    case "mednafen":
+                        ret = "gb_turbo";
+                        break;
+                }
             }
             else if (system == "gba")
             {

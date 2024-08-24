@@ -1,5 +1,4 @@
-﻿using EmulatorLauncher.Common.EmulationStation;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common.FileFormats;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -131,8 +130,11 @@ namespace EmulatorLauncher.Libretro
                 #region gamegear
                 if (system == "gamegear")
                 {
-                    inputremap["input_player" + i + "_btn_a"] = "0";
-                    inputremap["input_player" + i + "_btn_b"] = "8";
+                    if (core == "fbneo")
+                    {
+                        inputremap["input_player" + i + "_btn_a"] = "0";
+                        inputremap["input_player" + i + "_btn_b"] = "8";
+                    }
                 }
                 #endregion
 
