@@ -160,7 +160,7 @@ namespace EmulatorLauncher
 
             // Graphic part of settings file
             var graphic = xdoc.GetOrCreateElement("Graphic");
-            BindFeature(graphic, "VSync", "VSync", "1"); // VSYNC (true or false)
+            BindFeature(graphic, "VSync", "cemu_vsync", "1");
             BindFeature(graphic, "api", "video_renderer", "1"); // Graphic driver (0 for OpenGL / 1 for Vulkan)
             BindFeature(graphic, "AsyncCompile", "async_texture", SystemConfig["video_renderer"] != "0" ? "true" : "false"); // Async shader compilation (only if vulkan - true or false)
             BindFeature(graphic, "GX2DrawdoneSync", "accurate_sync", "true"); // Full sync at GX2DrawDone (only if opengl - true or false)
