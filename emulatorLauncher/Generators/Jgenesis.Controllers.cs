@@ -127,6 +127,25 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (jgenSystem == "smsgg")
+            {
+                string iniSection = "inputs.smsgg_joystick.pause";
+                string inputType = GetInputType(ctrl, InputKey.start);
+                if (inputType != null)
+                {
+                    var inputInfo = GetInputInfo(ctrl, InputKey.start);
+                    if (inputInfo.Count > 0)
+                    {
+                        string idx = inputInfo.Keys.First();
+
+                        ini.WriteValue(iniSection, "name", "\"" + name + "\"");
+                        ini.WriteValue(iniSection, "idx", index.ToString());
+                        ini.WriteValue(iniSection, "type", "\"" + inputType + "\"");
+                        ini.WriteValue(iniSection, idx, inputInfo[idx]);
+                    }
+                }
+            }
+
             if (playerIndex == 1)
                 ConfigureDefaultKeyboard(ini, jgenSystem);
         }

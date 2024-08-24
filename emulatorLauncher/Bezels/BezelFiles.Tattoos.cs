@@ -3,7 +3,6 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Collections.Generic;
-using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -151,6 +150,31 @@ namespace EmulatorLauncher
                             ret = "gamecube_xy";
                             break;
                     }
+                }
+            }
+            else if (system == "gamegear")
+            {
+                ret = "mastersystem";
+            }
+            else if (system == "gba")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "mgba":
+                                ret = "gba_turbo";
+                                break;
+                            case "mednafen_gba":
+                                ret = "gba_solar";
+                                break;
+                        }
+                        break;
+                    case "mgba":
+                    case "nosgba":
+                        ret = "unknown";
+                        break;
                 }
             }
             else if (system == "mastersystem")

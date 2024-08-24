@@ -110,7 +110,7 @@ namespace EmulatorLauncher
                 FileName = exe,
                 WorkingDirectory = path,
                 Arguments = args,
-                WindowStyle = args.Contains("--fullscreen") ? ProcessWindowStyle.Maximized : ProcessWindowStyle.Minimized
+                //WindowStyle = args.Contains("--fullscreen") ? ProcessWindowStyle.Maximized : ProcessWindowStyle.Minimized
             };
         }
 
@@ -159,6 +159,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("GSFrame", "lockMouseInFullscreen", "false");
                 else
                     ini.WriteValue("GSFrame", "lockMouseInFullscreen", "true");
+
+                ini.WriteValue("GSFrame", "disableMouse", "true");
             }
         }
 
@@ -331,6 +333,8 @@ namespace EmulatorLauncher
             misc["Automatically start games after boot"] = "true";
             misc["Exit RPCS3 when process finishes"] = "true";
             misc["Prevent display sleep while running games"] = "true";
+            BindBoolFeature(misc, "Show shader compilation hint", "rpcs3_hidehints", "false", "true");
+            BindBoolFeature(misc, "Show PPU compilation hint", "rpcs3_hidehints", "false", "true");
 
             SetupGuns(yml, vulkan);
 
