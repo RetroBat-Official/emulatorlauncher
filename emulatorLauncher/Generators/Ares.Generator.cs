@@ -346,8 +346,8 @@ namespace EmulatorLauncher
                 string biospcecd = Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce");
                 if (File.Exists(biospcecd))
                 {
-                    firmware["BIOS.US"] = biospcecd.Replace("\\", "/");
-                    firmware["BIOS.Japan"] = biospcecd.Replace("\\", "/");
+                    firmware["System-Card-3.0.US"] = biospcecd.Replace("\\", "/");
+                    firmware["System-Card-3.0.Japan"] = biospcecd.Replace("\\", "/");
                 }
             }
 

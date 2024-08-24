@@ -113,6 +113,7 @@ namespace EmulatorLauncher
         static List<string> megadriveSystems = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static List<string> n64Systems = new List<string>() { "n64", "n64dd" };
         static List<string> nesSystems = new List<string>() { "fds", "nes" };
+        static List<string> pceSystems = new List<string>() { "pcengine", "pcenginecd" };
         static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sufami" };
         static List<string> md3buttonsLibretro = new List<string>() { "257", "1025", "1537", "773", "2" };
         private static string GetTattooName(string system, string core, string emulator)
@@ -127,10 +128,37 @@ namespace EmulatorLauncher
                 system = "n64";
             else if (gbSystems.Contains(system))
                 system = "gb";
+            else if (pceSystems.Contains(system))
+                system = "pcengine";
 
             string ret = system;
 
-            if (system == "dreamcast")
+            if (system == "3ds")
+            {
+                bool revert = Program.SystemConfig.getOptBoolean("gamepadbuttons");
+                switch (emulator)
+                {
+                    case "libretro":
+                        {
+                            if (Program.SystemConfig["citra_analog_function"] == "C-Stick and Touchscreen Pointer" || !Program.SystemConfig.isOptSet("citra_analog_function"))
+                                ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
+                            else if (Program.SystemConfig["citra_analog_function"] == "Touchscreen Pointer")
+                                ret = revert ? "3ds_stylus_revert" : "3ds_stylus";
+                            else if (Program.SystemConfig["citra_analog_function"] == "C-Stick")
+                                ret = revert ? "3ds_revert" : "3ds";
+                            break;
+                        }
+                    case "citra":
+                    case "citra-canary":
+                    case "lime3ds":
+                        if (Program.SystemConfig["n3ds_motion"] == "sdl")
+                            ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
+                        else
+                            ret = revert ? "3ds_revert" : "3ds";
+                        break;
+                }
+            }
+            else if (system == "dreamcast")
             {
                 if (Program.SystemConfig.getOptBoolean("dreamcast_use_shoulders"))
                     ret = "dreamcast_lr";
@@ -326,6 +354,39 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "nds")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "melondsds":
+                                ret = "nds_melondsds";
+                                break;
+                            case "desmume":
+                            case "desmume2015":
+                                ret = "nds";
+                                break;
+                            case "melonds":
+                                ret = "nds_melonds";
+                                break;
+                        }
+                        break;
+                    case "melonds":
+                        if (Program.SystemConfig.getOptBoolean("melonds_leftstick"))
+                            ret = "nds_melonds_standalone_ls";
+                        else
+                            ret = "nds_melonds_standalone";
+                        break;
+                    case "bizhawk":
+                        if (Program.SystemConfig.getOptBoolean("bizhawk_nds_mouse"))
+                            ret = "nds_bizhawk_mouse";
+                        else
+                            ret = "nds_bizhawk";
+                        break;
+                }
+            }
             else if (system == "nes")
             {
                 switch (emulator)
@@ -367,6 +428,45 @@ namespace EmulatorLauncher
                     case "jgenesis":
                         if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                             ret = "nes_rotate";
+                        break;
+                }
+            }
+            else if (system == "pcengine")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "mednafen_pce":
+                            case "mednafen_pce_fast":
+                                if (Program.SystemConfig.getOptBoolean("pce_6button"))
+                                    ret = "pcengine_6buttons";
+                                else
+                                    ret = "pcengine";
+                                break;
+                            case "fbneo":
+                                ret = "pcengine_simple";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                        ret = "pcengine_6buttons";
+                        break;
+                    case "mesen":
+                        if (Program.SystemConfig["mesen_controller1"] == "PceAvenuePad6")
+                            ret = "pcengine_simple_6buttons";
+                        else
+                            ret = "pcengine_simple";
+                        break;
+                    case "ares":
+                        ret = "pcengine_simple";
+                        break;
+                    case "bizhawk":
+                        ret = "pcengine_bizhawk";
+                        break;
+                    case "magicengine":
+                        ret = "pcengine_simple_6buttons";
                         break;
                 }
             }

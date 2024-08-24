@@ -2242,7 +2242,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
             
-            if (SystemConfig.isOptSet("pce_fast_6button") && SystemConfig.getOptBoolean("pce_fast_6button"))
+            if (SystemConfig.isOptSet("pce_6button") && SystemConfig.getOptBoolean("pce_6button"))
             {
                 for (int i = 1; i < 6; i++)
                 {

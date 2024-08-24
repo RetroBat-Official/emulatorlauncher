@@ -12,6 +12,7 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private string _path;
 
         private static readonly List<string> preferredRomExtensions = new List<string>() { ".bin", ".cue", ".img", ".iso", ".rom" };
         private static readonly List<string> zipSystems = new List<string>() { "psx", "saturn", "n64", "n64dd", "pcenginecd", "jaguarcd", "vectrex", "odyssey2", "uzebox" };
@@ -27,6 +28,8 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "EmuHawk.exe");
             if (!File.Exists(exe))
                 return null;
+
+            _path = path;
 
             string[] romExtensions = new string[] { ".m3u", ".chd", ".cue", ".ccd", ".cdi", ".iso", ".mds", ".nrg", ".z64", ".n64", ".v64", ".ndd", ".vec", ".uze", ".o2"};
 
@@ -112,6 +115,11 @@ namespace EmulatorLauncher
 
             if (fullscreen)
                 commandArray.Add("--fullscreen");
+
+            if (core == "melonDS" && !SystemConfig.getOptBoolean("bizhawk_nds_mouse"))
+            {
+                commandArray.Add("--lua=Lua\\NDS\\StylusInputDisplay.lua");
+            }
 
             string args = string.Join(" ", commandArray);
 
@@ -261,7 +269,7 @@ namespace EmulatorLauncher
             pathEntries.SetObject("Paths", paths);
 
             // Display options
-            json["DispFixAspectRatio"] = "true";
+            BindBoolFeature(json, "DispFixAspectRatio", "bizhawk_fixed_ratio", "true", "false");
             json["DispFullscreenHacks"] = "true";
             BindBoolFeature(json, "DisplayFps", "bizhawk_fps", "true", "false");
             BindBoolFeature(json, "DispFixScaleInteger", "integerscale", "true", "false");
@@ -589,8 +597,14 @@ namespace EmulatorLauncher
             bezel?.Dispose();
 
             if (ret == 1)
+            {
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
+                ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
                 return 0;
+            }
 
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
             return ret;
         }
 

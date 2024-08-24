@@ -53,6 +53,22 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
 
+                #region 3ds
+                if (system == "3ds")
+                {
+                    inputremap["input_player" + i + "_btn_l3"] = "15";
+                    inputremap["input_player" + i + "_btn_r3"] = "-1";
+
+                    if (Program.SystemConfig.getOptBoolean("gamepadbuttons"))
+                    {
+                        inputremap["input_player" + i + "_btn_a"] = "0";
+                        inputremap["input_player" + i + "_btn_b"] = "8";
+                        inputremap["input_player" + i + "_btn_x"] = "1";
+                        inputremap["input_player" + i + "_btn_y"] = "9";
+                    }
+                }
+                #endregion
+
                 #region dreamcast
                 if (system == "dreamcast")
                 {
