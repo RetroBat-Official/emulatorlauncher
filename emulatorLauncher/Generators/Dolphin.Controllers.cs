@@ -715,9 +715,9 @@ namespace EmulatorLauncher
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }
 
-                            // Z button is used to access test menu, do not map it with R1
+                            // Z button is used to access test menu, map with R3
                             if (triforce)
-                                ini.WriteValue(gcpad, "Buttons/Z", "`Thumb L`&`Thumb R`");
+                                ini.WriteValue(gcpad, "Buttons/Z", "`Thumb R`");
 
                         }
                         else if (forceSDL)
