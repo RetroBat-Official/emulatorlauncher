@@ -28,6 +28,10 @@ namespace EmulatorLauncher.Libretro
             if (!string.IsNullOrEmpty(rom) && File.Exists(rom))
                 romName = System.IO.Path.GetFileNameWithoutExtension(rom);
 
+            bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap);
+            if (remapFromFile)
+                return;
+
             bool invertButtons = systemButtonInvert.Contains(system) && Program.Features.IsSupported("buttonsInvert") && Program.SystemConfig.getOptBoolean("buttonsInvert");
             bool rotateButtons = systemButtonRotate.Contains(system) && Program.Features.IsSupported("rotate_buttons") && Program.SystemConfig.getOptBoolean("rotate_buttons");
 
@@ -328,14 +332,14 @@ namespace EmulatorLauncher.Libretro
                 }
                 #endregion
             }
-            SetupCoreGameRemaps(system, core, romName, inputremap);
+            
             return;
         }
 
-        private static void SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap)
+        private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap)
         {
             if (core == null || system == null || romName == null)
-                return;
+                return false;
 
             YmlContainer game = null;
 
@@ -349,12 +353,12 @@ namespace EmulatorLauncher.Libretro
                 coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "libretro" + ".yml");
 
             if (!File.Exists(coreMapping))
-                return;
+                return false;
 
             YmlFile ymlFile = YmlFile.Load(coreMapping);
 
             if (ymlFile == null)
-                return;
+                return false;
 
             game = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
 
@@ -365,7 +369,7 @@ namespace EmulatorLauncher.Libretro
                 game = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
 
             if (game == null)
-                return;
+                return false;
 
             var gameName = game.Name;
             var buttonMap = new Dictionary<string, string>();
@@ -381,13 +385,14 @@ namespace EmulatorLauncher.Libretro
             gameMapping.Add(gameName, buttonMap);
 
             if (buttonMap.Count == 0)
-                return;
+                return false;
 
             for (int i = 1; i <= _playerCount; i++)
             {
                 foreach (var button in buttonMap)
                     inputremap["input_player" + i + "_" + button.Key] = button.Value;
             }
+            return true;
         }
 
         private enum Mame_remap
