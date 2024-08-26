@@ -135,6 +135,14 @@ namespace EmulatorLauncher
                     else
                         ini.AppendValue("General", "discord", "false");
 
+                    if (_canary)
+                    {
+                        if (SystemConfig.isOptSet("xenia_patches") && SystemConfig.getOptBoolean("xenia_patches"))
+                            ini.AppendValue("General", "apply_patches", "true");
+                        else
+                            ini.AppendValue("General", "apply_patches", "false");
+                    }
+
                     //D3D12 section
                     if (SystemConfig.isOptSet("xenia_allow_variable_refresh_rate_and_tearing") && !string.IsNullOrEmpty(SystemConfig["xenia_allow_variable_refresh_rate_and_tearing"]))
                     {
