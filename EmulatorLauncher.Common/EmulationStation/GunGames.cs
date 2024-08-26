@@ -272,6 +272,12 @@ namespace EmulatorLauncher.Common.EmulationStation
         [XmlAttribute("ir_right")]
         public string IrRight { get; set; }
 
+        [XmlAttribute("ir_left")]
+        public string IrLeft { get; set; }
+
+        [XmlAttribute("ir_up")]
+        public string IrUp { get; set; }
+
         [XmlAttribute("sub1")]
         public string Sub1 { get; set; }
     }

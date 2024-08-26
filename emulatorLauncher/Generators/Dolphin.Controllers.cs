@@ -449,11 +449,160 @@ namespace EmulatorLauncher
                 SetWiimoteHotkeys(hotkeyini);
         }
 
+        static Dictionary<string, string> defaultGunMapping = new Dictionary<string, string>
+        {
+            { "Device", "DInput/0/Keyboard Mouse" },
+            { "Source", "1" },
+            { "Buttons/X", "Q" },
+            { "Buttons/B", "`Click 0`" },
+            { "Buttons/Y", "S" },
+            { "Buttons/A", "`Click 1`" },
+            { "Buttons/-", "BACK" },
+            { "Buttons/+", "RETURN" },
+            { "Main Stick/Up", "UP" },
+            { "Main Stick/Down", "DOWN" },
+            { "Main Stick/Left", "LEFT" },
+            { "Main Stick/Right", "RIGHT" },
+            { "Tilt/Modifier/Range", "50." },
+            { "Nunchuk/Stick/Modifier/Range", "50." },
+            { "Nunchuk/Tilt/Modifier/Range", "50." },
+            { "uDraw/Stylus/Modifier/Range", "50." },
+            { "Drawsome/Stylus/Modifier/Range", "50." },
+            { "Buttons/1", "`Click 2`" },
+            { "Buttons/2", "`2`" },
+            { "D-Pad/Up", "UP" },
+            { "D-Pad/Down", "DOWN" },
+            { "D-Pad/Left", "LEFT" },
+            { "D-Pad/Right", "RIGHT" },
+            { "IR/Up", "`Cursor Y-`" },
+            { "IR/Down", "`Cursor Y+`" },
+            { "IR/Left", "`Cursor X-`" },
+            { "IR/Right", "`Cursor X+`" },
+            { "Shake/X", "`Click 2`" },
+            { "Shake/Y", "`Click 2`" },
+            { "Shake/Z", "`Click 2`" },
+            { "Extension", "Nunchuk" },
+            { "Nunchuk/Buttons/C", "LCONTROL" },
+            { "Nunchuk/Buttons/Z", "LSHIFT" },
+            { "Nunchuk/Stick/Up", "W" },
+            { "Nunchuk/Stick/Down", "S" },
+            { "Nunchuk/Stick/Left", "A" },
+            { "Nunchuk/Stick/Right", "D" },
+            { "Nunchuk/Stick/Calibration", "100.00 141.42 100.00 141.42 100.00 141.42 100.00 141.42" },
+            { "Nunchuk/Shake/X", "`Click 2`" },
+            { "Nunchuk/Shake/Y", "`Click 2`" },
+            { "Nunchuk/Shake/Z", "`Click 2`" },
+        };
+
+        static Dictionary<string, string> gunMapping = new Dictionary<string, string>
+        {
+            { "action", "Buttons/A" },
+            { "trigger", "Buttons/B" },
+            { "sub3", "Buttons/Home" },
+            { "select", "Buttons/-" },
+            { "sub1", "Buttons/1" },
+            { "sub2", "Buttons/2" },
+            { "start", "Buttons/+" },
+            { "up", "D-Pad/Up" },
+            { "down", "D-Pad/Down" },
+            { "left", "D-Pad/Left" },
+            { "right", "D-Pad/Right" },
+            { "c", "Nunchuk/Buttons/C" },
+            { "z", "Nunchuk/Buttons/Z" }
+        };
+
+        static Dictionary<string, string> newGunMapping = new Dictionary<string, string>
+        {
+            { "a", "Buttons/A" },
+            { "b", "Buttons/B" },
+            { "home", "Buttons/Home" },
+            { "-", "Buttons/-" },
+            { "1", "Buttons/1" },
+            { "2", "Buttons/2" },
+            { "+", "Buttons/+" },
+            { "up", "D-Pad/Up" },
+            { "down", "D-Pad/Down" },
+            { "left", "D-Pad/Left" },
+            { "right", "D-Pad/Right" },
+            { "tiltforward", "Tilt/Forward" },
+            { "tiltbackward", "Tilt/Backward" },
+            { "tiltleft", "Tilt/Left" },
+            { "tiltright", "Tilt/Right" },
+            { "shake", "Shake/X" },
+            { "c", "Nunchuk/Buttons/C" },
+            { "z", "Nunchuk/Buttons/Z" }
+        };
+
+        static Dictionary<string, string> gunSpecials = new Dictionary<string, string>
+        {
+            { "vertical_offset", "IR/Vertical Offset" },
+            { "yaw", "IR/Total Yaw" },
+            { "pitch", "IR/Total Pitch" },
+            { "ir_down", "IR/Down" },
+            { "ir_up", "IR/Up" },
+            { "ir_left", "IR/Left" },
+            { "ir_right", "IR/Right" }
+        };
+
         private static void GenerateControllerConfig_wiilightgun(string path, string filename, string anyDefKey)
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
             SimpleLogger.Instance.Info("[INFO] Configuring Lightgun buttons in : " + iniFile);
+
+            string rom = Program.SystemConfig["rom"];
+            var mappingToUse = defaultGunMapping;
+
+            // Search gun game in gamesDB.xml file
+            var game = Program.GunGames.FindGunGame("wii", rom);
+            if (game == null || game.Gun == null)
+            {
+                SimpleLogger.Instance.Info("[GUNS] No gun configuration found for this game.");
+                return;
+            }
+
+            Dictionary<string, string> metadata = new Dictionary<string, string>();
+            if (game.Gun != null)
+            {
+                metadata["vertical_offset"] = game.Gun.VerticalOffset.ToString();
+                metadata["yaw"] = game.Gun.Yaw.ToString();
+                metadata["pitch"] = game.Gun.Pitch.ToString();
+                metadata["action"] = game.Gun.Action;
+                metadata["start"] = game.Gun.Start;
+                metadata["select"] = game.Gun.Select;
+                metadata["trigger"] = game.Gun.Trigger;
+                metadata["ir_down"] = game.Gun.IrDown;
+                metadata["ir_right"] = game.Gun.IrRight;
+                metadata["ir_up"] = game.Gun.IrUp;
+                metadata["ir_left"] = game.Gun.IrLeft;
+                metadata["sub1"] = game.Gun.Sub1;
+            }
+
+            if (metadata == null)
+                return;
+
+            // Modify mapping based on gamesDB.xml file
+            foreach (var x in metadata)
+            {
+                if (x.Value != null && newGunMapping.ContainsKey(x.Value))
+                {
+                    string toReplace = newGunMapping[x.Value];
+                    string newValue = defaultGunMapping[gunMapping[x.Key]];
+                    mappingToUse[toReplace] = newValue;
+                    if (toReplace == "Shake/X")
+                    {
+                        mappingToUse["Shake/Y"] = newValue;
+                        mappingToUse["Shake/Z"] = newValue;
+                    }
+                }
+            }
+
+            // Remove original button mapping
+            foreach (var x in metadata)
+            {
+                if (x.Value != null && gunMapping.ContainsKey(x.Key))
+                    mappingToUse[gunMapping[x.Key]] = "";
+            }
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
@@ -463,47 +612,17 @@ namespace EmulatorLauncher
                 }
                 string wiimote = "Wiimote1";
 
-                ini.WriteValue(wiimote, "Device", "DInput/0/Keyboard Mouse");
-                ini.WriteValue(wiimote, "Source", "1");
-                ini.WriteValue(wiimote, "Buttons/X", "Q");
-                ini.WriteValue(wiimote, "Buttons/B", "`Click 0`");
-                ini.WriteValue(wiimote, "Buttons/Y", "S");
-                ini.WriteValue(wiimote, "Buttons/A", "`Click 1`");
-                ini.WriteValue(wiimote, "Buttons/-", "BACK");
-                ini.WriteValue(wiimote, "Buttons/+", "RETURN");
-                ini.WriteValue(wiimote, "Main Stick/Up", "UP");
-                ini.WriteValue(wiimote, "Main Stick/Down", "DOWN");
-                ini.WriteValue(wiimote, "Main Stick/Left", "LEFT");
-                ini.WriteValue(wiimote, "Main Stick/Right", "RIGHT");
-                ini.WriteValue(wiimote, "Tilt/Modifier/Range", "50.");
-                ini.WriteValue(wiimote, "Nunchuk/Stick/Modifier/Range", "50.");
-                ini.WriteValue(wiimote, "Nunchuk/Tilt/Modifier/Range", "50.");
-                ini.WriteValue(wiimote, "uDraw/Stylus/Modifier/Range", "50.");
-                ini.WriteValue(wiimote, "Drawsome/Stylus/Modifier/Range", "50.");
-                ini.WriteValue(wiimote, "Buttons/1", "`Click 2`");
-                ini.WriteValue(wiimote, "Buttons/2", "`2`");
-                ini.WriteValue(wiimote, "D-Pad/Up", "UP");
-                ini.WriteValue(wiimote, "D-Pad/Down", "DOWN");
-                ini.WriteValue(wiimote, "D-Pad/Left", "LEFT");
-                ini.WriteValue(wiimote, "D-Pad/Right", "RIGHT");
-                ini.WriteValue(wiimote, "IR/Up", "`Cursor Y-`");
-                ini.WriteValue(wiimote, "IR/Down", "`Cursor Y+`");
-                ini.WriteValue(wiimote, "IR/Left", "`Cursor X-`");
-                ini.WriteValue(wiimote, "IR/Right", "`Cursor X+`");
-                ini.WriteValue(wiimote, "Shake/X", "`Click 2`");
-                ini.WriteValue(wiimote, "Shake/Y", "`Click 2`");
-                ini.WriteValue(wiimote, "Shake/Z", "`Click 2`");
-                ini.WriteValue(wiimote, "Extension", "Nunchuk");
-                ini.WriteValue(wiimote, "Nunchuk/Buttons/C", "LCONTROL");
-                ini.WriteValue(wiimote, "Nunchuk/Buttons/Z", "LSHIFT");
-                ini.WriteValue(wiimote, "Nunchuk/Stick/Up", "W");
-                ini.WriteValue(wiimote, "Nunchuk/Stick/Down", "S");
-                ini.WriteValue(wiimote, "Nunchuk/Stick/Left", "A");
-                ini.WriteValue(wiimote, "Nunchuk/Stick/Right", "D");
-                ini.WriteValue(wiimote, "Nunchuk/Stick/Calibration", "100.00 141.42 100.00 141.42 100.00 141.42 100.00 141.42");
-                ini.WriteValue(wiimote, "Nunchuk/Shake/X", "`Click 2`");
-                ini.WriteValue(wiimote, "Nunchuk/Shake/Y", "`Click 2`");
-                ini.WriteValue(wiimote, "Nunchuk/Shake/Z", "`Click 2`");
+                foreach (var x in mappingToUse)
+                {
+                    ini.WriteValue(wiimote, x.Key, x.Value);
+                }
+
+                // Write specials
+                foreach (var x in metadata)
+                {
+                    if (x.Value != null && x.Value != "" && gunSpecials.ContainsKey(x.Key))
+                        ini.WriteValue(wiimote, gunSpecials[x.Key], x.Value);
+                }
 
                 ini.Save();
             }
