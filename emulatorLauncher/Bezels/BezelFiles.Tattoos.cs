@@ -110,6 +110,7 @@ namespace EmulatorLauncher
         }
 
         static List<string> gbSystems = new List<string>() { "gb", "gbc" };
+        static List<string> jaguarSystems = new List<string>() { "jaguar", "jaguarcd" };
         static List<string> megadriveSystems = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static List<string> n64Systems = new List<string>() { "n64", "n64dd" };
         static List<string> nesSystems = new List<string>() { "fds", "nes" };
@@ -130,6 +131,8 @@ namespace EmulatorLauncher
                 system = "gb";
             else if (pceSystems.Contains(system))
                 system = "pcengine";
+            else if (jaguarSystems.Contains(system))
+                system = "jaguar";
 
             string ret = system;
 
@@ -226,6 +229,20 @@ namespace EmulatorLauncher
                     case "mgba":
                     case "nosgba":
                         ret = "unknown";
+                        break;
+                }
+            }
+            else if (system == "jaguar")
+            {
+                switch (emulator)
+                {
+                    case "bizhawk":
+                    case "libretro":
+                    case "phoenix":
+                        ret = "jaguar";
+                        break;
+                    case "bigpemu":
+                        ret = "jaguar_bigpemu";
                         break;
                 }
             }
@@ -470,6 +487,26 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "pcfx")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "mednafen_pcfx":
+                                ret = "pcfx";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                        ret = "pcfx";
+                        break;
+                    case "bizhawk":
+                        ret = "pcfx_bizhawk";
+                        break;
+                }
+            }
             else if (system == "psx")
             {
                 if (Program.SystemConfig.isOptSet("psx_triggerswap"))
@@ -532,7 +569,45 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
                     ret = "snes_invert";
             }
-            
+            else if (system == "supegrafx")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "mednafen_supergrafx":
+                                if (Program.SystemConfig.getOptBoolean("sgx_6button"))
+                                    ret = "pcengine_6buttons";
+                                else
+                                    ret = "pcengine";
+                                break;
+                            case "fbneo":
+                                ret = "pcengine_simple";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                        ret = "pcengine_6buttons";
+                        break;
+                    case "mesen":
+                        if (Program.SystemConfig["mesen_controller1"] == "PceAvenuePad6")
+                            ret = "pcengine_simple_6buttons";
+                        else
+                            ret = "pcengine_simple";
+                        break;
+                    case "ares":
+                        ret = "pcengine_simple";
+                        break;
+                    case "bizhawk":
+                        ret = "pcengine_bizhawk";
+                        break;
+                    case "magicengine":
+                        ret = "pcengine_simple_6buttons";
+                        break;
+                }
+            }
+
             return ret + ".png";
         }
 

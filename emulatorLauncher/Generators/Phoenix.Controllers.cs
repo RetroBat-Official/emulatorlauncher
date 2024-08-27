@@ -9,7 +9,7 @@ namespace EmulatorLauncher
 {
     partial class PhoenixGenerator : Generator
     {
-        private void ConfigureControllers(XElement settingsPlatform)
+        private void ConfigureControllers(XElement settingsPlatform, string system)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -31,10 +31,10 @@ namespace EmulatorLauncher
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
-                ConfigureInput(xmlInput, controller, gamecontrollerDB);
+                ConfigureInput(xmlInput, controller, gamecontrollerDB, system);
         }
 
-        private void ConfigureInput(XElement xml, Controller controller, string gamecontrollerDB)
+        private void ConfigureInput(XElement xml, Controller controller, string gamecontrollerDB, string system)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -42,15 +42,16 @@ namespace EmulatorLauncher
             if (controller.IsKeyboard)
                 return;
             else
-                ConfigureJoystick(xml, controller, gamecontrollerDB);
+                ConfigureJoystick(xml, controller, gamecontrollerDB, system);
         }
 
-        private void ConfigureJoystick(XElement xml, Controller ctrl, string gamecontrollerdb)
+        private void ConfigureJoystick(XElement xml, Controller ctrl, string gamecontrollerdb, string system)
         {
             if (ctrl == null)
                 return;
 
             SdlToDirectInput controller = null;
+            bool isXinput = ctrl.IsXInputDevice;
             string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
 
             try { controller = GameControllerDBParser.ParseByGuid(gamecontrollerdb, guid); }
@@ -66,28 +67,51 @@ namespace EmulatorLauncher
 
             List<string> buttonMapping = new List<string>();
 
-            if (SystemConfig.isOptSet("phoenix_dpad") && SystemConfig.getOptBoolean("phoenix_dpad"))
+            if (system == "3do")
             {
-                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpup") + "@-1");
-                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpdown") + "@1");
-                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpleft") + "@-1");
-                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpright") + "@1");
+                if (SystemConfig.isOptSet("phoenix_dpad") && SystemConfig.getOptBoolean("phoenix_dpad"))
+                {
+                    buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpup", isXinput) + "@-1");
+                    buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpdown", isXinput) + "@1");
+                    buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpleft", isXinput) + "@-1");
+                    buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpright", isXinput) + "@1");
+                }
+                else
+                {
+                    buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "lefty", isXinput) + "@-1");
+                    buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "lefty", isXinput) + "@1");
+                    buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "leftx", isXinput) + "@-1");
+                    buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "leftx", isXinput) + "@1");
+                }
+
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "x", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "a", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "b", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "back", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "start", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "leftshoulder", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "rightshoulder", isXinput));
             }
             else
             {
-                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "lefty") + "@-1");
-                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "lefty") + "@1");
-                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "leftx") + "@-1");
-                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "leftx") + "@1");
-            }
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpup", isXinput) + "@-1");
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpdown", isXinput) + "@1");
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpleft", isXinput) + "@-1");
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "dpright", isXinput) + "@1");
 
-            buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "x"));
-            buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "a"));
-            buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "b"));
-            buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "back"));
-            buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "start"));
-            buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "leftshoulder"));
-            buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "rightshoulder"));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "b", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "a", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "x", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "back", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "start", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "y", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "leftshoulder", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "rightshoulder", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "lefttrigger", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "righttrigger", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "leftstick", isXinput));
+                buttonMapping.Add("j" + index + GetInputCode(controller, ctrl, "rightstick", isXinput));
+            }
 
             string input = string.Join(",", buttonMapping.Where(i => !string.IsNullOrEmpty(i)));
 
@@ -95,7 +119,7 @@ namespace EmulatorLauncher
             xml.Add(device);
         }
 
-        private string GetInputCode(SdlToDirectInput ctrl, Controller c, string buttonkey)
+        private string GetInputCode(SdlToDirectInput ctrl, Controller c, string buttonkey, bool isXinput)
         {
             if (!ctrl.ButtonMappings.ContainsKey(buttonkey))
                 return "";
@@ -126,7 +150,14 @@ namespace EmulatorLauncher
                 return button.Substring(1) + "@0";
 
             else if (button.StartsWith("a"))
-                return button + "@0";
+            {
+                if (isXinput && button == "a2")
+                    return "a2@0@1";
+                else if (isXinput && button == "a5")
+                    return "a2@0@-1";
+                else
+                    return button + "@0";
+            }
 
             else
                 return button;

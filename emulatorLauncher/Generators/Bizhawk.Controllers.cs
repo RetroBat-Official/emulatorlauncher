@@ -219,14 +219,22 @@ namespace EmulatorLauncher
             {
                 controllerConfig["Reset"] = "";
                 controllerConfig["Power"] = "";
-                controllerConfig["Select"] = GetXInputKeyName(controller, InputKey.start);
+                if (isDInput)
+                    controllerConfig["Select"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.start);
+                else
+                    controllerConfig["Select"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.start);
+                
                 controllerConfig["Toggle Left Difficulty"] = "";
                 controllerConfig["Toggle Right Difficulty"] = "";
 
                 if (system == "atari7800")
                 {
                     controllerConfig["BW"] = "";
-                    controllerConfig["Pause"] = GetXInputKeyName(controller, InputKey.select);
+                    
+                    if (isDInput)
+                        controllerConfig["Pause"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.select);
+                    else
+                        controllerConfig["Pause"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.select);
                 }
             }
 
@@ -253,7 +261,30 @@ namespace EmulatorLauncher
             }
 
             if (system == "mastersystem" || system == "sg1000" || system == "multivision")
-                controllerConfig["Pause"] = GetXInputKeyName(controller, InputKey.start);
+            {
+                if (isDInput)
+                    controllerConfig["Pause"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.select);
+                else
+                    controllerConfig["Pause"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.start);
+            }
+
+            if (system == "pcfx")
+            {
+                if (isDInput)
+                {
+                    controllerConfig["P1 Mode 1: Set A"] = "J" + index + " Y AxisLeft";
+                    controllerConfig["P1 Mode 1: Set B"] = "J" + index + " Y AxisRight";
+                    controllerConfig["P1 Mode 2: Set A"] = "J" + index + " Y AxisUp";
+                    controllerConfig["P1 Mode 2: Set B"] = "J" + index + " Y AxisDown";
+                }
+                else
+                {
+                    controllerConfig["P1 Mode 1: Set A"] = "X" + index + " RStickLeft";
+                    controllerConfig["P1 Mode 1: Set B"] = "X" + index + " RStickRight";
+                    controllerConfig["P1 Mode 2: Set A"] = "X" + index + " RStickUp";
+                    controllerConfig["P1 Mode 2: Set B"] = "X" + index + " RStickDown";
+                }
+            }
 
             if (system == "tic80")
             {
@@ -697,9 +728,9 @@ namespace EmulatorLauncher
             { InputKey.down,                "Down"},
             { InputKey.left,                "Left" },
             { InputKey.right,               "Right"},
-            { InputKey.y,                   "A" },
+            { InputKey.b,                   "A" },
             { InputKey.a,                   "B" },
-            { InputKey.b,                   "C" },
+            { InputKey.y,                   "C" },
             { InputKey.start,               "Option" },
             { InputKey.select,              "Pause" },
             { InputKey.x,                   "0" },
@@ -901,18 +932,14 @@ namespace EmulatorLauncher
             { InputKey.down,            "Down"},
             { InputKey.left,            "Left" },
             { InputKey.right,           "Right"},
-            { InputKey.a,               "I" },
-            { InputKey.b,               "II" },
-            { InputKey.y,               "III" },
-            { InputKey.x,               "IV" },
+            { InputKey.b,               "I" },
+            { InputKey.a,               "II" },
+            { InputKey.x,               "III" },
+            { InputKey.y,               "IV" },
             { InputKey.pageup,          "V" },
             { InputKey.pagedown,        "VI" },
             { InputKey.select,          "Select" },
-            { InputKey.start,           "Run" },
-            { InputKey.l2,              "P1 Mode 1: Set A" },
-            { InputKey.r2,              "P1 Mode 1: Set B" },
-            { InputKey.l3,              "P1 Mode 2: Set A" },
-            { InputKey.r3,              "P1 Mode 2: Set B" }
+            { InputKey.start,           "Run" }
         };
 
         private static readonly InputKeyMapping psxOctoMapping = new InputKeyMapping()

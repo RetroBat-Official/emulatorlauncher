@@ -44,7 +44,8 @@ namespace EmulatorLauncher.Libretro
                     inputremap["input_player" + i + "_btn_x"] = "1";
                     inputremap["input_player" + i + "_btn_y"] = "9";
                 }
-
+                
+                #region atari800
                 if (core == "atari800")
                 {
                     inputremap["input_player" + i + "_btn_a"] = "0";
@@ -56,6 +57,14 @@ namespace EmulatorLauncher.Libretro
                         inputremap["input_player" + i + "_btn_y"] = "9";
                     }
                 }
+                #endregion
+
+                #region 3do
+                if (system == "3do")
+                {
+                    inputremap["input_player" + i + "_btn_x"] = "-1";
+                }
+                #endregion
 
                 #region 3ds
                 if (system == "3ds")
