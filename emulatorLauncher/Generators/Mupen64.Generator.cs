@@ -95,9 +95,10 @@ namespace EmulatorLauncher
                 {
                     commandArray.Add("--disk");
                     commandArray.Add("\"" + rom + "\"");
+                    commandArray.Add("\"" + n64rom + "\"");
                 }
-
-                commandArray.Add("\"" + n64rom + "\"");
+                else
+                    commandArray.Add("\"" + rom + "\"");
             }
 
             else
