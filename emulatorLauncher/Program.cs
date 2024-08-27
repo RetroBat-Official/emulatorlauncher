@@ -126,7 +126,8 @@ namespace EmulatorLauncher
             { "devilutionx", () => new DevilutionXGenerator() },
             { "jgenesis", () => new JgenesisGenerator() },
             { "singe2", () => new Singe2Generator() },
-            { "capriceforever", () => new CapriceForever() }
+            { "capriceforever", () => new CapriceForeverGenerator() },
+            { "shadps4", () => new ShadPS4Generator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

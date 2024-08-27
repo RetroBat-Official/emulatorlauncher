@@ -8,9 +8,9 @@ using System.Linq;
 
 namespace EmulatorLauncher
 {
-    partial class CapriceForever : Generator
+    partial class CapriceForeverGenerator : Generator
     {
-        public CapriceForever()
+        public CapriceForeverGenerator()
         {
             DependsOnDesktopResolution = true;
         }

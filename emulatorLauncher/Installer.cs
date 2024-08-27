@@ -32,7 +32,7 @@ namespace EmulatorLauncher
             { new Installer("pcsx2", "pcsx2", "pcsx2-qt.exe") },
             { new Installer("pcsx2-16", "pcsx2-16", "pcsx2.exe") },
             { new Installer("fpinball", "fpinball", "Future Pinball.exe") }, { new Installer("bam", "fpinball", "Future Pinball.exe") }, 
-            { new Installer("cemu") }, { new Installer("wiiu", "cemu") },
+            { new Installer("cemu", "cemu", "Cemu.exe") },
             { new Installer("applewin") }, { new Installer("apple2", "applewin") },
             { new Installer("gsplus") }, { new Installer("apple2gs", "gsplus") },             
             { new Installer("cxbx", new string[] { "cxbx-reloaded", "cxbx-r" }, "cxbx.exe") }, 
@@ -109,7 +109,8 @@ namespace EmulatorLauncher
             { new Installer("jgenesis", "jgenesis", "jgenesis-gui.exe") },
             { new Installer("singe2", "singe2", "Singe-v2.10-Windows-x86_64.exe") },
             { new Installer("opengoal", "opengoal", "gk.exe") },
-            { new Installer("capriceforever", "capriceforever", "Caprice64.exe") }
+            { new Installer("capriceforever", "capriceforever", "Caprice64.exe") },
+            { new Installer("shadps4", "shadps4", "shadPS4.exe") }
         };
 
         static readonly List<string>noVersionExe = new List<string>()
