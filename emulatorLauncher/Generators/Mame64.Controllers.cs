@@ -151,6 +151,24 @@ namespace EmulatorLauncher
 
                     return true;
                 }
+
+                else if (guns[0] != null && guns[0].Type == RawLighGunType.Blamcon && SystemConfig["mame_gun_config"] == "blamcon")
+                {
+                    bool multiBlamcon = guns[1] != null && guns[1].Type == RawLighGunType.Blamcon;
+                    ConfigureLightguns(input, RawLighGunType.Blamcon, multiBlamcon, hbmame);
+
+                    XDocument xdocgun = new XDocument(new XDeclaration("1.0", null, null));
+                    xdocgun.Add(mameconfig);
+                    mameconfig.Add(system);
+                    system.Add(input);
+
+                    xdocgun.Save(inputConfig);
+
+                    if (!File.Exists(inputConfig))
+                        return false;
+
+                    return true;
+                }
             }
 
             // Generate controller mapping
@@ -1358,6 +1376,8 @@ namespace EmulatorLauncher
             }
             else if (lightgunType == RawLighGunType.RetroShooter)
                 input.Add(new XElement("mapdevice", new XAttribute("device", "VID_0483&PID_5750"), new XAttribute("controller", "GUNCODE_1")));
+            else if (lightgunType == RawLighGunType.Blamcon)
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_3673&PID_0101"), new XAttribute("controller", "GUNCODE_1")));
 
             if (multi && lightgunType == RawLighGunType.Gun4Ir)
                 input.Add(new XElement("mapdevice", new XAttribute("device", "VID_2341&PID_8043"), new XAttribute("controller", "GUNCODE_2")));
@@ -1368,6 +1388,8 @@ namespace EmulatorLauncher
             }
             else if (multi && lightgunType == RawLighGunType.RetroShooter)
                 input.Add(new XElement("mapdevice", new XAttribute("device", "VID_0483&PID_5751"), new XAttribute("controller", "GUNCODE_2")));
+            else if (multi && lightgunType == RawLighGunType.Blamcon)
+                input.Add(new XElement("mapdevice", new XAttribute("device", "VID_3673&PID_0102"), new XAttribute("controller", "GUNCODE_2")));
 
             if (hbmame)
             {

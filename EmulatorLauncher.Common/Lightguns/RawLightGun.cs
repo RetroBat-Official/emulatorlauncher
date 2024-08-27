@@ -68,6 +68,10 @@ namespace EmulatorLauncher.Common.Lightguns
                 string[] retroShooterIds = new string[] { "VID_0483&PID_5750", "VID_0483&PID_5751" };
                 if (retroShooterIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.RetroShooter;
+
+                string[] blamconDeviceIds = new string[] { "VID_3673&PID_0101", "VID_3673&PID_0102", "VID_3673&PID_0103", "VID_3673&PID_0104" };
+                if (gun4irDeviceIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.Blamcon;
             }
 
             return RawLighGunType.Mouse;
@@ -114,6 +118,18 @@ namespace EmulatorLauncher.Common.Lightguns
                         return 13;
                     else
                         return 14 + Index;
+
+                case RawLighGunType.Blamcon:
+                    if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0101"))
+                        return 30;
+                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0102"))
+                        return 31;
+                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0103"))
+                        return 32;
+                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0104"))
+                        return 33;
+                    else
+                        return 34 + Index;
 
                 case RawLighGunType.SindenLightgun:
                     if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F01"))
@@ -164,6 +180,7 @@ namespace EmulatorLauncher.Common.Lightguns
         MayFlashWiimote, // Using mode 1
         Gun4Ir,
         RetroShooter,
+        Blamcon,
         Mouse
     }
 }
