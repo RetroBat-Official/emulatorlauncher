@@ -54,6 +54,8 @@ namespace EmulatorLauncher
             UpdateSdlControllersWithHints();
 
             string folder = Path.Combine(path, "controllerProfiles");
+            if (_cemu21)
+                folder = Path.Combine(path, "portable", "controllerProfiles");
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);

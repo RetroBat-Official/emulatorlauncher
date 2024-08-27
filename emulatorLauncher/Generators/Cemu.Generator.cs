@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.FileFormats;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -18,6 +19,7 @@ namespace EmulatorLauncher
 
         private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
         private string _sdl2dll;
+        private bool _cemu21;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -27,9 +29,18 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            string exe = Path.Combine(path, "cemu.exe");
+            string exe = Path.Combine(path, "Cemu.exe");
             if (!File.Exists(exe))
                 return null;
+
+            // Create portable directory if it does not exist
+            string portablePath = Path.Combine(path, "portable");
+            if (!Directory.Exists(portablePath))
+                try { Directory.CreateDirectory(portablePath); }
+                catch { }
+
+            var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+            _cemu21 = versionInfo.ProductMajorPart >= 2 && versionInfo.ProductMinorPart >= 1;
 
             rom = TryUnZipGameIfNeeded(system, rom);
 
@@ -141,6 +152,9 @@ namespace EmulatorLauncher
         {
             string settingsFile = Path.Combine(path, "settings.xml");
 
+            if (_cemu21)
+                settingsFile = Path.Combine(path, "portable", "settings.xml");
+
             var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("content");
 
             string mlcPath = Path.Combine(AppConfig.GetFullPath("saves"), "wiiu", "cemu", "mlc01");
@@ -161,6 +175,10 @@ namespace EmulatorLauncher
             // Graphic part of settings file
             var graphic = xdoc.GetOrCreateElement("Graphic");
             BindFeature(graphic, "VSync", "cemu_vsync", "1");
+            
+            if (SystemConfig["video_renderer"] == "0" && SystemConfig.isOptSet("cemu_vsync") && (SystemConfig["cemu_vsync"] == "2" || SystemConfig["cemu_vsync"] == "3"))
+                graphic.SetElementValue("VSync", "1");
+
             BindFeature(graphic, "api", "video_renderer", "1"); // Graphic driver (0 for OpenGL / 1 for Vulkan)
             BindFeature(graphic, "AsyncCompile", "async_texture", SystemConfig["video_renderer"] != "0" ? "true" : "false"); // Async shader compilation (only if vulkan - true or false)
             BindFeature(graphic, "GX2DrawdoneSync", "accurate_sync", "true"); // Full sync at GX2DrawDone (only if opengl - true or false)
