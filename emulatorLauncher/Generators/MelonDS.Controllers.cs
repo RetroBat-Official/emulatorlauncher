@@ -2,6 +2,7 @@
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -18,6 +19,8 @@ namespace EmulatorLauncher
 
             if (Program.Controllers.Count == 0)
                 return;
+
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for MelonDS");
 
             var ctrl = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
@@ -69,6 +72,8 @@ namespace EmulatorLauncher
             ini.WriteValue("", "HKJoy_Lid", GetInputKeyName(ctrl, InputKey.l3));
             ini.WriteValue("", "HKJoy_Mic", GetInputKeyName(ctrl, InputKey.l2));
             ini.WriteValue("", "HKJoy_SwapScreens", GetInputKeyName(ctrl, InputKey.r2));
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private static string GetInputKeyName(Controller c, InputKey key)

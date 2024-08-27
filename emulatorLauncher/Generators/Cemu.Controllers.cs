@@ -51,6 +51,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Cemu");
+
             UpdateSdlControllersWithHints();
 
             string folder = Path.Combine(path, "controllerProfiles");
@@ -644,6 +646,8 @@ namespace EmulatorLauncher
             writer.WriteEndElement();//end of controller
             writer.WriteEndElement();//end of emulated_controller
             writer.WriteEndDocument();
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         /// <summary>

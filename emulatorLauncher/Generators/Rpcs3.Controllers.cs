@@ -20,6 +20,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for RPCS3");
+
             SimpleLogger.Instance.Info("[GENERATOR] Configuring controllers.");
 
             //Path does not exist by default so create it if inexistent
@@ -514,7 +516,9 @@ namespace EmulatorLauncher
             config["Device Class Type"] = "0";
             config["Vendor ID"] = "1356";
             config["Product ID"] = "616";
-            player["Buddy Device"] = "\"Null\"";            
+            player["Buddy Device"] = "\"Null\"";
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private static string GetInputKeyNameDS(Controller c, InputKey key, string tech)

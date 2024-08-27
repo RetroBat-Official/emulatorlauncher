@@ -17,6 +17,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Ares");
+
             // clear existing pad sections of file
             for (int i = 1; i < 6; i++)
             {
@@ -199,6 +201,8 @@ namespace EmulatorLauncher
             vpad["R-Down"] = GetInputKeyName(ctrl, InputKey.rightanalogdown, padId);
             vpad["R-Left"] = GetInputKeyName(ctrl, InputKey.rightanalogleft, padId);
             vpad["R-Right"] = GetInputKeyName(ctrl, InputKey.rightanalogright, padId);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, string padId)

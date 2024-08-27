@@ -4,6 +4,7 @@ using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -14,8 +15,9 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            // Clear existing ports
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Redream");
 
+            // Clear existing ports
             for (int i = 0; i < 4; i++)
                 ini.WriteValue("", "port" + i, "dev:1,desc:disabled,type:controller");
 
@@ -150,6 +152,8 @@ namespace EmulatorLauncher
 
             string profile = string.Join(",", profileList);
             ini.WriteValue("", profileNr, profile);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)

@@ -17,6 +17,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for PPSSPP");
+
             string iniFile = Path.Combine(memPath, "SYSTEM", "controls.ini");
 
             try
@@ -145,6 +147,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("ControlMapping", "Next Slot", "1-136," + xinputID + "109:" + xinputID + "20," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpdown", c1));     // SELECT + DOWN
                 }
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
         private void ConfigureKeyboard(IniFile ini, InputConfig keyboard)

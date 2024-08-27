@@ -31,6 +31,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Dolphin");
+
             UpdateSdlControllersWithHints();
 
             if (system == "wii")
@@ -1178,6 +1180,8 @@ namespace EmulatorLauncher
                         else
                             ini.WriteValue(gcpad, "IR/Relative Input", "True");
                     }
+
+                    SimpleLogger.Instance.Info("[INFO] Assigned controller " + pad.DevicePath + " to player : " + pad.PlayerIndex.ToString());
                 }
 
                 ini.Save();

@@ -3,6 +3,7 @@ using System.IO;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -12,6 +13,8 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Lime3DS");
 
             var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
@@ -147,6 +150,8 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", "touch_from_button_maps\\1\\name", "default");
             ini.WriteValue("Controls", "touch_from_button_maps\\1\\entries\\size", "0");
             ini.WriteValue("Controls", "touch_from_button_maps\\size", "1");
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
         private string FromInput(Controller controller, Input input, string guid)

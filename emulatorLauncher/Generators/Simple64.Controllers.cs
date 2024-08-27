@@ -25,6 +25,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Simple64");
+
             // UpdateSdlControllersWithHints();     // No hints found in emulator code
 
             string inputProfileIni = Path.Combine(path, "input-profiles.ini");
@@ -235,6 +237,8 @@ namespace EmulatorLauncher
 
             /*if (playerIndex == 1)
                 ConfigureHotkeys(controller, ini, iniSection);*/
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
         private void ResetInputSettings(IniFile ini)
         {

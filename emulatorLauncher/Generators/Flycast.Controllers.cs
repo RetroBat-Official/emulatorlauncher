@@ -30,6 +30,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Flycast");
+
             // Reset controller attribution
             ini.WriteValue("input", "RawInput", "no");
             ini.WriteValue("input", "maple_sdl_keyboard", "0");
@@ -547,6 +549,8 @@ namespace EmulatorLauncher
                     ctrlini.Save();
                 }
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)

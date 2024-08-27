@@ -40,6 +40,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Sudachi");
+
             UpdateSdlControllersWithHints(ini);
 
             // Cleanup control part first
@@ -269,6 +271,8 @@ namespace EmulatorLauncher
 
             ProcessStick(controller, player, "lstick", ini, sudachiGuid, index);
             ProcessStick(controller, player, "rstick", ini, sudachiGuid, index);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
         private string FromInput(Controller controller, Input input, string guid, int index)
