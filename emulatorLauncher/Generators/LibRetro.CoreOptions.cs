@@ -2168,21 +2168,6 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pcfx_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pcfx_controller2", "1");
-
-            if (SystemConfig.isOptSet("pcfx_2button") && SystemConfig.getOptBoolean("pcfx_2button"))
-            {
-                for (int i = 1; i < 6; i++)
-                {
-                    coreSettings["sgx_default_joypad_type_p" + i] = "2 Buttons";
-                }
-            }
-            else
-            {
-                for (int i = 1; i < 6; i++)
-                {
-                    coreSettings["sgx_default_joypad_type_p" + i] = "6 Buttons";
-                }
-            }
         }
 
         private void ConfigureMednafenPce(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2442,6 +2427,21 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "supergrafx_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "supergrafx_controller2", "1");
+
+            if (SystemConfig.isOptSet("sgx_6button") && SystemConfig.getOptBoolean("sgx_6button"))
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    coreSettings["sgx_default_joypad_type_p" + i] = "6 Buttons";
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 6; i++)
+                {
+                    coreSettings["sgx_default_joypad_type_p" + i] = "2 Buttons";
+                }
+            }
         }
 
         private void ConfigureMednafenWswan(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

@@ -203,7 +203,7 @@ namespace EmulatorLauncher
             if (system == "jaguar")
                 settingsPlatform = global.Element("Platform-Jaguar");
             
-            ConfigureControllers(settingsPlatform);
+            ConfigureControllers(settingsPlatform, system);
 
             //Video settings
             XElement video = settings.Element("Video");
