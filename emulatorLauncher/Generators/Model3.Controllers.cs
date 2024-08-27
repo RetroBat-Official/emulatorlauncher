@@ -35,6 +35,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for SuperModel");
+
             UpdateSdlControllersWithHints();
 
             //.ini file for supermodel has entry for 2 players.
@@ -1363,8 +1365,12 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "XInputConstForceMax", "40");
                 ini.WriteValue(" Global ", "XInputVibrateMax", "100");
             }
-            #endregion
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + c1.DevicePath + " to player : " + c1.PlayerIndex.ToString());
+            if (c2 != null && c2.Config != null && !c2.IsKeyboard)
+                SimpleLogger.Instance.Info("[INFO] Assigned controller " + c2.DevicePath + " to player : " + c2.PlayerIndex.ToString()); 
         }
+        #endregion
 
         #region keyboard
         /// <summary>

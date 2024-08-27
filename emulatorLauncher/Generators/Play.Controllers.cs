@@ -18,6 +18,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Play!");
+
             string controllerFile = Path.Combine(path, "Play Data Files", "inputprofiles", "Retrobat.xml");
             string templateControllerFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "inputprofiles", "Retrobat.xml");
 
@@ -267,6 +269,8 @@ namespace EmulatorLauncher
                 XElement rumbleProvider = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "motor.bindingtarget1.providerId").FirstOrDefault();
                 rumbleProvider.SetAttributeValue("Value", "0");
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private string GetDeviceID(Controller ctrl, bool isXinput)

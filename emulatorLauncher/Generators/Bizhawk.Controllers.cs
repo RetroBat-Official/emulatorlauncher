@@ -60,6 +60,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for BizHawk");
+
             json["InputHotkeyOverrideOptions"] = "0";
 
             int maxPad = inputPortNb[core];
@@ -411,6 +413,8 @@ namespace EmulatorLauncher
                 controllerConfig["P2 Y2"] = GetXInputKeyName(controller, InputKey.up);
                 controllerConfig["P2 Start"] = GetXInputKeyName(controller, InputKey.start);
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
         private static void ConfigureKeyboard(Controller controller, DynamicJson json, string system, string core)

@@ -19,6 +19,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("m2_joystick_autoconfig") && Program.SystemConfig["m2_joystick_autoconfig"] == "template")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Model2");
+
             CleanupInputFile(bytes);
 
             if (Program.Controllers.Count > 1)
@@ -1140,6 +1142,10 @@ namespace EmulatorLauncher
             #endregion
 
             SimpleLogger.Instance.Info("[WHEELS] Input values all set.");
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + c1.DevicePath + " to player : " + c1.PlayerIndex.ToString());
+            if (c2 != null && c2.Config != null && !c2.IsKeyboard)
+                SimpleLogger.Instance.Info("[INFO] Assigned controller " + c2.DevicePath + " to player : " + c2.PlayerIndex.ToString());
         }
 
         private void WriteKbMapping(byte[] bytes, string parentRom, InputConfig keyboard)

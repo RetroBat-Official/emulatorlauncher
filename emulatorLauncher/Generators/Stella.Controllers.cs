@@ -4,6 +4,7 @@ using System.Linq;
 using System.Data.SQLite;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -13,6 +14,8 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Stella");
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
 
@@ -270,6 +273,8 @@ namespace EmulatorLauncher
 
             // Add json object for joystick
             jsonList.Add(jsonc);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + c.DevicePath + " to player : " + c.PlayerIndex.ToString());
         }
 
         private static string GetInputKeyName(Controller c, InputKey key)

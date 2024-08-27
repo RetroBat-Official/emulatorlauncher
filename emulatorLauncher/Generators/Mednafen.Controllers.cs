@@ -60,6 +60,8 @@ namespace EmulatorLauncher
             if (!systemWithAutoconfig.Contains(mednafenCore))
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Mednafen");
+
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
 
             // First, set all controllers to none
@@ -403,6 +405,8 @@ namespace EmulatorLauncher
                     cfg["ss.input.builtin.builtin.stv_service"] = "joystick " + deviceID + " " + buttonMapping[InputKey.l3];
                 }
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
         #endregion
 

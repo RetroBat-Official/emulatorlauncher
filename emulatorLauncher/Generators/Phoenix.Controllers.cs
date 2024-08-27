@@ -17,6 +17,8 @@ namespace EmulatorLauncher
             if (!this.Controllers.Any(c => !c.IsKeyboard))
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Phoenix");
+
             var xmlInput = settingsPlatform.Element("Input");
             xmlInput.RemoveAll();
             xmlInput.SetAttributeValue("hide-cursor", "true");
@@ -117,6 +119,8 @@ namespace EmulatorLauncher
 
             XElement device = new XElement("Device", new XAttribute("name", "Joy"), input);
             xml.Add(device);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private string GetInputCode(SdlToDirectInput ctrl, Controller c, string buttonkey, bool isXinput)

@@ -16,6 +16,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("zinc_controller_config") && (Program.SystemConfig["zinc_controller_config"] == "none" || Program.SystemConfig["zinc_controller_config"] == "predefined"))
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Zinc");
+
             using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
                 string outputFile = Path.Combine(path, "wberror.txt");
@@ -40,7 +42,6 @@ namespace EmulatorLauncher
                 return;
             else
                 ConfigureJoystick(controller, ini);
-
         }
 
         private void ConfigureJoystick(Controller ctrl, IniFile ini)
@@ -238,6 +239,8 @@ namespace EmulatorLauncher
                 if (value.Value == "null")
                     ini.Remove(playerSection, value.Key);
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private static string GetDInputKeyName(Controller c, SdlToDirectInput ctrl, InputKey key, string joy)

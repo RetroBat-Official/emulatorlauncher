@@ -14,6 +14,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Snes9x");
 
             // clear existing pad sections of file
             for (int i = 1; i <= 8; i++)
@@ -165,6 +166,8 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls\\Win", joyNb + "Turbo:R", "Unassigned");
             ini.WriteValue("Controls\\Win", joyNb + "Turbo:Start", "Unassigned");
             ini.WriteValue("Controls\\Win", joyNb + "Turbo:Select", "Unassigned");
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private string GetDinputMapping(int index, SdlToDirectInput c, string buttonkey, bool isxinput, int plus = 0)

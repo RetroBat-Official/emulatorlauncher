@@ -18,6 +18,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for BigPEmu");
+
             _useSdl = !SystemConfig.isOptSet("bigpemu_sdl") || SystemConfig["bigpemu_sdl"] == "1";
 
             // Set input plugin to dInput
@@ -777,6 +779,8 @@ namespace EmulatorLauncher
             }
             
             device.SetObject("Bindings", bindings);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private string GetDinputMapping(SdlToDirectInput c, string buttonkey, bool useHat, int direction = -1)

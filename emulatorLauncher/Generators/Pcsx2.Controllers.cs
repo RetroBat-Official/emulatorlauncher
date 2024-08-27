@@ -42,6 +42,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for PCSX2");
+
             _forceSDL = Program.SystemConfig.isOptSet("pcsx2_input_driver_force") && Program.SystemConfig.getOptBoolean("pcsx2_input_driver_force");
             _forceDInput = Program.SystemConfig.isOptSet("pcsx2_input_driver_force") && Program.SystemConfig["pcsx2_input_driver_force"] == "dinput";
 
@@ -531,6 +533,8 @@ namespace EmulatorLauncher
                         pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", techPadNumber + hotKeyName + " & " + techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
                 }
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private void ResetHotkeysToDefault(IniFile pcsx2ini)

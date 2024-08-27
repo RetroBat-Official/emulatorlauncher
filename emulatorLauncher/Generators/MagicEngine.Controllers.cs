@@ -14,6 +14,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for MagicEngine");
+
             string cfgFile = Path.Combine(path, "pce.cfg");
 
             byte[] bytes;
@@ -110,6 +112,8 @@ namespace EmulatorLauncher
                     buttonStart += 12;
                 }
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private byte[] GetButtonByteArray(SdlToDirectInput sdlCtrl, string key, int ctrlIndex)

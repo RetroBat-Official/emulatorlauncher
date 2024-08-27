@@ -46,6 +46,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Ryujinx");
+
             UpdateSdlControllersWithHints();
 
             //clear existing input_config section to avoid the same controller mapped to different players because of past mapping
@@ -353,6 +355,8 @@ namespace EmulatorLauncher
             //add section to file
             input_configs.Add(input_config);
             json.SetObject("input_config", input_configs);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + c.DevicePath + " to player : " + c.PlayerIndex.ToString());
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, string tech)

@@ -19,6 +19,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Demul");
+
             _isArcade = !nonArcadeSystems.Contains(system);
 
             if (!this.Controllers.Any(c => !c.IsKeyboard))
@@ -210,6 +212,8 @@ namespace EmulatorLauncher
                 ctrlIni.WriteValue(iniSection, "S2LEFT", isXInput ? GetXInputCode(controller, InputKey.joystick2left, index) : GetDInputCode(controller, InputKey.joystick2left, sdlCtrl, index));
                 ctrlIni.WriteValue(iniSection, "S2RIGHT", isXInput ? GetXInputCode(controller, InputKey.joystick2right, index) : GetDInputCode(controller, InputKey.joystick2right, sdlCtrl, index));
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
         private static string GetDInputCode(Controller c, InputKey key, SdlToDirectInput ctrl, int index, bool trigger = false)

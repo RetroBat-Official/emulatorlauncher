@@ -26,6 +26,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for MAME");
+
             int gunCount = RawLightgun.GetUsableLightGunCount();
             var guns = RawLightgun.GetRawLightguns();
 
@@ -271,6 +273,8 @@ namespace EmulatorLauncher
                     else
                         ConfigurePlayersDInput(i, input, ctrlr, joy, mouseIndex2, dpadonly, xinputCtrl);
                 }
+
+                SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
             }
 
             // Generate xml document

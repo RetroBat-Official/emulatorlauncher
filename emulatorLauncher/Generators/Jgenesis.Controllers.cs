@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 
@@ -12,6 +13,8 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for JGenesis");
 
             if (jgenSystem == "sega_cd")
                 jgenSystem = "genesis";
@@ -148,6 +151,8 @@ namespace EmulatorLauncher
 
             if (playerIndex == 1)
                 ConfigureDefaultKeyboard(ini, jgenSystem);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, int playerIndex, string jgenSystem)

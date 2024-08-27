@@ -16,6 +16,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Kega-Fusion");
+
             int maxPad = 8;
 
             if (system == "mastersystem")
@@ -175,6 +177,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("", "Joystick" + joy + "MSType", "1");
                 ini.WriteValue("", "Player" + joy + "MSButtons", input);
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private string GetInputCode(SdlToDirectInput ctrl, Controller c, InputKey key)

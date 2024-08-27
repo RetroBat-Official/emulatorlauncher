@@ -3,6 +3,7 @@ using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -26,6 +27,8 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Raine");
 
             //UpdateSdlControllersWithHints();
 
@@ -108,6 +111,8 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_7_joystick", ((axisStart + (axisIncrement * 9) + index)).ToString());
             ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_8_joystick", ((axisStart + (axisIncrement * 11) + index)).ToString());
             ini.WriteValue(iniSection, "Def_Coin_D_joystick", (buttonStart * 5 + index).ToString());
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         static readonly List<string> genericControls = new List<string>() { "Def_Coin_A_joystick", "Def_Coin_B_joystick", "Def_Coin_C_joystick", "Def_Coin_D_joystick", "Def_Service_joystick", "Def_Test_joystick", "Def_Service_A_joystick", "Def_Service_B_joystick", "Def_Service_C_joystick", "Next_Game_joystick", "Prev_Game_joystick" };

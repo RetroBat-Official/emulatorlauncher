@@ -3,6 +3,7 @@ using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using System;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -12,6 +13,8 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
+
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Mesen");
 
             // clear existing mapping sections of json file
             var portList = nesPorts;
@@ -227,6 +230,8 @@ namespace EmulatorLauncher
 
             if (playerIndex == 1)
                 WriteHotkeys(pref, index, isXInput);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private void ConfigureKeyboard(DynamicJson pref, DynamicJson systemSection, InputConfig keyboard, string mesenSystem)

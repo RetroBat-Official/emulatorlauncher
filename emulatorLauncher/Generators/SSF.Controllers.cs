@@ -15,6 +15,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for SSF");
+
             // clear existing Input section of ini file
             ini.ClearSection("Input");
 
@@ -195,6 +197,8 @@ namespace EmulatorLauncher
             string mapping = string.Join("/", buttonMapping);
 
             ini.WriteValue("Input", padKey, "\"" + mapping + "\"");
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private static int GetInputCode(Controller c, InputKey key, SdlToDirectInput ctrl, bool isXinput = false, bool trigger = false)

@@ -40,6 +40,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Yuzu");
+
             UpdateSdlControllersWithHints(ini);
 
             // Cleanup control part first
@@ -268,6 +270,8 @@ namespace EmulatorLauncher
 
             ProcessStick(controller, player, "lstick", ini, yuzuGuid, index);
             ProcessStick(controller, player, "rstick", ini, yuzuGuid, index);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
         private string FromInput(Controller controller, Input input, string guid, int index)

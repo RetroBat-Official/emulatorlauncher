@@ -25,6 +25,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for RMG Mupen64");
+
             // UpdateSdlControllersWithHints();     // No hints found in emulator code
 
             for (int i = 0; i < 4; i++)
@@ -295,6 +297,8 @@ namespace EmulatorLauncher
                 ConfigureHotkeys(ini, iniSection);
                 ConfigureEmptyHotkeys(ini, iniSection);
             }
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
         private void ConfigureHotkeys(IniFile ini, string iniSection)
