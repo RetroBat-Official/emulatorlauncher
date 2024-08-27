@@ -109,7 +109,8 @@ namespace EmulatorLauncher
             { new Installer("jgenesis", "jgenesis", "jgenesis-gui.exe") },
             { new Installer("singe2", "singe2", "Singe-v2.10-Windows-x86_64.exe") },
             { new Installer("opengoal", "opengoal", "gk.exe") },
-            { new Installer("capriceforever", "capriceforever", "Caprice64.exe") }
+            { new Installer("capriceforever", "capriceforever", "Caprice64.exe") },
+            { new Installer("shadps4", "shadps4", "shadPS4.exe") }
         };
 
         static readonly List<string>noVersionExe = new List<string>()

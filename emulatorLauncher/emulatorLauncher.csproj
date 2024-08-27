@@ -343,6 +343,7 @@
       <DependentUpon>Ryujinx.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\ScummVm.Generator.cs" />
+    <Compile Include="Generators\ShadPS4.Generator.cs" />
     <Compile Include="Generators\SimCoupe.Generator.cs" />
     <Compile Include="Generators\Simple64.Generator.cs" />
     <Compile Include="Generators\Simple64.Controllers.cs">

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace EmulatorLauncher
 {
-    partial class CapriceForever : Generator
+    partial class CapriceForeverGenerator : Generator
     {
         private void ConfigureControllers(IniFile ini, string path)
         {
@@ -24,7 +24,7 @@ namespace EmulatorLauncher
 
             // Inject controllers                
             foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(2))
-                ConfigureJoystick(ini, contentBuilder, controller, controller.PlayerIndex);
+                ConfigureJoystick(contentBuilder, controller, controller.PlayerIndex);
 
             // Write to file
             using (StreamWriter writer = new StreamWriter(profileFile, false, Encoding.UTF8))
@@ -33,7 +33,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureJoystick(IniFile ini, StringBuilder contentBuilder, Controller ctrl, int playerIndex)
+        private void ConfigureJoystick(StringBuilder contentBuilder, Controller ctrl, int playerIndex)
         {
             if (ctrl == null)
                 return;

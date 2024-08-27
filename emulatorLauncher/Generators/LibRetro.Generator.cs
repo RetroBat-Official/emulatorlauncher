@@ -700,12 +700,8 @@ namespace EmulatorLauncher.Libretro
                 BindBoolFeature(retroarchConfig, "netplay_public_announce", "netplay_public_announce", "true", "false");
 
                 // custom relay server
-                if (SystemConfig.isOptSet("netplay_custom_mitm_server") && !string.IsNullOrEmpty(SystemConfig["netplay_custom_mitm_server"]))
-                {
-                    retroarchConfig["netplay_custom_mitm_server"] = SystemConfig["netplay_custom_mitm_server"];
-                    retroarchConfig["netplay_mitm_server"] = "custom";
-                    retroarchConfig["netplay_use_mitm_server"] = "true";
-                }
+                if (SystemConfig["netplay.relay"] == "custom" && SystemConfig.isOptSet("netplay.customserver") && !string.IsNullOrEmpty(SystemConfig["netplay.customserver"]))
+                    retroarchConfig["netplay_custom_mitm_server"] = SystemConfig["netplay.customserver"];
                 else
                     retroarchConfig["netplay_custom_mitm_server"] = "";
             }
