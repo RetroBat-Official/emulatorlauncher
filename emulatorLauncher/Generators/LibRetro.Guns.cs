@@ -5,7 +5,6 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
-using System.Windows.Media;
 
 namespace EmulatorLauncher.Libretro
 {
