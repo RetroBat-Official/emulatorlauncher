@@ -242,6 +242,20 @@ namespace EmulatorLauncher.Libretro
                 }
                 #endregion
 
+                #region neogeocd
+                if (system == "neogeocd")
+                {
+                    if (core == "neocd")
+                    {
+                        inputremap["input_player" + i + "_btn_l"] = "14";
+                        inputremap["input_player" + i + "_btn_l2"] = "15";
+                        inputremap["input_player" + i + "_btn_l3"] = "-1";
+                        inputremap["input_player" + i + "_btn_r"] = "12";
+                        inputremap["input_player" + i + "_btn_r3"] = "-1";
+                    }
+                }
+                #endregion
+
                 #region NES
                 if (systemNES.Contains(system))
                 {

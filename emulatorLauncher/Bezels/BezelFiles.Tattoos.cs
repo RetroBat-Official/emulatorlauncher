@@ -404,6 +404,90 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "neogeo")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "fbneo":
+                                {
+                                    if (Program.SystemConfig.isOptSet("fbneo_controller"))
+                                    {
+                                        string layout = Program.SystemConfig["fbneo_controller"];
+                                        if (layout == "5")
+                                            ret = "neogeo_classic";
+                                        else if (layout == "517")
+                                            ret = "neogeo_modern";
+                                        else if (layout == "261")
+                                            ret = "neogeo_6buttonpad";
+                                    }
+                                    else
+                                        ret = "neogeo_classic";
+                                    break;
+                                }
+                            case "fbalpha":
+                                {
+                                    if (Program.SystemConfig.isOptSet("fba_controller"))
+                                    {
+                                        string layout = Program.SystemConfig["fba_controller"];
+                                        if (layout == "5")
+                                            ret = "neogeo_fbalpha";
+                                        else if (layout == "517")
+                                            ret = "neogeo_fbalpha_modern";
+                                    }
+                                    else
+                                        ret = "neogeo_fbalpha";
+                                    break;
+                                }
+                            case "fbalpha2012_neogeo":
+                                ret = "fbalpha2012_neogeo";
+                                break;
+                            case "geolith":
+                                ret = "neogeo_geolith";
+                                break;
+                        }
+                        break;
+                    case "raine":
+                    case "mame64":
+                        ret = "unknown";
+                        break;
+                }
+            }
+            else if (system == "neogeocd")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "fbneo":
+                                {
+                                    if (Program.SystemConfig.isOptSet("fbneo_controller"))
+                                    {
+                                        string layout = Program.SystemConfig["fbneo_controller"];
+                                        if (layout == "5")
+                                            ret = "neogeocd";
+                                        else if (layout == "517")
+                                            ret = "neogeocd_modern";
+                                        else if (layout == "261")
+                                            ret = "neogeocd_6buttonpad";
+                                    }
+                                    else
+                                        ret = "neogeocd";
+                                    break;
+                                }
+                            case "neocd":
+                                ret = "neogeocd";
+                                break;
+                        }
+                        break;
+                    case "raine":
+                        ret = "unknown";
+                        break;
+                }
+            }
             else if (system == "nes")
             {
                 switch (emulator)
