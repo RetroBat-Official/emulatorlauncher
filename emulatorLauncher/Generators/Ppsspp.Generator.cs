@@ -53,7 +53,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            string memPath = Path.Combine(AppConfig.GetFullPath("saves"), "psp", "PSP");
+            string memPath = Path.Combine(AppConfig.GetFullPath("saves"), "psp");
             SimpleLogger.Instance.Info("[Generator] Setting '" + memPath + "' as content path for the emulator");
 
             if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
@@ -237,6 +237,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Graphics", "DisplayIntegerScale", "False");
 
                     BindBoolIniFeature(ini, "Graphics", "Smart2DTexFiltering", "ppsspp_smart2d", "True", "False");
+                    BindBoolIniFeature(ini, "Graphics", "ReplaceTextures", "ppsspp_texture_replacement", "True", "False");
 
                     // Controls
                     if (SystemConfig.isOptSet("ppsspp_mouse") && SystemConfig.getOptBoolean("ppsspp_mouse"))

@@ -3547,7 +3547,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "ppsspp_language", "ppsspp_language", "Automatic");
             BindFeature(coreSettings, "ppsspp_io_timing_method", "ppsspp_io_timing_method", "Fast");
             BindFeature(coreSettings, "ppsspp_ignore_bad_memory_access", "ppsspp_ignore_bad_memory_access", "enabled");
-            BindFeature(coreSettings, "ppsspp_texture_replacement", "ppsspp_texture_replacement", "disabled");
+            BindBoolFeature(coreSettings, "ppsspp_texture_replacement", "ppsspp_texture_replacement", "enabled", "disabled");
             BindFeature(coreSettings, "ppsspp_button_preference", "ppsspp_button_preference", "Cross");
         }
 

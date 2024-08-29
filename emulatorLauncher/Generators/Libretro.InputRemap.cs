@@ -7,7 +7,7 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
-        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb" };
+        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb", "gb-msu" };
         static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds", "mastersystem" };
         static readonly List<string> systemMegadrive = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static readonly List<string> systemNES = new List<string>() { "nes", "fds" };
