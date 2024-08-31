@@ -719,11 +719,14 @@ namespace EmulatorLauncher
                 ini.WriteValue("Player", "PlayMusic", SystemConfig.getOptBoolean("vp_music_off") ? "0" : "1");
 
                 // Controls
-                ini.WriteValue("Player", "LRAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "1");
-                ini.WriteValue("Player", "UDAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "2");
-                ini.WriteValue("Player", "PlungerAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "3");
 
-                ini.WriteValue("Player", "DeadZone", SystemConfig.GetValueOrDefault("joy_deadzone", "15"));
+                if (SystemConfig["disableautocontrollers"] != "1")
+                {
+                    ini.WriteValue("Player", "LRAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "1");
+                    ini.WriteValue("Player", "UDAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "2");
+                    ini.WriteValue("Player", "PlungerAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "3");
+                    ini.WriteValue("Player", "DeadZone", SystemConfig.GetValueOrDefault("joy_deadzone", "15"));
+                }
 
                 ini.WriteValue("Editor", "WindowTop", (Screen.PrimaryScreen.Bounds.Height / 2 - 300).ToString());
                 ini.WriteValue("Editor", "WindowBottom", (Screen.PrimaryScreen.Bounds.Height / 2 + 300).ToString());
@@ -838,17 +841,19 @@ namespace EmulatorLauncher
                 SetOption(regKeyc, "PlayMusic", SystemConfig.getOptBoolean("vp_music_off") ? 0 : 1);
 
                 // Controls
-                SetOption(regKeyc, "LRAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 1);
-                SetOption(regKeyc, "UDAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 2);
-                SetOption(regKeyc, "PlungerAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 3);
+                if (SystemConfig["disableautocontrollers"] != "1")
+                {
+                    SetOption(regKeyc, "LRAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 1);
+                    SetOption(regKeyc, "UDAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 2);
+                    SetOption(regKeyc, "PlungerAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 3);
 
-                int deadzone = 15;
+                    int deadzone = 15;
 
-                if (SystemConfig.isOptSet("joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["joy_deadzone"]))
-                    deadzone = SystemConfig["joy_deadzone"].ToInteger();
-                
-                SetOption(regKeyc, "DeadZone", deadzone);
+                    if (SystemConfig.isOptSet("joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["joy_deadzone"]))
+                        deadzone = SystemConfig["joy_deadzone"].ToInteger();
 
+                    SetOption(regKeyc, "DeadZone", deadzone);
+                }
                 regKeyc.Close();
             }
 

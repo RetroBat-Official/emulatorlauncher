@@ -1973,7 +1973,6 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mame_rotation_mode", "mame_rotation_mode", "internal");
             BindFeature(coreSettings, "mame_thread_mode", "mame_thread_mode", "enabled");
             BindFeature(coreSettings, "mame_throttle", "mame_throttle", "disabled");
-            BindFeature(coreSettings, "mame_boot_from_cli", "boot_from_cli", "enabled", true);
             BindFeature(coreSettings, "mame_boot_to_bios", "boot_to_bios", "disabled", true);
             BindFeature(coreSettings, "mame_boot_to_osd", "boot_to_osd", "disabled", true);
 
@@ -1987,6 +1986,21 @@ namespace EmulatorLauncher.Libretro
             }
 
             ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
+
+            string mameOptFile = Path.Combine(AppConfig.GetFullPath("retroarch"), "config", "MAME", "MAME.opt");
+            if (!File.Exists(mameOptFile))
+                try { File.Create(mameOptFile).Close(); } catch { }
+            var mameCoreSettings = ConfigFile.FromFile(mameOptFile, new ConfigFileOptions() { CaseSensitive = true });
+
+            foreach (var setting in coreSettings)
+            {
+                if (setting.Name.StartsWith("mame_") && !setting.Name.Contains("_current"))
+                {
+                    mameCoreSettings[setting.Name] = setting.Value;
+                }
+            }
+
+            mameCoreSettings.Save(mameOptFile, true);
         }
 
         private void CleanupMameMessConfigFiles(MessSystem messSystem)
@@ -2047,6 +2061,21 @@ namespace EmulatorLauncher.Libretro
                 ini["output"] = "auto";
 
             ini.Save();
+
+            // Plugin.ini
+            var pluginsIni = MameIniFile.FromFile(Path.Combine(path, "plugin.ini"));
+
+            if (SystemConfig.isOptSet("cheats_enable") && SystemConfig.getOptBoolean("cheats_enable"))
+                pluginsIni["cheat"] = "1";
+            else
+                pluginsIni["cheat"] = "0";
+
+            if (SystemConfig.isOptSet("mame_hiscore") && SystemConfig.getOptBoolean("mame_hiscore"))
+                pluginsIni["hiscore"] = "1";
+            else
+                pluginsIni["hiscore"] = "0";
+
+            pluginsIni.Save();
         }
 
         private void ConfigureMame2000(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
