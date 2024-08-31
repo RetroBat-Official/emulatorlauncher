@@ -82,13 +82,13 @@ namespace EmulatorLauncher
                 switch (corner)
                 {
                     case "NE":
-                        g.DrawImage(tattoo, w - tw, margin);
+                        g.DrawImage(tattoo, w - (tw/2), margin);
                         break;
                     case "SE":
-                        g.DrawImage(tattoo, w - tw, h - th - margin);
+                        g.DrawImage(tattoo, w - (tw/2), h - (th/2) - margin);
                         break;
                     case "SW":
-                        g.DrawImage(tattoo, 0, h - th - margin);
+                        g.DrawImage(tattoo, 0, h - (th/2) - margin);
                         break;
                     default: // NW
                         g.DrawImage(tattoo, 0, margin);
