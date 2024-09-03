@@ -240,19 +240,24 @@ namespace EmulatorLauncher
 
             if (c.IsKeyboard)
             {
-                ini.WriteValue(joySection, "nJoystickMode", "1");
+                ini.WriteValue(joySection, "nJoystickMode", "2");
                 ini.WriteValue(joySection, "nJoyId", "0");
                 ini.WriteValue(joySection, "kUp", "Up");
                 ini.WriteValue(joySection, "kDown", "Down");
                 ini.WriteValue(joySection, "kLeft", "Left");
                 ini.WriteValue(joySection, "kRight", "Right");
-                ini.WriteValue(joySection, "kFire", "X");
+                ini.WriteValue(joySection, "kFire", "Left Shift");
             }
 
             int index = c.DeviceIndex;
 
-            ini.WriteValue(joySection, "nJoystickMode", "2");
+            ini.WriteValue(joySection, "nJoystickMode", "1");
             ini.WriteValue(joySection, "nJoyId", index.ToString());
+
+            if (SystemConfig.isOptSet("hatari_autofire") && SystemConfig.getOptBoolean("hatari_autofire"))
+                ini.WriteValue(joySection, "bEnableAutoFire", "TRUE");
+            else
+                ini.WriteValue(joySection, "bEnableAutoFire", "FALSE");
         }
 
         public override int RunAndWait(ProcessStartInfo path)
