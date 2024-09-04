@@ -229,15 +229,7 @@ namespace EmulatorLauncher
             var video = yml.GetOrCreateContainer("Video");
             BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
             video["Resolution"] = "1280x720";
-            
-            if (SystemConfig.isOptSet("rpcs3_internal_resolution") && !string.IsNullOrEmpty(SystemConfig["rpcs3_internal_resolution"]))
-            {
-                string resScale = SystemConfig["rpcs3_internal_resolution"].Split('.')[0];
-                video["Resolution Scale"] = resScale;
-            }
-            else
-                video["Resolution Scale"] = "100";
-            
+            BindFeature(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
             BindFeature(video, "Aspect ratio", "rpcs3_ratio", "16:9");
             BindFeature(video, "Frame limit", "framelimit", "Auto");
             BindFeature(video, "MSAA", "msaa", "Auto");
@@ -308,22 +300,22 @@ namespace EmulatorLauncher
             BindFeature(audio, "Renderer", "audiobackend", "Cubeb");
             BindFeature(audio, "Audio Format", "audiochannels", "Stereo");
             BindFeature(audio, "Enable Buffering", "audio_buffering", "true");
-            
-            if (SystemConfig.isOptSet("rpcs3_enable_time_stretching") && SystemConfig.getOptBoolean("rpcs3_enable_time_stretching"))
+            if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "low"))
             {
-                if (SystemConfig.isOptSet("rpcs3_time_stretching_threshold") && !string.IsNullOrEmpty(SystemConfig["rpcs3_time_stretching_threshold"]))
-                {
-                    string timeStretching = SystemConfig["rpcs3_time_stretching_threshold"].Split('.')[0];
-                    audio["Enable time stretching"] = "true";
-                    audio["Time Stretching Threshold"] = timeStretching;
-                }
-                else
-                {
-                    audio["Enable time stretching"] = "true";
-                    audio["Time Stretching Threshold"] = "75";
-                }
+                audio["Enable time stretching"] = "true";
+                audio["Time Stretching Threshold"] = "25";
             }
-            else if (Features.IsSupported("rpcs3_enable_time_stretching"))
+            else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "medium"))
+            {
+                audio["Enable time stretching"] = "true";
+                audio["Time Stretching Threshold"] = "50";
+            }
+            else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "high"))
+            {
+                audio["Enable time stretching"] = "true";
+                audio["Time Stretching Threshold"] = "75";
+            }
+            else if (Features.IsSupported("time_stretching"))
             {
                 audio["Enable time stretching"] = "false";
                 audio["Time Stretching Threshold"] = "75";
