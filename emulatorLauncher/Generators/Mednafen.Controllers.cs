@@ -407,6 +407,21 @@ namespace EmulatorLauncher
             }
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
+
+            if (controller.PlayerIndex == 1)
+            {
+                cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.x];
+                cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.y];
+                cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.down];
+                cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.up];
+                cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.a];
+                cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.r2];
+                cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.r3];
+                cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.right];
+                cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.left];
+                cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.b];
+                cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.start];
+            }
         }
         #endregion
 
