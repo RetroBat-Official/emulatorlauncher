@@ -1987,9 +1987,14 @@ namespace EmulatorLauncher.Libretro
 
             ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
 
-            string mameOptFile = Path.Combine(AppConfig.GetFullPath("retroarch"), "config", "MAME", "MAME.opt");
+            string mameOptFileFolder = Path.Combine(AppConfig.GetFullPath("retroarch"), "config", "MAME");
+            if (!Directory.Exists(mameOptFileFolder))
+                try { Directory.CreateDirectory(mameOptFileFolder); } catch { }
+            
+            string mameOptFile = Path.Combine(mameOptFileFolder, "MAME.opt");
             if (!File.Exists(mameOptFile))
                 try { File.Create(mameOptFile).Close(); } catch { }
+            
             var mameCoreSettings = ConfigFile.FromFile(mameOptFile, new ConfigFileOptions() { CaseSensitive = true });
 
             foreach (var setting in coreSettings)
