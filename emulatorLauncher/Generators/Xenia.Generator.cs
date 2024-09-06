@@ -178,21 +178,19 @@ namespace EmulatorLauncher
                         ini.AppendValue("Display", "postprocess_antialiasing", "\"\"");
 
                     // Resolution
-                    if (!_canary)
+                    if (SystemConfig.isOptSet("xenia_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_resolution"]))
                     {
-                        if (SystemConfig.isOptSet("xenia_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_resolution"]))
-                        {
-                            string[] res = SystemConfig["xenia_resolution"].Split('_');
-                            ini.AppendValue("GPU", "draw_resolution_scale_x", res[0]);
-                            ini.AppendValue("GPU", "draw_resolution_scale_y", res[1]);
-                        }
-                        else
-                        {
-                            ini.AppendValue("GPU", "draw_resolution_scale_x", "1");
-                            ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
-                        }
+                        string[] res = SystemConfig["xenia_resolution"].Split('_');
+                        ini.AppendValue("GPU", "draw_resolution_scale_x", res[0]);
+                        ini.AppendValue("GPU", "draw_resolution_scale_y", res[1]);
                     }
                     else
+                    {
+                        ini.AppendValue("GPU", "draw_resolution_scale_x", "1");
+                        ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
+                    }
+                    
+                    if (_canary)
                     {
                         if (SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
                             ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
