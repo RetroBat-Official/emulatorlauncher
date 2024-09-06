@@ -150,15 +150,24 @@ namespace EmulatorLauncher
             writer.WriteElementString("uuid", "keyboard");
             writer.WriteElementString("display_name", "Keyboard");
             writer.WriteStartElement("axis");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of axis
             writer.WriteStartElement("rotation");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of rotation
             writer.WriteStartElement("trigger");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_trigger_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_trigger_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_trigger_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of trigger
             writer.WriteStartElement("mappings");
@@ -238,15 +247,24 @@ namespace EmulatorLauncher
 
             //Default deadzones and ranges for axis, rotation and trigger
             writer.WriteStartElement("axis");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of axis
             writer.WriteStartElement("rotation");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of rotation
             writer.WriteStartElement("trigger");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_trigger_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_trigger_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_trigger_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of trigger
             writer.WriteElementString("packet_delay", "25");
@@ -413,15 +431,24 @@ namespace EmulatorLauncher
 
             //Default deadzones and ranges for axis, rotation and trigger
             writer.WriteStartElement("axis");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of axis
             writer.WriteStartElement("rotation");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of rotation
             writer.WriteStartElement("trigger");
-            writer.WriteElementString("deadzone", "0.25");
+            if (Program.SystemConfig.isOptSet("cemu_trigger_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["cemu_trigger_deadzone"]))
+                writer.WriteElementString("deadzone", Program.SystemConfig["cemu_trigger_deadzone"]);
+            else
+                writer.WriteElementString("deadzone", "0.25");
             writer.WriteElementString("range", "1");
             writer.WriteEndElement();//end of trigger
             writer.WriteStartElement("mappings");
