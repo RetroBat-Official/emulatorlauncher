@@ -27,7 +27,9 @@ namespace EmulatorLauncher
 
             string path = AppConfig.GetFullPath(emulator);
 
-            string exe = Path.Combine(path, "lime3ds-gui.exe");
+            string exe = Path.Combine(path, "lime3ds.exe");
+            if (!File.Exists(exe))
+                exe = Path.Combine(path, "lime3ds-gui.exe");    // old executable name
             if (!File.Exists(exe))
                 exe = Path.Combine(path, "lime-qt.exe");    // old executable name
 
@@ -62,11 +64,13 @@ namespace EmulatorLauncher
 
             SetupConfigurationLime3ds(path, rom, fullscreen);
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-            _resolution = resolution;
-
-            if (_bezelFileInfo.PngFile != null)
-                SimpleLogger.Instance.Info("[INFO] Bezel file selected : " + _bezelFileInfo.PngFile);
+            if (fullscreen)
+            {
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                _resolution = resolution;
+                if (_bezelFileInfo.PngFile != null)
+                    SimpleLogger.Instance.Info("[INFO] Bezel file selected : " + _bezelFileInfo.PngFile);
+            }
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = File.ReadAllText(rom);
@@ -95,7 +99,7 @@ namespace EmulatorLauncher
 
             string userconfigPath = Path.Combine(path, "user", "config");
             if (!Directory.Exists(userconfigPath))
-                Directory.CreateDirectory(userconfigPath);
+                try { Directory.CreateDirectory(userconfigPath); } catch {}
 
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
