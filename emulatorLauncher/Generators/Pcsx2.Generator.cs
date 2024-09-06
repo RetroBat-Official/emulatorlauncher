@@ -58,6 +58,20 @@ namespace EmulatorLauncher
             if (!_fullscreen)
                 SystemConfig["bezel"] = "none";
 
+            // Manage 7z
+            string[] extensions = new string[] { ".m3u", ".chd", ".gz", ".mdf", ".bin", ".iso", ".cso" };
+
+            if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower() == ".squashfs")
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
+
             // Manage .m3u files
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
             {
