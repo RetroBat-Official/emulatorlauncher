@@ -60,11 +60,14 @@ namespace EmulatorLauncher
                 }
             }
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-            _resolution = resolution;
+            if (fullscreen)
+            {
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                _resolution = resolution;
 
-            if (_bezelFileInfo.PngFile != null)
-                SimpleLogger.Instance.Info("[INFO] Bezel file selected : " + _bezelFileInfo.PngFile);
+                if (_bezelFileInfo.PngFile != null)
+                    SimpleLogger.Instance.Info("[INFO] Bezel file selected : " + _bezelFileInfo.PngFile);
+            }
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = File.ReadAllText(rom);

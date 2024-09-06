@@ -18,6 +18,9 @@ namespace EmulatorLauncher.Libretro
 
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap)
         {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
             _playerCount = Program.Controllers.Count;
 
             if (_playerCount == 0)

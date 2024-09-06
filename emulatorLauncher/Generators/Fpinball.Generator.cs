@@ -61,7 +61,7 @@ namespace EmulatorLauncher
                                 regKeyc.SetValue("JoypadDigitalPlunger", JoystickValue(InputKey.a, controller));
                                 regKeyc.SetValue("JoypadToggleHud", JoystickValue(InputKey.y, controller));
                                 regKeyc.SetValue("JoypadNextCamera", JoystickValue(InputKey.b, controller));
-                                regKeyc.SetValue("JoypadExit", -1); //JoystickValue(InputKey.x, controller));
+                                regKeyc.SetValue("JoypadExit", JoystickValue(InputKey.r3, controller));
 
                                 regKeyc.SetValue("JoypadLeftFlipper", JoystickValue(InputKey.pageup, controller));
                                 regKeyc.SetValue("JoypadRightFlipper", JoystickValue(InputKey.pagedown, controller));
@@ -69,7 +69,6 @@ namespace EmulatorLauncher
                                 regKeyc.SetValue("JoypadStartGame", JoystickValue(InputKey.start, controller));
                                 regKeyc.SetValue("JoypadInsertCoin", JoystickValue(InputKey.select, controller));
 
-                                //regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.r3, controller));
                                 regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.x, controller));
                                 regKeyc.SetValue("JoypadBackbox", JoystickValue(InputKey.l3, controller));
 

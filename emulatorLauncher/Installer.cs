@@ -40,7 +40,7 @@ namespace EmulatorLauncher
             { new Installer("xbox", new string[] { "cxbx-reloaded", "cxbx-r" }, "cxbx.exe") },             
             { new Installer("citra", "citra", "citra-qt.exe") },
             { new Installer("citra-canary", "citra-canary", "citra-qt.exe") },
-            { new Installer("lime3ds", "lime3ds", "lime3ds-gui.exe") },
+            { new Installer("lime3ds", "lime3ds", "lime3ds.exe") },
             { new Installer("daphne") },
             { new Installer("demul") }, 
             { new Installer("demul-old", "demul-old", "demul.exe") }, 
