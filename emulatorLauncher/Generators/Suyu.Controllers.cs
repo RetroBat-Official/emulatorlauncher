@@ -307,6 +307,9 @@ namespace EmulatorLauncher
             var cfg = controller.Config;
 
             string name = player + stickName;
+            string deadzone = "0.150000";
+            if (SystemConfig.isOptSet("suyu_deadzone") && !string.IsNullOrEmpty(SystemConfig["suyu_deadzone"]))
+                deadzone = SystemConfig["suyu_deadzone"];
 
             var leftVal = cfg[stickName == "lstick" ? InputKey.joystick1left : InputKey.joystick2left];
             var topVal = cfg[stickName == "lstick" ? InputKey.joystick1up : InputKey.joystick2up];
@@ -323,7 +326,7 @@ namespace EmulatorLauncher
                     suyutopval = 4;
                 }
 
-                string value = "engine:sdl," + "axis_x:" + suyuleftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + suyutopval + ",deadzone:0.150000,range:1.000000";
+                string value = "engine:sdl," + "axis_x:" + suyuleftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + suyutopval + ",deadzone:" + deadzone + ",range:1.000000";
 
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "\"" + value + "\"");

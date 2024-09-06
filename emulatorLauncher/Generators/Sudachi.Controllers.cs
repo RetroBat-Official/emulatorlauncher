@@ -308,6 +308,9 @@ namespace EmulatorLauncher
             var cfg = controller.Config;
 
             string name = player + stickName;
+            string deadzone = "0.150000";
+            if (SystemConfig.isOptSet("sudachi_deadzone") && !string.IsNullOrEmpty(SystemConfig["sudachi_deadzone"]))
+                deadzone = SystemConfig["sudachi_deadzone"];
 
             var leftVal = cfg[stickName == "lstick" ? InputKey.joystick1left : InputKey.joystick2left];
             var topVal = cfg[stickName == "lstick" ? InputKey.joystick1up : InputKey.joystick2up];
@@ -324,7 +327,7 @@ namespace EmulatorLauncher
                     sudachitopval = 4;
                 }
 
-                string value = "engine:sdl," + "axis_x:" + sudachileftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + sudachitopval + ",deadzone:0.150000,range:1.000000";
+                string value = "engine:sdl," + "axis_x:" + sudachileftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + sudachitopval + ",deadzone:" + deadzone + ",range:1.000000";
 
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "\"" + value + "\"");
