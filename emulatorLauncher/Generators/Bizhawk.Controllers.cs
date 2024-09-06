@@ -851,6 +851,28 @@ namespace EmulatorLauncher
             { InputKey.pagedown,            "R" }
         };
 
+        private static readonly InputKeyMapping n64Mapping_xbox = new InputKeyMapping()
+        {
+            { InputKey.leftanalogup,        "A Up" },
+            { InputKey.leftanalogdown,      "A Down" },
+            { InputKey.leftanalogleft,      "A Left" },
+            { InputKey.leftanalogright,     "A Right" },
+            { InputKey.up,                  "DPad U"},
+            { InputKey.down,                "DPad D"},
+            { InputKey.left,                "DPad L" },
+            { InputKey.right,               "DPad R"},
+            { InputKey.start,               "Start" },
+            { InputKey.l2,                  "Z" },
+            { InputKey.b,                   "B" },
+            { InputKey.a,                   "A" },
+            { InputKey.rightanalogup,       "C Up" },
+            { InputKey.rightanalogdown,     "C Down" },
+            { InputKey.rightanalogleft,     "C Left" },
+            { InputKey.rightanalogright,    "C Right" },
+            { InputKey.pageup,              "L" },
+            { InputKey.pagedown,            "R" }
+        };
+
         private static readonly InputKeyMapping ndsMapping = new InputKeyMapping()
         {
             { InputKey.b,                   "A" },
@@ -1317,6 +1339,9 @@ namespace EmulatorLauncher
             if (system == "n64")
             {
                 bool switchTriggers = !Program.SystemConfig.isOptSet("ares64_inputprofile") || Program.SystemConfig["ares64_inputprofile"] == "zl";
+                bool n64XboxLayout = Program.SystemConfig.isOptSet("ares64_inputprofile") && Program.SystemConfig["ares64_inputprofile"] == "xbox";
+                if (n64XboxLayout)
+                    return n64Mapping_xbox;
                 if (switchTriggers)
                     return n64Mapping_zl;
             }

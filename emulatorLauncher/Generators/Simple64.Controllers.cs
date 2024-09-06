@@ -67,7 +67,8 @@ namespace EmulatorLauncher
             string devicename = joy.DeviceName;
             int index = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex;
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
-            bool zAsLeftTrigger = !SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
+            bool zAsRightTrigger = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl");
+            bool xboxLayout = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && SystemConfig["mupen64_inputprofile" + playerIndex] == "xbox";
             string guid = controller.SdlController != null ? controller.SdlController.Guid.ToString().ToLower() : controller.Guid.ToString().ToLower();
             string n64guid = controller.Guid.ToLowerInvariant();
 
@@ -133,12 +134,12 @@ namespace EmulatorLauncher
             {
                 if (controller.IsXInputDevice)
                 {
-                    profileIni.WriteValue(iniSection, "A", zAsLeftTrigger ? "\"" + "5,4" + "\"" : "\"" + "4,4" + "\"");
-                    profileIni.WriteValue(iniSection, "B", zAsLeftTrigger ? "\"" + "5,5,1" + "\"" : "\"" + "4,5,1" + "\"");
-                    profileIni.WriteValue(iniSection, "Z", zAsLeftTrigger ? "\"" + "4,5,1" + "\"" : "\"" + "5,5,1" + "\"");
+                    profileIni.WriteValue(iniSection, "A", zAsRightTrigger ? "\"" + "4,4" + "\"" : "\"" + "5,4" + "\"");
+                    profileIni.WriteValue(iniSection, "B", zAsRightTrigger ? "\"" + "4,5,1" + "\"" : "\"" + "5,5,1" + "\"");
+                    profileIni.WriteValue(iniSection, "Z", zAsRightTrigger ? "\"" + "5,5,1" + "\"" : "\"" + "4,5,1" + "\"");
                     profileIni.WriteValue(iniSection, "L", "\"" + "6,4" + "\"");
                     profileIni.WriteValue(iniSection, "Start", "\"" + "7,4" + "\"");
-                    profileIni.WriteValue(iniSection, "R", zAsLeftTrigger ? "\"" + "4,4" + "\"" : "\"" + "5,4" + "\"");
+                    profileIni.WriteValue(iniSection, "R", zAsRightTrigger ? "\"" + "5,4" + "\"" : "\"" + "4,4" + "\"");
                     profileIni.WriteValue(iniSection, "DPadL", "\"" + "0,3,8" + "\"");
                     profileIni.WriteValue(iniSection, "DPadR", "\"" + "0,3,2" + "\"");
                     profileIni.WriteValue(iniSection, "DPadU", "\"" + "0,3,1" + "\"");
@@ -154,12 +155,12 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    profileIni.WriteValue(iniSection, "A", zAsLeftTrigger ? "\"" + "10,4" + "\"" : "\"" + "9,4" + "\"");
-                    profileIni.WriteValue(iniSection, "B", zAsLeftTrigger ? "\"" + "5,5,1" + "\"" : "\"" + "4,5,1" + "\"");
-                    profileIni.WriteValue(iniSection, "Z", zAsLeftTrigger ? "\"" + "4,5,1" + "\"" : "\"" + "5,5,1" + "\"");
+                    profileIni.WriteValue(iniSection, "A", zAsRightTrigger ? "\"" + "9,4" + "\"" : "\"" + "10,4" + "\"");
+                    profileIni.WriteValue(iniSection, "B", zAsRightTrigger ? "\"" + "4,5,1" + "\"" : "\"" + "5,5,1" + "\"");
+                    profileIni.WriteValue(iniSection, "Z", zAsRightTrigger ? "\"" + "5,5,1" + "\"" : "\"" + "4,5,1" + "\"");
                     profileIni.WriteValue(iniSection, "L", "\"" + "4,4" + "\"");
                     profileIni.WriteValue(iniSection, "Start", "\"" + "6,4" + "\"");
-                    profileIni.WriteValue(iniSection, "R", zAsLeftTrigger ? "\"" + "9,4" + "\"" : "\"" + "10,4" + "\"");
+                    profileIni.WriteValue(iniSection, "R", zAsRightTrigger ? "\"" + "10,4" + "\"" : "\"" + "9,4" + "\"");
                     profileIni.WriteValue(iniSection, "DPadL", "\"" + "13,4" + "\"");
                     profileIni.WriteValue(iniSection, "DPadR", "\"" + "14,4" + "\"");
                     profileIni.WriteValue(iniSection, "DPadU", "\"" + "11,4" + "\"");
@@ -179,9 +180,17 @@ namespace EmulatorLauncher
             {
                 if (controller.IsXInputDevice)
                 {
-                    profileIni.WriteValue(iniSection, "A", revertbuttons ? "\"" + "1,4" + "\"" : "\"" + "0,4" + "\"");
-                    profileIni.WriteValue(iniSection, "B", revertbuttons ? "\"" + "3,4" + "\"" : "\"" + "2,4" + "\"");
-                    profileIni.WriteValue(iniSection, "Z", zAsLeftTrigger ? "\"" + "4,5,1" + "\"" : "\"" + "5,5,1" + "\"");
+                    if (xboxLayout)
+                    {
+                        profileIni.WriteValue(iniSection, "A", revertbuttons ? "\"" + "1,4" + "\"" : "\"" + "0,4" + "\"");
+                        profileIni.WriteValue(iniSection, "B", revertbuttons ? "\"" + "0,4" + "\"" : "\"" + "1,4" + "\"");
+                    }
+                    else
+                    {
+                        profileIni.WriteValue(iniSection, "A", revertbuttons ? "\"" + "1,4" + "\"" : "\"" + "0,4" + "\"");
+                        profileIni.WriteValue(iniSection, "B", revertbuttons ? "\"" + "3,4" + "\"" : "\"" + "2,4" + "\"");
+                    }
+                    profileIni.WriteValue(iniSection, "Z", zAsRightTrigger ? "\"" + "5,5,1" + "\"" : "\"" + "4,5,1" + "\"");
                     profileIni.WriteValue(iniSection, "Start", "\"" + "7,4" + "\"");
                     profileIni.WriteValue(iniSection, "L", "\"" + "4,4" + "\"");
                     profileIni.WriteValue(iniSection, "R", "\"" + "5,4" + "\"");
@@ -200,9 +209,17 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    profileIni.WriteValue(iniSection, "A", revertbuttons ? "\"" + "1,4" + "\"" : "\"" + "0,4" + "\"");
-                    profileIni.WriteValue(iniSection, "B", revertbuttons ? "\"" + "3,4" + "\"" : "\"" + "2,4" + "\"");
-                    profileIni.WriteValue(iniSection, "Z", zAsLeftTrigger ? "\"" + "4,5,1" + "\"" : "\"" + "5,5,1" + "\"");
+                    if (xboxLayout)
+                    {
+                        profileIni.WriteValue(iniSection, "A", revertbuttons ? "\"" + "1,4" + "\"" : "\"" + "0,4" + "\"");
+                        profileIni.WriteValue(iniSection, "B", revertbuttons ? "\"" + "0,4" + "\"" : "\"" + "1,4" + "\"");
+                    }
+                    else
+                    {
+                        profileIni.WriteValue(iniSection, "A", revertbuttons ? "\"" + "1,4" + "\"" : "\"" + "0,4" + "\"");
+                        profileIni.WriteValue(iniSection, "B", revertbuttons ? "\"" + "3,4" + "\"" : "\"" + "2,4" + "\"");
+                    }
+                    profileIni.WriteValue(iniSection, "Z", zAsRightTrigger ? "\"" + "5,5,1" + "\"" : "\"" + "4,5,1" + "\"");
                     profileIni.WriteValue(iniSection, "Start", "\"" + "6,4" + "\"");
                     profileIni.WriteValue(iniSection, "L", "\"" + "9,4" + "\"");
                     profileIni.WriteValue(iniSection, "R", "\"" + "10,4" + "\"");

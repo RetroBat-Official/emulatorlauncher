@@ -11,6 +11,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds", "mastersystem" };
         static readonly List<string> systemMegadrive = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static readonly List<string> systemNES = new List<string>() { "nes", "fds" };
+        static readonly List<string> systemN64 = new List<string>() { "n64", "n64dd" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
 
@@ -255,6 +256,19 @@ namespace EmulatorLauncher.Libretro
                         inputremap["input_player" + i + "_btn_l3"] = "-1";
                         inputremap["input_player" + i + "_btn_r"] = "12";
                         inputremap["input_player" + i + "_btn_r3"] = "-1";
+                    }
+                }
+                #endregion
+
+                #region N64
+                if (systemN64.Contains(system))
+                {
+                    if (Program.SystemConfig.isOptSet("lr_n64_buttons") && Program.SystemConfig["lr_n64_buttons"] == "xbox")
+                    {
+                        inputremap["input_player" + i + "_btn_a"] = "1";
+                        inputremap["input_player" + i + "_btn_r2"] = "-1";
+                        inputremap["input_player" + i + "_btn_x"] = "-1";
+                        inputremap["input_player" + i + "_btn_y"] = "-1";
                     }
                 }
                 #endregion

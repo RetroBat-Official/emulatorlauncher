@@ -62,7 +62,8 @@ namespace EmulatorLauncher
             string devicename = joy.DeviceName;
             int index = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex;
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
-            bool zAsLeftTrigger = !SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl";
+            bool zAsRightTrigger = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick");
+            bool xboxLayout = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && SystemConfig["mupen64_inputprofile" + playerIndex] == "xbox";
             string n64guid = controller.Guid.ToLowerInvariant();
 
             string iniSection = "Rosalie's Mupen GUI - Input Plugin Profile " + (playerIndex - 1);
@@ -135,12 +136,12 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl"))
             {
                 ini.WriteValue(iniSection, "A_InputType", "0");
-                ini.WriteValue(iniSection, "A_Name", zAsLeftTrigger ? "rightshoulder" : "leftshoulder");
-                ini.WriteValue(iniSection, "A_Data", zAsLeftTrigger ? "10" : "9");
+                ini.WriteValue(iniSection, "A_Name", zAsRightTrigger ? "leftshoulder" : "rightshoulder");
+                ini.WriteValue(iniSection, "A_Data", zAsRightTrigger ? "9" : "10");
                 ini.WriteValue(iniSection, "A_ExtraData", "0");
                 ini.WriteValue(iniSection, "B_InputType", "1");
-                ini.WriteValue(iniSection, "B_Name", zAsLeftTrigger ? "righttrigger+" : "lefttrigger+");
-                ini.WriteValue(iniSection, "B_Data", zAsLeftTrigger ? "5" : "4");
+                ini.WriteValue(iniSection, "B_Name", zAsRightTrigger ? "lefttrigger+" : "righttrigger+");
+                ini.WriteValue(iniSection, "B_Data", zAsRightTrigger ? "4" : "5");
                 ini.WriteValue(iniSection, "B_ExtraData", "1");
                 ini.WriteValue(iniSection, "Start_InputType", "0");
                 ini.WriteValue(iniSection, "Start_Name", "start");
@@ -186,12 +187,12 @@ namespace EmulatorLauncher
                 ini.WriteValue(iniSection, "LeftTrigger_Data", "4");
                 ini.WriteValue(iniSection, "LeftTrigger_ExtraData", "0");
                 ini.WriteValue(iniSection, "RightTrigger_InputType", "0");
-                ini.WriteValue(iniSection, "RightTrigger_Name", zAsLeftTrigger ? "leftshoulder" : "rightshoulder");
-                ini.WriteValue(iniSection, "RightTrigger_Data", zAsLeftTrigger ? "9" : "10");
+                ini.WriteValue(iniSection, "RightTrigger_Name", zAsRightTrigger ? "rightshoulder" : "leftshoulder");
+                ini.WriteValue(iniSection, "RightTrigger_Data", zAsRightTrigger ? "10" : "9");
                 ini.WriteValue(iniSection, "RightTrigger_ExtraData", "0");
                 ini.WriteValue(iniSection, "ZTrigger_InputType", "1");
-                ini.WriteValue(iniSection, "ZTrigger_Name", zAsLeftTrigger ? "lefttrigger+" : "righttrigger+");
-                ini.WriteValue(iniSection, "ZTrigger_Data", zAsLeftTrigger ? "4" : "5");
+                ini.WriteValue(iniSection, "ZTrigger_Name", zAsRightTrigger ? "righttrigger+" : "lefttrigger+");
+                ini.WriteValue(iniSection, "ZTrigger_Data", zAsRightTrigger ? "5" : "4");
                 ini.WriteValue(iniSection, "ZTrigger_ExtraData", "1");
 
                 ini.WriteValue(iniSection, "AnalogStickUp_InputType", "1");
@@ -214,14 +215,29 @@ namespace EmulatorLauncher
 
             else
             {
-                ini.WriteValue(iniSection, "A_InputType", "0");
-                ini.WriteValue(iniSection, "A_Name", revertbuttons ? "b" : "a");
-                ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1" : "0");
-                ini.WriteValue(iniSection, "A_ExtraData", "0");
-                ini.WriteValue(iniSection, "B_InputType", "0");
-                ini.WriteValue(iniSection, "B_Name", revertbuttons ? "y" : "x");
-                ini.WriteValue(iniSection, "B_Data", revertbuttons ? "3" : "2");
-                ini.WriteValue(iniSection, "B_ExtraData", "0");
+                if (xboxLayout)
+                {
+                    ini.WriteValue(iniSection, "A_InputType", "0");
+                    ini.WriteValue(iniSection, "A_Name", revertbuttons ? "b" : "a");
+                    ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1" : "0");
+                    ini.WriteValue(iniSection, "A_ExtraData", "0");
+                    ini.WriteValue(iniSection, "B_InputType", "0");
+                    ini.WriteValue(iniSection, "B_Name", revertbuttons ? "a" : "b");
+                    ini.WriteValue(iniSection, "B_Data", revertbuttons ? "0" : "1");
+                    ini.WriteValue(iniSection, "B_ExtraData", "0");
+                }
+                else
+                {
+                    ini.WriteValue(iniSection, "A_InputType", "0");
+                    ini.WriteValue(iniSection, "A_Name", revertbuttons ? "b" : "a");
+                    ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1" : "0");
+                    ini.WriteValue(iniSection, "A_ExtraData", "0");
+                    ini.WriteValue(iniSection, "B_InputType", "0");
+                    ini.WriteValue(iniSection, "B_Name", revertbuttons ? "y" : "x");
+                    ini.WriteValue(iniSection, "B_Data", revertbuttons ? "3" : "2");
+                    ini.WriteValue(iniSection, "B_ExtraData", "0");
+                }
+
                 ini.WriteValue(iniSection, "Start_InputType", "0");
                 ini.WriteValue(iniSection, "Start_Name", "start");
                 ini.WriteValue(iniSection, "Start_Data", "6");
@@ -270,8 +286,8 @@ namespace EmulatorLauncher
                 ini.WriteValue(iniSection, "RightTrigger_Data", "10");
                 ini.WriteValue(iniSection, "RightTrigger_ExtraData", "0");
                 ini.WriteValue(iniSection, "ZTrigger_InputType", "1");
-                ini.WriteValue(iniSection, "ZTrigger_Name", zAsLeftTrigger ? "lefttrigger+" : "righttrigger+");
-                ini.WriteValue(iniSection, "ZTrigger_Data", zAsLeftTrigger ? "4" : "5");
+                ini.WriteValue(iniSection, "ZTrigger_Name", zAsRightTrigger ? "righttrigger+" : "lefttrigger+");
+                ini.WriteValue(iniSection, "ZTrigger_Data", zAsRightTrigger ? "5" : "4");
                 ini.WriteValue(iniSection, "ZTrigger_ExtraData", "1");
 
                 ini.WriteValue(iniSection, "AnalogStickUp_InputType", "1");

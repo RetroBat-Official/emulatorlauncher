@@ -96,6 +96,7 @@ namespace EmulatorLauncher
                 return;
 
             bool switchTriggers = (_system == "n64" || _system == "n64dd") && (!SystemConfig.isOptSet("ares64_inputprofile") || SystemConfig["ares64_inputprofile"] == "zl");
+            bool xboxLayout = (_system == "n64" || _system == "n64dd") && (SystemConfig.isOptSet("ares64_inputprofile") && SystemConfig["ares64_inputprofile"] == "xbox");
 
             string guid = ctrl.Guid.ToLowerInvariant();
 
@@ -169,6 +170,13 @@ namespace EmulatorLauncher
                 vpad["B..East"] = GetInputKeyName(ctrl, InputKey.a, padId);
                 vpad["X..West"] = GetInputKeyName(ctrl, InputKey.x, padId);
                 vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.y, padId);
+            }
+            else if (xboxLayout)
+            {
+                vpad["A..South"] = GetInputKeyName(ctrl, InputKey.a, padId);
+                vpad["B..East"] = GetInputKeyName(ctrl, InputKey.y, padId);
+                vpad["X..West"] = GetInputKeyName(ctrl, InputKey.b, padId);
+                vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.x, padId);
             }
             else
             {

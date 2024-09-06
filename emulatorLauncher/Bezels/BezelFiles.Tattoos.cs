@@ -346,10 +346,18 @@ namespace EmulatorLauncher
             {
                 switch (emulator)
                 {
+                    case "libretro":
+                        if (Program.SystemConfig.isOptSet("lr_n64_buttons") && Program.SystemConfig["lr_n64_buttons"] == "xbox")
+                            ret = "n64_xbox";
+                        else
+                            ret = "n64";
+                        break;
                     case "ares":
                     case "bizhawk":
                         if (Program.SystemConfig.isOptSet("ares64_inputprofile") && Program.SystemConfig["ares64_inputprofile"] == "zr")
                             ret = "n64-standalone_zr";
+                        else if (Program.SystemConfig.isOptSet("ares64_inputprofile") && Program.SystemConfig["ares64_inputprofile"] == "xbox")
+                            ret = "n64_xbox";
                         else
                             ret = "n64-standalone";
                         break;
@@ -364,6 +372,8 @@ namespace EmulatorLauncher
                                 ret = "n64-standalone_zr";
                             else if (profile == "c_face")
                                 ret = "n64-standalone_face_zr";
+                            else if (profile == "xbox")
+                                ret = "n64_xbox";
                             break;
                         }
                         else
