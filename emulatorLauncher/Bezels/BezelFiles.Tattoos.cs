@@ -11,6 +11,8 @@ namespace EmulatorLauncher
     {
         public static string GetTattooImage(string inputPng, string outputPng, string emulator)
         {
+            SimpleLogger.Instance.Info("[GENERATOR] Tattoo enabled, fetching right tattoo file.");
+
             string tattooFile = "";
             Image tattoo = null;
             string system = Program.SystemConfig["system"];
@@ -32,7 +34,10 @@ namespace EmulatorLauncher
                     if (!File.Exists(tattooFile))
                         tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "default", tattooName);
                     if (!File.Exists(tattooFile))
+                    {
+                        SimpleLogger.Instance.Info("[GENERATOR] Tattoo file not found: " + tattooName);
                         return inputPng;
+                    }
                     tattoo = Image.FromFile(tattooFile);
                 }
             }
@@ -133,6 +138,7 @@ namespace EmulatorLauncher
 
             finalImage.Save(outputPng, ImageFormat.Png);
 
+            SimpleLogger.Instance.Info("[GENERATOR] Tattoo file: " + tattooName);
             return outputPng;
         }
 
