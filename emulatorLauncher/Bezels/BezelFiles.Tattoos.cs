@@ -3,6 +3,7 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Collections.Generic;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -35,13 +36,39 @@ namespace EmulatorLauncher
                     tattoo = Image.FromFile(tattooFile);
                 }
             }
-            catch
-            {
-                Console.Error.WriteLine($"Error opening controller overlay: {tattooFile}");
-                return inputPng;
+            catch 
+            { 
+                SimpleLogger.Instance.Info("[GENERATOR] Error loading tattoo file: " + tattooFile);
+                return inputPng; 
             }
 
             Image back = Image.FromFile(inputPng);
+
+            // Preserve the original DPI values of the tattoo before normalization
+            float originalTattooDpiX = tattoo.HorizontalResolution;
+            float originalTattooDpiY = tattoo.VerticalResolution;
+
+            // Normalize both images to 96x96 DPI to avoid scaling issues
+            if (back.HorizontalResolution != 96 || back.VerticalResolution != 96)
+            {
+                back = SetImageToStandardDpi(back, 96, 96);  // Set the background image to 96 DPI
+            }
+
+            if (tattoo.HorizontalResolution != 96 || tattoo.VerticalResolution != 96)
+            {
+                tattoo = SetImageToStandardDpi(tattoo, 96, 96);  // Set the tattoo image to 96 DPI
+            }
+
+            // Calculate resizing factor for the tattoo based on original DPI and normalized DPI
+            float dpiScaleFactorX = originalTattooDpiX / 96.0f;
+            float dpiScaleFactorY = originalTattooDpiY / 96.0f;
+
+            // Resize the tattoo to account for its original DPI, so it doesn't appear too large
+            int newTattooWidth = (int)(tattoo.Width / dpiScaleFactorX);
+            int newTattooHeight = (int)(tattoo.Height / dpiScaleFactorY);
+            tattoo = ResizeImage(tattoo, newTattooWidth, newTattooHeight);
+
+            // Convert both images to RGBA
             back = ConvertToRgba(back);
             tattoo = ConvertToRgba(tattoo);
 
@@ -732,6 +759,20 @@ namespace EmulatorLauncher
             {
                 return Tuple.Create(img.Width, img.Height);
             }
+        }
+
+        // Helper method to set image DPI without resizing it
+        private static Bitmap SetImageToStandardDpi(Image image, float targetDpiX, float targetDpiY)
+        {
+            Bitmap result = new Bitmap(image.Width, image.Height);
+            result.SetResolution(targetDpiX, targetDpiY);
+
+            using (Graphics g = Graphics.FromImage(result))
+            {
+                g.DrawImage(image, 0, 0, image.Width, image.Height);
+            }
+
+            return result;
         }
     }
 }
