@@ -65,7 +65,7 @@ namespace EmulatorLauncher
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                 _resolution = resolution;
 
-                if (_bezelFileInfo.PngFile != null)
+                if (_bezelFileInfo != null && _bezelFileInfo.PngFile != null)
                     SimpleLogger.Instance.Info("[INFO] Bezel file selected : " + _bezelFileInfo.PngFile);
             }
 
