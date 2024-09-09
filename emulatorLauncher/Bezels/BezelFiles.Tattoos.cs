@@ -143,6 +143,7 @@ namespace EmulatorLauncher
         }
 
         static List<string> gbSystems = new List<string>() { "gb", "gbc" };
+        static List<string> ngpSystems = new List<string>() { "ngp", "ngpc" };
         static List<string> jaguarSystems = new List<string>() { "jaguar", "jaguarcd" };
         static List<string> megadriveSystems = new List<string>() { "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static List<string> n64Systems = new List<string>() { "n64", "n64dd" };
@@ -166,6 +167,8 @@ namespace EmulatorLauncher
                 system = "pcengine";
             else if (jaguarSystems.Contains(system))
                 system = "jaguar";
+            else if (ngpSystems.Contains(system))
+                system = "ngp";
 
             string ret = system;
 
@@ -276,6 +279,23 @@ namespace EmulatorLauncher
                         break;
                     case "bigpemu":
                         ret = "jaguar_bigpemu";
+                        break;
+                }
+            }
+            else if (system == "lynx")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "handy":
+                                ret = "lynx_lr_handy";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                        ret = "lynx_mednafen";
                         break;
                 }
             }
@@ -572,6 +592,15 @@ namespace EmulatorLauncher
                     case "jgenesis":
                         if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                             ret = "nes_rotate";
+                        break;
+                }
+            }
+            else if (system == "ngp")
+            {
+                switch (emulator)
+                {
+                    case "mednafen":
+                        ret = "ngp_turbo";
                         break;
                 }
             }
