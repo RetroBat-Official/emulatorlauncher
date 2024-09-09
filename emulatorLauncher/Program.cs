@@ -312,10 +312,6 @@ namespace EmulatorLauncher
             if (!SystemConfig.isOptSet("use_wheel") && args.Any(a => a == "-wheel"))
                 SystemConfig["use_wheel"] = "true";*/
 
-            // Change disable automatic controller configuration from "on" to "1"
-            if (SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "on")
-                SystemConfig["disableautocontrollers"] = "1";
-
             ImportShaderOverrides();
             
             if (args.Any(a => "-resetusbcontrollers".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
