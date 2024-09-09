@@ -279,6 +279,23 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "lynx")
+            {
+                switch (emulator)
+                {
+                    case "libretro":
+                        switch (core)
+                        {
+                            case "handy":
+                                ret = "lynx_lr_handy";
+                                break;
+                        }
+                        break;
+                    case "mednafen":
+                        ret = "lynx_mednafen";
+                        break;
+                }
+            }
             else if (system == "mastersystem")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
