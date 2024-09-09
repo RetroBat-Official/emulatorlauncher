@@ -535,7 +535,8 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Add code here
+            if (!SystemConfig.isOptSet("GameFocus") || !SystemConfig.getOptBoolean("Gamefocus"))
+                retList.Add("-ui_active");
 
             return retList;
         }
