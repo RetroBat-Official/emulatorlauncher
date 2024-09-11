@@ -381,6 +381,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
             ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
+            ConfigureSNes9x2005(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureStella2014(retroarchConfig, coreSettings, system, core);
             ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
@@ -4013,15 +4014,16 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "snes9x_hires_blend", "snes9x_hires_blend", "disabled"); // Pixel blending
             BindFeature(coreSettings, "snes9x_audio_interpolation", "snes9x_audio_interpolation", "none"); // Audio interpolation
             BindFeature(coreSettings, "snes9x_overclock_superfx", "snes9x_overclock_superfx", "100%"); // SuperFX overclock
-            BindFeature(coreSettings, "snes9x_block_invalid_vram_access", "snes9x_block_invalid_vram_access", "enabled"); // Block invalid VRAM access
+            
 
             // Unsafe hacks (config must be done in Core options)
-            if (SystemConfig.isOptSet("SnesUnsafeHacks") && SystemConfig["SnesUnsafeHacks"] == "config")
+            if (SystemConfig.isOptSet("Snes9x_UnsafeHacks") && SystemConfig.getOptBoolean("Snes9x_UnsafeHacks"))
             {
                 coreSettings["snes9x_echo_buffer_hack"] = "enabled";
                 coreSettings["snes9x_overclock_cycles"] = "enabled";
                 coreSettings["snes9x_randomize_memory"] = "enabled";
                 coreSettings["snes9x_reduce_sprite_flicker"] = "enabled";
+                coreSettings["snes9x_block_invalid_vram_access"] = "disabled";
             }
             else
             {
@@ -4029,7 +4031,11 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["snes9x_overclock_cycles"] = "disabled";
                 coreSettings["snes9x_randomize_memory"] = "disabled";
                 coreSettings["snes9x_reduce_sprite_flicker"] = "disabled";
+                coreSettings["snes9x_block_invalid_vram_access"] = "enabled";
             }
+
+            BindFeature(coreSettings, "snes9x_echo_buffer_hack", "snes9x_echo_buffer_hack", "disabled");
+            BindFeature(coreSettings, "snes9x_block_invalid_vram_access", "snes9x_block_invalid_vram_access", "enabled");
 
             // Advanced video options (config must be done in Core options menu)
             if (SystemConfig.isOptSet("SnesAdvancedVideoOptions") && SystemConfig["SnesAdvancedVideoOptions"] == "config")
@@ -4103,6 +4109,16 @@ namespace EmulatorLauncher.Libretro
 
                 SetupLightGuns(retroarchConfig, gunId, core, 2);
             }
+        }
+
+        private void ConfigureSNes9x2005(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "snes9x2005")
+                return;
+
+            BindFeature(coreSettings, "snes9x_2005_region", "snes9x_2005_region", "auto");
+            BindFeature(coreSettings, "snes9x_2005_reduce_sprite_flicker", "snes9x_2005_reduce_sprite_flicker", "disabled");
+            BindBoolFeature(coreSettings, "snes9x_2005_frameskip", "snes9x_2005_frameskip", "auto", "disabled");
         }
 
         private void ConfigureStella(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
