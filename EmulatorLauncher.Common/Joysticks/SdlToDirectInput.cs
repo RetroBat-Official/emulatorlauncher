@@ -75,6 +75,9 @@ namespace EmulatorLauncher.Common.Joysticks
             // Get Name
             string buttonDinputName = SdlToGameControllerDB[key];
 
+            if (!ctrl.ButtonMappings.ContainsKey(buttonDinputName))
+                return null;
+
             string buttonName = ctrl.ButtonMappings[buttonDinputName];
 
             if (isXinput)
