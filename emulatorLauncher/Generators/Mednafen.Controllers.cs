@@ -219,7 +219,7 @@ namespace EmulatorLauncher
 
                         if (megadriveControllers != null)
                         {
-                            mdGamepad = MegadriveController.GetMDController("mednafen", guid, dinput ? "dinput" : "xinput", megadriveControllers);
+                            mdGamepad = MegadriveController.GetMDController("mednafen", guid, megadriveControllers);
                             if (mdGamepad != null)
                             {
                                 SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);

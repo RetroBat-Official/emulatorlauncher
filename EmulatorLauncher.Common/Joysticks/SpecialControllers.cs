@@ -43,16 +43,6 @@ namespace EmulatorLauncher.Common.Joysticks
         #endregion
 
         #region public methods
-        public static N64Controller GetN64Controller(string emulator, string guid)
-        {
-            if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid))
-                return null;
-
-            return N64Controllers.FirstOrDefault(c =>
-                emulator.Equals(c.Emulator, StringComparison.InvariantCultureIgnoreCase) &&
-                guid.Equals(c.Guid, StringComparison.InvariantCultureIgnoreCase));
-        }
-
         public static N64Controller GetN64Controller(string emulator, string guid, List<N64Controller> controllers)
         {
             if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid) || controllers == null)
@@ -150,21 +140,6 @@ namespace EmulatorLauncher.Common.Joysticks
         #endregion
 
         #region public methods
-        public static MegadriveController GetMDController(string emulator, string guid, string driver)
-        {
-            if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid))
-                return null;
-
-            var ret = MegadriveControllers.FirstOrDefault(c =>
-                emulator.Equals(c.Emulator, StringComparison.InvariantCultureIgnoreCase) &&
-                guid.Equals(c.Guid, StringComparison.InvariantCultureIgnoreCase) && driver.Equals(c.Driver, StringComparison.InvariantCultureIgnoreCase));
-            if (ret == null)
-                ret = MegadriveControllers.FirstOrDefault(c =>
-                emulator.Equals(c.Emulator, StringComparison.InvariantCultureIgnoreCase) &&
-                guid.Equals(c.Guid, StringComparison.InvariantCultureIgnoreCase));
-            return ret;
-        }
-
         public static MegadriveController GetMDController(string emulator, string guid, string driver, List<MegadriveController> controllers)
         {
             if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid) || controllers == null || driver == null)
@@ -175,6 +150,17 @@ namespace EmulatorLauncher.Common.Joysticks
                 string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase) && string.Equals(c.Driver, driver, StringComparison.InvariantCultureIgnoreCase));
             if (ret == null)
                 ret = controllers.FirstOrDefault(c =>
+                string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
+                string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase));
+            return ret == null ? null : ret;
+        }
+
+        public static MegadriveController GetMDController(string emulator, string guid, List<MegadriveController> controllers)
+        {
+            if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid) || controllers == null)
+                return null;
+
+            var ret = controllers.FirstOrDefault(c =>
                 string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
                 string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase));
             return ret == null ? null : ret;
