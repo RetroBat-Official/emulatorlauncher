@@ -17,6 +17,8 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private string _path;
         private string _system;
+        static List<string> _mdSystems = new List<string>() { "genesis", "megadrive", "mega32x", "megacd", "segacd", "sega32x" };
+        static List<string> _n64Systems = new List<string>() { "n64", "n64dd" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {

@@ -190,8 +190,56 @@ namespace EmulatorLauncher
                 }
                 catch { }
             }
-                
-            if (!n64ControllerFound)
+
+            // Special treatment for Megadrive controllers
+            MegadriveController mdGamepad = null;
+            bool mdControllerFound = false;
+            string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
+            if (File.Exists(mdjson) && _mdSystems.Contains(system) && SystemConfig.getOptBoolean("md_pad"))
+            {
+                try
+                {
+                    var mdControllers = MegadriveController.LoadControllersFromJson(mdjson);
+                    if (mdControllers != null)
+                    {
+                        mdGamepad = MegadriveController.GetMDController("bizhawk", guid, mdControllers);
+
+                        if (mdGamepad != null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
+
+                            bool useDInput = false;
+
+                            if (mdGamepad.ControllerInfo != null)
+                            {
+                                if (mdGamepad.ControllerInfo.ContainsKey("dinput"))
+                                    useDInput = mdGamepad.ControllerInfo["dinput"] == "true";
+                            }
+
+                            if (mdGamepad.Mapping != null)
+                            {
+                                foreach (var x in mdGamepad.Mapping)
+                                {
+                                    string key = x.Key;
+                                    string value = x.Value;
+                                    controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value : "X" + index + " " + value;
+                                }
+                                mdControllerFound = true;
+                            }
+
+                            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
+                            return;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for Megadrive controller.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                }
+                catch { }
+            }
+
+            if (!n64ControllerFound && !mdControllerFound)
             {
                 mapping = ConfigureMappingPerSystem(mapping, system, core);
                 foreach (var x in mapping)
