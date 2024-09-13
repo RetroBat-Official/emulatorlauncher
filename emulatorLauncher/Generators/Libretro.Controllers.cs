@@ -12,7 +12,8 @@ namespace EmulatorLauncher.Libretro
 {
     class LibretroControllers
     {
-        private static bool _n64specialController = false;
+        private static bool _specialController = false;
+        private static bool _specialControllerHotkey = false;
         private static bool _noHotkey = false;
         private static string _inputDriver = "sdl2";
         private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
@@ -45,8 +46,9 @@ namespace EmulatorLauncher.Libretro
                 WriteControllerConfig(retroconfig, controller, system, core);
 
             WriteKBHotKeyConfig(retroconfig, core);
-            if (_n64specialController)
+            if (_specialController && _specialControllerHotkey)
                 return true;
+
             WriteHotKeyConfig(retroconfig);
 
             return true;
@@ -119,9 +121,6 @@ namespace EmulatorLauncher.Libretro
         {
             // Keyboard defaults
             config["input_enable_hotkey"] = "nul";
-            config["input_enable_hotkey_axis"] = "nul";
-            config["input_enable_hotkey_btn"] = "nul";
-            config["input_enable_hotkey_mbtn"] = "nul";
 
 #if DEBUG
             config["input_exit_emulator"] = "tilde";
@@ -281,10 +280,11 @@ namespace EmulatorLauncher.Libretro
                                 else
                                     SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + n64Gamepad.Name);
 
-                                if (n64Gamepad.HotKeyMapping != null)
+                                if (n64Gamepad.HotKeyMapping != null && controller.PlayerIndex == 1)
                                 {
                                     foreach (var hotkey in n64Gamepad.HotKeyMapping)
                                         config[hotkey.Key] = hotkey.Value;
+                                    _specialControllerHotkey = true;
                                 }
                                 else
                                     SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + n64Gamepad.Name);
@@ -294,7 +294,7 @@ namespace EmulatorLauncher.Libretro
                                 if (config["input_joypad_driver"] != null)
                                     _inputDriver = config["input_joypad_driver"];
 
-                                _n64specialController = true;
+                                _specialController = true;
                                 return config;
                             }
                             else
@@ -312,6 +312,59 @@ namespace EmulatorLauncher.Libretro
                 {
                     retroarchbtns[InputKey.pageup] = "l2";
                     retroarchbtns[InputKey.l2] = "l";
+                }
+            }
+            if (Program.SystemConfig.getOptBoolean("md_pad") && (system == "megadrive" || system == "genesis"))
+            {
+                string guid = controller.Guid.ToString().ToLowerInvariant();
+                string mdjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
+
+                if (File.Exists(mdjson))
+                {
+                    try
+                    {
+                        var megadriveControllers = MegadriveController.LoadControllersFromJson(mdjson);
+
+                        if (megadriveControllers != null)
+                        {
+                            MegadriveController mdGamepad = MegadriveController.GetMDController("libretro", guid, _inputDriver, megadriveControllers);
+                            if (mdGamepad != null)
+                            {
+                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
+
+                                if (mdGamepad.ControllerInfo != null)
+                                {
+                                    if (mdGamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                                        retroconfig["input_analog_sensitivity"] = mdGamepad.ControllerInfo["input_analog_sensitivity"];
+                                }
+
+                                if (mdGamepad.Mapping != null)
+                                {
+                                    foreach (var button in mdGamepad.Mapping)
+                                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+                                }
+                                else
+                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + mdGamepad.Name);
+
+                                if (mdGamepad.HotKeyMapping != null && controller.PlayerIndex == 1)
+                                {
+                                    foreach (var hotkey in mdGamepad.HotKeyMapping)
+                                        config[hotkey.Key] = hotkey.Value;
+                                    _specialControllerHotkey = true;
+                                }
+                                else
+                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + mdGamepad.Name);
+
+                                _specialController = true;
+                                return config;
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for Megadrive controller.");
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                    }
+                    catch { }
                 }
             }
 

@@ -12,6 +12,7 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        static List<string> _mdSystems = new List<string>() { "sega_cd", "genesis" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -50,9 +51,10 @@ namespace EmulatorLauncher
             // settings (toml configuration)
             SetupTomlConfiguration(path, system, fullscreen);
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            if (fullscreen)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            
             _resolution = resolution;
-
 
             // command line parameters
             var commandArray = new List<string>();

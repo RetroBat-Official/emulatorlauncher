@@ -94,6 +94,8 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            var input = bml.GetOrCreateContainer("Input");
+
             bool switchTriggers = (_system == "n64" || _system == "n64dd") && (!SystemConfig.isOptSet("ares64_inputprofile") || SystemConfig["ares64_inputprofile"] == "zl");
             bool xboxLayout = (_system == "n64" || _system == "n64dd") && (SystemConfig.isOptSet("ares64_inputprofile") && SystemConfig["ares64_inputprofile"] == "xbox");
 
@@ -115,7 +117,7 @@ namespace EmulatorLauncher
             // Special treatment for N64 controllers
             string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
 
-            if (File.Exists(n64json))
+            if (File.Exists(n64json) && _n64Systems.Contains(_system))
             {
                 try
                 {
@@ -132,10 +134,49 @@ namespace EmulatorLauncher
                             foreach (var button in n64Gamepad.Mapping)
                                 vpad[button.Key] = padId + button.Value + ";;";
 
+                            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+
                             return;
                         }
                         else
                             SimpleLogger.Instance.Info("[Controller] No specific mapping found for N64 controller.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                }
+                catch { }
+            }
+
+            else if (_mdSystems.Contains(_system) && SystemConfig.getOptBoolean("md_pad"))
+            {
+                string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
+                try
+                {
+                    var mdControllers = MegadriveController.LoadControllersFromJson(mdjson);
+
+                    if (mdControllers != null)
+                    {
+                        MegadriveController mdGamepad = MegadriveController.GetMDController("ares", guid, mdControllers);
+
+                        if (mdGamepad != null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
+
+                            if (mdGamepad.Mapping != null)
+                            {
+                                foreach (var button in mdGamepad.Mapping)
+                                    vpad[button.Key] = padId + button.Value + ";;";
+
+                                if (mdGamepad.Driver != null)
+                                    input["Driver"] = mdGamepad.Driver;
+
+                                SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+                            }
+
+                            return;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for megadrive controller.");
                     }
                     else
                         SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");

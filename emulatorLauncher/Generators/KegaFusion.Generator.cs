@@ -13,6 +13,8 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        static List<string> _mdSystems = new List<string>() { "genesis", "megadrive", "mega32x", "megacd", "segacd", "sega32x" };
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("kega-fusion");
