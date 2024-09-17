@@ -249,6 +249,19 @@ namespace EmulatorLauncher.Common.FileFormats
             return defaultValue;
         }
 
+        public string GetValueOrDefaultSlider(string key, string defaultValue)
+        {
+            ConfigItem item;
+            if (_data.TryGetValue(FormatKey(key), out item) && item != null)
+                if (!string.IsNullOrEmpty(item.Value))
+                {
+                    string ret = (item.Value).ToIntegerString();
+                    return ret;
+                }
+
+            return defaultValue;
+        }
+
         public virtual bool IsDirty { get; protected set; }
 
         public override string ToString()
