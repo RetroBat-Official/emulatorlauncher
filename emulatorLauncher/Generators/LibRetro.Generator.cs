@@ -330,7 +330,10 @@ namespace EmulatorLauncher.Libretro
             else
                 BindFeature(retroarchConfig, "audio_dsp_plugin", "audio_dsp_plugin", "");
 
-            BindBoolFeature(retroarchConfig, "audio_sync", "audio_sync", "false", "true");
+            if (SystemConfig.isOptSet("audio_sync") && !SystemConfig.getOptBoolean("audio_sync"))
+                retroarchConfig["audio_sync"] = "false";
+            else
+                retroarchConfig["audio_sync"] = "true";
 
             // Misc
             BindBoolFeature(retroarchConfig, "video_smooth", "smooth", "true", "false");
@@ -340,7 +343,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(retroarchConfig, "video_frame_delay_auto", "video_frame_delay_auto", "true", "false"); // Auto frame delay (input delay reduction via frame timing)
             BindBoolFeature(retroarchConfig, "quit_press_twice", "PressTwice", "true", "false"); // Press hotkeys twice to exit
 
-            BindFeature(retroarchConfig, "video_font_enable", "OnScreenMsg", "true"); // OSD notifications
+            BindBoolFeature(retroarchConfig, "video_font_enable", "OnScreenMsg", "true", "false"); // OSD notifications
             BindFeature(retroarchConfig, "video_rotation", "RotateVideo", "0"); // video rotation
             BindFeature(retroarchConfig, "screen_orientation", "RotateScreen", "0"); // screen orientation
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
@@ -447,18 +450,18 @@ namespace EmulatorLauncher.Libretro
 
         private void ConfigureRunahead(string system, string core, ConfigFile retroarchConfig)
         {
-            if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToInteger() > 0 && SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames") && !coreNoPreemptiveFrames.Contains(core))
+            if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0 && SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames") && !coreNoPreemptiveFrames.Contains(core))
             {
                 retroarchConfig["run_ahead_enabled"] = "false";
-                retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"];
+                retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"].ToIntegerString();
                 retroarchConfig["run_ahead_secondary_instance"] = "false";
                 retroarchConfig["preemptive_frames_enable"] = "true";
             }
 
-            else if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToInteger() > 0 && !systemNoRunahead.Contains(system))
+            else if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0 && !systemNoRunahead.Contains(system))
             {
                 retroarchConfig["run_ahead_enabled"] = "true";
-                retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"];
+                retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"].ToIntegerString();
                 retroarchConfig["preemptive_frames_enable"] = "false";
 
                 if (SystemConfig.isOptSet("secondinstance") && SystemConfig.getOptBoolean("secondinstance"))
@@ -560,9 +563,18 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["video_hard_sync_frames"] = "0";
                 }
             }
-            BindFeature(retroarchConfig, "video_swap_interval", "video_swap_interval", "0");
-            BindFeature(retroarchConfig, "video_black_frame_insertion", "video_black_frame_insertion", "0");
-            BindFeature(retroarchConfig, "vrr_runloop_enable", "vrr_runloop_enable", "false");
+
+            if (SystemConfig.isOptSet("video_swap_interval") && !string.IsNullOrEmpty(SystemConfig["video_swap_interval"]))
+                retroarchConfig["video_swap_interval"] = SystemConfig["video_swap_interval"].ToIntegerString();
+            else
+                retroarchConfig["video_swap_interval"] = "0";
+
+            if (SystemConfig.isOptSet("video_black_frame_insertion") && !string.IsNullOrEmpty(SystemConfig["video_black_frame_insertion"]))
+                retroarchConfig["video_black_frame_insertion"] = SystemConfig["video_black_frame_insertion"].ToIntegerString();
+            else
+                retroarchConfig["video_black_frame_insertion"] = "0";
+
+            BindBoolFeature(retroarchConfig, "vrr_runloop_enable", "vrr_runloop_enable", "true", "false");
 
             if (Features.IsSupported("video_vsync"))
             {
@@ -723,7 +735,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["cheevos_enable"] = "true";
                 retroarchConfig["cheevos_username"] = SystemConfig["retroachievements.username"];
                 retroarchConfig["cheevos_password"] = SystemConfig["retroachievements.password"];
-                retroarchConfig["cheevos_hardcore_mode_enable"] = SystemConfig["retroachievements.hardcore"] == "true" && _stateFileManager == null ? "true" : "false";
+                retroarchConfig["cheevos_hardcore_mode_enable"] = SystemConfig.getOptBoolean("retroachievements.hardcore") && _stateFileManager == null ? "true" : "false";
                 retroarchConfig["cheevos_leaderboards_enable"] = SystemConfig["retroachievements.leaderboards"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_verbose_enable"] = SystemConfig["retroachievements.verbose"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_auto_screenshot"] = SystemConfig["retroachievements.screenshot"] == "true" ? "true" : "false";

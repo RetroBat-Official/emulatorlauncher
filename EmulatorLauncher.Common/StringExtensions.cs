@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -61,6 +62,18 @@ namespace EmulatorLauncher.Common
             int ret = 0;
             int.TryParse(value, out ret);
             return ret;
+        }
+
+        public static string ToIntegerString(this string value)  // To be used with sliders as they save by default with .000000 decimals
+        {
+            double parsedValue;
+
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsedValue))
+            {
+                return ((int)parsedValue).ToString();
+            }
+
+            return value;
         }
 
         public static float ToFloat(this string value)

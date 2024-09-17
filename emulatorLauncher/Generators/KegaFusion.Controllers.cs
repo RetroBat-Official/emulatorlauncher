@@ -90,40 +90,43 @@ namespace EmulatorLauncher
             if (_mdSystems.Contains(system) && SystemConfig.getOptBoolean("md_pad"))
             {
                 string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
-                try
+                if (File.Exists(mdjson))
                 {
-                    var mdControllers = MegadriveController.LoadControllersFromJson(mdjson);
-
-                    if (mdControllers != null)
+                    try
                     {
-                        MegadriveController mdGamepad = MegadriveController.GetMDController("kega-fusion", guid, mdControllers);
+                        var mdControllers = MegadriveController.LoadControllersFromJson(mdjson);
 
-                        if (mdGamepad != null)
+                        if (mdControllers != null)
                         {
-                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
+                            MegadriveController mdGamepad = MegadriveController.GetMDController("kega-fusion", guid, mdControllers);
 
-                            if (mdGamepad.Mapping != null)
+                            if (mdGamepad != null)
                             {
-                                string input = mdGamepad.Mapping["buttons"];
+                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
+
+                                if (mdGamepad.Mapping != null)
+                                {
+                                    string input = mdGamepad.Mapping["buttons"];
                                 
-                                ini.WriteValue("", "Joystick" + joy + "Using", (index + 2).ToString());
-                                ini.WriteValue("", "Joystick" + joy + "Type", "2");
-                                ini.WriteValue("", "Player" + joy + "Buttons", input);
+                                    ini.WriteValue("", "Joystick" + joy + "Using", (index + 2).ToString());
+                                    ini.WriteValue("", "Joystick" + joy + "Type", "2");
+                                    ini.WriteValue("", "Player" + joy + "Buttons", input);
 
-                                SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+                                    SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
 
-                                return;
+                                    return;
+                                }
+                                else
+                                    SimpleLogger.Instance.Info("[INFO] Missing mapping for Megadrive Gamepad, falling back to standard mapping.");
                             }
                             else
-                                SimpleLogger.Instance.Info("[INFO] Missing mapping for Megadrive Gamepad, falling back to standard mapping.");
+                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for megadrive controller.");
                         }
                         else
-                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for megadrive controller.");
+                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
                     }
-                    else
-                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                    catch { }
                 }
-                catch { }
             }
 
             guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";

@@ -239,7 +239,55 @@ namespace EmulatorLauncher
                 catch { }
             }
 
-            if (!n64ControllerFound && !mdControllerFound)
+            // Special treatment for Saturn controllers
+            MegadriveController saturnGamepad = null;
+            bool saturnControllerFound = false;
+            string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+            if (File.Exists(saturnjson) && system == "saturn" && SystemConfig.getOptBoolean("saturn_pad"))
+            {
+                try
+                {
+                    var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
+                    if (saturnControllers != null)
+                    {
+                        saturnGamepad = MegadriveController.GetMDController("bizhawk", guid, saturnControllers);
+
+                        if (saturnGamepad != null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+
+                            bool useDInput = false;
+
+                            if (saturnGamepad.ControllerInfo != null)
+                            {
+                                if (saturnGamepad.ControllerInfo.ContainsKey("dinput"))
+                                    useDInput = saturnGamepad.ControllerInfo["dinput"] == "true";
+                            }
+
+                            if (saturnGamepad.Mapping != null)
+                            {
+                                foreach (var x in saturnGamepad.Mapping)
+                                {
+                                    string key = x.Key;
+                                    string value = x.Value;
+                                    controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value : "X" + index + " " + value;
+                                }
+                                saturnControllerFound = true;
+                            }
+
+                            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
+                            return;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                }
+                catch { }
+            }
+
+            if (!n64ControllerFound && !mdControllerFound && !saturnControllerFound)
             {
                 mapping = ConfigureMappingPerSystem(mapping, system, core);
                 foreach (var x in mapping)

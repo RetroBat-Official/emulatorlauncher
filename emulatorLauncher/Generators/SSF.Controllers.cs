@@ -118,8 +118,50 @@ namespace EmulatorLauncher
 
             // Find controllerMapping in Gamecontrollerdb.txt file
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
-            
+            string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
+
+            // Special mapping for saturn-like controllers in json file
+            if (SystemConfig.getOptBoolean("saturn_pad"))
+            {
+                string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+                if (File.Exists(saturnjson))
+                {
+                    try
+                    {
+                        var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
+
+                        if (saturnControllers != null)
+                        {
+                            MegadriveController saturnGamepad = MegadriveController.GetMDController("ssf", guid, saturnControllers);
+
+                            if (saturnGamepad != null)
+                            {
+                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+
+                                if (saturnGamepad.Mapping != null)
+                                {
+                                    string input = saturnGamepad.Mapping["buttons"];
+                                    ini.WriteValue("Input", padKey, "\"" + input + "\"");
+
+                                    SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+
+                                    return;
+                                }
+                                else
+                                    SimpleLogger.Instance.Info("[INFO] Missing mapping for Saturn Gamepad, falling back to standard mapping.");
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                    }
+                    catch { }
+                }
+            }
+
+            guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
+
             if (!File.Exists(gamecontrollerDB))
             {
                 SimpleLogger.Instance.Info("[WARNING] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available");

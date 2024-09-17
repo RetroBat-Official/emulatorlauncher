@@ -105,7 +105,10 @@ namespace EmulatorLauncher
             int nbAxis = controller.NbAxes;
             bool mdSpecialPad = false;
             bool mdSpecialPadHK = false;
+            bool saturnSpecialPad = false;
+            bool saturnSpecialPadHK = false;
             MegadriveController mdGamepad = null;
+            MegadriveController saturnGamepad = null;
 
             string guid1 = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
             // Fetch information in retrobat/system/tools/gamecontrollerdb.txt file
@@ -233,12 +236,6 @@ namespace EmulatorLauncher
                                     mdSpecialPadHK = true;
                                 else
                                     SimpleLogger.Instance.Info("[Controller] Missing mapping for mednafen hotkeys : " + mdGamepad.Name);
-
-                                if (mdGamepad.ControllerInfo != null)
-                                {
-                                    if (mdGamepad.ControllerInfo.ContainsKey("padType"))
-                                        padType = mdGamepad.ControllerInfo["padType"];
-                                }
                             }
                             else
                                 SimpleLogger.Instance.Info("[Controller] No specific mapping found for Megadrive controller.");
@@ -249,7 +246,46 @@ namespace EmulatorLauncher
                     catch { }
                 }
             }
-            
+
+            // Search for saturn specific controllers
+            if (Program.SystemConfig.getOptBoolean("saturn_pad") && mednafenCore == "ss")
+            {
+                string guid = controller.Guid.ToString().ToLowerInvariant();
+                string saturnjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+
+                if (File.Exists(saturnjson))
+                {
+                    try
+                    {
+                        var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
+
+                        if (saturnControllers != null)
+                        {
+                            saturnGamepad = MegadriveController.GetMDController("mednafen", guid, saturnControllers);
+                            if (saturnGamepad != null)
+                            {
+                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+
+                                if (saturnGamepad.Mapping != null)
+                                    saturnSpecialPad = true;
+                                else
+                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for mednafen : " + saturnGamepad.Name);
+
+                                if (saturnGamepad.HotKeyMapping != null && controller.PlayerIndex == 1)
+                                    saturnSpecialPadHK = true;
+                                else
+                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for mednafen hotkeys : " + saturnGamepad.Name);
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                    }
+                    catch { }
+                }
+            }
+
             // Else continue
             string deviceID = "0x" + controller.DirectInput.ProductGuid.ToString().Replace("-", "");
 
@@ -305,6 +341,53 @@ namespace EmulatorLauncher
                 if (mdSpecialPadHK && playerIndex == 1)
                 {
                     foreach (var button in mdGamepad.HotKeyMapping)
+                    {
+                        string[] delimiters = new string[] { "_and_" };
+                        var buttons = button.Value.Split(delimiters, StringSplitOptions.None);
+
+                        if (buttons.Length < 2)
+                            continue;
+
+                        if (button.Key == "load_state")
+                            cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "save_state")
+                            cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "state_slot_dec")
+                            cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "state_slot_inc")
+                            cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "toggle_help")
+                            cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "select_disk")
+                            cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "take_snapshot")
+                            cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "fast_forward")
+                            cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "state_rewind")
+                            cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "pause")
+                            cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        else if (button.Key == "exit")
+                            cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                    }
+                }
+
+                SimpleLogger.Instance.Info("[INFO] Assigned md controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
+                return;
+            }
+
+            // saturn mapping when using special controller
+            if (mednafenCore == "ss" && saturnSpecialPad)
+            {
+                cfg[mednafenCore + ".input.port" + playerIndex] = padType;
+
+                foreach (var button in saturnGamepad.Mapping)
+                    cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + button.Key] = "joystick " + deviceID + " " + button.Value;
+
+                if (saturnSpecialPadHK && playerIndex == 1)
+                {
+                    foreach (var button in saturnGamepad.HotKeyMapping)
                     {
                         string[] delimiters = new string[] { "_and_" };
                         var buttons = button.Value.Split(delimiters, StringSplitOptions.None);
