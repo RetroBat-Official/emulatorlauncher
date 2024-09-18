@@ -12,7 +12,8 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-        static List<string> _mdSystems = new List<string>() { "sega_cd", "genesis" };
+        static List<string> _mdSystems = new List<string>() { "sega_cd", "genesis", "sega_32x" };
+        static List<string> _noZipSystems = new List<string>() { "sega_cd" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -32,12 +33,13 @@ namespace EmulatorLauncher
                 return null;
 
             string hardware = GetJgenesisHardware(system);
+            string jGenSystem = GetJgenesisSystem(system);
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             string[] extensions = new string[] { ".cue", ".sms", ".gg", ".md", ".chd", ".nes", ".sfc", ".gb", ".gbc", ".bin" };
 
-            if (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z")
+            if (_noZipSystems.Contains(jGenSystem) && (Path.GetExtension(rom).ToLower() == ".zip" || Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower() == ".squashfs"))
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
                 if (Directory.Exists(uncompressedRomPath))
@@ -49,7 +51,7 @@ namespace EmulatorLauncher
             }
 
             // settings (toml configuration)
-            SetupTomlConfiguration(path, system, fullscreen);
+            SetupTomlConfiguration(path, jGenSystem, system, fullscreen);
 
             if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
@@ -77,7 +79,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupTomlConfiguration(string path, string system, bool fullscreen)
+        private void SetupTomlConfiguration(string path, string jGenSystem, string system, bool fullscreen)
         {
             string settingsFile = Path.Combine(path, "jgenesis-config.toml");
 
@@ -94,10 +96,18 @@ namespace EmulatorLauncher
 
             using (IniFile ini = new IniFile(settingsFile, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
             {
+                BindBoolIniFeatureOn(ini, "common", "audio_sync", "jgen_async", "true", "false");
 
-                string jgenSystem = GetJgenesisSystem(system);
-                if (jgenSystem == null)
-                    return;
+                if (SystemConfig.isOptSet("jgen_prescale") && !string.IsNullOrEmpty(SystemConfig["jgen_prescale"]))
+                {
+                    ini.WriteValue("common", "auto_prescale", "false");
+                    ini.WriteValue("common", "prescale_factor", SystemConfig["jgen_prescale"].ToIntegerString());
+                }
+                else
+                {
+                    ini.WriteValue("common", "prescale_factor", "3");
+                    ini.WriteValue("common", "auto_prescale", "true");
+                }
 
                 ini.WriteValue("common", "launch_in_fullscreen", fullscreen ? "true" : "false");
                 
@@ -128,13 +138,13 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("common", "scanlines", "\"" + "None" + "\"");
 
-                ConfigureGameboy(ini, jgenSystem);
-                ConfigureGenesis(ini, jgenSystem);
-                ConfigureNes(ini, jgenSystem);
-                ConfigureSMS(ini, jgenSystem, system);
-                ConfigureSnes(ini, jgenSystem);
+                ConfigureGameboy(ini, jGenSystem);
+                ConfigureGenesis(ini, jGenSystem);
+                ConfigureNes(ini, jGenSystem);
+                ConfigureSMS(ini, jGenSystem, system);
+                ConfigureSnes(ini, jGenSystem);
 
-                SetupControllers(ini, jgenSystem);
+                SetupControllers(ini, jGenSystem);
 
                 // Save toml file
                 ini.Save();
@@ -168,8 +178,10 @@ namespace EmulatorLauncher
 
         private void ConfigureGenesis(IniFile ini, string system)
         {
-            if (system != "genesis" && system != "sega_cd")
+            if (system != "genesis" && system != "sega_cd" && system != "sega_32x")
                 return;
+
+            BindBoolIniFeatureOn(ini, "genesis", "adjust_aspect_ratio_in_2x_resolution", "jgen_gen_aspectadjust", "true", "false");
 
             if (SystemConfig.isOptSet("jgen_genesis_region") && !string.IsNullOrEmpty(SystemConfig["jgen_genesis_region"]))
                 ini.WriteValue("genesis", "forced_region", "\"" + SystemConfig["jgen_genesis_region"] + "\"");
@@ -221,7 +233,7 @@ namespace EmulatorLauncher
                 string segaCdBios = Path.Combine(AppConfig.GetFullPath("bios"), regionbios);
 
                 ini.WriteValue("sega_cd", "bios_path", "'" + segaCdBios + "'");
-                BindBoolIniFeature(ini, "sega_cd", "enable_ram_cartridge", "jgen_segacd_ramcart", "false", "true");
+                BindBoolIniFeatureOn(ini, "sega_cd", "enable_ram_cartridge", "jgen_segacd_ramcart", "true", "false");
                 BindBoolIniFeature(ini, "sega_cd", "load_disc_into_ram", "jgen_segacd_loadtoram", "true", "false");
             }
         }
@@ -243,7 +255,32 @@ namespace EmulatorLauncher
 
             BindBoolIniFeature(ini, "nes", "remove_sprite_limit", "jgen_spritelimit", "true", "false");
             BindBoolIniFeature(ini, "nes", "pal_black_border", "jgen_nes_palborder", "true", "false");
-            BindBoolIniFeature(ini, "nes", "audio_60hz_hack", "jgen_nes_audiohack", "false", "true");
+            BindBoolIniFeatureOn(ini, "nes", "audio_60hz_hack", "jgen_nes_audiohack", "true", "false");
+
+            // Cropping
+            if (SystemConfig.isOptSet("jgen_nes_crop_sides") && !string.IsNullOrEmpty(SystemConfig["jgen_nes_crop_sides"]))
+            {
+                string cropSide = SystemConfig["jgen_nes_crop_sides"].ToIntegerString();
+                ini.WriteValue("nes.overscan", "top", cropSide);
+                ini.WriteValue("nes.overscan", "bottom", cropSide);
+            }
+            else
+            {
+                ini.WriteValue("nes.overscan", "top", "0");
+                ini.WriteValue("nes.overscan", "bottom", "0");
+            }
+
+            if (SystemConfig.isOptSet("jgen_nes_crop_topdown") && !string.IsNullOrEmpty(SystemConfig["jgen_nes_crop_topdown"]))
+            {
+                string cropVert = SystemConfig["jgen_nes_crop_topdown"].ToIntegerString();
+                ini.WriteValue("nes.overscan", "left", cropVert);
+                ini.WriteValue("nes.overscan", "right", cropVert);
+            }
+            else
+            {
+                ini.WriteValue("nes.overscan", "left", "0");
+                ini.WriteValue("nes.overscan", "right", "0");
+            }
         }
 
         private void ConfigureSMS(IniFile ini, string system, string esSystem)
@@ -278,7 +315,10 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue("smsgg", "sms_model", esSystem == "gamegear" ? "\"" + "Sms1" + "\"" : "\"" + "Sms2" + "\"");
 
-            BindBoolIniFeature(ini, "smsgg", "fm_sound_unit_enabled", "jgen_sms_fmchip", "false", "true");
+            BindBoolIniFeatureOn(ini, "smsgg", "fm_sound_unit_enabled", "jgen_sms_fmchip", "true", "false");
+            BindBoolIniFeature(ini, "smsgg", "overclock_z80", "jgen_overclock", "true", "false");
+            BindBoolIniFeature(ini, "smsgg", "sms_crop_vertical_border", "jgen_sms_cropvert", "true", "false");
+            BindBoolIniFeature(ini, "smsgg", "sms_crop_left_border", "jgen_sms_cropleft", "true", "false");
         }
 
         private void ConfigureSnes(IniFile ini, string system)
@@ -296,8 +336,8 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue("snes", "aspect_ratio", "\"" + "Ntsc" + "\"");
 
-            BindBoolIniFeature(ini, "snes", "audio_60hz_hack", "jgen_snes_audiohack", "false", "true");
-            BindIniFeature(ini, "snes", "gsu_overclock_factor", "jgen_snes_superfx_overclock", "1");
+            BindBoolIniFeatureOn(ini, "snes", "audio_60hz_hack", "jgen_snes_audiohack", "true", "false");
+            BindIniFeatureSlider(ini, "snes", "gsu_overclock_factor", "jgen_snes_superfx_overclock", "1");
 
             SetupGuns(ini, system);
         }
@@ -339,10 +379,14 @@ namespace EmulatorLauncher
             switch (System)
             {
                 case "nes":
+                case "famicom":
                     return "nes";
                 case "snes":
+                case "superfamicom":
+                case "sfamicom":
                     return "snes";
                 case "segacd":
+                case "megacd":
                     return "sega_cd";
                 case "megadrive":
                     return "genesis";
@@ -352,6 +396,9 @@ namespace EmulatorLauncher
                 case "gb":
                 case "gbc":
                     return "game_boy";
+                case "sega32x":
+                case "mega32x":
+                    return "sega_32x";
             }
             return null;
         }
@@ -361,19 +408,31 @@ namespace EmulatorLauncher
             switch (System)
             {
                 case "nes":
+                case "famicom":
                     return "Nes";
                 case "snes":
+                case "superfamicom":
+                case "sfamicom":
                     return "Snes";
                 case "segacd":
+                case "megacd":
                     return "SegaCd";
                 case "megadrive":
+                case "genesis":
                     return "Genesis";
                 case "mastersystem":
                 case "gamegear":
+                case "gg":
+                case "ms":
                     return "MasterSystem";
                 case "gb":
                 case "gbc":
+                case "gameboy":
+                case "gameboycolor":
                     return "GameBoy";
+                case "sega32x":
+                case "mega32x":
+                    return "Sega32X";
             }
             return null;
         }

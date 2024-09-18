@@ -6,8 +6,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using System.Configuration;
-using System.Windows.Input;
 
 namespace EmulatorLauncher
 {
@@ -20,7 +18,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for JGenesis");
 
-            if (jgenSystem == "sega_cd")
+            if (jgenSystem == "sega_cd" || jgenSystem == "sega_32x")
                 jgenSystem = "genesis";
 
             int maxPad = 1;
@@ -448,6 +446,8 @@ namespace EmulatorLauncher
         {
             { "smsgg", "inputs.smsgg_keyboard." },
             { "genesis", "inputs.genesis_keyboard." },
+            { "sega_cd", "inputs.genesis_keyboard." },
+            { "sega_32x", "inputs.genesis_keyboard." },
             { "game_boy", "inputs.gb_keyboard" },
             { "nes", "inputs.nes_keyboard." },
             { "snes", "inputs.snes_keyboard." }
