@@ -152,6 +152,7 @@ namespace EmulatorLauncher
 
                     if (gunCount > 0 && guns.Length > 0)
                     {
+                        SimpleLogger.Instance.Info("[GUNS] Found " + gunCount.ToString() + " usable guns.");
                         mouse1Index = guns[0].Index.ToString();
                         if (gunCount > 1 && guns.Length > 1)
                             mouse2Index = guns[1].Index.ToString();

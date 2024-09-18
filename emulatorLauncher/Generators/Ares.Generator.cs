@@ -178,21 +178,24 @@ namespace EmulatorLauncher
                 video["Shader"] = "None";
 
             BindBoolFeature(video, "ColorBleed", "ares_colobleed", "true", "false");
-            BindBoolFeature(video, "ColorEmulation", "ares_coloremulation", "false", "true");
-            BindBoolFeature(video, "InterframeBlending", "ares_interframe_blend", "false", "true");
+            BindBoolFeatureOn(video, "ColorEmulation", "ares_coloremulation", "true", "false");
+            BindBoolFeatureOn(video, "InterframeBlending", "ares_interframe_blend", "true", "false");
             BindBoolFeature(video, "Overscan", "ares_overscan", "true", "false");
             BindBoolFeature(video, "PixelAccuracy", "ares_pixel_accurate", "true", "false");
             BindFeature(video, "Quality", "ares_n64_quality", "SD");
+            BindFeatureSlider(video, "Luminance", "ares_luminance", "1.0", 2);
+            BindFeatureSlider(video, "Saturation", "ares_saturation", "1.0", 2);
+            BindFeatureSlider(video, "Gamma", "ares_gamma", "1.0", 2);
 
             if (!SystemConfig.isOptSet("ares_n64_quality") || SystemConfig["ares_n64_quality"] == "SD")
                     video["Supersampling"] = "false";
             else
                 BindBoolFeature(video, "Supersampling", "ares_supersampling", "true", "false");
             
-            bool supersample = SystemConfig.isOptSet("ares_supersampling") && SystemConfig.getOptBoolean("ares_supersampling");
+            bool supersample = SystemConfig.getOptBoolean("ares_supersampling");
 
             if (!supersample)
-                BindBoolFeature(video, "WeaveDeinterlacing", "ares_weavedeinterlacing", "false", "true");
+                BindBoolFeatureOn(video, "WeaveDeinterlacing", "ares_weavedeinterlacing", "true", "false");
             else
                 video["WeaveDeinterlacing"] = "false";
 
@@ -230,6 +233,10 @@ namespace EmulatorLauncher
             // Current rom path
             var aresCore = bml.GetOrCreateContainer(core);
             aresCore["Path"] = Path.GetDirectoryName(rom).Replace("\\", "/") + "/";
+
+            // N64 expansion pak
+            var n64bml = bml.GetOrCreateContainer("Nintendo64");
+            BindBoolFeatureOn(n64bml, "ExpansionPak", "ares_ExpansionPak", "true", "false");
         }
 
         private void WriteKeyboardHotkeys(BmlFile bml)

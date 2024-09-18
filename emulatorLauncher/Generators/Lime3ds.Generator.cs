@@ -31,7 +31,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 exe = Path.Combine(path, "lime3ds-gui.exe");    // old executable name
             if (!File.Exists(exe))
-                exe = Path.Combine(path, "lime-qt.exe");    // old executable name
+                exe = Path.Combine(path, "lime-qt.exe");    // even older executable name
 
             if (!File.Exists(exe))
                 return null;

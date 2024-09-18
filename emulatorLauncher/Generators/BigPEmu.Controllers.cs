@@ -60,8 +60,7 @@ namespace EmulatorLauncher
                 input["DeviceCount"] = maxPad.ToString();
 
             // Analog deadzone
-            if (SystemConfig.isOptSet("bigpemu_deadzone") && !string.IsNullOrEmpty(SystemConfig["bigpemu_deadzone"]))
-                input["AnalDeadMice"] = SystemConfig["bigpemu_deadzone"];
+            BindFeatureSlider(input, "AnalDeadMice", "bigpemu_deadzone", "0.15", 2);
 
             //Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
@@ -182,7 +181,7 @@ namespace EmulatorLauncher
 
             // Define if the controller has a hat
             bool useHat = true;
-            if (ctrl.NbHats == 0 || SystemConfig.getOptBoolean("bigpemu_analogstick"))
+            if (SystemConfig.getOptBoolean("bigpemu_analogstick"))
                 useHat = false;
 
             // Get controller mapping in Gamecontrollerdb
@@ -887,7 +886,8 @@ namespace EmulatorLauncher
                 }
                 else if (buttonkey == InputKey.down)
                 {
-                    buttonkey = InputKey.leftanalogdown;
+                    buttonkey = InputKey.leftanalogup;
+                    revertAxis = true;
                 }
                 else if (buttonkey == InputKey.left)
                 {
@@ -895,7 +895,8 @@ namespace EmulatorLauncher
                 }
                 else if (buttonkey == InputKey.right)
                 {
-                    buttonkey = InputKey.leftanalogright;
+                    buttonkey = InputKey.leftanalogleft;
+                    revertAxis = true;
                 }
             }
 
