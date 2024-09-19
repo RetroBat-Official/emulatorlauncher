@@ -52,6 +52,9 @@ namespace EmulatorLauncher.Common.Launchers
         public static string GetSteamGameExecutableName(Uri uri)
         {
             string shorturl = uri.AbsolutePath.Substring(1);
+            if (!string.IsNullOrEmpty(shorturl))
+                SimpleLogger.Instance.Info("[INFO] STEAM appID: " + shorturl);
+            
             int steamAppId = shorturl.ToInteger();
 
             string exe = FindExecutableName(steamAppId);
@@ -61,6 +64,8 @@ namespace EmulatorLauncher.Common.Launchers
                 SimpleLogger.Instance.Info("[WARNING] Cannot find STEAM game executable");
                 return null;
             }
+            else
+                SimpleLogger.Instance.Info("[STEAM] STEAM game executable found: " + exe);
 
             return Path.GetFileNameWithoutExtension(exe);
         }
@@ -126,7 +131,7 @@ namespace EmulatorLauncher.Common.Launchers
                     SimpleLogger.Instance.Info("[WARNING] No game executable found, cannot put ES in Wait-mode.");
                 }
             }
-            catch { }
+            catch { SimpleLogger.Instance.Info("[WARNING] Impossible to read SteamAppInfo."); }
 
             return null;
         }

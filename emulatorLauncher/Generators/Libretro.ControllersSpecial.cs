@@ -42,7 +42,7 @@ namespace EmulatorLauncher.Libretro
                             return false;
                         }
 
-                        N64Controller n64Gamepad = N64Controller.GetN64Controller("libretro", guid, n64Controllers);
+                        N64Controller n64Gamepad = N64Controller.GetN64Controller("libretro", guid, _inputDriver, n64Controllers);
                         if (n64Gamepad == null)
                         {
                             SimpleLogger.Instance.Info("[Controller] No specific mapping found for N64 controller.");

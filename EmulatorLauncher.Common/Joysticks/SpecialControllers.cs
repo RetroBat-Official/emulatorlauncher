@@ -14,16 +14,18 @@ namespace EmulatorLauncher.Common.Joysticks
         public string Emulator { get; private set; }
         public string Name { get; private set; }
         public string Guid { get; private set; }
+        public string Driver { get; private set; }
         public Dictionary<string,string> Mapping { get; private set; }
         public Dictionary<string, string> HotKeyMapping { get; private set; }
         public Dictionary<string, string> ControllerInfo { get; private set; }
 
         #region Private methods
-        private N64Controller(string emulator, string name, string guid, Dictionary<string, string> mapping, Dictionary<string, string> hotkeymapping = null, Dictionary<string, string> controllerInfo = null)
+        private N64Controller(string emulator, string name, string guid, string driver, Dictionary<string, string> mapping, Dictionary<string, string> hotkeymapping = null, Dictionary<string, string> controllerInfo = null)
         {
             Emulator = emulator;
             Name = name;
             Guid = guid;
+            Driver = driver;
             Mapping = mapping;
             HotKeyMapping = hotkeymapping;
             ControllerInfo = controllerInfo;
@@ -57,6 +59,29 @@ namespace EmulatorLauncher.Common.Joysticks
             );
         }
 
+        public static N64Controller GetN64Controller(string emulator, string guid, string driver, List<N64Controller> controllers)
+        {
+            if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid) || controllers == null)
+                return null;
+
+            var ret = controllers.FirstOrDefault(c =>
+                string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
+                string.Equals(c.Driver, driver, StringComparison.InvariantCultureIgnoreCase) &&
+                c.Guid.Split(',')
+                    .Select(g => g.Trim())
+                    .Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase))
+                );
+            if (ret == null)
+                ret = controllers.FirstOrDefault(c =>
+                string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
+                c.Guid.Split(',')
+                    .Select(g => g.Trim())
+                    .Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase))
+                );
+
+            return ret == null ? null : ret;
+        }
+
         public static List<N64Controller> LoadControllersFromJson(string jsonFilePath)
         {
             if (!File.Exists(jsonFilePath))
@@ -74,6 +99,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     var emulator = item["Emulator"];
                     var name = item["Name"];
                     var guid = item["Guid"];
+                    var driver = item["Driver"];
 
                     // Convert mappings
                     var mapping = item.GetObject("Mapping");
@@ -92,7 +118,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     var controllerInfo = item.GetObject("ControllerInfo");
                     var controllerInfoDict = controllerInfo != null ? ConvertDynamicJsonToDictionary(controllerInfo) : new Dictionary<string, string>();
 
-                    controllers.Add(new N64Controller(emulator, name, guid, mappingDict, hotKeyMappingDict, controllerInfoDict));
+                    controllers.Add(new N64Controller(emulator, name, guid, driver, mappingDict, hotKeyMappingDict, controllerInfoDict));
                 }
 
                 return controllers;
@@ -165,7 +191,6 @@ namespace EmulatorLauncher.Common.Joysticks
                     .Select(g => g.Trim())
                     .Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase))
                 );
-
 
             return ret == null ? null : ret;
         }

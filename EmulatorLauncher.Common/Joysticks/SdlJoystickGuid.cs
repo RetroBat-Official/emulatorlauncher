@@ -255,7 +255,10 @@ namespace EmulatorLauncher.Common.Joysticks
                         {
                             string outputGuid = emulatorInfo["guid"];
                             if (!string.IsNullOrEmpty(outputGuid))
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file with: " + outputGuid.ToLowerInvariant());
                                 return outputGuid.ToLowerInvariant();
+                            }
                         }
                     }
                 }

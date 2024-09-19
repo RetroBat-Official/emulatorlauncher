@@ -135,18 +135,24 @@ namespace EmulatorLauncher
             // Define if shortcut is an EpicGame or Steam shortcut
             else if (extension == ".url")
             {
-                try
-                {
-                    var uri = new Uri(IniFile.FromFile(rom).GetValue("InternetShortcut", "URL"));
+                // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
+                _exeFile = GetProcessFromFile(rom);
 
-                    if (launchers.TryGetValue(uri.Scheme, out Func<Uri, GameLauncher> gameLauncherInstanceBuilder))
-                        _gameLauncher = gameLauncherInstanceBuilder(uri);
-                }
-                catch (Exception ex)
+                if (!_exeFile)
                 {
-                    SetCustomError(ex.Message);
-                    SimpleLogger.Instance.Error("[ExeLauncherGenerator] " + ex.Message, ex);
-                    return null;
+                    try
+                    {
+                        var uri = new Uri(IniFile.FromFile(rom).GetValue("InternetShortcut", "URL"));
+
+                        if (launchers.TryGetValue(uri.Scheme, out Func<Uri, GameLauncher> gameLauncherInstanceBuilder))
+                            _gameLauncher = gameLauncherInstanceBuilder(uri);
+                    }
+                    catch (Exception ex)
+                    {
+                        SetCustomError(ex.Message);
+                        SimpleLogger.Instance.Error("[ExeLauncherGenerator] " + ex.Message, ex);
+                        return null;
+                    }
                 }
             }
 
