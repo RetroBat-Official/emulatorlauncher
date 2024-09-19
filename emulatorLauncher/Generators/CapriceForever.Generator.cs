@@ -195,7 +195,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Tape", "TapeDirectory", Path.GetDirectoryName(driveADisk));
                     }
 
-                    BindBoolIniFeature(ini, "Emulator", "FastLoading", "caprice_fastload", "0", "1");
+                    BindBoolIniFeatureOn(ini, "Emulator", "FastLoading", "caprice_fastload", "1", "0");
                     BindBoolIniFeature(ini, "Emulator", "TurboFullSpeed", "caprice_turbo", "1", "0");
                     BindBoolIniFeature(ini, "Emulator", "ColorMonitor", "caprice_monochrome", "0", "1");
 
@@ -278,7 +278,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Emulator", "CRTCType", "3");
 
                     ini.WriteValue("Emulator", "FloppyDrive", "1");
-                    BindIniFeature(ini, "Emulator", "256kMemoryExtension", "caprice_256k", "0");
+                    BindBoolIniFeature(ini, "Emulator", "256kMemoryExtension", "caprice_256k", "1", "0");
 
                     if (SystemConfig.getOptBoolean("caprice_256ksilicon"))
                     {
