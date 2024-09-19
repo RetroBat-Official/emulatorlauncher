@@ -209,7 +209,10 @@ namespace EmulatorLauncher
             bool dinput = (buttonMapping == dinputMapping && dinputCtrl != null);
 
             // Search for megadrive specific controllers
-            if (Program.SystemConfig.getOptBoolean("md_pad") && mednafenCore == "md")
+            bool needMDActivationSwitch = false;
+            bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
+
+            if (mednafenCore == "md")
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
                 string mdjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
@@ -225,6 +228,18 @@ namespace EmulatorLauncher
                             mdGamepad = MegadriveController.GetMDController("mednafen", guid, megadriveControllers);
                             if (mdGamepad != null)
                             {
+                                if (mdGamepad.ControllerInfo != null)
+                                {
+                                    if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                        needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                    if (needMDActivationSwitch && !md_pad)
+                                    {
+                                        SimpleLogger.Instance.Info("[Controller] Specific MD mapping needs to be activated for this controller.");
+                                        goto BypassMDControllers;
+                                    }
+                                }
+
                                 SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
 
                                 if (mdGamepad.Mapping != null)
@@ -247,8 +262,13 @@ namespace EmulatorLauncher
                 }
             }
 
+            BypassMDControllers:
+
             // Search for saturn specific controllers
-            if (Program.SystemConfig.getOptBoolean("saturn_pad") && mednafenCore == "ss")
+            bool needSatActivationSwitch = false;
+            bool sat_pad = Program.SystemConfig.getOptBoolean("saturn_pad");
+
+            if (mednafenCore == "ss")
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
                 string saturnjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
@@ -264,6 +284,18 @@ namespace EmulatorLauncher
                             saturnGamepad = MegadriveController.GetMDController("mednafen", guid, saturnControllers);
                             if (saturnGamepad != null)
                             {
+                                if (mdGamepad.ControllerInfo != null)
+                                {
+                                    if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                        needSatActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                    if (needSatActivationSwitch && !sat_pad)
+                                    {
+                                        SimpleLogger.Instance.Info("[Controller] Specific Saturn mapping needs to be activated for this controller.");
+                                        goto BypassSATControllers;
+                                    }
+                                }
+
                                 SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
 
                                 if (saturnGamepad.Mapping != null)
@@ -285,6 +317,8 @@ namespace EmulatorLauncher
                     catch { }
                 }
             }
+
+            BypassSATControllers:
 
             // Else continue
             string deviceID = "0x" + controller.DirectInput.ProductGuid.ToString().Replace("-", "");

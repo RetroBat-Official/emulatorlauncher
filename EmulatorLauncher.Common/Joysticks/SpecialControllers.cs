@@ -6,6 +6,7 @@ using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
+    #region n64
     public class N64Controller
     {
         static readonly N64Controller[] N64Controllers;
@@ -50,7 +51,10 @@ namespace EmulatorLauncher.Common.Joysticks
 
             return controllers.FirstOrDefault(c =>
                 string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
-                string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase));
+                c.Guid.Split(',')
+                    .Select(g => g.Trim())
+                    .Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase))
+            );
         }
 
         public static List<N64Controller> LoadControllersFromJson(string jsonFilePath)
@@ -100,7 +104,9 @@ namespace EmulatorLauncher.Common.Joysticks
         }
         #endregion
     }
+    #endregion
 
+    #region megadrive
     public class MegadriveController
     {
         static readonly MegadriveController[] MegadriveControllers;
@@ -147,11 +153,20 @@ namespace EmulatorLauncher.Common.Joysticks
 
             var ret = controllers.FirstOrDefault(c =>
                 string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
-                string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase) && string.Equals(c.Driver, driver, StringComparison.InvariantCultureIgnoreCase));
+                string.Equals(c.Driver, driver, StringComparison.InvariantCultureIgnoreCase) &&
+                c.Guid.Split(',')
+                    .Select(g => g.Trim())
+                    .Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase))
+                );
             if (ret == null)
                 ret = controllers.FirstOrDefault(c =>
                 string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
-                string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase));
+                c.Guid.Split(',')
+                    .Select(g => g.Trim())
+                    .Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase))
+                );
+
+
             return ret == null ? null : ret;
         }
 
@@ -214,4 +229,5 @@ namespace EmulatorLauncher.Common.Joysticks
         }
         #endregion
     }
+    #endregion
 }
