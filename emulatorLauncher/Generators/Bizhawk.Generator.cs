@@ -18,7 +18,6 @@ namespace EmulatorLauncher
         private static readonly List<string> zipSystems = new List<string>() { "psx", "saturn", "n64", "n64dd", "pcenginecd", "jaguarcd", "vectrex", "odyssey2", "uzebox" };
         private static List<string> _mdSystems = new List<string>() { "genesis", "mega32x", "megacd", "megadrive", "sega32x", "segacd" };
 
-
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
@@ -277,6 +276,15 @@ namespace EmulatorLauncher
             BindBoolFeature(json, "DispFixScaleInteger", "integerscale", "true", "false");
             BindFeature(json, "TargetDisplayFilter", "bizhawk_filter", "0");
             BindFeature(json, "DispFinalFilter", "bizhawk_finalfilter", "0");
+
+            if (SystemConfig.isOptSet("bizhawk_scanlines_intensity") && !string.IsNullOrEmpty(SystemConfig["bizhawk_scanlines_intensity"]))
+            {
+                int intensity = SystemConfig["bizhawk_scanlines_intensity"].ToIntegerString().ToInteger();
+                float value = (int)Math.Round((float)intensity / 100 * 256);
+                json["TargetScanlineFilterIntensity"] = value.ToString();
+            }
+            else
+                json["TargetScanlineFilterIntensity"] = "128";
 
             // Display driver
             if (SystemConfig.isOptSet("bizhawk_renderer") && !string.IsNullOrEmpty(SystemConfig["bizhawk_renderer"]))

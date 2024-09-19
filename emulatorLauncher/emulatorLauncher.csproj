@@ -214,6 +214,9 @@
     <Compile Include="Generators\Libretro.Controllers.cs">
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Libretro.ControllersSpecial.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\LibRetro.CoreOptions.cs">
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>

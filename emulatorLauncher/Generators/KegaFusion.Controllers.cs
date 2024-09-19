@@ -86,8 +86,10 @@ namespace EmulatorLauncher
             List<string> buttonMapping = new List<string>();
             string joy = joyIndex[ctrl.PlayerIndex.ToString()];
             int index = ctrl.DirectInput != null ? ctrl.DirectInput.DeviceIndex : ctrl.DeviceIndex;
+            bool needMDActivationSwitch = false;
+            bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
 
-            if (_mdSystems.Contains(system) && SystemConfig.getOptBoolean("md_pad"))
+            if (_mdSystems.Contains(system))
             {
                 string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
                 if (File.Exists(mdjson))
@@ -102,6 +104,18 @@ namespace EmulatorLauncher
 
                             if (mdGamepad != null)
                             {
+                                if (mdGamepad.ControllerInfo != null)
+                                {
+                                    if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                        needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                    if (needMDActivationSwitch && !md_pad)
+                                    {
+                                        SimpleLogger.Instance.Info("[Controller] Specific MD mapping needs to be activated for this controller.");
+                                        goto BypassMDControllers;
+                                    }
+                                }
+
                                 SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
 
                                 if (mdGamepad.Mapping != null)
@@ -128,6 +142,8 @@ namespace EmulatorLauncher
                     catch { }
                 }
             }
+
+            BypassMDControllers:
 
             guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
             SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid);

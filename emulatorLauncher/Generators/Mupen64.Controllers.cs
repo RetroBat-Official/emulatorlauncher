@@ -100,6 +100,9 @@ namespace EmulatorLauncher
 
             // Special mapping for n64 style controllers
             string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            bool needActivationSwitch = false;
+            bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
+
             if (File.Exists(n64json))
             {
                 try
@@ -112,6 +115,18 @@ namespace EmulatorLauncher
 
                         if (n64Gamepad != null)
                         {
+                            if (n64Gamepad.ControllerInfo != null)
+                            {
+                                if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needActivationSwitch && !n64_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific n64 mapping needs to be activated for this controller.");
+                                    goto BypassSPecialControllers;
+                                }
+                            }
+
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
                             ConfigureN64Controller(ini, iniSection, n64Gamepad);
@@ -131,6 +146,8 @@ namespace EmulatorLauncher
                 }
                 catch { }
             }
+
+            BypassSPecialControllers:
 
             // Default mapping
             if (SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl"))

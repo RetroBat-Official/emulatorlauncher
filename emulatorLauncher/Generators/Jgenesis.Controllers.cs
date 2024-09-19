@@ -68,7 +68,9 @@ namespace EmulatorLauncher
             string guid = ctrl.Guid.ToString();
 
             // Manage specific megadrive controllers from json file
-            if (_mdSystems.Contains(jgenSystem) && SystemConfig.getOptBoolean("md_pad"))
+            bool needMDActivationSwitch = false;
+            bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
+            if (_mdSystems.Contains(jgenSystem))
             {
                 string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
                 try
@@ -81,6 +83,18 @@ namespace EmulatorLauncher
 
                         if (mdGamepad != null)
                         {
+                            if (mdGamepad.ControllerInfo != null)
+                            {
+                                if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needMDActivationSwitch && !md_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific MD mapping needs to be activated for this controller.");
+                                    goto BypassMDControllers;
+                                }
+                            }
+
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
 
                             if (mdGamepad.Mapping != null)
@@ -146,6 +160,8 @@ namespace EmulatorLauncher
                 }
                 catch { }
             }
+
+            BypassMDControllers:
 
             Dictionary<string, InputKey> mapping = null;
 

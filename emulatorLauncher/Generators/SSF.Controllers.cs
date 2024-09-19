@@ -121,44 +121,58 @@ namespace EmulatorLauncher
             string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
 
             // Special mapping for saturn-like controllers in json file
-            if (SystemConfig.getOptBoolean("saturn_pad"))
+            bool needSatActivationSwitch = false;
+            bool sat_pad = Program.SystemConfig.getOptBoolean("saturn_pad");
+
+            string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+            if (File.Exists(saturnjson))
             {
-                string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
-                if (File.Exists(saturnjson))
+                try
                 {
-                    try
+                    var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
+
+                    if (saturnControllers != null)
                     {
-                        var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
+                        MegadriveController saturnGamepad = MegadriveController.GetMDController("ssf", guid, saturnControllers);
 
-                        if (saturnControllers != null)
+                        if (saturnGamepad != null)
                         {
-                            MegadriveController saturnGamepad = MegadriveController.GetMDController("ssf", guid, saturnControllers);
-
-                            if (saturnGamepad != null)
+                            if (saturnGamepad.ControllerInfo != null)
                             {
-                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+                                if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "yes";
 
-                                if (saturnGamepad.Mapping != null)
+                                if (needSatActivationSwitch && !sat_pad)
                                 {
-                                    string input = saturnGamepad.Mapping["buttons"];
-                                    ini.WriteValue("Input", padKey, "\"" + input + "\"");
-
-                                    SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
-
-                                    return;
+                                    SimpleLogger.Instance.Info("[Controller] Specific Saturn mapping needs to be activated for this controller.");
+                                    goto BypassSATControllers;
                                 }
-                                else
-                                    SimpleLogger.Instance.Info("[INFO] Missing mapping for Saturn Gamepad, falling back to standard mapping.");
+                            }
+
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+
+                            if (saturnGamepad.Mapping != null)
+                            {
+                                string input = saturnGamepad.Mapping["buttons"];
+                                ini.WriteValue("Input", padKey, "\"" + input + "\"");
+
+                                SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+
+                                return;
                             }
                             else
-                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
+                                SimpleLogger.Instance.Info("[INFO] Missing mapping for Saturn Gamepad, falling back to standard mapping.");
                         }
                         else
-                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
                     }
-                    catch { }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
                 }
+                catch { }
             }
+
+            BypassSATControllers:
 
             guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
 

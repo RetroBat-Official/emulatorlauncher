@@ -146,10 +146,14 @@ namespace EmulatorLauncher
             if (controller.SdlController == null && !controller.IsXInputDevice)
                 isDInput = true;
 
+            #region specialControllers
             // Special treatment for N64 controllers
             N64Controller n64Gamepad = null;
             bool n64ControllerFound = false;
             string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            bool needn64ActivationSwitch = false;
+            bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
+
             if (File.Exists(n64json) && system == "n64")
             {
                 try
@@ -161,6 +165,18 @@ namespace EmulatorLauncher
 
                         if (n64Gamepad != null)
                         {
+                            if (n64Gamepad.ControllerInfo != null)
+                            {
+                                if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needn64ActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needn64ActivationSwitch && !n64_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific n64 mapping needs to be activated for this controller.");
+                                    goto Bypassn64Controllers;
+                                }
+                            }
+
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
                             bool useDInput = false;
@@ -191,11 +207,16 @@ namespace EmulatorLauncher
                 catch { }
             }
 
+            Bypassn64Controllers:
+
             // Special treatment for Megadrive controllers
             MegadriveController mdGamepad = null;
             bool mdControllerFound = false;
             string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
-            if (File.Exists(mdjson) && _mdSystems.Contains(system) && SystemConfig.getOptBoolean("md_pad"))
+            bool needMDActivationSwitch = false;
+            bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
+
+            if (File.Exists(mdjson) && _mdSystems.Contains(system))
             {
                 try
                 {
@@ -206,6 +227,18 @@ namespace EmulatorLauncher
 
                         if (mdGamepad != null)
                         {
+                            if (mdGamepad.ControllerInfo != null)
+                            {
+                                if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needMDActivationSwitch && !md_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific MD mapping needs to be activated for this controller.");
+                                    goto BypassMDControllers;
+                                }
+                            }
+
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
 
                             bool useDInput = false;
@@ -239,11 +272,16 @@ namespace EmulatorLauncher
                 catch { }
             }
 
+            BypassMDControllers:
+
             // Special treatment for Saturn controllers
             MegadriveController saturnGamepad = null;
             bool saturnControllerFound = false;
+            bool needSATActivationSwitch = false;
+            bool sat_pad = Program.SystemConfig.getOptBoolean("saturn_pad");
+
             string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
-            if (File.Exists(saturnjson) && system == "saturn" && SystemConfig.getOptBoolean("saturn_pad"))
+            if (File.Exists(saturnjson) && system == "saturn")
             {
                 try
                 {
@@ -254,6 +292,18 @@ namespace EmulatorLauncher
 
                         if (saturnGamepad != null)
                         {
+                            if (mdGamepad.ControllerInfo != null)
+                            {
+                                if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needSATActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needSATActivationSwitch && !sat_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific Saturn mapping needs to be activated for this controller.");
+                                    goto BypassSATControllers;
+                                }
+                            }
+
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
 
                             bool useDInput = false;
@@ -286,6 +336,9 @@ namespace EmulatorLauncher
                 }
                 catch { }
             }
+
+            BypassSATControllers:
+            #endregion
 
             if (!n64ControllerFound && !mdControllerFound && !saturnControllerFound)
             {
@@ -398,7 +451,9 @@ namespace EmulatorLauncher
             string deadzone = "0.15";
 
             if (SystemConfig.isOptSet("bizhawk_deadzone") && !string.IsNullOrEmpty(SystemConfig["bizhawk_deadzone"]))
-                deadzone = SystemConfig["bizhawk_deadzone"];
+            {
+                deadzone = SystemConfig["bizhawk_deadzone"].TrimEnd('0');
+            }
 
             if (system == "n64")
             {

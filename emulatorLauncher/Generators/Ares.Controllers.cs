@@ -114,8 +114,11 @@ namespace EmulatorLauncher
             else
                 padId = padId + index + vendorID + prodID + "/";
 
+            #region specialControllers
             // Special treatment for N64 controllers
             string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            bool needn64ActivationSwitch = false;
+            bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
 
             if (File.Exists(n64json) && _n64Systems.Contains(_system))
             {
@@ -126,9 +129,20 @@ namespace EmulatorLauncher
                     if (n64Controllers != null)
                     {
                         N64Controller n64Gamepad = N64Controller.GetN64Controller("ares", guid, n64Controllers);
-
                         if (n64Gamepad != null)
                         {
+                            if (n64Gamepad.ControllerInfo != null)
+                            {
+                                if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needn64ActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needn64ActivationSwitch && !n64_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific n64 mapping needs to be activated for this controller.");
+                                    goto Bypassn64Controllers;
+                                }
+                            }
+
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
                             foreach (var button in n64Gamepad.Mapping)
@@ -147,7 +161,11 @@ namespace EmulatorLauncher
                 catch { }
             }
 
-            else if (_mdSystems.Contains(_system) && SystemConfig.getOptBoolean("md_pad"))
+            Bypassn64Controllers:
+
+            bool needMDActivationSwitch = false;
+            bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
+            if (_mdSystems.Contains(_system) && SystemConfig.getOptBoolean("md_pad"))
             {
                 string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
                 try
@@ -160,6 +178,17 @@ namespace EmulatorLauncher
 
                         if (mdGamepad != null)
                         {
+                            if (mdGamepad.ControllerInfo != null)
+                            {
+                                if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needMDActivationSwitch && !md_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific megadrive mapping needs to be activated for this controller.");
+                                    goto BypassMDControllers;
+                                }
+                            }
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
 
                             if (mdGamepad.Mapping != null)
@@ -183,6 +212,9 @@ namespace EmulatorLauncher
                 }
                 catch { }
             }
+
+            BypassMDControllers:
+            #endregion
 
             vpad["Pad.Up"] = GetInputKeyName(ctrl, InputKey.up, padId);
             vpad["Pad.Down"] = GetInputKeyName(ctrl, InputKey.down, padId);

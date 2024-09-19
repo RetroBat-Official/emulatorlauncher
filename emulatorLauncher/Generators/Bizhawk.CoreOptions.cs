@@ -495,7 +495,7 @@ namespace EmulatorLauncher
             gbahawkSync["$type"] = "BizHawk.Emulation.Cores.Nintendo.GBA.MGBAHawk+SyncSettings, BizHawk.Emulation.Cores";
             gbahawkSync["SkipBios"] = "true";
 
-            BindBoolFeature(gbahawkSync, "SkipBios", "bizhawk_gba_skipbios", "false", "true");
+            BindBoolFeatureOn(gbahawkSync, "SkipBios", "bizhawk_gba_skipbios", "true", "false");
         }
 
         private void ConfigureMupen64(DynamicJson coreSettings, DynamicJson coreSyncSettings, string core)

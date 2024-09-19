@@ -10,7 +10,7 @@ using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher.Libretro
 {
-    class LibretroControllers
+    partial class LibretroControllers
     {
         private static bool _specialController = false;
         private static bool _specialControllerHotkey = false;
@@ -239,8 +239,8 @@ namespace EmulatorLauncher.Libretro
                 { InputKey.select, "select"}
             };
 
-            var config = new Dictionary<string, string>();
-
+            // some input adaptations for some cores...
+            // MAME service menu
             if (system == "mame")
             {
                 // Invert Dip switches and set it on r3 instead ( less annoying )
@@ -248,166 +248,16 @@ namespace EmulatorLauncher.Libretro
                 retroarchbtns[InputKey.r3] = "l3";
             }
 
+            if (performSpecialMapping(out Dictionary<string, string> specialConfig, system, controller, retroconfig))
+                return specialConfig;
+
+            // N64: Z is important, in case L2 (z) is not available for this pad, use L1
             if (system == "n64")
             {
-                string guid = controller.Guid.ToString().ToLowerInvariant();
-                string n64json = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
-
-                if (File.Exists(n64json))
-                {
-                    try
-                    {
-                        var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
-
-                        if (n64Controllers != null)
-                        {
-                            N64Controller n64Gamepad = N64Controller.GetN64Controller("libretro", guid, n64Controllers);
-                            if (n64Gamepad != null)
-                            {
-                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
-
-                                if (n64Gamepad.ControllerInfo != null)
-                                {
-                                    if (n64Gamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
-                                        retroconfig["input_analog_sensitivity"] = n64Gamepad.ControllerInfo["input_analog_sensitivity"];
-                                }
-
-                                if (n64Gamepad.Mapping != null)
-                                {
-                                    foreach (var button in n64Gamepad.Mapping)
-                                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
-                                }
-                                else
-                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + n64Gamepad.Name);
-
-                                if (n64Gamepad.HotKeyMapping != null && controller.PlayerIndex == 1)
-                                {
-                                    foreach (var hotkey in n64Gamepad.HotKeyMapping)
-                                        config[hotkey.Key] = hotkey.Value;
-                                    _specialControllerHotkey = true;
-                                }
-                                else
-                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + n64Gamepad.Name);
-
-                                _inputDriver = "sdl2";
-
-                                if (config["input_joypad_driver"] != null)
-                                    _inputDriver = config["input_joypad_driver"];
-
-                                _specialController = true;
-                                return config;
-                            }
-                            else
-                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for N64 controller.");
-                        }
-                        else
-                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
-                    }
-                    catch { }
-                }
-
-                // some input adaptations for some cores...
-                // z is important, in case l2 (z) is not available for this pad, use l1
                 if (controller.Config != null && controller.Config.Input != null && !controller.Config.Input.Any(i => i.Name == InputKey.r2))
                 {
                     retroarchbtns[InputKey.pageup] = "l2";
                     retroarchbtns[InputKey.l2] = "l";
-                }
-            }
-            
-            if (Program.SystemConfig.getOptBoolean("md_pad") && mdSystems.Contains(system))
-            {
-                string guid = controller.Guid.ToString().ToLowerInvariant();
-                string mdjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
-
-                if (File.Exists(mdjson))
-                {
-                    try
-                    {
-                        var megadriveControllers = MegadriveController.LoadControllersFromJson(mdjson);
-
-                        if (megadriveControllers != null)
-                        {
-                            MegadriveController mdGamepad = MegadriveController.GetMDController("libretro", guid, _inputDriver, megadriveControllers);
-                            if (mdGamepad != null)
-                            {
-                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
-
-                                if (mdGamepad.Mapping != null)
-                                {
-                                    foreach (var button in mdGamepad.Mapping)
-                                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
-                                }
-                                else
-                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + mdGamepad.Name);
-
-                                if (mdGamepad.HotKeyMapping != null && controller.PlayerIndex == 1)
-                                {
-                                    foreach (var hotkey in mdGamepad.HotKeyMapping)
-                                        config[hotkey.Key] = hotkey.Value;
-                                    _specialControllerHotkey = true;
-                                }
-                                else
-                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + mdGamepad.Name);
-
-                                _specialController = true;
-                                return config;
-                            }
-                            else
-                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for Megadrive controller.");
-                        }
-                        else
-                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
-                    }
-                    catch { }
-                }
-            }
-
-            if (Program.SystemConfig.getOptBoolean("saturn_pad") && system == "saturn")
-            {
-                string guid = controller.Guid.ToString().ToLowerInvariant();
-                string saturnjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
-
-                if (File.Exists(saturnjson))
-                {
-                    try
-                    {
-                        var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
-
-                        if (saturnControllers != null)
-                        {
-                            MegadriveController saturnGamepad = MegadriveController.GetMDController("libretro", guid, _inputDriver, saturnControllers);
-                            if (saturnGamepad != null)
-                            {
-                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
-
-                                if (saturnGamepad.Mapping != null)
-                                {
-                                    foreach (var button in saturnGamepad.Mapping)
-                                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
-                                }
-                                else
-                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + saturnGamepad.Name);
-
-                                if (saturnGamepad.HotKeyMapping != null && controller.PlayerIndex == 1)
-                                {
-                                    foreach (var hotkey in saturnGamepad.HotKeyMapping)
-                                        config[hotkey.Key] = hotkey.Value;
-                                    _specialControllerHotkey = true;
-                                }
-                                else
-                                    SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + saturnGamepad.Name);
-
-                                _specialController = true;
-                                return config;
-                            }
-                            else
-                                SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
-                        }
-                        else
-                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
-                    }
-                    catch { }
                 }
             }
 
@@ -420,6 +270,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchbtns[InputKey.y] = "x";
             }
 
+            var config = new Dictionary<string, string>();
             var conflicts = new List<string>();
 
             foreach (var btnkey in retroarchbtns)
