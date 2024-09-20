@@ -86,7 +86,7 @@ namespace EmulatorLauncher
 
         private void ConfigureAtari2600(DynamicJson coreSyncSettings, string core)
         {
-            if (core != "A26")
+            if (core != "A26" && core != "Atari2600Hawk")
                 return;
 
             var a2600Sync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Atari.Atari2600.Atari2600");
@@ -124,7 +124,7 @@ namespace EmulatorLauncher
 
         private void ConfigureQuickNES(DynamicJson coreSyncSettings, string core)
         {
-            if (core != "QuickNes")
+            if (core != "QuickNes" && core != "quickerNES")
                 return;
 
             var quickNesSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.Nintendo.QuickNES.QuickNES");

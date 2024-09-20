@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         private static readonly Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "A26", 2 },
+            { "Atari2600Hawk", 2 },
             { "A78", 2 },
             { "AppleII", 1 },
             { "Ares64", 4 },
@@ -42,6 +43,7 @@ namespace EmulatorLauncher
             { "PCEHawk", 5 },
             { "PCFX", 2 },
             { "PicoDrive", 2 },
+            { "quickerNES", 2 },
             { "QuickNes", 2 },
             { "SameBoy", 1 },
             { "Saturnus", 12 },
@@ -368,8 +370,13 @@ namespace EmulatorLauncher
             // Specifics
             if (system == "atari2600" || system == "atari7800")
             {
-                controllerConfig["Reset"] = "";
                 controllerConfig["Power"] = "";
+                
+                if (isDInput)
+                    controllerConfig["Reset"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.select);
+                else
+                    controllerConfig["Reset"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.select);
+                
                 if (isDInput)
                     controllerConfig["Select"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.start);
                 else
@@ -381,11 +388,7 @@ namespace EmulatorLauncher
                 if (system == "atari7800")
                 {
                     controllerConfig["BW"] = "";
-                    
-                    if (isDInput)
-                        controllerConfig["Pause"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.select);
-                    else
-                        controllerConfig["Pause"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.select);
+                    controllerConfig["Pause"] = "";
                 }
             }
 

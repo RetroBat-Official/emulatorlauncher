@@ -135,16 +135,23 @@ namespace EmulatorLauncher
 
         private static readonly Dictionary<string, string> bizhawkPreferredCore = new Dictionary<string, string>()
         {
+            { "atari2600", "A26" },
+            { "gg", "GG" },
+            { "gamegear", "GG" },
             { "gb", "GB" },
             { "gbc", "GBC" },
             { "gb2players", "GBL" },
             { "mastersystem", "SMS" },
+            { "megadrive", "GEN" },
+            { "genesis", "GEN" },
             { "n64", "N64" },
             { "nds", "NDS" },
             { "nes", "NES" },
             { "pcengine", "PCE" },
             { "pcenginecd", "PCECD" },
             { "psx", "PSX" },
+            { "satellaview", "BSX" },
+            { "sg1000", "SG" },
             { "sgb", "SGB" },
             { "snes", "SNES" },
             { "supergrafx", "SGX" },
@@ -561,8 +568,11 @@ namespace EmulatorLauncher
             {
                 // Vectrex BIOS
                 string vectrexBios = Path.Combine(AppConfig.GetFullPath("bios"), "Vectrex_Bios.bin");
+                string mineStorm = Path.Combine(AppConfig.GetFullPath("bios"), "VEC_Minestorm.vec");
                 if (File.Exists(vectrexBios))
                     firmware["VEC+Bios"] = vectrexBios;
+                if (File.Exists(mineStorm))
+                    firmware["VEC+Minestorm"] = mineStorm;
             }
         }
 
@@ -633,6 +643,7 @@ namespace EmulatorLauncher
             { "gba", "GBA" },
             { "gbc", "GB_GBC_SGB" },
             { "gbc2players", "GBL" },
+            { "genesis", "GEN" },
             { "intellivision", "INTV" },
             { "jaguar", "Jaguar" },
             { "jaguarcd", "Jaguar" },
