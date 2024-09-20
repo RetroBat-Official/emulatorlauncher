@@ -11,18 +11,20 @@ namespace EmulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {
-        private static readonly List<string> systemMonoPlayer = new List<string>() { "apple2", "gb", "gbc", "gba", "lynx", "nds" };
+        private static readonly List<string> systemMonoPlayer = new List<string>() { "3ds", "apple2", "gb", "gbc", "gba", "lynx", "nds" };
         private static readonly List<string> computersystem = new List<string>() { "apple2" };
 
         private static readonly Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "A26", 2 },
+            { "Atari2600Hawk", 2 },
             { "A78", 2 },
             { "AppleII", 1 },
             { "Ares64", 4 },
             { "BSNES", 8 },
             { "Coleco", 2 },
             { "Cygne", 1 },
+            { "Encore", 1 },
             { "Faust", 8 },
             { "Gambatte", 1 },
             { "GBHawk", 1 },
@@ -42,6 +44,7 @@ namespace EmulatorLauncher
             { "PCEHawk", 5 },
             { "PCFX", 2 },
             { "PicoDrive", 2 },
+            { "quickerNES", 2 },
             { "QuickNes", 2 },
             { "SameBoy", 1 },
             { "Saturnus", 12 },
@@ -368,8 +371,13 @@ namespace EmulatorLauncher
             // Specifics
             if (system == "atari2600" || system == "atari7800")
             {
-                controllerConfig["Reset"] = "";
                 controllerConfig["Power"] = "";
+                
+                if (isDInput)
+                    controllerConfig["Reset"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.select);
+                else
+                    controllerConfig["Reset"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.select);
+                
                 if (isDInput)
                     controllerConfig["Select"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.start);
                 else
@@ -381,11 +389,7 @@ namespace EmulatorLauncher
                 if (system == "atari7800")
                 {
                     controllerConfig["BW"] = "";
-                    
-                    if (isDInput)
-                        controllerConfig["Pause"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.select);
-                    else
-                        controllerConfig["Pause"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.select);
+                    controllerConfig["Pause"] = "";
                 }
             }
 
@@ -480,6 +484,141 @@ namespace EmulatorLauncher
                 yAxis["Value"] = useDInput ? "J" + index + " Y Axis" : "X" + index + " LeftThumbY Axis";
                 yAxis.SetObject("Mult", revertYAxis ? -1.0 : 1.0);
                 yAxis.SetObject("Deadzone", deadzone);
+            }
+
+            if (system == "3ds")
+            {
+                var cPadX = analogConfig.GetOrCreateContainer("Circle Pad X");
+                var cPadY = analogConfig.GetOrCreateContainer("Circle Pad Y");
+                var cStickX = analogConfig.GetOrCreateContainer("C-Stick X");
+                var cStickY = analogConfig.GetOrCreateContainer("C-Stick Y");
+                var touchX = analogConfig.GetOrCreateContainer("Touch X");
+                var touchY = analogConfig.GetOrCreateContainer("Touch Y");
+                var tiltX = analogConfig.GetOrCreateContainer("Tilt X");
+                var tiltY = analogConfig.GetOrCreateContainer("Tilt Y");
+
+                cPadX["Value"] = "X" + index + " LeftThumbX Axis"; ;
+                cPadX.SetObject("Mult", 1.0);
+                cPadX.SetObject("Deadzone", deadzone);
+
+                cPadY["Value"] = "X" + index + " LeftThumbY Axis";
+                cPadY.SetObject("Mult", 1.0);
+                cPadY.SetObject("Deadzone", deadzone);
+
+                if (Program.SystemConfig.isOptSet("bizhawk3ds_analog_function"))
+                {
+                    string layout = Program.SystemConfig["bizhawk3ds_analog_function"];
+                    switch (layout)
+                    {
+                        case "C-Stick and Touchscreen Pointer":
+                            if (isDInput)
+                                controllerConfig["Touch"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.l3);
+                            else
+                                controllerConfig["Touch"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.l3);
+
+                            cStickX["Value"] = "X" + index + " RightThumbX Axis";
+                            cStickX.SetObject("Mult", 1.0);
+                            cStickX.SetObject("Deadzone", deadzone);
+
+                            cStickY["Value"] = "X" + index + " RightThumbY Axis";
+                            cStickY.SetObject("Mult", 1.0);
+                            cStickY.SetObject("Deadzone", deadzone);
+
+                            touchX["Value"] = "X" + index + " RightThumbX Axis";
+                            touchX.SetObject("Mult", 1.0);
+                            touchX.SetObject("Deadzone", deadzone);
+
+                            touchY["Value"] = "X" + index + " RightThumbX Axis";
+                            touchY.SetObject("Mult", 1.0);
+                            touchY.SetObject("Deadzone", deadzone);
+                            break;
+                        
+                        case "Touchscreen Pointer":
+                            if (isDInput)
+                                controllerConfig["Touch"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.l3);
+                            else
+                                controllerConfig["Touch"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.l3);
+
+                            cStickX["Value"] = "";
+                            cStickX.SetObject("Mult", 1.0);
+                            cStickX.SetObject("Deadzone", 0.0);
+
+                            cStickY["Value"] = "";
+                            cStickY.SetObject("Mult", 1.0);
+                            cStickY.SetObject("Deadzone", 0.0);
+
+                            touchX["Value"] = "X" + index + " RightThumbX Axis";
+                            touchX.SetObject("Mult", 1.0);
+                            touchX.SetObject("Deadzone", deadzone);
+
+                            touchY["Value"] = "X" + index + " RightThumbX Axis";
+                            touchY.SetObject("Mult", 1.0);
+                            touchY.SetObject("Deadzone", deadzone);
+                            break;
+
+                        case "C-Stick":
+                            if (isDInput)
+                                controllerConfig["Touch"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.l3);
+                            else
+                                controllerConfig["Touch"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.l3);
+
+                            cStickX["Value"] = "X" + index + " RightThumbX Axis";
+                            cStickX.SetObject("Mult", 1.0);
+                            cStickX.SetObject("Deadzone", deadzone);
+
+                            cStickY["Value"] = "X" + index + " RightThumbY Axis";
+                            cStickY.SetObject("Mult", 1.0);
+                            cStickY.SetObject("Deadzone", deadzone);
+
+                            touchX["Value"] = "WMouse X";
+                            touchX.SetObject("Mult", 1.0);
+                            touchX.SetObject("Deadzone", 0.0);
+
+                            touchY["Value"] = "WMouse Y";
+                            touchY.SetObject("Mult", 1.0);
+                            touchY.SetObject("Deadzone", 0.0);
+                            break;
+                    }
+                }
+                else
+                {
+                    cPadX["Value"] = "X" + index + " LeftThumbX Axis"; ;
+                    cPadX.SetObject("Mult", 1.0);
+                    cPadX.SetObject("Deadzone", deadzone);
+
+                    cPadY["Value"] = "X" + index + " LeftThumbY Axis";
+                    cPadY.SetObject("Mult", 1.0);
+                    cPadY.SetObject("Deadzone", deadzone);
+
+                    cStickX["Value"] = "X" + index + " RightThumbX Axis";
+                    cStickX.SetObject("Mult", 1.0);
+                    cStickX.SetObject("Deadzone", deadzone);
+
+                    cStickY["Value"] = "X" + index + " RightThumbY Axis";
+                    cStickY.SetObject("Mult", 1.0);
+                    cStickY.SetObject("Deadzone", deadzone);
+
+                    touchX["Value"] = "WMouse X";
+                    touchX.SetObject("Mult", 1.0);
+                    touchX.SetObject("Deadzone", 0.0);
+
+                    touchY["Value"] = "WMouse Y";
+                    touchY.SetObject("Mult", 1.0);
+                    touchY.SetObject("Deadzone", 0.0);
+
+                    controllerConfig["Touch"] = "WMouse L";
+                    controllerConfig["Tilt"] = "WMouse R";
+                }
+                
+                tiltX["Value"] = "WMouse X";
+                tiltX.SetObject("Mult", 1.0);
+                tiltX.SetObject("Deadzone", 0.0);
+
+                tiltY["Value"] = "WMouse Y";
+                tiltY.SetObject("Mult", 1.0);
+                tiltY.SetObject("Deadzone", 0.0);
+
+                controllerConfig["Tilt"] = "WMouse R";
             }
 
             if (system == "nds")
@@ -685,6 +824,53 @@ namespace EmulatorLauncher
                 controllerConfig["P2 Pound"] = "";
             }
 
+            if (system == "3ds")
+            {
+                var cPadX = analogConfig.GetOrCreateContainer("Circle Pad X");
+                var cPadY = analogConfig.GetOrCreateContainer("Circle Pad Y");
+                var cX = analogConfig.GetOrCreateContainer("C-Stick X");
+                var cY = analogConfig.GetOrCreateContainer("C-Stick Y");
+                var touchX = analogConfig.GetOrCreateContainer("Touch X");
+                var touchY = analogConfig.GetOrCreateContainer("Touch Y");
+                var tiltX = analogConfig.GetOrCreateContainer("Tilt X");
+                var tiltY = analogConfig.GetOrCreateContainer("Tilt Y");
+
+                cPadX["Value"] = "";
+                cPadX.SetObject("Mult", 1.0);
+                cPadX.SetObject("Deadzone", 0.0);
+
+                cPadY["Value"] = "";
+                cPadY.SetObject("Mult", 1.0);
+                cPadY.SetObject("Deadzone", 0.0);
+
+                cX["Value"] = "";
+                cX.SetObject("Mult", 1.0);
+                cX.SetObject("Deadzone", 0.0);
+
+                cY["Value"] = "";
+                cY.SetObject("Mult", 1.0);
+                cY.SetObject("Deadzone", 0.0);
+
+                touchX["Value"] = "WMouse X";
+                touchX.SetObject("Mult", 1.0);
+                touchX.SetObject("Deadzone", 0.0);
+
+                touchY["Value"] = "WMouse Y";
+                touchY.SetObject("Mult", 1.0);
+                touchY.SetObject("Deadzone", 0.0);
+
+                tiltX["Value"] = "WMouse X";
+                tiltX.SetObject("Mult", 1.0);
+                tiltX.SetObject("Deadzone", 0.0);
+
+                tiltY["Value"] = "WMouse Y";
+                tiltY.SetObject("Mult", 1.0);
+                tiltY.SetObject("Deadzone", 0.0);
+
+                controllerConfig["Touch"] = "WMouse L";
+                controllerConfig["Tilt"] = "WMouse R";
+            }
+
             if (system == "nds")
             {
                 var xAxis = analogConfig.GetOrCreateContainer("Touch X");
@@ -730,6 +916,24 @@ namespace EmulatorLauncher
                 controllerConfig["P2 Start"] = SdlToKeyCode(keyboard[InputKey.start].Id);
             }
         }
+
+        private static readonly InputKeyMapping n3dsMapping = new InputKeyMapping()
+        {
+            { InputKey.b,                   "A" },
+            { InputKey.a,                   "B" },
+            { InputKey.x,                   "X" },
+            { InputKey.y,                   "Y" },
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.pageup,              "L" },
+            { InputKey.pagedown,            "R" },
+            { InputKey.l2,                  "ZL" },
+            { InputKey.r2,                  "ZR" },
+            { InputKey.select,              "Select" },
+            { InputKey.start,               "Start" }
+        };
 
         private static readonly InputKeyMapping atariMapping = new InputKeyMapping()
         {
@@ -1458,6 +1662,18 @@ namespace EmulatorLauncher
         private static InputKeyMapping ConfigureMappingPerSystem(InputKeyMapping mapping, string system, string core)
         {
             InputKeyMapping newMapping = mapping;
+
+            if (system == "3ds")
+            {
+                if (Program.SystemConfig.getOptBoolean("gamepadbuttons"))
+                {
+                    newMapping[InputKey.y] = "X";
+                    newMapping[InputKey.a] = "A";
+                    newMapping[InputKey.b] = "B";
+                    newMapping[InputKey.x] = "Y";
+                }
+            }
+
             if (system == "nes" && Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 return nesMapping_rotate;
 
@@ -1575,6 +1791,7 @@ namespace EmulatorLauncher
 
         private static readonly Dictionary<string, string> systemController = new Dictionary<string, string>()
         {
+            { "3ds", "3DS Controller" },
             { "apple2", "Apple IIe Keyboard" },
             { "atari2600", "Atari 2600 Basic Controller" },
             { "atari7800", "Atari 7800 Basic Controller" },
@@ -1614,6 +1831,7 @@ namespace EmulatorLauncher
 
         private static readonly Dictionary<string, InputKeyMapping> mappingToUse = new Dictionary<string, InputKeyMapping>()
         {
+            { "3ds", n3dsMapping },
             { "atari2600", atariMapping },
             { "atari7800", atariMapping },
             { "colecovision", colecoMapping },

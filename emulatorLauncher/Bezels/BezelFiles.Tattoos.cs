@@ -195,6 +195,14 @@ namespace EmulatorLauncher
                         else
                             ret = revert ? "3ds_revert" : "3ds";
                         break;
+                    case "bizhawk":
+                        if (Program.SystemConfig["bizhawk3ds_analog_function"] == "C-Stick and Touchscreen Pointer" || !Program.SystemConfig.isOptSet("bizhawk3ds_analog_function"))
+                            ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
+                        else if (Program.SystemConfig["bizhawk3ds_analog_function"] == "Touchscreen Pointer")
+                            ret = revert ? "3ds_stylus_revert" : "3ds_stylus";
+                        else if (Program.SystemConfig["bizhawk3ds_analog_function"] == "C-Stick")
+                            ret = revert ? "3ds_revert" : "3ds";
+                        break;
                 }
             }
             else if (system == "dreamcast")

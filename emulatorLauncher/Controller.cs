@@ -454,7 +454,7 @@ namespace EmulatorLauncher
 
                 if (dinputCtrl != null && dinputCtrl.ButtonMappings != null)
                 {
-                    Input sdlToDinput = SdlToDirectInput.GetDinputInput(dinputCtrl, key, isXinput);
+                    Input sdlToDinput = SdlToDirectInput.GetDinputInput(dinputCtrl, key, input, isXinput);
                     return sdlToDinput;
                 }
             }
