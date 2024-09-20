@@ -539,6 +539,32 @@ namespace EmulatorLauncher
             }   
         }
 
+        protected void BindBoolFeatureOn(YmlContainer cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = falseValue;
+                else
+                    cfg[settingName] = trueValue;
+            }
+        }
+
+        protected void BindFeatureSlider(YmlContainer cfg, string settingName, string featureName, string defaultValue, int decimalPlaces = 0, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (decimalPlaces > 0 && decimalPlaces < 7)
+                {
+                    int toRemove = 6 - decimalPlaces;
+                    string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+                    cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                }
+                else
+                    cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
+            }
+        }
+
         protected void BindBoolFeature(BmlContainer cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
