@@ -11,6 +11,9 @@ namespace EmulatorLauncher
             var coreSettings = json.GetOrCreateContainer("CoreSettings");
             var coreSyncSettings = json.GetOrCreateContainer("CoreSyncSettings");
 
+            // 3DS
+            ConfigureEncore(coreSettings, coreSyncSettings, core);
+
             // ATARI
             ConfigureAtari2600(coreSyncSettings, core);
             ConfigureAtari7800(coreSyncSettings, core);
@@ -82,6 +85,35 @@ namespace EmulatorLauncher
 
             // ZX Spectrum
             ConfigureZXHawk(coreSyncSettings, core);
+        }
+
+        private void ConfigureEncore(DynamicJson coreSettings, DynamicJson coreSyncSettings, string core)
+        {
+            if (core != "Encore")
+                return;
+
+            var encoreCoreSettings = coreSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.Nintendo.N3DS.Encore");
+            var encoreSyncSettings = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.Nintendo.N3DS.Encore");
+
+            // Core settings
+            encoreCoreSettings["$type"] = "BizHawk.Emulation.Cores.Consoles.Nintendo.N3DS.Encore+EncoreSettings, BizHawk.Emulation.Cores";
+            BindFeature(encoreCoreSettings, "TextureFilter", "bizhawk_3ds_texturefilter", "0");
+            BindFeature(encoreCoreSettings, "TextureSampling", "bizhawk_3ds_texturesampling", "0");
+            BindBoolFeatureOn(encoreCoreSettings, "FilterMode", "bizhawk_3ds_filtermode", "true", "false");
+            BindFeature(encoreCoreSettings, "LayoutOption", "bizhawk_3ds_layoutmode", "0");
+            BindBoolFeature(encoreCoreSettings, "SwapScreen", "bizhawk_3ds_swapscreen", "true", "false");
+            BindBoolFeature(encoreCoreSettings, "UprightScreen", "bizhawk_3ds_vertical", "true", "false");
+
+            // Sync settings
+            encoreSyncSettings["$type"] = "BizHawk.Emulation.Cores.Consoles.Nintendo.N3DS.Encore+EncoreSyncSettings, BizHawk.Emulation.Cores";
+            BindBoolFeature(encoreSyncSettings, "UseCpuJit", "bizhawk_3ds_cpuJIT", "false", "true");
+            BindBoolFeature(encoreSyncSettings, "GraphicsApi", "bizhawk_3ds_renderer", "0", "1");
+            BindBoolFeatureOn(encoreSyncSettings, "AsyncShaderCompilation", "bizhawk_3ds_asyncshaders", "true", "false");
+            BindBoolFeature(encoreSyncSettings, "UseVirtualSd", "bizhawk_3ds_virtualSD", "false", "true");
+            BindBoolFeatureOn(encoreSyncSettings, "IsNew3ds", "bizhawk_3ds_new3ds", "true", "false");
+            BindFeature(encoreSyncSettings, "RegionValue", "bizhawk_3ds_region", "-1");
+            BindFeature(encoreSyncSettings, "CFGSystemLanguage", "bizhawk_3ds_language", "1");
+            encoreSyncSettings["CFGUsername"] = "RETROBAT";
         }
 
         private void ConfigureAtari2600(DynamicJson coreSyncSettings, string core)

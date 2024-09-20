@@ -15,7 +15,7 @@ namespace EmulatorLauncher
         private string _path;
 
         private static readonly List<string> preferredRomExtensions = new List<string>() { ".bin", ".cue", ".img", ".iso", ".rom" };
-        private static readonly List<string> zipSystems = new List<string>() { "psx", "saturn", "n64", "n64dd", "pcenginecd", "jaguarcd", "vectrex", "odyssey2", "uzebox" };
+        private static readonly List<string> zipSystems = new List<string>() { "3ds", "psx", "saturn", "n64", "n64dd", "pcenginecd", "jaguarcd", "vectrex", "odyssey2", "uzebox" };
         private static List<string> _mdSystems = new List<string>() { "genesis", "mega32x", "megacd", "megadrive", "sega32x", "segacd" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -47,6 +47,11 @@ namespace EmulatorLauncher
 
             if (Path.GetExtension(rom) == ".chd")
                 throw new ApplicationException("Extension CHD not compatible with Bizhawk");
+            
+            if (Path.GetExtension(rom) == ".m3u")
+            {
+                rom = File.ReadAllText(rom);
+            }
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -246,7 +251,7 @@ namespace EmulatorLauncher
                 paths.Add(saveRAMPath);
             }
 
-            string screenshotsFolder = Path.Combine(AppConfig.GetFullPath("screenshots"), emulator);
+            string screenshotsFolder = Path.Combine(AppConfig.GetFullPath("screenshots"), emulator, system);
             if (!Directory.Exists(screenshotsFolder))
                 try { Directory.CreateDirectory(screenshotsFolder); }
                 catch { }
@@ -272,6 +277,19 @@ namespace EmulatorLauncher
             {
                 cheatsPath["System"] = bizHawkSystems[system];
                 paths.Add(cheatsPath);
+            }
+
+            if (system == "3ds")
+            {
+                string userFolder = Path.Combine(AppConfig.GetFullPath("saves"), system, emulator, "user");
+                if (!Directory.Exists(userFolder))
+                    try { Directory.CreateDirectory(userFolder); }
+                    catch { }
+                var userFolderPath = new DynamicJson();
+                userFolderPath["Type"] = "User";
+                userFolderPath["Path"] = userFolder;
+                userFolderPath["System"] = "3DS";
+                paths.Add(userFolderPath);
             }
 
             pathEntries.SetObject("Paths", paths);
@@ -332,6 +350,17 @@ namespace EmulatorLauncher
         private void SetupFirmwares(DynamicJson json, string system)
         {
             var firmware = json.GetOrCreateContainer("FirmwareUserSpecifications");
+
+            if (system == "3ds")
+            {
+                // 3ds files
+                string aesKeys = Path.Combine(AppConfig.GetFullPath("bios"), "aes_keys.txt");
+                if (File.Exists(aesKeys))
+                    firmware["3DS+aes_keys"] = aesKeys;
+                string seeddb = Path.Combine(AppConfig.GetFullPath("bios"), "seeddb.bin");
+                if (File.Exists(seeddb))
+                    firmware["3DS+seeddb"] = seeddb;
+            }
 
             if (system == "apple2")
             {
@@ -630,6 +659,7 @@ namespace EmulatorLauncher
 
         private static readonly Dictionary<string, string> bizHawkSystems = new Dictionary<string, string>()
         {
+            { "3ds", "3DS" },
             { "amstradcpc", "AmstradCPC" },
             { "apple2", "AppleII" },
             { "atari2600", "A26" },
@@ -680,6 +710,7 @@ namespace EmulatorLauncher
 
         private static readonly Dictionary<string, string> bizHawkShortSystems = new Dictionary<string, string>()
         {
+            { "3ds", "3DS" },
             { "atari2600", "A26" },
             { "atari7800", "A78" },
             { "jaguar", "Jaguar" },
