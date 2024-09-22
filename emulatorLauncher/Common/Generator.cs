@@ -500,6 +500,32 @@ namespace EmulatorLauncher
             }
         }
 
+        protected void BindBoolFeatureOn(System.Xml.Linq.XElement cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    cfg.SetElementValue(settingName, falseValue);
+                else
+                    cfg.SetElementValue(settingName, trueValue);
+            }
+        }
+
+        protected void BindFeatureSlider(System.Xml.Linq.XElement cfg, string settingName, string featureName, string defaultValue, int decimalPlaces = 0, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (decimalPlaces > 0 && decimalPlaces < 7)
+                {
+                    int toRemove = 6 - decimalPlaces;
+                    string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+                    cfg.SetElementValue(settingName, SystemConfig.GetValueOrDefault(featureName, value.Substring(0, value.Length - toRemove)));
+                }
+                else
+                    cfg.SetElementValue(settingName, defaultValue);
+            }
+        }
+
         // yml and bml bindfeatures
         protected void BindFeature(YmlContainer cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
