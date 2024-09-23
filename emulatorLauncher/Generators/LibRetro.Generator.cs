@@ -1528,9 +1528,25 @@ namespace EmulatorLauncher.Libretro
             try { File.Delete(patched); }
             catch { }
 
-            var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%hu&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s&subsystem_name=%s"
-                .Select(c => (byte)c)
+            var bytes = File.ReadAllBytes(fn);
+
+            var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX".Select(c => (byte)c)
                 .ToArray();
+
+            int start = bytes.IndexOf(toFind);
+            if (start < 0)
+                return fn;
+
+            int end = bytes.IndexOf(new byte[] { 0 }, start + toFind.Length);
+            if (end < 0)
+                return fn;
+
+            byte[] extractedBytes = new byte[end - start]; // Array to hold the extracted bytes
+            Array.Copy(bytes, start, extractedBytes, 0, extractedBytes.Length);
+
+            var fullstr = Encoding.UTF8.GetString(extractedBytes);
+
+            toFind = extractedBytes;
 
             var toSet = toFind.ToArray();
             var toSubst = "&subsystem_name=%s".Select(c => (byte)c).ToArray();
@@ -1538,35 +1554,15 @@ namespace EmulatorLauncher.Libretro
             if (idx < 0)
                 return fn;
 
-            var bytes = File.ReadAllBytes(fn);
             int index = bytes.IndexOf(toFind);
             if (index < 0)
-            {
-                toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX&port=%d&mitm_server=%s&has_password=%d&has_spectate_password=%d&force_mitm=%d&retroarch_version=%s&frontend=%s&subsystem_name=%s"
-               .Select(c => (byte)c)
-               .ToArray();
+                return fn;
 
-                toSet = toFind.ToArray();
-                toSubst = "&subsystem_name=%s".Select(c => (byte)c).ToArray();
-                idx = toFind.IndexOf(toSubst);
-                if (idx < 0)
-                    return fn;
-
-                index = bytes.IndexOf(toFind);
-                if (index < 0)
-                    return fn;
-            }
-
-            string patchString = "@" + RetroArchNetPlayPatchedName;
+            string patchString = "@" + RetroArchNetPlayPatchedName + "&s";
 
             var toPatch = patchString.Select(c => (byte)c).ToArray();
-            for (int i = 0; i < patchString.Length + 1; i++)
-            {
-                if (i == patchString.Length)
-                    toSet[idx + i] = 0;
-                else
-                    toSet[idx + i] = toPatch[i];
-            }
+            for (int i = 0; i < patchString.Length; i++)
+                toSet[idx + i] = toPatch[i];
 
             for (int i = 0; i < toSet.Length; i++)
                 bytes[index + i] = toSet[i];

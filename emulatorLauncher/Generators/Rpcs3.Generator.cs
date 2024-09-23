@@ -215,34 +215,34 @@ namespace EmulatorLauncher
             // Handle Core part of yml file
             var core = yml.GetOrCreateContainer("Core");
             BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)");
-            BindFeature(core, "LLVM Precompilation", "lvmprecomp", "true");
+            BindBoolFeatureOn(core, "LLVM Precompilation", "lvmprecomp", "true", "false");
             BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)");
-            BindFeature(core, "Preferred SPU Threads", "sputhreads", "0");
-            BindFeature(core, "SPU loop detection", "spuloopdetect", "false");
+            BindFeatureSlider(core, "Preferred SPU Threads", "sputhreads", "0");
+            BindBoolFeature(core, "SPU loop detection", "spuloopdetect", "true", "false");
             BindFeature(core, "SPU Block Size", "spublocksize", "Safe");
-            BindFeature(core, "Accurate RSX reservation access", "accuratersx", "false");
-            BindFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "false");
-            BindFeature(core, "Full Width AVX-512", "fullavx", "false");
+            BindBoolFeature(core, "Accurate RSX reservation access", "accuratersx", "true", "false");
+            BindBoolFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "true", "false");
+            BindBoolFeature(core, "Full Width AVX-512", "fullavx", "true", "false");
             BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
 
             // Handle Video part of yml file
             var video = yml.GetOrCreateContainer("Video");
             BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
             video["Resolution"] = "1280x720";
-            BindFeature(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
+            BindFeatureSlider(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
             BindFeature(video, "Aspect ratio", "rpcs3_ratio", "16:9");
             BindFeature(video, "Frame limit", "framelimit", "Auto");
-            BindFeature(video, "MSAA", "msaa", "Auto");
+            BindBoolFeatureOn(video, "MSAA", "msaa", "Auto", "Disabled");
             BindFeature(video, "Shader Mode", "shadermode", "Async Shader Recompiler");
-            BindFeature(video, "Write Color Buffers", "writecolorbuffers", "false");
-            BindFeature(video, "Write Depth Buffer", "writedepthbuffers", "false");
-            BindFeature(video, "Read Color Buffers", "readcolorbuffers", "false");
-            BindFeature(video, "Read Depth Buffer", "readdepthbuffers", "false");
-            BindFeature(video, "VSync", "rpcs3_vsync", "true");
-            BindFeature(video, "Stretch To Display Area", "stretchtodisplay", "false");
-            BindFeature(video, "Strict Rendering Mode", "strict_rendering", "false");
-            BindFeature(video, "Disable Vertex Cache", "disablevertex", "false");
-            BindFeature(video, "Multithreaded RSX", "multithreadedrsx", "false");
+            BindBoolFeature(video, "Write Color Buffers", "writecolorbuffers", "true", "false");
+            BindBoolFeature(video, "Write Depth Buffer", "writedepthbuffers", "true", "false");
+            BindBoolFeature(video, "Read Color Buffers", "readcolorbuffers", "true", "false");
+            BindBoolFeature(video, "Read Depth Buffer", "readdepthbuffers", "true", "false");
+            BindBoolFeatureOn(video, "VSync", "rpcs3_vsync", "true", "false");
+            BindBoolFeature(video, "Stretch To Display Area", "stretchtodisplay", "true", "false");
+            BindBoolFeature(video, "Strict Rendering Mode", "strict_rendering", "true", "false");
+            BindBoolFeature(video, "Disable Vertex Cache", "disablevertex", "true", "false");
+            BindBoolFeature(video, "Multithreaded RSX", "multithreadedrsx", "true", "false");
             BindFeature(video, "Output Scaling Mode", "rpcs3_scaling_filter", "Nearest");
             BindFeature(video, "3D Display Mode", "enable3d", "Disabled");
             
@@ -251,6 +251,7 @@ namespace EmulatorLauncher
             BindFeature(video, "Driver Wake-Up Delay", "driver_wake", "1");
             BindBoolFeature(video, "Force CPU Blit", "cpu_blit", "true", "false");
             BindBoolFeature(video, "Disable ZCull Occlusion Queries", "disable_zcull_queries", "true", "false");
+            BindFeatureSlider(video, "Minimum Scalable Dimension", "rpcs3_resolution_scale", "16");
 
             // ZCULL Accuracy
             if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))
@@ -271,7 +272,7 @@ namespace EmulatorLauncher
 
             // Handle Vulkan part of yml file
             var vulkan = video.GetOrCreateContainer("Vulkan");
-            BindFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "false");
+            BindBoolFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "true", "false");
             BindFeature(vulkan, "Exclusive Fullscreen Mode", "rpcs3_fullscreen_mode", "Automatic");
 
             // Handle Performance Overlay part of yml file
@@ -299,7 +300,7 @@ namespace EmulatorLauncher
             var audio = yml.GetOrCreateContainer("Audio");
             BindFeature(audio, "Renderer", "audiobackend", "Cubeb");
             BindFeature(audio, "Audio Format", "audiochannels", "Stereo");
-            BindFeature(audio, "Enable Buffering", "audio_buffering", "true");
+            BindBoolFeatureOn(audio, "Enable Buffering", "audio_buffering", "true", "false");
             if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "low"))
             {
                 audio["Enable time stretching"] = "true";
@@ -329,7 +330,7 @@ namespace EmulatorLauncher
             // Handle Miscellaneous part of yml file
             var misc = yml.GetOrCreateContainer("Miscellaneous");
             misc["Start games in fullscreen mode"] = fullscreen ? "true" : "false";
-            BindFeature(misc, "Show trophy popups", "show_trophy", "true");
+            BindBoolFeatureOn(misc, "Show trophy popups", "show_trophy", "true", "false");
             misc["Automatically start games after boot"] = "true";
             misc["Exit RPCS3 when process finishes"] = "true";
             misc["Prevent display sleep while running games"] = "true";

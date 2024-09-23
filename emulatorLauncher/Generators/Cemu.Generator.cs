@@ -180,8 +180,11 @@ namespace EmulatorLauncher
                 graphic.SetElementValue("VSync", "1");
 
             BindFeature(graphic, "api", "video_renderer", "1"); // Graphic driver (0 for OpenGL / 1 for Vulkan)
-            BindFeature(graphic, "AsyncCompile", "async_texture", SystemConfig["video_renderer"] != "0" ? "true" : "false"); // Async shader compilation (only if vulkan - true or false)
-            BindFeature(graphic, "GX2DrawdoneSync", "accurate_sync", "true"); // Full sync at GX2DrawDone (only if opengl - true or false)
+            BindBoolFeature(graphic, "AsyncCompile", "async_texture", "true", "false"); // Async shader compilation (only if vulkan - true or false)
+            if (!SystemConfig.isOptSet("async_texture") && SystemConfig["video_renderer"] == "1")
+                graphic.SetElementValue("AsyncCompile", "true");
+
+            BindBoolFeatureOn(graphic, "GX2DrawdoneSync", "accurate_sync", "true", "false"); // Full sync at GX2DrawDone (only if opengl - true or false)
             BindFeature(graphic, "UpscaleFilter", "upscaleFilter", "1"); // Upscale filter (0 to 3)
             BindFeature(graphic, "DownscaleFilter", "downscaleFilter", "0"); // Downscale filter (0 to 3)
             BindFeature(graphic, "FullscreenScaling", "stretch", "0"); // Fullscreen scaling (0 = keep aspect ratio / 1 = stretch)
@@ -239,6 +242,38 @@ namespace EmulatorLauncher
             }
 
             AddPathToGamePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), xdoc);
+
+            /* Add known graphic packs patches
+            var graphicPack = xdoc.Element("GraphicPack");
+            bool graphicPackExists = true;
+            if (graphicPack == null)
+            {
+                graphicPack = new XElement("GraphicPack");
+                graphicPackExists = false;
+            }
+
+            string graphicpackDB = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "cemuGraphicPacks.txt");
+
+            if (File.Exists(graphicpackDB))
+            {
+                string[] patches = File.ReadAllLines(graphicpackDB);
+
+                if (patches.Length > 0)
+                {
+                    foreach (var patch in patches)
+                    {
+                        if (!graphicPack.Elements("Entry").Any(entry => entry.Attribute("filename")?.Value == patch))
+                        {
+                            XElement entry = new XElement("Entry");
+                            entry.SetAttributeValue("filename", patch);
+                            graphicPack.Add(entry);
+                        }
+                    }
+                }
+            }
+
+            if (!graphicPackExists)
+                xdoc.Add(graphicPack);*/
 
             // Save xml file
             xdoc.Save(settingsFile);

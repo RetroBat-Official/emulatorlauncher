@@ -491,16 +491,16 @@ namespace EmulatorLauncher
             config["Player LED enabled"] = "true";
 
             // Rumble settings
-            if (SystemConfig.getOptBoolean("rpcs3_norumble"))
+            if (SystemConfig.getOptBoolean("rpcs3_rumble"))
             {
-                config["Enable Large Vibration Motor"] = "false";
-                config["Enable Small Vibration Motor"] = "false";
+                config["Enable Large Vibration Motor"] = "true";
+                config["Enable Small Vibration Motor"] = "true";
                 config["Switch Vibration Motors"] = "false";
             }
             else
             {
-                config["Enable Large Vibration Motor"] = "true";
-                config["Enable Small Vibration Motor"] = "true";
+                config["Enable Large Vibration Motor"] = "false";
+                config["Enable Small Vibration Motor"] = "false";
                 config["Switch Vibration Motors"] = "false";
             }
             
