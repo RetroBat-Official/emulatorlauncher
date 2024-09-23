@@ -132,12 +132,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(maplePorts[controller.PlayerIndex], "port4", "-1");
             }
 
-            if (SystemConfig.isOptSet("demuldeadzone") && !string.IsNullOrEmpty(SystemConfig["demuldeadzone"]))
-            {
-                string deadzone = SystemConfig["demuldeadzone"];
-                if (deadzone != null)
-                    ctrlIni.WriteValue("GLOBAL0", "DEADZONE", deadzone);
-            }
+            BindIniFeatureSlider(ctrlIni, "GLOBAL0", "DEADZONE", "demuldeadzone", "15");
 
             // Write controller mapping in padDemul.ini file
             if (_isArcade)

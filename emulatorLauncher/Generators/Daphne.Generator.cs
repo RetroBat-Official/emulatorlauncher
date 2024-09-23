@@ -46,10 +46,19 @@ namespace EmulatorLauncher
                 else
                     commandArray.Add("-force_aspect_ratio");
 
-                if (SystemConfig.isOptSet("hypseus_scalefactor") && !string.IsNullOrEmpty(SystemConfig["hypseus_scalefactor"]))
+                if (SystemConfig.isOptSet("hypseus_scalefactor") && !string.IsNullOrEmpty(SystemConfig["hypseus_scalefactor"]) && SystemConfig["hypseus_scalefactor"].Substring(0, 3) != "100")
                 {
-                    commandArray.Add("-scalefactor");
-                    commandArray.Add(SystemConfig["hypseus_scalefactor"]);
+                    string xString = SystemConfig["hypseus_scalefactor"].Substring(0, 3);
+                    int x;
+                    if (int.TryParse(xString, out x))
+                    {
+                        if (x != 0)
+                        {
+                            int result = (int)Math.Round((100.0 * 100.0) / x);
+                            commandArray.Add("-scalefactor");
+                            commandArray.Add(result.ToString());
+                        }
+                    }
                 }
 
                 if (SystemConfig.isOptSet("hypseus_renderer") && SystemConfig["hypseus_renderer"] == "vulkan")
@@ -58,7 +67,7 @@ namespace EmulatorLauncher
                     commandArray.Add("-vulkan");
                 }
 
-                if (SystemConfig.getOptBoolean("hypseus_nocrosshair"))
+                if (SystemConfig.isOptSet("hypseus_crosshair") && !SystemConfig.getOptBoolean("hypseus_crosshair"))
                     commandArray.Add("-nocrosshair");
 
                 return;
@@ -238,7 +247,7 @@ namespace EmulatorLauncher
             commandArray.Add("-opengl");            
             commandArray.Add("-fastboot");
 
-            if (SystemConfig.getOptBoolean("daphne_vsync") && emulator == "hypseus")
+            if (emulator == "hypseus" && SystemConfig.isOptSet("daphne_vsync") && !SystemConfig.getOptBoolean("daphne_vsync"))
                 commandArray.Add("-novsync");
 
             UpdateCommandline(commandArray);       

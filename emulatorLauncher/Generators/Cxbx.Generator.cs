@@ -158,7 +158,7 @@ namespace EmulatorLauncher
                 }
 
                 //Vsync
-                ini.WriteValue("video", "VSync", SystemConfig["VSync"] != "false" ? "true" : "false");
+                BindBoolIniFeatureOn(ini, "video", "VSync", "VSync", "true", "false");
 
                 //Aspect ratio : keep original or stretch
                 if (Features.IsSupported("ratio") && SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "stretch")
@@ -170,7 +170,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("video", "MaintainAspect", "true");
 
                 //Internal resolution
-                BindIniFeature(ini, "video", "RenderResolution", "internalresolution", "3");
+                BindIniFeatureSlider(ini, "video", "RenderResolution", "internalresolution", "1");
 
                 //XBE signature
                 BindBoolIniFeature(ini, "gui", "IgnoreInvalidXbeSig", "xbeSignature", "true", "false");
