@@ -285,6 +285,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "True", "False");
                     BindBoolIniFeature(ini, "Settings", "Crop", "dolphin_crop", "True", "False");
                     BindBoolIniFeature(ini, "Enhancements", "HDROutput", "enable_hdr", "True", "False");
+                    BindIniFeature(ini, "Enhancements", "OutputResampling", "OutputResampling", "0");
                 }
             }
             catch { }
