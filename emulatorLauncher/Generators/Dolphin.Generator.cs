@@ -269,8 +269,8 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Settings", "EnableMods", "dolphin_graphicsmods", "True", "False");
 
                     // Other settings
-                    BindIniFeature(ini, "Hardware", "VSync", "dolphin_vsync", "True");
-                    BindIniFeature(ini, "Settings", "InternalResolution", "internal_resolution", "0");
+                    BindBoolIniFeatureOn(ini, "Hardware", "VSync", "dolphin_vsync", "True", "False");
+                    BindIniFeatureSlider(ini, "Settings", "InternalResolution", "internal_resolution", "0");
                     BindIniFeature(ini, "Enhancements", "ForceTextureFiltering", "ForceFiltering", "0");
                     BindIniFeature(ini, "Enhancements", "PostProcessingShader", "dolphin_shaders", "(off)");
                     BindBoolIniFeature(ini, "Hacks", "VertexRounding", "VertexRounding", "True", "False");
@@ -279,12 +279,13 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Settings", "WaitForShadersBeforeStarting", "WaitForShadersBeforeStarting", "True", "False");
                     BindIniFeature(ini, "Settings", "ShaderCompilationMode", "ShaderCompilationMode", "2");
                     BindIniFeature(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False");
-                    BindIniFeature(ini, "Hacks", "EFBScaledCopy", "EFBScaledCopy", "True");
-                    BindIniFeature(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True");
+                    BindBoolIniFeatureOn(ini, "Hacks", "EFBScaledCopy", "EFBScaledCopy", "True", "False");
+                    BindBoolIniFeatureOn(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True", "False");
                     BindIniFeature(ini, "Enhancements", "MaxAnisotropy", "anisotropic_filtering", "0");
                     BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "True", "False");
                     BindBoolIniFeature(ini, "Settings", "Crop", "dolphin_crop", "True", "False");
                     BindBoolIniFeature(ini, "Enhancements", "HDROutput", "enable_hdr", "True", "False");
+                    BindIniFeature(ini, "Enhancements", "OutputResampling", "OutputResampling", "0");
                 }
             }
             catch { }
@@ -388,8 +389,8 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("wii_tvmode") && !string.IsNullOrEmpty(SystemConfig["wii_tvmode"]))
                 ratio = SystemConfig["wii_tvmode"].ToInteger();
 
-            if (SystemConfig.isOptSet("wii_progscan") && !string.IsNullOrEmpty(SystemConfig["wii_progscan"]))
-                progScan = SystemConfig["wii_progscan"].ToInteger();
+            if (SystemConfig.isOptSet("wii_progscan") && SystemConfig.getOptBoolean("wii_progscan"))
+                progScan = 1;
 
             // Read SYSCONF file
             byte[] bytes = File.ReadAllBytes(path);
@@ -432,7 +433,7 @@ namespace EmulatorLauncher
             int index4 = bytes.IndexOf(pgsPositionPattern);
             if (index4 >= 0 && index4 + pgsPositionPattern.Length + 1 < bytes.Length)
             {
-                var toSet = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x50, 0x47, 0x53, (byte)ratio };
+                var toSet = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x50, 0x47, 0x53, (byte)progScan };
                 for (int i = 0; i < toSet.Length; i++)
                     bytes[index4 + i] = toSet[i];
             }
@@ -462,10 +463,10 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "True", "False");
 
                     // Skip BIOS
-                    BindBoolIniFeature(ini, "Core", "SkipIPL", "skip_bios", "False", "True");
+                    BindBoolIniFeatureOn(ini, "Core", "SkipIPL", "skip_bios", "True", "False");
 
                     // OSD Messages
-                    BindBoolIniFeature(ini, "Interface", "OnScreenDisplayMessages", "OnScreenDisplayMessages", "False", "True");
+                    BindBoolIniFeatureOn(ini, "Interface", "OnScreenDisplayMessages", "OnScreenDisplayMessages", "True", "False");
 
                     // don't ask about statistics
                     ini.WriteValue("Analytics", "PermissionAsked", "True");
@@ -512,7 +513,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Core", "MMU", "enable_mmu", "True", "False");
 
                     // CPU Thread (Dual Core)
-                    BindBoolIniFeature(ini, "Core", "CPUThread", "dolphin_cputhread", "False", "True");
+                    BindBoolIniFeatureOn(ini, "Core", "CPUThread", "dolphin_cputhread", "True", "False");
 
                     // gamecube pads forced as standard pad
                     bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
@@ -623,7 +624,7 @@ namespace EmulatorLauncher
                     // Disable auto updates
                     string updateTrack = ini.GetValue("AutoUpdate", "UpdateTrack");
                     if (updateTrack != "")
-                        ini.WriteValue("AutoUpdate", "UpdateTrack", "\"\"");
+                        ini.WriteValue("AutoUpdate", "UpdateTrack", "\" \"");
 
                     // Set defaultISO when running the Wii Menu
                     if (_runWiiMenu)

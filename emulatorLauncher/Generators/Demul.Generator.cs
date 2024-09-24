@@ -124,7 +124,7 @@ namespace EmulatorLauncher
                         gpu = "gpuDX11old.dll";
                     }
 
-                    if (Features.IsSupported("internal_resolution") && SystemConfig.isOptSet("internal_resolution") && SystemConfig["internal_resolution"] != "1")
+                    if (Features.IsSupported("internal_resolution") && SystemConfig.isOptSet("internal_resolution") && !SystemConfig["internal_resolution"].StartsWith("1.0"))
                     {
                         _videoDriverName = "gpuDX11old";
                         gpu = "gpuDX11old.dll";
@@ -166,7 +166,7 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("dc_broadcast"))
                         ini.WriteValue("main", "broadcast", "1");
 
-                    ini.WriteValue("main", "timehack", SystemConfig["timehack"] != "false" ? "true" : "false");
+                    BindBoolIniFeatureOn(ini, "main", "timehack", "timehack", "true", "false");
                     ini.WriteValue("main", "VMUscreendisable", "true");
                     ini.WriteValue("main", "PausedIfFocusLost", "true");
 
@@ -196,11 +196,11 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("main", "UseFullscreen", _isUsingReshader ? "1" : "0");
-                    ini.WriteValue("main", "Vsync", SystemConfig["VSync"] != "false" ? "1" : "0");
+                    BindBoolIniFeatureOn(ini, "main", "Vsync", "VSync", "1", "0");
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
                     ini.WriteValue("resolution", "Height", resolution.Height.ToString());
 
-                    BindIniFeature(ini, "main", "scaling", "internal_resolution", "1");
+                    BindIniFeatureSlider(ini, "main", "scaling", "internal_resolution", "1");
                     BindIniFeature(ini, "main", "aspect", "demul_ratio", "1");
 
                     if (SystemConfig.isOptSet("smooth"))

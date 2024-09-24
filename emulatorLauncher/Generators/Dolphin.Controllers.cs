@@ -765,7 +765,7 @@ namespace EmulatorLauncher
                     bool positional = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "position";
                     bool xboxLayout = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "xbox";
                     bool revertXY = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
-                    bool rumble = !Program.SystemConfig.getOptBoolean("input_rumble");
+                    bool rumble = !Program.SystemConfig.isOptSet("input_rumble") || Program.SystemConfig.getOptBoolean("input_rumble");
 
                     foreach (var x in anyMapping)
                     {
@@ -964,26 +964,28 @@ namespace EmulatorLauncher
                         // DEADZONE
                         if (Program.SystemConfig.isOptSet("dolphin_gcpad_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_gcpad_deadzone"]))
                         {
-                            ini.WriteValue(gcpad, "Main Stick/Dead Zone", Program.SystemConfig["dolphin_gcpad_deadzone"]);
-                            ini.WriteValue(gcpad, "C-Stick/Dead Zone", Program.SystemConfig["dolphin_gcpad_deadzone"]);
+                            string deadzone = Program.SystemConfig["dolphin_gcpad_deadzone"].ToIntegerString() + ".0";
+                            ini.WriteValue(gcpad, "Main Stick/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "C-Stick/Dead Zone", deadzone);
                         }
                         else
                         {
-                            ini.WriteValue(gcpad, "Main Stick/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "C-Stick/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "Main Stick/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "C-Stick/Dead Zone", "15.0");
                         }
 
                         // SENSITIVITY
                         if (Program.SystemConfig.isOptSet("dolphin_gcpad_sensitivity") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_gcpad_sensitivity"]))
                         {
-                            ini.WriteValue(gcpad, "Main Stick/Up/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
-                            ini.WriteValue(gcpad, "Main Stick/Down/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
-                            ini.WriteValue(gcpad, "Main Stick/Left/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
-                            ini.WriteValue(gcpad, "Main Stick/Right/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
-                            ini.WriteValue(gcpad, "C-Stick/Up/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
-                            ini.WriteValue(gcpad, "C-Stick/Down/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
-                            ini.WriteValue(gcpad, "C-Stick/Left/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
-                            ini.WriteValue(gcpad, "C-Stick/Right/Range", Program.SystemConfig["dolphin_gcpad_sensitivity"]);
+                            string sensitivity = Program.SystemConfig["dolphin_gcpad_sensitivity"].ToIntegerString() + ".0";
+                            ini.WriteValue(gcpad, "Main Stick/Up/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Main Stick/Down/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Main Stick/Left/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Main Stick/Right/Range", sensitivity);
+                            ini.WriteValue(gcpad, "C-Stick/Up/Range", sensitivity);
+                            ini.WriteValue(gcpad, "C-Stick/Down/Range", sensitivity);
+                            ini.WriteValue(gcpad, "C-Stick/Left/Range", sensitivity);
+                            ini.WriteValue(gcpad, "C-Stick/Right/Range", sensitivity);
                         }
                         else
                         {
@@ -1040,56 +1042,58 @@ namespace EmulatorLauncher
                         // DEAD ZONE
                         if (Program.SystemConfig.isOptSet("dolphin_wii_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_wii_deadzone"]))
                         {
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
-                            ini.WriteValue(gcpad, "IR/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
-                            ini.WriteValue(gcpad, "Tilt/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
-                            ini.WriteValue(gcpad, "Swing/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
-                            ini.WriteValue(gcpad, "IMUGyroscope/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
-                            ini.WriteValue(gcpad, "Nunchuk/Tilt/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
-                            ini.WriteValue(gcpad, "Nunchuk/Swing/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
-                            ini.WriteValue(gcpad, "Nunchuk/Stick/Dead Zone", Program.SystemConfig["dolphin_wii_deadzone"]);
+                            string deadzone = Program.SystemConfig["dolphin_wii_deadzone"].ToIntegerString() + ".0";
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "IR/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "Tilt/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "Swing/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "IMUGyroscope/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "Nunchuk/Tilt/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "Nunchuk/Swing/Dead Zone", deadzone);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Dead Zone", deadzone);
                         }
                         else
                         {
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "IR/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "Tilt/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "Swing/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "IMUGyroscope/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "Nunchuk/Tilt/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "Nunchuk/Swing/Dead Zone", "10.0");
-                            ini.WriteValue(gcpad, "Nunchuk/Stick/Dead Zone", "10.0");
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "IR/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "Tilt/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "Swing/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "IMUGyroscope/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Tilt/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Swing/Dead Zone", "15.0");
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Dead Zone", "15.0");
                         }
 
                         // SENSITIVITY
                         if (Program.SystemConfig.isOptSet("dolphin_wii_sensitivity") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_wii_sensitivity"]))
                         {
-                            ini.WriteValue(gcpad, "IR/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "IR/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "IR/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "IR/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Tilt/Forward/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Tilt/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Tilt/Backward/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Tilt/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Swing/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Swing/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Swing/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Swing/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Nunchuk/Stick/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Nunchuk/Stick/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Nunchuk/Stick/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Nunchuk/Stick/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Classic/Left Stick/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Up/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Down/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Left/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
-                            ini.WriteValue(gcpad, "Classic/Right Stick/Right/Range", Program.SystemConfig["dolphin_wii_sensitivity"]);
+                            string sensitivity = Program.SystemConfig["dolphin_wii_sensitivity"].ToIntegerString() + ".0";
+                            ini.WriteValue(gcpad, "IR/Up/Range", sensitivity);
+                            ini.WriteValue(gcpad, "IR/Down/Range", sensitivity);
+                            ini.WriteValue(gcpad, "IR/Left/Range", sensitivity);
+                            ini.WriteValue(gcpad, "IR/Right/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Tilt/Forward/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Tilt/Left/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Tilt/Backward/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Tilt/Right/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Swing/Up/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Swing/Down/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Swing/Left/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Swing/Right/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Up/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Down/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Left/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Nunchuk/Stick/Right/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Up/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Down/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Left/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Classic/Left Stick/Right/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Up/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Down/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Left/Range", sensitivity);
+                            ini.WriteValue(gcpad, "Classic/Right Stick/Right/Range", sensitivity);
                         }
                         else
                         {
@@ -1174,7 +1178,8 @@ namespace EmulatorLauncher
                         else
                             ini.WriteValue(gcpad, "IR/Auto-Hide", "False");
 
-                        // Relative input for IR cusros
+                        // Relative input for IR cursor
+                        
                         if (Program.SystemConfig.getOptBoolean("wii_relativecursor"))
                             ini.WriteValue(gcpad, "IR/Relative Input", "False");
                         else
