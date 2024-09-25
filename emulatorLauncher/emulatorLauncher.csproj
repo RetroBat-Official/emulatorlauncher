@@ -281,6 +281,9 @@
     <Compile Include="Generators\OpenMSX.Controllers.cs">
       <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Openmsx.SaveStatesMonitor.cs">
+      <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Oricutron.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Generator.cs" />
     <Compile Include="Generators\Pcsx2.Controllers.cs">
