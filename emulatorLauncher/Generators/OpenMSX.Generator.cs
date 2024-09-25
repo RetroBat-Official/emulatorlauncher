@@ -24,6 +24,16 @@ namespace EmulatorLauncher
             if (_saveStatesWatcher != null)
             {
                 _saveStatesWatcher.Dispose();
+                string savestatePath = _saveStatesWatcher.EmulatorPath;
+                string archivePath = savestatePath + ".old";
+                try { Directory.CreateDirectory(archivePath); } catch { }
+                foreach (var file in Directory.GetFiles(savestatePath))
+                {
+                    string fileName = Path.GetFileName(file);
+                    string destFile = Path.Combine(archivePath, fileName);
+                    if (File.Exists(destFile)) { try { File.Delete(destFile); } catch { } }
+                    try { File.Move(file, destFile); } catch { }
+                }
                 _saveStatesWatcher = null;
             }
 
