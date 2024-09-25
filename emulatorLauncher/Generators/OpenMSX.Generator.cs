@@ -16,6 +16,19 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private SaveStatesWatcher _saveStatesWatcher;
+        private static int _saveStateSlot;
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
+        }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -51,6 +64,15 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "openmsx.exe");
             if (!File.Exists(exe))
                 return null;
+
+            if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
+            {
+                string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+                string emulatorPath = Path.Combine(AppConfig.GetFullPath("bios"), "openmsx", "savestates");
+
+                _saveStatesWatcher = new OpenmsxSaveStatesMonitor(rom, emulatorPath, localPath);
+                _saveStatesWatcher.PrepareEmulatorRepository();
+            }
 
             //setting up command line parameters
             var commandArray = new List<string>();
@@ -188,10 +210,33 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + Path.Combine(scriptspath, "autorunlaserdisc.tcl") + "\"");
             }
 
+            if (File.Exists(SystemConfig["state_file"]) && _saveStatesWatcher != null)
+            {
+                int slot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 0;
+                _saveStateSlot = slot + 1;
+                string state = Path.GetFullPath(SystemConfig["state_file"]);
+
+                if (OpenmsxSaveStatesMonitor.GetEmulatorStateName(_saveStatesWatcher.SaveStatesPath, rom, slot, out string stateGameName))
+                {
+                    string stateScript = Path.Combine(scriptspath, "loadstate.tcl");
+                    try
+                    {
+                        using (StreamWriter stateScriptString = new StreamWriter(stateScript, false))
+                        {
+                            stateScriptString.WriteLine("loadstate " + "\"" + stateGameName + "\"");
+                            stateScriptString.Close();
+                        }
+
+                        commandArray.Add("-script");
+                        commandArray.Add("\"" + stateScript + "\"");
+                    }
+                    catch { }
+                }
+            }
 
             // Add media type
             if (romtype != null)
-               commandArray.Add(romtype);
+            commandArray.Add(romtype);
             
             commandArray.Add("\"" + rom + "\"");
 

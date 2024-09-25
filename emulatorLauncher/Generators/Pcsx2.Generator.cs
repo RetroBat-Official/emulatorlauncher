@@ -598,7 +598,7 @@ namespace EmulatorLauncher
 
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
-            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
+            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces))
             {
                 ini.WriteValue("UI", "HideMouseCursor", "true");
                 CreateControllerConfiguration(ini);
