@@ -20,17 +20,9 @@ namespace EmulatorLauncher.Libretro
 
     partial class LibRetroGenerator : Generator
     {
-        const string RetroArchNetPlayPatchedName = "RETROBAT";
-
         public string RetroarchPath { get; set; }
         public string RetroarchCorePath { get; set; }
-
         public string CurrentHomeDirectory { get; set; }
-
-        private LibRetroStateFileManager _stateFileManager;
-        private ScreenShotsWatcher _screenShotWatcher;
-        private bool _noHotkey = false;
-
         public LibRetroGenerator()
         {
             RetroarchPath = AppConfig.GetFullPath("retroarch");
@@ -38,6 +30,368 @@ namespace EmulatorLauncher.Libretro
             RetroarchCorePath = AppConfig.GetFullPath("retroarch.cores");
             if (string.IsNullOrEmpty(RetroarchCorePath))
                 RetroarchCorePath = Path.Combine(RetroarchPath, "cores");
+        }
+
+        const string RetroArchNetPlayPatchedName = "RETROBAT";
+        private LibRetroStateFileManager _stateFileManager;
+        private ScreenShotsWatcher _screenShotWatcher;
+        private bool _noHotkey = false;
+        private string _video_driver;
+        private string _dosBoxTempRom;
+
+        public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
+        {
+            if (string.IsNullOrEmpty(RetroarchPath))
+                return null;
+
+            string subCore = null;
+
+            if (!string.IsNullOrEmpty(core))
+            {
+                int split = core.IndexOfAny(new char[] { ':', '/' });
+                if (split >= 0)
+                {
+                    subCore = core.Substring(split + 1);
+                    core = core.Substring(0, split);
+
+                    SystemConfig["subcore"] = subCore;
+                }
+            }
+
+            // Detect best core for MAME games ( If not overridden by the user )
+            if (system == "mame" && subCore == null && core != null && core.StartsWith("mame"))
+            {
+                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && string.IsNullOrEmpty(Program.CurrentGame.Core))
+                {
+                    string[] supportedCores = null;
+
+                    // Load supported core list from es_systems.cfg
+                    var esSystems = Program.EsSystems;
+                    if (esSystems != null)
+                    {
+                        supportedCores = esSystems.Systems
+                            .Where(sys => sys.Name == system)
+                            .SelectMany(sys => sys.Emulators)
+                            .Where(emul => emul.Name == emulator)
+                            .SelectMany(emul => emul.Cores)
+                            .Select(cr => cr.Name)
+                            .ToArray();
+
+                        if (supportedCores.Length == 0)
+                            supportedCores = null;
+                    }
+
+                    var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Name.Replace("-", "_")).ToList();
+                    var bestCore = compatibleCores.FirstOrDefault();
+                    if (!string.IsNullOrEmpty(bestCore))
+                    {
+                        core = bestCore;
+
+                        if (SystemConfig.getOptBoolean("use_guns") && core == "mame2003" && compatibleCores.Contains("mame2003_plus"))
+                        {
+                            // mame2003 is not working fine with lightgun games -> prefer mame2003_plus if it's compatible
+                            core = "mame2003_plus";
+                        }
+
+                        SimpleLogger.Instance.Info("[FindBestMameCore] Detected compatible mame core : " + core);
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[FindBestMameCore] No detected compatible mame core. Using current default core : " + core);
+                }
+            }
+
+            // specific management for some extensions
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
+                core = Path.GetFileNameWithoutExtension(rom);
+            else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
+            {
+                core = Path.GetFileNameWithoutExtension(rom);
+
+                if (core == "xrick")
+                    rom = Path.Combine(Path.GetDirectoryName(rom), "xrick", "data.zip");
+                else if (core == "dinothawr")
+                    rom = Path.Combine(Path.GetDirectoryName(rom), "dinothawr", "dinothawr.game");
+                else
+                    rom = null;
+            }
+            else if (Path.GetExtension(rom).ToLowerInvariant() == ".croft")
+            {
+                string[] croftSubFile = File.ReadAllLines(rom);
+                string croftSubPath = croftSubFile[0];
+                rom = Path.Combine(Path.GetDirectoryName(rom), croftSubPath);
+            }
+            else if (Path.GetExtension(rom).ToLowerInvariant() == ".boom3")
+            {
+                string[] pakFile = File.ReadAllLines(rom);
+                string pakSubPath = pakFile[0];
+                if (pakSubPath.StartsWith("d3xp"))
+                    core = "boom3_xp";
+                rom = Path.Combine(Path.GetDirectoryName(rom), pakSubPath);
+            }
+
+            // Exit if no core is provided
+            if (string.IsNullOrEmpty(core))
+            {
+                ExitCode = ExitCodes.MissingCore;
+                SimpleLogger.Instance.Error("[LibretroGenerator] Core was not provided");
+                return null;
+            }
+            else
+            {
+                string corePath = Path.Combine(RetroarchCorePath, core + "_libretro.dll");
+                if (!File.Exists(corePath))
+                {
+                    try
+                    {
+
+                        string url = Installer.GetUpdateUrl("cores/" + core + "_libretro.dll.zip");
+                        if (!WebTools.UrlExists(url))
+                        {
+                            // Automatic install of missing core
+                            var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
+
+                            url = retroarchConfig["core_updater_buildbot_cores_url"];
+                            if (!string.IsNullOrEmpty(url))
+                                url += core + "_libretro.dll.zip";
+                        }
+
+                        if (WebTools.UrlExists(url))
+                        {
+                            using (var frm = new InstallerFrm(core, url, RetroarchCorePath))
+                                frm.ShowDialog();
+                        }
+                    }
+                    catch { }
+
+                    if (!File.Exists(corePath))
+                    {
+                        SimpleLogger.Instance.Error("[LibretroGenerator] Core is not installed");
+                        ExitCode = ExitCodes.MissingCore;
+                        return null;
+                    }
+                }
+            }
+
+            // Extension used by hypseus .daphne but lr-daphne starts with .zip
+            if (system == "daphne" || core == "daphne")
+            {
+                string datadir = Path.GetDirectoryName(rom);
+                string romName = Path.GetFileNameWithoutExtension(rom);
+
+                //romName = os.path.splitext(os.path.basename(rom))[0]
+                rom = Path.GetFullPath(datadir + "/roms/" + romName + ".zip");
+            }
+
+            // dosbox core specifics
+            if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
+            {
+                string bat = Path.Combine(rom, "dosbox.bat");
+                if (File.Exists(bat))
+                    rom = bat;
+                else
+                {
+                    string ext = Path.GetExtension(rom).ToLower();
+                    if ((ext == ".dosbox" || ext == ".dos" || ext == ".pc") && File.Exists(rom))
+                    {
+                        string tempRom = Path.Combine(Path.GetDirectoryName(rom), "dosbox.conf");
+                        if (File.Exists(tempRom) && !new FileInfo(tempRom).Attributes.HasFlag(FileAttributes.Hidden))
+                            rom = tempRom;
+                        else
+                        {
+                            try
+                            {
+                                if (File.Exists(tempRom))
+                                    File.Delete(tempRom);
+                            }
+                            catch { }
+
+                            try
+                            {
+                                File.Copy(rom, tempRom);
+                                new FileInfo(tempRom).Attributes |= FileAttributes.Hidden;
+                                rom = tempRom;
+                                _dosBoxTempRom = tempRom;
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+
+            // When using .ipf extension, ensure capsimg.dll is present in RetroArch folder
+            if (capsimgCore.Contains(core) && Path.GetExtension(rom).ToLowerInvariant() == ".ipf")
+            {
+                string sourceDll = Path.Combine(AppConfig.GetFullPath("bios"), "capsimg.dll");
+                string targetDll = Path.Combine(AppConfig.GetFullPath("retroarch"), "capsimg.dll");
+                if (!File.Exists(targetDll) && File.Exists(sourceDll))
+                {
+                    try { File.Copy(sourceDll, targetDll); }
+                    catch { }
+                }
+            }
+
+            Configure(system, core, rom, resolution);
+
+            List<string> commandArray = new List<string>();
+
+            string subSystem = SubSystem.GetSubSystem(core, system);
+            if (!string.IsNullOrEmpty(subSystem))
+            {
+                commandArray.Add("--subsystem");
+                commandArray.Add(subSystem);
+            }
+
+            // Add subsystem for sameboy core multiplayer
+            bool multiplayer = (system == "gb2players" || system == "gbc2players");
+            if (core == "sameboy" && multiplayer)
+            {
+                // Case for different game cartridges (like Pokemon) - usage of m3u
+                if (Path.GetExtension(rom).ToLower() == ".m3u")
+                {
+                    List<string> disks = new List<string>();
+
+                    string dskPath = Path.GetDirectoryName(rom);
+
+                    foreach (var line in File.ReadAllLines(rom))
+                    {
+                        string dsk = Path.Combine(dskPath, line);
+                        if (File.Exists(dsk))
+                            disks.Add(dsk);
+                        else
+                            throw new ApplicationException("File '" + Path.Combine(dskPath, line) + "' does not exist");
+                    }
+
+                    if (disks.Count == 0)       // Empty m3u
+                        return null;
+
+                    else if (disks.Count == 1)  // Only 1 game in m3u file, just use this file as rom
+                        rom = disks[0];
+
+                    else
+                    {
+                        rom = disks[0];
+                        commandArray.Add("--subsystem");
+                        commandArray.Add("gb_link_2p");
+                        commandArray.Add("\"" + disks[1] + "\"");
+                    }
+                }
+                // Case for same game cartridge
+                else
+                {
+                    commandArray.Add("--subsystem");
+                    commandArray.Add("gb_link_2p");
+                    commandArray.Add("\"" + rom + "\"");
+                }
+            }
+
+            // Netplay mode
+            if (!string.IsNullOrEmpty(SystemConfig["netplaymode"]))
+            {
+                // Netplay mode
+                if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
+                    commandArray.Add("--host");
+                else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
+                {
+                    commandArray.Add("--connect " + SystemConfig["netplayip"]);
+                    commandArray.Add("--port " + SystemConfig["netplayport"]);
+                }
+
+                if (!string.IsNullOrEmpty(SystemConfig["netplaysession"]))
+                {
+                    // Suported with retroarch 1.17+ only
+                    if (IsVersionAtLeast(new Version(1, 17, 0, 0)))
+                        commandArray.Add("--mitm-session " + SystemConfig["netplaysession"]);
+                }
+            }
+
+            // RetroArch 1.7.8 requires the shaders to be passed as command line argument      
+            if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
+            {
+                string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
+                bool isOpenGL = (emulator != "angle") && (videoDriver == "gl") && (!coreNoGL.Contains(core));
+
+                string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
+                if (File.Exists(path))
+                {
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], isOpenGL);
+                    if (!string.IsNullOrEmpty(renderconfig))
+                        SystemConfig["shader"] = renderconfig;
+                }
+
+                string shaderFilename = SystemConfig["shader"] + (isOpenGL ? ".glslp" : ".slangp");
+
+                string videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "glsl" : "slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader) && !isOpenGL && shaderFilename.Contains("zfast-"))
+                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", "crt/crt-geom.slangp").Replace("/", "\\");
+
+                if (File.Exists(videoShader))
+                {
+                    commandArray.Add("--set-shader");
+                    commandArray.Add("\"" + videoShader + "\"");
+                }
+            }
+
+            string args = string.Join(" ", commandArray);
+
+            // Special case : .atari800.cfg is loaded from path in 'HOME' environment variable
+            if (core == "atari800")
+            {
+                CurrentHomeDirectory = Environment.GetEnvironmentVariable("HOME");
+                Environment.SetEnvironmentVariable("HOME", RetroarchPath);
+            }
+
+            // manage MESS systems (MAME core)
+            MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
+            if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
+            {
+                var messArgs = messSystem.GetMameCommandLineArguments(system, rom).JoinArguments();
+                messArgs = messArgs.Replace("\\\"", "\"");
+                messArgs = "\"" + messArgs.Replace("\"", "\\\"") + "\"";
+                messArgs = (messArgs + " " + args).Trim();
+
+                return new ProcessStartInfo()
+                {
+                    FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
+                    WorkingDirectory = RetroarchPath,
+                    Arguments = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + messArgs).Trim()
+                };
+            }
+
+            // Run MelonDS firmware, use the first .nds file found in the folder as rom argument (the core does not have an argument to boot to firmware)
+            if (core == "melonds" && Path.GetExtension(rom) == ".bin")
+            {
+                string romPath = Path.GetDirectoryName(rom);
+                var romToLaunch = Directory.EnumerateFiles(romPath, "*.nds")
+                    .FirstOrDefault();
+
+                if (romToLaunch == null)
+                    throw new ApplicationException("Libretro:melonDS requires a '.nds' game file to load a nand file.");
+
+                rom = romToLaunch;
+            }
+
+            string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
+            if (emulator != "angle" && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
+                retroarch = GetNetPlayPatchedRetroarch();
+
+            return new ProcessStartInfo()
+            {
+                FileName = retroarch,
+                WorkingDirectory = RetroarchPath,
+                Arguments =
+                    string.IsNullOrEmpty(rom) ?
+                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim() :
+                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
+            };
         }
 
         private void Configure(string system, string core, string rom, ScreenResolution resolution)
@@ -508,6 +862,10 @@ namespace EmulatorLauncher.Libretro
             }
         }
 
+        /// <summary>
+        /// Configure GPU index
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
         private void ConfigureGPUIndex(ConfigFile retroarchConfig)
         {
             if (!Features.IsSupported("GPUIndex"))
@@ -773,6 +1131,354 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["cheevos_enable"] = "false";
         }
 
+        /// <summary>
+        /// Language
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        private void SetLanguage(ConfigFile retroarchConfig)
+        {
+            Func<string, string> shortLang = new Func<string, string>(s =>
+            {
+                s = s.ToLowerInvariant();
+
+                int cut = s.IndexOf("_");
+                if (cut >= 0)
+                    return s.Substring(0, cut);
+
+                return s;
+            });
+
+            var lang = SystemConfig["Language"];
+            if (string.IsNullOrEmpty(lang))
+                lang = "en";
+            bool foundLang = false;
+
+            retro_language rl = (retro_language)9999999;
+            if (Languages.TryGetValue(lang, out rl))
+                foundLang = true;
+            else
+            {
+                lang = shortLang(lang);
+
+                foundLang = Languages.TryGetValue(lang, out rl);
+                if (!foundLang)
+                {
+                    var ret = Languages.Where(l => shortLang(l.Key) == lang).ToList();
+                    if (ret.Any())
+                    {
+                        foundLang = true;
+                        rl = ret.First().Value;
+                    }
+                }
+            }
+
+            if (foundLang)
+                retroarchConfig["user_language"] = ((int)rl).ToString();
+        }
+
+        /// <summary>
+        /// Patch Retroarch to display @RETROBAT in netplay architecture
+        /// </summary>
+        /// <returns></returns>
+        private string GetNetPlayPatchedRetroarch()
+        {
+            string fn = Path.Combine(RetroarchPath, "retroarch.exe");
+            if (!File.Exists(fn))
+                return fn;
+
+            string patched = Path.Combine(RetroarchPath, "retroarch.patched." + RetroArchNetPlayPatchedName + ".exe");
+            if (File.Exists(patched) && new FileInfo(fn).Length == new FileInfo(patched).Length)
+                return patched;
+
+            try { File.Delete(patched); }
+            catch { }
+
+            var bytes = File.ReadAllBytes(fn);
+
+            var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX".Select(c => (byte)c)
+                .ToArray();
+
+            int start = bytes.IndexOf(toFind);
+            if (start < 0)
+                return fn;
+
+            int end = bytes.IndexOf(new byte[] { 0 }, start + toFind.Length);
+            if (end < 0)
+                return fn;
+
+            byte[] extractedBytes = new byte[end - start]; // Array to hold the extracted bytes
+            Array.Copy(bytes, start, extractedBytes, 0, extractedBytes.Length);
+
+            var fullstr = Encoding.UTF8.GetString(extractedBytes);
+
+            toFind = extractedBytes;
+
+            var toSet = toFind.ToArray();
+            var toSubst = "&subsystem_name=%s".Select(c => (byte)c).ToArray();
+            int idx = toFind.IndexOf(toSubst);
+            if (idx < 0)
+                return fn;
+
+            int index = bytes.IndexOf(toFind);
+            if (index < 0)
+                return fn;
+
+            string patchString = "@" + RetroArchNetPlayPatchedName + "&s";
+
+            var toPatch = patchString.Select(c => (byte)c).ToArray();
+            for (int i = 0; i < patchString.Length; i++)
+                toSet[idx + i] = toPatch[i];
+
+            for (int i = 0; i < toSet.Length; i++)
+                bytes[index + i] = toSet[i];
+
+            File.WriteAllBytes(patched, bytes);
+            return patched;
+        }
+
+        /// <summary>
+        /// Bezels
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        /// <param name="systemName"></param>
+        /// <param name="rom"></param>
+        /// <param name="resolution"></param>
+        private void ConfigureBezels(ConfigFile retroarchConfig, string systemName, string rom, ScreenResolution resolution)
+        {
+            retroarchConfig["input_overlay_hide_in_menu"] = "false";
+            retroarchConfig["input_overlay_enable"] = "false";
+            retroarchConfig["video_message_pos_x"] = "0.05";
+            retroarchConfig["video_message_pos_y"] = "0.05";
+
+            if (systemName == "wii" && (!SystemConfig.isOptSet("ratio")))
+                return;
+
+            bool animatedBezel = SystemConfig["bezel"] == "animated";
+            var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution, "libretro");
+            if (bezelInfo == null && !animatedBezel)
+                return;
+
+            string overlay_png_file = bezelInfo.PngFile;
+
+            Size imageSize;
+
+            try
+            {
+                imageSize = GetImageSize(overlay_png_file);
+            }
+            catch
+            {
+                return;
+            }
+
+            BezelInfo infos = bezelInfo.BezelInfos;
+
+            // if image is not at the correct size, find the correct size
+            bool bezelNeedAdaptation = false;
+            bool viewPortUsed = true;
+
+            if (!infos.IsValid())
+                viewPortUsed = false;
+
+            // for testing ->   
+            //resolution = ScreenResolution.Parse("2280x1080x32x60");
+            //resolution = ScreenResolution.Parse("3840x2160x32x60");                    
+
+            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
+            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+
+            float screenRatio = (float)resX / (float)resY;
+            float bezelRatio = (float)imageSize.Width / (float)imageSize.Height;
+
+            if (viewPortUsed)
+            {
+                if (resX != infos.width.GetValueOrDefault() || resY != infos.height.GetValueOrDefault())
+                {
+                    if (screenRatio < 1.6) // use bezels only for 16:10, 5:3, 16:9 and wider aspect ratios
+                        return;
+                    else
+                        bezelNeedAdaptation = true;
+                }
+
+                if (!SystemConfig.isOptSet("ratio"))
+                {
+                    if (systemName == "mame" || infos.IsEstimated)
+                        retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
+                    else
+                        retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file                
+                }
+            }
+            else
+            {
+                // when there is no information about width and height in the .info, assume that the tv is HD 16/9 and infos are core provided
+                if (screenRatio < 1.6) // use bezels only for 16:10, 5:3, 16:9 and wider aspect ratios
+                    return;
+
+                infos.width = imageSize.Width;
+                infos.height = imageSize.Height;
+                bezelNeedAdaptation = true;
+
+                if (!SystemConfig.isOptSet("ratio"))
+                    retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString(); // overwritten from the beginning of this file
+            }
+
+            string animatedBezelPath = null;
+
+            if (animatedBezel)
+            {
+                animatedBezelPath = Path.Combine(AppConfig.GetFullPath("decorations"), "animated", "systems", systemName, systemName + ".cfg");
+
+                if (!File.Exists(animatedBezelPath))
+                {
+                    animatedBezelPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "decorations", "animated", "systems", systemName, systemName + ".cfg");
+                    if (!File.Exists(animatedBezelPath))
+                        animatedBezel = false;
+                }
+            }
+
+            string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
+
+            retroarchConfig["input_overlay_enable"] = "true";
+            retroarchConfig["input_overlay_scale"] = "1.0";
+            retroarchConfig["input_overlay"] = animatedBezel ? animatedBezelPath : overlay_cfg_file;
+            retroarchConfig["input_overlay_hide_in_menu"] = "true";
+
+            if (!infos.opacity.HasValue)
+                infos.opacity = 1.0f;
+            if (!infos.messagex.HasValue)
+                infos.messagex = 0.0f;
+            if (!infos.messagey.HasValue)
+                infos.messagey = 0.0f;
+
+            retroarchConfig["input_overlay_opacity"] = infos.opacity.ToString().Replace(",", "."); // "1.0";
+            // for testing : retroarchConfig["input_overlay_opacity"] = "0.5";
+
+            if (bezelNeedAdaptation)
+            {
+                float wratio = resX / (float)infos.width;
+                float hratio = resY / (float)infos.height;
+
+                int xoffset = resX - infos.width.Value;
+                int yoffset = resY - infos.height.Value;
+
+                bool stretchImage = false;
+
+                if (resX < infos.width || resY < infos.height) // If width or height < original, can't add black borders. Just stretch
+                    stretchImage = true;
+                else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
+                    stretchImage = true;
+
+                if (viewPortUsed)
+                {
+                    if (stretchImage)
+                    {
+                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left * wratio)).ToString();
+                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top * hratio)).ToString();
+                        retroarchConfig["custom_viewport_width"] = ((int)((infos.width - infos.left - infos.right) * wratio)).ToString();
+                        retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom) * hratio)).ToString();
+                        retroarchConfig["video_message_pos_x"] = (infos.messagex.Value * wratio).ToString(CultureInfo.InvariantCulture);
+                        retroarchConfig["video_message_pos_y"] = (infos.messagey.Value * hratio).ToString(CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left + xoffset / 2)).ToString();
+                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top + yoffset / 2)).ToString();
+                        retroarchConfig["custom_viewport_width"] = ((int)((infos.width - infos.left - infos.right))).ToString();
+                        retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom))).ToString();
+                        retroarchConfig["video_message_pos_x"] = (infos.messagex.Value + xoffset / 2).ToString(CultureInfo.InvariantCulture);
+                        retroarchConfig["video_message_pos_y"] = (infos.messagey.Value + yoffset / 2).ToString(CultureInfo.InvariantCulture);
+                    }
+                }
+
+                if (!stretchImage)
+                    overlay_png_file = BezelFiles.GetStretchedBezel(overlay_png_file, resX, resY);
+            }
+            else
+            {
+                if (viewPortUsed)
+                {
+                    retroarchConfig["custom_viewport_x"] = infos.left.Value.ToString();
+                    retroarchConfig["custom_viewport_y"] = infos.top.Value.ToString();
+                    retroarchConfig["custom_viewport_width"] = (infos.width.Value - infos.left.Value - infos.right.Value).ToString();
+                    retroarchConfig["custom_viewport_height"] = (infos.height.Value - infos.top.Value - infos.bottom.Value).ToString();
+                }
+
+                retroarchConfig["video_message_pos_x"] = infos.messagex.Value.ToString(CultureInfo.InvariantCulture);
+                retroarchConfig["video_message_pos_y"] = infos.messagey.Value.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (retroarchConfig["video_fullscreen"] != "true")
+                retroarchConfig["input_overlay_show_mouse_cursor"] = "true";
+            else
+                retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
+
+            StringBuilder fd = new StringBuilder();
+            fd.AppendLine("overlays = 1");
+            fd.AppendLine("overlay0_overlay = \"" + overlay_png_file + "\"");
+            fd.AppendLine("overlay0_full_screen = true");
+            fd.AppendLine("overlay0_descs = 0");
+            File.WriteAllText(overlay_cfg_file, fd.ToString());
+        }
+
+        private static Size GetImageSize(string file)
+        {
+            using (Image img = Image.FromFile(file))
+                return img.Size;
+        }
+
+        private static bool IsVersionAtLeast(Version ver)
+        {
+            var ist = Installer.GetInstaller("libretro");
+            if (ist != null)
+            {
+                var local = ist.GetInstalledVersion();
+                return (!string.IsNullOrEmpty(local) && Version.Parse(local) >= ver);
+            }
+
+            return false;
+        }
+        
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_noHotkey)
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] No hotkey defined, adding select + start to exit in padtokey.");
+                return PadToKey.AddOrUpdateKeyMapping(mapping, "retroarch", InputKey.select | InputKey.start, "(%{CLOSE})");
+            }
+            else
+                return mapping;
+        }
+
+        public override void Cleanup()
+        {
+            if (SystemConfig["core"] == "atari800")
+                Environment.SetEnvironmentVariable("HOME", CurrentHomeDirectory);
+
+            if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
+                File.Delete(_dosBoxTempRom);
+
+            if (!string.IsNullOrEmpty(_video_driver))
+            {
+                var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
+                retroarchConfig["video_driver"] = _video_driver;
+                retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+            }
+
+            if (_screenShotWatcher != null)
+            {
+                _screenShotWatcher.Dispose();
+                _screenShotWatcher = null;
+            }
+
+            if (_stateFileManager != null)
+            {
+                _stateFileManager.Dispose();
+                _stateFileManager = null;
+            }
+
+            base.Cleanup();
+        }
+
         class UIModeSetting
         {
             public UIModeSetting(string name, string minimal, string recommanded, string full)
@@ -897,698 +1603,21 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig[item.Name] = item.GetValue(type);
         }
 
-        private void SetLanguage(ConfigFile retroarchConfig)
-        {
-            Func<string, string> shortLang = new Func<string, string>(s =>
-            {
-                s = s.ToLowerInvariant();
-
-                int cut = s.IndexOf("_");
-                if (cut >= 0)
-                    return s.Substring(0, cut);
-
-                return s;
-            });
-
-            var lang = SystemConfig["Language"];
-            if (string.IsNullOrEmpty(lang))
-                lang = "en";
-            bool foundLang = false;
-
-            retro_language rl = (retro_language)9999999;
-            if (Languages.TryGetValue(lang, out rl))
-                foundLang = true;
-            else
-            {
-                lang = shortLang(lang);
-
-                foundLang = Languages.TryGetValue(lang, out rl);
-                if (!foundLang)
-                {
-                    var ret = Languages.Where(l => shortLang(l.Key) == lang).ToList();
-                    if (ret.Any())
-                    {
-                        foundLang = true;
-                        rl = ret.First().Value;
-                    }
-                }
-            }
-
-            if (foundLang)
-                retroarchConfig["user_language"] = ((int)rl).ToString();
-        }
-
-        private string _video_driver;
-
-        private void ConfigureBezels(ConfigFile retroarchConfig, string systemName, string rom, ScreenResolution resolution)
-        {
-            retroarchConfig["input_overlay_hide_in_menu"] = "false";
-            retroarchConfig["input_overlay_enable"] = "false";
-            retroarchConfig["video_message_pos_x"] = "0.05";
-            retroarchConfig["video_message_pos_y"] = "0.05";
-
-            if (systemName == "wii" && (!SystemConfig.isOptSet("ratio")))
-                return;
-
-            bool animatedBezel = SystemConfig["bezel"] == "animated";
-            var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution, "libretro");
-            if (bezelInfo == null && !animatedBezel)
-                return;
-
-            string overlay_png_file = bezelInfo.PngFile;
-
-            Size imageSize;
-
-            try
-            {
-                imageSize = GetImageSize(overlay_png_file);
-            }
-            catch 
-            {
-                return;
-            }
-
-            BezelInfo infos = bezelInfo.BezelInfos;
-
-             // if image is not at the correct size, find the correct size
-            bool bezelNeedAdaptation = false;
-            bool viewPortUsed = true;
-
-            if (!infos.IsValid())
-                viewPortUsed = false;
-
-         // for testing ->   
-            //resolution = ScreenResolution.Parse("2280x1080x32x60");
-            //resolution = ScreenResolution.Parse("3840x2160x32x60");                    
-            
-            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
-
-            float screenRatio  = (float) resX / (float) resY;
-            float bezelRatio = (float)imageSize.Width / (float) imageSize.Height;
-
-            if (viewPortUsed)
-            {
-                if (resX != infos.width.GetValueOrDefault() || resY != infos.height.GetValueOrDefault())
-                {
-                    if (screenRatio < 1.6) // use bezels only for 16:10, 5:3, 16:9 and wider aspect ratios
-                        return;
-                    else
-                        bezelNeedAdaptation = true;
-                }
-
-                if (!SystemConfig.isOptSet("ratio"))
-                {
-                    if (systemName == "mame" || infos.IsEstimated)
-                        retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
-                    else
-                        retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file                
-                }
-            }
-            else
-            {
-                 // when there is no information about width and height in the .info, assume that the tv is HD 16/9 and infos are core provided
-                if (screenRatio < 1.6) // use bezels only for 16:10, 5:3, 16:9 and wider aspect ratios
-                    return;
-
-                infos.width = imageSize.Width;
-                infos.height = imageSize.Height;
-                bezelNeedAdaptation = true;
-                
-                if (!SystemConfig.isOptSet("ratio"))
-                    retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString(); // overwritten from the beginning of this file
-            }
-
-            string animatedBezelPath = null;
-
-            if (animatedBezel)
-            {
-                animatedBezelPath = Path.Combine(AppConfig.GetFullPath("decorations"), "animated", "systems", systemName, systemName + ".cfg") ;
-
-                if (!File.Exists(animatedBezelPath))
-                {
-                    animatedBezelPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "decorations", "animated", "systems", systemName, systemName + ".cfg");
-                    if (!File.Exists(animatedBezelPath))
-                        animatedBezel = false;
-                }
-            }
-
-            string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
-
-            retroarchConfig["input_overlay_enable"] = "true";
-            retroarchConfig["input_overlay_scale"] = "1.0";
-            retroarchConfig["input_overlay"] = animatedBezel ? animatedBezelPath : overlay_cfg_file;
-            retroarchConfig["input_overlay_hide_in_menu"] = "true";
-                    
-            if (!infos.opacity.HasValue)
-                infos.opacity = 1.0f;
-            if (!infos.messagex.HasValue)
-                infos.messagex = 0.0f;
-            if (!infos.messagey.HasValue)
-                infos.messagey = 0.0f;
-
-            retroarchConfig["input_overlay_opacity"] = infos.opacity.ToString().Replace(",", "."); // "1.0";
-            // for testing : retroarchConfig["input_overlay_opacity"] = "0.5";
-
-            if (bezelNeedAdaptation)
-            {
-                float wratio = resX / (float)infos.width;
-                float hratio = resY / (float)infos.height;
-
-                int xoffset = resX - infos.width.Value;
-                int yoffset = resY - infos.height.Value;
-
-                bool stretchImage = false;
-
-                if (resX < infos.width || resY < infos.height) // If width or height < original, can't add black borders. Just stretch
-                    stretchImage = true;
-                else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
-                    stretchImage = true;
-
-                if (viewPortUsed)
-                {
-                    if (stretchImage)
-                    {
-                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left * wratio)).ToString();
-                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top * hratio)).ToString();
-                        retroarchConfig["custom_viewport_width"] = ((int)((infos.width - infos.left - infos.right) * wratio)).ToString();
-                        retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom) * hratio)).ToString();
-                        retroarchConfig["video_message_pos_x"] = (infos.messagex.Value * wratio).ToString(CultureInfo.InvariantCulture);
-                        retroarchConfig["video_message_pos_y"] = (infos.messagey.Value * hratio).ToString(CultureInfo.InvariantCulture);
-                    }
-                    else
-                    {
-                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left + xoffset / 2)).ToString();
-                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top + yoffset / 2)).ToString();
-                        retroarchConfig["custom_viewport_width"] = ((int)((infos.width - infos.left - infos.right))).ToString();
-                        retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom))).ToString();
-                        retroarchConfig["video_message_pos_x"] = (infos.messagex.Value + xoffset / 2).ToString(CultureInfo.InvariantCulture);
-                        retroarchConfig["video_message_pos_y"] = (infos.messagey.Value + yoffset / 2).ToString(CultureInfo.InvariantCulture);
-                    }
-                }
-
-                if (!stretchImage)
-                    overlay_png_file = BezelFiles.GetStretchedBezel(overlay_png_file, resX, resY);
-            }
-            else
-            {
-                if (viewPortUsed)
-                {
-                    retroarchConfig["custom_viewport_x"] = infos.left.Value.ToString();
-                    retroarchConfig["custom_viewport_y"] = infos.top.Value.ToString();
-                    retroarchConfig["custom_viewport_width"] = (infos.width.Value - infos.left.Value - infos.right.Value).ToString();
-                    retroarchConfig["custom_viewport_height"] = (infos.height.Value - infos.top.Value - infos.bottom.Value).ToString();
-                }
-
-                retroarchConfig["video_message_pos_x"] = infos.messagex.Value.ToString(CultureInfo.InvariantCulture);
-                retroarchConfig["video_message_pos_y"] = infos.messagey.Value.ToString(CultureInfo.InvariantCulture);
-            }
-
-            if (retroarchConfig["video_fullscreen"] != "true")
-                retroarchConfig["input_overlay_show_mouse_cursor"] = "true";
-            else
-                retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
-
-            StringBuilder fd = new StringBuilder();
-            fd.AppendLine("overlays = 1");
-            fd.AppendLine("overlay0_overlay = \"" + overlay_png_file + "\"");
-            fd.AppendLine("overlay0_full_screen = true");
-            fd.AppendLine("overlay0_descs = 0");
-            File.WriteAllText(overlay_cfg_file, fd.ToString());
-        }
-
-        private static Size GetImageSize(string file)
-        {
-            using (Image img = Image.FromFile(file))
-                return img.Size;
-        }
-
-        private string _dosBoxTempRom;
-
-        public override void Cleanup()
-        {
-            if (SystemConfig["core"] == "atari800")
-                Environment.SetEnvironmentVariable("HOME", CurrentHomeDirectory);
-
-            if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
-                File.Delete(_dosBoxTempRom);
-
-            if (!string.IsNullOrEmpty(_video_driver))
-            {
-                var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
-                retroarchConfig["video_driver"] = _video_driver;
-                retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
-            }
-
-            if (_screenShotWatcher != null)
-            {
-                _screenShotWatcher.Dispose();
-                _screenShotWatcher = null;
-            }
-
-            if (_stateFileManager != null)
-            {
-                _stateFileManager.Dispose();
-                _stateFileManager = null;
-            }
-
-            base.Cleanup();
-        }
-
-        public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
-        {
-            if (string.IsNullOrEmpty(RetroarchPath))
-                return null;
-
-            string subCore = null;
-
-            if (!string.IsNullOrEmpty(core))
-            {
-                int split = core.IndexOfAny(new char[] { ':', '/' });
-                if (split >= 0)
-                {
-                    subCore = core.Substring(split + 1);
-                    core = core.Substring(0, split);
-
-                    SystemConfig["subcore"] = subCore;
-                }
-            }
-
-            // Detect best core for MAME games ( If not overridden by the user )
-            if (system == "mame" && subCore == null && core != null && core.StartsWith("mame"))
-            {
-                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && string.IsNullOrEmpty(Program.CurrentGame.Core))
-                {
-                    string[] supportedCores = null;
-
-                    // Load supported core list from es_systems.cfg
-                    var esSystems = Program.EsSystems;
-                    if (esSystems != null)
-                    {
-                        supportedCores = esSystems.Systems
-                            .Where(sys => sys.Name == system)
-                            .SelectMany(sys => sys.Emulators)
-                            .Where(emul => emul.Name == emulator)
-                            .SelectMany(emul => emul.Cores)
-                            .Select(cr => cr.Name)
-                            .ToArray();
-
-                        if (supportedCores.Length == 0)
-                            supportedCores = null;
-                    }
-                   
-                    var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Name.Replace("-", "_")).ToList();
-                    var bestCore = compatibleCores.FirstOrDefault();
-                    if (!string.IsNullOrEmpty(bestCore))
-                    {
-                        core = bestCore;
-
-                        if (SystemConfig.getOptBoolean("use_guns") && core == "mame2003" && compatibleCores.Contains("mame2003_plus"))
-                        {
-                            // mame2003 is not working fine with lightgun games -> prefer mame2003_plus if it's compatible
-                            core = "mame2003_plus";
-                        }
-
-                        SimpleLogger.Instance.Info("[FindBestMameCore] Detected compatible mame core : " + core);
-                    }
-                    else
-                        SimpleLogger.Instance.Info("[FindBestMameCore] No detected compatible mame core. Using current default core : " + core);
-                }
-            }
-
-            // specific management for some extensions
-            if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
-                core = Path.GetFileNameWithoutExtension(rom);
-            else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
-            {
-                core = Path.GetFileNameWithoutExtension(rom);
-
-                if (core == "xrick")
-                    rom = Path.Combine(Path.GetDirectoryName(rom), "xrick", "data.zip");
-                else if (core == "dinothawr")
-                    rom = Path.Combine(Path.GetDirectoryName(rom), "dinothawr", "dinothawr.game");
-                else
-                    rom = null;
-            }
-            else if (Path.GetExtension(rom).ToLowerInvariant() == ".croft")
-            {
-                string [] croftSubFile = File.ReadAllLines(rom);
-                string croftSubPath = croftSubFile[0];
-                rom = Path.Combine(Path.GetDirectoryName(rom), croftSubPath);
-            }
-            else if (Path.GetExtension(rom).ToLowerInvariant() == ".boom3")
-            {
-                string[] pakFile = File.ReadAllLines(rom);
-                string pakSubPath = pakFile[0];
-                if (pakSubPath.StartsWith("d3xp"))
-                    core = "boom3_xp";
-                rom = Path.Combine(Path.GetDirectoryName(rom), pakSubPath);
-            }
-
-            // Exit if no core is provided
-            if (string.IsNullOrEmpty(core))
-            {
-                ExitCode = ExitCodes.MissingCore;
-                SimpleLogger.Instance.Error("[LibretroGenerator] Core was not provided");
-                return null;
-            }
-            else
-            {
-                string corePath = Path.Combine(RetroarchCorePath, core + "_libretro.dll");
-                if (!File.Exists(corePath))
-                {
-                    try
-                    {
-
-                        string url = Installer.GetUpdateUrl("cores/" + core + "_libretro.dll.zip");
-                        if (!WebTools.UrlExists(url))
-                        {
-                            // Automatic install of missing core
-                            var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
-
-                            url = retroarchConfig["core_updater_buildbot_cores_url"];
-                            if (!string.IsNullOrEmpty(url))
-                                url += core + "_libretro.dll.zip";
-                        }
-
-                        if (WebTools.UrlExists(url))
-                        {
-                            using (var frm = new InstallerFrm(core, url, RetroarchCorePath))
-                                frm.ShowDialog();
-                        }
-                    }
-                    catch { }
-
-                    if (!File.Exists(corePath))
-                    {
-                        SimpleLogger.Instance.Error("[LibretroGenerator] Core is not installed");
-                        ExitCode = ExitCodes.MissingCore;
-                        return null;
-                    }
-                }
-            }
-
-            // Extension used by hypseus .daphne but lr-daphne starts with .zip
-            if (system == "daphne" || core == "daphne")
-            {
-                string datadir = Path.GetDirectoryName(rom);
-                string romName = Path.GetFileNameWithoutExtension(rom);
-
-                //romName = os.path.splitext(os.path.basename(rom))[0]
-                rom = Path.GetFullPath(datadir + "/roms/" + romName + ".zip");
-            }
-
-            // dosbox core specifics
-            if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
-            {
-                string bat = Path.Combine(rom, "dosbox.bat");
-                if (File.Exists(bat))
-                    rom = bat;
-                else
-                {
-                    string ext = Path.GetExtension(rom).ToLower();
-                    if ((ext == ".dosbox" || ext == ".dos" || ext == ".pc") && File.Exists(rom))
-                    {
-                        string tempRom = Path.Combine(Path.GetDirectoryName(rom), "dosbox.conf");
-                        if (File.Exists(tempRom) && !new FileInfo(tempRom).Attributes.HasFlag(FileAttributes.Hidden))
-                            rom = tempRom;
-                        else
-                        {
-                            try
-                            {
-                                if (File.Exists(tempRom))
-                                    File.Delete(tempRom);
-                            }
-                            catch { }
-
-                            try
-                            {
-                                File.Copy(rom, tempRom);
-                                new FileInfo(tempRom).Attributes |= FileAttributes.Hidden;
-                                rom = tempRom;
-                                _dosBoxTempRom = tempRom;
-                            }
-                            catch { }
-                        }
-                    }
-                }
-            }
-
-            // When using .ipf extension, ensure capsimg.dll is present in RetroArch folder
-            if (capsimgCore.Contains(core) && Path.GetExtension(rom).ToLowerInvariant() == ".ipf")
-            {
-                string sourceDll = Path.Combine(AppConfig.GetFullPath("bios"), "capsimg.dll");
-                string targetDll = Path.Combine(AppConfig.GetFullPath("retroarch"), "capsimg.dll");
-                if (!File.Exists(targetDll) && File.Exists(sourceDll))
-                {
-                    try { File.Copy(sourceDll, targetDll); }
-                    catch { }
-                }
-            }
-
-            Configure(system, core, rom, resolution);            
-
-            List<string> commandArray = new List<string>();
-
-            string subSystem = SubSystem.GetSubSystem(core, system);
-            if (!string.IsNullOrEmpty(subSystem))
-            {
-                commandArray.Add("--subsystem");
-                commandArray.Add(subSystem);
-            }
-
-            // Add subsystem for sameboy core multiplayer
-            bool multiplayer = (system == "gb2players" || system == "gbc2players");
-            if (core == "sameboy" && multiplayer)
-            {
-                // Case for different game cartridges (like Pokemon) - usage of m3u
-                if (Path.GetExtension(rom).ToLower() == ".m3u")
-                {
-                    List<string> disks = new List<string>();
-
-                    string dskPath = Path.GetDirectoryName(rom);
-
-                    foreach (var line in File.ReadAllLines(rom))
-                    {
-                        string dsk = Path.Combine(dskPath, line);
-                        if (File.Exists(dsk))
-                            disks.Add(dsk);
-                        else
-                            throw new ApplicationException("File '" + Path.Combine(dskPath, line) + "' does not exist");
-                    }
-
-                    if (disks.Count == 0)       // Empty m3u
-                        return null;
-
-                    else if (disks.Count == 1)  // Only 1 game in m3u file, just use this file as rom
-                        rom = disks[0];
-
-                    else
-                    {
-                        rom = disks[0];
-                        commandArray.Add("--subsystem");
-                        commandArray.Add("gb_link_2p");
-                        commandArray.Add("\"" + disks[1] + "\"");
-                    }
-                }
-                // Case for same game cartridge
-                else
-                {
-                    commandArray.Add("--subsystem");
-                    commandArray.Add("gb_link_2p");
-                    commandArray.Add("\"" + rom + "\"");
-                }
-            }
-
-            // Netplay mode
-            if (!string.IsNullOrEmpty(SystemConfig["netplaymode"]))
-            {
-                // Netplay mode
-                if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
-                    commandArray.Add("--host");
-                else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
-                {
-                    commandArray.Add("--connect " + SystemConfig["netplayip"]);
-                    commandArray.Add("--port " + SystemConfig["netplayport"]);
-                }
-
-                if (!string.IsNullOrEmpty(SystemConfig["netplaysession"]))
-                {
-                    // Suported with retroarch 1.17+ only
-                    if (IsVersionAtLeast(new Version(1, 17, 0, 0)))
-                        commandArray.Add("--mitm-session " + SystemConfig["netplaysession"]);
-                }
-            }
-            
-            // RetroArch 1.7.8 requires the shaders to be passed as command line argument      
-            if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
-            {
-                string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
-                bool isOpenGL = (emulator != "angle") && (videoDriver == "gl") && (!coreNoGL.Contains(core));
-
-                string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
-                if (File.Exists(path))
-                {
-                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], isOpenGL);
-                    if (!string.IsNullOrEmpty(renderconfig))
-                        SystemConfig["shader"] = renderconfig;
-                }
-
-                string shaderFilename = SystemConfig["shader"] + (isOpenGL ? ".glslp" : ".slangp");
-
-                string videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");
-                if (!File.Exists(videoShader))
-                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
-
-                if (!File.Exists(videoShader))
-                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "glsl" : "slang", shaderFilename).Replace("/", "\\");
-
-                if (!File.Exists(videoShader))
-                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
-
-                if (!File.Exists(videoShader) && !isOpenGL && shaderFilename.Contains("zfast-"))
-                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", "crt/crt-geom.slangp").Replace("/", "\\");
-
-                if (File.Exists(videoShader))
-                {
-                    commandArray.Add("--set-shader");
-                    commandArray.Add("\"" + videoShader + "\"");
-                }
-            }
-
-            string args = string.Join(" ", commandArray);
-
-            // Special case : .atari800.cfg is loaded from path in 'HOME' environment variable
-            if (core == "atari800")
-            {
-                CurrentHomeDirectory = Environment.GetEnvironmentVariable("HOME");
-                Environment.SetEnvironmentVariable("HOME", RetroarchPath);
-            }
-
-            // manage MESS systems (MAME core)
-            MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
-            if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
-            {
-                var messArgs = messSystem.GetMameCommandLineArguments(system, rom).JoinArguments();
-                messArgs = messArgs.Replace("\\\"", "\"");
-                messArgs = "\"" + messArgs.Replace("\"", "\\\"") + "\"";
-                messArgs = (messArgs + " " + args).Trim();
-
-                return new ProcessStartInfo()
-                {
-                    FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
-                    WorkingDirectory = RetroarchPath,
-                    Arguments = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + messArgs).Trim()
-                };
-            }
-
-            // Run MelonDS firmware, use the first .nds file found in the folder as rom argument (the core does not have an argument to boot to firmware)
-            if (core == "melonds" && Path.GetExtension(rom) == ".bin")
-            {
-                string romPath = Path.GetDirectoryName(rom);
-                var romToLaunch = Directory.EnumerateFiles(romPath, "*.nds")
-                    .FirstOrDefault();
-
-                if (romToLaunch == null)
-                    throw new ApplicationException("Libretro:melonDS requires a '.nds' game file to load a nand file.");
-
-                rom = romToLaunch;
-            }
-
-            string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
-            if (emulator != "angle" && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
-                retroarch = GetNetPlayPatchedRetroarch();
-
-            return new ProcessStartInfo()
-            {
-                FileName = retroarch,
-                WorkingDirectory = RetroarchPath,
-                Arguments =
-                    string.IsNullOrEmpty(rom) ?
-                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim() :
-                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
-            };
-        }
-
-
-        /// <summary>
-        /// Patch Retroarch to display @RETROBAT in netplay architecture
-        /// </summary>
-        /// <returns></returns>
-        private string GetNetPlayPatchedRetroarch()
-        {
-            string fn = Path.Combine(RetroarchPath, "retroarch.exe");
-            if (!File.Exists(fn))
-                return fn;
-
-            string patched = Path.Combine(RetroarchPath, "retroarch.patched." + RetroArchNetPlayPatchedName + ".exe");
-            if (File.Exists(patched) && new FileInfo(fn).Length == new FileInfo(patched).Length)
-                return patched;
-
-            try { File.Delete(patched); }
-            catch { }
-
-            var bytes = File.ReadAllBytes(fn);
-
-            var toFind = "username=%s&core_name=%s&core_version=%s&game_name=%s&game_crc=%08lX".Select(c => (byte)c)
-                .ToArray();
-
-            int start = bytes.IndexOf(toFind);
-            if (start < 0)
-                return fn;
-
-            int end = bytes.IndexOf(new byte[] { 0 }, start + toFind.Length);
-            if (end < 0)
-                return fn;
-
-            byte[] extractedBytes = new byte[end - start]; // Array to hold the extracted bytes
-            Array.Copy(bytes, start, extractedBytes, 0, extractedBytes.Length);
-
-            var fullstr = Encoding.UTF8.GetString(extractedBytes);
-
-            toFind = extractedBytes;
-
-            var toSet = toFind.ToArray();
-            var toSubst = "&subsystem_name=%s".Select(c => (byte)c).ToArray();
-            int idx = toFind.IndexOf(toSubst);
-            if (idx < 0)
-                return fn;
-
-            int index = bytes.IndexOf(toFind);
-            if (index < 0)
-                return fn;
-
-            string patchString = "@" + RetroArchNetPlayPatchedName + "&s";
-
-            var toPatch = patchString.Select(c => (byte)c).ToArray();
-            for (int i = 0; i < patchString.Length; i++)
-                toSet[idx + i] = toPatch[i];
-
-            for (int i = 0; i < toSet.Length; i++)
-                bytes[index + i] = toSet[i];
-
-            File.WriteAllBytes(patched, bytes);
-            return patched;
-        }
-
+        // List and dictionaries
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
                 "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
-
         static List<string> systemNoRewind = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
         static List<string> systemNoRunahead = new List<string>() { "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn" };
         static List<string> coreNoPreemptiveFrames = new List<string>() { "2048", "4do", "81", "atari800", "bluemsx", "bsnes", "bsnes_hd_beta", "cannonball", "cap32", "citra", "craft", "crocods", "desmume", "desmume2015", "dolphin", "dosbox_pure", "easyrpg", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "flycast", "frodo", "gw", "handy", "hatari", "hatarib", "imageviewer", "kronos", "lutro", "mame2000", "mame2003", "mame2003_plus", "mame2003_midway", "mame2010", "mame2014", "mame2016", "mednafen_psx_hw", "mednafen_snes", "mupen64plus_next", "nekop2", "nestopia", "np2kai", "nxengine", "o2em", "opera", "parallel_n64", "pcsx2", "ppsspp", "prboom", "prosystem", "puae", "px68k", "race", "retro8", "sameduck", "same_cdi", "scummvm", "swanstation", "theodore", "tic80", "tyrquake", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vecx", "virtualjaguar" };
         static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
         static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
-
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
-
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
         { 
             { "flycast", "vulkan" }
         };
-
         static Dictionary<string, retro_language> Languages = new Dictionary<string, retro_language>()
         {
             {"en", retro_language.RETRO_LANGUAGE_ENGLISH},
@@ -1625,30 +1654,6 @@ namespace EmulatorLauncher.Libretro
             {"tr", retro_language.RETRO_LANGUAGE_TURKISH},
             {"uk_UA", retro_language.RETRO_LANGUAGE_UKRAINIAN}
         };
-
-        private static bool IsVersionAtLeast(Version ver)
-        {
-            var ist = Installer.GetInstaller("libretro");
-            if (ist != null)
-            {
-                var local = ist.GetInstalledVersion();
-                return (!string.IsNullOrEmpty(local) && Version.Parse(local) >= ver);
-            }
-
-            return false;
-        }
-
-        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
-        {
-            if (_noHotkey)
-            {
-                SimpleLogger.Instance.Info("[GENERATOR] No hotkey defined, adding select + start to exit in padtokey.");
-                return PadToKey.AddOrUpdateKeyMapping(mapping, "retroarch", InputKey.select | InputKey.start, "(%{CLOSE})");
-            }
-            else
-                return mapping;
-        }
-
     }
 
     // https://github.com/libretro/RetroArch/blob/master/libretro-common/include/libretro.h#L260
