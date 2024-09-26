@@ -24,16 +24,6 @@ namespace EmulatorLauncher
             if (_saveStatesWatcher != null)
             {
                 _saveStatesWatcher.Dispose();
-                string savestatePath = _saveStatesWatcher.EmulatorPath;
-                string archivePath = savestatePath + ".old";
-                try { Directory.CreateDirectory(archivePath); } catch { }
-                foreach (var file in Directory.GetFiles(savestatePath))
-                {
-                    string fileName = Path.GetFileName(file);
-                    string destFile = Path.Combine(archivePath, fileName);
-                    if (File.Exists(destFile)) { try { File.Delete(destFile); } catch { } }
-                    try { File.Move(file, destFile); } catch { }
-                }
                 _saveStatesWatcher = null;
             }
 
@@ -220,10 +210,10 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + Path.Combine(scriptspath, "autorunlaserdisc.tcl") + "\"");
             }
 
+            int slot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 0;
+            _saveStateSlot = slot + 1;
             if (File.Exists(SystemConfig["state_file"]) && _saveStatesWatcher != null)
             {
-                int slot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 0;
-                _saveStateSlot = slot + 1;
                 string state = Path.GetFullPath(SystemConfig["state_file"]);
 
                 if (OpenmsxSaveStatesMonitor.GetEmulatorStateName(_saveStatesWatcher.SaveStatesPath, rom, slot, out string stateGameName))

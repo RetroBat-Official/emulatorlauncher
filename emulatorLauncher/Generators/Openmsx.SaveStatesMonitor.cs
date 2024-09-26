@@ -20,7 +20,7 @@ namespace EmulatorLauncher
                 var txtLines = File.ReadAllLines(txtFile);
                 if (txtLines.Length > 0)
                 {
-                    name = txtLines[0] + "." + slot;
+                    name = txtLines[0] + "_" + slot;
                     return true;
                 }
             }
