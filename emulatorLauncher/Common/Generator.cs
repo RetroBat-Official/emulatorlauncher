@@ -699,7 +699,7 @@ namespace EmulatorLauncher
             }
         }
 
-        protected void BindBoolFeatureAuto(ConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false)
+        protected void BindBoolFeatureAuto(ConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
         {
             if (force || Features.IsSupported(featureName))
             {
@@ -788,6 +788,44 @@ namespace EmulatorLauncher
 
             if (!string.IsNullOrEmpty(pathName))
                 ini.WriteValue(section, settingName, pathName);
+        }
+
+        // Fbneo config file
+        protected void BindBoolFeature(FbneoConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = trueValue;
+                else
+                    cfg[settingName] = falseValue;
+            }
+        }
+
+        protected void BindBoolFeatureOn(FbneoConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = falseValue;
+                else
+                    cfg[settingName] = trueValue;
+            }
+        }
+
+        protected void BindFeatureSlider(FbneoConfigFile cfg, string settingName, string featureName, string defaultValue, int decimalPlaces = 0, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (decimalPlaces > 0 && decimalPlaces < 7)
+                {
+                    int toRemove = 6 - decimalPlaces;
+                    string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+                    cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                }
+                else
+                    cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
+            }
         }
     }
 

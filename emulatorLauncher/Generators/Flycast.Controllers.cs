@@ -494,18 +494,9 @@ namespace EmulatorLauncher
                         ctrlini.WriteValue("digital", "bind" + i, digitalBinds[i]);
                 }
 
-                if (SystemConfig.isOptSet("flycast_deadzone") && !string.IsNullOrEmpty(SystemConfig["flycast_deadzone"]))
-                    ctrlini.WriteValue("emulator", "dead_zone", SystemConfig["flycast_deadzone"]);
-                else
-                    ctrlini.WriteValue("emulator", "dead_zone", "15");
-
+                BindIniFeatureSlider(ctrlini, "emulator", "dead_zone", "flycast_deadzone", "15");
                 ctrlini.WriteValue("emulator", "mapping_name", deviceName);
-
-                if (SystemConfig.isOptSet("flycast_rumble") && !string.IsNullOrEmpty(SystemConfig["flycast_rumble"]))
-                    ctrlini.WriteValue("emulator", "rumble_power", SystemConfig["flycast_rumble"]);
-                else
-                    ctrlini.WriteValue("emulator", "rumble_power", "100");
-
+                BindIniFeatureSlider(ctrlini, "emulator", "rumble_power", "flycast_rumble", "100");
                 ctrlini.WriteValue("emulator", "version", "3");
 
                 ctrlini.Save();

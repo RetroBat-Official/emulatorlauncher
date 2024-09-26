@@ -93,7 +93,7 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "config", "Dreamcast.Region", "flycast_region", "3");
                 BindIniFeature(ini, "config", "Dreamcast.Cable", "flycast_cable", "0");
                 ini.WriteValue("config", "Dreamcast.HideLegacyNaomiRoms", "yes");
-                BindIniFeature(ini, "config", "ForceFreePlay", "flycast_freeplay", "yes");
+                BindBoolIniFeatureOn(ini, "config", "ForceFreePlay", "flycast_freeplay", "yes", "no");
 
                 if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
                 {
@@ -184,8 +184,8 @@ namespace EmulatorLauncher
                 }
 
                 BindIniFeature(ini, "config", "pvr.AutoSkipFrame", "flycast_autoframeskip", "0");
-                BindIniFeature(ini, "config", "rend.ModifierVolumes", "flycast_shadows", "yes");
-                BindIniFeature(ini, "config", "rend.Fog", "flycast_fog", "yes");
+                BindBoolIniFeature(ini, "config", "rend.ModifierVolumes", "flycast_shadows", "no", "yes");
+                BindBoolIniFeature(ini, "config", "rend.Fog", "flycast_fog", "no", "yes");
 
                 if (SystemConfig.isOptSet("flycast_ratio") && SystemConfig["flycast_ratio"] == "wide")
                 {
@@ -234,9 +234,9 @@ namespace EmulatorLauncher
 
                 BindBoolIniFeature(ini, "config", "rend.Rotate90", "flycast_rotate", "yes", "no");
                 BindBoolIniFeature(ini, "config", "rend.ShowFPS", "flycast_fps", "yes", "no");
-                BindIniFeature(ini, "config", "rend.RenderToTextureBuffer", "flycast_copytovram", "yes");
-                BindIniFeature(ini, "config", "rend.TextureUpscale", "flycast_texture_upscale", "1");
-                BindIniFeature(ini, "config", "pvr.MaxThreads", "flycast_threads", "3");
+                BindBoolIniFeatureOn(ini, "config", "rend.RenderToTextureBuffer", "flycast_copytovram", "yes", "no");
+                BindIniFeatureSlider(ini, "config", "rend.TextureUpscale", "flycast_texture_upscale", "1");
+                BindIniFeatureSlider(ini, "config", "pvr.MaxThreads", "flycast_threads", "3");
                 BindBoolIniFeature(ini, "config", "rend.CustomTextures", "flycast_custom_textures", "yes", "no");
                 BindIniFeature(ini, "config", "rend.Resolution", "flycast_resolution", "480");
 
@@ -256,7 +256,7 @@ namespace EmulatorLauncher
 
                 // Network features
                 BindBoolIniFeature(ini, "network", "NetworkOutput", "flycast_output", "yes", "no");
-                BindBoolIniFeature(ini, "network", "EnableUPnP", "flycast_upnp", "no", "yes");
+                BindBoolIniFeatureOn(ini, "network", "EnableUPnP", "flycast_upnp", "yes", "no");
                 BindIniFeature(ini, "network", "server", "flycast_server", null);
                 BindIniFeature(ini, "network", "LocalPort", "flycast_localport", "37391");
                 BindBoolIniFeature(ini, "network", "ActAsServer", "flycast_host", "yes", "no");
