@@ -180,8 +180,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("", "Threaded3D", "1");
                 ini.WriteValue("", "LimitFPS", "1");
                 BindIniFeature(ini, "", "3DRenderer", "melonds_renderer", "1");
-                BindBoolIniFeature(ini, "", "ScreenVSync", "melonds_vsync", "0", "1");
-                BindIniFeature(ini, "", "GL_ScaleFactor", "melonds_internal_resolution", "1");
+                BindBoolIniFeatureOn(ini, "", "ScreenVSync", "melonds_vsync", "1", "0");
+                BindIniFeatureSlider(ini, "", "GL_ScaleFactor", "melonds_internal_resolution", "1");
                 BindBoolIniFeature(ini, "", "GL_BetterPolygons", "melonds_polygon", "1", "0");
                 BindIniFeature(ini, "", "ScreenLayout", "melonds_screen_layout", "1");
                 BindBoolIniFeature(ini, "", "ScreenSwap", "melonds_swapscreen", "1", "0");
@@ -206,7 +206,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "", "ScreenAspectTop", "melonds_ratio_top", "0");
                     BindIniFeature(ini, "", "ScreenAspectBot", "melonds_ratio_bottom", "0");
                 }
-                BindIniFeature(ini, "", "ScreenGap", "melonds_screengap", "0");
+                BindIniFeatureSlider(ini, "", "ScreenGap", "melonds_screengap", "0");
                 BindIniFeature(ini, "", "ScreenRotation", "melonds_rotate", "0");
             }
         }

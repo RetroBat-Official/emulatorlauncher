@@ -72,10 +72,10 @@ namespace EmulatorLauncher
             string sensitivity = "100";
             string deadzone = "15";
             if (SystemConfig.isOptSet("mupen64_sensitivity") && !string.IsNullOrEmpty(SystemConfig["mupen64_sensitivity"]))
-                sensitivity = SystemConfig["mupen64_sensitivity"];
+                sensitivity = SystemConfig["mupen64_sensitivity"].ToIntegerString();
 
             if (SystemConfig.isOptSet("mupen64_deadzone") && !string.IsNullOrEmpty(SystemConfig["mupen64_deadzone"]))
-                deadzone = SystemConfig["mupen64_deadzone"];
+                deadzone = SystemConfig["mupen64_deadzone"].ToIntegerString();
 
             ini.WriteValue(iniSection, "PluggedIn", "True");
             ini.WriteValue(iniSection, "DeviceName", devicename);

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using EmulatorLauncher.Common;
 using System;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
@@ -89,7 +90,7 @@ namespace EmulatorLauncher
             // Force mono
             if (mednafenCore != "nes" && mednafenCore != "apple2")
             {
-                if (Features.IsSupported("forcemono") && SystemConfig.isOptSet("forcemono") && SystemConfig.getOptBoolean("forcemono"))
+                if (Features.IsSupported("mednafen_forcemono") && SystemConfig.isOptSet("mednafen_forcemono") && SystemConfig.getOptBoolean("mednafen_forcemono"))
                     commandArray.Add("-" + mednafenCore + ".forcemono 1");
                 else
                     commandArray.Add("-" + mednafenCore + ".forcemono 0");
@@ -162,7 +163,7 @@ namespace EmulatorLauncher
             BindMednafenFeature(cfg, "mednafen_apu", "sound.driver", "default");
             BindMednafenFeature(cfg, "mednafen_interlace", "video.deinterlacer", "weave");
             BindMednafenFeature(cfg, "MonitorIndex", "video.fs.display", "-1");
-            BindMednafenBoolFeature(cfg, "mednafen_vsync", "video.glvsync", "0", "1");
+            BindMednafenBoolFeatureOn(cfg, "mednafen_vsync", "video.glvsync", "1", "0");
             BindMednafenBoolFeature(cfg, "autosave", "autosave", "1", "0");
             BindMednafenBoolFeature(cfg, "mednafen_cheats", "cheats", "1", "0");
             BindMednafenBoolFeature(cfg, "mednafen_fps_enable", "fps.autoenable", "1", "0");
@@ -460,8 +461,8 @@ namespace EmulatorLauncher
             if (mednafenCore != "snes")
                 return;
 
-            BindMednafenBoolFeature(cfg, "mednafen_snes_h_blend", mednafenCore + ".h_blend", "0", "1"); // H-Blend
-            BindMednafenFeature(cfg, "mednafen_snes_resamp_quality", mednafenCore + ".apu.resamp_quality", "5"); // Sound accuracy
+            BindMednafenBoolFeatureOn(cfg, "mednafen_snes_h_blend", mednafenCore + ".h_blend", "1", "0"); // H-Blend
+            BindMednafenFeatureSlider(cfg, "mednafen_snes_resamp_quality", mednafenCore + ".apu.resamp_quality", "5"); // Sound accuracy
 
             // Multitap
             if (SystemConfig.isOptSet("mednafen_snes_multitap") && SystemConfig["mednafen_snes_multitap"] == "both")
@@ -508,6 +509,29 @@ namespace EmulatorLauncher
                 cfg[settingName] = trueValue;
             else
                 cfg[settingName] = falseValue;
+        }
+
+        private void BindMednafenBoolFeatureOn(MednafenConfigFile cfg, string featureName, string settingName, string trueValue, string falseValue)
+        {
+            if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                cfg[settingName] = falseValue;
+            else
+                cfg[settingName] = trueValue;
+        }
+
+        protected void BindMednafenFeatureSlider(MednafenConfigFile cfg, string featureName, string settingName, string defaultValue, int decimalPlaces = 0)
+        {
+            if (Features.IsSupported(featureName))
+            {
+                if (decimalPlaces > 0 && decimalPlaces < 7)
+                {
+                    int toRemove = 6 - decimalPlaces;
+                    string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+                    cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                }
+                else
+                    cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
+            }
         }
 
         private string GetMednafenCoreName(string core)

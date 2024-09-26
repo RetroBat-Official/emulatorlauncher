@@ -125,9 +125,9 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("Renderer", "FullScreenWidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
                     ini.WriteValue("Renderer", "FullScreenHeight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
-                    ini.WriteValue("Renderer", "ForceSync", SystemConfig["VSync"] != "false" ? "1" : "0");
-
-                    BindBoolIniFeature(ini, "Renderer", "Bilinear", "bilinear_filtering", "0", "1");
+                    
+                    BindBoolIniFeatureOn(ini, "Renderer", "ForceSync", "VSync", "1", "0");
+                    BindBoolIniFeatureOn(ini, "Renderer", "Bilinear", "bilinear_filtering", "1", "0");
                     BindBoolIniFeature(ini, "Renderer", "Trilinear", "trilinear_filtering", "1", "0");
                     BindBoolIniFeature(ini, "Renderer", "ForceManaged", "m2_ForceManaged", "1", "0");
                     BindBoolIniFeature(ini, "Renderer", "AutoMip", "m2_AutoMip", "1", "0");
@@ -142,7 +142,7 @@ namespace EmulatorLauncher
 
                     BindBoolIniFeature(ini, "Input", "EnableFF", "m2_force_feedback", "1", "0");
                     BindBoolIniFeature(ini, "Input", "HoldGears", "m2_HoldGears", "1", "0");
-                    BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "0", "1");
+                    BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "1", "0");
 
                     // Gun indexes
                     string mouse1Index = "0";
@@ -166,7 +166,15 @@ namespace EmulatorLauncher
                     ini.WriteValue("Input", "RawDevP1", mouse1Index);
                     ini.WriteValue("Input", "RawDevP2", mouse2Index);
 
-                    BindIniFeature(ini, "Input", "FE_CENTERING_Deadband", "m2_deadzone", "1000");
+                    if (SystemConfig.isOptSet("m2_deadzone") && !string.IsNullOrEmpty(SystemConfig["m2_deadzone"]))
+                    {
+                        string deadzone = SystemConfig["m2_deadzone"].ToIntegerString() + "00";
+                        ini.WriteValue("Input", "FE_CENTERING_Deadband", deadzone);
+                    }
+                    else
+                    {
+                        ini.WriteValue("Input", "FE_CENTERING_Deadband", "1000");
+                    }
 
                     ConfigureInput(path, ini, rom);
                 }

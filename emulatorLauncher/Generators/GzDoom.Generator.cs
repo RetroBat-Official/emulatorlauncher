@@ -105,8 +105,8 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "GlobalSettings", "vid_scalemode", "gzdoom_scalemode", "0");
                     BindIniFeature(ini, "GlobalSettings", "gl_multisample", "gzdoom_msaa", "1");
                     BindIniFeature(ini, "GlobalSettings", "gl_fxaa", "gzdoom_fxaa", "0");
-                    BindBoolIniFeature(ini, "GlobalSettings", "vid_vsync", "gzdoom_vsync", "false", "true");
-                    BindBoolIniFeature(ini, "GlobalSettings", "vid_cropaspect", "gzdoom_cropaspect", "false", "true");
+                    BindBoolIniFeatureOn(ini, "GlobalSettings", "vid_vsync", "gzdoom_vsync", "true", "false");
+                    BindBoolIniFeatureOn(ini, "GlobalSettings", "vid_cropaspect", "gzdoom_cropaspect", "true", "false");
 
                     BindIniFeature(ini, "GlobalSettings", "snd_mididevice", "gzdoom_mididevice", "-5");
 

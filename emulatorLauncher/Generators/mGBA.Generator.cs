@@ -127,20 +127,14 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("ports.qt", "resampleVideo", "0");
 
-                if (SystemConfig.isOptSet("mgba_fps") && SystemConfig.getOptBoolean("mgba_fps"))
-                    ini.WriteValue("ports.qt", "showFps", "1");
-                else
-                    ini.WriteValue("ports.qt", "showFps", "0");
+                BindBoolIniFeature(ini, "ports.qt", "showFps", "mgba_fps", "1", "0");
 
                 if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                     ini.WriteValue("ports.qt", "useDiscordPresence", "1");
                 else
                     ini.WriteValue("ports.qt", "useDiscordPresence", "0");
 
-                if (SystemConfig.isOptSet("mgba_skipbios") && SystemConfig.getOptBoolean("mgba_skipbios"))
-                    ini.WriteValue("ports.qt", "skipBios", "1");
-                else
-                    ini.WriteValue("ports.qt", "skipBios", "0");
+                BindBoolIniFeature(ini, "ports.qt", "skipBios", "mgba_skipbios", "1", "0");
 
                 // Drivers
                 if (SystemConfig.isOptSet("mgba_renderer") && SystemConfig.getOptBoolean("mgba_renderer"))
@@ -149,10 +143,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("ports.qt", "hwaccelVideo", "1");
 
                 // Internal resolution
-                if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
-                    ini.WriteValue("ports.qt", "videoScale", SystemConfig["internal_resolution"]);
-                else
-                    ini.WriteValue("ports.qt", "videoScale", "4");
+                BindIniFeatureSlider(ini, "ports.qt", "videoScale", "internal_resolution", "4");
 
                 // Shaders
                 if (SystemConfig.isOptSet("mgba_shader") && !string.IsNullOrEmpty(SystemConfig["mgba_shader"]))

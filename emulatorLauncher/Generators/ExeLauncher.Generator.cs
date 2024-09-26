@@ -334,7 +334,8 @@ namespace EmulatorLauncher
 
                 //ini.WriteValue("Video", "Width", resolution.Width.ToString());
                 //ini.WriteValue("Video", "Height", resolution.Height.ToString());
-                ini.WriteValue("Video", "VRetrace", SystemConfig["VRetrace"] != "false" ? "1" : "0");
+
+                BindBoolIniFeatureOn(ini, "Video", "VRetrace", "VRetrace", "1", "0");
                 ini.WriteValue("Video", "FullScreen", fullscreen ? "1" : "0");
 
             }
@@ -386,7 +387,7 @@ namespace EmulatorLauncher
                 json["GameHeight"] = resolution.Height.ToString();
             }
 
-            BindFeature(json, "VRetrace", "VRetrace", "1");
+            BindBoolFeatureOn(json, "VRetrace", "VRetrace", "1", "0");
 
             json.Save();
         }
