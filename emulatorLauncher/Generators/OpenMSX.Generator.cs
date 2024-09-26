@@ -210,10 +210,10 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + Path.Combine(scriptspath, "autorunlaserdisc.tcl") + "\"");
             }
 
+            int slot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 0;
+            _saveStateSlot = slot + 1;
             if (File.Exists(SystemConfig["state_file"]) && _saveStatesWatcher != null)
             {
-                int slot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 0;
-                _saveStateSlot = slot + 1;
                 string state = Path.GetFullPath(SystemConfig["state_file"]);
 
                 if (OpenmsxSaveStatesMonitor.GetEmulatorStateName(_saveStatesWatcher.SaveStatesPath, rom, slot, out string stateGameName))

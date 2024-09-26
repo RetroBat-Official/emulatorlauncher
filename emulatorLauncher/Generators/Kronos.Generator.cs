@@ -164,7 +164,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("1.0", "Video\\OSDCore", "3");
                     ini.WriteValue("1.0", "Advanced\\SH2Interpreter", "8");
                     BindIniFeature(ini, "1.0", "View\\Menubar", "kronos_menubar", "1");
-                    BindBoolIniFeature(ini, "1.0", "General\\EnableVSync", "kronos_vsync", "false", "true");
+                    BindBoolIniFeatureOn(ini, "1.0", "General\\EnableVSync", "kronos_vsync", "true", "false");
                     BindBoolIniFeature(ini, "1.0", "General\\ShowFPS", "kronos_fps", "true", "false");
                     BindIniFeature(ini, "1.0", "Video\\AspectRatio", "kronos_ratio", "0");
                     BindIniFeature(ini, "1.0", "Video\\upscale_type", "kronos_scaler", "0");

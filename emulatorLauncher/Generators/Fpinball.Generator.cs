@@ -266,7 +266,7 @@ namespace EmulatorLauncher
                 else
                     regKeyc.SetValue("FullScreen", 0);
 
-                if (SystemConfig.isOptSet("arcademode") && SystemConfig["arcademode"] == "1")
+                if (SystemConfig.isOptSet("arcademode") && SystemConfig.getOptBoolean("arcademode"))
                 {
                     if (Screen.PrimaryScreen.Bounds.Height > Screen.PrimaryScreen.Bounds.Width)
                         regKeyc.SetValue("RotateDegrees", 0); // Already rotated by system
@@ -292,7 +292,7 @@ namespace EmulatorLauncher
                 else
                     regKeyc.SetValue("AspectRatio", 169);
 
-                if (SystemConfig.isOptSet("fp_vsync") && SystemConfig["fp_vsync"] == "0")
+                if (SystemConfig.isOptSet("fp_vsync") && !SystemConfig.getOptBoolean("fp_vsync"))
                     regKeyc.SetValue("VerticalSync", 0);
                 else
                     regKeyc.SetValue("VerticalSync", 1);
@@ -394,8 +394,8 @@ namespace EmulatorLauncher
                 else
                     regKeyc.SetValue("TextureFilter", 0);
 
-                if (SystemConfig.isOptSet("fp_anisotropic"))
-                    regKeyc.SetValue("AnisotropicFiltering", SystemConfig["fp_anisotropic"].ToInteger());
+                if (SystemConfig.isOptSet("fp_anisotropic") && !SystemConfig.getOptBoolean("fp_anisotropic"))
+                    regKeyc.SetValue("AnisotropicFiltering", 0);
                 else
                     regKeyc.SetValue("AnisotropicFiltering", 1);
 

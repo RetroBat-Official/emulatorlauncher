@@ -78,10 +78,10 @@ namespace EmulatorLauncher
                     ini.WriteValue("", "Height", "480");
                 }
 
-                BindIniFeature(ini, "", "Logging", "Logging", "0");
-                BindIniFeature(ini, "", "SkipIntroVideos", "SkipIntroVideos", "0");
-                BindIniFeature(ini, "", "DrawFPS", "DrawFPS", "0");
-                BindIniFeature(ini, "", "EnableCheatKeys", "EnableCheatKeys", "0");
+                BindBoolIniFeature(ini, "", "Logging", "Logging", "1", "0");
+                BindBoolIniFeature(ini, "", "SkipIntroVideos", "SkipIntroVideos", "1", "0");
+                BindBoolIniFeature(ini, "", "DrawFPS", "DrawFPS", "1", "0");
+                BindBoolIniFeature(ini, "", "EnableCheatKeys", "EnableCheatKeys", "1", "0");
                 BindIniFeature(ini, "", "DebugMode", "DebugMode", "0");
                 BindIniFeature(ini, "", "Encoding", "Encoding", "default");
                 BindIniFeature(ini, "", "Bpp", "Bpp", "32");

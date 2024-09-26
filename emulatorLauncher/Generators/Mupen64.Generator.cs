@@ -249,7 +249,7 @@ namespace EmulatorLauncher
                     // Resolution
                     if (SystemConfig.isOptSet("resolution") && !string.IsNullOrEmpty(SystemConfig["resolution"]))
                     {
-                        var res = SystemConfig["resolution"];
+                        var res = SystemConfig["resolution"].ToIntegerString();
 
                         switch (res)
                         {
@@ -366,13 +366,13 @@ namespace EmulatorLauncher
 
                 // Anisotropic filtering
                 if (SystemConfig.isOptSet("anisotropic_filtering") && !string.IsNullOrEmpty(SystemConfig["anisotropic_filtering"]))
-                    ini.WriteValue("User", "texture\\anisotropy", SystemConfig["anisotropic_filtering"]);
+                    ini.WriteValue("User", "texture\\anisotropy", SystemConfig["anisotropic_filtering"].ToIntegerString());
                 else
                     ini.WriteValue("User", "texture\\anisotropy", "0");
 
                 // Resolution
                 if (SystemConfig.isOptSet("resolution") && !string.IsNullOrEmpty(SystemConfig["resolution"]))
-                    ini.WriteValue("User", "frameBufferEmulation\\nativeResFactor", SystemConfig["resolution"]);
+                    ini.WriteValue("User", "frameBufferEmulation\\nativeResFactor", SystemConfig["resolution"].ToIntegerString());
                 else
                     ini.WriteValue("User", "frameBufferEmulation\\nativeResFactor", "0");
 

@@ -90,7 +90,7 @@ namespace EmulatorLauncher
             //setting up command line parameters
             var commandArray = new List<string>();
 
-            if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
+            if (SystemConfig.isOptSet("fullboot") && !SystemConfig.getOptBoolean("fullboot"))
                 commandArray.Add("-slowboot");
             else
                 commandArray.Add("-fastboot");
@@ -177,7 +177,7 @@ namespace EmulatorLauncher
                         }
                     }
 
-                    BindBoolIniFeature(ini, "BIOS", "PatchFastBoot", "fullboot", "false", "true");
+                    BindBoolIniFeatureOn(ini, "BIOS", "PatchFastBoot", "fullboot", "false", "true");
 
                     if (SystemConfig.isOptSet("duckstation_memcardtype") && !string.IsNullOrEmpty(SystemConfig["duckstation_memcardtype"]))
                     {
@@ -273,18 +273,11 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("psx_ratio"))
                         ini.WriteValue("Display", "AspectRatio", "Auto (Game Native)");
 
-                    if (SystemConfig.isOptSet("VSync") && !string.IsNullOrEmpty(SystemConfig["VSync"]))
-                        ini.WriteValue("Display", "VSync", SystemConfig["VSync"]);
-                    else if (Features.IsSupported("VSync"))
-                        ini.WriteValue("Display", "VSync", "true");
 
+                    BindBoolIniFeatureOn(ini, "Display", "VSync", "VSync", "true", "false");
                     BindBoolIniFeature(ini, "Display", "OptimalFramePacing", "duckstation_optimalframepacing", "true", "false");
                     BindIniFeature(ini, "Display", "DeinterlacingMode", "duckstation_deinterlace", "Adaptive");
-
-                    if (SystemConfig.isOptSet("internal_resolution") && !string.IsNullOrEmpty(SystemConfig["internal_resolution"]))
-                        ini.WriteValue("GPU", "ResolutionScale", SystemConfig["internal_resolution"]);
-                    else if (Features.IsSupported("internal_resolution"))
-                        ini.WriteValue("GPU", "ResolutionScale", "1");
+                    BindIniFeatureSlider(ini, "GPU", "ResolutionScale", "internal_resolution", "1");
 
                     if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                         ini.WriteValue("GPU", "Renderer", SystemConfig["gfxbackend"]);
@@ -296,30 +289,11 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("Texture_Enhancement"))
                         ini.WriteValue("GPU", "TextureFilter", "Nearest");
 
-                    if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]))
-                        ini.WriteValue("GPU", "DisableInterlacing", SystemConfig["interlace"]);
-                    else if (Features.IsSupported("DisableInterlacing"))
-                        ini.WriteValue("GPU", "DisableInterlacing", "true");
-
-                    if (SystemConfig.isOptSet("NTSC_Timings") && !string.IsNullOrEmpty(SystemConfig["NTSC_Timings"]))
-                        ini.WriteValue("GPU", "ForceNTSCTimings", SystemConfig["NTSC_Timings"]);
-                    else if (Features.IsSupported("NTSC_Timings"))
-                        ini.WriteValue("GPU", "ForceNTSCTimings", "false");
-
-                    if (SystemConfig.isOptSet("Widescreen_Hack") && !string.IsNullOrEmpty(SystemConfig["Widescreen_Hack"]))
-                        ini.WriteValue("GPU", "WidescreenHack", SystemConfig["Widescreen_Hack"]);
-                    else if (Features.IsSupported("Widescreen_Hack"))
-                        ini.WriteValue("GPU", "WidescreenHack", "false");
-
-                    if (SystemConfig.isOptSet("Disable_Dithering") && !string.IsNullOrEmpty(SystemConfig["Disable_Dithering"]))
-                        ini.WriteValue("GPU", "TrueColor", SystemConfig["Disable_Dithering"]);
-                    else if (Features.IsSupported("Disable_Dithering"))
-                        ini.WriteValue("GPU", "TrueColor", "false");
-
-                    if (SystemConfig.isOptSet("Scaled_Dithering") && !string.IsNullOrEmpty(SystemConfig["Scaled_Dithering"]))
-                        ini.WriteValue("GPU", "ScaledDithering", SystemConfig["Scaled_Dithering"]);
-                    else if (Features.IsSupported("Scaled_Dithering"))
-                        ini.WriteValue("GPU", "ScaledDithering", "false");
+                    BindBoolIniFeatureOn(ini, "GPU", "DisableInterlacing", "duck_deinterlace", "true", "false");
+                    BindBoolIniFeature(ini, "GPU", "ForceNTSCTimings", "NTSC_Timings", "true", "false");
+                    BindBoolIniFeature(ini, "GPU", "WidescreenHack", "Widescreen_Hack", "true", "false");
+                    BindBoolIniFeature(ini, "GPU", "TrueColor", "Disable_Dithering", "true", "false");
+                    BindBoolIniFeature(ini, "GPU", "ScaledDithering", "Scaled_Dithering", "true", "false");
 
                     if (SystemConfig.isOptSet("duck_pgxp") && SystemConfig.getOptBoolean("duck_pgxp"))
                     {
@@ -414,10 +388,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("PostProcessing", "StageCount", "0");
                     }
 
-                    if (SystemConfig.isOptSet("duckstation_osd_enabled") && !SystemConfig.getOptBoolean("duckstation_osd_enabled"))
-                        ini.WriteValue("Display", "ShowOSDMessages", "false");
-                    else
-                        ini.WriteValue("Display", "ShowOSDMessages", "true");
+                    BindBoolIniFeatureOn(ini, "Display", "ShowOSDMessages", "duckstation_osd_enabled", "true", "false");
 
                     if (SystemConfig.isOptSet("audiobackend") && !string.IsNullOrEmpty(SystemConfig["audiobackend"]))
                     ini.WriteValue("Audio", "Backend", SystemConfig["audiobackend"]);
@@ -431,7 +402,7 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("runahead") && !string.IsNullOrEmpty(SystemConfig["runahead"]))
                     {
-                        ini.WriteValue("Main", "RunaheadFrameCount", SystemConfig["runahead"]);
+                        ini.WriteValue("Main", "RunaheadFrameCount", SystemConfig["runahead"].ToIntegerString());
                         ini.WriteValue("Main", "RewindEnable", "false");
                     }
                     else
@@ -457,7 +428,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Main", "DoubleClickTogglesFullscreen", "false");
                     ini.WriteValue("Main", "Language", GetDefaultpsxLanguage());
                     
-                    BindIniFeature(ini, "Main", "DisableAllEnhancements", "duckstation_disable_enhancement", "false");
+                    BindBoolIniFeature(ini, "Main", "DisableAllEnhancements", "duckstation_disable_enhancement", "true", "false");
 
                     ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
 

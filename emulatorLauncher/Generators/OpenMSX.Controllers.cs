@@ -123,8 +123,8 @@ namespace EmulatorLauncher
             { InputKey.b,                   "toggle pause"},
             { InputKey.pageup,              "reverse goback 2"},
             { InputKey.pagedown,            "toggle fastforward" },
-            { InputKey.x,                   "loadstate \\[guess_title\\]." },
-            { InputKey.y,                   "savestate \\[guess_title\\]." }
+            { InputKey.x,                   "loadstate \\[guess_title\\]" },
+            { InputKey.y,                   "savestate \\[guess_title\\]" }
         };
 
         private List<string> directions = new List<string>() { "UP", "DOWN", "RIGHT", "LEFT" };
@@ -327,8 +327,8 @@ namespace EmulatorLauncher
 
             using (StreamWriter kbhotkeys = new StreamWriter(kbHotkeyScript, false))
             {
-                kbhotkeys.WriteLine(@"bind ALT+F8 {savestate [guess_title]." + _saveStateSlot + "}");
-                kbhotkeys.WriteLine(@"bind ALT+F7 {loadstate [guess_title]." + _saveStateSlot + "}");
+                kbhotkeys.WriteLine(@"bind ALT+F8 {savestate [guess_title]_" + _saveStateSlot + "}");
+                kbhotkeys.WriteLine(@"bind ALT+F7 {loadstate [guess_title]_" + _saveStateSlot + "}");
                 kbhotkeys.Close();
             }
 
@@ -396,7 +396,7 @@ namespace EmulatorLauncher
                     else
                     {
                         if (value.StartsWith("loadstate") || value.StartsWith("savestate"))
-                            value += _saveStateSlot + " ";
+                            value += "_" + _saveStateSlot + " ";
 
                         string toAddBind = "bind " + "\"" + shortJoy + " " + mapping + " down\"" + " " + value;
                         string toAddUnbind = "unbind " + "\"" + shortJoy + " " + mapping + " down\"";

@@ -149,13 +149,13 @@ namespace EmulatorLauncher
             BindFeature(video, "VideoFilter", "mesen_filter", "None");
             BindFeature(video, "AspectRatio", "mesen_ratio", "Auto");
             BindBoolFeature(video, "UseBilinearInterpolation", "bilinear_filtering", "true", "false");
-            BindBoolFeature(video, "VerticalSync", "mesen_vsync", "false", "true");
-            BindFeature(video, "ScanlineIntensity", "mesen_scanlines", "0");
+            BindBoolFeatureOn(video, "VerticalSync", "mesen_vsync", "true", "false");
+            BindFeatureSlider(video, "ScanlineIntensity", "mesen_scanlines", "0");
             BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale", "true", "false");
 
             // Emulation menu
             var emulation = json.GetOrCreateContainer("Emulation");
-            BindFeature(emulation, "RunAheadFrames", "mesen_runahead", "0");
+            BindFeatureSlider(emulation, "RunAheadFrames", "mesen_runahead", "0");
 
             // Input menu
             var input = json.GetOrCreateContainer("Input");
@@ -193,7 +193,7 @@ namespace EmulatorLauncher
             BindFeature(section, "Region", "mesen_region", "Auto");
             BindFeature(section, "Revision", "mesen_sms_revision", "Compatibility");
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
-            BindBoolFeature(section, "EnableFmAudio", "mesen_sms_fmaudio", "false", "true");
+            BindBoolFeatureOn(section, "EnableFmAudio", "mesen_sms_fmaudio", "true", "false");
         }
 
         private void ConfigurePCEngine(DynamicJson section, string system)
@@ -217,7 +217,7 @@ namespace EmulatorLauncher
             else if (system == "sgb")
             {
                 section["Model"] = "SuperGameboy";
-                BindBoolFeature(section, "UseSgb2", "mesen_sgb2", "false", "true");
+                BindBoolFeatureOn(section, "UseSgb2", "mesen_sgb2", "true", "false");
                 BindBoolFeature(section, "HideSgbBorders", "mesen_hidesgbborders", "true", "false");
 
                 // Firmwares for sgb need to be copied to emulator folder

@@ -155,7 +155,7 @@ namespace EmulatorLauncher
             // Handle Core part of yml file
             yml["data-storage"] = dataFolder;
 
-            BindFeature(yml, "enable-nearest-neighbor-filter", "eka2l1_nearest_neighbor_filter", "false");
+            BindBoolFeature(yml, "enable-nearest-neighbor-filter", "eka2l1_nearest_neighbor_filter", "true", "false");
             BindFeature(yml, "integer-scaling", "smooth", "false");
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")

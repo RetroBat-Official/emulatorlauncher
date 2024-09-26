@@ -101,7 +101,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Screen", "bShowDriveLed", "FALSE");
 
                 // Add resolution setting from videomode
-                BindBoolIniFeature(ini, "Screen", "bUseVsync", "hatari_vsync", "FALSE", "TRUE");
+                BindBoolIniFeatureOn(ini, "Screen", "bUseVsync", "hatari_vsync", "TRUE", "FALSE");
 
                 // MEMORY
                 string savesFile = Path.Combine(AppConfig.GetFullPath("saves"), "atarist", "hatari", "hatari.sav");
@@ -180,6 +180,7 @@ namespace EmulatorLauncher
                 // Overwrite values if feature is set
                 if (SystemConfig.isOptSet("hatari_frequency") && !string.IsNullOrEmpty(SystemConfig["hatari_frequency"]))
                     ini.WriteValue("System", "nCpuFreq", SystemConfig["hatari_frequency"]);
+
                 if (SystemConfig.isOptSet("hatari_memory") && !string.IsNullOrEmpty(SystemConfig["hatari_memory"]))
                     ini.WriteValue("Memory", "nMemorySize", SystemConfig["hatari_memory"]);
 

@@ -91,7 +91,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "video", "screen_ratio", "magicengine_ratio", "1,1");
                     ini.WriteValue("setup", "desktop", "n");
                     BindIniFeature(ini, "video", "vsync", "magicengine_vsync", "0,1");
-                    BindIniFeature(ini, "video", "frameskip", "magicengine_frameskip", "0");
+                    BindIniFeatureSlider(ini, "video", "frameskip", "magicengine_frameskip", "0");
                     ini.WriteValue("video", "fullscreen", _fullscreen ? "0,1" : "0,0");
                     BindBoolIniFeature(ini, "video", "high_res", "magicengine_hires", "0,1", "0,0");
                     BindBoolIniFeature(ini, "video", "filter", "smooth", "0,1", "0,0");

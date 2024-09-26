@@ -140,7 +140,10 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("fbneo_scanlines") && SystemConfig["fbneo_scanlines"] != "0")
                 {
                     cfg["bVidScanlines"] = "1";
-                    cfg["nVidScanIntensity"] = SystemConfig["fbneo_scanlines"];
+                    if (SystemConfig["fbneo_scanlines"] == "max")
+                        cfg["nVidScanIntensity"] = "0";
+                    else
+                        cfg["nVidScanIntensity"] = SystemConfig["fbneo_scanlines"];
                 }
                 else
                     cfg["bVidScanlines"] = "0";
@@ -151,17 +154,8 @@ namespace EmulatorLauncher
                 else
                     cfg["nAudSelect"] = "0";
 
-                // Force 60Hz
-                if (SystemConfig.isOptSet("fbneo_force60hz") && SystemConfig.getOptBoolean("fbneo_force60hz"))
-                    cfg["bForce60Hz"] = "1";
-                else
-                    cfg["bForce60Hz"] = "0";
-
-                // Run-Ahead
-                if (SystemConfig.isOptSet("fbneo_runahead") && SystemConfig.getOptBoolean("fbneo_runahead"))
-                    cfg["bRunAhead"] = "1";
-                else
-                    cfg["bRunAhead"] = "0";
+                BindBoolFeature(cfg, "bForce60Hz", "fbneo_force60hz", "1", "0");
+                BindBoolFeature(cfg, "bRunAhead", "fbneo_runahead", "1", "0");
 
                 cfg.Save();
             }

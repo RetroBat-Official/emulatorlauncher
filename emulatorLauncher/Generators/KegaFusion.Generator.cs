@@ -95,14 +95,14 @@ namespace EmulatorLauncher
                 ini.WriteValue("", "DFixedAspect", "1");
                 ini.WriteValue("", "DFixedZoom", "0");
 
-                BindIniFeature(ini, "", "VSyncEnabled", "vsync", "1");
+                BindBoolIniFeatureOn(ini, "", "VSyncEnabled", "vsync", "1", "0");
                 BindIniFeature(ini, "", "DResolution", "kega_internal_resolution", "224,1,128,2");
                 BindIniFeature(ini, "", "DScanlines", "kega_scanlines", "3");
                 BindIniFeature(ini, "", "DRenderMode", "kega_rendermode", "0");
-                BindIniFeature(ini, "", "DFiltered", "kega_filter", "1");
-                BindIniFeature(ini, "", "Brighten", "kega_brighten", "1");
-                BindIniFeature(ini, "", "DNTSCAspect", "kega_ntsc_aspect", "1");
-                BindIniFeature(ini, "", "DNearestMultiple", "kega_nearest", "1");
+                BindBoolIniFeatureOn(ini, "", "DFiltered", "kega_filter", "1", "0");
+                BindBoolIniFeatureOn(ini, "", "Brighten", "kega_brighten", "1", "0");
+                BindBoolIniFeatureOn(ini, "", "DNTSCAspect", "kega_ntsc_aspect", "1", "0");
+                BindBoolIniFeatureOn(ini, "", "DNearestMultiple", "kega_nearest", "1", "0");
 
                 if (SystemConfig.isOptSet("kega_scaler") && !string.IsNullOrEmpty(SystemConfig["kega_scaler"]))
                 {
@@ -123,7 +123,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("", "CountryAutoDetect", "1");
                 }
 
-                BindIniFeature(ini, "", "FPSEnabled", "kega_fps", "0");
+                BindBoolIniFeature(ini, "", "FPSEnabled", "kega_fps", "1", "0");
 
                 ConfigureControllers(ini, system);
             }
