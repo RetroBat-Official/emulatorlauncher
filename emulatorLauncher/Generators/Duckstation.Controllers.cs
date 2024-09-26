@@ -268,13 +268,18 @@ namespace EmulatorLauncher
             {
                 ini.WriteValue(padNumber, "InvertLeftStick", "0");
                 ini.WriteValue(padNumber, "InvertRightStick", "0");
-                ini.WriteValue(padNumber, "ButtonDeadzone", "0.250000");
+
+                if (SystemConfig.isOptSet("trigger_deadzone") && !string.IsNullOrEmpty(SystemConfig["trigger_deadzone"]))
+                    ini.WriteValue(padNumber, "ButtonDeadzone", SystemConfig["trigger_deadzone"]);
+                else
+                    ini.WriteValue(padNumber, "ButtonDeadzone", "0.200000");
+
                 ini.WriteValue(padNumber, "AnalogSensitivity", "1.330000");
 
                 if (SystemConfig.isOptSet("stick_deadzone") && !string.IsNullOrEmpty(SystemConfig["stick_deadzone"]))
                     ini.WriteValue(padNumber, "AnalogDeadzone", SystemConfig["stick_deadzone"]);
                 else
-                    ini.WriteValue(padNumber, "AnalogDeadzone", "0.000000");
+                    ini.WriteValue(padNumber, "AnalogDeadzone", "0.150000");
             }
 
             if (SystemConfig.getOptBoolean("psx_triggerswap"))
