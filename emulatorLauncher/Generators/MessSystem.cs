@@ -512,7 +512,8 @@ namespace EmulatorLauncher
                 new MessSystem("snes"         ,"snes"     ,"cart"  ),
                 new MessSystem("gbcolor"      ,"gbcolor"  ,"cart"  ),
                 new MessSystem("gameboy"      ,"gameboy"  ,"cart"  ),
-                new MessSystem("bk0010"       ,"bk001001" ,"cass"  ),                
+                new MessSystem("bk0010"       ,"bk001001" ,"cass"  ),
+                new MessSystem("atari7800"    ,"a7800"    ,"cart"  )
             };
 
         public string Name { get; private set; }
