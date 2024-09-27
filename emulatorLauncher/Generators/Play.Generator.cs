@@ -120,8 +120,8 @@ namespace EmulatorLauncher
                 // Limit framerate
                 XElement limitframerate = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "ps2.limitframerate").FirstOrDefault();
 
-                if (SystemConfig.isOptSet("play_limitframerate") && !string.IsNullOrEmpty(SystemConfig["play_limitframerate"]))
-                    limitframerate.SetAttributeValue("Value", SystemConfig["play_limitframerate"]);
+                if (SystemConfig.isOptSet("play_limitframerate") && !SystemConfig.getOptBoolean("play_limitframerate"))
+                    limitframerate.SetAttributeValue("Value", "false");
                 else
                     limitframerate.SetAttributeValue("Value", "true");
 

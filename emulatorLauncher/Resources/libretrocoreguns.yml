@@ -20,6 +20,17 @@ bsnes:
   start: nul
   start_changereload: nul
   select: nul
+bsnes-jg:
+  reload: nul
+  aux_a: 2
+  aux_b: 3
+  aux_c: nul
+  aux_a_changereload: 3
+  aux_b_changereload: nul
+  aux_c_changereload: nul
+  start: nul
+  start_changereload: nul
+  select: nul
 bsnes_hd_beta:
   reload: nul
   aux_a: 2
