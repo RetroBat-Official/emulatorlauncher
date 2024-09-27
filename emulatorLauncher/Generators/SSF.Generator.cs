@@ -20,6 +20,31 @@ namespace EmulatorLauncher
             if (!SystemConfig.isOptSet("saturn_custom_setting") || !SystemConfig.getOptBoolean("saturn_custom_setting"))
                 SetupConfiguration(path);
 
+            if (Path.GetExtension(rom) == ".m3u")
+            {
+                var lines = File.ReadAllLines(rom);
+                if (lines.Length > 0)
+                {
+                    int index = 1;
+                    if (SystemConfig.isOptSet("ssf_discindex") && !string.IsNullOrEmpty(SystemConfig["ssf_discindex"]))
+                        index = SystemConfig["ssf_discindex"].ToInteger();
+                    
+                    if (index < 1)
+                        SimpleLogger.Instance.Error("[ERROR] inconsistency in feature value.");
+
+                    string newRomName = lines[index - 1];
+
+                    string newRom = Path.Combine(Path.GetDirectoryName(rom), newRomName);
+
+                    if (File.Exists(newRom))
+                        rom = newRom;
+                    else
+                        SimpleLogger.Instance.Error("[ERROR] File specified in m3u does not exist.");
+                }
+                else
+                    SimpleLogger.Instance.Error("[ERROR] empty m3u file.");
+            }
+
             return new ProcessStartInfo()
             {
                 FileName = exe,
