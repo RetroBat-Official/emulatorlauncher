@@ -159,7 +159,7 @@ namespace EmulatorLauncher
 
             bindFeature("letterbox", "#t");
 
-            if (SystemConfig.isOptSet("opengoal_vsync") && SystemConfig.getOptBoolean("opengoal_vsync"))
+            if (SystemConfig.isOptSet("opengoal_vsync") && !SystemConfig.getOptBoolean("opengoal_vsync"))
                 bindFeature("vsync", "#f");
             else
                 bindFeature("vsync", "#t");
@@ -169,7 +169,7 @@ namespace EmulatorLauncher
             else
                 bindFeature("discord-rpc?", "#f");
 
-            if (SystemConfig.isOptSet("opengoal_subtitles") && SystemConfig.getOptBoolean("opengoal_subtitles"))
+            if (SystemConfig.isOptSet("opengoal_subtitles") && !SystemConfig.getOptBoolean("opengoal_subtitles"))
                 bindFeature("subtitles?", "#f");
             else
                 bindFeature("subtitles?", "#t");

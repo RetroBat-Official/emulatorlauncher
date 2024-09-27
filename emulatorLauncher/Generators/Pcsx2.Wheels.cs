@@ -134,7 +134,7 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(usbSection1, "Type", "Pad");
                 pcsx2ini.WriteValue(usbSection1, "Pad_subtype", forceWheelType ?? wheelmapping1.Pcsx2_Type);
 
-                if (SystemConfig.isOptSet("pcsx2_force_feedback") && SystemConfig.getOptBoolean("pcsx2_force_feedback"))
+                if (SystemConfig.isOptSet("pcsx2_force_feedback") && !SystemConfig.getOptBoolean("pcsx2_force_feedback"))
                 {
                     pcsx2ini.WriteValue(usbSection1, "Pad_FFDevice", "None");
                     pcsx2ini.WriteValue(usbSection1, "Pad_SteeringLeft", GetWheelMapping(sdlWheel1, wheelmapping1.Steer, wheelIndex1, -1));
@@ -180,7 +180,7 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(usbSection1, "Type", "Pad");
                 pcsx2ini.WriteValue(usbSection1, "Pad_subtype", forceWheelType ?? wheelSDLmapping1.Pcsx2_Type);
 
-                if (SystemConfig.isOptSet("pcsx2_force_feedback") && SystemConfig.getOptBoolean("pcsx2_force_feedback"))
+                if (SystemConfig.isOptSet("pcsx2_force_feedback") && !SystemConfig.getOptBoolean("pcsx2_force_feedback"))
                 {
                     pcsx2ini.WriteValue(usbSection1, "Pad_FFDevice", "None");
                     pcsx2ini.WriteValue(usbSection1, "Pad_SteeringLeft", sdlDevice + "-" + wheelSDLmapping1.Steer);
@@ -266,7 +266,7 @@ namespace EmulatorLauncher
                     pcsx2ini.WriteValue(usbSection2, "Type", "Pad");
                     pcsx2ini.WriteValue(usbSection2, "Pad_subtype", forceWheelType2 ?? wheelmapping2.Pcsx2_Type);
 
-                    if (SystemConfig.isOptSet("pcsx2_force_feedback") && SystemConfig.getOptBoolean("pcsx2_force_feedback"))
+                    if (SystemConfig.isOptSet("pcsx2_force_feedback") && !SystemConfig.getOptBoolean("pcsx2_force_feedback"))
                     {
                         pcsx2ini.WriteValue(usbSection2, "Pad_FFDevice", "None");
                         pcsx2ini.WriteValue(usbSection2, "Pad_SteeringLeft", GetWheelMapping(sdlWheel2, wheelmapping2.Steer, wheelIndex2, -1));
@@ -312,7 +312,7 @@ namespace EmulatorLauncher
                     pcsx2ini.WriteValue(usbSection2, "Type", "Pad");
                     pcsx2ini.WriteValue(usbSection2, "Pad_subtype", forceWheelType2 ?? wheelSDLmapping2.Pcsx2_Type);
                     
-                    if (SystemConfig.isOptSet("pcsx2_force_feedback") && SystemConfig.getOptBoolean("pcsx2_force_feedback"))
+                    if (SystemConfig.isOptSet("pcsx2_force_feedback") && !SystemConfig.getOptBoolean("pcsx2_force_feedback"))
                     {
                         pcsx2ini.WriteValue(usbSection2, "Pad_FFDevice", "Null");
                         pcsx2ini.WriteValue(usbSection2, "Pad_SteeringLeft", sdlDevice2 + "-" + wheelSDLmapping2.Steer);

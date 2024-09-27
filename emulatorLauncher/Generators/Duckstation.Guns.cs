@@ -1,6 +1,9 @@
 ﻿using System.Linq;
+using System.IO;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
+using System.Configuration;
 
 namespace EmulatorLauncher
 {
@@ -117,12 +120,28 @@ namespace EmulatorLauncher
                 ini.WriteValue(padNumber, "B", "Pointer-0/MiddleButton");
             }
 
-            if (SystemConfig.isOptSet("duck_crosshair") && !string.IsNullOrEmpty(SystemConfig["duck_crosshair"]))   // Crosshair size
-                ini.WriteValue(padNumber, "CrosshairScale", SystemConfig["duck_crosshair"]);
-            else
-                ini.WriteValue(padNumber, "CrosshairScale", "0.500000");
+            string crosshairSize = "0.500000";
+            if (SystemConfig.isOptSet("duck_crosshair") && !string.IsNullOrEmpty(SystemConfig["duck_crosshair"]))
+                crosshairSize = SystemConfig["duck_crosshair"].Substring(0, SystemConfig["duck_crosshair"].Length - 4);
+            ini.WriteValue(padNumber, "CrosshairScale", crosshairSize);
             
             ini.WriteValue(padNumber, "XScale", "0.930000");    // Adjust Xscale for mouse calibration
+
+            // Crosshair
+            ini.Remove(padNumber, "CrosshairImagePath");
+            string crosshairPath = Path.Combine(Path.Combine(AppConfig.GetFullPath("duckstation"), "cross"));
+            if (!Directory.Exists(crosshairPath)) try { Directory.CreateDirectory(crosshairPath); }
+                catch { }
+            string crosshairFile = Path.Combine(crosshairPath, "crosshair.png");
+
+            if (!File.Exists(crosshairFile))
+                SimpleLogger.Instance.Info("[GUNS] No crosshair file found in " + crosshairFile);
+
+            if (SystemConfig.isOptSet("duck_custom_crosshair") && SystemConfig.getOptBoolean("duck_custom_crosshair") && File.Exists(crosshairFile))
+            {
+                ini.WriteValue(padNumber, "CrosshairImagePath", crosshairFile);
+                ini.WriteValue("Main", "HideCursorInFullscreen", "true");
+            }
         }
     }
 }
