@@ -459,7 +459,6 @@ namespace EmulatorLauncher
             { "Pioneer_PX-7", new string[] { "px-7_basic-bios1.rom", "px-7_pbasic.rom" } },
             { "ColecoVision_SGM", new string[] { "coleco.rom" } },
             { "Spectravideo_SVI-738_SE", new string[] { "svi-738_disk.rom", "svi-738_rs232.rom", "svi-738_se_basic-bios1.rom" } }
-
         };
     }
 }
