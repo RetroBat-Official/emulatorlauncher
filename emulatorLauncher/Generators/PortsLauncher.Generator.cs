@@ -72,10 +72,12 @@ namespace EmulatorLauncher
             { "sonicretro", "RSDKv4_64.exe"},
             { "sonicretrocd", "RSDKv3_64.exe"},
             { "opengoal", "gk.exe"},
+            { "cgenius", "CGenius.exe"}
         };
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
         {
+            { "cgenius", "yes"},
             { "sonic3air", "no"},
             { "sonicmania", "no"},
             { "sonicretro", "no"},

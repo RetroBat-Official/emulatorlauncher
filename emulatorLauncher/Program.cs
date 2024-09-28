@@ -123,6 +123,7 @@ namespace EmulatorLauncher
             { "sonicretro", () => new PortsLauncherGenerator() },
             { "sonicretrocd", () => new PortsLauncherGenerator() },
             { "opengoal", () => new PortsLauncherGenerator() },
+            { "cgenius", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() },
             { "jgenesis", () => new JgenesisGenerator() },
             { "singe2", () => new Singe2Generator() },
