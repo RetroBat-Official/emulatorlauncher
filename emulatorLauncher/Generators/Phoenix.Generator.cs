@@ -209,7 +209,7 @@ namespace EmulatorLauncher
             XElement video = settings.Element("Video");
             video.SetAttributeValue("keep-aspect", "true");
             
-            if (SystemConfig.isOptSet("phoenix_vsync") && SystemConfig.getOptBoolean("phoenix_vsync"))
+            if (SystemConfig.isOptSet("phoenix_vsync") && !SystemConfig.getOptBoolean("phoenix_vsync"))
                 video.SetAttributeValue("vsynk", "false");
             else
                 video.SetAttributeValue("vsynk", "true");

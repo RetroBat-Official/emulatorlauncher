@@ -138,7 +138,7 @@ namespace EmulatorLauncher
                     commandArray.Add("-bigpicture");
                 }
 
-                if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot"))
+                if (SystemConfig.isOptSet("fullboot") && !SystemConfig.getOptBoolean("fullboot"))
                     commandArray.Add("-slowboot");
             }
             else 
@@ -150,7 +150,7 @@ namespace EmulatorLauncher
 
                 commandArray.Add("--nogui");
 
-                if (SystemConfig.isOptSet("fullboot") && SystemConfig.getOptBoolean("fullboot") && SystemConfig["pcsx2_forcebios"] != "ps3_ps2_emu_bios.bin")
+                if (SystemConfig.isOptSet("fullboot") && !SystemConfig.getOptBoolean("fullboot") && SystemConfig["pcsx2_forcebios"] != "ps3_ps2_emu_bios.bin")
                     commandArray.Add("--fullboot");
             }
 
@@ -361,8 +361,8 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(iniFile))
                 {                
                     //Activate user hacks - default activation if a hack is enabled later  
-                    if ((SystemConfig.isOptSet("UserHacks") && !string.IsNullOrEmpty(SystemConfig["UserHacks"])))
-                        ini.WriteValue("Settings", "UserHacks", SystemConfig["UserHacks"]);
+                    if (SystemConfig.isOptSet("UserHacks") && SystemConfig.getOptBoolean("UserHacks"))
+                        ini.WriteValue("Settings", "UserHacks", "1");
                     else
                         ini.WriteValue("Settings", "UserHacks", "0");
 
@@ -396,9 +396,9 @@ namespace EmulatorLauncher
                         ini.WriteValue("Settings", "TVShader", "0");
 
                     //Wild Arms offset
-                    if (SystemConfig.isOptSet("Offset") && !string.IsNullOrEmpty(SystemConfig["Offset"]))
+                    if (SystemConfig.isOptSet("Offset") && SystemConfig.getOptBoolean("Offset"))
                     {
-                        ini.WriteValue("Settings", "UserHacks_WildHack", SystemConfig["Offset"]);
+                        ini.WriteValue("Settings", "UserHacks_WildHack", "1");
                         ini.WriteValue("Settings", "UserHacks", "1");
                     }
                     else if (Features.IsSupported("Offset"))
@@ -410,7 +410,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Settings", "UserHacks_HalfPixelOffset", SystemConfig["UserHacks_HalfPixelOffset"]);
                         ini.WriteValue("Settings", "UserHacks", "1");
                     }
-                    else if (Features.IsSupported("Offset"))
+                    else if (Features.IsSupported("UserHacks_HalfPixelOffset"))
                         ini.WriteValue("Settings", "UserHacks_HalfPixelOffset", "0");
 
                     //Half-screen fix
@@ -419,7 +419,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Settings", "UserHacks_Half_Bottom_Override", SystemConfig["UserHacks_Half_Bottom_Override"]);
                         ini.WriteValue("Settings", "UserHacks", "1");
                     }
-                    else if (Features.IsSupported("Offset"))
+                    else if (Features.IsSupported("UserHacks_Half_Bottom_Override"))
                         ini.WriteValue("Settings", "UserHacks_Half_Bottom_Override", "-1");
 
                     //Round sprite
@@ -428,18 +428,18 @@ namespace EmulatorLauncher
                         ini.WriteValue("Settings", "UserHacks_round_sprite_offset", SystemConfig["UserHacks_round_sprite_offset"]);
                         ini.WriteValue("Settings", "UserHacks", "1");
                     }
-                    else if (Features.IsSupported("Offset"))
+                    else if (Features.IsSupported("UserHacks_round_sprite_offset"))
                         ini.WriteValue("Settings", "UserHacks_round_sprite_offset", "0");
 
                     //Shader - Texture filtering of display
-                    if (SystemConfig.isOptSet("bilinear_filtering") && !string.IsNullOrEmpty(SystemConfig["bilinear_filtering"]))
-                        ini.WriteValue("Settings", "linear_present", SystemConfig["bilinear_filtering"]);
+                    if (SystemConfig.isOptSet("bilinear_filtering") && SystemConfig.getOptBoolean("bilinear_filtering"))
+                        ini.WriteValue("Settings", "linear_present", "1");
                     else if (Features.IsSupported("bilinear_filtering"))
                         ini.WriteValue("Settings", "linear_present", "0");
 
                     //Shader - FXAA Shader
-                    if (SystemConfig.isOptSet("fxaa") && !string.IsNullOrEmpty(SystemConfig["fxaa"]))
-                        ini.WriteValue("Settings", "fxaa", SystemConfig["fxaa"]);
+                    if (SystemConfig.isOptSet("fxaa") && SystemConfig.getOptBoolean("fxaa"))
+                        ini.WriteValue("Settings", "fxaa", "1");
                     else if (Features.IsSupported("fxaa"))
                         ini.WriteValue("Settings", "fxaa", "0");
 
@@ -450,8 +450,8 @@ namespace EmulatorLauncher
                         ini.WriteValue("Settings", "Renderer", "12");
 
                     //Deinterlacing : automatic or NONE options
-                    if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]))
-                        ini.WriteValue("Settings", "interlace", SystemConfig["interlace"]);
+                    if (SystemConfig.isOptSet("interlace") && !SystemConfig.getOptBoolean("interlace"))
+                        ini.WriteValue("Settings", "interlace", "0");
                     else if (Features.IsSupported("interlace"))
                         ini.WriteValue("Settings", "interlace", "7");
 
@@ -462,25 +462,25 @@ namespace EmulatorLauncher
                         ini.WriteValue("Settings", "MaxAnisotropy", "0");
 
                     //Align sprite
-                    if (SystemConfig.isOptSet("align_sprite") && !string.IsNullOrEmpty(SystemConfig["align_sprite"]))
+                    if (SystemConfig.isOptSet("align_sprite") && SystemConfig.getOptBoolean("align_sprite"))
                     {
-                        ini.WriteValue("Settings", "UserHacks_align_sprite_X", SystemConfig["align_sprite"]);
+                        ini.WriteValue("Settings", "UserHacks_align_sprite_X", "1");
                         ini.WriteValue("Settings", "UserHacks", "1");
                     }
                     else if (Features.IsSupported("align_sprite"))
                         ini.WriteValue("Settings", "UserHacks_align_sprite_X", "0");
 
                     //Merge sprite
-                    if (SystemConfig.isOptSet("UserHacks_merge_pp_sprite") && !string.IsNullOrEmpty(SystemConfig["UserHacks_merge_pp_sprite"]))
+                    if (SystemConfig.isOptSet("UserHacks_merge_pp_sprite") && SystemConfig.getOptBoolean("UserHacks_merge_pp_sprite"))
                     {
                         ini.WriteValue("Settings", "UserHacks_merge_pp_sprite", SystemConfig["UserHacks_merge_pp_sprite"]);
                         ini.WriteValue("Settings", "UserHacks", "1");
                     }
-                    else if (Features.IsSupported("align_sprite"))
+                    else if (Features.IsSupported("UserHacks_merge_pp_sprite"))
                         ini.WriteValue("Settings", "UserHacks_merge_pp_sprite", "0");
 
                     //Disable safe features
-                    if (SystemConfig.isOptSet("UserHacks_Disable_Safe_Features") && !string.IsNullOrEmpty(SystemConfig["UserHacks_Disable_Safe_Features"]))
+                    if (SystemConfig.isOptSet("UserHacks_Disable_Safe_Features") && SystemConfig.getOptBoolean("UserHacks_Disable_Safe_Features"))
                     {
                         ini.WriteValue("Settings", "UserHacks_Disable_Safe_Features", SystemConfig["UserHacks_Disable_Safe_Features"]);
                         ini.WriteValue("Settings", "UserHacks", "1");
@@ -508,41 +508,21 @@ namespace EmulatorLauncher
                     }
 
                     //Skipdraw Range
-                    if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "1"))
+                    if (SystemConfig.isOptSet("UserHacks_SkipDraw_Start") && !string.IsNullOrEmpty(SystemConfig["UserHacks_SkipDraw_Start"]))
                     {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "1");
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", SystemConfig["UserHacks_SkipDraw_Start"].ToIntegerString());
                         ini.WriteValue("Settings", "UserHacks", "1");
                     }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "2"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "2");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "3"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "3");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "4"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "4");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (SystemConfig.isOptSet("skipdraw") && (SystemConfig["skipdraw"] == "5"))
-                    {
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "1");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "5");
-                        ini.WriteValue("Settings", "UserHacks", "1");
-                    }
-                    else if (Features.IsSupported("skipdraw"))
-                    {
+                    else
                         ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "0");
-                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
+                    
+                    if (SystemConfig.isOptSet("UserHacks_SkipDraw_End") && !string.IsNullOrEmpty(SystemConfig["UserHacks_SkipDraw_End"]))
+                    {
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw", SystemConfig["UserHacks_SkipDraw_End"].ToIntegerString());
+                        ini.WriteValue("Settings", "UserHacks", "1");
                     }
+                    else
+                        ini.WriteValue("Settings", "UserHacks_SkipDraw", "0");
 
                     //CRC Hack Level
                     if (SystemConfig.isOptSet("crc_hack_level") && !string.IsNullOrEmpty(SystemConfig["crc_hack_level"]))

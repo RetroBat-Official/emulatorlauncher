@@ -35,6 +35,7 @@ namespace EmulatorLauncher.Libretro
                 { "bsnes_cplusplus98", "bsnes C++98 (v085)" },
                 { "bsnes_hd_beta", "bsnes-hd beta" },
                 { "bsnes", "bsnes" },
+                { "bsnes-jg", "Bsnes-jg" },
                 { "bsnes_mercury_accuracy", "bsnes-mercury Accuracy" },
                 { "bsnes_mercury_balanced", "bsnes-mercury Balanced" },
                 { "bsnes_mercury_performance", "bsnes-mercury Performance" },
@@ -301,6 +302,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureBoom3(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
+            Configurebsnesjg(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
@@ -784,6 +786,29 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["bsnes_touchscreen_lightgun_superscope_reverse"] = (gunInfo != null && gunInfo.ReversedButtons ? "ON" : "OFF");
                     coreSettings["bsnes_touchscreen_lightgun"] = "ON";
                 }
+
+                SetupLightGuns(retroarchConfig, gunId, core, 2);
+            }
+        }
+
+        private void Configurebsnesjg(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "bsnes-jg")
+                return;
+
+            BindFeature(coreSettings, "bsnes_jg_aspect", "bsnes_jg_aspect", "Auto");
+            BindFeature(coreSettings, "bsnes_jg_rsqual", "bsnes_jg_rsqual", "fast");
+            BindFeatureSlider(coreSettings, "bsnes_jg_runahead", "bsnes_jg_runahead", "0");
+            BindBoolFeature(coreSettings, "bsnes_jg_hotfixes", "bsnes_jg_hotfixes", "on", "off");
+
+            // Gun configuration
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                string gunId = "260";
+
+                var gunInfo = Program.GunGames.FindGunGame(system, SystemConfig["rom"]);
+                if (gunInfo != null && gunInfo.GunType == "justifier")
+                    gunId = "516";
 
                 SetupLightGuns(retroarchConfig, gunId, core, 2);
             }

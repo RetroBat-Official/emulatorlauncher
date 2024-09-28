@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
@@ -12,6 +13,7 @@ namespace EmulatorLauncher
     {
         private void ConfigurePort(List<string> commandArray, string rom, string exe)
         {
+            Configurecgenius(commandArray, rom);
             ConfigureOpenGoal(commandArray, rom);
             ConfigureSonic3air(rom, exe);
             ConfigureSonicMania(rom, exe);
@@ -19,6 +21,81 @@ namespace EmulatorLauncher
         }
 
         #region ports
+        private void Configurecgenius(List<string> commandArray, string rom)
+        {
+            if (_emulator != "cgenius")
+                return;
+
+            string cfgFile = Path.Combine(_path, "cgenius.cfg");
+
+            using (var ini = IniFile.FromFile(cfgFile, IniOptions.UseSpaces))
+            {
+                try
+                {
+                    // Paths
+                    ini.WriteValue("FileHandling", "EnableLogfile", "true");
+                    ini.WriteValue("FileHandling", "SearchPath1", "${BIN}");
+                    ini.WriteValue("FileHandling", "SearchPath2", Path.Combine(AppConfig.GetFullPath("roms"), "cgenius"));
+
+                    //Video
+                    /// Screen size
+                    if (_resolution != null)
+                    {
+                        ini.WriteValue("Video", "height", _resolution.Height.ToString());
+                        ini.WriteValue("Video", "width", _resolution.Width.ToString());
+                    }
+                    else
+                    {
+                        ini.WriteValue("Video", "height", Screen.PrimaryScreen.Bounds.Height.ToString());
+                        ini.WriteValue("Video", "width", Screen.PrimaryScreen.Bounds.Width.ToString());
+                    }
+
+                    /// Game resolution
+                    if (SystemConfig.isOptSet("cgenius_resolution") && !string.IsNullOrEmpty(SystemConfig["cgenius_resolution"]))
+                    {
+                        string[] gameRes = SystemConfig["cgenius_resolution"].Split('x');
+                        string gameWidth = gameRes[0];
+                        string gameHeight = gameRes[1];
+
+                        ini.WriteValue("Video", "gameWidth", gameWidth);
+                        ini.WriteValue("Video", "gameHeight", gameHeight);
+                    }
+                    else
+                    {
+                        ini.WriteValue("Video", "gameWidth", "320");
+                        ini.WriteValue("Video", "gameHeight", "200");
+                    }
+
+                    ini.WriteValue("Video", "fullscreen", _fullscreen ? "true" : "false");
+                    BindIniFeature(ini, "Video", "filter", "cgenius_filter", "1");
+                    BindIniFeature(ini, "Video", "aspect", "ratio", "4:3");
+                    BindIniFeature(ini, "Video", "OGLfilter", "OGLfilter", "nearest");
+                    BindBoolIniFeatureOn(ini, "Video", "vsync", "cgenius_vsync", "true", "false");
+                    BindBoolIniFeature(ini, "Video", "integerScaling", "integerscale", "true", "false");
+                    BindBoolIniFeature(ini, "Video", "TiltedScreen", "TiltedScreen", "true", "false");
+                    BindIniFeatureSlider(ini, "Video", "fps", "cgenius_fps", "60");
+
+                    // Game options
+                    BindBoolIniFeatureOn(ini, "Game", "hud", "cgenius_hud", "true", "false");
+                    BindBoolIniFeature(ini, "Game", "showfps", "cgenius_fps", "true", "false");
+                }
+                catch 
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Error opening cgenius.cfg config file.");
+                }
+            }
+
+            string relativeGamePath = Path.GetDirectoryName(rom);
+            string romPath = Path.Combine(AppConfig.GetFullPath("roms"), "cgenius");
+            relativeGamePath = relativeGamePath.Replace(romPath, "");
+            relativeGamePath = relativeGamePath.Replace('\\', '/');
+            int index = relativeGamePath.IndexOf('/');
+            if (index > -1 && relativeGamePath.StartsWith("/"))
+                relativeGamePath = relativeGamePath.Remove(index, 1);
+
+            commandArray.Add("dir=" + "\"" + relativeGamePath + "\"");
+        }
+
         private void ConfigureOpenGoal(List<string> commandArray, string rom)
         {
             List<string> openGoalGames = new List<string> { "jak1", "jak2" };
