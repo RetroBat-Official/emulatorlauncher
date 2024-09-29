@@ -110,9 +110,9 @@ namespace EmulatorLauncher
                         ini.WriteValue("Display", "ogl_shader", "None");
                     */
 
-                    BindIniFeature(ini, "General", "LimitSpeed", "raine_throttle", "1");
-                    BindIniFeature(ini, "General", "frame_skip", "raine_frame_skip", "0");
-                    BindIniFeature(ini, "General", "ShowFPS", "raine_showfps", "0");
+                    BindBoolIniFeatureOn(ini, "General", "LimitSpeed", "raine_throttle", "1", "0");
+                    BindIniFeatureSlider(ini, "General", "frame_skip", "raine_frame_skip", "0");
+                    BindBoolIniFeature(ini, "General", "ShowFPS", "raine_showfps", "1", "0");
 
                     ini.WriteValue("Display", "video_mode", "0");
                     ini.WriteValue("Display", "ogl_render", "1");
@@ -124,7 +124,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "Display", "ogl_render", "raine_render", "0");
                     BindIniFeature(ini, "Display", "ogl_filter", "raine_filter", "0");
                     BindIniFeature(ini, "Display", "ogl_dbuf", "raine_doublebuffer", "0");
-                    BindIniFeature(ini, "Display", "keep_ratio", "raine_keep_ratio", "1");
+                    BindBoolIniFeatureOn(ini, "Display", "keep_ratio", "raine_keep_ratio", "1", "0");
 
                     BindIniFeature(ini, "Sound", "sample_rate", "raine_sample_rate", "44100");
 
@@ -133,10 +133,10 @@ namespace EmulatorLauncher
 
                     BindIniFeature(ini, "neocd", "music_volume", "raine_music_volume", "75");
                     BindIniFeature(ini, "neocd", "sfx_volume", "raine_sfx_volume", "75");
-                    BindIniFeature(ini, "neocd", "allowed_speed_hacks", "raine_speed_hack", "1");
+                    BindBoolIniFeatureOn(ini, "neocd", "allowed_speed_hacks", "raine_speed_hack", "1", "0");
                     BindIniFeature(ini, "neocd", "cdrom_speed", "raine_cd_speed", "8");
 
-                    BindIniFeature(ini, "emulator_joy_config", "hat_for_moves", "raine_hat_for_moves", "1");
+                    BindBoolIniFeatureOn(ini, "emulator_joy_config", "hat_for_moves", "raine_hat_for_moves", "1", "0");
 
                     CreateControllerConfiguration(ini);
                 }

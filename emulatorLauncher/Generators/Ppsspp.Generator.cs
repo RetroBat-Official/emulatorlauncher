@@ -145,7 +145,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Graphics", "FullScreen", fullscreen ? "True" : "False");
 
                     if (SystemConfig.isOptSet("ppsspp_resolution") && !string.IsNullOrEmpty(SystemConfig["ppsspp_resolution"]))
-                        ini.WriteValue("Graphics", "InternalResolution", SystemConfig["ppsspp_resolution"]);
+                        ini.WriteValue("Graphics", "InternalResolution", SystemConfig["ppsspp_resolution"].ToIntegerString());
                     else
                         ini.WriteValue("Graphics", "InternalResolution", "0");
 
@@ -175,13 +175,10 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Graphics", "MultiSampleLevel", "0");
 
-                    if (SystemConfig.isOptSet("ppsspp_vsync") && !SystemConfig.getOptBoolean("ppsspp_vsync"))
-                        ini.WriteValue("Graphics", "VSyncInterval", "False");
-                    else
-                        ini.WriteValue("Graphics", "VSyncInterval", "True");
+                    BindBoolIniFeatureOn(ini, "Graphics", "VSyncInterval", "ppsspp_vsync", "True", "False");
 
                     if (SystemConfig.isOptSet("ppsspp_frame_skipping") && !string.IsNullOrEmpty(SystemConfig["ppsspp_frame_skipping"]))
-                        ini.WriteValue("Graphics", "FrameSkip", SystemConfig["ppsspp_frame_skipping"]);
+                        ini.WriteValue("Graphics", "FrameSkip", SystemConfig["ppsspp_frame_skipping"].ToIntegerString());
                     else
                         ini.WriteValue("Graphics", "FrameSkip", "0");
 
@@ -203,9 +200,9 @@ namespace EmulatorLauncher
                         ini.WriteValue("Graphics", "TexHardwareScaling", "False");
                         ini.WriteValue("Graphics", "TextureShader", "Off");
 
-                        if (SystemConfig.isOptSet("ppsspp_textureenhancement_level") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement_level"]) && SystemConfig["ppsspp_textureenhancement_level"] != "1")
+                        if (SystemConfig.isOptSet("ppsspp_textureenhancement_level") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement_level"]) && SystemConfig["ppsspp_textureenhancement_level"].ToIntegerString() != "1")
                         {
-                            ini.WriteValue("Graphics", "TexScalingLevel", SystemConfig["ppsspp_textureenhancement_level"]);
+                            ini.WriteValue("Graphics", "TexScalingLevel", SystemConfig["ppsspp_textureenhancement_level"].ToIntegerString());
                             ini.WriteValue("Graphics", "TexDeposterize", "True");
                         }
                     }

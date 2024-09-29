@@ -133,8 +133,8 @@ namespace EmulatorLauncher
 
             //System
             BindFeature(json, "system_language", "switch_language", GetDefaultswitchLanguage());
-            BindFeature(json, "enable_vsync", "vsync", "true");
-            BindFeature(json, "enable_ptc", "enable_ptc", "true");
+            BindBoolFeatureOn(json, "enable_vsync", "vsync", "true", "false");
+            BindBoolFeatureOn(json, "enable_ptc", "enable_ptc", "true", "false");
 
             // internet access
             if (SystemConfig.isOptSet("ryujinx_network") && SystemConfig["ryujinx_network"] == "internet")
@@ -142,18 +142,18 @@ namespace EmulatorLauncher
             else
                 json["enable_internet_access"] = "false";
 
-            BindFeature(json, "enable_fs_integrity_checks", "enable_fs_integrity_checks", "true");
+            BindBoolFeatureOn(json, "enable_fs_integrity_checks", "enable_fs_integrity_checks", "true", "false");
             BindFeature(json, "audio_backend", "audio_backend", "SDL2");
             BindFeature(json, "memory_manager_mode", "memory_manager_mode", "HostMappedUnsafe");
-            BindFeature(json, "expand_ram", "expand_ram", "false");
-            BindFeature(json, "ignore_missing_services", "ignore_missing_services", "false");
+            BindBoolFeature(json, "expand_ram", "expand_ram", "true", "false");
+            BindBoolFeature(json, "ignore_missing_services", "ignore_missing_services", "true", "false");
             BindFeature(json, "system_region", "system_region", "USA");
 
             //Graphics Settings
-            BindFeature(json, "backend_threading", "backend_threading", "Auto");
+            BindBoolFeatureAuto(json, "backend_threading", "backend_threading", "On", "Off", "Auto");
             
-            BindFeature(json, "enable_shader_cache", "enable_shader_cache", "true");
-            BindFeature(json, "enable_texture_recompression", "enable_texture_recompression", "false");
+            BindBoolFeatureOn(json, "enable_shader_cache", "enable_shader_cache", "true", "false");
+            BindBoolFeature(json, "enable_texture_recompression", "enable_texture_recompression", "true", "false");
 
             // Resolution
             string res;
