@@ -661,6 +661,19 @@ namespace EmulatorLauncher
             }
         }
 
+        protected void BindBoolFeatureAuto(DynamicJson cfg, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = trueValue;
+                else if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = falseValue;
+                else
+                    cfg[settingName] = autoValue;
+            }
+        }
+
         protected void BindFeatureSlider(DynamicJson cfg, string settingName, string featureName, string defaultValue, int decimalPlaces = 0, bool force = false)
         {
             if (force || Features.IsSupported(featureName))

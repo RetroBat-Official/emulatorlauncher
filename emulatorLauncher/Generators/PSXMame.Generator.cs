@@ -185,10 +185,7 @@ namespace EmulatorLauncher
                 ini["frameskip"] = "0";
                 ini["seconds_to_run"] = "0";
 
-                if (SystemConfig.isOptSet("psxmame_throttle") && SystemConfig.getOptBoolean("psxmame_throttle"))
-                    ini["throttle"] = "0";
-                else
-                    ini["throttle"] = "1";
+                BindBoolFeatureOn(ini, "throttle", "psxmame_throttle", "1", "0");
 
                 ini["sleep"] = "1";
                 ini["speed"] = "1.0";
@@ -210,10 +207,7 @@ namespace EmulatorLauncher
                 ini["pause_brightness"] = "0.65";
 
                 // Vector options
-                if (SystemConfig.isOptSet("psxmame_antialiasing") && SystemConfig.getOptBoolean("psxmame_antialiasing"))
-                    ini["antialias"] = "1";
-                else
-                    ini["antialias"] = "0";
+                BindBoolFeature(ini, "antialias", "psxmame_antialiasing", "1", "0");
 
                 ini["beam"] = "1.0";
                 ini["flicker"] = "0";
@@ -329,6 +323,34 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        protected void BindBoolFeature(PSXMameIniFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = trueValue;
+                else
+                    cfg[settingName] = falseValue;
+            }
+        }
+
+        protected void BindBoolFeatureOn(PSXMameIniFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = falseValue;
+                else
+                    cfg[settingName] = trueValue;
+            }
+        }
+
+        protected void BindFeature(PSXMameIniFile cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
         }
     }
 
