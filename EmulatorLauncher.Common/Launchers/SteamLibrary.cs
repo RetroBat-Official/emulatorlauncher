@@ -131,7 +131,57 @@ namespace EmulatorLauncher.Common.Launchers
                     SimpleLogger.Instance.Info("[WARNING] No game executable found, cannot put ES in Wait-mode.");
                 }
             }
-            catch { SimpleLogger.Instance.Info("[WARNING] Impossible to read SteamAppInfo."); }
+            catch
+            {
+                SimpleLogger.Instance.Info("[WARNING] Impossible to read SteamAppInfo.");
+            }
+
+            try
+            {
+                SimpleLogger.Instance.Info("[INFO] Searching executable in Steam file 'appinfo.vdf' : alternative method");
+                string appInfo = File.ReadAllText(appinfoPath);
+                int index = appInfo.IndexOf(steamAppId.ToString());
+
+                if (index != -1)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Found Game \"" + steamAppId + "\" in 'appinfo.vdf'");
+                    string substringToSearch = appInfo.Substring(index);
+
+                    int exeIndex = substringToSearch.IndexOf(".exe");
+
+                    if (exeIndex != -1)
+                    {
+                        int actualExeIndex = index + exeIndex;
+
+                        // Restrict the search to the substring between the app ID and the .exe
+                        int sectionStart = index;
+                        int sectionEnd = actualExeIndex;
+                        if (sectionEnd != -1)
+                        {
+                            string restrictedContent = appInfo.Substring(sectionStart, sectionEnd - sectionStart);
+
+                            if (restrictedContent != null)
+                            {
+                                int nullIndex = restrictedContent.LastIndexOf('\0');
+                                if (nullIndex != -1)
+                                {
+                                    string steamExeName = restrictedContent.Substring(nullIndex + 1);
+
+                                    if (steamExeName != null)
+                                    {
+                                        SimpleLogger.Instance.Info("[INFO] Game executable " + steamExeName + " found (alternative method).");
+                                        return steamExeName;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch 
+            {
+                SimpleLogger.Instance.Info("[WARNING] Impossible to find Steam executable name : consider .gameexe method.");
+            }
 
             return null;
         }
