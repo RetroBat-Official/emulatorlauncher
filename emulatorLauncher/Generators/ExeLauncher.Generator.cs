@@ -9,7 +9,6 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
 using System.Xml.Linq;
-using EmulatorLauncher.Common.Launchers;
 
 namespace EmulatorLauncher
 {
@@ -25,6 +24,7 @@ namespace EmulatorLauncher
         private bool _isGameExePath;
         private bool _steamRun = false;
         private bool _exeFile;
+        private bool _nonSteam = false;
 
         private GameLauncher _gameLauncher;
 
@@ -168,7 +168,20 @@ namespace EmulatorLauncher
                         string urlline = urlLines.FirstOrDefault(l => l.StartsWith("URL=steam"));
                         if (!string.IsNullOrEmpty(urlline) && !urlline.Contains("-silent"))
                         {
-                            rom = (urlline.Substring(4, urlline.Length - 4)) + " " + "-silent";
+                            for (int i = 0; i < urlLines.Length; i++)
+                            {
+                                if (urlLines[i].StartsWith("URL="))
+                                {
+                                    string temp = urlLines[i];
+                                    urlLines[i] = urlLines[i] + "\"" + " -silent";
+                                }
+                            }
+                            try
+                            {
+                                File.WriteAllLines(rom, urlLines);
+                            }
+                            catch { }
+
                             _steamRun = true;
                         }
                     }
@@ -181,11 +194,14 @@ namespace EmulatorLauncher
                         {
                             string iconPath = iconline.Substring(9, iconline.Length - 9);
                             _exename = Path.GetFileNameWithoutExtension(iconPath);
+                            if (!string.IsNullOrEmpty(_exename))
+                            {
+                                _nonSteam = true;
+                                SimpleLogger.Instance.Info("[STEAM] Found name of executable from icon info: " + _exename);
+                            }
                         }
                     }
                 }
-
-                
             }
 
             else if (extension == ".game")
@@ -283,6 +299,7 @@ namespace EmulatorLauncher
             var ret = new ProcessStartInfo()
             {
                 FileName = rom,
+                Arguments = "-silent",
                 WorkingDirectory = path
             };
 
@@ -466,7 +483,7 @@ namespace EmulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            if (_isGameExePath || _exeFile)
+            if (_isGameExePath || _exeFile || _nonSteam)
             {
                 Dictionary<string, bool> launcherProcessStatusBefore = new Dictionary<string, bool>();
                 Dictionary<string, bool> launcherProcessStatusAfter = new Dictionary<string, bool>();

@@ -56,12 +56,19 @@ namespace EmulatorLauncher.Common.Launchers
                 SimpleLogger.Instance.Info("[INFO] STEAM appID: " + shorturl);
             
             int steamAppId = shorturl.ToInteger();
+            ulong SteamAppIdLong = shorturl.ToUlong();
 
-            string exe = FindExecutableName(steamAppId);
+            if (steamAppId == 0 && SteamAppIdLong == 0)
+            {
+                SimpleLogger.Instance.Info("[STEAM] Non-Steam game detected.");
+                return null;
+            }
+
+            string exe = FindExecutableName(steamAppId, SteamAppIdLong);
 
             if (string.IsNullOrEmpty(exe))
             {
-                SimpleLogger.Instance.Info("[WARNING] Cannot find STEAM game executable");
+                SimpleLogger.Instance.Info("[WARNING] Cannot find STEAM game executable in appinfo.vdf.");
                 return null;
             }
             else
@@ -70,13 +77,14 @@ namespace EmulatorLauncher.Common.Launchers
             return Path.GetFileNameWithoutExtension(exe);
         }
 
-        static string FindExecutableName(int steamAppId)
+        static string FindExecutableName(int steamAppId, ulong SteamAppIdLong = 1999999999999999999)
         {
             string path = GetInstallPath();
             if (string.IsNullOrEmpty(path))
                 throw new ApplicationException("Can not find Steam installation folder in registry.");
             
             string appinfoPath = Path.Combine(path, "appcache", "appinfo.vdf");
+
             if (!File.Exists(appinfoPath))
                 SimpleLogger.Instance.Info("[WARNING] Missing file " + appinfoPath);
 
@@ -88,6 +96,8 @@ namespace EmulatorLauncher.Common.Launchers
                 SimpleLogger.Instance.Info("[INFO] Reading Steam file 'appinfo.vdf'");
 
                 var app = reader.Apps.FirstOrDefault(a => a.AppID == steamAppId);
+                if (app == null || steamAppId == 0)
+                    app = reader.Apps.FirstOrDefault(a => a.AppID == SteamAppIdLong);
                 if (app == null)
                     return null;
 
@@ -141,6 +151,8 @@ namespace EmulatorLauncher.Common.Launchers
                 SimpleLogger.Instance.Info("[INFO] Searching executable in Steam file 'appinfo.vdf' : alternative method");
                 string appInfo = File.ReadAllText(appinfoPath);
                 int index = appInfo.IndexOf(steamAppId.ToString());
+                if (steamAppId == 0)
+                    index = appInfo.IndexOf(SteamAppIdLong.ToString());
 
                 if (index != -1)
                 {
@@ -292,7 +304,7 @@ namespace EmulatorLauncher.Common.Launchers
             return dbs;
         }
 
-        static string GetInstallPath()
+        public static string GetInstallPath()
         {
             try
             {
