@@ -9,6 +9,7 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
 using System.Xml.Linq;
+using EmulatorLauncher.Common.Launchers;
 
 namespace EmulatorLauncher
 {
@@ -22,6 +23,7 @@ namespace EmulatorLauncher
         private string _systemName;
         private string _exename = null;
         private bool _isGameExePath;
+        private bool _steamRun = false;
         private bool _exeFile;
 
         private GameLauncher _gameLauncher;
@@ -154,6 +156,36 @@ namespace EmulatorLauncher
                         return null;
                     }
                 }
+
+                // Run Steam games via their shortcuts and not just run the .url file
+                var urlLines = File.ReadAllLines(rom);
+
+                if (urlLines.Length > 0)
+                {
+                    // Get URL to run and add -silent argument
+                    if (urlLines.Any(l => l.StartsWith("URL=steam://rungameid")))
+                    {
+                        string urlline = urlLines.FirstOrDefault(l => l.StartsWith("URL=steam"));
+                        if (!string.IsNullOrEmpty(urlline) && !urlline.Contains("-silent"))
+                        {
+                            rom = (urlline.Substring(4, urlline.Length - 4)) + " " + "-silent";
+                            _steamRun = true;
+                        }
+                    }
+
+                    // Get executable name from icon path
+                    if (string.IsNullOrEmpty(_exename) && urlLines.Any(l => l.StartsWith("IconFile")))
+                    {
+                        string iconline = urlLines.FirstOrDefault(l => l.StartsWith("IconFile"));
+                        if (iconline.EndsWith(".exe"))
+                        {
+                            string iconPath = iconline.Substring(9, iconline.Length - 9);
+                            _exename = Path.GetFileNameWithoutExtension(iconPath);
+                        }
+                    }
+                }
+
+                
             }
 
             else if (extension == ".game")
@@ -232,7 +264,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (!File.Exists(rom))
+            if (!File.Exists(rom) && !_steamRun)
                 return null;
 
             if (Path.GetExtension(rom).ToLower() == ".m3u")

@@ -222,7 +222,7 @@ namespace EmulatorLauncher
                     {
                         ini.WriteValue("Layout", "layout_option\\default", "false");
                         ini.WriteValue("Layout", "layout_option", SystemConfig["citraqt_layout_option"]);
-                        SimpleLogger.Instance.Info("[INFO] Setting layout option to : " + SystemConfig["lime_layout_option"]);
+                        SimpleLogger.Instance.Info("[INFO] Setting layout option to : " + SystemConfig["citraqt_layout_option"]);
                     }
                     else
                     {

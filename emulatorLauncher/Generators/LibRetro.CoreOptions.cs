@@ -3375,9 +3375,7 @@ namespace EmulatorLauncher.Libretro
 
                         if (File.Exists(biosFileSource))
                             File.Copy(biosFileSource, biosFileTarget);
-
                     }
-
                 }
             }
             else
@@ -3409,17 +3407,6 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-vi-aa", "parallel_vi_aa", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-vi-bilinear", "parallel_vi_bilinear", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-dither-filter", "parallel_rdp_dither", "enabled", "disabled");
-
-            if (SystemConfig["parallel_gfx_plugin"] != "parallel")
-            {
-                coreSettings["parallel-n64-parallel-rdp-downscaling"] = "disable";
-                coreSettings["parallel-n64-parallel-rdp-upscaling"] = "1x";
-                coreSettings["parallel-n64-parallel-rdp-gamma-dither"] = "enabled";
-                coreSettings["parallel-n64-parallel-rdp-divot-filter"] = "enabled";
-                coreSettings["parallel-n64-parallel-rdp-vi-aa"] = "enabled";
-                coreSettings["parallel-n64-parallel-rdp-vi-bilinear"] = "enabled";
-                coreSettings["parallel-n64-parallel-rdp-dither-filter"] = "enabled";
-            }
 
             // Glide64 options
             BindFeature(coreSettings, "parallel-n64-filtering", "parallel_filtering", "automatic");

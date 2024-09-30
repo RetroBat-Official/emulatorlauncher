@@ -40,7 +40,7 @@ namespace EmulatorLauncher
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             //settings
-            SetupConfiguration(path, rom, fullscreen);
+            SetupConfiguration(path, rom, fullscreen, resolution);
 
             var commandArray = new List<string>();
 
@@ -61,7 +61,7 @@ namespace EmulatorLauncher
         /// </summary>
         /// <param name="path"></param>
         /// <param name="rom"></param>
-        private void SetupConfiguration(string path, string rom, bool fullscreen)
+        private void SetupConfiguration(string path, string rom, bool fullscreen, ScreenResolution resolution)
         {
             string settingsFile = Path.Combine(path, "user", "config.toml");
             string romPath = Path.GetDirectoryName(rom);
@@ -79,7 +79,15 @@ namespace EmulatorLauncher
                 else
                     toml.WriteValue("General", "Fullscreen", "false");
 
+                toml.WriteValue("General", "autoUpdate", "false");
+                toml.WriteValue("General", "showSplash", "false");
+
                 // GPU section
+                if (!fullscreen)
+                {
+                    toml.WriteValue("GPU", "screenHeight", resolution == null ? ScreenResolution.CurrentResolution.Height.ToString() : resolution.Height.ToString());
+                    toml.WriteValue("GPU", "screenWidth", resolution == null ? ScreenResolution.CurrentResolution.Width.ToString() : resolution.Width.ToString());
+                }
 
                 // Settings section
                 string ps4Lang = Getps4LangFromEnvironment();
