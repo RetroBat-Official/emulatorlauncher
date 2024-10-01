@@ -12,6 +12,7 @@ namespace EmulatorLauncher
         private string _emulator;
         private string _path;
         private string _exeName;
+        private string _romPath;
         private bool _fullscreen;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -32,6 +33,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            _romPath = Path.GetDirectoryName(rom);
+
             if (systemBezels.ContainsKey(emulator) && systemBezels[emulator] != "no")
             {
                 string bezelType = systemBezels[emulator];
@@ -51,6 +54,7 @@ namespace EmulatorLauncher
 
             List<string> commandArray = new List<string>();
 
+            CopySavesToEmulator();
             ConfigurePort(commandArray, rom, exe);
 
             string args = null;
@@ -100,6 +104,85 @@ namespace EmulatorLauncher
                 return 0;
 
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"));
+            if (_emulator == "cgenius")
+            {
+                string rbSavePath = Path.Combine(savesPath, "cgenius");
+                if (!Directory.Exists(rbSavePath))
+                    try { Directory.CreateDirectory(rbSavePath); } catch { }
+
+                string emulatorSavesPath = Path.Combine(_path, "save");
+
+                if (Directory.Exists(emulatorSavesPath) && Directory.Exists(rbSavePath))
+                    try { FileTools.CopyDirectory(emulatorSavesPath, rbSavePath, true, true); } catch { }
+            }
+
+            if (_emulator == "sonicmania")
+            {
+                string emulatorSaveFile = Path.Combine(_romPath, "SaveData.bin");
+                string rbSavePath = Path.Combine(savesPath, "sonicmania");
+                if (!Directory.Exists(rbSavePath))
+                    try { Directory.CreateDirectory(rbSavePath); } catch { }
+
+                if (File.Exists(emulatorSaveFile) && Directory.Exists(rbSavePath))
+                {
+                    string rbSaveFile = Path.Combine(rbSavePath, "SaveData.bin");
+                    if (!File.Exists(rbSaveFile))
+                        try { File.Copy(emulatorSaveFile, rbSaveFile, true); } catch { }
+                    else if (File.GetLastWriteTime(emulatorSaveFile) > File.GetLastWriteTime(rbSaveFile))
+                        try { File.Copy(emulatorSaveFile, rbSaveFile, true); } catch { }
+                }
+            }
+
+            base.Cleanup();
+        }
+
+        private void CopySavesToEmulator()
+        {
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"));
+            if (_emulator == "cgenius")
+            {
+                string rbSavePath = Path.Combine(savesPath, "cgenius");
+                if (!Directory.Exists(rbSavePath))
+                {
+                    try { Directory.CreateDirectory(rbSavePath); } catch { }
+                    return;
+                }
+                
+                string emulatorSavesPath = Path.Combine(_path, "save");
+                if (!Directory.Exists(emulatorSavesPath))
+                    try { Directory.CreateDirectory(emulatorSavesPath); } catch { }
+
+                if (Directory.Exists(emulatorSavesPath) && Directory.Exists(rbSavePath))
+                    try { FileTools.CopyDirectory(rbSavePath, emulatorSavesPath, true, true); } catch { }
+            }
+
+            else if (_emulator == "sonicmania")
+            {
+                string rbSavePath = Path.Combine(savesPath, "sonicmania");
+                if (!Directory.Exists(rbSavePath))
+                {
+                    try { Directory.CreateDirectory(rbSavePath); } catch { }
+                    return;
+                }
+
+                string rbSavesFile = Path.Combine(rbSavePath, "SaveData.bin");
+                if (!File.Exists(rbSavesFile))
+                    return;
+
+                string emulatorSavesFile = Path.Combine(_romPath, "SaveData.bin");
+                
+                if (!File.Exists(emulatorSavesFile))
+                    try { File.Copy(rbSavesFile, emulatorSavesFile, true); } catch { }
+                else if (File.GetLastWriteTime(rbSavesFile) > File.GetLastWriteTime(emulatorSavesFile))
+                    try { File.Copy(rbSavesFile, emulatorSavesFile, true); } catch { }
+            }
+
+            return;
         }
     }
 }
