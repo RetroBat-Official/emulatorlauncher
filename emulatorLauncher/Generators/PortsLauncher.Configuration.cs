@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
@@ -78,6 +77,8 @@ namespace EmulatorLauncher
                     // Game options
                     BindBoolIniFeatureOn(ini, "Game", "hud", "cgenius_hud", "true", "false");
                     BindBoolIniFeature(ini, "Game", "showfps", "cgenius_fps", "true", "false");
+
+                    ConfigureCGeniusControls(ini);
                 }
                 catch 
                 {
