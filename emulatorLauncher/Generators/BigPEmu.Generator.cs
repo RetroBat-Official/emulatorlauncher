@@ -13,6 +13,19 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private string _path;
+        private SaveStatesWatcher _saveStatesWatcher;
+        private static int _saveStateSlot;
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
+        }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -36,6 +49,19 @@ namespace EmulatorLauncher
                     rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
                     ValidateUncompressedGame();
                 }
+            }
+
+            if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
+            {
+                string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+                string emulatorPath = Path.Combine(path, "userdata");
+
+                _saveStatesWatcher = new BigPemuSaveStatesMonitor(rom, emulatorPath, localPath);
+                _saveStatesWatcher.PrepareEmulatorRepository();
+                _saveStateSlot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot - 1 : 0;
+
+                if (_saveStateSlot > 0 && SystemConfig.isOptSet("state_file") && !string.IsNullOrEmpty(SystemConfig["state_file"]) && File.Exists(SystemConfig["state_file"]))
+                    _saveStateSlot++;
             }
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
@@ -101,9 +127,10 @@ namespace EmulatorLauncher
                 //system part
                 var jsonSystem = bigpemucore.GetOrCreateContainer("System");
                 BindBoolFeature(jsonSystem, "PALMode", "pal_mode", "1", "0");
+                jsonSystem["StateSlot"] = _saveStateSlot.ToString();
                 jsonSystem["PerGameSlots"] = "1";
                 jsonSystem["SaveAutoIncr"] = "1";
-
+                
                 if (system == "jaguarcd" || Path.GetExtension(rom).ToLowerInvariant() == ".cue")
                 {
                     jsonSystem["AttachButch"] = "1";

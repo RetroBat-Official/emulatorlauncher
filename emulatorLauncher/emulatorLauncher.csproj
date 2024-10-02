@@ -105,6 +105,9 @@
     <Compile Include="Generators\BigPEmu.Controllers.cs">
       <DependentUpon>BigPEmu.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\BigPEmu.SaveStatesMonitor.cs">
+      <DependentUpon>BigPEmu.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Bizhawk.Generator.cs" />
     <Compile Include="Generators\Bizhawk.Controllers.cs">
       <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
