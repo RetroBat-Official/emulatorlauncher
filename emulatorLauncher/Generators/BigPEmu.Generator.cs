@@ -14,7 +14,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private string _path;
         private SaveStatesWatcher _saveStatesWatcher;
-        private static int _saveStateSlot;
+        private int _saveStateSlot = 0;
 
         public override void Cleanup()
         {
@@ -63,6 +63,8 @@ namespace EmulatorLauncher
                 if (_saveStateSlot > 0 && SystemConfig.isOptSet("state_file") && !string.IsNullOrEmpty(SystemConfig["state_file"]) && File.Exists(SystemConfig["state_file"]))
                     _saveStateSlot++;
             }
+            else
+                _saveStatesWatcher = null;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -127,7 +129,9 @@ namespace EmulatorLauncher
                 //system part
                 var jsonSystem = bigpemucore.GetOrCreateContainer("System");
                 BindBoolFeature(jsonSystem, "PALMode", "pal_mode", "1", "0");
-                jsonSystem["StateSlot"] = _saveStateSlot.ToString();
+                if (_saveStatesWatcher != null)
+                    jsonSystem["StateSlot"] = _saveStateSlot.ToString();
+                
                 jsonSystem["PerGameSlots"] = "1";
                 jsonSystem["SaveAutoIncr"] = "1";
                 
