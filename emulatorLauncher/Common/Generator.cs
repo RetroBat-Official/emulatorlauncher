@@ -519,7 +519,10 @@ namespace EmulatorLauncher
                 {
                     int toRemove = 6 - decimalPlaces;
                     string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-                    cfg.SetElementValue(settingName, SystemConfig.GetValueOrDefault(featureName, value.Substring(0, value.Length - toRemove)));
+                    if (value != defaultValue)
+                        cfg.SetElementValue(settingName, SystemConfig.GetValueOrDefault(featureName, value.Substring(0, value.Length - toRemove)));
+                    else
+                        cfg.SetElementValue(settingName, SystemConfig.GetValueOrDefault(featureName, value));
                 }
                 else
                     cfg.SetElementValue(settingName, defaultValue);
@@ -547,7 +550,10 @@ namespace EmulatorLauncher
                 {
                     int toRemove = 6 - decimalPlaces;
                     string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-                    cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    if (value != defaultValue)
+                        cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    else
+                        cfg[settingName] = value;
                 }
                 else
                     cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
@@ -584,7 +590,10 @@ namespace EmulatorLauncher
                 {
                     int toRemove = 6 - decimalPlaces;
                     string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-                    cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    if (value != defaultValue)
+                        cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    else
+                        cfg[settingName] = value;
                 }
                 else
                     cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
@@ -682,7 +691,10 @@ namespace EmulatorLauncher
                 {
                     int toRemove = 6 - decimalPlaces;
                     string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-                    cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    if (value != defaultValue)
+                        cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    else
+                        cfg[settingName] = value;
                 }
                 else
                     cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
@@ -739,7 +751,10 @@ namespace EmulatorLauncher
                 {
                     int toRemove = 6 - decimalPlaces;
                     string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-                    cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    if (value != defaultValue)
+                        cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    else
+                        cfg[settingName] = value;
                 }
                 else
                     cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
@@ -786,7 +801,10 @@ namespace EmulatorLauncher
                 {
                     int toRemove = 6 - decimalPlaces;
                     string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-                    ini.WriteValue(section, settingName, value.Substring(0, value.Length - toRemove));
+                    if (value != defaultValue)
+                        ini.WriteValue(section, settingName, value.Substring(0, value.Length - toRemove));
+                    else
+                        ini.WriteValue(section, settingName, value);
                 }
                 else
                     ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue));
@@ -834,7 +852,10 @@ namespace EmulatorLauncher
                 {
                     int toRemove = 6 - decimalPlaces;
                     string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-                    cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    if (value != defaultValue)
+                        cfg[settingName] = value.Substring(0, value.Length - toRemove);
+                    else
+                        cfg[settingName] = value;
                 }
                 else
                     cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
