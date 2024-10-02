@@ -121,7 +121,7 @@
     <value>Descargando {0}</value>
   </data>
   <data name="FPinballDeveloperMode" xml:space="preserve">
-    <value>ADVERETENCIA : Future Pinball requiere que el modo desarrollador esté activado en la configuración de Windows</value>
+    <value>ADVERTENCIA : Future Pinball requiere que el modo desarrollador esté activado en la configuración de Windows</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>Instalando....</value>
