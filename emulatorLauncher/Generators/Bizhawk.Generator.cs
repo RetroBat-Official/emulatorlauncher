@@ -13,6 +13,8 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private string _path;
+        private SaveStatesWatcher _saveStatesWatcher;
+        private int _saveStateSlot;
 
         private static readonly List<string> preferredRomExtensions = new List<string>() { ".bin", ".cue", ".img", ".iso", ".rom" };
         private static readonly List<string> zipSystems = new List<string>() { "3ds", "psx", "saturn", "n64", "n64dd", "pcenginecd", "jaguarcd", "vectrex", "odyssey2", "uzebox" };
@@ -52,6 +54,18 @@ namespace EmulatorLauncher
             {
                 rom = File.ReadAllText(rom);
             }
+
+            if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
+            {
+                string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+                string emulatorPath = Path.Combine(_path, "sstates", system );
+
+                _saveStatesWatcher = new BigPemuSaveStatesMonitor(rom, emulatorPath, localPath);
+                _saveStatesWatcher.PrepareEmulatorRepository();
+                _saveStateSlot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 1;
+            }
+            else
+                _saveStatesWatcher = null;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -194,6 +208,18 @@ namespace EmulatorLauncher
             else
                 json["StartFullscreen"] = "false";
 
+            // Savestates
+            if (_saveStateSlot != -1)
+            {
+                if (_saveStateSlot == 0)
+                    json["SaveSlot"] = "10";
+                else
+                    json["SaveSlot"] = _saveStateSlot.ToString();
+            }
+                
+            if (_saveStatesWatcher != null && !string.IsNullOrEmpty(SystemConfig["state_file"]) && File.Exists(SystemConfig["state_file"]))
+                json["AutoLoadLastSaveSlot"] = "true";
+
             // Set Paths
             var pathEntries = json.GetOrCreateContainer("PathEntries");
             pathEntries.Remove("Paths");
@@ -223,7 +249,7 @@ namespace EmulatorLauncher
                 paths.Add(romPath);
             }
 
-            string saveStateFolder = Path.Combine(AppConfig.GetFullPath("saves"), system, emulator, "sstates");
+            string saveStateFolder = Path.Combine(_path, "sstates", system);
             if (!Directory.Exists(saveStateFolder))
                 try { Directory.CreateDirectory(saveStateFolder); }
                 catch { }

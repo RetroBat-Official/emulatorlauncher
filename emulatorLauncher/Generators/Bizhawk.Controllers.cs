@@ -82,6 +82,25 @@ namespace EmulatorLauncher
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(controller, json, system, core);
+
+            ConfigureHotkeys(json);
+        }
+
+        private void ConfigureHotkeys(DynamicJson json)
+        {
+            var hotkeyBindings = json.GetOrCreateContainer("HotkeyBindings");
+            for (int i = 1; i < 11; i++)
+            {
+                hotkeyBindings["Save State " + i] = "Ctrl+F" + i;
+            }
+            hotkeyBindings["Rewind"] = "F1";
+            hotkeyBindings["Fast Forward"] = "F2";
+            hotkeyBindings["Pause"] = "F9";
+            hotkeyBindings["Quick Load"] = "F3";
+            hotkeyBindings["Quick Save"] = "F4";
+            hotkeyBindings["Screenshot"] = "F12";
+            hotkeyBindings["Previous Slot"] = "F5";
+            hotkeyBindings["Next Slot"] = "F6";
         }
 
         private void ConfigureInput(Controller controller, DynamicJson json, string system, string core)

@@ -65,8 +65,15 @@ namespace EmulatorLauncher
             //Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(input, controller);
-        }
 
+            input["InputVer"] = "2";
+
+            if (_useSdl)
+                input["InputPluginVer"] = "666";
+            else
+                input["InputPluginVer"] = "0";
+
+        }
         private void ConfigureInput(DynamicJson input, Controller controller)
         {
             if (controller == null || controller.Config == null)
@@ -98,27 +105,27 @@ namespace EmulatorLauncher
             string left = GetKeyboardCode(keyboard, InputKey.left);
             string right = GetKeyboardCode(keyboard, InputKey.right);
 
-            triggerList.Add(1, button_c ?? "30");
-            triggerList.Add(2, button_b ?? "31");
-            triggerList.Add(3, button_a ?? "32");
-            triggerList.Add(4, pause ?? "16");
-            triggerList.Add(5, option ?? "17");
-            triggerList.Add(6, up ?? "200");
-            triggerList.Add(7, down ?? "208");
-            triggerList.Add(8, left ?? "203");
-            triggerList.Add(9, right ?? "205");
-            triggerList.Add(10,"11");
-            triggerList.Add(11,"2");
-            triggerList.Add(12, "3");
-            triggerList.Add(13, "4");
-            triggerList.Add(14, "5");
-            triggerList.Add(15, "6");
-            triggerList.Add(16, "7");
-            triggerList.Add(17, "8");
-            triggerList.Add(18, "9");
-            triggerList.Add(19, "10");
-            triggerList.Add(20, "24");
-            triggerList.Add(21, "25");
+            triggerList.Add(1, button_c != null ? button_c : (_useSdl? "4" : "30"));
+            triggerList.Add(2, button_b != null ? button_b : (_useSdl? "22" : "31"));
+            triggerList.Add(3, button_a != null ? button_a : (_useSdl ? "7" : "32"));
+            triggerList.Add(4, pause != null ? pause : (_useSdl ? "20" : "16"));
+            triggerList.Add(5, option != null ? option : (_useSdl ? "26" : "17"));
+            triggerList.Add(6, up != null ? up : (_useSdl ? "82" : "200"));
+            triggerList.Add(7, down != null ? down : (_useSdl ? "81" : "208"));
+            triggerList.Add(8, left != null ? left : (_useSdl ? "80" : "203"));
+            triggerList.Add(9, right != null ? right : (_useSdl ? "79" : "205"));
+            triggerList.Add(10, _useSdl ? "39" : "11");
+            triggerList.Add(11, _useSdl ? "30" : "2");
+            triggerList.Add(12, _useSdl ? "31" : "3");
+            triggerList.Add(13, _useSdl ? "32" : "4");
+            triggerList.Add(14, _useSdl ? "33" : "5");
+            triggerList.Add(15, _useSdl ? "34" : "6");
+            triggerList.Add(16, _useSdl ? "35" : "7");
+            triggerList.Add(17, _useSdl ? "36" : "8");
+            triggerList.Add(18, _useSdl ? "37" : "9");
+            triggerList.Add(19, _useSdl ? "38" : "10");
+            triggerList.Add(20, _useSdl ? "18" : "24");
+            triggerList.Add(21, _useSdl ? "19" : "25");
             triggerList.Add(22, null);
             triggerList.Add(23, null);
             triggerList.Add(24, null);
@@ -135,14 +142,14 @@ namespace EmulatorLauncher
             triggerList.Add(35, null);
             triggerList.Add(36, null);
             triggerList.Add(37, null);
-            triggerList.Add(38, "1");
-            triggerList.Add(39, "60");
-            triggerList.Add(40, "59");
-            triggerList.Add(41, "61");
-            triggerList.Add(42, "62");
-            triggerList.Add(43, "68");
+            triggerList.Add(38, _useSdl ? "41" : "1");
+            triggerList.Add(39, _useSdl ? "59" : "60");
+            triggerList.Add(40, _useSdl ? "58" : "59");
+            triggerList.Add(41, _useSdl ? "60" : "61");
+            triggerList.Add(42, _useSdl ? "61" : "62");
+            triggerList.Add(43, _useSdl ? "62" : "63");
             triggerList.Add(44, null);
-            triggerList.Add(45, "20");
+            triggerList.Add(45, _useSdl ? "23" : "20");
             triggerList.Add(46, null);
             triggerList.Add(47, null);
             triggerList.Add(48, null);

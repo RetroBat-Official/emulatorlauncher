@@ -212,7 +212,7 @@ namespace EmulatorLauncher
 
             int slot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 0;
             _saveStateSlot = slot + 1;
-            if (File.Exists(SystemConfig["state_file"]) && _saveStatesWatcher != null)
+            if (!string.IsNullOrEmpty(SystemConfig["state_file"]) && File.Exists(SystemConfig["state_file"]) && _saveStatesWatcher != null)
             {
                 string state = Path.GetFullPath(SystemConfig["state_file"]);
 
