@@ -204,6 +204,9 @@
     <Compile Include="Generators\Jgenesis.Controllers.cs">
       <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Jgenesis.SaveStatesMonitor.cs">
+      <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Jynx.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Controllers.cs">
