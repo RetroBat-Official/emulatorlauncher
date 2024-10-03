@@ -12,6 +12,9 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private bool _fullscreen;
         private string _romName;
+        private bool _isArcade;
+        private SaveStatesWatcher _saveStatesWatcher;
+        private int _saveStateSlot;
 
         public FlycastGenerator()
         {
@@ -30,6 +33,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            _isArcade = (system != "dreamcast" && system != "dc");
             _romName = Path.GetFileNameWithoutExtension(rom);
             _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             bool wide = SystemConfig.isOptSet("flycast_ratio") && SystemConfig["flycast_ratio"] != "normal";
@@ -39,6 +43,18 @@ namespace EmulatorLauncher
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
+
+            if (!_isArcade && Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
+            {
+                string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+                string emulatorPath = Path.Combine(path, "data");
+
+                _saveStatesWatcher = new FlycastSaveStatesMonitor(rom, emulatorPath, localPath, Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "savestateicon.png"));
+                _saveStatesWatcher.PrepareEmulatorRepository();
+                _saveStateSlot = _saveStatesWatcher.Slot != -1 ? (_saveStatesWatcher.Slot != 0 ? _saveStatesWatcher.Slot : 1) : 1;
+            }
+            else
+                _saveStatesWatcher = null;
 
             SetupConfiguration(path, system, resolution);
 
@@ -95,14 +111,29 @@ namespace EmulatorLauncher
                 ini.WriteValue("config", "Dreamcast.HideLegacyNaomiRoms", "yes");
                 BindBoolIniFeatureOn(ini, "config", "ForceFreePlay", "flycast_freeplay", "yes", "no");
 
-                if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
+                // Autoload savestate
+                if (_saveStatesWatcher != null && !string.IsNullOrEmpty(SystemConfig["state_file"]) && File.Exists(SystemConfig["state_file"]))
                 {
                     ini.WriteValue("config", "Dreamcast.AutoLoadState", "yes");
-                    ini.WriteValue("config", "Dreamcast.AutoSaveState", "yes");
+                    ini.WriteValue("config", "Dreamcast.SavestateSlot", _saveStateSlot.ToString());
+                }
+                else if (_saveStatesWatcher != null)
+                {
+                    ini.WriteValue("config", "Dreamcast.AutoLoadState", "no");
+                    ini.WriteValue("config", "Dreamcast.SavestateSlot", _saveStateSlot.ToString());
                 }
                 else
                 {
                     ini.WriteValue("config", "Dreamcast.AutoLoadState", "no");
+                    ini.WriteValue("config", "Dreamcast.SavestateSlot", "1");
+                }
+
+                if (SystemConfig.isOptSet("autosave") && SystemConfig.getOptBoolean("autosave"))
+                {
+                    ini.WriteValue("config", "Dreamcast.AutoSaveState", "yes");
+                }
+                else
+                {
                     ini.WriteValue("config", "Dreamcast.AutoSaveState", "no");
                 }
 
@@ -295,6 +326,17 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
         }
 
         public override int RunAndWait(ProcessStartInfo path)

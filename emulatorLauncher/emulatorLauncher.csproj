@@ -194,6 +194,9 @@
     <Compile Include="Generators\Flycast.Wheels.cs">
       <DependentUpon>Flycast.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Flycast.SaveStatesMonitor.cs">
+      <DependentUpon>Flycast.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\ForceEngine.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\GemRB.Generator.cs" />

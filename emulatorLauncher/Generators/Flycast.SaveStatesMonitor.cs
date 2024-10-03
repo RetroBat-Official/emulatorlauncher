@@ -3,11 +3,11 @@ using System.IO;
 
 namespace EmulatorLauncher
 {
-    class BizhawkSaveStatesMonitor : SaveStatesWatcher
+    class FlycastSaveStatesMonitor : SaveStatesWatcher
     {
         private string _shotPath;
 
-        public BizhawkSaveStatesMonitor(string romfile, string emulatorPath, string sharedPath, string screenshotPath)
+        public FlycastSaveStatesMonitor(string romfile, string emulatorPath, string sharedPath, string screenshotPath)
              : base(romfile, emulatorPath, sharedPath, SaveStatesWatcherMethod.Changed)
         {
             _shotPath = screenshotPath;
