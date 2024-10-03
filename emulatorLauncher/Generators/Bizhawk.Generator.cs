@@ -60,7 +60,7 @@ namespace EmulatorLauncher
                 string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
                 string emulatorPath = Path.Combine(_path, "sstates", system );
 
-                _saveStatesWatcher = new BizhawkSaveStatesMonitor(rom, emulatorPath, localPath);
+                _saveStatesWatcher = new BizhawkSaveStatesMonitor(rom, emulatorPath, localPath, Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "savestateicon.png"));
                 _saveStatesWatcher.PrepareEmulatorRepository();
                 _saveStateSlot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 1;
             }

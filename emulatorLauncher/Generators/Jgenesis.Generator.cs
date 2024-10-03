@@ -58,9 +58,9 @@ namespace EmulatorLauncher
             if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
             {
                 string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
-                string emulatorPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "jgenesis", "sstates", savesSystem);
+                string emulatorPath = Path.Combine(path, "states", savesSystem);
 
-                _saveStatesWatcher = new JGenesisSaveStatesMonitor(rom, emulatorPath, localPath);
+                _saveStatesWatcher = new JGenesisSaveStatesMonitor(rom, emulatorPath, localPath, Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "savestateicon.png"));
                 _saveStatesWatcher.PrepareEmulatorRepository();
                 _saveStateSlot = _saveStatesWatcher.Slot;
             }
@@ -68,7 +68,7 @@ namespace EmulatorLauncher
                 _saveStatesWatcher = null;
 
             // settings (toml configuration)
-            SetupTomlConfiguration(path, jGenSystem, system, fullscreen);
+            SetupTomlConfiguration(path, jGenSystem, system, savesSystem, fullscreen);
 
             if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
@@ -102,7 +102,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupTomlConfiguration(string path, string jGenSystem, string system, bool fullscreen)
+        private void SetupTomlConfiguration(string path, string jGenSystem, string system, string savesSystem, bool fullscreen)
         {
             string settingsFile = Path.Combine(path, "jgenesis-config.toml");
 
@@ -121,14 +121,13 @@ namespace EmulatorLauncher
             {
                 // Paths
                 string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "jgenesis");
-                string statePath = Path.Combine(savesPath, "sstates");
-                if (!Directory.Exists(statePath))
-                    try { Directory.CreateDirectory(statePath); } catch { }
+                if (!Directory.Exists(savesPath))
+                    try { Directory.CreateDirectory(savesPath); } catch { }
 
-                ini.WriteValue("common", "save_path", "\"Custom\"" );
+                ini.WriteValue("common", "save_path", "\"Custom\"");
                 ini.WriteValue("common", "custom_save_path", "'" + savesPath + "'");
-                ini.WriteValue("common", "state_path", "\"Custom\"");
-                ini.WriteValue("common", "custom_state_path", "'" + statePath + "'");
+                ini.WriteValue("common", "state_path", "\"EmulatorFolder\"");
+                ini.WriteValue("common", "custom_state_path", "\"\"");
 
                 BindBoolIniFeatureOn(ini, "common", "audio_sync", "jgen_async", "true", "false");
 
