@@ -12,6 +12,8 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private SaveStatesWatcher _saveStatesWatcher;
+        private int _saveStateSlot;
         static List<string> _mdSystems = new List<string>() { "sega_cd", "genesis", "sega_32x" };
         static List<string> _noZipSystems = new List<string>() { "sega_cd" };
 
@@ -25,6 +27,7 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("jgen_gui") && SystemConfig.getOptBoolean("jgen_gui"))
             {
+                SimpleLogger.Instance.Info("[INFO] Running jgenesis-gui, saveStates will not autoload");
                 exe = Path.Combine(path, "jgenesis-gui.exe");
                 gui = true;
             }
@@ -50,8 +53,22 @@ namespace EmulatorLauncher
                 }
             }
 
+            string savesSystem = GetSavesSystem(system);
+
+            if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
+            {
+                string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+                string emulatorPath = Path.Combine(path, "states", savesSystem);
+
+                _saveStatesWatcher = new JGenesisSaveStatesMonitor(rom, emulatorPath, localPath, Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "savestateicon.png"));
+                _saveStatesWatcher.PrepareEmulatorRepository();
+                _saveStateSlot = _saveStatesWatcher.Slot;
+            }
+            else
+                _saveStatesWatcher = null;
+
             // settings (toml configuration)
-            SetupTomlConfiguration(path, jGenSystem, system, fullscreen);
+            SetupTomlConfiguration(path, jGenSystem, system, savesSystem, fullscreen);
 
             if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
@@ -69,6 +86,12 @@ namespace EmulatorLauncher
                 commandArray.Add(hardware);
             }
 
+            if (_saveStatesWatcher != null && !string.IsNullOrEmpty(SystemConfig["state_file"]) && File.Exists(SystemConfig["state_file"]))
+            {
+                commandArray.Add("--load-save-state");
+                commandArray.Add(_saveStateSlot.ToString());
+            }
+
             string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
@@ -79,7 +102,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupTomlConfiguration(string path, string jGenSystem, string system, bool fullscreen)
+        private void SetupTomlConfiguration(string path, string jGenSystem, string system, string savesSystem, bool fullscreen)
         {
             string settingsFile = Path.Combine(path, "jgenesis-config.toml");
 
@@ -94,8 +117,18 @@ namespace EmulatorLauncher
                 { }
             }
 
-            using (IniFile ini = new IniFile(settingsFile, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
+            using (IniFile ini = new IniFile(settingsFile, IniOptions.UseSpaces | IniOptions.KeepEmptyLines | IniOptions.KeepEmptyValues))
             {
+                // Paths
+                string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "jgenesis");
+                if (!Directory.Exists(savesPath))
+                    try { Directory.CreateDirectory(savesPath); } catch { }
+
+                ini.WriteValue("common", "save_path", "\"Custom\"");
+                ini.WriteValue("common", "custom_save_path", "'" + savesPath + "'");
+                ini.WriteValue("common", "state_path", "\"EmulatorFolder\"");
+                ini.WriteValue("common", "custom_state_path", "\"\"");
+
                 BindBoolIniFeatureOn(ini, "common", "audio_sync", "jgen_async", "true", "false");
 
                 if (SystemConfig.isOptSet("jgen_prescale") && !string.IsNullOrEmpty(SystemConfig["jgen_prescale"]))
@@ -145,6 +178,8 @@ namespace EmulatorLauncher
                 ConfigureSnes(ini, jGenSystem);
 
                 SetupControllers(ini, jGenSystem);
+
+                ini.ClearSection("recent_open_list");
 
                 // Save toml file
                 ini.Save();
@@ -437,6 +472,41 @@ namespace EmulatorLauncher
             return null;
         }
 
+        private string GetSavesSystem(string System)
+        {
+            switch (System)
+            {
+                case "gb":
+                case "gameboy":
+                    return "gb";
+                case "gbc":
+                case "gameboycolor":
+                    return "gbc";
+                case "gamegear":
+                case "gg":
+                    return "gg";
+                case "mastersystem":
+                    return "sms";
+                case "megadrive":
+                case "genesis":
+                    return "md";
+                case "nes":
+                case "famicom":
+                    return "nes";
+                case "segacd":
+                case "megacd":
+                    return "scd";
+                case "sega32x":
+                case "mega32x":
+                    return "32x";
+                case "snes":
+                case "superfamicom":
+                case "sfamicom":
+                    return "sfc";
+            }
+            return null;
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
@@ -452,6 +522,17 @@ namespace EmulatorLauncher
                 return 0;
 
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
         }
     }
 }

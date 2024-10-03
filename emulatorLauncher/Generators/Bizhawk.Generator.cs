@@ -60,7 +60,7 @@ namespace EmulatorLauncher
                 string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
                 string emulatorPath = Path.Combine(_path, "sstates", system );
 
-                _saveStatesWatcher = new BigPemuSaveStatesMonitor(rom, emulatorPath, localPath);
+                _saveStatesWatcher = new BizhawkSaveStatesMonitor(rom, emulatorPath, localPath, Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "savestateicon.png"));
                 _saveStatesWatcher.PrepareEmulatorRepository();
                 _saveStateSlot = _saveStatesWatcher.Slot != -1 ? _saveStatesWatcher.Slot : 1;
             }
@@ -681,6 +681,17 @@ namespace EmulatorLauncher
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
             ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
         }
 
         private static readonly Dictionary<string, string> bizHawkSystems = new Dictionary<string, string>()

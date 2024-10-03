@@ -1,13 +1,13 @@
-﻿using EmulatorLauncher.Common;
-using System.IO;
+﻿using System.IO;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
-    class BigPemuSaveStatesMonitor : SaveStatesWatcher
+    class JGenesisSaveStatesMonitor : SaveStatesWatcher
     {
         private string _shotPath;
 
-        public BigPemuSaveStatesMonitor(string romfile, string emulatorPath, string sharedPath, string screenshotPath)
+        public JGenesisSaveStatesMonitor(string romfile, string emulatorPath, string sharedPath, string screenshotPath)
              : base(romfile, emulatorPath, sharedPath, SaveStatesWatcherMethod.Changed)
         {
             _shotPath = screenshotPath;
