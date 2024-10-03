@@ -4,6 +4,7 @@ using EmulatorLauncher.Common.FileFormats;
 using System.Linq;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
@@ -20,6 +21,51 @@ namespace EmulatorLauncher
             for (int i = 1; i <= 8; i++)
             {
                 ini.WriteValue("Controls\\Win", "Joypad" + i + ":Enabled", "FALSE");
+            }
+
+            int padCount = this.Controllers.Count;
+
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                if (SystemConfig.isOptSet("snes9x_guntype"))
+                {
+                    string gunType = SystemConfig["snes9x_guntype"];
+                    switch (gunType)
+                    {
+                        case "justifiers":
+                            _commandArray.Add("-port2");
+                            _commandArray.Add("two-justifiers");
+                            break;
+                        case "justifier":
+                            _commandArray.Add("-port2");
+                            _commandArray.Add("justifier");
+                            break;
+                        case "superscope":
+                            _commandArray.Add("-port2");
+                            _commandArray.Add("superscope");
+                            break;
+                    }
+                }
+            }
+            else if (SystemConfig.isOptSet("snes9x_mouse"))
+            {
+                if (SystemConfig["snes9x_mouse"] == "port1")
+                    _commandArray.Add("-port1");
+                else if (SystemConfig["snes9x_mouse"] == "port2")
+                    _commandArray.Add("-port2");
+                _commandArray.Add("mouse1");
+            }
+            else if (padCount > 4)
+            {
+                _commandArray.Add("-port1");
+                _commandArray.Add("mp5:1234");
+                _commandArray.Add("-port2");
+                _commandArray.Add("mp5:5678");
+            }
+            else if (padCount > 2)
+            {
+                _commandArray.Add("-port1");
+                _commandArray.Add("mp5:1234");
             }
 
             // Inject controllers                
