@@ -19,7 +19,6 @@ namespace EmulatorLauncher
             Dictionary<string, int> same_wheel = new Dictionary<string, int>();
             int nsameWheel = 0;
 
-            bool isArcade = system != "dreamcast";
             bool serviceMenu = SystemConfig.isOptSet("flycast_service_menu") && SystemConfig.getOptBoolean("flycast_service_menu");
             bool racingController = SystemConfig.isOptSet("flycast_racing_controller") && SystemConfig.getOptBoolean("flycast_racing_controller");
             List<Wheel> usableWheels = new List<Wheel>();
@@ -130,7 +129,7 @@ namespace EmulatorLauncher
                 string deviceName = wheelSDLmapping1.SDLDeviceName;
 
                 string mappingFile = Path.Combine(mappingPath, "SDL_" + deviceName + ".cfg");
-                if (isArcade)
+                if (_isArcade)
                     mappingFile = Path.Combine(mappingPath, "SDL_" + deviceName + "_arcade.cfg");
 
                 // Do not generate twice the same mapping file
@@ -158,7 +157,7 @@ namespace EmulatorLauncher
                     List<string> analogBinds = new List<string>();
                     List<string> digitalBinds = new List<string>();
 
-                    if (!isArcade)
+                    if (!_isArcade)
                     {
 
                         analogBinds.Add(GetWheelKeyName(sdlWheel1, wheel1, wheelmapping1, wheelmapping1.Steer, -1) + ":btn_analog_left");
@@ -441,7 +440,7 @@ namespace EmulatorLauncher
                 string deviceName2 = wheelSDLmapping2.SDLDeviceName;
 
                 string mappingFile2 = Path.Combine(mappingPath, "SDL_" + deviceName2 + ".cfg");
-                if (isArcade)
+                if (_isArcade)
                     mappingFile2 = Path.Combine(mappingPath, "SDL_" + deviceName2 + "_arcade.cfg");
 
                 // Do not generate twice the same mapping file
@@ -469,7 +468,7 @@ namespace EmulatorLauncher
                     List<string> analogBinds = new List<string>();
                     List<string> digitalBinds = new List<string>();
 
-                    if (!isArcade)
+                    if (!_isArcade)
                     {
                         analogBinds.Add(GetWheelKeyName(sdlWheel2, wheel2, wheelmapping2, wheelmapping2.Steer, -1) + ":btn_analog_left");
                         analogBinds.Add(GetWheelKeyName(sdlWheel2, wheel2, wheelmapping2, wheelmapping2.Steer, 1) + ":btn_analog_right");

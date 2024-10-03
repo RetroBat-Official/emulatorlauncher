@@ -657,10 +657,8 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
             }
-            else if (core == "tgbdual")
+            else if (core == "tgbdual" || system == "wii" || system == "fbneo")
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
-            else if (system == "wii")
-                retroarchConfig["aspect_ratio_index"] = "22";
             else
                 retroarchConfig["aspect_ratio_index"] = "";
             
@@ -1308,7 +1306,7 @@ namespace EmulatorLauncher.Libretro
 
                 if (!SystemConfig.isOptSet("ratio"))
                 {
-                    if (systemName == "mame" || infos.IsEstimated)
+                    if (systemName == "mame" || systemName == "fbneo" || infos.IsEstimated)
                         retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
                     else
                         retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString(); // overwritten from the beginning of this file                

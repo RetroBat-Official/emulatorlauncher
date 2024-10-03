@@ -75,14 +75,11 @@ namespace EmulatorLauncher
 
             if (controller.IsKeyboard)
                 ConfigureKeyboard(ini, controller.Config, mappingPath, system);
-
             else
                 ConfigureJoystick(ini, controller, mappingPath, system, double_pads, nsamepad);
 
-            var keyboard = Program.Controllers.FirstOrDefault(c => c.IsKeyboard);
-            if (keyboard != null)
-                ConfigureKeyboard(ini, keyboard.Config, mappingPath, system);
-
+            if (controller.PlayerIndex == 1 && !controller.IsKeyboard)
+                ConfigureKBHotkeys(ini, mappingPath, system);
         }
 
         private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, string mappingPath, string system)
@@ -90,11 +87,9 @@ namespace EmulatorLauncher
             if (keyboard == null)
                 return;
 
-            bool isArcade = system != "dreamcast";
-            
             string mappingFile = Path.Combine(mappingPath, "SDL_Keyboard.cfg");
 
-            if (isArcade)
+            if (_isArcade)
                 mappingFile = Path.Combine(mappingPath, "SDL_Keyboard_arcade.cfg");
 
             if (File.Exists(mappingFile))
@@ -137,8 +132,9 @@ namespace EmulatorLauncher
 
                 ctrlini.ClearSection("digital");
                 ctrlini.ClearSection("emulator");
+                ctrlini.ClearSection("analog");
 
-                if (isArcade)
+                if (_isArcade)
                 {
                     WriteKeyboardMapping(0, InputKey.l2, "btn_trigger_left");                                       // left trigger
                     WriteKeyboardMapping(1, fightGame6Buttons ? InputKey.x : InputKey.b, "btn_b");                  // button 2
@@ -207,6 +203,93 @@ namespace EmulatorLauncher
             }
         }
 
+        private void ConfigureKBHotkeys(IniFile ini, string mappingPath, string system)
+        {
+            string mappingFile = Path.Combine(mappingPath, "SDL_Keyboard.cfg");
+
+            if (_isArcade)
+                mappingFile = Path.Combine(mappingPath, "SDL_Keyboard_arcade.cfg");
+
+            if (File.Exists(mappingFile))
+                File.Delete(mappingFile);
+
+            using (var ctrlini = new IniFile(mappingFile, IniOptions.UseSpaces))
+            {
+                ctrlini.ClearSection("digital");
+                ctrlini.ClearSection("emulator");
+                ctrlini.ClearSection("analog");
+
+                if (_isArcade)
+                {
+                    ctrlini.WriteValue("digital", "bind0", "4:btn_y");
+                    ctrlini.WriteValue("digital", "bind1", "6:btn_c");
+                    ctrlini.WriteValue("digital", "bind10", "25:btn_x");
+                    ctrlini.WriteValue("digital", "bind11", "26:btn_trigger_right");
+                    ctrlini.WriteValue("digital", "bind12", "27:btn_b");
+                    ctrlini.WriteValue("digital", "bind13", "29:btn_a");
+                    ctrlini.WriteValue("digital", "bind14", "34:btn_d");
+                    ctrlini.WriteValue("digital", "bind15", "40:btn_start");
+                    ctrlini.WriteValue("digital", "bind16", "41:btn_escape");
+                    ctrlini.WriteValue("digital", "bind17", "42:reload");
+                    ctrlini.WriteValue("digital", "bind18", "43:btn_menu");
+                    ctrlini.WriteValue("digital", "bind19", "58:btn_quick_save");
+                    ctrlini.WriteValue("digital", "bind2", "7:btn_dpad2_left");
+                    ctrlini.WriteValue("digital", "bind20", "59:btn_jump_state");
+                    ctrlini.WriteValue("digital", "bind21", "61:btn_fforward");
+                    ctrlini.WriteValue("digital", "bind22", "62:btn_dpad2_up");
+                    ctrlini.WriteValue("digital", "bind23", "63:btn_dpad2_down");
+                    ctrlini.WriteValue("digital", "bind24", "66:btn_screenshot");
+                    ctrlini.WriteValue("digital", "bind25", "79:btn_dpad1_right");
+                    ctrlini.WriteValue("digital", "bind26", "80:btn_dpad1_left");
+                    ctrlini.WriteValue("digital", "bind27", "81:btn_dpad1_down");
+                    ctrlini.WriteValue("digital", "bind28", "82:btn_dpad1_up");
+                    ctrlini.WriteValue("digital", "bind29", "90:axis2_down");
+                    ctrlini.WriteValue("digital", "bind3", "9:btn_dpad2_right");
+                    ctrlini.WriteValue("digital", "bind30", "92:axis2_left");
+                    ctrlini.WriteValue("digital", "bind31", "94:axis2_right");
+                    ctrlini.WriteValue("digital", "bind32", "96:axis2_up");
+                    ctrlini.WriteValue("digital", "bind4", "12:btn_analog_up");
+                    ctrlini.WriteValue("digital", "bind5", "13:btn_analog_left");
+                    ctrlini.WriteValue("digital", "bind6", "14:btn_analog_down");
+                    ctrlini.WriteValue("digital", "bind7", "15:btn_analog_right");
+                    ctrlini.WriteValue("digital", "bind8", "20:btn_trigger_left");
+                    ctrlini.WriteValue("digital", "bind9", "22:btn_z");
+                }
+                else
+                {
+                    ctrlini.WriteValue("digital", "bind0", "4:btn_x");
+                    ctrlini.WriteValue("digital", "bind1", "12:btn_analog_up");
+                    ctrlini.WriteValue("digital", "bind10", "40:btn_start");
+                    ctrlini.WriteValue("digital", "bind11", "41:btn_escape");
+                    ctrlini.WriteValue("digital", "bind12", "43:btn_menu");
+                    ctrlini.WriteValue("digital", "bind13", "58:btn_quick_save");
+                    ctrlini.WriteValue("digital", "bind14", "59:btn_jump_state");
+                    ctrlini.WriteValue("digital", "bind15", "61:btn_fforward");
+                    ctrlini.WriteValue("digital", "bind16", "66:btn_screenshot");
+                    ctrlini.WriteValue("digital", "bind17", "79:btn_dpad1_right");
+                    ctrlini.WriteValue("digital", "bind18", "80:btn_dpad1_left");
+                    ctrlini.WriteValue("digital", "bind19", "81:btn_dpad1_down");
+                    ctrlini.WriteValue("digital", "bind2", "13:btn_analog_left");
+                    ctrlini.WriteValue("digital", "bind20", "82:btn_dpad1_up");
+                    ctrlini.WriteValue("digital", "bind3", "14:btn_analog_down");
+                    ctrlini.WriteValue("digital", "bind4", "15:btn_analog_right");
+                    ctrlini.WriteValue("digital", "bind5", "20:btn_trigger_left");
+                    ctrlini.WriteValue("digital", "bind6", "22:btn_y");
+                    ctrlini.WriteValue("digital", "bind7", "26:btn_trigger_right");
+                    ctrlini.WriteValue("digital", "bind8", "27:btn_b");
+                    ctrlini.WriteValue("digital", "bind9", "29:btn_a");
+                }
+
+                ctrlini.WriteValue("emulator", "dead_zone", "10");
+                ctrlini.WriteValue("emulator", "mapping_name", "Keyboard");
+                ctrlini.WriteValue("emulator", "rumble_power", "100");
+                ctrlini.WriteValue("emulator", "saturation", "100");
+                ctrlini.WriteValue("emulator", "version", "3");
+
+                ctrlini.Save();
+            }
+        }
+
         private void ConfigureJoystick(IniFile ini, Controller ctrl, string mappingPath, string system, Dictionary<string, int> double_pads, int nsamepad)
         {
             if (ctrl == null)
@@ -218,7 +301,6 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[GAMEPAD] Configuring gamepad for player " + ctrl.PlayerIndex + " and system " + system);
 
-            bool isArcade = system != "dreamcast";
             int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
             int playerIndex = ctrl.PlayerIndex;
             string deviceName = ctrl.SdlController != null ? ctrl.SdlController.Name : ctrl.Name;
@@ -237,7 +319,7 @@ namespace EmulatorLauncher
                 analogTriggers = r2test.Type == "axis";
 
             string mappingFile = Path.Combine(mappingPath, "SDL_" + deviceName + ".cfg");
-            if (isArcade)
+            if (_isArcade)
                 mappingFile = Path.Combine(mappingPath, "SDL_" + deviceName + "_arcade.cfg");
 
             if (SystemConfig.isOptSet("flycast_controller" + playerIndex) && !string.IsNullOrEmpty(SystemConfig["flycast_controller" + playerIndex]))
@@ -284,7 +366,7 @@ namespace EmulatorLauncher
                 List<string> digitalBinds = new List<string>();
                 YmlContainer game = null;
 
-                if (isArcade)
+                if (_isArcade)
                 {
                     Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
                     string flycastMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "flycast_Arcade.yml");
@@ -483,7 +565,7 @@ namespace EmulatorLauncher
 
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.y, tech) + ":btn_x");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_menu");
+                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_menu");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_d");
                     
@@ -500,45 +582,6 @@ namespace EmulatorLauncher
                 ctrlini.WriteValue("emulator", "version", "3");
 
                 ctrlini.Save();
-            }
-
-            // Add keyboard shortcuts for player 1
-            if (playerIndex == 1)
-            {
-                string kbMappingFile = Path.Combine(mappingPath, "SDL_Keyboard.cfg");
-                if (isArcade)
-                    kbMappingFile = Path.Combine(mappingPath, "SDL_Keyboard_arcade.cfg");
-
-                if (File.Exists(kbMappingFile))
-                    File.Delete(kbMappingFile);
-
-                using (var ctrlini = new IniFile(kbMappingFile, IniOptions.UseSpaces))
-                {
-                    ctrlini.WriteValue("digital", "bind0", "4:btn_d");
-                    ctrlini.WriteValue("digital", "bind1", "6:btn_b");
-                    ctrlini.WriteValue("digital", "bind10", "27:btn_a");
-                    ctrlini.WriteValue("digital", "bind11", "40:btn_start");
-                    ctrlini.WriteValue("digital", "bind12", "41:btn_escape");
-                    ctrlini.WriteValue("digital", "bind13", "43:btn_menu");
-                    ctrlini.WriteValue("digital", "bind14", "44:btn_fforward");
-                    ctrlini.WriteValue("digital", "bind15", "79:btn_dpad1_right");
-                    ctrlini.WriteValue("digital", "bind16", "80:btn_dpad1_left");
-                    ctrlini.WriteValue("digital", "bind17", "81:btn_dpad1_down");
-                    ctrlini.WriteValue("digital", "bind18", "82:btn_dpad1_up");
-                    ctrlini.WriteValue("digital", "bind2", "7:btn_y");
-                    ctrlini.WriteValue("digital", "bind3", "9:btn_trigger_left");
-                    ctrlini.WriteValue("digital", "bind4", "12:btn_analog_up");
-                    ctrlini.WriteValue("digital", "bind5", "13:btn_analog_left");
-                    ctrlini.WriteValue("digital", "bind6", "14:btn_analog_down");
-                    ctrlini.WriteValue("digital", "bind7", "15:btn_analog_right");
-                    ctrlini.WriteValue("digital", "bind8", "22:btn_x");
-                    ctrlini.WriteValue("digital", "bind9", "25:btn_trigger_right");
-                    ctrlini.WriteValue("emulator", "dead_zone", "10");
-                    ctrlini.WriteValue("emulator", "mapping_name", "Keyboard");
-                    ctrlini.WriteValue("emulator", "rumble_power", "100");
-                    ctrlini.WriteValue("emulator", "version", "3");
-                    ctrlini.Save();
-                }
             }
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
