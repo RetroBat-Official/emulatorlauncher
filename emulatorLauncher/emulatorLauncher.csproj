@@ -105,9 +105,6 @@
     <Compile Include="Generators\BigPEmu.Controllers.cs">
       <DependentUpon>BigPEmu.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\BigPEmu.SaveStatesMonitor.cs">
-      <DependentUpon>BigPEmu.Generator.cs</DependentUpon>
-    </Compile>
     <Compile Include="Generators\Bizhawk.Generator.cs" />
     <Compile Include="Generators\Bizhawk.Controllers.cs">
       <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
@@ -116,9 +113,6 @@
       <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Bizhawk.Guns.cs">
-      <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Bizhawk.SaveStatesMonitor.cs">
       <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\CapriceForever.Generator.cs" />
@@ -194,9 +188,6 @@
     <Compile Include="Generators\Flycast.Wheels.cs">
       <DependentUpon>Flycast.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Flycast.SaveStatesMonitor.cs">
-      <DependentUpon>Flycast.Generator.cs</DependentUpon>
-    </Compile>
     <Compile Include="Generators\ForceEngine.Generator.cs" />
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\GemRB.Generator.cs" />
@@ -205,9 +196,6 @@
     <Compile Include="Generators\Hatari.Generator.cs" />
     <Compile Include="Generators\Jgenesis.Generator.cs" />
     <Compile Include="Generators\Jgenesis.Controllers.cs">
-      <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Generators\Jgenesis.SaveStatesMonitor.cs">
       <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Jynx.Generator.cs" />
@@ -430,6 +418,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="Properties\Resources.es.Designer.cs">
+      <DependentUpon>Resources.es.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -461,6 +454,11 @@
     <EmbeddedResource Include="Properties\Resources.ru.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.ru.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+      <EmbeddedResource Include="Properties\Resources.es.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.es.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
