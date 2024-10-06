@@ -58,6 +58,7 @@
     <Reference Include="Newtonsoft.Json">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Newtonsoft.Json.dll</HintPath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Management" />
