@@ -90,6 +90,13 @@ namespace EmulatorLauncher.Common
             return ret;
         }
 
+        public static double ToDouble(this string value)
+        {
+            double ret = 0;
+            double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out ret);
+            return ret;
+        }
+
         public static float ToRatio(this string value)
         {
             if (string.IsNullOrEmpty(value))
