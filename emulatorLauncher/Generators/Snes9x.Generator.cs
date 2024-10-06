@@ -11,8 +11,10 @@ namespace EmulatorLauncher
 	{
 		private BezelFiles _bezelFileInfo;
 		private ScreenResolution _resolution;
+		private List<string> _commandArray = new List<string>();
 
-		public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
+
+        public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
 		{
 
 			string path = AppConfig.GetFullPath("snes9x");
@@ -24,22 +26,24 @@ namespace EmulatorLauncher
 			if (!File.Exists(exe))
 				return null;
 
-			//Applying bezels
+            //Applying bezels
 
-			if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
 				_bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
 			_resolution = resolution;
 
             SetupConfiguration(path, rom, system);
 
-            //List<string> commandArray = new List<string>();
+            _commandArray.Add("\"" + rom + "\"");
+
+            string args = string.Join(" ", _commandArray);
 
             return new ProcessStartInfo()
 			{
 				FileName = exe,
 				WorkingDirectory = path,
-				Arguments = "\"" + rom + "\"",
+				Arguments = args,
 			};
 			
         }

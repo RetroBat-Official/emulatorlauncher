@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		liblzo2-2.dll = liblzo2-2.dll
 		libsquashfs.dll = libsquashfs.dll
 		libzstd.dll = libzstd.dll
+		Newtonsoft.Json.dll = Newtonsoft.Json.dll
 		pdfinfo.exe = pdfinfo.exe
 		pdftoppm.exe = pdftoppm.exe
 		rdsquashfs.exe = rdsquashfs.exe
@@ -60,6 +61,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-services", "batocera-services\batocera-services.csproj", "{6237BB6C-0775-4ACC-9F53-2F98AB970EEF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "x64controllers", "x64controllers\x64controllers.csproj", "{43EC6F2E-C62A-414F-8C0E-AAB1F799E70F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{BC1E3FFC-8D18-426E-ACEE-C21BE22AAC68}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -223,5 +226,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2BEB480F-A324-4861-AAFF-C36BE928631B} = {56B39FFD-1B80-497D-BA0E-1B9D59CB9313}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FC96BEC8-AD81-4A62-9552-8D8FAD663EF0}
 	EndGlobalSection
 EndGlobal

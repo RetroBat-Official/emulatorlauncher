@@ -36,6 +36,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SharpDX.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="SharpDX.DirectInput">
       <HintPath>..\SharpDX.DirectInput.dll</HintPath>
     </Reference>
