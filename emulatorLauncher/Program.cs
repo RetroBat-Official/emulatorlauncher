@@ -124,6 +124,7 @@ namespace EmulatorLauncher
             { "sonicretrocd", () => new PortsLauncherGenerator() },
             { "opengoal", () => new PortsLauncherGenerator() },
             { "cgenius", () => new PortsLauncherGenerator() },
+            { "soh", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() },
             { "jgenesis", () => new JgenesisGenerator() },
             { "singe2", () => new Singe2Generator() },

@@ -19,15 +19,18 @@ namespace EmulatorLauncher
         {
             _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            // Specific cases for some emulators
+            // Specific cases to override emulator
             if (rom.Contains("soniccd") || SystemConfig.getOptBoolean("sonicretro_sonicCD"))
                 emulator = "sonicretrocd";
 
             _emulator = emulator;
+
+            // Get emulator path, emulator must match the name in es_systems
             _path = AppConfig.GetFullPath(emulator);
             if (!Directory.Exists(_path))
                 return null;
 
+            // Get exe name for the port, using a dictionary
             _exeName = exeDictionnary[emulator];
             string exe = Path.Combine(_path, _exeName);
             if (!File.Exists(exe))
@@ -35,7 +38,8 @@ namespace EmulatorLauncher
 
             _romPath = Path.GetDirectoryName(rom);
 
-            if (systemBezels.ContainsKey(emulator) && systemBezels[emulator] != "no")
+            // Setting up bezels, can be with or without reshade based on Dictionary
+            if (systemBezels.ContainsKey(emulator) && systemBezels[emulator] != "no" && _fullscreen)
             {
                 string bezelType = systemBezels[emulator];
 
@@ -52,9 +56,12 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
+            // Copy existing saves from retrobat\saves to the emulator folder
+            CopySavesToEmulator();
+
+            // Initiate command array to pass it to the configuration part, do not add command line arguments here, add them in the port configuration part
             List<string> commandArray = new List<string>();
 
-            CopySavesToEmulator();
             ConfigurePort(commandArray, rom, exe);
 
             string args = null;
@@ -76,7 +83,8 @@ namespace EmulatorLauncher
             { "sonicretro", "RSDKv4_64.exe"},
             { "sonicretrocd", "RSDKv3_64.exe"},
             { "opengoal", "gk.exe"},
-            { "cgenius", "CGenius.exe"}
+            { "cgenius", "CGenius.exe"},
+            { "soh", "soh.exe"}
         };
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
@@ -87,8 +95,15 @@ namespace EmulatorLauncher
             { "sonicretro", "no"},
             { "sonicretrocd", "no"},
             { "opengoal", "yes"},
+            { "soh", "yes"}
         };
 
+        // Dictionaries to use if a port uses Reshade to specify platform and type
+        private readonly Dictionary<string, ReshadeBezelType> reshadeType = new Dictionary<string, ReshadeBezelType>();
+        private readonly Dictionary<string, ReshadePlatform> reshadePlatform = new Dictionary<string, ReshadePlatform>();
+
+        // RunAnd Wait override
+        // Used so far to dispose bezels
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
@@ -106,6 +121,8 @@ namespace EmulatorLauncher
             return ret;
         }
 
+        // Cleanup override
+        // Used so far to copy saves from emulator folder to Retrobat saves folder
         public override void Cleanup()
         {
             string savesPath = Path.Combine(AppConfig.GetFullPath("saves"));
@@ -194,6 +211,7 @@ namespace EmulatorLauncher
             base.Cleanup();
         }
 
+        // Method to copy saves from retrobat\saves to emulator folder, called before the game
         private void CopySavesToEmulator()
         {
             string savesPath = Path.Combine(AppConfig.GetFullPath("saves"));
