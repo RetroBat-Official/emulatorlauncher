@@ -3,12 +3,16 @@ using EmulatorLauncher.Common.FileFormats;
 using System.Linq;
 using EmulatorLauncher.Common.EmulationStation;
 using System;
+using System.Collections.Generic;
+using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Joysticks;
+using Newtonsoft.Json.Linq;
 
 namespace EmulatorLauncher
 {
     partial class PortsLauncherGenerator : Generator
     {
-        #region ports
+        #region cgenius
 
         private void ConfigureCGeniusControls(IniFile ini)
         {
@@ -26,11 +30,11 @@ namespace EmulatorLauncher
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
             {
-                ConfigureInputCGenius(ini, controller, controller.PlayerIndex - 1);
+                ConfigureCGeniusInput(ini, controller, controller.PlayerIndex - 1);
             }
         }
 
-        private void ConfigureInputCGenius(IniFile ini, Controller ctrl, int padIndex)
+        private void ConfigureCGeniusInput(IniFile ini, Controller ctrl, int padIndex)
         {
             if (ctrl == null || ctrl.Config == null)
                 return;
@@ -115,7 +119,198 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "input" + padIndex, "AutoFire", "cgenius_AutoFire", "true", "false");
             }
         }
+        #endregion
 
+        #region soh
+        private void ConfigureSOHControls(JObject controllers)
+        {
+            if (_emulator != "soh")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            JObject deck;
+
+            if (controllers["Deck"] == null)
+            {
+                deck = new JObject();
+                controllers["Deck"] = deck;
+            }
+            else
+                deck = (JObject)controllers["Deck"];
+            
+            // clear existing pad sections of ini file
+            for (int i = 0; i < 4; i++)
+                deck["Slot_" + i] = "Disconnected";
+
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
+                ConfigureSOHInput(controllers, deck, controller);
+        }
+
+        private void ConfigureSOHInput(JObject controllers, JObject deck, Controller ctrl)
+        {
+            if (ctrl == null || ctrl.Config == null)
+                return;
+
+            if (ctrl.IsKeyboard)
+                return;
+
+            JObject jsonCtrl;
+            JObject ctrlSlot;
+            JObject gyro;
+            JObject mappings;
+            JObject rumble;
+
+            InputConfig joy = ctrl.Config;
+            int slotIndex = ctrl.PlayerIndex - 1;
+            string guid = ctrl.GetSdlGuid(Common.Joysticks.SdlVersion.SDL2_30, true).ToLowerInvariant();
+
+            deck["Slot_" + slotIndex] = guid;
+
+            if (controllers[guid] == null)
+            {
+                jsonCtrl = new JObject();
+                controllers[guid] = jsonCtrl;
+            }
+            else
+                jsonCtrl = (JObject)controllers[guid];
+
+            if (jsonCtrl["Slot_" + slotIndex] == null)
+            {
+                ctrlSlot = new JObject();
+                jsonCtrl["Slot_" + slotIndex] = ctrlSlot;
+            }
+            else
+                ctrlSlot = (JObject)jsonCtrl["Slot_" + slotIndex];
+
+            double deadzone = 15.0;
+            if (SystemConfig.isOptSet("soh_deadzone") && !string.IsNullOrEmpty(SystemConfig["soh_deadzone"]))
+                deadzone = SystemConfig["soh_deadzone"].ToDouble();
+
+            // Set deadzones
+            List<double> axisdeadzones = new List<double>();
+            axisdeadzones.Add(deadzone);    // left stick
+            axisdeadzones.Add(deadzone);    // left stick
+            axisdeadzones.Add(deadzone);    // right stick
+            axisdeadzones.Add(deadzone);    // right stick
+            axisdeadzones.Add(deadzone);    // ?
+            axisdeadzones.Add(deadzone);    // ?
+            ctrlSlot["AxisDeadzones"] = JArray.FromObject(axisdeadzones);
+
+            // Gyro
+            if (ctrlSlot["Gyro"] == null)
+            {
+                gyro = new JObject();
+                ctrlSlot["Gyro"] = gyro;
+            }
+            else
+                gyro = (JObject)ctrlSlot["Gyro"];
+
+            double gyroSensitivity = 1.0;
+            if (SystemConfig.isOptSet("soh_gyroSensivity") && !string.IsNullOrEmpty(SystemConfig["soh_gyroSensivity"]))
+                gyroSensitivity = (SystemConfig["soh_gyroSensivity"].ToDouble() / 100);
+
+            gyro["Enabled"] = SystemConfig.getOptBoolean("soh_gyro") ? true : false;
+
+            List<double> gyrodata = new List<double>();
+            gyrodata.Add(0.0);                  // driftX
+            gyrodata.Add(0.0);                  // driftY
+            gyrodata.Add(gyroSensitivity);      // Sensitivity
+            ctrlSlot["GyroData"] = JArray.FromObject(gyrodata);
+
+            // Mappings
+            ctrlSlot.Remove("Mappings");
+            
+            if (ctrlSlot["Mappings"] == null)
+            {
+                mappings = new JObject();
+                ctrlSlot["Mappings"] = mappings;
+            }
+            else
+                mappings = (JObject)ctrlSlot["Mappings"];
+
+            // Special mapping for n64 style controllers
+            string n64guid = ctrl.Guid.ToLowerInvariant();
+            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            bool needActivationSwitch = false;
+            bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
+            
+            if (File.Exists(n64json))
+            {
+                try
+                {
+                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
+
+                    if (n64Controllers != null)
+                    {
+                        N64Controller n64Gamepad = N64Controller.GetN64Controller("soh", n64guid, n64Controllers);
+
+                        if (n64Gamepad != null)
+                        {
+                            if (n64Gamepad.ControllerInfo != null)
+                            {
+                                if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needActivationSwitch && !n64_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific n64 mapping needs to be activated for this controller.");
+                                    goto BypassSPecialControllers;
+                                }
+
+                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
+
+                                foreach (var button in n64Gamepad.Mapping)
+                                    mappings[button.Key] = button.Value.ToInteger();
+
+                                goto Rumble;
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            BypassSPecialControllers:
+            foreach (var button in sohMapping)
+            {
+                bool forceAxisPlus = false;
+                InputKey key = button.Value;
+                var input = ctrl.Config[key];
+                if (input != null && input.Type == "axis" && input.Value > 0)
+                    forceAxisPlus = true;
+                string sdlID = GetSDLInputName(ctrl, key, "soh", forceAxisPlus);
+                if (!string.IsNullOrEmpty(sdlID))
+                    mappings[sdlID] = button.Key;
+            }
+
+
+            // Rumble
+            Rumble:
+            if (ctrlSlot["Rumble"] == null)
+            {
+                rumble = new JObject();
+                ctrlSlot["Rumble"] = rumble;
+            }
+            else
+                rumble = (JObject)ctrlSlot["Rumble"];
+
+            rumble["Enabled"] = SystemConfig.getOptBoolean("soh_rumble") ? true : false;
+
+            double rumbleStrength = 1.0;
+            if (SystemConfig.isOptSet("soh_rumblestrength") && !string.IsNullOrEmpty(SystemConfig["soh_rumblestrength"]))
+                rumbleStrength = (SystemConfig["soh_rumblestrength"].ToDouble() / 100);
+
+            rumble["Strength"] = rumbleStrength;
+
+            // Other
+            ctrlSlot["UseStickDeadzoneForButtons"] = true;
+            ctrlSlot["Version"] = 2;
+        }
+        #endregion
+
+        #region sonic3air
         private void ConfigureSonic3airControls(string configFolder, DynamicJson settings)
         {
             if (_emulator != "sonic3air")
@@ -181,7 +376,15 @@ namespace EmulatorLauncher
         #endregion
 
         #region general tools
-        private static string GetSDLInputName(Controller c, InputKey key, string port = "default")
+        /// <summary>
+        /// Method to retrieve SDL button information
+        /// </summary>
+        /// <param name="c">Controller</param>
+        /// <param name="key">InputKey</param>
+        /// <param name="port">Name of the port</param>
+        /// <param name="forceAxisSignPositive">Use for triggers for example to force positive axis</param>
+        /// <returns></returns>
+        private static string GetSDLInputName(Controller c, InputKey key, string port = "default", bool forceAxisSignPositive = false)
         {
             Int64 pid;
 
@@ -195,8 +398,17 @@ namespace EmulatorLauncher
                     pid = input.Id;
                     if (port == "cgenius")
                         return "B" + pid;
-                    else
+                    else if (port == "sonic3air")
                         return "Button" + pid;
+                    else if (port == "soh" && c.IsXInputDevice)
+                    {
+                        if (sohXinputRemap.ContainsKey(pid))
+                            return sohXinputRemap[pid].ToString();
+                        else
+                            return pid.ToString();
+                    }
+                    else
+                        return pid.ToString();
                 }
 
                 else if (input.Type == "hat")
@@ -207,21 +419,29 @@ namespace EmulatorLauncher
                         case 1:
                             if (port == "cgenius")
                                 return "H1";
+                            else if (port == "soh")
+                                return "11";
                             else
                                 return "Pov0";
                         case 2:
                             if (port == "cgenius")
                                 return "H2";
+                            else if (port == "soh")
+                                return "14";
                             else
                                 return "Pov1";
                         case 4:
                             if (port == "cgenius")
                                 return "H4";
+                            else if (port == "soh")
+                                return "12";
                             else
                                 return "Pov2";
                         case 8:
                             if (port == "cgenius")
                                 return "H8";
+                            else if (port == "soh")
+                                return "13";
                             else
                                 return "Pov3";
                     }
@@ -250,6 +470,11 @@ namespace EmulatorLauncher
                             case 5: return "Axis11";
                         }
                     }
+                    else if (port == "soh")
+                    {
+                        if (revertAxis || forceAxisSignPositive) return (512 + pid).ToString();
+                        else return "-" + (512 + pid).ToString();
+                    }
                     else
                     {
                         if (revertAxis) return "A" + pid + "-";
@@ -262,6 +487,9 @@ namespace EmulatorLauncher
         #endregion
 
         #region Dictionaries
+        /// <summary>
+        /// Dictionaries and mappings can be added below if necessary, keep alphabetical order and name it with port name
+        /// </summary>
         private InputKeyMapping cgeniusMapping = new InputKeyMapping
         {
             { InputKey.select,      "Back" },
@@ -276,6 +504,43 @@ namespace EmulatorLauncher
             { InputKey.y,           "Run" },
             { InputKey.pageup,      "Status" },
             { InputKey.up,          "Up" }
+        };
+
+        private Dictionary<int, InputKey> sohMapping = new Dictionary<int, InputKey>()
+        {
+            { 32768,      InputKey.a },                     // A
+            { 16384,      InputKey.y },                     // B
+            { 32,         InputKey.pageup },                // L
+            { 16,         InputKey.pagedown },              // R
+            { 8192,       InputKey.l2 },                    // Z
+            { 4096,       InputKey.start },                 // Start
+            { 2048,       InputKey.up },                    // D-PAD
+            { 1024,       InputKey.down },
+            { 512,        InputKey.left },
+            { 256,        InputKey.right },
+            { 524288,     InputKey.leftanalogup },          // Analog stick
+            { 262144,     InputKey.leftanalogdown },
+            { 65536,      InputKey.leftanalogleft },
+            { 131072,     InputKey.leftanalogright },
+            //{ 1048576,    InputKey.rightanalogup },       // right analog (not used)
+            //{ 2097152,    InputKey.rightanalogdown },
+            //{ 4194304,    InputKey.rightanalogleft },
+            //{ 8388608,    InputKey.rightanalogright },
+            { 8,          InputKey.rightanalogup },         // C-Stick
+            { 4,          InputKey.rightanalogdown },
+            { 2,          InputKey.rightanalogleft },
+            { 1,          InputKey.rightanalogright }
+        };
+
+        private static Dictionary<long, long> sohXinputRemap = new Dictionary<long, long>()
+        {
+            { 6, 4 },
+            { 7, 6 },
+            { 4, 9 },
+            { 5, 10 },
+            { 8, 7 },
+            { 9, 8 },
+            { 10, 5 }
         };
         #endregion
     }

@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using EmulatorLauncher.Common.FileFormats;
+using Newtonsoft.Json;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
@@ -29,19 +30,6 @@ namespace EmulatorLauncher.Common.Joysticks
             Mapping = mapping;
             HotKeyMapping = hotkeymapping;
             ControllerInfo = controllerInfo;
-        }
-
-        private static Dictionary<string, string> ConvertDynamicJsonToDictionary(DynamicJson dynamicJson)
-        {
-            var dictionary = new Dictionary<string, string>();
-
-            foreach (var key in dynamicJson.GetDynamicMemberNames())
-            {
-                var value = dynamicJson[key];
-                dictionary[key] = value?.ToString();
-            }
-
-            return dictionary;
         }
         #endregion
 
@@ -89,36 +77,23 @@ namespace EmulatorLauncher.Common.Joysticks
 
             try
             {
-                var dynamicJson = DynamicJson.Load(jsonFilePath);
-
+                var jsonContent = File.ReadAllText(jsonFilePath);
+                var rootObject = JsonConvert.DeserializeObject<RootObject>(jsonContent);
                 var controllers = new List<N64Controller>();
-
-                var controllerArray = dynamicJson.GetArray("Controllers");
-                foreach (var item in controllerArray.Cast<DynamicJson>())
+                
+                foreach (var item in rootObject.Controllers)
                 {
-                    var emulator = item["Emulator"];
-                    var name = item["Name"];
-                    var guid = item["Guid"];
-                    var driver = item["Driver"];
+                    var mappingDict = item.Mapping.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-                    // Convert mappings
-                    var mapping = item.GetObject("Mapping");
-                    var mappingDict = ConvertDynamicJsonToDictionary(mapping);
-                    mappingDict = mappingDict
-                    .ToDictionary(
-                        kvp => kvp.Key.Replace("__", " "),
-                        kvp => kvp.Value.Replace("__", " ")
-                    );
-
-                    // Convert HotKeyMapping
-                    var hotKeyMapping = item.GetObject("HotKeyMapping");
-                    var hotKeyMappingDict = hotKeyMapping != null ? ConvertDynamicJsonToDictionary(hotKeyMapping) : new Dictionary<string, string>();
-
-                    // Convert ControllerInfo
-                    var controllerInfo = item.GetObject("ControllerInfo");
-                    var controllerInfoDict = controllerInfo != null ? ConvertDynamicJsonToDictionary(controllerInfo) : new Dictionary<string, string>();
-
-                    controllers.Add(new N64Controller(emulator, name, guid, driver, mappingDict, hotKeyMappingDict, controllerInfoDict));
+                    controllers.Add(new N64Controller(
+                        item.Emulator,
+                        item.Name,
+                        item.Guid,
+                        item.Driver,
+                        mappingDict,
+                        item.HotKeyMapping ?? new Dictionary<string, string>(),
+                        item.ControllerInfo ?? new Dictionary<string, string>()
+                    ));
                 }
 
                 return controllers;
@@ -136,7 +111,6 @@ namespace EmulatorLauncher.Common.Joysticks
     public class MegadriveController
     {
         static readonly MegadriveController[] MegadriveControllers;
-
         public string Emulator { get; private set; }
         public string Name { get; private set; }
         public string Guid { get; private set; }
@@ -155,19 +129,6 @@ namespace EmulatorLauncher.Common.Joysticks
             Mapping = mapping;
             HotKeyMapping = hotkeymapping;
             ControllerInfo = controllerInfo;
-        }
-
-        private static Dictionary<string, string> ConvertDynamicJsonToDictionary(DynamicJson dynamicJson)
-        {
-            var dictionary = new Dictionary<string, string>();
-
-            foreach (var key in dynamicJson.GetDynamicMemberNames())
-            {
-                var value = dynamicJson[key];
-                dictionary[key] = value?.ToString();
-            }
-
-            return dictionary;
         }
         #endregion
 
@@ -210,43 +171,31 @@ namespace EmulatorLauncher.Common.Joysticks
         {
             if (!File.Exists(jsonFilePath))
                 throw new FileNotFoundException($"The JSON file '{jsonFilePath}' was not found.");
-
+            
             try
             {
-                var dynamicJson = DynamicJson.Load(jsonFilePath);
-
+                var jsonContent = File.ReadAllText(jsonFilePath);
+                var rootObject = JsonConvert.DeserializeObject<RootObject>(jsonContent);
                 var controllers = new List<MegadriveController>();
 
-                var controllerArray = dynamicJson.GetArray("Controllers");
-                foreach (var item in controllerArray.Cast<DynamicJson>())
+                foreach (var item in rootObject.Controllers)
                 {
-                    var emulator = item["Emulator"];
-                    var name = item["Name"];
-                    var guid = item["Guid"];
-                    var driver = item["Driver"];
+                    var mappingDict = item.Mapping.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-                    // Convert mappings
-                    var mapping = item.GetObject("Mapping");
-                    var mappingDict = ConvertDynamicJsonToDictionary(mapping);
-                    mappingDict = mappingDict
-                    .ToDictionary(
-                        kvp => kvp.Key.Replace("__", " "),
-                        kvp => kvp.Value.Replace("__", " ")
-                    );
-
-                    // Convert HotKeyMapping
-                    var hotKeyMapping = item.GetObject("HotKeyMapping");
-                    var hotKeyMappingDict = hotKeyMapping != null ? ConvertDynamicJsonToDictionary(hotKeyMapping) : new Dictionary<string, string>();
-
-                    // Convert ControllerInfo
-                    var controllerInfo = item.GetObject("ControllerInfo");
-                    var controllerInfoDict = controllerInfo != null ? ConvertDynamicJsonToDictionary(controllerInfo) : new Dictionary<string, string>();
-
-                    controllers.Add(new MegadriveController(emulator, name, guid, driver, mappingDict, hotKeyMappingDict, controllerInfoDict));
+                    controllers.Add(new MegadriveController(
+                        item.Emulator,
+                        item.Name,
+                        item.Guid,
+                        item.Driver,
+                        mappingDict,
+                        item.HotKeyMapping ?? new Dictionary<string, string>(),
+                        item.ControllerInfo ?? new Dictionary<string, string>()
+                    ));
                 }
 
                 return controllers;
             }
+            
             catch (Exception ex)
             {
                 throw new InvalidOperationException("Failed to load or parse the JSON file.", ex);
@@ -255,4 +204,21 @@ namespace EmulatorLauncher.Common.Joysticks
         #endregion
     }
     #endregion
+
+    public class RootObject
+    {
+        public List<ControllerItem> Controllers { get; set; }
+    }
+
+    // This class represents each controller item in the JSON array
+    public class ControllerItem
+    {
+        public string Emulator { get; set; }
+        public string Name { get; set; }
+        public string Guid { get; set; }
+        public string Driver { get; set; }
+        public Dictionary<string, string> Mapping { get; set; }
+        public Dictionary<string, string> HotKeyMapping { get; set; }
+        public Dictionary<string, string> ControllerInfo { get; set; }
+    }
 }

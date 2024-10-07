@@ -115,6 +115,7 @@ namespace EmulatorLauncher
             { new Installer("shadps4", "shadps4", "shadPS4.exe") }
         };
 
+        // Some emulators do not set correctly version in executable and require specific treatment !
         static readonly List<string>noVersionExe = new List<string>()
         {
             "flycast", "rmg", "play", "eduke32", "mesen", "fbneo"
