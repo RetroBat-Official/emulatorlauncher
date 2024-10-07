@@ -381,18 +381,25 @@ namespace EmulatorLauncher.Libretro
             if (core == null || system == null || romName == null)
                 return false;
 
-            YmlContainer game = null;
-
             Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
-            string coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "libretro_" + core + "_" + system + ".yml");
+            YmlContainer game = null;
+            string coreMapping = null;
 
-            if (!File.Exists(coreMapping))
-                coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "libretro_" + core + ".yml");
+            foreach (var path in mappingPaths)
+            {
+                string result = path
+                    .Replace("{core}", core)
+                    .Replace("{system}", system)
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "inputmapping");
 
-            if (!File.Exists(coreMapping))
-                coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "libretro" + ".yml");
+                coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
 
-            if (!File.Exists(coreMapping))
+                if (File.Exists(coreMapping))
+                    break;
+            }
+
+            if (coreMapping == null)
                 return false;
 
             YmlFile ymlFile = YmlFile.Load(coreMapping);
@@ -434,6 +441,19 @@ namespace EmulatorLauncher.Libretro
             }
             return true;
         }
+
+        static string[] mappingPaths =
+        {            
+            // User specific
+            "{userpath}\\libretro_{core}_{system}.yml",
+            "{userpath}\\libretro_{core}.yml",
+            "{userpath}\\libretro.yml",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping\\libretro_{core}_{system}.yml",
+            "{systempath}\\resources\\inputmapping\\libretro_{core}.yml",
+            "{systempath}\\resources\\inputmapping\\libretro.yml"
+        };
 
         private enum Mame_remap
         {
