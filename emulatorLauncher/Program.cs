@@ -33,6 +33,9 @@ namespace EmulatorLauncher
 {
     static class Program
     {
+        /// <summary>
+        /// Link between emulator declared in es_systems.cfg and generator to use to launch emulator
+        /// </summary>
         static Dictionary<string, Func<Generator>> generators = new Dictionary<string, Func<Generator>>
         {
             { "3dsen", () => new Nes3dGenerator() },
@@ -124,6 +127,7 @@ namespace EmulatorLauncher
             { "sonicretrocd", () => new PortsLauncherGenerator() },
             { "opengoal", () => new PortsLauncherGenerator() },
             { "cgenius", () => new PortsLauncherGenerator() },
+            { "soh", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() },
             { "jgenesis", () => new JgenesisGenerator() },
             { "singe2", () => new Singe2Generator() },
@@ -138,6 +142,9 @@ namespace EmulatorLauncher
         public static EsFeatures Features { get; private set; }
         public static Game CurrentGame { get; private set; }
 
+        /// <summary>
+        /// Import es_systems.cfg (and overrides) to retrieve emulators
+        /// </summary>
         private static EsSystems _esSystems;
 
         public static EsSystems EsSystems
@@ -150,7 +157,7 @@ namespace EmulatorLauncher
 
                     if (_esSystems != null)
                     {
-                        // Import emulator overrides
+                        // Import emulator overrides from additional es_systems_*.cfg files
                         foreach (var file in Directory.GetFiles(Path.Combine(Program.LocalPath, ".emulationstation"), "es_systems_*.cfg"))
                         {
                             try
@@ -178,6 +185,10 @@ namespace EmulatorLauncher
             }
         }
 
+        /// <summary>
+        /// Import es_savestates.cfg
+        /// Used to monitor savestates
+        /// </summary>
         private static EsSaveStates _esSaveStates;
 
         public static EsSaveStates EsSaveStates
@@ -191,6 +202,18 @@ namespace EmulatorLauncher
             }
         }
 
+        public static bool HasEsSaveStates
+        {
+            get
+            {
+                return File.Exists(Path.Combine(Program.LocalPath, ".emulationstation", "es_savestates.cfg"));
+            }
+        }
+
+        /// <summary>
+        /// Import gamesdb.xml
+        /// Used to get information on game (gun, wheel, ...)
+        /// </summary>
         private static GamesDB _gunGames;
 
         public static GamesDB GunGames
@@ -213,14 +236,6 @@ namespace EmulatorLauncher
             }
         }
 
-        public static bool HasEsSaveStates
-        {
-            get
-            {
-                return File.Exists(Path.Combine(Program.LocalPath, ".emulationstation", "es_savestates.cfg"));
-            }
-        }
-
         public static bool EnableHotKeyStart
         {
             get
@@ -232,6 +247,9 @@ namespace EmulatorLauncher
         [DllImport("user32.dll")]
         public static extern bool SetProcessDPIAware();
 
+        /// <summary>
+        /// Method to show a splash video before a game starts
+        /// </summary>
         static void ShowSplashVideo()
         {
             var loadingScreens = AppConfig.GetFullPath("loadingscreens");
@@ -313,8 +331,10 @@ namespace EmulatorLauncher
             if (!SystemConfig.isOptSet("use_wheel") && args.Any(a => a == "-wheel"))
                 SystemConfig["use_wheel"] = "true";*/
 
+            // Get shaders to apply to the game
             ImportShaderOverrides();
-            
+
+            #region arguments
             if (args.Any(a => "-resetusbcontrollers".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
                 bool elevated = WindowsIdentity.GetCurrent().Owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
@@ -452,7 +472,9 @@ namespace EmulatorLauncher
 
                 return;
             }
+            #endregion
 
+            // Check rom is defined and exists
             if (!SystemConfig.isOptSet("rom"))
             {
                 SimpleLogger.Instance.Error("[Error] rom not set");
@@ -467,6 +489,7 @@ namespace EmulatorLauncher
                 return;
             }
 
+            // System, emulator and core
             if (!SystemConfig.isOptSet("system"))
             {
                 SimpleLogger.Instance.Error("[Error] system not set");
@@ -483,6 +506,7 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemConfig["system"];
 
+            // Game info
             if (SystemConfig.isOptSet("gameinfo") && File.Exists(SystemConfig.GetFullPath("gameinfo")))
             {
                 var gamelist = GameList.Load(SystemConfig.GetFullPath("gameinfo"));
@@ -516,14 +540,17 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Get Generator to use based on emulator or system if none found
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
                 generator = new LibRetroGenerator();
             if (generator == null)
                 generator = generators.Where(g => g.Key == SystemConfig["system"]).Select(g => g.Value()).FirstOrDefault();
 
+            // Load controller configuration from arguments passed by emulationstation
             LoadControllerConfiguration(args);
 
+            // Splash video
             if (generator != null)
             {
                 ShowSplashVideo();
@@ -531,7 +558,7 @@ namespace EmulatorLauncher
                 //return;
             }
 
-            // Check if installed. Download & Install it if necessary.
+            // Check if emulator is installed. Download & Install it if necessary. Propose update if available.
             Installer installer = Installer.GetInstaller();
             if (installer != null)
             {
@@ -549,6 +576,7 @@ namespace EmulatorLauncher
                 }
             }
             
+            // Load features, run the generator to configure and set up command lines, start emulator process and cleanup after emulator process ends
             if (generator != null)
             {
                 SimpleLogger.Instance.Info("[Generator] Using " + generator.GetType().Name);
@@ -974,7 +1002,6 @@ namespace EmulatorLauncher
 
             key.Close();
         }
-
 
         private static void RegisterExtractAsFolder(string extension)
         {

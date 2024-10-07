@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace EmulatorLauncher
 {
@@ -12,8 +15,13 @@ namespace EmulatorLauncher
     {
         private void ConfigurePort(List<string> commandArray, string rom, string exe)
         {
+            // Add one method per port to configure, you can pass commandArray if the port requires special command line arguments
+            // If the port allows controller configuration, create the controller configuration method in PortsLauncher.Controller.cs and call it from the port configuration method
+            // Keep alphabetical order
+
             Configurecgenius(commandArray, rom);
             ConfigureOpenGoal(commandArray, rom);
+            ConfigureSOH(rom, exe);
             ConfigureSonic3air(rom, exe);
             ConfigureSonicMania(rom, exe);
             ConfigureSonicRetro(rom, exe);
@@ -269,6 +277,92 @@ namespace EmulatorLauncher
             File.WriteAllLines(configFilePath, configLines);
         }
 
+        private void ConfigureSOH(string rom, string exe)
+        {
+            if (_emulator != "soh")
+                return;
+
+            var otrFiles = Directory.GetFiles(_path, "*.otr");
+            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("soh.otr", StringComparison.OrdinalIgnoreCase));
+
+            if (!gameOtrFiles.Any())
+            {
+                string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
+                try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to SOH folder."); }
+            }
+
+            // Settings
+            JObject jsonObj;
+            JObject cvars;
+            JObject controllers;
+            JObject window;
+            JObject fs;
+            string settingsFile = Path.Combine(_path, "shipofharkinian.json");
+            //var json = DynamicJson.Load(Path.Combine(_path, "shipofharkinian.json"));
+            if (File.Exists(settingsFile))
+            {
+                string jsonString = File.ReadAllText(settingsFile);
+                try { jsonObj = JObject.Parse(jsonString); } catch { jsonObj = new JObject(); }
+            }
+            else
+                jsonObj = new JObject();
+
+            if (jsonObj["CVars"] == null)
+            {
+                cvars = new JObject();
+                jsonObj["CVars"] = cvars;
+            }
+            else
+                cvars = (JObject)jsonObj["CVars"];
+
+            if (jsonObj["Controllers"] == null)
+            {
+                controllers = new JObject();
+                jsonObj["Controllers"] = controllers;
+            }
+            else
+                controllers = (JObject)jsonObj["Controllers"];
+
+            if (jsonObj["Window"] == null)
+            {
+                window = new JObject();
+                jsonObj["Window"] = window;
+            }
+            else
+                window = (JObject)jsonObj["Window"];
+
+            if (window["Fullscreen"] == null)
+            {
+                fs = new JObject();
+                window["Fullscreen"] = fs;
+            }
+            else
+                fs = (JObject)window["Fullscreen"];
+
+            cvars["gOpenMenuBar"] = 0;
+            cvars["gTitleScreenTranslation"] = 1;
+
+            // Graphic options
+            double res = 1.0;
+            if (SystemConfig.isOptSet("soh_resolution") && !string.IsNullOrEmpty(SystemConfig["soh_resolution"]))
+                res = (SystemConfig["soh_resolution"].ToDouble() / 100);
+            cvars["gInternalResolution"] = res;
+            
+            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "vsync", "1", "0");
+            BindFeatureSliderInt(cvars, "gMSAAValue", "soh_msaa", "1");
+            BindFeatureSliderInt(cvars, "gInterpolationFPS", "soh_fps", "20");
+            fs["Enabled"] = _fullscreen ? true : false;
+
+            // Language
+            BindFeatureInt(cvars, "gLanguages", "soh_language", "0");
+
+            // Controls
+            //BindBoolFeatureInt(cvars, "gControlNav", "soh_menucontrol", "1", "0");
+
+            ConfigureSOHControls(controllers);
+
+            File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
+        }
 
         private void ConfigureSonic3air(string rom, string exe)
         {
@@ -549,6 +643,7 @@ namespace EmulatorLauncher
                 ini.Save();
             }
         }
+
         #endregion
     }
 }

@@ -51,6 +51,7 @@ namespace EmulatorLauncher.Common.Launchers
         
         public static string GetSteamGameExecutableName(Uri uri)
         {
+            // Get Steam app ID from url
             string shorturl = uri.AbsolutePath.Substring(1);
             if (!string.IsNullOrEmpty(shorturl))
                 SimpleLogger.Instance.Info("[INFO] STEAM appID: " + shorturl);
@@ -58,12 +59,14 @@ namespace EmulatorLauncher.Common.Launchers
             int steamAppId = shorturl.ToInteger();
             ulong SteamAppIdLong = shorturl.ToUlong();
 
+            // If app ID is too long, it's a non-Steam game : return
             if (steamAppId == 0 && SteamAppIdLong == 0)
             {
                 SimpleLogger.Instance.Info("[STEAM] Non-Steam game detected.");
                 return null;
             }
 
+            // Call method to get executable name from Steam vdf files
             string exe = FindExecutableName(steamAppId, SteamAppIdLong);
 
             if (string.IsNullOrEmpty(exe))
@@ -79,6 +82,7 @@ namespace EmulatorLauncher.Common.Launchers
 
         static string FindExecutableName(int steamAppId, ulong SteamAppIdLong = 1999999999999999999)
         {
+            // Get Steam installation path in registry
             string path = GetInstallPath();
             if (string.IsNullOrEmpty(path))
                 throw new ApplicationException("Can not find Steam installation folder in registry.");
@@ -88,6 +92,8 @@ namespace EmulatorLauncher.Common.Launchers
             if (!File.Exists(appinfoPath))
                 SimpleLogger.Instance.Info("[WARNING] Missing file " + appinfoPath);
 
+            // Try to get executable by deserializing vdf file
+            // Broken since july 2024 - returns error
             try
             {
                 var reader = new SteamAppInfoReader();
@@ -146,6 +152,7 @@ namespace EmulatorLauncher.Common.Launchers
                 SimpleLogger.Instance.Info("[WARNING] Impossible to read SteamAppInfo.");
             }
 
+            // Try brutal method to look for the app ID and retrieve the first .exe that follows in the vdf file
             try
             {
                 SimpleLogger.Instance.Info("[INFO] Searching executable in Steam file 'appinfo.vdf' : alternative method");
@@ -304,6 +311,10 @@ namespace EmulatorLauncher.Common.Launchers
             return dbs;
         }
 
+        /// <summary>
+        /// Get Steam installation path in registry
+        /// </summary>
+        /// <returns>Steam install path</returns>
         public static string GetInstallPath()
         {
             try
