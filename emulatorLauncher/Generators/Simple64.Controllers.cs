@@ -78,10 +78,10 @@ namespace EmulatorLauncher
             string sensitivity = "100";
             string deadzone = "15";
             if (SystemConfig.isOptSet("mupen64_sensitivity") && !string.IsNullOrEmpty(SystemConfig["mupen64_sensitivity"]))
-                sensitivity = SystemConfig["mupen64_sensitivity"];
+                sensitivity = SystemConfig["mupen64_sensitivity"].ToIntegerString();
 
             if (SystemConfig.isOptSet("mupen64_deadzone") && !string.IsNullOrEmpty(SystemConfig["mupen64_deadzone"]))
-                deadzone = SystemConfig["mupen64_deadzone"];
+                deadzone = SystemConfig["mupen64_deadzone"].ToIntegerString();
 
             // ButtonID (SDL)
             // 3 = hat / 4 = button / 5 = axis / 1 or -1 = axis direction (if axis)

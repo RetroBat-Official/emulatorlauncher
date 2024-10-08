@@ -73,7 +73,7 @@ namespace EmulatorLauncher
             using (IniFile toml = new IniFile(settingsFile, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
             {
                 // General section
-                BindIniFeature(toml, "General", "isPS4Pro", "shadps4_isps4pro", "false");
+                BindBoolIniFeature(toml, "General", "isPS4Pro", "shadps4_isps4pro", "true", "false");
                 if (fullscreen)
                     toml.WriteValue("General", "Fullscreen", "true");
                 else

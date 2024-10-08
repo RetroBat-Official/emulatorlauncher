@@ -131,8 +131,8 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "neogeo", "bios", "raine_bios", "25");
                     ini.WriteValue("neogeo", "shared_saveram", "0");
 
-                    BindIniFeature(ini, "neocd", "music_volume", "raine_music_volume", "75");
-                    BindIniFeature(ini, "neocd", "sfx_volume", "raine_sfx_volume", "75");
+                    BindIniFeatureSlider(ini, "neocd", "music_volume", "raine_music_volume", "70");
+                    BindIniFeatureSlider(ini, "neocd", "sfx_volume", "raine_sfx_volume", "70");
                     BindBoolIniFeatureOn(ini, "neocd", "allowed_speed_hacks", "raine_speed_hack", "1", "0");
                     BindIniFeature(ini, "neocd", "cdrom_speed", "raine_cd_speed", "8");
 

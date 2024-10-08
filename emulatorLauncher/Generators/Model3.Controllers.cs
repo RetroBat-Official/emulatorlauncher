@@ -270,7 +270,7 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[WHEELS] Wheel " + wheel.DevicePath.ToString() + " not found as Gamepad.");
 
                     // Set force feedback by default if wheel supports it
-                    if (wheelmapping.Forcefeedback == "true" && SystemConfig["forceFeedback"] != "0")
+                    if (wheelmapping.Forcefeedback == "true" && (!(SystemConfig.isOptSet("forceFeedback") && !SystemConfig.getOptBoolean("forceFeedback"))))
                         ini.WriteValue(" Global ", "ForceFeedback", "1");
                 }
             }

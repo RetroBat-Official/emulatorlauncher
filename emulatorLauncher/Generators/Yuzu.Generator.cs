@@ -297,7 +297,7 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
 
                 //Core options
-                BindQtIniFeature(ini, "Core", "use_multi_core", "yuzu_multicore", "true");
+                BindQtBoolIniFeature(ini, "Core", "use_multi_core", "yuzu_multicore", "true", "false", "true");
                 BindQtIniFeature(ini, "Core", "memory_layout_mode", "yuzu_memory", "0");
 
                 // CPU accuracy (auto except if the user chooses otherwise)

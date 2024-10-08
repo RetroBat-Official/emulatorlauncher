@@ -248,7 +248,7 @@ namespace EmulatorLauncher
             
             BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
             BindFeature(video, "Shader Precision", "shader_quality", "Auto");
-            BindFeature(video, "Driver Wake-Up Delay", "driver_wake", "1");
+            BindFeatureSlider(video, "Driver Wake-Up Delay", "driver_wake", "1");
             BindBoolFeature(video, "Force CPU Blit", "cpu_blit", "true", "false");
             BindBoolFeature(video, "Disable ZCull Occlusion Queries", "disable_zcull_queries", "true", "false");
             BindFeatureSlider(video, "Minimum Scalable Dimension", "rpcs3_resolution_scale", "16");

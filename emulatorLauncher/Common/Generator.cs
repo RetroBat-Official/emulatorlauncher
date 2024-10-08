@@ -643,6 +643,26 @@ namespace EmulatorLauncher
             }
         }
 
+        protected void BindQtBoolIniFeature(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                bool isCustomValue = SystemConfig.isOptSet(featureName) && !string.IsNullOrEmpty(SystemConfig[featureName]);
+                string value = defaultValue;
+
+                if (SystemConfig.isOptSet(featureName))
+                {
+                    if (SystemConfig.getOptBoolean(featureName))
+                        value = trueValue;
+                    else if (!SystemConfig.getOptBoolean(featureName))
+                        value = falseValue;
+                }
+
+                ini.WriteValue(section, settingName + "\\default", isCustomValue ? "false" : "true");
+                ini.WriteValue(section, settingName, value);
+            }
+        }
+
         // json bindfeatures
         protected void BindFeature(DynamicJson cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
