@@ -295,7 +295,8 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
                 {
                     xdoc.SetElementValue("UseSto0ZDrivingHack", true);
-                    xdoc.SetElementValue("StoozPercent", Program.SystemConfig["tp_stooz"].ToInteger());
+                    string stooz = Program.SystemConfig["tp_stooz"].ToIntegerString();
+                    xdoc.SetElementValue("StoozPercent", stooz.ToInteger());
                 }
                 else
                 {
@@ -324,7 +325,8 @@ namespace EmulatorLauncher
                 if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
                 {
                     data.UseSto0ZDrivingHack = true;
-                    data.StoozPercent = Program.SystemConfig["tp_stooz"].ToInteger();
+                    string stooz = Program.SystemConfig["tp_stooz"].ToIntegerString();
+                    data.StoozPercent = stooz.ToInteger();
                 }
                 else
                 {

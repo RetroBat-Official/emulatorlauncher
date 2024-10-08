@@ -169,19 +169,19 @@ namespace EmulatorLauncher
 
             //Then the emulator options
             BindFeature(yml, "backend-renderer", "backend-renderer", "Vulkan");
-            BindFeature(yml, "resolution-multiplier", "resolution-multiplier", "1");
-            BindFeature(yml, "disable-surface-sync", "disable_surfacesync", "false");
+            BindFeatureSlider(yml, "resolution-multiplier", "resolution_multiplier", "1");
+            BindBoolFeature(yml, "disable-surface-sync", "disable_surfacesync", "true", "false");
             BindFeature(yml, "screen-filter", "vita_screenfilter", "Bilinear");
-            BindFeature(yml, "v-sync", "vita_vsync", "false");
+            BindBoolFeatureOn(yml, "v-sync", "vita_vsync", "true", "false");
             BindFeature(yml, "anisotropic-filtering", "anisotropic-filtering", "1");
-            BindFeature(yml, "cpu-opt", "cpu-opt", "true");
-            BindFeature(yml, "shader-cache", "shader-cache", "true");
-            BindFeature(yml, "texture-cache", "texture-cache", "true");
+            BindBoolFeatureOn(yml, "cpu-opt", "cpu_opt", "true", "false");
+            BindBoolFeatureOn(yml, "shader-cache", "shader_cache", "true", "false");
+            BindBoolFeatureOn(yml, "texture-cache", "texture_cache", "true", "false");
             BindFeature(yml, "performance-overlay", "performance-overlay", "false");
             BindFeature(yml, "high-accuracy", "vita3k_high_accuracy", "true");
-            BindFeature(yml, "fps-hack", "vita3k_fpshack", "false");
-            BindFeature(yml, "show-gui", "vita3k_gui", "false");
-            BindFeature(yml, "show-compile-shaders", "vita3k_showShaderCompile", "false");
+            BindBoolFeature(yml, "fps-hack", "vita3k_fpshack", "true", "false");
+            BindBoolFeature(yml, "show-gui", "vita3k_gui", "true", "false");
+            BindBoolFeature(yml, "show-compile-shaders", "vita3k_showShaderCompile", "true", "false");
             yml["check-for-updates"] = "false";
 
             //Performance overlay options

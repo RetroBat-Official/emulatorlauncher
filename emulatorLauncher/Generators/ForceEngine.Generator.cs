@@ -32,7 +32,7 @@ namespace EmulatorLauncher
 
             var commandArray = new List<string>();
 
-            if (SystemConfig.isOptSet("forceengine_cutscenes") && SystemConfig["forceengine_cutscenes"] == "1")
+            if (SystemConfig.isOptSet("forceengine_cutscenes") && SystemConfig.getOptBoolean("forceengine_cutscenes"))
                 commandArray.Add("-c0");
             else
                 commandArray.Add("-c1");
@@ -73,13 +73,13 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("Window", "fullscreen", "false");
 
-                BindBoolIniFeature(ini, "Graphics", "vsync", "vsync", "false", "true");
-                BindBoolIniFeature(ini, "Graphics", "widescreen", "forceengine_widescreen", "false", "true");
+                BindBoolIniFeatureOn(ini, "Graphics", "vsync", "vsync", "true", "false");
+                BindBoolIniFeatureOn(ini, "Graphics", "widescreen", "forceengine_widescreen", "true", "false");
                 BindBoolIniFeature(ini, "Graphics", "show_fps", "forceengine_fps", "true", "false");
-                BindBoolIniFeature(ini, "Graphics", "useBilinear", "forceengine_smooth", "false", "true");
-                BindBoolIniFeature(ini, "Graphics", "useMipmapping", "forceengine_mipmap", "false", "true");
+                BindBoolIniFeatureOn(ini, "Graphics", "useBilinear", "forceengine_smooth", "true", "false");
+                BindBoolIniFeatureOn(ini, "Graphics", "useMipmapping", "forceengine_mipmap", "true", "false");
                 BindBoolIniFeature(ini, "Graphics", "colorCorrection", "forceengine_color_correction", "true", "false");
-                BindBoolIniFeature(ini, "Graphics", "bloomEnabled", "forceengine_bloom", "false", "true");
+                BindBoolIniFeatureOn(ini, "Graphics", "bloomEnabled", "forceengine_bloom", "true", "false");
                 BindIniFeature(ini, "Graphics", "renderer", "forceengine_renderer", "1");
                 BindIniFeature(ini, "Graphics", "colorMode", "forceengine_color_mode", "2");
                 BindIniFeature(ini, "Graphics", "skyMode", "forceengine_sky_mode", "1");

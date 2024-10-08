@@ -648,7 +648,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[Generator] Writing config to VPinballX.ini file.");
 
-                if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
+                if (Screen.AllScreens.Length > 1 && (!SystemConfig.isOptSet("enableb2s") || SystemConfig.getOptBoolean("enableb2s")) && !SystemInformation.TerminalServerSession)
                     ini.WriteValue("Controller", "ForceDisableB2S", "0");
                 else if (SystemConfig.getOptBoolean("enableb2s"))
                     ini.WriteValue("Controller", "ForceDisableB2S", "0");
@@ -710,8 +710,10 @@ namespace EmulatorLauncher
                 ini.WriteValue("Player", "FXAA", SystemConfig.GetValueOrDefault("vp_antialiasing", "0"));
                 ini.WriteValue("Player", "Sharpen", SystemConfig.GetValueOrDefault("vp_sharpen", "0"));
                 
-                ini.WriteValue("Player", "BGSet", SystemConfig["arcademode"] == "1" ? "1" : "0");
-                ini.WriteValue("Player", "ForceAnisotropicFiltering", SystemConfig.getOptBoolean("vp_anisotropic_filtering") ? "0" : "1");
+                ini.WriteValue("Player", "BGSet", SystemConfig.getOptBoolean("arcademode") ? "1" : "0");
+
+                bool aniFilter = !SystemConfig.isOptSet("vp_anisotropic_filtering") || SystemConfig.getOptBoolean("vp_anisotropic_filtering");
+                ini.WriteValue("Player", "ForceAnisotropicFiltering", aniFilter ? "1" : "0");
                 ini.WriteValue("Player", "UseNVidiaAPI", SystemConfig.getOptBoolean("vp_nvidia") ? "1" : "0");
                 ini.WriteValue("Player", "SoftwareVertexProcessing", SystemConfig.getOptBoolean("vp_vertex") ? "1" : "0");
 
@@ -720,12 +722,12 @@ namespace EmulatorLauncher
 
                 // Controls
 
-                if (SystemConfig["disableautocontrollers"] != "1")
+                if (!SystemConfig.getOptBoolean("disableautocontrollers"))
                 {
-                    ini.WriteValue("Player", "LRAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "1");
-                    ini.WriteValue("Player", "UDAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "2");
-                    ini.WriteValue("Player", "PlungerAxis", SystemConfig["nouse_joyaxis"] == "1" ? "0" : "3");
-                    ini.WriteValue("Player", "DeadZone", SystemConfig.GetValueOrDefault("joy_deadzone", "15"));
+                    ini.WriteValue("Player", "LRAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : "1");
+                    ini.WriteValue("Player", "UDAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : "2");
+                    ini.WriteValue("Player", "PlungerAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : "3");
+                    BindIniFeatureSlider(ini, "Player", "DeadZone", "joy_deadzone", "15");
                 }
 
                 ini.WriteValue("Editor", "WindowTop", (Screen.PrimaryScreen.Bounds.Height / 2 - 300).ToString());
@@ -753,7 +755,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[Generator] Writing config to registry.");
 
-                if (Screen.AllScreens.Length > 1 && SystemConfig["enableb2s"] != "0" && !SystemInformation.TerminalServerSession)
+                if (Screen.AllScreens.Length > 1 && (!SystemConfig.isOptSet("enableb2s") || SystemConfig.getOptBoolean("enableb2s")) && !SystemInformation.TerminalServerSession)
                     SetOption(regKeyc, "ForceDisableB2S", 0);
                 else
                     SetOption(regKeyc, "ForceDisableB2S", 1);
@@ -832,8 +834,10 @@ namespace EmulatorLauncher
                 else
                     SetOption(regKeyc, "FXAA", 0);
 
-                SetOption(regKeyc, "BGSet", SystemConfig["arcademode"] == "1" ? 1 : 0);
-                SetOption(regKeyc, "ForceAnisotropicFiltering", SystemConfig.getOptBoolean("vp_anisotropic_filtering") ? 0 : 1);
+                SetOption(regKeyc, "BGSet", SystemConfig.getOptBoolean("arcademode") ? 1 : 0);
+
+                bool aniFilter = !SystemConfig.isOptSet("vp_anisotropic_filtering") || SystemConfig.getOptBoolean("vp_anisotropic_filtering");
+                SetOption(regKeyc, "ForceAnisotropicFiltering", aniFilter ? 1 : 0);
                 SetOption(regKeyc, "UseNVidiaAPI", SystemConfig.getOptBoolean("vp_nvidia") ? 1 : 0);
                 SetOption(regKeyc, "SoftwareVertexProcessing", SystemConfig.getOptBoolean("vp_vertex") ? 1 : 0);
 
@@ -841,16 +845,16 @@ namespace EmulatorLauncher
                 SetOption(regKeyc, "PlayMusic", SystemConfig.getOptBoolean("vp_music_off") ? 0 : 1);
 
                 // Controls
-                if (SystemConfig["disableautocontrollers"] != "1")
+                if (!SystemConfig.getOptBoolean("disableautocontrollers"))
                 {
-                    SetOption(regKeyc, "LRAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 1);
-                    SetOption(regKeyc, "UDAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 2);
-                    SetOption(regKeyc, "PlungerAxis", SystemConfig["nouse_joyaxis"] == "1" ? 0 : 3);
+                    SetOption(regKeyc, "LRAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? 0 : 1);
+                    SetOption(regKeyc, "UDAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? 0 : 2);
+                    SetOption(regKeyc, "PlungerAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? 0 : 3);
 
                     int deadzone = 15;
 
                     if (SystemConfig.isOptSet("joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["joy_deadzone"]))
-                        deadzone = SystemConfig["joy_deadzone"].ToInteger();
+                        deadzone = SystemConfig["joy_deadzone"].ToIntegerString().ToInteger();
 
                     SetOption(regKeyc, "DeadZone", deadzone);
                 }
