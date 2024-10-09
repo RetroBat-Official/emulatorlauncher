@@ -122,8 +122,8 @@ namespace EmulatorLauncher
             
             BindFeature(cfgFile, "ColorDepth", "zinc_colordepth", "32");
             BindFeature(cfgFile, "ScanLines", "zinc_scanlines", "0");
-            BindFeature(cfgFile, "ShowFPS", "zinc_fps", "0");
-            BindFeature(cfgFile, "FrameSkipping", "zinc_frameskip", "0");
+            BindBoolFeature(cfgFile, "ShowFPS", "zinc_fps", "1", "0");
+            BindBoolFeature(cfgFile, "FrameSkipping", "zinc_frameskip", "1", "0");
 
             cfgFile.Save(cfg, false);
         }

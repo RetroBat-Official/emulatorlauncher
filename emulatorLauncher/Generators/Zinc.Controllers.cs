@@ -85,7 +85,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(playerSection, "coin", GetDInputKeyName(ctrl, controller, InputKey.select, joy));
                 ini.WriteValue(playerSection, "start", GetDInputKeyName(ctrl, controller, InputKey.start, joy));
 
-                if (!SystemConfig.isOptSet("zinc_digital") || SystemConfig["zinc_digital"] != "1")
+                if (!SystemConfig.isOptSet("zinc_digital") || !SystemConfig.getOptBoolean("zinc_digital"))
                 {
                     ini.WriteValue(playerSection, "right", joy + "right");
                     ini.WriteValue(playerSection, "left", joy + "left");
@@ -166,7 +166,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(playerSection, "coin", GetInputKeyName(ctrl, InputKey.select, joy));
                 ini.WriteValue(playerSection, "start", GetInputKeyName(ctrl, InputKey.start, joy));
 
-                if (!SystemConfig.isOptSet("zinc_digital") || SystemConfig["zinc_digital"] != "1")
+                if (!SystemConfig.isOptSet("zinc_digital") || !SystemConfig.getOptBoolean("zinc_digital"))
                 {
                     ini.WriteValue(playerSection, "right", GetInputKeyName(ctrl, InputKey.right, joy));
                     ini.WriteValue(playerSection, "left", GetInputKeyName(ctrl, InputKey.left, joy));

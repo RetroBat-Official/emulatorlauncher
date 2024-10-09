@@ -11,6 +11,7 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.PadToKeyboard;
 using Newtonsoft.Json.Linq;
 using System.Configuration;
+using ValveKeyValue;
 
 namespace EmulatorLauncher
 {
@@ -954,6 +955,19 @@ namespace EmulatorLauncher
                 }
                 else
                     ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue));
+            }
+        }
+
+        protected void BindBoolIniFeatureAuto(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, trueValue);
+                else if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, falseValue);
+                else
+                    ini.WriteValue(section, settingName, autoValue);
             }
         }
 
