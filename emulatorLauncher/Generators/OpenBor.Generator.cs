@@ -22,84 +22,93 @@ namespace EmulatorLauncher
         private bool _isCustomRetrobatOpenBor; // This Version support harcoded NumButtons / NumAxes values for generic injection
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
-        {            
+        {
             string path = AppConfig.GetFullPath("openbor");
             string newPath;
             string newExe;
             string exe = Path.Combine(path, "OpenBOR.exe");
 
-            string build = GetBuildToUse(rom, core);
-            if (!string.IsNullOrEmpty(build))
+            if (Path.GetExtension(rom) != ".exe")
             {
-                newPath = Path.Combine(path, build);
-
-                if (!Directory.Exists(newPath))
-                    throw new ApplicationException("Folder for OpenBOR version '" + build + "' does not exist");
-
-                newExe = Path.Combine(newPath, "OpenBOR.exe");
-
-                if (!File.Exists(newExe))
+                string build = GetBuildToUse(rom, core);
+                if (!string.IsNullOrEmpty(build))
                 {
-                    var exes = Directory.GetFiles(newPath, "*.exe");
-                    newExe = exes.FirstOrDefault();
+                    newPath = Path.Combine(path, build);
+
+                    if (!Directory.Exists(newPath))
+                        throw new ApplicationException("Folder for OpenBOR version '" + build + "' does not exist");
+
+                    newExe = Path.Combine(newPath, "OpenBOR.exe");
+
+                    if (!File.Exists(newExe))
+                    {
+                        var exes = Directory.GetFiles(newPath, "*.exe");
+                        newExe = exes.FirstOrDefault();
+                    }
+
+                    if (File.Exists(newExe))
+                    {
+                        path = newPath;
+                        exe = newExe;
+                    }
                 }
 
-                if (File.Exists(newExe))
+                if (!File.Exists(exe))
+                    return null;
+
+                _path = path;
+
+                try
                 {
-                    path = newPath;
-                    exe = newExe;
+                    var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+                    _isCustomRetrobatOpenBor = (versionInfo.FilePrivatePart == 5242); // 5242 stands for RB ( 'R' x52, 'B' x42 ) -> RetroBat !
                 }
-            }
+                catch { }
 
-            if (!File.Exists(exe))
-                return null;
-
-            _path = path;
-
-            try
-            {
-                var versionInfo = FileVersionInfo.GetVersionInfo(exe);
-                _isCustomRetrobatOpenBor = (versionInfo.FilePrivatePart == 5242); // 5242 stands for RB ( 'R' x52, 'B' x42 ) -> RetroBat !
-            }
-            catch { }
-
-            if (SetupConfigIni(path))
-            {
-                UseEsPadToKey = false;
-
-                SetupBezelAndShaders(system, rom, resolution, path, emulator);
-
-                return new ProcessStartInfo()
+                if (SetupConfigIni(path))
                 {
-                    FileName = exe,
-                    Arguments = "\"" + rom + "\"",
-                    WorkingDirectory = path
-                };
+                    UseEsPadToKey = false;
+
+                    SetupBezelAndShaders(system, rom, resolution, path, emulator);
+
+                    return new ProcessStartInfo()
+                    {
+                        FileName = exe,
+                        Arguments = "\"" + rom + "\"",
+                        WorkingDirectory = path
+                    };
+                }
+
+                /* Old versions ?
+
+                if (build == "4432")
+                    setupConfigBor4432Cfg(path);
+                else 
+                    setupConfigBorCfg(path);
+                */
+
+                string pakDir = Path.Combine(path, "Paks");
+                if (!Directory.Exists(pakDir))
+                    Directory.CreateDirectory(pakDir);
+
+                foreach (var file in Directory.GetFiles(pakDir))
+                {
+                    if (Path.GetFileName(file) == Path.GetFileName(rom))
+                        continue;
+
+                    File.Delete(file);
+                }
+
+                _destFile = Path.Combine(pakDir, Path.GetFileName(rom));
+                if (!File.Exists(_destFile))
+                    File.Copy(rom, _destFile);
             }
 
-            /* Old versions ?
-
-            if (build == "4432")
-                setupConfigBor4432Cfg(path);
-            else 
-                setupConfigBorCfg(path);
-            */
-
-            string pakDir = Path.Combine(path, "Paks");
-            if (!Directory.Exists(pakDir))
-                Directory.CreateDirectory(pakDir); 
-
-            foreach (var file in Directory.GetFiles(pakDir))
+            else
             {
-                if (Path.GetFileName(file) == Path.GetFileName(rom))
-                    continue;
-
-                File.Delete(file);
+                path = Path.GetFullPath(rom);
+                exe = rom;
             }
-
-            _destFile = Path.Combine(pakDir, Path.GetFileName(rom));
-            if (!File.Exists(_destFile))
-                File.Copy(rom, _destFile);
 
             SetupBezelAndShaders(system, rom, resolution, path, emulator);
 
