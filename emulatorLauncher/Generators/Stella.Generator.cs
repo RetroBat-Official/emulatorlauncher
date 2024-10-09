@@ -87,26 +87,26 @@ namespace EmulatorLauncher
                     ForceStellaSetting(db, "snapname", "rom");
                     ForceStellaSetting(db, "autoslot", "1");
 
-                    SetStellaSetting(db, "tia.correct_aspect", "stella_correct_aspect", "1");
-                    SetStellaSetting(db, "tia.fs_stretch", "stella_stretch", "0");
-                    SetStellaSetting(db, "tia.fs_refresh", "stella_adapt_refresh", "0");
+                    SetStellaBoolSetting(db, "tia.correct_aspect", "stella_correct_aspect", "1", "0", "1");
+                    SetStellaBoolSetting(db, "tia.fs_stretch", "stella_stretch", "1", "0", "0");
+                    SetStellaBoolSetting(db, "tia.fs_refresh", "stella_adapt_refresh", "1", "0", "0");
                     SetStellaSetting(db, "tia.fs_overscan", "stella_overscan", "Off");
-                    SetStellaSetting(db, "tia.inter", "stella_interpolation", "0");
+                    SetStellaBoolSetting(db, "tia.inter", "stella_interpolation", "1", "0", "0");
                     SetStellaSetting(db, "tv.filter", "stella_tvfilter", "0");
                     SetStellaSetting(db, "tv.scanlines", "stella_scanlines", "Off");
                     SetStellaSetting(db, "video", "stella_renderer", "direct3d");
-                    SetStellaSetting(db, "vsync", "stella_vsync", "1");
+                    SetStellaBoolSetting(db, "vsync", "stella_vsync", "1", "0", "1");
                     SetStellaSetting(db, "display", "stella_monitor", "0");
                     SetStellaSetting(db, "audio.preset", "stella_audio_quality", "3");
-                    SetStellaSetting(db, "audio.stereo", "stella_force_stereo", "0");
-                    SetStellaSetting(db, "threads", "stella_multithread", "0");
-                    SetStellaSetting(db, "fastscbios", "stella_fastload", "1");
-                    SetStellaSetting(db, "uimessages", "stella_uimessages", "1");
-                    SetStellaSetting(db, "saveonexit", "stella_autosave", "none");
+                    SetStellaBoolSetting(db, "audio.stereo", "stella_force_stereo", "1", "0", "0");
+                    SetStellaBoolSetting(db, "threads", "stella_multithread", "1", "0", "0");
+                    SetStellaBoolSetting(db, "fastscbios", "stella_fastload", "1", "0", "1");
+                    SetStellaBoolSetting(db, "uimessages", "stella_uimessages", "1", "0", "1");
+                    SetStellaBoolSetting(db, "saveonexit", "stella_autosave", "current", "none", "none");
                     SetStellaSetting(db, "usemouse", "stella_mouse", "analog");
                     SetStellaSetting(db, "cursor", "stella_cursor", "2");
                     SetStellaSetting(db, "adeadzone", "stella_deadzone", "3");
-                    SetStellaSetting(db, "joyallow4", "stella_fourway", "1");
+                    SetStellaBoolSetting(db, "joyallow4", "stella_fourway", "1", "0", "1");
 
                     if (!SystemConfig.isOptSet("stella_autofire") || SystemConfig["stella_autofire"] == "0")
                     {
@@ -134,6 +134,23 @@ namespace EmulatorLauncher
                 cmd.CommandText = "UPDATE settings SET value = '" + Program.SystemConfig[feature] + "' where setting = '" + setting + "'";
             else
                 cmd.CommandText = "UPDATE settings SET value = '" + defaultValue + "' where setting = '" + setting + "'";
+            cmd.ExecuteNonQuery();
+        }
+
+        private static void SetStellaBoolSetting(SQLiteConnection db, string setting, string feature, string trueValue, string falseValue, string defaultValue)
+        {
+            var cmd = db.CreateCommand();
+
+            if (Program.SystemConfig.isOptSet(feature))
+            {
+                if (Program.SystemConfig.getOptBoolean(feature))
+                    cmd.CommandText = "UPDATE settings SET value = '" + trueValue + "' where setting = '" + setting + "'";
+                else
+                    cmd.CommandText = "UPDATE settings SET value = '" + falseValue + "' where setting = '" + setting + "'";
+            }
+            else
+                cmd.CommandText = "UPDATE settings SET value = '" + defaultValue + "' where setting = '" + setting + "'";
+            
             cmd.ExecuteNonQuery();
         }
 

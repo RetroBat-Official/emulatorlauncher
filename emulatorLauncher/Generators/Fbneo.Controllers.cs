@@ -28,7 +28,19 @@ namespace EmulatorLauncher
             // Get game mapping yml database
             YmlContainer game = null;
             Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
-            string fbneoMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "fbneo.yml");
+            
+            string fbneoMapping = null;
+            foreach (var mappingpath in mappingPaths)
+            {
+                string result = mappingpath
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "inputmapping");
+
+                fbneoMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
+
+                if (File.Exists(fbneoMapping))
+                    break;
+            }
 
             if (File.Exists(fbneoMapping))
             {
@@ -506,6 +518,15 @@ namespace EmulatorLauncher
         private readonly static List<string> decomlcGames = new List<string>()
         {
             "avengrgs", "avengrgsj", "avengrgsbh", "skullfng", "skullfngj", "skullfnga", "stadhr96", "stadhr96u", "stadhr96j", "stadhr96j2", "stadhr96k", "hoops96", "hoops95", "ddream95"
+        };
+
+        static string[] mappingPaths =
+        {            
+            // User specific
+            "{userpath}\\fbneo.yml",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping\\fbneo.yml",
         };
     }
 }

@@ -203,7 +203,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("general.updates", "check", "false");
 
                 // Skip Boot anim
-                BindBoolIniFeature(ini, "general", "skip_boot_anim", "show_boot", "false", "true");
+                BindBoolIniFeatureAuto(ini, "general", "skip_boot_anim", "show_boot", "true", "false", "true");
                 BindBoolIniFeature(ini, "display.ui", "show_notifications", "xemu_notifications", "true", "false");
 
                 // Controllers
@@ -225,7 +225,7 @@ namespace EmulatorLauncher
                 }
 
                 // Resolution
-                BindIniFeature(ini, "display.quality", "surface_scale", "render_scale", "1");
+                BindIniFeatureSlider(ini, "display.quality", "surface_scale", "render_scale", "1");
 
                 // Aspect Ratio and scaling
                 if (SystemConfig.isOptSet("xemu_scale") && !string.IsNullOrEmpty(SystemConfig["xemu_scale"]))
@@ -239,9 +239,9 @@ namespace EmulatorLauncher
                     ini.Remove("display.ui", "aspect_ratio");
 
                 // Menu Bar
-                if (SystemConfig.isOptSet("menubar") && !string.IsNullOrEmpty(SystemConfig["menubar"]))
-                    ini.WriteValue("display.ui", "show_menubar", SystemConfig["menubar"]);
-                else if (Features.IsSupported("menubar") || (_bezelFileInfo != null))
+                if (SystemConfig.isOptSet("menubar") && SystemConfig.getOptBoolean("menubar"))
+                    ini.WriteValue("display.ui", "show_menubar", "true");
+                else if (Features.IsSupported("menubar"))
                     ini.WriteValue("display.ui", "show_menubar", "false");
 
 
@@ -252,7 +252,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("sys", "mem_limit", "'128'");
 
                 // Vsync
-                BindIniFeature(ini, "display.window", "vsync", "vsync", "true");
+                BindBoolIniFeatureOn(ini, "display.window", "vsync", "vsync", "true", "false");
 
                 //¨Paths
                 string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "xemu");

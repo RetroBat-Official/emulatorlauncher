@@ -369,7 +369,20 @@ namespace EmulatorLauncher
                 if (_isArcade)
                 {
                     Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
-                    string flycastMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "flycast_Arcade.yml");
+                    string flycastMapping = null;
+
+                    foreach (var path in mappingPaths)
+                    {
+                        string result = path
+                            .Replace("{systempath}", "system")
+                            .Replace("{userpath}", "inputmapping");
+
+                        flycastMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
+
+                        if (File.Exists(flycastMapping))
+                            break;
+                    }
+
                     if (File.Exists(flycastMapping))
                     {
                         YmlFile ymlFile = YmlFile.Load(flycastMapping);
@@ -933,16 +946,13 @@ namespace EmulatorLauncher
             { "leftanalogdown", InputKey.down },
         };
 
-        /*static readonly List<string> analogKeys = new List<string>()
-        {
-            "leftanalogleft",
-            "leftanalogright",
-            "leftanalogup",
-            "leftanalogdown",
-            "rightanalogleft",
-            "rightanalogright",
-            "rightanalogup",
-            "rightanalogdown",
-        };*/
+        static string[] mappingPaths =
+        {            
+            // User specific
+            "{userpath}\\flycast_Arcade.yml",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping\\flycast_Arcade.yml",
+        };
     }
 }

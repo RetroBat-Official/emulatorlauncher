@@ -11,6 +11,7 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.PadToKeyboard;
 using Newtonsoft.Json.Linq;
 using System.Configuration;
+using ValveKeyValue;
 
 namespace EmulatorLauncher
 {
@@ -643,6 +644,26 @@ namespace EmulatorLauncher
             }
         }
 
+        protected void BindQtBoolIniFeature(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                bool isCustomValue = SystemConfig.isOptSet(featureName) && !string.IsNullOrEmpty(SystemConfig[featureName]);
+                string value = defaultValue;
+
+                if (SystemConfig.isOptSet(featureName))
+                {
+                    if (SystemConfig.getOptBoolean(featureName))
+                        value = trueValue;
+                    else if (!SystemConfig.getOptBoolean(featureName))
+                        value = falseValue;
+                }
+
+                ini.WriteValue(section, settingName + "\\default", isCustomValue ? "false" : "true");
+                ini.WriteValue(section, settingName, value);
+            }
+        }
+
         // json bindfeatures
         protected void BindFeature(DynamicJson cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
@@ -934,6 +955,19 @@ namespace EmulatorLauncher
                 }
                 else
                     ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue));
+            }
+        }
+
+        protected void BindBoolIniFeatureAuto(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, trueValue);
+                else if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, falseValue);
+                else
+                    ini.WriteValue(section, settingName, autoValue);
             }
         }
 

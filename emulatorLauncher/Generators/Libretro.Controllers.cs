@@ -369,6 +369,11 @@ namespace EmulatorLauncher.Libretro
 
         private static void WriteControllerConfig(ConfigFile retroconfig, Controller controller, string system, string core)
         {
+            // Dolphin, when using xinput controller, will only work if joypad driver is set to xinput
+            // So set to xinput in auto, if not forced in settings
+            if (controller.PlayerIndex == 1 && core == "dolphin" && controller.IsXInputDevice && !Program.SystemConfig.isOptSet("input_driver"))
+                _inputDriver = "xinput";
+            
             var generatedConfig = GenerateControllerConfig(retroconfig, controller, system, core);
             foreach (var key in generatedConfig)
                 retroconfig[key.Key] = key.Value;

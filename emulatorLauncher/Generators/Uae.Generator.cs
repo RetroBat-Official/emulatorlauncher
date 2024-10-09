@@ -229,9 +229,9 @@ namespace EmulatorLauncher
             sb.AppendLine("gfx_filter_aspect_ratio=16:9");
             sb.AppendLine("gfx_colour_mode=32bit");
 
-            if (SystemConfig.isOptSet("vsync") && !string.IsNullOrEmpty(SystemConfig["vsync"]))
+            if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))
             {
-                sb.AppendLine("gfx_vsync=" + SystemConfig["vsync"]);
+                sb.AppendLine("gfx_vsync=false");
                 sb.AppendLine("gfx_vsyncmode=normal");
             }
             else if (Features.IsSupported("vsync"))

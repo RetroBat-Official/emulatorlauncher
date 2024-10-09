@@ -144,10 +144,10 @@ namespace EmulatorLauncher
                     }
 
                     //D3D12 section
-                    if (SystemConfig.isOptSet("xenia_allow_variable_refresh_rate_and_tearing") && !string.IsNullOrEmpty(SystemConfig["xenia_allow_variable_refresh_rate_and_tearing"]))
+                    if (SystemConfig.isOptSet("xenia_allow_variable_refresh_rate_and_tearing") && !SystemConfig.getOptBoolean("xenia_allow_variable_refresh_rate_and_tearing"))
                     {
-                        ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", SystemConfig["xenia_allow_variable_refresh_rate_and_tearing"]);
-                        ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", SystemConfig["xenia_allow_variable_refresh_rate_and_tearing"]);
+                        ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", "false");
+                        ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "false");
                     }
                     else if (Features.IsSupported("xenia_allow_variable_refresh_rate_and_tearing"))
                     {
@@ -155,8 +155,8 @@ namespace EmulatorLauncher
                         ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "true");
                     }
 
-                    if (SystemConfig.isOptSet("d3d12_readback_resolve") && !string.IsNullOrEmpty(SystemConfig["d3d12_readback_resolve"]))
-                        ini.AppendValue("D3D12", "d3d12_readback_resolve", SystemConfig["d3d12_readback_resolve"]);
+                    if (SystemConfig.isOptSet("d3d12_readback_resolve") && SystemConfig.getOptBoolean("d3d12_readback_resolve"))
+                        ini.AppendValue("D3D12", "d3d12_readback_resolve", "true");
                     else if (Features.IsSupported("d3d12_readback_resolve"))
                         ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
 
@@ -165,8 +165,8 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("xenia_queue_priority"))
                         ini.AppendValue("D3D12", "d3d12_queue_priority", "0");
 
-                    if (SystemConfig.isOptSet("xenia_d3d12_debug") && !string.IsNullOrEmpty(SystemConfig["xenia_d3d12_debug"]))
-                        ini.AppendValue("D3D12", "d3d12_debug", SystemConfig["xenia_d3d12_debug"]);
+                    if (SystemConfig.isOptSet("xenia_d3d12_debug") && SystemConfig.getOptBoolean("xenia_d3d12_debug"))
+                        ini.AppendValue("D3D12", "d3d12_debug", "true");
                     else if (Features.IsSupported("xenia_d3d12_debug"))
                         ini.AppendValue("D3D12", "d3d12_debug", "false");
 
@@ -221,13 +221,13 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "render_target_path_vulkan", "\"\"");
                     }
 
-                    if (SystemConfig.isOptSet("gpu_allow_invalid_fetch_constants") && !string.IsNullOrEmpty(SystemConfig["gpu_allow_invalid_fetch_constants"]))
-                        ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", SystemConfig["gpu_allow_invalid_fetch_constants"]);
+                    if (SystemConfig.isOptSet("gpu_allow_invalid_fetch_constants") && SystemConfig.getOptBoolean("gpu_allow_invalid_fetch_constants"))
+                        ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "true");
                     else if (Features.IsSupported("gpu_allow_invalid_fetch_constants"))
                         ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "false");
 
-                    if (SystemConfig.isOptSet("vsync") && !string.IsNullOrEmpty(SystemConfig["vsync"]))
-                        ini.AppendValue("GPU", "vsync", SystemConfig["vsync"]);
+                    if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean(SystemConfig["vsync"]))
+                        ini.AppendValue("GPU", "vsync", "false");
                     else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
 
@@ -238,8 +238,8 @@ namespace EmulatorLauncher
 
                     if (_canary)
                     {
-                        if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && !string.IsNullOrEmpty(SystemConfig["xenia_clear_memory_page_state"]))
-                            ini.AppendValue("GPU", "clear_memory_page_state", SystemConfig["xenia_clear_memory_page_state"]);
+                        if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
+                            ini.AppendValue("GPU", "clear_memory_page_state", "true");
                         else if (Features.IsSupported("xenia_clear_memory_page_state"))
                             ini.AppendValue("GPU", "clear_memory_page_state", "false");
 
@@ -267,20 +267,20 @@ namespace EmulatorLauncher
                         else if (Features.IsSupported("xenia_widescreen"))
                             ini.AppendValue("Video", "widescreen", "true");
 
-                        if (SystemConfig.isOptSet("xenia_pal50") && !string.IsNullOrEmpty(SystemConfig["xenia_pal50"]))
-                            ini.AppendValue("Video", "use_50Hz_mode", SystemConfig["xenia_pal50"]);
+                        if (SystemConfig.isOptSet("xenia_pal50") && SystemConfig.getOptBoolean("xenia_pal50"))
+                            ini.AppendValue("Video", "use_50Hz_mode", "true");
                         else if (Features.IsSupported("xenia_pal50"))
                             ini.AppendValue("Video", "use_50Hz_mode", "false");
                     }
 
                     // Memory section
-                    if (SystemConfig.isOptSet("scribble_heap") && !string.IsNullOrEmpty(SystemConfig["scribble_heap"]))
-                        ini.AppendValue("Memory", "scribble_heap", SystemConfig["scribble_heap"]);
+                    if (SystemConfig.isOptSet("scribble_heap") && SystemConfig.getOptBoolean("scribble_heap"))
+                        ini.AppendValue("Memory", "scribble_heap", "true");
                     else if (Features.IsSupported("scribble_heap"))
                         ini.AppendValue("Memory", "scribble_heap", "false");
 
-                    if (SystemConfig.isOptSet("protect_zero") && !string.IsNullOrEmpty(SystemConfig["protect_zero"]))
-                        ini.AppendValue("Memory", "protect_zero", SystemConfig["protect_zero"]);
+                    if (SystemConfig.isOptSet("protect_zero") && !SystemConfig.getOptBoolean("protect_zero"))
+                        ini.AppendValue("Memory", "protect_zero", "false");
                     else if (Features.IsSupported("protect_zero"))
                         ini.AppendValue("Memory", "protect_zero", "true");
 
@@ -294,8 +294,8 @@ namespace EmulatorLauncher
                     else
                         SimpleLogger.Instance.Info("[Generator] Setting '" + path + "' as content path for the emulator");
 
-                    if (SystemConfig.isOptSet("mount_cache") && !string.IsNullOrEmpty(SystemConfig["mount_cache"]))
-                        ini.AppendValue("Storage", "mount_cache", SystemConfig["mount_cache"]);
+                    if (SystemConfig.isOptSet("mount_cache") && SystemConfig.getOptBoolean("mount_cache"))
+                        ini.AppendValue("Storage", "mount_cache", "true");
                     else if (Features.IsSupported("mount_cache"))
                         ini.AppendValue("Storage", "mount_cache", "false");
 

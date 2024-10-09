@@ -5,6 +5,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
+using System.Globalization;
 
 namespace EmulatorLauncher
 {
@@ -307,9 +308,9 @@ namespace EmulatorLauncher
             var cfg = controller.Config;
 
             string name = player + stickName;
-            string deadzone = "0.150000";
+            string deadzone = "0.15";
             if (SystemConfig.isOptSet("suyu_deadzone") && !string.IsNullOrEmpty(SystemConfig["suyu_deadzone"]))
-                deadzone = SystemConfig["suyu_deadzone"];
+                deadzone = (SystemConfig["suyu_deadzone"].ToDouble() / 100).ToString(CultureInfo.InvariantCulture);
 
             var leftVal = cfg[stickName == "lstick" ? InputKey.joystick1left : InputKey.joystick2left];
             var topVal = cfg[stickName == "lstick" ? InputKey.joystick1up : InputKey.joystick2up];
