@@ -87,7 +87,7 @@ namespace EmulatorLauncher
             {
                 using (var ini = IniFile.FromFile(configFile, IniOptions.KeepEmptyLines))
                 {
-                    ini.WriteValue("IWADSearch.Directories", "Path", romPath.Replace("\\", "/"));
+                    ini.WriteValue("GameSearch.Directories", "Path", romPath.Replace("\\", "/") + "/*");
 
                     if (fullscreen)
                         ini.WriteValue("GlobalSettings", "vid_fullscreen", "true");
