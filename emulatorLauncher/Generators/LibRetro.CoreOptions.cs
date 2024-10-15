@@ -250,6 +250,7 @@ namespace EmulatorLauncher.Libretro
                 { "vice_xplus4", "VICE xplus4" },
                 { "vice_xscpu64", "VICE xscpu64" },
                 { "vice_xvic", "VICE xvic" },
+                { "vircon32", "Vircon32" },
                 { "virtualjaguar", "Virtual Jaguar" },
                 { "vitaquake2-rogue", "vitaQuake 2 [Rogue]" },
                 { "vitaquake2-xatrix", "vitaQuake 2 [Xatrix]" },
