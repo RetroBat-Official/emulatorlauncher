@@ -349,6 +349,7 @@
     <Compile Include="Generators\Raine.Controllers.cs">
       <DependentUpon>Raine.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Raze.Generator.cs" />
     <Compile Include="Generators\Redream.Generator.cs" />
     <Compile Include="Generators\Redream.Controllers.cs">
       <DependentUpon>Redream.Generator.cs</DependentUpon>

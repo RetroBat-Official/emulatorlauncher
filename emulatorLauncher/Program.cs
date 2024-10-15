@@ -117,6 +117,7 @@ namespace EmulatorLauncher
             { "theforceengine", () => new ForceEngineGenerator() },
             { "kronos", () => new KronosGenerator() },
             { "gzdoom", () => new GZDoomGenerator() },
+            { "raze", () => new RazeGenerator() },
             { "magicengine", () => new MagicEngineGenerator() },
             { "gemrb", () => new GemRBGenerator() },
             { "psxmame", () => new PSXMameGenerator() },
