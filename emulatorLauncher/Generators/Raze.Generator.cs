@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
@@ -49,7 +48,7 @@ namespace EmulatorLauncher
                         value = line.Replace("/", "\\");
                         string filePath = Path.Combine(Path.GetDirectoryName(rom), value.TrimStart('\\'));
 
-                        commandArray.Add("-gamegrp");
+                        commandArray.Add("-iwad");
                         commandArray.Add("\"" + filePath + "\"");
                     }
 

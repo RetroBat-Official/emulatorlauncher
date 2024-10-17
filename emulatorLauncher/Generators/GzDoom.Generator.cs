@@ -41,7 +41,28 @@ namespace EmulatorLauncher
                     throw new ApplicationException("gzdoom file does not contain any launch argument.");
 
                 foreach (var line in lines)
-                    commandArray.Add(line);
+                {
+                    string value = line;
+
+                    if (lines.Length == 1)
+                    {
+                        value = line.Replace("/", "\\");
+                        string filePath = Path.Combine(Path.GetDirectoryName(rom), value.TrimStart('\\'));
+
+                        commandArray.Add("-gamegrp");
+                        commandArray.Add("\"" + filePath + "\"");
+                    }
+
+                    else if (value.StartsWith("\\") || value.StartsWith("/"))
+                    {
+                        value = line.Replace("/", "\\");
+                        string filePath = Path.Combine(Path.GetDirectoryName(rom), value.TrimStart('\\'));
+
+                        commandArray.Add("\"" + filePath + "\"");
+                    }
+                    else
+                        commandArray.Add(line);
+                }
             }
             
             else if (Path.GetExtension(rom).ToLower() == ".gzdoom" && Directory.Exists(rom))
