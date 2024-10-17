@@ -104,6 +104,7 @@ namespace EmulatorLauncher.Common.EmulationStation
                     "colorization",
                     "padtokeyboard",
                     "cheevos",
+                    "softpatch",
                     "autocontrollers"})
                 defaultFeatures._contextFeatures.Add(s);
 

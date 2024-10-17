@@ -45,6 +45,7 @@ namespace EmulatorLauncher.Libretro
                 return null;
 
             string subCore = null;
+            string romName = Path.GetFileNameWithoutExtension(rom);
 
             if (!string.IsNullOrEmpty(core))
             {
@@ -176,7 +177,6 @@ namespace EmulatorLauncher.Libretro
             if (system == "daphne" || core == "daphne")
             {
                 string datadir = Path.GetDirectoryName(rom);
-                string romName = Path.GetFileNameWithoutExtension(rom);
 
                 //romName = os.path.splitext(os.path.basename(rom))[0]
                 rom = Path.GetFullPath(datadir + "/roms/" + romName + ".zip");
@@ -342,6 +342,74 @@ namespace EmulatorLauncher.Libretro
 
             string args = string.Join(" ", commandArray);
 
+            // Manage patches
+            string ipsPattern = "*.ips";
+            string upsPattern = "*.ups";
+            string bpsPattern = "*.bps";
+            List<string> ipsFiles = new List<string>();
+            List<string> upsFiles = new List<string>();
+            List<string> bpsFiles = new List<string>();
+
+            List<string> patchArgs = new List<string>();
+            if (Features.IsSupported("softpatch") && SystemConfig.isOptSet("applyPatch") && !string.IsNullOrEmpty(SystemConfig["applyPatch"]))
+            {
+                string patchMethod = SystemConfig["applyPatch"];
+                switch (patchMethod)
+                {
+                    case "none":
+                        patchArgs.Add("--no-patch");
+                        break;
+                    case "patchFolder":
+                        string patchFolder = Path.Combine(Path.GetDirectoryName(rom), "patches");
+                        ipsFiles = Directory.GetFiles(patchFolder, ipsPattern)
+                            .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
+                        upsFiles = Directory.GetFiles(patchFolder, upsPattern)
+                            .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
+                        bpsFiles = Directory.GetFiles(patchFolder, bpsPattern)
+                            .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
+                        
+                        if (ipsFiles.Count > 0)
+                        {
+                            patchArgs.Add("--ips");
+                            patchArgs.Add("\"" + ipsFiles.FirstOrDefault() + "\"");
+                        }
+                        if (upsFiles.Count > 0)
+                        {
+                            patchArgs.Add("--ups");
+                            patchArgs.Add("\"" + upsFiles.FirstOrDefault() + "\"");
+                        }
+                        if (bpsFiles.Count > 0)
+                        {
+                            patchArgs.Add("--bps");
+                            patchArgs.Add("\"" + bpsFiles.FirstOrDefault() + "\"");
+                        }
+                        break;
+                    case "subFolder":
+                        string subFolder = Path.Combine(Path.GetDirectoryName(rom), romName + "-patches");
+                        ipsFiles = Directory.GetFiles(subFolder, ipsPattern).ToList();
+                        upsFiles = Directory.GetFiles(subFolder, upsPattern).ToList();
+                        bpsFiles = Directory.GetFiles(subFolder, bpsPattern).ToList();
+
+                        if (ipsFiles.Count > 0)
+                        {
+                            patchArgs.Add("--ips");
+                            patchArgs.Add("\"" + ipsFiles.FirstOrDefault() + "\"");
+                        }
+                        if (upsFiles.Count > 0)
+                        {
+                            patchArgs.Add("--ups");
+                            patchArgs.Add("\"" + ipsFiles.FirstOrDefault() + "\"");
+                        }
+                        if (bpsFiles.Count > 0)
+                        {
+                            patchArgs.Add("--bps");
+                            patchArgs.Add("\"" + ipsFiles.FirstOrDefault() + "\"");
+                        }
+                        break;
+                }
+            }
+            string patchArg = string.Join(" ", patchArgs);
+
             // Special case : .atari800.cfg is loaded from path in 'HOME' environment variable
             if (core == "atari800")
             {
@@ -383,14 +451,28 @@ namespace EmulatorLauncher.Libretro
             if (emulator != "angle" && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
                 retroarch = GetNetPlayPatchedRetroarch();
 
+            string finalArgs;
+
+            if (patchArgs.Count > 0)
+            {
+                if (string.IsNullOrEmpty(rom))
+                    finalArgs = (patchArg + " -L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim();
+                else
+                    finalArgs = (patchArg + " -L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim();
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(rom))
+                    finalArgs = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim();
+                else
+                    finalArgs = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim();
+            }
+
             return new ProcessStartInfo()
             {
                 FileName = retroarch,
                 WorkingDirectory = RetroarchPath,
-                Arguments =
-                    string.IsNullOrEmpty(rom) ?
-                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim() :
-                        ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim()
+                Arguments = finalArgs,
             };
         }
 
