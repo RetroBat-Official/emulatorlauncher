@@ -361,6 +361,8 @@ namespace EmulatorLauncher.Libretro
                         break;
                     case "patchFolder":
                         string patchFolder = Path.Combine(Path.GetDirectoryName(rom), "patches");
+                        if (!Directory.Exists(patchFolder))
+                            break;
                         ipsFiles = Directory.GetFiles(patchFolder, ipsPattern)
                             .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
                         upsFiles = Directory.GetFiles(patchFolder, upsPattern)
@@ -386,6 +388,8 @@ namespace EmulatorLauncher.Libretro
                         break;
                     case "subFolder":
                         string subFolder = Path.Combine(Path.GetDirectoryName(rom), romName + "-patches");
+                        if (!Directory.Exists(subFolder))
+                            break;
                         ipsFiles = Directory.GetFiles(subFolder, ipsPattern).ToList();
                         upsFiles = Directory.GetFiles(subFolder, upsPattern).ToList();
                         bpsFiles = Directory.GetFiles(subFolder, bpsPattern).ToList();
@@ -490,6 +494,12 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["notification_show_autoconfig"] = "false";
             retroarchConfig["notification_show_config_override_load"] = "false";            
             retroarchConfig["notification_show_remap_load"] = "false";
+            retroarchConfig["notification_show_cheats_applied"] = "true";
+            retroarchConfig["notification_show_patch_applied"] = "true";
+            retroarchConfig["notification_show_fast_forward"] = "true";
+            retroarchConfig["notification_show_disk_control"] = "true";
+            retroarchConfig["notification_show_save_state"] = "true";
+            retroarchConfig["notification_show_screenshot"] = "true";
             retroarchConfig["driver_switch_enable"] = "true";
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
@@ -777,7 +787,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(retroarchConfig, "video_frame_delay_auto", "video_frame_delay_auto", "true", "false"); // Auto frame delay (input delay reduction via frame timing)
             BindBoolFeature(retroarchConfig, "quit_press_twice", "PressTwice", "true", "false"); // Press hotkeys twice to exit
 
-            BindBoolFeature(retroarchConfig, "video_font_enable", "OnScreenMsg", "true", "false"); // OSD notifications
+            BindBoolFeatureOn(retroarchConfig, "video_font_enable", "OnScreenMsg", "true", "false"); // OSD notifications
             BindFeature(retroarchConfig, "video_rotation", "RotateVideo", "0"); // video rotation
             BindFeature(retroarchConfig, "screen_orientation", "RotateScreen", "0"); // screen orientation
             BindFeature(retroarchConfig, "crt_switch_resolution", "CRTSwitch", "0"); // CRT Switch
