@@ -207,6 +207,9 @@ namespace EmulatorLauncher
             WriteServiceBytes(bytes, j1index, c1, tech1, vendor1, serviceByte[parentRom], ctrl1);
             WriteStatsBytes(bytes, serviceByte[parentRom] + 8);
 
+            // Option to use L1 and R1 instead of L2 and R2
+            bool useShoulders = SystemConfig.getOptBoolean("m2_racingshoulder");
+            
             // Per game category mapping
             #region  shooters
             if (shooters.Contains(parentRom))
@@ -377,24 +380,38 @@ namespace EmulatorLauncher
                     else
                         bytes[19] = 0x00;
 
-                    bytes[20] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;
-                    if (parentRom == "indy500" || parentRom == "stcc" || parentRom == "motoraid" || parentRom.StartsWith("manxtt"))
+                    if (useShoulders)
                     {
-                        if (dinput1 && vendor1 != "dualshock")
+                        bytes[20] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
+                    }
+                    else
+                    {
+                        bytes[20] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;
+                        if (parentRom == "indy500" || parentRom == "stcc" || parentRom == "motoraid" || parentRom.StartsWith("manxtt"))
+                        {
+                            if (dinput1 && vendor1 != "dualshock")
+                                bytes[21] = Convert.ToByte(j1index + 16);
+                        }
+                        else if (!dinput1 || vendor1 == "dualshock")
                             bytes[21] = Convert.ToByte(j1index + 16);
                     }
-                    else if (!dinput1 || vendor1 == "dualshock")
-                        bytes[21] = Convert.ToByte(j1index + 16);
-                    
+
                     if (axisBytes.Contains(bytes[20]))
                         bytes[23] = 0xFF;
                     else
                         bytes[23] = 0x00;
 
-                    bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;
-                    if (parentRom != "indy500" && parentRom != "stcc" && parentRom != "motoraid" && !parentRom.StartsWith("manxtt"))
+                    if (useShoulders)
                     {
-                        bytes[25] = Convert.ToByte(j1index + 16);
+                        bytes[24] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
+                    }
+                    else
+                    {
+                        bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;
+                        if (parentRom != "indy500" && parentRom != "stcc" && parentRom != "motoraid" && !parentRom.StartsWith("manxtt"))
+                        {
+                            bytes[25] = Convert.ToByte(j1index + 16);
+                        }
                     }
                     if (axisBytes.Contains(bytes[24]))
                         bytes[27] = 0xFF;
@@ -403,8 +420,17 @@ namespace EmulatorLauncher
 
                     if (parentRom == "motoraid")
                     {
-                        bytes[28] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x30;
-                        bytes[32] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x10;
+                        if (useShoulders)
+                        {
+                            bytes[28] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
+                            bytes[32] = dinput1 ? GetInputCode(InputKey.a, c1, tech1, vendor1, ctrl1) : (byte)0x30;
+                        }
+                        else
+                        {
+                            bytes[28] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
+                            bytes[32] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
+                        }
+
                         bytes[36] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                         bytes[40] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
                         bytes[44] = (byte)0x00;
@@ -562,13 +588,19 @@ namespace EmulatorLauncher
                     else
                         bytes[19] = 0x00;
 
-                    bytes[20] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;  // Accelerate (R2)
+                    if (useShoulders)
+                        bytes[20] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
+                    else
+                        bytes[20] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;  // Accelerate (R2)
                     if (axisBytes.Contains(bytes[20]))
                         bytes[23] = 0xFF;
                     else
                         bytes[23] = 0x00;
-                    
-                    bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;  // Brake (L2)
+
+                    if (useShoulders)
+                        bytes[24] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
+                    else
+                        bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;  // Brake (L2)
                     if (axisBytes.Contains(bytes[24]))
                         bytes[27] = 0xFF;
                     else
@@ -579,7 +611,10 @@ namespace EmulatorLauncher
                     bytes[36] = dinput1 ? GetInputCode(InputKey.joystick2left, c1, tech1, vendor1, ctrl1) : (byte)0x08;
                     bytes[40] = dinput1 ? GetInputCode(InputKey.joystick2right, c1, tech1, vendor1, ctrl1) : (byte)0x09;
 
-                    bytes[44] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
+                    if (useShoulders)
+                        bytes[44] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;
+                    else
+                        bytes[44] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
                 }
                 
                 bytes[48] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
