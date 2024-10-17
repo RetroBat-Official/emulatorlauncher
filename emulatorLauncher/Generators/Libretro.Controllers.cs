@@ -7,6 +7,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System.Drawing;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -115,6 +116,7 @@ namespace EmulatorLauncher.Libretro
 
             foreach (var specialkey in retroarchspecials)
                 retroconfig.DisableAll("input_" + specialkey.Value);
+            retroconfig.DisableAll("input_toggle_fast_forward");
         }
 
         private static void WriteKBHotKeyConfig(ConfigFile config, string core)
@@ -182,6 +184,9 @@ namespace EmulatorLauncher.Libretro
             var c0 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
             if (c0 == null || c0.Config == null)
                 return;
+
+            if (Program.SystemConfig.getOptBoolean("fastforward_toggle"))
+                retroarchspecials[InputKey.right] = "toggle_fast_forward";
 
             if (Misc.HasWiimoteGun())
             {
@@ -328,6 +333,9 @@ namespace EmulatorLauncher.Libretro
             
             if (controller.PlayerIndex == 1 && !_noHotkey)
             {
+                if (Program.SystemConfig.getOptBoolean("fastforward_toggle"))
+                    retroarchspecials[InputKey.right] = "toggle_fast_forward";
+
                 foreach (var specialkey in retroarchspecials)
                 {
                     var input = GetInputCode(controller, specialkey.Key);
