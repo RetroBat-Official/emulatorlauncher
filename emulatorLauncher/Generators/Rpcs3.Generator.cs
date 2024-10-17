@@ -45,7 +45,13 @@ namespace EmulatorLauncher
                 string romPath = Path.GetDirectoryName(rom);
                 rom = File.ReadAllText(rom);
 
-                if (rom.StartsWith(".\\") || rom.StartsWith("./"))
+                if (rom.StartsWith("EMULATORPATH"))
+                    rom = Path.Combine(path, rom.Substring(13));
+                else if (rom.StartsWith("SAVESPATH"))
+                    rom = Path.Combine(savesPath, rom.Substring(10));
+                else if (rom.StartsWith("ROMPATH"))
+                    rom = Path.Combine(romPath, rom.Substring(8));
+                else if (rom.StartsWith(".\\") || rom.StartsWith("./"))
                     rom = Path.Combine(romPath, rom.Substring(2));
                 else if (rom.StartsWith("\\") || rom.StartsWith("/"))
                     rom = Path.Combine(savesPath, rom.Substring(1));

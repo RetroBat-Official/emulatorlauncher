@@ -73,7 +73,6 @@ namespace EmulatorLauncher
 
             preference["AutomaticallyCheckForUpdates"] = "false";
             preference["SingleInstance"] = "true";
-            preference["AutoLoadPatches"] = "true";
             preference["PauseWhenInBackground"] = "true";
             preference["PauseWhenInMenusAndConfig"] = "true";
             preference["AllowBackgroundInput"] = "true";
@@ -95,6 +94,7 @@ namespace EmulatorLauncher
             else
                 preference["EnableAutoSaveState"] = "false";
 
+            BindBoolFeatureOn(preference, "AutoLoadPatches", "mesen_patches", "true", "false");
             BindBoolFeature(preference, "EnableRewind", "rewind", "true", "false");
             BindBoolFeature(preference, "DisableOsd", "mesen_osd", "false", "true");
             BindBoolFeature(preference, "ShowGameTimer", "mesen_timecounter", "true", "false");
