@@ -402,12 +402,12 @@ namespace EmulatorLauncher.Libretro
                         if (upsFiles.Count > 0)
                         {
                             patchArgs.Add("--ups");
-                            patchArgs.Add("\"" + ipsFiles.FirstOrDefault() + "\"");
+                            patchArgs.Add("\"" + upsFiles.FirstOrDefault() + "\"");
                         }
                         if (bpsFiles.Count > 0)
                         {
                             patchArgs.Add("--bps");
-                            patchArgs.Add("\"" + ipsFiles.FirstOrDefault() + "\"");
+                            patchArgs.Add("\"" + bpsFiles.FirstOrDefault() + "\"");
                         }
                         break;
                 }
