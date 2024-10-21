@@ -104,6 +104,7 @@ namespace EmulatorLauncher
             int wheelNb = 0;
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
             bool invertedWheelAxis = false;
+            bool useShoulders = SystemConfig.getOptBoolean("m2_racingshoulder");
             WheelMappingInfo wheelmapping = null;
             string wheelGuid = "nul";
             List<Wheel> usableWheels = new List<Wheel>();
@@ -316,8 +317,16 @@ namespace EmulatorLauncher
             {
                 bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = bytes[41] = bytes[45] = bytes[49] = Convert.ToByte(j1index);
 
-                bytes[0] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
-                bytes[4] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
+                if (useShoulders)
+                {
+                    bytes[0] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
+                    bytes[4] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
+                }
+                else
+                {
+                    bytes[0] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
+                    bytes[4] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
+                }
                 bytes[8] = dinput1 ? GetInputCode(InputKey.left, c1, tech1, vendor1, ctrl1) : (byte)0x00;
                 bytes[12] = dinput1 ? GetInputCode(InputKey.right, c1, tech1, vendor1, ctrl1) : (byte)0x01;
 
@@ -351,8 +360,8 @@ namespace EmulatorLauncher
                         bytes[48] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
                         bytes[72] = (byte)0x01;
-                        bytes[73] = (byte)0x01;
-                        bytes[74] = (byte)0x01;
+                        bytes[73] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[74] = useShoulders ? (byte)0x00 : (byte)0x01;
                     }
                     else
                     {
@@ -364,8 +373,8 @@ namespace EmulatorLauncher
                         bytes[45] = (byte)0x00;
 
                         bytes[68] = (byte)0x01;
-                        bytes[69] = (byte)0x01;
-                        bytes[70] = (byte)0x01;
+                        bytes[69] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[70] = useShoulders ? (byte)0x00 : (byte)0x01;
                     }
                 }
 
@@ -414,8 +423,8 @@ namespace EmulatorLauncher
                         bytes[45] = (byte)0x00;
 
                         bytes[68] = (byte)0x01;
-                        bytes[69] = (byte)0x01;
-                        bytes[70] = (byte)0x01;
+                        bytes[69] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[70] = useShoulders ? (byte)0x00 : (byte)0x01;
                     }
                     else if (parentRom != "manxtt" && parentRom != "manxttc")
                     {
@@ -427,8 +436,8 @@ namespace EmulatorLauncher
                         bytes[48] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
                         bytes[72] = (byte)0x01;
-                        bytes[73] = (byte)0x01;
-                        bytes[74] = (byte)0x01;
+                        bytes[73] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[74] = useShoulders ? (byte)0x00 : (byte)0x01;
                     }
                     else
                     {
@@ -440,8 +449,8 @@ namespace EmulatorLauncher
                         bytes[45] = (byte)0x00;
 
                         bytes[68] = (byte)0x01;
-                        bytes[69] = (byte)0x01;
-                        bytes[70] = (byte)0x01;
+                        bytes[69] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[70] = useShoulders ? (byte)0x00 : (byte)0x01;
                     }
                 }
 
@@ -462,8 +471,16 @@ namespace EmulatorLauncher
             {
                 bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = bytes[41] = bytes[45] = bytes[49] = bytes[53] = bytes[57] = Convert.ToByte(j1index);
 
-                bytes[0] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
-                bytes[4] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
+                if (useShoulders)
+                {
+                    bytes[0] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
+                    bytes[4] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
+                }
+                else
+                {
+                    bytes[0] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
+                    bytes[4] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
+                }
                 bytes[8] = dinput1 ? GetInputCode(InputKey.left, c1, tech1, vendor1, ctrl1) : (byte)0x00;
                 bytes[12] = dinput1 ? GetInputCode(InputKey.right, c1, tech1, vendor1, ctrl1) : (byte)0x01;
 
@@ -597,8 +614,8 @@ namespace EmulatorLauncher
                     bytes[68] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
                     bytes[96] = (byte)0x01;
-                    bytes[97] = (byte)0x01;
-                    bytes[98] = (byte)0x01;
+                    bytes[97] = useShoulders ? (byte)0x00 : (byte)0x01;
+                    bytes[98] = useShoulders ? (byte)0x00 : (byte)0x01;
                 }
 
                 else if (parentRom.StartsWith("srally"))
@@ -607,8 +624,8 @@ namespace EmulatorLauncher
                     bytes[56] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
                     bytes[84] = (byte)0x01;
-                    bytes[85] = (byte)0x01;
-                    bytes[86] = (byte)0x01;
+                    bytes[85] = useShoulders ? (byte)0x00 : (byte)0x01;
+                    bytes[86] = useShoulders ? (byte)0x00 : (byte)0x01;
                 }
 
                 for (int i = 0; i < 69; i += 4)
