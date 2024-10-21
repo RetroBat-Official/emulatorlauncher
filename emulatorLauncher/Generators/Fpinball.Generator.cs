@@ -196,6 +196,14 @@ namespace EmulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
+            
+            if (_bam != null)
+            {
+                var fploaderMapping = mapping.Applications.Where(m => m.Name == "fploader").FirstOrDefault();
+                var fpinballMapping = mapping.Applications.Where(m => m.Name == "Future Pinball").FirstOrDefault();
+                if (fploaderMapping != null && fpinballMapping != null)
+                    fpinballMapping.Input.AddRange(fploaderMapping.Input);
+            }
             return PadToKey.AddOrUpdateKeyMapping(mapping, "future pinball", InputKey.hotkey | InputKey.r3, "(%{PRTSC})");
         }
 
