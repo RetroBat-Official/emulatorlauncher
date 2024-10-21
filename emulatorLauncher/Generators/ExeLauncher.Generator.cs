@@ -299,7 +299,6 @@ namespace EmulatorLauncher
             var ret = new ProcessStartInfo()
             {
                 FileName = rom,
-                Arguments = "-silent",
                 WorkingDirectory = path
             };
 
