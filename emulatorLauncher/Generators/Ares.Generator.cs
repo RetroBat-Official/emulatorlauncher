@@ -406,13 +406,8 @@ namespace EmulatorLauncher
 
             if (ret == 1)
             {
-                ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
-                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
                 return 0;
             }
-
-            ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
-            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
 
             return ret;
         }
