@@ -56,6 +56,7 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "", "language", "redream_language", "english");
                 BindIniFeature(ini, "", "region", "redream_region", "japan");
                 BindBoolIniFeatureOn(ini, "", "vsync", "redream_vsync", "1", "0");
+                BindIniFeature(ini, "", "autosort", "redream_alpha_sorting", "0");
                 BindBoolIniFeature(ini, "", "frameskip", "redream_frameskip", "1", "0");
                 BindIniFeature(ini, "", "aspect", "redream_aspect", "4:3");
 

@@ -204,6 +204,17 @@ namespace EmulatorLauncher
                     ctrl2 = gamecontrollerDB == null ? null : GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid2);
             }
 
+            // Invert indexes option
+            if (c2 != null && c2.Config != null && !_dinput)
+            {
+                if (SystemConfig.getOptBoolean("m2_indexswitch"))
+                {
+                    int tempIndex = j1index;
+                    j1index = j2index;
+                    j2index = tempIndex;
+                }
+            }
+
             // Write end of binary file for service buttons, test buttons and keyboard buttons for stats display
             WriteServiceBytes(bytes, j1index, c1, tech1, vendor1, serviceByte[parentRom], ctrl1);
             WriteStatsBytes(bytes, serviceByte[parentRom] + 8);
@@ -414,8 +425,8 @@ namespace EmulatorLauncher
                     if (parentRom == "motoraid")
                     {
 
-                        bytes[28] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
-                        bytes[32] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
+                        bytes[28] = dinput1 ? GetInputCode(InputKey.a, c1, tech1, vendor1, ctrl1) : (byte)0x30;
+                        bytes[32] = dinput1 ? GetInputCode(InputKey.y, c1, tech1, vendor1, ctrl1) : (byte)0x10;
 
                         bytes[36] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                         bytes[40] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;

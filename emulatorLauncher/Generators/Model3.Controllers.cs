@@ -298,6 +298,17 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Writing controls to emulator .ini file.");
 
+            // Invert indexes option
+            if (multiplayer && tech == "xinput")
+            {
+                if (SystemConfig.getOptBoolean("model3_indexswitch"))
+                {
+                    int tempIndex = j1index;
+                    j1index = j2index;
+                    j2index = tempIndex;
+                }
+            }
+
             #region sdl
             //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT)
             if (tech == "sdl")
