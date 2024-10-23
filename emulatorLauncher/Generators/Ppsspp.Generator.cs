@@ -254,6 +254,12 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("SystemParam", "ButtonPreference", "1");
 
+                    // Language
+                    if (SystemConfig.isOptSet("ppsspp_lang") && !string.IsNullOrEmpty(SystemConfig["ppsspp_lang"]))
+                        ini.WriteValue("SystemParam", "GameLanguage", SystemConfig["ppsspp_lang"]);
+                    else
+                        ini.WriteValue("SystemParam", "GameLanguage", GetDefaultpspLanguage());
+
                     // Discord
                     if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                         ini.WriteValue("General", "DiscordPresence", "True");
@@ -287,6 +293,38 @@ namespace EmulatorLauncher
                 File.WriteAllText(installedFile, memPath);
             }
             catch { }
+        }
+
+        private string GetDefaultpspLanguage()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "0" },
+                { "ja", "0" },
+                { "en", "1" },
+                { "fr", "2" },
+                { "de", "4" },
+                { "it", "5" },
+                { "es", "3" },
+                { "zh", "11" },
+                { "ko", "9" },
+                { "nl", "6" },
+                { "pt", "7" },
+                { "ru", "8" },
+                { "tw", "10" }
+            };
+
+            // Special case for some variances
+            if (SystemConfig["Language"] == "zh_TW")
+                return "10";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                if (availableLanguages.TryGetValue(lang, out string ret))
+                    return ret;
+            }
+            return "-1";
         }
     }
 }
