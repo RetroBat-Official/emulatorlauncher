@@ -293,7 +293,7 @@ namespace EmulatorLauncher
                 
                 string sdlID = GetSDLInputName(ctrl, key, "soh", forceAxisPlus);
 
-                if (sdlID != null || sdlID == "")
+                if (sdlID == null || sdlID == "")
                     continue;
 
                 mappings[sdlID] = button.Key;
