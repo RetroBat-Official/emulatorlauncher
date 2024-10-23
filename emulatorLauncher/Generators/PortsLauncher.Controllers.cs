@@ -156,6 +156,12 @@ namespace EmulatorLauncher
             if (ctrl.IsKeyboard)
                 return;
 
+            if (ctrl.SdlController == null)
+            {
+                SimpleLogger.Instance.Info("[CONTROLS] Controller not known in SDL database, no configuration possible.");
+                return;
+            }
+
             JObject jsonCtrl;
             JObject ctrlSlot;
             JObject gyro;
@@ -278,11 +284,19 @@ namespace EmulatorLauncher
                 bool forceAxisPlus = false;
                 InputKey key = button.Value;
                 var input = ctrl.Config[key];
+
+                if (input == null)
+                    continue;
+
                 if (input != null && input.Type == "axis" && input.Value > 0)
                     forceAxisPlus = true;
+                
                 string sdlID = GetSDLInputName(ctrl, key, "soh", forceAxisPlus);
-                if (!string.IsNullOrEmpty(sdlID))
-                    mappings[sdlID] = button.Key;
+
+                if (sdlID != null || sdlID == "")
+                    continue;
+
+                mappings[sdlID] = button.Key;
             }
 
 
