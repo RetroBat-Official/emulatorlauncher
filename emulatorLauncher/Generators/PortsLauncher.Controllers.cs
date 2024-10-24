@@ -162,6 +162,8 @@ namespace EmulatorLauncher
                 return;
             }
 
+            SimpleLogger.Instance.Info("[CONTROLS] Configuring controller " + ctrl.Guid == null ? ctrl.DevicePath.ToString() : ctrl.Guid.ToString());
+
             JObject jsonCtrl;
             JObject ctrlSlot;
             JObject gyro;
@@ -171,6 +173,8 @@ namespace EmulatorLauncher
             InputConfig joy = ctrl.Config;
             int slotIndex = ctrl.PlayerIndex - 1;
             string guid = ctrl.GetSdlGuid(Common.Joysticks.SdlVersion.SDL2_30, true).ToLowerInvariant();
+
+            SimpleLogger.Instance.Info("[CONTROLS] Configuring slot : " + slotIndex.ToString());
 
             deck["Slot_" + slotIndex] = guid;
 
@@ -226,6 +230,7 @@ namespace EmulatorLauncher
             ctrlSlot["GyroData"] = JArray.FromObject(gyrodata);
 
             // Mappings
+            SimpleLogger.Instance.Info("[CONTROLS] Re-creating mapping section for " + ctrl.Guid.ToString() + " and slot " + slotIndex.ToString());
             ctrlSlot.Remove("Mappings");
             
             if (ctrlSlot["Mappings"] == null)
@@ -279,8 +284,11 @@ namespace EmulatorLauncher
             }
 
             BypassSPecialControllers:
+
+            SimpleLogger.Instance.Info("[CONTROLS] Configuring mapping section");
             foreach (var button in sohMapping)
             {
+                SimpleLogger.Instance.Info("[CONTROLS] Configuring button " + button.Value.ToString());
                 bool forceAxisPlus = false;
                 InputKey key = button.Value;
                 var input = ctrl.Config[key];
@@ -292,6 +300,8 @@ namespace EmulatorLauncher
                     forceAxisPlus = true;
                 
                 string sdlID = GetSDLInputName(ctrl, key, "soh", forceAxisPlus);
+                SimpleLogger.Instance.Info("[CONTROLS] sdlID equal " + sdlID == null ? "null" : sdlID);
+                SimpleLogger.Instance.Info("[CONTROLS] mapping key equal " + button.Key.ToString());
 
                 if (sdlID == null || sdlID == "")
                     continue;
