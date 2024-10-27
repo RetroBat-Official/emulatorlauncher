@@ -2193,9 +2193,8 @@ namespace EmulatorLauncher.Libretro
                         !l.StartsWith("cassette") && !l.StartsWith("cdrom") &&
                         !l.StartsWith("romimage") && !l.StartsWith("memcard") &&
                         !l.StartsWith("quickload") && !l.StartsWith("harddisk") &&
-                        !l.StartsWith("autoboot_command") && !l.StartsWith("autoboot_delay") && !l.StartsWith("autoboot_script") &&
                         !l.StartsWith("printout")
-                        ).ToArray();
+                        ).ToArray();                    // !l.StartsWith("autoboot_command") && !l.StartsWith("autoboot_delay") && !l.StartsWith("autoboot_script") &&
 
                     if (lines.Length != newLines.Length)
                         File.WriteAllLines(iniPath, newLines);

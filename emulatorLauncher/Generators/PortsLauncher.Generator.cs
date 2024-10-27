@@ -5,13 +5,25 @@ using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
+    partial class OpenJazzGenerator : PortsLauncherGenerator
+    { public OpenJazzGenerator() { _exeName = "OpenJazz.exe"; DependsOnDesktopResolution = true; } }
+
+    partial class OpenGoalGenerator : PortsLauncherGenerator
+    { public OpenGoalGenerator() { _exeName = "gk.exe"; DependsOnDesktopResolution = true; } }
+
+    partial class CGeniusGenerator : PortsLauncherGenerator
+    { public CGeniusGenerator() { _exeName = "CGenius.exe"; DependsOnDesktopResolution = true; } }
+
+    partial class SohGenerator : PortsLauncherGenerator
+    { public SohGenerator() { _exeName = "soh.exe"; DependsOnDesktopResolution = true; } }
+
     partial class PortsLauncherGenerator : Generator
     {
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
         private string _emulator;
         private string _path;
-        private string _exeName;
+        protected string _exeName;
         private string _romPath;
         private bool _fullscreen;
 

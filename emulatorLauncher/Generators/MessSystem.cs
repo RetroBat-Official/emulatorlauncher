@@ -408,7 +408,6 @@ namespace EmulatorLauncher
                 new MessSystem("microvsn"     ,"microvsn"      , "cart"  ), // Milton Bradley Microvision
                 new MessSystem("pc6001"       ,"pc6001mk2"     , "cart2"  ), // NEC PC-6001
                 new MessSystem("p2000t"       ,"p2000t"     , "cass"  ), // Philips P2000T
-                new MessSystem("vg5k"         ,"vg5k"     , "cass"  ), // Philips VG 5000
                 new MessSystem("radio86"      ,"radio86"     , "cass"  ), // Radio-86RK Partner-01.01
                 new MessSystem("studio2"      ,"studio2"     , "cart"  ), // RCA Studio II
                 new MessSystem("svmu"         ,"svmu"     , "quik"  ), // Sega Visual Memory Unit
@@ -418,6 +417,11 @@ namespace EmulatorLauncher
                 new MessSystem("m5"           ,"m5"     , "cart1"  ), // Sord M5
                 new MessSystem("sf7000"       ,"sf7000"     , "flop"  ), // Super Control Station SF-7000                
                 new MessSystem("supervision"  ,"svision"     , "cart"  ), // Supervision
+
+                new MessSystem("vg5k"      ,"vg5k"     , new MessRomType[]   // Philips VG 5000
+                        {
+                            new MessRomType("cass", null, "cload\\n", "3" ),
+                        }),
 
                 new MessSystem("pecom64"      ,"pecom64"     , new MessRomType[]   // Pecom 64
                         {                            
@@ -566,6 +570,8 @@ namespace EmulatorLauncher
         public List<string> GetMameCommandLineArguments(string system, string rom, bool standalone = false)
         {
             bool useSoftList = SystemConfig.isOptSet("force_softlist") && SystemConfig["force_softlist"] != "none";
+            string bios = AppConfig.GetFullPath("bios");
+            string saves = AppConfig.GetFullPath("saves");
 
             List<string> commandArray = new List<string>();
 
@@ -601,12 +607,14 @@ namespace EmulatorLauncher
             else if (!string.IsNullOrEmpty(this.MachineName) && this.MachineName != "%romname%")
                 iniFileName = MachineName;
 
-            var bios = AppConfig.GetFullPath("bios");
-            var saves = AppConfig.GetFullPath("saves");
-
             string inipath = Path.Combine(bios, "mame", "ini", iniFileName + ".ini");
             if (File.Exists(inipath))
-                File.Delete(inipath);
+            {
+                if (!standalone && SystemConfig.isOptSet("mame_read_config") && SystemConfig["mame_read_config"] == "delete")
+                    File.Delete(inipath);
+                else if (standalone && SystemConfig.isOptSet("noread_ini") && SystemConfig["noread_ini"] == "delete")
+                    File.Delete(inipath);
+            }
 
             // rompath
             commandArray.Add("-rompath");
@@ -791,6 +799,8 @@ namespace EmulatorLauncher
             // User autostart if autorun file exists
             var romname = Path.GetFileNameWithoutExtension(rom);
             string autorunFile = Path.Combine(Path.GetDirectoryName(rom), romname + ".autorun");
+            string bootCommand = null;
+            string bootDelay = "3";
             var romMedia = this.GetRomType(rom);
             string hashfile = null;
 
@@ -804,12 +814,17 @@ namespace EmulatorLauncher
 
             if (File.Exists(autorunFile))
             {
-                if (File.ReadAllText(autorunFile) != null)
+                if (File.ReadAllLines(autorunFile) != null)
                 {
-                    commandArray.Add("-autoboot_delay");
+                    var lines = File.ReadAllLines(autorunFile);
+                    if (!string.IsNullOrEmpty(lines[0]))
+                        bootCommand = lines[0];
+                    if (!string.IsNullOrEmpty(lines[1]))
+                        bootDelay = lines[1];
+                    /*commandArray.Add("-autoboot_delay");
                     commandArray.Add("3");
                     commandArray.Add("-autoboot_command");
-                    commandArray.Add(File.ReadAllText(autorunFile));
+                    commandArray.Add(File.ReadAllText(autorunFile));*/
                 }
             }
 
@@ -859,10 +874,12 @@ namespace EmulatorLauncher
                         else
                             command = command.Replace("\"", "\\\"");
 
-                        commandArray.Add("-autoboot_delay");
+                        bootDelay = "5";
+                        bootCommand = command;
+                        /*commandArray.Add("-autoboot_delay");
                         commandArray.Add("5");
                         commandArray.Add("-autoboot_command");
-                        commandArray.Add(command);
+                        commandArray.Add(command);*/
                     }
                 }
             }
@@ -874,24 +891,76 @@ namespace EmulatorLauncher
                 {
                     commandArray.Add("-exp");
                     commandArray.Add("plus3,bios=4");
-                    commandArray.Add("-autoboot_delay");
+                    /*commandArray.Add("-autoboot_delay");
                     commandArray.Add("3");
                     commandArray.Add("-autoboot_command");
-                    commandArray.Add("*CAT\\n\\n\\n\\n\\n\\n*EXEC!BOOT\\n");
+                    commandArray.Add("*CAT\\n\\n\\n\\n\\n\\n*EXEC!BOOT\\n");*/
+                    bootDelay = "3";
+                    bootCommand = "*CAT\\n\\n\\n\\n\\n\\n*EXEC!BOOT\\n";
                 }
                 else
                 {
-                    commandArray.Add("-autoboot_delay");
+                    bootDelay = "3";
+                    bootCommand = "*CAT\\n\\n\\n\\n\\n\\n\\n*RUN!BOOT\\n";
+                    /*commandArray.Add("-autoboot_delay");
                     commandArray.Add("3");
                     commandArray.Add("-autoboot_command");
-                    commandArray.Add("*CAT\\n\\n\\n\\n\\n\\n\\n*RUN!BOOT\\n");
+                    commandArray.Add("*CAT\\n\\n\\n\\n\\n\\n\\n*RUN!BOOT\\n");*/
                 }
             }
             else
             {
                 var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
                 if (autoRunCommand != null)
-                    commandArray.AddRange(autoRunCommand.Arguments);
+                {
+                    if (autoRunCommand.AutoBootDelay != null)
+                        bootDelay = autoRunCommand.AutoBootDelay;
+                    if (autoRunCommand.AutoRunCommand != null)
+                        bootCommand = autoRunCommand.AutoRunCommand;
+                    /*commandArray.AddRange(autoRunCommand.Arguments);*/
+                }
+            }
+
+            if (bootCommand != null)
+            {
+                if (standalone)
+                {
+                    if (SystemConfig.isOptSet("noread_ini") && SystemConfig["noread_ini"] == "0" && File.Exists(inipath))
+                    {
+                        var ini = MameIniFile.FromFile(inipath);
+                        {
+                            ini["autoboot_command"] = bootCommand;
+                            ini["autoboot_delay"] = bootDelay;
+                            ini.Save();
+                        }
+                    }
+                    else
+                    {
+                        commandArray.Add("-autoboot_delay");
+                        commandArray.Add(bootDelay);
+                        commandArray.Add("-autoboot_command");
+                        commandArray.Add(bootCommand);
+                    }
+                }
+                else
+                {
+                    if (SystemConfig.isOptSet("mame_read_config") && SystemConfig.getOptBoolean("mame_read_config") && File.Exists(inipath))
+                    {
+                        var ini = MameIniFile.FromFile(inipath);
+                        {
+                            ini["autoboot_command"] = bootCommand;
+                            ini["autoboot_delay"] = bootDelay;
+                            ini.Save();
+                        }
+                    }
+                    else
+                    {
+                        commandArray.Add("-autoboot_delay");
+                        commandArray.Add(bootDelay);
+                        commandArray.Add("-autoboot_command");
+                        commandArray.Add(bootCommand);
+                    }
+                }
             }
 
             // Additional disks if required
