@@ -539,7 +539,7 @@ namespace EmulatorLauncher.Libretro
                 {
                     int monitorId;
                     if (int.TryParse(SystemConfig["MonitorIndex"], out monitorId) && monitorId < Screen.AllScreens.Length)
-                        retroarchConfig["video_monitor_index"] = (monitorId + 1).ToString();
+                        retroarchConfig["video_monitor_index"] = (monitorId).ToString();
                 }
                 else
                 {
