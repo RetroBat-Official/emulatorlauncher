@@ -254,6 +254,16 @@ namespace EmulatorLauncher
                 // define mapping for xInput case
                 var mapping = hbmame? hbxInputMapping : xInputMapping;
 
+                // Invert player 1 & 2 with feature
+                bool invert = SystemConfig.getOptBoolean("mame_indexswitch") && mameControllers.Count > 1;
+                if (invert)
+                {
+                    if (i == 1)
+                        i = 2;
+                    else if (i == 2)
+                        i = 1;
+                }
+
                 // PLAYER 1
                 // Add UI mapping for player 1 to control MAME UI + Service menu
                 if (i == 1)

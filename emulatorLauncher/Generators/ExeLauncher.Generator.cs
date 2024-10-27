@@ -494,19 +494,25 @@ namespace EmulatorLauncher
                     if (uiExists)
                         launcherProcessStatusBefore.Add(processName, true);
                 }
-                
+
+                int waitttime = 30;
+                if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
+                    waitttime = Program.SystemConfig["steam_wait"].ToInteger();
+                SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
+
                 Process process = Process.Start(path);
                 SimpleLogger.Instance.Info("Process started : " + _exename);
                 
-                Thread.Sleep(8000);
+                Thread.Sleep(4000);
 
                 int i = 1;
+
                 Process[] gamelist = Process.GetProcessesByName(_exename);
 
-                while (i <= 3 && gamelist.Length == 0)
+                while (i <= waitttime && gamelist.Length == 0)
                 {
                     gamelist = Process.GetProcessesByName(_exename);
-                    Thread.Sleep(10000);
+                    Thread.Sleep(1000);
                     i++;
                 }
 
@@ -603,7 +609,13 @@ namespace EmulatorLauncher
             {
                 Process launcherprocess = null;
 
-                for (int i = 0; i < 30; i++)
+                int waitttime = 30;
+                if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
+                    waitttime = Program.SystemConfig["steam_wait"].ToInteger();
+
+                SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
+
+                for (int i = 0; i < waitttime; i++)
                 {
                     launcherprocess = Process.GetProcessesByName(LauncherExe).FirstOrDefault();
                     if (launcherprocess != null)

@@ -128,6 +128,7 @@ namespace EmulatorLauncher
             { "sonicretrocd", () => new PortsLauncherGenerator() },
             { "opengoal", () => new PortsLauncherGenerator() },
             { "cgenius", () => new PortsLauncherGenerator() },
+            { "openjazz", () => new PortsLauncherGenerator() },
             { "soh", () => new PortsLauncherGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() },
             { "jgenesis", () => new JgenesisGenerator() },

@@ -113,7 +113,8 @@ namespace EmulatorLauncher
             { new Installer("singe2", "singe2", "Singe-v2.10-Windows-x86_64.exe") },
             { new Installer("opengoal", "opengoal", "gk.exe") },
             { new Installer("capriceforever", "capriceforever", "Caprice64.exe") },
-            { new Installer("shadps4", "shadps4", "shadPS4.exe") }
+            { new Installer("shadps4", "shadps4", "shadPS4.exe") },
+            { new Installer("openjazz", "openjazz", "OpenJazz.exe") }
         };
 
         // Some emulators do not set correctly version in executable and require specific treatment !
