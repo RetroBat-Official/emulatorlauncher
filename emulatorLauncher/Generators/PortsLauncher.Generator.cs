@@ -83,6 +83,7 @@ namespace EmulatorLauncher
             { "sonicretro", "RSDKv4_64.exe"},
             { "sonicretrocd", "RSDKv3_64.exe"},
             { "opengoal", "gk.exe"},
+            { "openjazz", "OpenJazz.exe"},
             { "cgenius", "CGenius.exe"},
             { "soh", "soh.exe"}
         };
@@ -95,6 +96,7 @@ namespace EmulatorLauncher
             { "sonicretro", "no"},
             { "sonicretrocd", "no"},
             { "opengoal", "yes"},
+            { "openjazz", "no"},
             { "soh", "yes"}
         };
 

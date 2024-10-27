@@ -144,11 +144,22 @@ namespace EmulatorLauncher
             for (int i = 0; i < 4; i++)
                 deck["Slot_" + i] = "Disconnected";
 
+            int slotindex = 0;
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
-                ConfigureSOHInput(controllers, deck, controller);
+            {
+                // Do not configure controllers that do not have analog stick
+                if (controller.Config[InputKey.rightanalogup] == null)
+                {
+                    SimpleLogger.Instance.Info("[CONTROLS] Ignoring controller " + controller.Guid.ToString() + " : no analog sticks.");
+                    continue;
+                }
+
+                ConfigureSOHInput(controllers, deck, controller, slotindex);
+                slotindex++;
+            }
         }
 
-        private void ConfigureSOHInput(JObject controllers, JObject deck, Controller ctrl)
+        private void ConfigureSOHInput(JObject controllers, JObject deck, Controller ctrl, int slotindex)
         {
             if (ctrl == null || ctrl.Config == null)
                 return;
@@ -171,12 +182,11 @@ namespace EmulatorLauncher
             JObject rumble;
 
             InputConfig joy = ctrl.Config;
-            int slotIndex = ctrl.PlayerIndex - 1;
             string guid = ctrl.GetSdlGuid(Common.Joysticks.SdlVersion.SDL2_30, true).ToLowerInvariant();
 
-            SimpleLogger.Instance.Info("[CONTROLS] Configuring slot : " + slotIndex.ToString());
+            SimpleLogger.Instance.Info("[CONTROLS] Configuring slot : " + slotindex.ToString());
 
-            deck["Slot_" + slotIndex] = guid;
+            deck["Slot_" + slotindex] = guid;
 
             if (controllers[guid] == null)
             {
@@ -186,13 +196,13 @@ namespace EmulatorLauncher
             else
                 jsonCtrl = (JObject)controllers[guid];
 
-            if (jsonCtrl["Slot_" + slotIndex] == null)
+            if (jsonCtrl["Slot_" + slotindex] == null)
             {
                 ctrlSlot = new JObject();
-                jsonCtrl["Slot_" + slotIndex] = ctrlSlot;
+                jsonCtrl["Slot_" + slotindex] = ctrlSlot;
             }
             else
-                ctrlSlot = (JObject)jsonCtrl["Slot_" + slotIndex];
+                ctrlSlot = (JObject)jsonCtrl["Slot_" + slotindex];
 
             double deadzone = 15.0;
             if (SystemConfig.isOptSet("soh_deadzone") && !string.IsNullOrEmpty(SystemConfig["soh_deadzone"]))
@@ -230,7 +240,7 @@ namespace EmulatorLauncher
             ctrlSlot["GyroData"] = JArray.FromObject(gyrodata);
 
             // Mappings
-            SimpleLogger.Instance.Info("[CONTROLS] Re-creating mapping section for " + ctrl.Guid.ToString() + " and slot " + slotIndex.ToString());
+            SimpleLogger.Instance.Info("[CONTROLS] Re-creating mapping section for " + ctrl.Guid.ToString() + " and slot " + slotindex.ToString());
             ctrlSlot.Remove("Mappings");
             
             if (ctrlSlot["Mappings"] == null)
@@ -288,7 +298,6 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[CONTROLS] Configuring mapping section");
             foreach (var button in sohMapping)
             {
-                SimpleLogger.Instance.Info("[CONTROLS] Configuring button " + button.Value.ToString());
                 bool forceAxisPlus = false;
                 InputKey key = button.Value;
                 var input = ctrl.Config[key];
@@ -300,8 +309,6 @@ namespace EmulatorLauncher
                     forceAxisPlus = true;
                 
                 string sdlID = GetSDLInputName(ctrl, key, "soh", forceAxisPlus);
-                SimpleLogger.Instance.Info("[CONTROLS] sdlID equal " + sdlID == null ? "null" : sdlID);
-                SimpleLogger.Instance.Info("[CONTROLS] mapping key equal " + button.Key.ToString());
 
                 if (sdlID == null || sdlID == "")
                     continue;

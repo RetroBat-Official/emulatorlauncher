@@ -22,6 +22,7 @@ namespace EmulatorLauncher
 
             Configurecgenius(commandArray, rom);
             ConfigureOpenGoal(commandArray, rom);
+            ConfigureOpenJazz(commandArray, rom);
             ConfigureSOH(rom, exe);
             ConfigureSonic3air(rom, exe);
             ConfigureSonicMania(rom, exe);
@@ -276,6 +277,58 @@ namespace EmulatorLauncher
                 bindFeature("subtitle-language", SystemConfig["opengoal_sublang"]);
 
             File.WriteAllLines(configFilePath, configLines);
+        }
+
+        private void ConfigureOpenJazz(List<string> commandArray, string rom)
+        {
+            if (_emulator != "openjazz")
+                return;
+
+            // Command array
+            if (_fullscreen)
+                commandArray.Add("-f");
+            else
+                commandArray.Add("--window");
+
+            commandArray.Add("\"" + _romPath + "\"");
+
+            // Configuration
+            string configFile = Path.Combine(_path, "openjazz.cfg");
+
+            if (!File.Exists(configFile))
+            {
+                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "openjazz", "openjazz.cfg");
+                if (File.Exists(templateFile))
+                    try { File.Copy(templateFile, configFile); } catch { }
+            }
+
+            if (!File.Exists(configFile))
+                return;
+
+            byte[] configBytes = File.ReadAllBytes(configFile);
+
+            // resolution
+            string resolution = "320x200";
+
+            if (SystemConfig.isOptSet("openjazz_resolution") && !string.IsNullOrEmpty(SystemConfig["openjazz_resolution"]))
+                resolution = SystemConfig["openjazz_resolution"];
+
+            string[] size = resolution.Split('x');
+            string width = size[0];
+            string height = size[1];
+
+            if (int.TryParse(width, out int widthint) && int.TryParse(height, out int heightint))
+            {
+                byte[] widthBytes = BitConverter.GetBytes((short)widthint);
+                byte[] heightBytes = BitConverter.GetBytes((short)heightint);
+
+                configBytes[1] = widthBytes[0];
+                configBytes[2] = widthBytes[1];
+                configBytes[3] = heightBytes[0];
+                configBytes[4] = heightBytes[1];
+            }
+
+            File.WriteAllBytes(configFile, configBytes);
         }
 
         private void ConfigureSOH(string rom, string exe)
