@@ -198,6 +198,12 @@ namespace EmulatorLauncher
                             ini.AppendValue("Video", "internal_display_resolution", "8");
                     }
 
+                    //CPU section
+                    if (SystemConfig.isOptSet("break_on_unimplemented_instructions") && SystemConfig.getOptBoolean("break_on_unimplemented_instructions"))
+                        ini.AppendValue("CPU", "break_on_unimplemented_instructions", "true");
+                    else if (Features.IsSupported("break_on_unimplemented_instructions"))
+                        ini.AppendValue("CPU", "break_on_unimplemented_instructions", "false");
+
                     //GPU section
                     string video_driver = "\"" + SystemConfig["gpu"] + "\"";
                     if (SystemConfig.isOptSet("gpu") && !string.IsNullOrEmpty(SystemConfig["gpu"]))
