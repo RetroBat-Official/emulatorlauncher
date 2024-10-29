@@ -289,6 +289,14 @@ namespace EmulatorLauncher
                             new MessRomType("flop")
                         }),
 
+                // Videopac - odyssey2_3 - jopac
+                new MessSystem("odyssey2"        ,"videopac"        ,"cart"  ),
+                new MessSystem("odyssey2"        ,"videopacp"       ,"cart"  ),
+                new MessSystem("odyssey2"        ,"videopacf"       ,"cart"  ),
+                new MessSystem("odyssey2"        ,"odyssey2"        ,"cart"  ),
+                new MessSystem("odyssey2"        ,"odyssey3"        ,"cart"  ),
+                new MessSystem("odyssey2"        ,"jopac"           ,"cart"  ),
+
                 new MessSystem("advision"     ,"advision" ,"cart"  ),           // Adventure Vision
                 new MessSystem("scv"          ,"scv"      ,"cart"  ),           // Super Cassette Vision
                 new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),           // Bally Astrocade
@@ -572,6 +580,7 @@ namespace EmulatorLauncher
             bool useSoftList = SystemConfig.isOptSet("force_softlist") && SystemConfig["force_softlist"] != "none";
             string bios = AppConfig.GetFullPath("bios");
             string saves = AppConfig.GetFullPath("saves");
+            var romType = this.GetRomType(rom);
 
             List<string> commandArray = new List<string>();
 
@@ -786,6 +795,14 @@ namespace EmulatorLauncher
             {
                 commandArray.Add("-ctrl2");
                 commandArray.Add("joy");
+            }
+
+            // Videopac - voice module
+            if (SystemConfig.getOptBoolean("o2em_voice"))
+            {
+                commandArray.Add("-cart1");
+                commandArray.Add("voice");
+                romType = "cart2";
             }
 
             // Ram size
@@ -1016,7 +1033,7 @@ namespace EmulatorLauncher
                             rom = cueFile;
                     }
 
-                    var romType = this.GetRomType(rom);
+                    
                     if (!string.IsNullOrEmpty(romType))
                         commandArray.Add("-" + romType);
                 }
@@ -1049,7 +1066,7 @@ namespace EmulatorLauncher
 
                 else if (disks.Count == 1)
                 {
-                    var romType = this.GetRomType(disks[0]);
+                    romType = this.GetRomType(disks[0]);
 
                     if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]))
                         romType = SystemConfig["altromtype"];
@@ -1061,7 +1078,7 @@ namespace EmulatorLauncher
 
                 else if (disks.Count > 1 && system == "apple2gs")
                 {
-                    var romType = this.GetRomType(disks[0]);
+                    romType = this.GetRomType(disks[0]);
                     if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]))
                         romType = SystemConfig["altromtype"];
                     
