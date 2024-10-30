@@ -33,45 +33,45 @@ namespace EmulatorLauncher
                 // Acorn Electron
                 
                 new MessSystem("electron"     ,"electron64" , new MessRomType[]
-                        {
-                            new MessRomType("cart1", new string[] { "bin", "rom" } ),
-                            new MessRomType("cass", new string[] { "wav", "csw", "uef", "flac" }, "*TAPE\\nCHAIN\\\"\\\"\\n", "3" ),
-                            new MessRomType("flop")
-                        }),
+                    {
+                        new MessRomType("cart1", new string[] { "bin", "rom" } ),
+                        new MessRomType("cass", new string[] { "wav", "csw", "uef", "flac" }, "*TAPE\\nCHAIN\\\"\\\"\\n", "3" ),
+                        new MessRomType("flop")
+                    }),
 
                 new MessSystem("electron"     ,"electron" , new MessRomType[]
-                        {
-                            new MessRomType("cart1", new string[] { "bin", "rom" } ),
-                            new MessRomType("cass", new string[] { "wav", "csw", "uef", "flac" }, "*TAPE\\nCHAIN\\\"\\\"\\n", "3" ),
-                            new MessRomType("flop")
-                        }),
+                    {
+                        new MessRomType("cart1", new string[] { "bin", "rom" } ),
+                        new MessRomType("cass", new string[] { "wav", "csw", "uef", "flac" }, "*TAPE\\nCHAIN\\\"\\\"\\n", "3" ),
+                        new MessRomType("flop")
+                    }),
 
                 // ADAM
                 new MessSystem("adam"         ,"adam"     , new MessRomType[]
-                        {
-                            new MessRomType("cart1", new string[] { "bin", "rom", "col" } ),
-                            new MessRomType("cass1", new string[] { "wav", "ddp" } ),
-                            new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
-                        }),
+                    {
+                        new MessRomType("cart1", new string[] { "bin", "rom", "col" } ),
+                        new MessRomType("cass1", new string[] { "wav", "ddp" } ),
+                        new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
+                    }),
 
                 // Apple II
                 new MessSystem("apple2"       ,"apple2ee"      , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav" } ),
-                            new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav" } ),
+                        new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
+                    }),
 
                 new MessSystem("apple2"       ,"apple2e"      , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav" } ),
-                            new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav" } ),
+                        new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
+                    }),
 
                 new MessSystem("apple2"       ,"apple2p"      , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav" } ),
-                            new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav" } ),
+                        new MessRomType("flop1" /* .mfi  .dfi  .dsk  .do   .po   .rti  .edd  .woz  .nib */ ),
+                    }),
 
                 // Apple 2 GS
                 new MessSystem("apple2gs"     ,"apple2gs" ,new MessRomType[]
@@ -82,185 +82,185 @@ namespace EmulatorLauncher
 
                 // Atom;atom;flop1;'*DOS\n*DIR\n*CAT\n*RUN"'
                 new MessSystem("atom"         ,"atom"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "tap", "cdw", "uef" } ),
-                            new MessRomType("cart", new string[] { "bin", "rom" } ),
-                            new MessRomType("quik", new string[] { "atm" } ),
-                            new MessRomType("flop1", null, "*DOS\\n*DIR\\n*CAT\\n" ),  // *CAT\\n - "*DOS\\n*DIR\\n*CAT\\n*RUN\\\"runme\\\"\\n"
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "tap", "cdw", "uef" } ),
+                        new MessRomType("cart", new string[] { "bin", "rom" } ),
+                        new MessRomType("quik", new string[] { "atm" } ),
+                        new MessRomType("flop1", null, "*DOS\\n*DIR\\n*CAT\\n" ),  // *CAT\\n - "*DOS\\n*DIR\\n*CAT\\n*RUN\\\"runme\\\"\\n"
+                    }),
 
                 // BBC MICRO
                 new MessSystem("bbcmicro"     ,"bbcb"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
-                            new MessRomType("rom1", new string[] { "rom", "bin" }),
-                            new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
+                        new MessRomType("rom1", new string[] { "rom", "bin" }),
+                        new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
+                    }),
 
                 new MessSystem("bbcmicro"     ,"bbcm"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
-                            new MessRomType("cart1", new string[] { "rom", "bin" }),
-                            new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
+                        new MessRomType("cart1", new string[] { "rom", "bin" }),
+                        new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
+                    }),
 
                 new MessSystem("bbcmicro"     ,"bbcm512"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
-                            new MessRomType("cart1", new string[] { "rom", "bin" }),
-                            new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
+                        new MessRomType("cart1", new string[] { "rom", "bin" }),
+                        new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
+                    }),
 
                 new MessSystem("bbcmicro"     ,"bbcmc"     , new MessRomType[]
-                        {
-                            new MessRomType("rom3", new string[] { "rom", "bin" }),
-                            new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
-                        }),
+                    {
+                        new MessRomType("rom3", new string[] { "rom", "bin" }),
+                        new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
+                    }),
 
                 // Camputers LYNX "mload\\\"\\\"\\n" (MLOAD"gamename")
                 new MessSystem("camplynx"     ,"lynx48k"  , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "tap" })
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "tap" })
+                    }),
 
                 new MessSystem("camplynx"     ,"lynx128k"  , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "tap" }),
-                            new MessRomType("flop1" )
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "tap" }),
+                        new MessRomType("flop1" )
+                    }),
 
                 new MessSystem("camplynx"     ,"lynx96k"  , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "tap" }),
-                            new MessRomType("flop1" )
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "tap" }),
+                        new MessRomType("flop1" )
+                    }),
 
                 // Color Computer (default to coco3)
                 new MessSystem("coco"         ,"coco3"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
-                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
-                            new MessRomType("hard1", new string[] { "vhd" } ),
-                            new MessRomType("flop1" ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                        new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                        new MessRomType("hard1", new string[] { "vhd" } ),
+                        new MessRomType("flop1" ),
+                    }),
 
                 new MessSystem("coco"         ,"coco3p"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
-                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
-                            new MessRomType("hard1", new string[] { "vhd" } ),
-                            new MessRomType("flop1" ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                        new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                        new MessRomType("hard1", new string[] { "vhd" } ),
+                        new MessRomType("flop1" ),
+                    }),
 
                 new MessSystem("coco"        ,"coco"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
-                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
-                            new MessRomType("hard1", new string[] { "vhd" } ),
-                            new MessRomType("flop1" ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                        new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                        new MessRomType("hard1", new string[] { "vhd" } ),
+                        new MessRomType("flop1" ),
+                    }),
 
                new MessSystem("coco"        ,"coco2b"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
-                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
-                            new MessRomType("hard1", new string[] { "vhd" } ),
-                            new MessRomType("flop1" ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                        new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                        new MessRomType("hard1", new string[] { "vhd" } ),
+                        new MessRomType("flop1" ),
+                    }),
 
                new MessSystem("coco"         ,"cocoh"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
-                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
-                            new MessRomType("hard1", new string[] { "vhd" } ),
-                            new MessRomType("flop1" ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                        new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                        new MessRomType("hard1", new string[] { "vhd" } ),
+                        new MessRomType("flop1" ),
+                    }),
 
                new MessSystem("coco"        ,"coco2bh"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
-                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
-                            new MessRomType("hard1", new string[] { "vhd" } ),
-                            new MessRomType("flop1" ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                        new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                        new MessRomType("hard1", new string[] { "vhd" } ),
+                        new MessRomType("flop1" ),
+                    }),
 
                 new MessSystem("coco"         ,"coco3h"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
-                            new MessRomType("cart", new string[] { "ccc", "rom" } ),
-                            new MessRomType("hard1", new string[] { "vhd" } ),
-                            new MessRomType("flop1" ),
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav", "cas", "flac" } ),
+                        new MessRomType("cart", new string[] { "ccc", "rom" } ),
+                        new MessRomType("hard1", new string[] { "vhd" } ),
+                        new MessRomType("flop1" ),
+                    }),
 
                 // CreatiVision
                 new MessSystem("crvision"     ,"crvision" ,new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav" }),
-                            new MessRomType("cart" /* .bin  .rom */)
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav" }),
+                        new MessRomType("cart" /* .bin  .rom */)
+                    }),
 
                 // Fujitsu FM-7
                 new MessSystem("fm7"          ,"fm7"      , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "t77", "wav" }, "LOADM\\\"\\\",,R\\n", "5"),
-                            new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "t77", "wav" }, "LOADM\\\"\\\",,R\\n", "5"),
+                        new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
+                    }),
 
                 new MessSystem("fm7"          ,"fm77av"      , new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "t77", "wav" }, "LOADM\\\"\\\",,R\\n", "5"),
-                            new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "t77", "wav" }, "LOADM\\\"\\\",,R\\n", "5"),
+                        new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk */ )
+                    }),
 
                 // Fujitsu FM-TOWNS
                 new MessSystem("fmtowns"      ,"fmtowns" , new MessRomType[]
-                        {
-                            new MessRomType("cdrm", new string[] { "iso", "cue", "chd", "toc", "nrg", "gdi", "cdr" }),
-                            new MessRomType("memc", new string[] { "icm" }),
-                            new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
-                        }) { InGameMouse = true },
+                    {
+                        new MessRomType("cdrm", new string[] { "iso", "cue", "chd", "toc", "nrg", "gdi", "cdr" }),
+                        new MessRomType("memc", new string[] { "icm" }),
+                        new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
+                    }) { InGameMouse = true },
 
                 new MessSystem("fmtowns"      ,"fmtownsux" , new MessRomType[]
-                        {
-                            new MessRomType("cdrm", new string[] { "iso", "cue", "chd", "toc", "nrg", "gdi", "cdr" }),
-                            new MessRomType("hard1", new string[] { "hd", "hdv", "2mg", "hdi" }),
-                            new MessRomType("memc", new string[] { "icm" }),
-                            new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
-                        }) { InGameMouse = true },
+                    {
+                        new MessRomType("cdrm", new string[] { "iso", "cue", "chd", "toc", "nrg", "gdi", "cdr" }),
+                        new MessRomType("hard1", new string[] { "hd", "hdv", "2mg", "hdi" }),
+                        new MessRomType("memc", new string[] { "icm" }),
+                        new MessRomType("flop1" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
+                    }) { InGameMouse = true },
 
                 new MessSystem("fmtowns"     ,"fmtmarty"      , new MessRomType[]  // Fujitsu FM Towns Marty
-                        {
-                            new MessRomType("cdrm", new string[] { "chd", "cue", "toc", "nrg", "gdi", "iso", "cdr" }),
-                            new MessRomType("memc", new string[] { "icm" }),
-                            new MessRomType("flop" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
-                        }) { InGameMouse = true },
+                    {
+                        new MessRomType("cdrm", new string[] { "chd", "cue", "toc", "nrg", "gdi", "iso", "cdr" }),
+                        new MessRomType("memc", new string[] { "icm" }),
+                        new MessRomType("flop" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
+                    }) { InGameMouse = true },
 
                 // Oric (Tangerine)
                 new MessSystem("oric"         ,"orica"     , new MessRomType[]
-                        {
-                            new MessRomType("cass", null, "CLOAD\\\"\\\"\\n" ),
-                        }),
+                    {
+                        new MessRomType("cass", null, "CLOAD\\\"\\\"\\n" ),
+                    }),
 
                 // TI-99
                 new MessSystem("ti99"         ,"ti99_4a"  , new MessRomType[]
-                        {
-                            new MessRomType("cass1", new string[] { "wav" } ),
-                            new MessRomType("cart", new string[] { "rpk" } )
-                        }) { UseFileNameWithoutExtension = true },
+                    {
+                        new MessRomType("cass1", new string[] { "wav" } ),
+                        new MessRomType("cart", new string[] { "rpk" } )
+                    }) { UseFileNameWithoutExtension = true },
 
                 // TUTOR
                 new MessSystem("tutor"        ,"tutor"    ,new MessRomType[]
-                        {
-                            new MessRomType("cass", new string[] { "wav" }),
-                            new MessRomType("cart", new string[] { "bin" })
-                        }),
+                    {
+                        new MessRomType("cass", new string[] { "wav" }),
+                        new MessRomType("cart", new string[] { "bin" })
+                    }),
 
                 // XEGS (ATARI)
                 new MessSystem("xegs"         ,"xegs", new MessRomType[]
-                        {
-                            new MessRomType("flop1", new string[] { "atr", "dsk", "xfd" } ),
-                            new MessRomType("cart")
-                        }){ UseFileNameWithoutExtension = true },
+                    {
+                        new MessRomType("flop1", new string[] { "atr", "dsk", "xfd" } ),
+                        new MessRomType("cart")
+                    }){ UseFileNameWithoutExtension = true },
 
                 // Archimedes
                 new MessSystem("archimedes"         ,"aa4401"     , "flop"),
@@ -272,30 +272,36 @@ namespace EmulatorLauncher
                 new MessSystem("archimedes"        ,"aa3000"    ,"flop"  ),
                 new MessSystem("archimedes"        ,"aa540"    ,"flop"  ),
                 new MessSystem("archimedes"        ,"aa5000"    ,new MessRomType[]
-                        {
-                            new MessRomType("rom", new string[] { "bin", "rom" }),
-                            new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
-                            new MessRomType("flop")
-                        }),
+                    {
+                        new MessRomType("rom", new string[] { "bin", "rom" }),
+                        new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
+                        new MessRomType("flop")
+                    }),
                 new MessSystem("archimedes"        ,"aa3010"    ,"flop"  ),
                 new MessSystem("archimedes"        ,"aa3020"    ,new MessRomType[]
-                        {
-                            new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
-                            new MessRomType("flop")
-                        }),
+                    {
+                        new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
+                        new MessRomType("flop")
+                    }),
                 new MessSystem("archimedes"        ,"aa4000"    ,new MessRomType[]
-                        {
-                            new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
-                            new MessRomType("flop")
-                        }),
+                    {
+                        new MessRomType("hard", new string[] { "chd", "hd", "hdv", "2mg", "hdi" }),
+                        new MessRomType("flop")
+                    }),
 
                 // Videopac - odyssey2_3 - jopac
-                new MessSystem("odyssey2"        ,"videopac"        ,"cart"  ),
-                new MessSystem("odyssey2"        ,"videopacp"       ,"cart"  ),
-                new MessSystem("odyssey2"        ,"videopacf"       ,"cart"  ),
-                new MessSystem("odyssey2"        ,"odyssey2"        ,"cart"  ),
-                new MessSystem("odyssey2"        ,"odyssey3"        ,"cart"  ),
-                new MessSystem("odyssey2"        ,"jopac"           ,"cart"  ),
+                new MessSystem("odyssey2"        ,"videopac"        ,"cart"  ){ UseFileNameWithoutExtension = true },
+                new MessSystem("odyssey2"        ,"videopacp"       ,"cart"  ){ UseFileNameWithoutExtension = true },
+                new MessSystem("odyssey2"        ,"videopacf"       ,"cart"  ){ UseFileNameWithoutExtension = true },
+                new MessSystem("odyssey2"        ,"odyssey2"        ,"cart"  ){ UseFileNameWithoutExtension = true },
+                new MessSystem("odyssey2"        ,"odyssey3"        ,"cart"  ){ UseFileNameWithoutExtension = true },
+                new MessSystem("odyssey2"        ,"jopac"           ,"cart"  ){ UseFileNameWithoutExtension = true },
+
+                // VG5000
+                new MessSystem("vg5k"      ,"vg5k"     , new MessRomType[]   // Philips VG 5000
+                    {
+                        new MessRomType("cass", null, "cload\\n", "3" ),
+                    }),
 
                 new MessSystem("advision"     ,"advision" ,"cart"  ),           // Adventure Vision
                 new MessSystem("scv"          ,"scv"      ,"cart"  ),           // Super Cassette Vision
@@ -425,11 +431,6 @@ namespace EmulatorLauncher
                 new MessSystem("m5"           ,"m5"     , "cart1"  ), // Sord M5
                 new MessSystem("sf7000"       ,"sf7000"     , "flop"  ), // Super Control Station SF-7000                
                 new MessSystem("supervision"  ,"svision"     , "cart"  ), // Supervision
-
-                new MessSystem("vg5k"      ,"vg5k"     , new MessRomType[]   // Philips VG 5000
-                        {
-                            new MessRomType("cass", null, "cload\\n", "3" ),
-                        }),
 
                 new MessSystem("pecom64"      ,"pecom64"     , new MessRomType[]   // Pecom 64
                         {                            
@@ -1033,7 +1034,6 @@ namespace EmulatorLauncher
                             rom = cueFile;
                     }
 
-                    
                     if (!string.IsNullOrEmpty(romType))
                         commandArray.Add("-" + romType);
                 }
