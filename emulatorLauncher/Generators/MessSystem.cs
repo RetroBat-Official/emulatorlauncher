@@ -235,6 +235,31 @@ namespace EmulatorLauncher
                         new MessRomType("flop" /* .mfi  .dfi  .hfe  .mfm  .td0  .imd  .d77  .d88  .1dd  .cqm  .cqi  .dsk  .bin */ )
                     }) { InGameMouse = true },
 
+                // Mattel Aquarius
+                new MessSystem("aquarius"    ,"aquarius", new MessRomType[]
+                    {
+                        new MessRomType("cass", new string[] { "wav", "flac", "caq" }, "CLOAD\\n" ),
+                        new MessRomType("cart1")
+                    }) { UseFileNameWithoutExtension = true },
+
+                new MessSystem("aquarius"    ,"aquariusp", new MessRomType[]
+                    {
+                        new MessRomType("cass", new string[] { "wav", "flac", "caq" }, "CLOAD\\n" ),
+                        new MessRomType("cart1")
+                    }),
+
+                new MessSystem("aquarius"    ,"aquarius2", new MessRomType[]
+                    {
+                        new MessRomType("cass", new string[] { "wav", "flac", "caq" }, "CLOAD\\n" ),
+                        new MessRomType("cart1")
+                    }),
+
+                new MessSystem("aquarius"    ,"aquarius_ar", new MessRomType[]
+                    {
+                        new MessRomType("cass", new string[] { "wav", "flac", "caq" }, "CLOAD\\n" ),
+                        new MessRomType("cart1")
+                    }),
+
                 // Oric (Tangerine)
                 new MessSystem("oric"         ,"orica"     , new MessRomType[]
                     {
@@ -373,11 +398,6 @@ namespace EmulatorLauncher
                             new MessRomType("cart")
                         }),
 
-                new MessSystem("aquarius"    ,"aquarius", new MessRomType[] 
-                        { 
-                            new MessRomType("cass", new string[] { "wav", "caq" } ), 
-                            new MessRomType("cart1")
-                        }),
 
                 new MessSystem("tg16"         ,"tg16", new MessRomType[] 
                         { 
@@ -1154,7 +1174,7 @@ namespace EmulatorLauncher
             if (ext == "zip" || ext == "7z")
             {
                 var e = Zip.ListEntries(rom).Where(f => !f.IsDirectory).Select(f => f.Filename).ToArray();
-                if (e.Length == 1 && !string.IsNullOrEmpty(Path.GetExtension(e[0])))
+                if (e.Length >= 1 && !string.IsNullOrEmpty(Path.GetExtension(e[0])))
                 {
                     ext = Path.GetExtension(e[0]).ToLowerInvariant().Substring(1);
                     _romExtension = ext;
