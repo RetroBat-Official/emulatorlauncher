@@ -739,8 +739,11 @@ namespace EmulatorLauncher
 
                         deviceName = pad.Name;
 
-                        if (deviceName == "DualSense Wireless Controller")
-                            deviceName = "PS5 Controller";
+                        string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                        string newName = SdlJoystickGuid.GetNameFromFile(newNamePath, pad.Guid, "dolphin");
+
+                        if (newName != null)
+                            deviceName = newName;
                     }
 
                     if (double_pads.ContainsKey(tech + "/" + deviceName))
