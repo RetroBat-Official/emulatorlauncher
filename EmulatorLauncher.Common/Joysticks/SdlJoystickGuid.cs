@@ -268,6 +268,37 @@ namespace EmulatorLauncher.Common.Joysticks
             return null;
         }
 
+        public static string GetNameFromFile(string path, string inputGuid, string emulator)
+        {
+            if (!File.Exists(path))
+                return null;
+
+            try
+            {
+                var yml = YmlFile.Load(path);
+                if (yml != null)
+                {
+                    var controllerInfo = yml.GetContainer(inputGuid.ToLowerInvariant());
+                    if (controllerInfo != null)
+                    {
+                        var emulatorInfo = controllerInfo.GetContainer(emulator);
+                        if (emulatorInfo != null)
+                        {
+                            string outputName = emulatorInfo["name"];
+                            if (!string.IsNullOrEmpty(outputName))
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Controller Name replaced from yml file with: " + outputName);
+                                return outputName;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
         #endregion
 
         #region Operators
