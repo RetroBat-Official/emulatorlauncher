@@ -143,7 +143,14 @@ namespace EmulatorLauncher
             { "Tekken7",                         @"Tekken 7 Fated Retribution\TekkenGame\Binaries\Win64\TekkenGame-Win64-Shipping.exe" },
             { "Tekken7FR",                       @"Tekken7FR\TekkenGame\Binaries\Win64\TekkenGame-Win64-Shipping.exe" },
 
-            { "AliensExtermination",             @"aliens\DATA\aliens dehasped.exe" },
+
+            { "BBBHome",                         @"Big Buck Hunter Pro Home\game" },
+            { "HOTDEX",                          @"House of The Dead EX\disk0\elf\hodexRI.elf" },
+            { "JurassicPark",                    @"Jurassic Park Arcade\Game" },
+            { "TargetTerrorGold",                @"Target Terror: Gold\game" },
+            { "HOTD4SP",                         @"House of The Dead 4: Special\disk0\hod4-sp\elf\hod4M.elf" },
+            { "TransformersShadowsRising",       @"Transformers: Shadows Rising\Sega\Transformers2\Transformers2.exe" },
+	        { "AliensExtermination",             @"Aliens Extermination\aliens\DATA\aliens dehasped.exe" },
 
             { "KingofFightersSkyStage",          @"KOF SkyStage\Game.exe" },
             { "KingofFightersXII",               @"King of Fighters XII\game.exe" },
