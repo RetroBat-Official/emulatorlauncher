@@ -79,7 +79,7 @@ namespace EmulatorLauncher
             if (fullscreen)
                 commandArray.Add("-f");
             
-            commandArray.Add("-g");
+            //commandArray.Add("-g");
             commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);

@@ -231,7 +231,7 @@ namespace EmulatorLauncher
 
                 if (userProfile.GamePath == null && userProfile.ExecutableName == "game")
                 {
-                    userProfile.GamePath = Directory.Exists(Path.Combine(rom, "game")) ? Path.Combine(rom, "game") : null;
+                    userProfile.GamePath = File.Exists(Path.Combine(rom, "game")) ? Path.Combine(rom, "game") : null;
                 }
 
                 if (userProfile.GamePath == null)
@@ -288,7 +288,9 @@ namespace EmulatorLauncher
 
             string profileName = Path.GetFileName(userProfile.FileName);
 
-            _exename = Path.GetFileNameWithoutExtension(userProfile.GamePath);
+            if (_exename == null)
+                _exename = Path.GetFileNameWithoutExtension(userProfile.GamePath);
+            
             _gameProfile = userProfile;
 
             List<string> commandArray = new List<string>();
