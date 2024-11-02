@@ -81,7 +81,7 @@ namespace EmulatorLauncher
             { "VT3",                             @"Virtua Tennis 3\vt3_Lindbergh\vt3_Lindbergh_FULLHD" },
             { "VT4",                             @"Virtua Tennis 4 (Ring Edge)\VT4_RING_r.exe" },            
 
-            { "2Spicy",                          @"Too Spicy\elf\apacheM_HD.elf" },
+            //{ "2Spicy",                          @"Too Spicy\elf\apacheM_HD.elf" },
             { "abc",                             @"Afterburner Climax\abc 1080p" },
             { "AkaiKatanaShinNesica",            @"Akai Katana Shin for NesicaxLive\Game.exe" },
             { "AquapazzaAquaplusDreamMatch",     @"Aquapazza Aquaplus Dream Match for NesicaxLive\Game.exe" },
@@ -161,7 +161,6 @@ namespace EmulatorLauncher
             { "HOTD4SP",                         @"House of The Dead 4: Special\disk0\hod4-sp\elf\hod4M.elf" },
             { "TransformersShadowsRising",       @"Transformers: Shadows Rising\Sega\Transformers2\Transformers2.exe" },
             { "AliensExtermination",             @"Aliens Extermination\aliens\DATA\aliens dehasped.exe" },
-
         };
 
         private string _exename;
