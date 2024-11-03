@@ -16,6 +16,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace EmulatorLauncher
 {
@@ -649,7 +650,19 @@ namespace EmulatorLauncher
 
         private static string FindBestExecutable(string path, string executableName, bool childs = true)
         {
-            foreach (var file in Directory.GetFiles(path, "*.exe"))
+            try
+            {
+                // Search for the file in the current directory and all subdirectories
+                foreach (string file in Directory.GetFiles(path, executableName, SearchOption.AllDirectories))
+                {
+                    return file;
+                }
+            }
+            catch { }
+
+            return null;
+
+            /*foreach (var file in Directory.GetFiles(path, "*.exe"))
             {
                 if (file.IndexOf("AmAut", StringComparison.InvariantCultureIgnoreCase) >= 0)
                     continue;
@@ -674,7 +687,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            return null;
+            return null;*/
         }
 
         public override int RunAndWait(ProcessStartInfo path)
