@@ -244,6 +244,21 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (profile.ExecutableName2 != null)
+            {
+                if (userProfile.GamePath2 == null || !File.Exists(userProfile.GamePath2))
+                {
+                    if (userProfile.ExecutableName2.Contains(";"))
+                    {
+                        var split = userProfile.ExecutableName2.Split(';');
+                        if (split.Length > 1)
+                            userProfile.ExecutableName2 = split[0];
+                    }
+
+                    userProfile.GamePath2 = FindBestExecutable(rom, userProfile.ExecutableName2);
+                }
+            }
+
             var windowed = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Windowed");
             if (windowed != null && SystemConfig.isOptSet("tp_nofs") && SystemConfig.getOptBoolean("tp_nofs"))
                 windowed.FieldValue = "1";
