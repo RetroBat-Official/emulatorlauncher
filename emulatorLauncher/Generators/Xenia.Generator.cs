@@ -232,7 +232,7 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("gpu_allow_invalid_fetch_constants"))
                         ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "false");
 
-                    if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean(SystemConfig["vsync"]))
+                    if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))
                         ini.AppendValue("GPU", "vsync", "false");
                     else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
