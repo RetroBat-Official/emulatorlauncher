@@ -326,7 +326,7 @@ namespace EmulatorLauncher
             if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun") && SystemConfig["system"] != "wii")
             {
                 SystemConfig["use_guns"] = "true";
-                SimpleLogger.Instance.Info("[GUNS] Lightgun game : setting default lightung value to true.");
+                SimpleLogger.Instance.Info("[GUNS] Lightgun game : setting default lightun value to true.");
             }
 
             /* for later wheels

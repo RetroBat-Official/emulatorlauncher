@@ -199,8 +199,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
                 ini.WriteValue("UI", "hideInactiveMouse", "true");
 
-                // Controller applet (disabled by default)
-                if (SystemConfig.isOptSet("suyu_controller_applet") && SystemConfig.getOptBoolean("suyu_controller_applet"))
+                // Controller applet
+                if (SystemConfig.isOptSet("suyu_controller_applet") && !SystemConfig.getOptBoolean("suyu_controller_applet"))
                 {
                     ini.WriteValue("UI", "disableControllerApplet\\default", "true");
                     ini.WriteValue("UI", "disableControllerApplet", "false");
