@@ -396,6 +396,8 @@ namespace EmulatorLauncher.Libretro
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
             ConfigureVitaquake2 (retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
+            ConfigureYabause(retroarchConfig, coreSettings, system, core);
+            ConfigureYabasanshiro(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -4589,6 +4591,63 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "X1_RESOLUTE", "x1_resolute", "LOW");
+        }
+
+        private void ConfigureYabause(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "yabause")
+                return;
+        }
+
+        private void ConfigureYabasanshiro(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "yabasanshiro")
+                return;
+
+            BindFeature(coreSettings, "yabasanshiro_resolution_mode", "yabasanshiro_resolution_mode", "original");
+            BindFeature(coreSettings, "yabasanshiro_addon_cart", "yabasanshiro_addon_cart", "4M_extended_ram");
+            BindFeature(coreSettings, "yabasanshiro_system_language", "yabasanshiro_system_language", "english");
+            BindBoolFeature(coreSettings, "yabasanshiro_force_hle_bios", "yabasanshiro_force_hle_bios", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "yabasanshiro_frameskip", "yabasanshiro_frameskip", "enabled", "disabled");
+
+            if (SystemConfig.isOptSet("yabasanshiro_multitap") && !string.IsNullOrEmpty(SystemConfig["yabasanshiro_multitap"]))
+            {
+                switch (SystemConfig["yabasanshiro_multitap"])
+                {
+                    case "disabled":
+                        coreSettings["yabasanshiro_multitap_port1"] = "disabled";
+                        coreSettings["yabasanshiro_multitap_port2"] = "disabled";
+                        break;
+                    case "port1":
+                        coreSettings["yabasanshiro_multitap_port1"] = "enabled";
+                        coreSettings["yabasanshiro_multitap_port2"] = "disabled";
+                        break;
+                    case "port2":
+                        coreSettings["yabasanshiro_multitap_port1"] = "disabled";
+                        coreSettings["yabasanshiro_multitap_port2"] = "enabled";
+                        break;
+                    case "ports":
+                        coreSettings["yabasanshiro_multitap_port1"] = "enabled";
+                        coreSettings["yabasanshiro_multitap_port2"] = "enabled";
+                        break;
+                }
+            }
+
+            // Controls
+            if (SystemConfig.isOptSet("yabasanshiro_controller") && !string.IsNullOrEmpty(SystemConfig["yabasanshiro_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["yabasanshiro_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
         }
         #endregion
 

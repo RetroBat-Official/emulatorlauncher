@@ -53,6 +53,11 @@ namespace EmulatorLauncher.Common.Launchers
         {
             // Get Steam app ID from url
             string shorturl = uri.AbsolutePath.Substring(1);
+            int endurl = shorturl.IndexOf("%");
+            if (endurl == -1) // If there's no space, get until the end of the string
+                endurl = shorturl.Length;
+            shorturl = shorturl.Substring(0, endurl);
+            
             if (!string.IsNullOrEmpty(shorturl))
                 SimpleLogger.Instance.Info("[INFO] STEAM appID: " + shorturl);
             
