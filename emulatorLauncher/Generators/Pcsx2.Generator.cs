@@ -858,6 +858,9 @@ namespace EmulatorLauncher
                 // AUDIO section
                 BindIniFeature(ini, "SPU2/Output", "Backend", "pcsx2_apu", "Cubeb");
 
+                // Framerate
+                BindIniFeatureSlider(ini, "Framerate", "NominalScalar", "pcsx2_NominalScalar", "1", 1);
+
                 // Game fixes
                 if (SystemConfig.getOptBoolean("FpuNegDivHack"))
                     ini.WriteValue("EmuCore/Gamefixes", "FpuNegDivHack", "true");
