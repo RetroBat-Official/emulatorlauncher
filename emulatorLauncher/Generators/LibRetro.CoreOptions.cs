@@ -1715,6 +1715,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "gambatte_mix_frames", "gambatte_mix_frames", "lcd_ghosting");
             BindFeature(coreSettings, "gambatte_gb_internal_palette", "gambatte_gb_internal_palette", "GB - DMG");
             BindFeature(coreSettings, "gambatte_gb_colorization", "gambatte_gb_colorization", "disabled");
+            if (SystemConfig["gambatte_gb_colorization"] == "automatic")
+                coreSettings["gambatte_gb_colorization"] = "auto";
         }
 
         private void ConfigureGearColeco(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
