@@ -396,6 +396,8 @@ namespace EmulatorLauncher.Libretro
             ConfigureVirtualJaguar(retroarchConfig, coreSettings, system, core);
             ConfigureVitaquake2 (retroarchConfig, coreSettings, system, core);
             Configurex1(retroarchConfig, coreSettings, system, core);
+            ConfigureYabause(retroarchConfig, coreSettings, system, core);
+            ConfigureYabasanshiro(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -4589,6 +4591,18 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "X1_RESOLUTE", "x1_resolute", "LOW");
+        }
+
+        private void ConfigureYabause(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "yabause")
+                return;
+        }
+
+        private void ConfigureYabasanshiro(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "yabasanshiro")
+                return;
         }
         #endregion
 
