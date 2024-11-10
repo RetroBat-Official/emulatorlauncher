@@ -102,6 +102,7 @@ namespace EmulatorLauncher
                     };
                     
                     string argsfirmware = string.Join(" ", commandArrayfirmware);
+
                     return new ProcessStartInfo()
                     {
                         FileName = exe,
@@ -109,6 +110,15 @@ namespace EmulatorLauncher
                         Arguments = argsfirmware,
                     };
                 }
+            }
+
+            if (Path.GetExtension(rom).ToLower() == ".lnk")
+            {
+                return new ProcessStartInfo()
+                {
+                    FileName = rom,
+                    WorkingDirectory = path,
+                };
             }
 
             return new ProcessStartInfo()
