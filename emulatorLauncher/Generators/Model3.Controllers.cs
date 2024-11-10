@@ -1538,10 +1538,10 @@ namespace EmulatorLauncher
             ini.WriteValue(" Global ", "InputAnalogJoyRight", "\"KEY_RIGHT\"");
             ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"KEY_UP\"");
             ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"KEY_DOWN\"");
-            ini.WriteValue(" Global ", "InputAnalogJoyX", "\"NONE\"");
-            ini.WriteValue(" Global ", "InputAnalogJoyY", "\"NONE\"");
-            ini.WriteValue(" Global ", "InputAnalogJoyTrigger", "\"KEY_A\"");
-            ini.WriteValue(" Global ", "InputAnalogJoyEvent", "\"KEY_S\"");
+            ini.WriteValue(" Global ", "InputAnalogJoyX", "\"" + mouse1 + "_XAXIS\"");
+            ini.WriteValue(" Global ", "InputAnalogJoyY", "\"" + mouse1 + "_YAXIS\"");
+            ini.WriteValue(" Global ", "InputAnalogJoyTrigger", "\"KEY_A,"+ mouse1 + "_LEFT_BUTTON\"");
+            ini.WriteValue(" Global ", "InputAnalogJoyEvent", "\"KEY_S," + mouse1 +"_RIGHT_BUTTON\"");
             ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"KEY_D\"");
             ini.WriteValue(" Global ", "InputAnalogJoyEvent2", "\"NONE\"");
 
