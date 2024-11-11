@@ -1710,8 +1710,17 @@ namespace EmulatorLauncher.Libretro
             coreSettings["gambatte_gbc_color_correction"] = "GBC only";
             coreSettings["gambatte_up_down_allowed"] = "disabled";
 
+            if (system == "gb")
+                coreSettings["gambatte_gb_hwmode"] = "GB";
+            else if (system == "gbc")
+                coreSettings["gambatte_gb_hwmode"] = "GBC";
+            else if (system == "sgb")
+                coreSettings["gambatte_gb_hwmode"] = "Auto";
+
+            if (SystemConfig.isOptSet("gambatte_gb_hwmode") && !string.IsNullOrEmpty(SystemConfig["gambatte_gb_hwmode"]))
+                coreSettings["gambatte_gb_hwmode"] = SystemConfig["gambatte_gb_hwmode"];
+
             BindBoolFeatureOn(coreSettings, "gambatte_gb_bootloader", "gambatte_gb_bootloader", "enabled", "disabled");
-            BindFeature(coreSettings, "gambatte_gb_hwmode", "gambatte_gb_hwmode", "Auto");
             BindFeature(coreSettings, "gambatte_mix_frames", "gambatte_mix_frames", "lcd_ghosting");
             BindFeature(coreSettings, "gambatte_gb_internal_palette", "gambatte_gb_internal_palette", "GB - DMG");
             BindFeature(coreSettings, "gambatte_gb_colorization", "gambatte_gb_colorization", "disabled");
@@ -3964,6 +3973,18 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "sameboy_rtc", "sameboy_rtc", "sync to system clock");
+
+            if (system == "gb")
+                coreSettings["sameboy_model"] = "Game Boy";
+            else if (system == "gbc")
+                coreSettings["sameboy_model"] = "Game Boy Color";
+            else if (system == "gb2players")
+                coreSettings["sameboy_model"] = "Game Boy";
+            else if (system == "gbc2players")
+                coreSettings["sameboy_model"] = "Game Boy Color";
+
+            if (SystemConfig.isOptSet("sameboy_model") && !string.IsNullOrEmpty(SystemConfig["sameboy_model"]))
+                coreSettings["sameboy_model"] = SystemConfig["sameboy_model"];
 
             bool multiplayer = (system == "gb2players" || system == "gbc2players");
 
