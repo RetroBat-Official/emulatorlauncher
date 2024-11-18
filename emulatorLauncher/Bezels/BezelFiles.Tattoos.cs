@@ -268,6 +268,9 @@ namespace EmulatorLauncher
                             case "mednafen_gba":
                                 ret = "gba_solar";
                                 break;
+                            case "gpsp":
+                                ret = "gba_gpsp";
+                                break;
                         }
                         break;
                     case "mgba":
