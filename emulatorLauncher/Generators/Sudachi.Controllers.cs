@@ -113,15 +113,6 @@ namespace EmulatorLauncher
             if (newGuid != null)
                 sudachiGuid = newGuid;
 
-            if (controller.CompatibleSdlGuids != null)
-            {
-                foreach (var compatGuid in controller.CompatibleSdlGuids)
-                    SimpleLogger.Instance.Info("[INFO] Compatible GUID " + compatGuid);
-
-                if (controller.SdlController != null && controller.SdlController.Guid != null)
-                    SimpleLogger.Instance.Info("[INFO] Gamepad GUID " + controller.SdlController.Guid.ToString());
-            }
-
             int index = Program.Controllers
                     .GroupBy(c => c.Guid.ToLowerInvariant())
                     .Where(c => c.Key == controller.Guid.ToLowerInvariant())
@@ -129,6 +120,9 @@ namespace EmulatorLauncher
                     .OrderBy(c => c.GetSdlControllerIndex())
                     .ToList()
                     .IndexOf(controller);
+
+            if (multi)
+                index = 0;
 
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 
