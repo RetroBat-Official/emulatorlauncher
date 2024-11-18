@@ -333,6 +333,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
             ConfigureGeolith(retroarchConfig, coreSettings, system, core);
             ConfigureGong(retroarchConfig, coreSettings, system, core);
+            Configuregpsp(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureHatari(retroarchConfig, coreSettings, system, core);
             ConfigureHatariB(retroarchConfig, coreSettings, system, core);
@@ -1931,6 +1932,12 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "gong_player2", "gong_player2", "CPU");
+        }
+
+        private void Configuregpsp(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "gpsp")
+                return;
         }
 
         private void ConfigureHandy(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
