@@ -1938,6 +1938,13 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "gpsp")
                 return;
+
+            BindFeature(coreSettings, "gpsp_bios", "gpsp_bios", "auto");    // builtin, official
+            BindBoolFeature(coreSettings, "gpsp_boot_mode", "gpsp_boot_mode", "bios", "game");
+            BindBoolFeature(coreSettings, "gpsp_color_correction", "gpsp_color_correction", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "gpsp_drc", "gpsp_drc", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "gpsp_frame_mixing", "gpsp_frame_mixing", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "gpsp_sprlim", "gpsp_sprlim", "enabled", "disabled");
         }
 
         private void ConfigureHandy(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
