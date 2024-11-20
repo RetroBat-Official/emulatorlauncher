@@ -275,9 +275,20 @@ namespace EmulatorLauncher
                             {
                                 foreach (var x in mdGamepad.Mapping)
                                 {
-                                    string key = x.Key;
-                                    string value = x.Value;
-                                    controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value : "X" + index + " " + value;
+                                    if (x.Value.Contains("_"))
+                                    {
+                                        string key = x.Key;
+                                        var values = x.Value.Split('_');
+                                        string value1 = values[0];
+                                        string value2 = values[1];
+                                        controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value1 + ", " + "J" + index + " " + value2 : "X" + index + " " + value1 + ", " + "X" + index + " " + value2;
+                                    }
+                                    else
+                                    {
+                                        string key = x.Key;
+                                        string value = x.Value;
+                                        controllerConfig["P" + playerIndex + " " + key] = useDInput ? "J" + index + " " + value : "X" + index + " " + value;
+                                    }
                                 }
                                 mdControllerFound = true;
                             }

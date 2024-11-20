@@ -981,6 +981,46 @@ namespace EmulatorLauncher
                 ini.WriteValue(section, settingName, pathName);
         }
 
+        // JGenesis
+        protected void BindBoolIniFeature(IniFileJGenesis ini, string section, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, trueValue);
+                else
+                    ini.WriteValue(section, settingName, falseValue);
+            }
+        }
+        protected void BindBoolIniFeatureOn(IniFileJGenesis ini, string section, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, falseValue);
+                else
+                    ini.WriteValue(section, settingName, trueValue);
+            }
+        }
+
+        protected void BindIniFeatureSlider(IniFileJGenesis ini, string section, string settingName, string featureName, string defaultValue, int decimalPlaces = 0, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (decimalPlaces > 0 && decimalPlaces < 7)
+                {
+                    int toRemove = 6 - decimalPlaces;
+                    string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+                    if (value != defaultValue)
+                        ini.WriteValue(section, settingName, value.Substring(0, value.Length - toRemove));
+                    else
+                        ini.WriteValue(section, settingName, value);
+                }
+                else
+                    ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue));
+            }
+        }
+
         // Fbneo config file
         protected void BindBoolFeature(FbneoConfigFile cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
         {
