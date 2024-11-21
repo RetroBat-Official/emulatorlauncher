@@ -8,6 +8,7 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using System.Reflection;
+using System.Diagnostics.Eventing.Reader;
 
 namespace EmulatorLauncher
 {
@@ -691,6 +692,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Writing controller configuration in : " + iniFile);
 
+            
             bool forceSDL = false;
             if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
                 forceSDL = true;
@@ -704,6 +706,7 @@ namespace EmulatorLauncher
             {
                 foreach (var pad in Program.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                 {
+                    bool xinputAsSdl = false;
                     string gcpad = anyDefKey + pad.PlayerIndex;
                     ini.ClearSection(gcpad);
 
@@ -739,6 +742,12 @@ namespace EmulatorLauncher
 
                         tech = "SDL";
 
+                        if (pad.IsXInputDevice)
+                        {
+                            xinputAsSdl = true;
+                            tech = "XInput";
+                        }
+
                         deviceName = pad.Name;
 
                         string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
@@ -761,8 +770,10 @@ namespace EmulatorLauncher
                     if (pad.IsXInputDevice)
                         xIndex = pad.XInput != null ? pad.XInput.DeviceIndex : pad.DeviceIndex;
 
-                    if (tech == "XInput")
+                    if (tech == "XInput" && !xinputAsSdl)
                         ini.WriteValue(gcpad, "Device", tech + "/" + xIndex + "/" + deviceName);
+                    else if (xinputAsSdl)
+                        ini.WriteValue(gcpad, "Device", "SDL" + "/" + nsamepad.ToString() + "/" + deviceName);
                     else
                         ini.WriteValue(gcpad, "Device", tech + "/" + nsamepad.ToString() + "/" + deviceName);
 
@@ -1222,6 +1233,7 @@ namespace EmulatorLauncher
                 string tech = "XInput";
                 string deviceName = "Gamepad";
                 int xIndex = 0;
+                bool xinputAsSdl = false;
 
                 if (c1 != null && c1.IsXInputDevice)
                     xIndex = c1.XInput != null ? c1.XInput.DeviceIndex : c1.DeviceIndex;
@@ -1233,10 +1245,15 @@ namespace EmulatorLauncher
                 }
                 else if (!c1.IsXInputDevice || forceSDL)
                 {
+                    if (c1.IsXInputDevice && forceSDL)
+                    {
+                        xinputAsSdl = true;
+                    }
+
                     var s = c1.SdlController;
                     if (s != null)
                     {
-                        tech = "SDL";
+                        tech = xinputAsSdl? "XInput" : "SDL";
                         deviceName = s.Name;
                     }
 
@@ -1254,7 +1271,10 @@ namespace EmulatorLauncher
 
                 if (tech == "XInput")
                 {
-                    ini.WriteValue("Hotkeys", "Device", tech + "/" + xIndex + "/" + deviceName);
+                    if (xinputAsSdl)
+                        ini.WriteValue("Hotkeys", "Device", "SDL" + "/" + _p1sdlindex + "/" + deviceName);
+                    else
+                        ini.WriteValue("Hotkeys", "Device", tech + "/" + xIndex + "/" + deviceName);
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", "Back&`Button B`");
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Back&`Button A`");
                     ini.WriteValue("Hotkeys", "General/Exit", "Back&Start");
