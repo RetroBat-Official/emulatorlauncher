@@ -11,7 +11,8 @@ namespace EmulatorLauncher
 {
     partial class JgenesisGenerator : Generator
     {
-        private void SetupControllers(IniFile ini, string jgenSystem)
+        private List<string> noPlayerSystem = new List<string> { "game_boy" };
+        private void SetupControllers(IniFileJGenesis ini, string jgenSystem)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -25,18 +26,15 @@ namespace EmulatorLauncher
             if (systemMaxPad.ContainsKey(jgenSystem))
                 maxPad = systemMaxPad[jgenSystem];
 
-            CleanupKBSections(ini, jgenSystem);
+            CleanupControls(ini, jgenSystem);
             WriteKBHotkeys(ini);
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(ini, controller, controller.PlayerIndex, jgenSystem);
-
-            if (Controllers.Count > 0 && Controllers.Count < maxPad)
-                CleanupJoySections(ini, Controllers.Count, maxPad, jgenSystem);
         }
 
-        private void ConfigureInput(IniFile ini, Controller controller, int playerIndex, string jgenSystem)
+        private void ConfigureInput(IniFileJGenesis ini, Controller controller, int playerIndex, string jgenSystem)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -47,7 +45,7 @@ namespace EmulatorLauncher
                 ConfigureJoystick(ini,controller, playerIndex, jgenSystem);
         }
 
-        private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex, string jgenSystem)
+        private void ConfigureJoystick(IniFileJGenesis ini, Controller ctrl, int playerIndex, string jgenSystem)
         {
             if (ctrl == null)
                 return;
@@ -55,11 +53,6 @@ namespace EmulatorLauncher
             InputConfig joy = ctrl.Config;
             if (joy == null)
                 return;
-
-            if (jgenSystem != "game_boy")
-                ini.ClearSection("inputs." + jgenSystem + "_joystick.p" + playerIndex);
-            else
-                ini.ClearSection("inputs." + jgenSystem + "_joystick");
 
             int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
             string name = ctrl.SdlController != null ? ctrl.SdlController.Name : ctrl.Name;
@@ -69,6 +62,7 @@ namespace EmulatorLauncher
 
             // Manage specific megadrive controllers from json file
             bool needMDActivationSwitch = false;
+            bool mapping2 = false;
             bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
             if (_mdSystems.Contains(jgenSystem))
             {
@@ -88,6 +82,9 @@ namespace EmulatorLauncher
                                 if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
                                     needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
 
+                                if (mdGamepad.ControllerInfo.ContainsKey("mapping2"))
+                                    mapping2 = mdGamepad.ControllerInfo["mapping2"] == "yes";
+
                                 if (needMDActivationSwitch && !md_pad)
                                 {
                                     SimpleLogger.Instance.Info("[Controller] Specific MD mapping needs to be activated for this controller.");
@@ -101,49 +98,46 @@ namespace EmulatorLauncher
                             {
                                 if (mdGamepad.Driver == "dinput")
                                     name = joy.DeviceName;
-                                
+
+                                ini.DeleteSection("input.genesis.mapping_1.p" + playerIndex);
+
+                                if (mapping2)
+                                    ini.DeleteSection("input.genesis.mapping_2.p" + playerIndex);
+
                                 foreach (var button in mdGamepad.Mapping)
                                 {
-                                    string iniSection = "inputs." + jgenSystem + "_joystick.p" + playerIndex + "." + button.Key;
+                                    string value = button.Value;
+                                    string value2 = null;
 
-                                    string info_type = null;
-                                    string info_id = null;
-                                    string info_direction = null;
-                                    string[] info = button.Value.Split('_');
-                                    if (info.Length > 0)
-                                        info_type = info[0];
-                                    if (info.Length > 1)
-                                        info_id = info[1];
-                                    if (info.Length > 2)
-                                        info_direction = info[2];
-
-                                    switch (info_type)
+                                    if (button.Value.Contains("_"))
                                     {
-                                        case "Button":
-                                            ini.WriteValue(iniSection, "name", "\"" + name + "\"");
-                                            ini.WriteValue(iniSection, "idx", index.ToString());
-                                            ini.WriteValue(iniSection, "type", "\"" + info_type + "\"");
-                                            ini.WriteValue(iniSection, "button_idx", info_id);
-                                            break;
-                                        case "Axis":
-                                            ini.WriteValue(iniSection, "name", "\"" + name + "\"");
-                                            ini.WriteValue(iniSection, "idx", index.ToString());
-                                            ini.WriteValue(iniSection, "type", "\"" + info_type + "\"");
-                                            ini.WriteValue(iniSection, "axis_idx", info_id);
-                                            ini.WriteValue(iniSection, "direction", "\"" + info_direction + "\"");
-                                            break;
-                                        case "Hat":
-                                            ini.WriteValue(iniSection, "name", "\"" + name + "\"");
-                                            ini.WriteValue(iniSection, "idx", index.ToString());
-                                            ini.WriteValue(iniSection, "type", "\"" + info_type + "\"");
-                                            ini.WriteValue(iniSection, "hat_idx", info_id);
-                                            ini.WriteValue(iniSection, "direction", "\"" + info_direction + "\"");
-                                            break;
+                                        string[] values = value.Split('_');
+                                        value = values[0];
+                                        value2 = values[1];
                                     }
+                                    
+                                    string iniSection = "[[input." + jgenSystem + ".mapping_1.p" + playerIndex + "." + button.Key + "]]";
+                                    string iniSection2 = null;
+
+                                    if (value2 != null)
+                                        iniSection2 = "[[input." + jgenSystem + ".mapping_2.p" + playerIndex + "." + button.Key + "]]";
+
+                                    if (value != null)
+                                    {
+                                        ini.WriteValue(iniSection, "type", "\"" + "Gamepad" + "\"");
+                                        ini.WriteValue(iniSection, "gamepad_idx", index.ToString());
+                                        ini.WriteValue(iniSection, "action", "\"" + value + "\"");
+
+                                    }
+
+                                    if (value2 != null)
+                                    {
+                                        ini.WriteValue(iniSection2, "type", "\"" + "Gamepad" + "\"");
+                                        ini.WriteValue(iniSection2, "gamepad_idx", index.ToString());
+                                        ini.WriteValue(iniSection2, "action", "\"" + value2 + "\"");
+                                    }
+                                    
                                 }
-                                
-                                if (playerIndex == 1)
-                                    ConfigureDefaultKeyboard(ini, jgenSystem);
 
                                 SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
 
@@ -189,72 +183,42 @@ namespace EmulatorLauncher
 
             mapping = ConfigureMappingPerSystem(mapping, jgenSystem, playerIndex);
 
+            if (noPlayerSystem.Contains(jgenSystem))
+                ini.DeleteSection("input." + jgenSystem + ".mapping_1");
+            else
+                ini.DeleteSection("input." + jgenSystem + ".mapping_1.p" + playerIndex);
+
             foreach (var kv in mapping)
             {
-                string iniSection = "inputs." + jgenSystem + "_joystick.p" + playerIndex + "." + kv.Key;
-                if (jgenSystem == "game_boy")
-                    iniSection = "inputs.gb_joystick." + kv.Key;
+                string iniSection = "input." + jgenSystem + ".mapping_1.p" + playerIndex + "." + kv.Key;
+                if (noPlayerSystem.Contains(jgenSystem))
+                    iniSection = "input." + jgenSystem + ".mapping_1." + kv.Key;
 
-                string inputType = GetInputType(ctrl, kv.Value);
-                if (inputType == null)
+                string inputInfo = GetInputInfo(ctrl, kv.Value);
+                if (inputInfo == null)
                     continue;
 
-                var inputInfo = GetInputInfo(ctrl, kv.Value);
-                if (inputInfo.Count == 0)
-                    continue;
-
-                string idx = inputInfo.Keys.First();
-                switch (inputType)
-                {
-                    case "Button":
-                        ini.WriteValue(iniSection, "name", "\"" + name + "\"");
-                        ini.WriteValue(iniSection, "idx", index.ToString());
-                        ini.WriteValue(iniSection, "type", "\"" + inputType + "\"");
-                        ini.WriteValue(iniSection, idx, inputInfo[idx]);
-                        break;
-                    case "Axis":
-                        ini.WriteValue(iniSection, "name", "\"" + name + "\"");
-                        ini.WriteValue(iniSection, "idx", index.ToString());
-                        ini.WriteValue(iniSection, "type", "\"" + inputType + "\"");
-                        ini.WriteValue(iniSection, "axis_idx", idx);
-                        ini.WriteValue(iniSection, "direction", "\"" + inputInfo[idx] + "\"");
-                        break;
-                    case "Hat":
-                        ini.WriteValue(iniSection, "name", "\"" + name + "\"");
-                        ini.WriteValue(iniSection, "idx", index.ToString());
-                        ini.WriteValue(iniSection, "type", "\"" + inputType + "\"");
-                        ini.WriteValue(iniSection, "hat_idx", idx);
-                        ini.WriteValue(iniSection, "direction", "\"" + inputInfo[idx] + "\"");
-                        break;
-                }
+                ini.WriteValue("[[" + iniSection + "]]", "type", "\"" + "Gamepad" + "\"");
+                ini.WriteValue("[[" + iniSection + "]]", "gamepad_idx", index.ToString());
+                ini.WriteValue("[[" + iniSection + "]]", "action", "\"" + inputInfo + "\"");
             }
 
-            if (jgenSystem == "smsgg")
+            if (jgenSystem == "smsgg" && playerIndex == 1)
             {
-                string iniSection = "inputs.smsgg_joystick.pause";
-                string inputType = GetInputType(ctrl, InputKey.start);
-                if (inputType != null)
-                {
-                    var inputInfo = GetInputInfo(ctrl, InputKey.start);
-                    if (inputInfo.Count > 0)
+                string iniSection = "[[input.smsgg.mapping_1.pause]]";
+                    string inputInfo = GetInputInfo(ctrl, InputKey.start);
+                    if (inputInfo != null)
                     {
-                        string idx = inputInfo.Keys.First();
-
-                        ini.WriteValue(iniSection, "name", "\"" + name + "\"");
-                        ini.WriteValue(iniSection, "idx", index.ToString());
-                        ini.WriteValue(iniSection, "type", "\"" + inputType + "\"");
-                        ini.WriteValue(iniSection, idx, inputInfo[idx]);
+                        ini.WriteValue(iniSection, "type", "\"" + "Gamepad" + "\"");
+                        ini.WriteValue(iniSection, "gamepad_idx", index.ToString());
+                        ini.WriteValue(iniSection, "action", "\"" + inputInfo + "\"");
                     }
-                }
             }
-
-            if (playerIndex == 1)
-                ConfigureDefaultKeyboard(ini, jgenSystem);
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
-        private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, int playerIndex, string jgenSystem)
+        private void ConfigureKeyboard(IniFileJGenesis ini, InputConfig keyboard, int playerIndex, string jgenSystem)
         {
             if (keyboard == null)
                 return;
@@ -266,51 +230,10 @@ namespace EmulatorLauncher
                     ini.WriteValue(v, w, "\"" + SdlToKeyCode(a.Id) + "\"");
             };
 
-            string section = inputKbSection[jgenSystem];
+            string section = "input." + jgenSystem + ".mapping_1.p1";
 
-            if (jgenSystem != "game_boy")
-                section += "p" + playerIndex;
-
-            Dictionary<string, InputKey> mapping = null;
-
-            switch (jgenSystem)
-            {
-                case "game_boy":
-                    mapping = gbMapping;
-                    break;
-                case "genesis":
-                    mapping = mdMapping;
-                    break;
-                case "nes":
-                    mapping = nesMapping;
-                    break;
-                case "smsgg":
-                    mapping = smsMapping;
-                    break;
-                case "snes":
-                    mapping = snesMapping;
-                    break;
-            }
-
-            if (mapping == null)
-                return;
-
-            if (jgenSystem == "smsgg")
-            {
-                WriteKeyboardMapping("inputs.smsgg_keyboard", "pause", InputKey.start);
-            }
-
-            foreach (var kv in mapping)
-                WriteKeyboardMapping(section, kv.Key, kv.Value);
-        }
-
-        private void ConfigureDefaultKeyboard(IniFile ini, string jgenSystem)
-        {
-            string section = inputKbSection[jgenSystem];
-            int playerIndex = 1;
-            
-            if (jgenSystem != "game_boy")
-                section += "p" + playerIndex;
+            if (noPlayerSystem.Contains(jgenSystem))
+                section = "input." + jgenSystem + ".mapping_1";
 
             Dictionary<string, InputKey> mapping = null;
 
@@ -336,50 +259,45 @@ namespace EmulatorLauncher
             if (mapping == null)
                 return;
 
-            if (jgenSystem == "smsgg")
-            {
-                ini.WriteValue("inputs.smsgg_keyboard", "pause", "\"Return\"");
-            }
+            ini.DeleteSection(section);
 
             foreach (var kv in mapping)
             {
-                ini.WriteValue(section, kv.Key, "\"" + defaultKB[kv.Value] + "\"");
+                string newSection = "[[" + section + "." + kv.Key + "]]";
+                ini.WriteValue(newSection, "type", "\"" + "Keyboard" + "\"");
+                WriteKeyboardMapping(newSection, "key", kv.Value);
+            }
+
+            if (jgenSystem == "smsgg")
+            {
+                ini.WriteValue("[[input.smsgg.mapping_1.pause]]", "type", "\"" + "Keyboard" + "\"");
+                WriteKeyboardMapping("[[input.smsgg.mapping_1.pause]]", "key", InputKey.start);
             }
         }
 
-        private void WriteKBHotkeys(IniFile ini)
+        private void WriteKBHotkeys(IniFileJGenesis ini)
         {
-            string iniSection = "inputs.hotkeys";
 
-            ini.WriteValue(iniSection, "quit", "\"Escape\"");
-            ini.WriteValue(iniSection, "toggle_fullscreen", "\"Tab\"");
-            ini.WriteValue(iniSection, "save_state", "\"F1\"");
-            ini.WriteValue(iniSection, "load_state", "\"F2\"");
-            ini.WriteValue(iniSection, "prev_save_state_slot", "\"F3\"");
-            ini.WriteValue(iniSection, "next_save_state_slot", "\"F4\"");
-            ini.WriteValue(iniSection, "pause", "\"F5\"");
-            ini.WriteValue(iniSection, "rewind", "\"F6\"");
-            ini.WriteValue(iniSection, "fast_forward", "\"F7\"");
-            ini.WriteValue(iniSection, "soft_reset", "\"F8\"");
-            ini.WriteValue(iniSection, "hard_reset", "\"F9\"");
-            ini.WriteValue(iniSection, "step_frame", "\"F10\"");
-            ini.WriteValue(iniSection, "open_debugger", "\"F11\"");
+            foreach (var hotkey in hotkeys)
+            {
+                ini.WriteValue("[[input.hotkeys.mapping_1." + hotkey.Key + "]]", "type", "\"" + "Keyboard" + "\"");
+                ini.WriteValue("[[input.hotkeys.mapping_1." + hotkey.Key + "]]", "key", "\"" + hotkey.Value + "\"");
+                ini.DeleteSection("[[input.hotkeys.mapping_2." + hotkey.Key + "]]");
+            }
+
+            ini.WriteValue("input.hotkeys.mapping_2", "", null);
         }
 
-        private void CleanupKBSections(IniFile ini, string jgenSystem)
+        private void CleanupControls(IniFileJGenesis ini, string jgenSystem)
         {
             int maxPad = systemMaxPad.ContainsKey(jgenSystem) ? systemMaxPad[jgenSystem] : 1;
 
-            if (maxPad == 1)
-                return;
-
-            string kbSection = inputKbSection[jgenSystem];
             Dictionary<string, InputKey> mapping = null;
 
             switch (jgenSystem)
             {
-                case "game_boy":
-                    mapping = gbMapping;
+                case "smsgg":
+                    mapping = smsMapping;
                     break;
                 case "genesis":
                     mapping = mdMapping;
@@ -387,8 +305,8 @@ namespace EmulatorLauncher
                 case "nes":
                     mapping = nesMapping;
                     break;
-                case "smsgg":
-                    mapping = smsMapping;
+                case "game_boy":
+                    mapping = gbMapping;
                     break;
                 case "snes":
                     mapping = snesMapping;
@@ -397,58 +315,37 @@ namespace EmulatorLauncher
 
             if (mapping != null)
             {
-                for (int i = 2; i <= maxPad; i++)
+                if (noPlayerSystem.Contains(jgenSystem))
                 {
-                    if (jgenSystem != "game_boy")
-                        kbSection += "p" + i;
-                    
-                    foreach (var kv in mapping)
-                        ini.Remove(kbSection, kv.Key);
-                }
-            }
-        }
-
-        private void CleanupJoySections(IniFile ini, int count, int maxPad, string jgenSystem)
-        {
-            Dictionary<string, InputKey> mapping = null;
-
-            switch (jgenSystem)
-            {
-                case "game_boy":
-                    mapping = gbMapping;
-                    break;
-                case "genesis":
-                    mapping = mdMapping;
-                    break;
-                case "nes":
-                    mapping = nesMapping;
-                    break;
-                case "smsgg":
-                    mapping = smsMapping;
-                    break;
-                case "snes":
-                    mapping = snesMapping;
-                    break;
-            }
-
-            if (mapping == null)
-                return;
-
-            for (int i = count + 1; i <= maxPad; i++)
-            {
-                foreach (var kv in mapping)
-                {
-                    if (jgenSystem == "game_boy")
-                        continue;
-                    else
-                        ini.ClearSection("inputs." + jgenSystem + "_joystick.p" + i + "." + kv.Key);
+                    foreach (var button in mapping)
+                    {
+                        ini.DeleteSection("[[input." + jgenSystem + ".mapping_1." + button.Key + "]]");
+                        ini.DeleteSection("[[input." + jgenSystem + ".mapping_2." + button.Key + "]]");
+                        ini.WriteValue("input." + jgenSystem + ".mapping_1", "", null);
+                        ini.WriteValue("input." + jgenSystem + ".mapping_2", "", null);
+                    }
                 }
 
-                if (jgenSystem == "game_boy")
-                    ini.WriteValue("inputs.gb_joystick", null, null);
                 else
-                    ini.WriteValue("inputs." + jgenSystem + "_joystick.p" + i, null, null);
-            } 
+                {
+                    for (int i = 1; i <= maxPad; i++)
+                    {
+                        foreach (var button in mapping)
+                        {
+                            ini.DeleteSection("[[input." + jgenSystem + ".mapping_1.p" + i + "." + button.Key + "]]");
+                            ini.DeleteSection("[[input." + jgenSystem + ".mapping_2.p" + i + "." + button.Key + "]]");
+                            ini.WriteValue("input." + jgenSystem + ".mapping_1.p" + i, "", null);
+                            ini.WriteValue("input." + jgenSystem + ".mapping_2.p" + i, "", null);
+                        }
+                    }
+
+                    if (jgenSystem == "smsgg")
+                    {
+                        ini.DeleteSection("[[input.smsgg.mapping_1.pause]]");
+                        ini.DeleteSection("[[input.smsgg.mapping_2.pause]]");
+                    }
+                }
+            }
         }
 
         static readonly Dictionary<string, int> systemMaxPad = new Dictionary<string, int>()
@@ -458,17 +355,6 @@ namespace EmulatorLauncher
             { "game_boy", 1 },
             { "nes", 2 },
             { "snes", 2 }
-        };
-
-        static readonly Dictionary<string, string> inputKbSection = new Dictionary<string, string>()
-        {
-            { "smsgg", "inputs.smsgg_keyboard." },
-            { "genesis", "inputs.genesis_keyboard." },
-            { "sega_cd", "inputs.genesis_keyboard." },
-            { "sega_32x", "inputs.genesis_keyboard." },
-            { "game_boy", "inputs.gb_keyboard" },
-            { "nes", "inputs.nes_keyboard." },
-            { "snes", "inputs.snes_keyboard." }
         };
 
         static readonly Dictionary<string, InputKey> gbMapping = new Dictionary<string, InputKey>()
@@ -537,23 +423,24 @@ namespace EmulatorLauncher
             { "select", InputKey.select }
         };
 
-        static readonly Dictionary<InputKey, string> defaultKB = new Dictionary<InputKey, string>()
+        static readonly Dictionary<string, string> hotkeys = new Dictionary<string, string>()
         {
-            { InputKey.up, "Up" },
-            { InputKey.left, "Left" },
-            { InputKey.right, "Right" },
-            { InputKey.down, "Down" },
-            { InputKey.b, "S" },
-            { InputKey.a, "A" },
-            { InputKey.x, "Q" },
-            { InputKey.y, "W" },
-            { InputKey.pageup, "D" },
-            { InputKey.pagedown, "C" },
-            { InputKey.start, "Return" },
-            { InputKey.select, "Right Shift" }
+            { "quit", "Escape" },
+            { "toggle_fullscreen", "Tab" },
+            { "save_state", "F1" },
+            { "load_state", "F2" },
+            { "next_save_state_slot", "F4" },
+            { "prev_save_state_slot", "F3" },
+            { "soft_reset", "F8" },
+            { "hard_reset", "F9" },
+            { "pause", "F5" },
+            { "step_frame", "F10" },
+            { "fast_forward", "F7" },
+            { "rewind", "F6" },
+            { "open_debugger", "F11" }
         };
 
-        private static Dictionary<string, string> GetInputInfo(Controller c, InputKey key)
+        private string GetInputInfo(Controller c, InputKey key)
         {
             Int64 pid;
             Int64 pvalue;
@@ -568,16 +455,15 @@ namespace EmulatorLauncher
                 if (input.Type == "button")
                 {
                     pid = input.Id;
-                    info["button_idx"] = pid.ToString();
-                    return info;
+                    return "Button " + pid;
                 }
 
                 if (input.Type == "axis")
                 {
                     pid = input.Id;
                     pvalue = input.Value;
-                    info[pid.ToString()] = pvalue > 0 ? "Positive" : "Negative";
-                    return info;
+                    string direction = pvalue > 0 ? "+" : "-";
+                    return "Axis " + pid + " " + direction;
                 }
 
                 if (input.Type == "hat")
@@ -588,35 +474,15 @@ namespace EmulatorLauncher
                     {
                         case 1:
                             info[pid.ToString()] = "Up";
-                            return info;
+                            return "Hat " + pid + " Up";
                         case 2:
-                            info[pid.ToString()] = "Right";
-                            return info;
+                            return "Hat " + pid + " Right";
                         case 4:
-                            info[pid.ToString()] = "Down";
-                            return info;
+                            return "Hat " + pid + " Down";
                         case 8:
-                            info[pid.ToString()] = "Left";
-                            return info;
+                            return "Hat " + pid + " Left";
                     }
                 }
-            }
-            return info;
-        }
-
-        private static string GetInputType(Controller c, InputKey key)
-        {
-            var input = c.Config[key];
-            if (input != null)
-            {
-                if (input.Type == "button")
-                    return "Button";
-
-                if (input.Type == "axis")
-                    return "Axis";
-
-                if (input.Type == "hat")
-                    return "Hat";
             }
             return null;
         }

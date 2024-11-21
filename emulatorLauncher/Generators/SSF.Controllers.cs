@@ -122,7 +122,7 @@ namespace EmulatorLauncher
 
             // Special mapping for saturn-like controllers in json file
             bool needSatActivationSwitch = false;
-            bool sat_pad = Program.SystemConfig.getOptBoolean("saturn_pad");
+            bool sat_pad = Program.SystemConfig["saturn_pad_ssf"] == "1" || Program.SystemConfig["saturn_pad_ssf"] == "2";
 
             string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
             if (File.Exists(saturnjson))
@@ -154,6 +154,9 @@ namespace EmulatorLauncher
                             if (saturnGamepad.Mapping != null)
                             {
                                 string input = saturnGamepad.Mapping["buttons"];
+                                if (Program.SystemConfig["saturn_pad_ssf"] == "2" && saturnGamepad.Mapping["buttons_anal"] != null)
+                                    input = saturnGamepad.Mapping["buttons_anal"];
+                                
                                 ini.WriteValue("Input", padKey, "\"" + input + "\"");
 
                                 SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());

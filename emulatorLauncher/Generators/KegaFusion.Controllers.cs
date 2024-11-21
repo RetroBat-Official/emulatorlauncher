@@ -87,7 +87,7 @@ namespace EmulatorLauncher
             string joy = joyIndex[ctrl.PlayerIndex.ToString()];
             int index = ctrl.DirectInput != null ? ctrl.DirectInput.DeviceIndex : ctrl.DeviceIndex;
             bool needMDActivationSwitch = false;
-            bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
+            bool md_pad = Program.SystemConfig["md_pad_kega"] == "1" || Program.SystemConfig["md_pad_kega"] == "2";
 
             if (_mdSystems.Contains(system))
             {
@@ -121,7 +121,10 @@ namespace EmulatorLauncher
                                 if (mdGamepad.Mapping != null)
                                 {
                                     string input = mdGamepad.Mapping["buttons"];
-                                
+
+                                    if (Program.SystemConfig["md_pad_kega"] == "2" && mdGamepad.Mapping["buttons_anal"] != null)
+                                        input = mdGamepad.Mapping["buttons_anal"];
+
                                     ini.WriteValue("", "Joystick" + joy + "Using", (index + 2).ToString());
                                     ini.WriteValue("", "Joystick" + joy + "Type", "2");
                                     ini.WriteValue("", "Player" + joy + "Buttons", input);

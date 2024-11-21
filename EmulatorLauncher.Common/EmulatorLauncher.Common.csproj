@@ -74,6 +74,7 @@
     <Compile Include="FileFormats\ConfigFile.cs" />
     <Compile Include="FileFormats\DynamicJson.cs" />
     <Compile Include="FileFormats\IniFile.cs" />
+    <Compile Include="FileFormats\IniFileJGenesis.cs" />
     <Compile Include="FileFormats\IsoFile.cs" />
     <Compile Include="FileFormats\JsonSerializer.cs" />
     <Compile Include="FileFormats\MultiDiskImageFile.cs" />

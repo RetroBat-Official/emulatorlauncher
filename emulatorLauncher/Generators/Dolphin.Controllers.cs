@@ -7,11 +7,14 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System.Reflection;
+using System.Diagnostics.Eventing.Reader;
 
 namespace EmulatorLauncher
 {
     class DolphinControllers
     {
+        private static int _p1sdlindex = 0;
         /// <summary>
         /// Cf. https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp#L191
         /// </summary>
@@ -689,6 +692,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Writing controller configuration in : " + iniFile);
 
+            
             bool forceSDL = false;
             if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
                 forceSDL = true;
@@ -702,6 +706,7 @@ namespace EmulatorLauncher
             {
                 foreach (var pad in Program.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                 {
+                    bool xinputAsSdl = false;
                     string gcpad = anyDefKey + pad.PlayerIndex;
                     ini.ClearSection(gcpad);
 
@@ -737,6 +742,12 @@ namespace EmulatorLauncher
 
                         tech = "SDL";
 
+                        if (pad.IsXInputDevice)
+                        {
+                            xinputAsSdl = true;
+                            tech = "XInput";
+                        }
+
                         deviceName = pad.Name;
 
                         string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
@@ -751,13 +762,18 @@ namespace EmulatorLauncher
                     else
                         nsamepad = 0;
 
+                    if (pad.PlayerIndex == 1)
+                        _p1sdlindex = nsamepad;
+
                     double_pads[tech + "/" + deviceName] = nsamepad + 1;
 
                     if (pad.IsXInputDevice)
                         xIndex = pad.XInput != null ? pad.XInput.DeviceIndex : pad.DeviceIndex;
 
-                    if (tech == "XInput")
+                    if (tech == "XInput" && !xinputAsSdl)
                         ini.WriteValue(gcpad, "Device", tech + "/" + xIndex + "/" + deviceName);
+                    else if (xinputAsSdl)
+                        ini.WriteValue(gcpad, "Device", "SDL" + "/" + nsamepad.ToString() + "/" + deviceName);
                     else
                         ini.WriteValue(gcpad, "Device", tech + "/" + nsamepad.ToString() + "/" + deviceName);
 
@@ -1206,26 +1222,46 @@ namespace EmulatorLauncher
             if (Program.Controllers.Count == 0)
                 return;
 
+            bool forceSDL = false;
+            if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
+                forceSDL = true;
+
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
                 var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
                 string tech = "XInput";
                 string deviceName = "Gamepad";
+                int xIndex = 0;
+                bool xinputAsSdl = false;
+
+                if (c1 != null && c1.IsXInputDevice)
+                    xIndex = c1.XInput != null ? c1.XInput.DeviceIndex : c1.DeviceIndex;
 
                 if (c1.Config.Type == "keyboard")
                 {
                     tech = "DInput";
                     deviceName = "Keyboard Mouse";
                 }
-                else if (!c1.IsXInputDevice)
+                else if (!c1.IsXInputDevice || forceSDL)
                 {
+                    if (c1.IsXInputDevice && forceSDL)
+                    {
+                        xinputAsSdl = true;
+                    }
+
                     var s = c1.SdlController;
                     if (s != null)
                     {
-                        tech = "SDL";
+                        tech = xinputAsSdl? "XInput" : "SDL";
                         deviceName = s.Name;
                     }
+
+                    string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                    string newName = SdlJoystickGuid.GetNameFromFile(newNamePath, c1.Guid, "dolphin");
+
+                    if (newName != null)
+                        deviceName = newName;
                 }
 
                 var ssss = "@(" + (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.y) ?? "") + ")";
@@ -1235,7 +1271,10 @@ namespace EmulatorLauncher
 
                 if (tech == "XInput")
                 {
-                    ini.WriteValue("Hotkeys", "Device", tech + "/" + "0" + "/" + deviceName);
+                    if (xinputAsSdl)
+                        ini.WriteValue("Hotkeys", "Device", "SDL" + "/" + _p1sdlindex + "/" + deviceName);
+                    else
+                        ini.WriteValue("Hotkeys", "Device", tech + "/" + xIndex + "/" + deviceName);
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", "Back&`Button B`");
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Back&`Button A`");
                     ini.WriteValue("Hotkeys", "General/Exit", "Back&Start");
@@ -1253,7 +1292,7 @@ namespace EmulatorLauncher
                 else if (tech == "SDL")
                 {
                     bool revert = c1.VendorID == USB_VENDOR.NINTENDO;
-                    ini.WriteValue("Hotkeys", "Device", tech + "/" + "0" + "/" + deviceName);
+                    ini.WriteValue("Hotkeys", "Device", tech + "/" + _p1sdlindex + "/" + deviceName);
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", revert ? "`Button 4`&`Button 0`" : "`Button 4`&`Button 1`");
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", revert ? "`Button 4`&`Button 1`" : "`Button 4`&`Button 0`");
 

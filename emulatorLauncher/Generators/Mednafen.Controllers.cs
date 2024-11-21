@@ -370,40 +370,92 @@ namespace EmulatorLauncher
                 cfg[mednafenCore + ".input.port" + playerIndex] = padType;
 
                 foreach (var button in mdGamepad.Mapping)
-                    cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + button.Key] = "joystick " + deviceID + " " + button.Value;
+                {
+                    if (button.Value.Contains("_or_"))
+                    {
+                        string[] delimiter = new string[] { "_or_" };
+                        var values = button.Value.Split(delimiter, StringSplitOptions.None);
+                        string value1 = values[0];
+                        string value2 = values[1];
+                        cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + button.Key] = "joystick " + deviceID + " " + value1 + " || " + "joystick " + deviceID + " " + value2;
+                    }
+                    else
+                        cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + button.Key] = "joystick " + deviceID + " " + button.Value;
+                }
 
                 if (mdSpecialPadHK && playerIndex == 1)
                 {
                     foreach (var button in mdGamepad.HotKeyMapping)
                     {
-                        string[] delimiters = new string[] { "_and_" };
-                        var buttons = button.Value.Split(delimiters, StringSplitOptions.None);
+                        if (button.Value.Contains("_or_"))
+                        {
+                            string[] orSplitter = new string[] { "_or_" };
+                            var combinaisons = button.Value.Split(orSplitter, StringSplitOptions.None);
+                            string combination1 = combinaisons[0];
+                            string combination2 = combinaisons[1];
 
-                        if (buttons.Length < 2)
-                            continue;
+                            string[] delimiters = new string[] { "_and_" };
+                            var buttons1 = combination1.Split(delimiters, StringSplitOptions.None);
+                            var buttons2 = combination2.Split(delimiters, StringSplitOptions.None);
 
-                        if (button.Key == "load_state")
-                            cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "save_state")
-                            cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "state_slot_dec")
-                            cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "state_slot_inc")
-                            cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "toggle_help")
-                            cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "select_disk")
-                            cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "take_snapshot")
-                            cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "fast_forward")
-                            cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "state_rewind")
-                            cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "pause")
-                            cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "exit")
-                            cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            if (buttons1.Length < 2 || buttons2.Length < 2)
+                                continue;
+
+                            if (button.Key == "load_state")
+                                cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "save_state")
+                                cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "state_slot_dec")
+                                cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "state_slot_inc")
+                                cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "toggle_help")
+                                cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "select_disk")
+                                cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "take_snapshot")
+                                cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "fast_forward")
+                                cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "state_rewind")
+                                cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "pause")
+                                cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            else if (button.Key == "exit")
+                                cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                        }
+
+                        else
+                        {
+                            string[] delimiters = new string[] { "_and_" };
+                            var buttons = button.Value.Split(delimiters, StringSplitOptions.None);
+
+                            if (buttons.Length < 2)
+                                continue;
+
+                            if (button.Key == "load_state")
+                                cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "save_state")
+                                cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "state_slot_dec")
+                                cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "state_slot_inc")
+                                cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "toggle_help")
+                                cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "select_disk")
+                                cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "take_snapshot")
+                                cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "fast_forward")
+                                cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "state_rewind")
+                                cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "pause")
+                                cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            else if (button.Key == "exit")
+                                cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        }
                     }
                 }
 

@@ -1445,9 +1445,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fbneo-diagnostic-input", "fbneo_diagkey", "Start + L + R");
 
             if (SystemConfig.isOptSet("fbneo_cpu_overclock") && !string.IsNullOrEmpty(SystemConfig["fbneo_cpu_overclock"]))
-            {
                 coreSettings["fbneo-cpu-speed-adjust"] = SystemConfig["fbneo_cpu_overclock"].ToIntegerString() + "%";
-            }
             else
                 coreSettings["fbneo-cpu-speed-adjust"] = "100%";
 

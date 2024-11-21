@@ -5,6 +5,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
 using System.Linq;
 using System;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -117,7 +118,7 @@ namespace EmulatorLauncher
                 { }
             }
 
-            using (IniFile ini = new IniFile(settingsFile, IniOptions.UseSpaces | IniOptions.KeepEmptyLines | IniOptions.KeepEmptyValues))
+            using (IniFileJGenesis ini = new IniFileJGenesis(settingsFile, IniOptionsJGenesis.UseSpaces | IniOptionsJGenesis.KeepEmptyValues | IniOptionsJGenesis.KeepEmptyLines))
             {
                 // Paths
                 string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "jgenesis");
@@ -125,6 +126,7 @@ namespace EmulatorLauncher
                     try { Directory.CreateDirectory(savesPath); } catch { }
 
                 ini.WriteValue("common", "save_path", "\"Custom\"");
+
                 ini.WriteValue("common", "custom_save_path", "'" + savesPath + "'");
                 ini.WriteValue("common", "state_path", "\"EmulatorFolder\"");
                 ini.WriteValue("common", "custom_state_path", "\"\"");
@@ -179,14 +181,12 @@ namespace EmulatorLauncher
 
                 SetupControllers(ini, jGenSystem);
 
-                ini.ClearSection("recent_open_list");
-
                 // Save toml file
                 ini.Save();
             }
         }
 
-        private void ConfigureGameboy(IniFile ini, string system)
+        private void ConfigureGameboy(IniFileJGenesis ini, string system)
         {
             if (system != "game_boy")
                 return;
@@ -211,7 +211,7 @@ namespace EmulatorLauncher
             BindBoolIniFeature(ini, "game_boy", "pretend_to_be_gba", "jgen_gb_gba", "true", "false");
         }
 
-        private void ConfigureGenesis(IniFile ini, string system)
+        private void ConfigureGenesis(IniFileJGenesis ini, string system)
         {
             if (system != "genesis" && system != "sega_cd" && system != "sega_32x")
                 return;
@@ -237,13 +237,13 @@ namespace EmulatorLauncher
 
             if (SystemConfig.getOptBoolean("md_3buttons"))
             {
-                ini.WriteValue("inputs", "genesis_p1_type", "\"" + "ThreeButton" + "\"");
-                ini.WriteValue("inputs", "genesis_p2_type", "\"" + "ThreeButton" + "\"");
+                ini.WriteValue("input.genesis", "p1_type", "\"" + "ThreeButton" + "\"");
+                ini.WriteValue("input.genesis", "p2_type", "\"" + "ThreeButton" + "\"");
             }
             else
             {
-                ini.WriteValue("inputs", "genesis_p1_type", "\"" + "SixButton" + "\"");
-                ini.WriteValue("inputs", "genesis_p2_type", "\"" + "SixButton" + "\"");
+                ini.WriteValue("input.genesis", "p1_type", "\"" + "SixButton" + "\"");
+                ini.WriteValue("input.genesis", "p2_type", "\"" + "SixButton" + "\"");
             }
 
             if (system == "sega_cd")
@@ -273,7 +273,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureNes(IniFile ini, string system)
+        private void ConfigureNes(IniFileJGenesis ini, string system)
         {
             if (system != "nes")
                 return;
@@ -316,9 +316,11 @@ namespace EmulatorLauncher
                 ini.WriteValue("nes.overscan", "left", "0");
                 ini.WriteValue("nes.overscan", "right", "0");
             }
+
+            SetupGuns(ini, system);
         }
 
-        private void ConfigureSMS(IniFile ini, string system, string esSystem)
+        private void ConfigureSMS(IniFileJGenesis ini, string system, string esSystem)
         {
             if (system != "smsgg")
                 return;
@@ -351,12 +353,11 @@ namespace EmulatorLauncher
                 ini.WriteValue("smsgg", "sms_model", esSystem == "gamegear" ? "\"" + "Sms1" + "\"" : "\"" + "Sms2" + "\"");
 
             BindBoolIniFeatureOn(ini, "smsgg", "fm_sound_unit_enabled", "jgen_sms_fmchip", "true", "false");
-            BindBoolIniFeature(ini, "smsgg", "overclock_z80", "jgen_overclock", "true", "false");
             BindBoolIniFeature(ini, "smsgg", "sms_crop_vertical_border", "jgen_sms_cropvert", "true", "false");
             BindBoolIniFeature(ini, "smsgg", "sms_crop_left_border", "jgen_sms_cropleft", "true", "false");
         }
 
-        private void ConfigureSnes(IniFile ini, string system)
+        private void ConfigureSnes(IniFileJGenesis ini, string system)
         {
             if (system != "snes")
                 return;
@@ -377,35 +378,43 @@ namespace EmulatorLauncher
             SetupGuns(ini, system);
         }
 
-        private void SetupGuns(IniFile ini, string jgenSystem)
+        private void SetupGuns(IniFileJGenesis ini, string jgenSystem)
         {
             if (!SystemConfig.getOptBoolean("use_guns"))
             {
-                ini.WriteValue("inputs", "snes_p2_type", "\"" + "Gamepad" + "\"");
-                ini.WriteValue("inputs", "nes_p2_type", "\"" + "Gamepad" + "\"");
+                ini.WriteValue("input.snes", "p2_type", "\"" + "Gamepad" + "\"");
+                ini.WriteValue("input.nes", "p2_type", "\"" + "Gamepad" + "\"");
                 return;
             }
 
             if (jgenSystem == "snes")
             {
-                ini.WriteValue("inputs", "snes_p2_type", "\"" + "SuperScope" + "\"");
+                ini.DeleteSection("input.snes.mapping_1.super_scope");
+                ini.WriteValue("[[input.snes.mapping_2.super_scope]]", "", null);
 
-                ini.WriteValue("inputs.snes_keyboard.super_scope", "fire", "\"" + "MouseLeft" + "\"");
-                ini.WriteValue("inputs.snes_keyboard.super_scope", "cursor", "\"" + "MouseRight" + "\"");
-                ini.WriteValue("inputs.snes_keyboard.super_scope", "pause", "\"" + "MouseMiddle" + "\"");
+                ini.WriteValue("input.snes", "p2_type", "\"" + "SuperScope" + "\"");
 
-                ini.WriteValue("inputs.snes_super_scope", "fire", "\"" + "MouseLeft" + "\"");
-                ini.WriteValue("inputs.snes_super_scope", "cursor", "\"" + "MouseRight" + "\"");
-                ini.WriteValue("inputs.snes_super_scope", "pause", "\"" + "MouseMiddle" + "\"");
+                ini.WriteValue("[[input.snes.mapping_1.super_scope.fire]]", "type", "\"" + "Mouse" + "\"");
+                ini.WriteValue("[[input.snes.mapping_1.super_scope.fire]]", "button", "\"" + "Left" + "\"");
+                ini.WriteValue("[[input.snes.mapping_1.super_scope.cursor]]", "type", "\"" + "Mouse" + "\"");
+                ini.WriteValue("[[input.snes.mapping_1.super_scope.cursor]]", "button", "\"" + "Right" + "\"");
+                ini.WriteValue("[[input.snes.mapping_1.super_scope.pause]]", "type", "\"" + "Mouse" + "\"");
+                ini.WriteValue("[[input.snes.mapping_1.super_scope.pause]]", "button", "\"" + "Middle" + "\"");
                 return;
             }
 
             if (jgenSystem == "nes")
             {
-                ini.WriteValue("inputs", "nes_p2_type", "\"" + "Zapper" + "\"");
+                ini.DeleteSection("input.nes.mapping_1.zapper");
+                ini.WriteValue("[[input.nes.mapping_2.zapper]]", "", null);
 
-                ini.WriteValue("inputs.nes_zapper", "fire", "\"" + "MouseLeft" + "\"");
-                ini.WriteValue("inputs.nes_zapper", "force_offscreen", "\"" + "MouseRight" + "\"");
+                ini.WriteValue("input.nes", "p2_type", "\"" + "Zapper" + "\"");
+
+                ini.WriteValue("[[input.nes.mapping_1.zapper.fire]]", "type", "\"" + "Mouse" + "\"");
+                ini.WriteValue("[[input.nes.mapping_1.zapper.fire]]", "button", "\"" + "Left" + "\"");
+                ini.WriteValue("[[input.nes.mapping_1.zapper.force_offscreen]]", "type", "\"" + "Mouse" + "\"");
+                ini.WriteValue("[[input.nes.mapping_1.zapper.force_offscreen]]", "button", "\"" + "Right" + "\"");
+                return;
             }
         }
 

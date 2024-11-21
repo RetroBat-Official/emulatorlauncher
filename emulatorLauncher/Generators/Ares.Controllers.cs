@@ -194,7 +194,17 @@ namespace EmulatorLauncher
                             if (mdGamepad.Mapping != null)
                             {
                                 foreach (var button in mdGamepad.Mapping)
-                                    vpad[button.Key] = padId + button.Value + ";;";
+                                {
+                                    if (button.Value.Contains("_"))
+                                    {
+                                        var buttons = button.Value.Split('_');
+                                        string button1 = buttons[0];
+                                        string button2 = buttons[1];
+                                        vpad[button.Key] = padId + button1 + ";" + padId + button2 + ";";
+                                    }
+                                    else
+                                        vpad[button.Key] = padId + button.Value + ";;";
+                                }
 
                                 if (mdGamepad.Driver != null)
                                     input["Driver"] = mdGamepad.Driver;
