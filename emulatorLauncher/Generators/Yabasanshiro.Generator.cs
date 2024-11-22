@@ -136,6 +136,8 @@ namespace EmulatorLauncher
 
                     CreateControllerConfiguration(ini);
                     //ConfigureGun(path, ini);
+
+                    ini.Save();
                 }
             }
             catch { }
