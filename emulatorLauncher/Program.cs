@@ -134,7 +134,8 @@ namespace EmulatorLauncher
             { "jgenesis", () => new JgenesisGenerator() },
             { "singe2", () => new Singe2Generator() },
             { "capriceforever", () => new CapriceForeverGenerator() },
-            { "shadps4", () => new ShadPS4Generator() }
+            { "shadps4", () => new ShadPS4Generator() },
+            { "yabasanshiro", () => new YabasanshiroGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }
