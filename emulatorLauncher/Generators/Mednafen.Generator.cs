@@ -97,6 +97,8 @@ namespace EmulatorLauncher
             }
 
             // Shader & Bezel
+            if (!fullscreen)
+                SystemConfig["bezel"] = "none";
             var bezels = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             var platform = ReshadeManager.GetPlatformFromFile(exe);
 
