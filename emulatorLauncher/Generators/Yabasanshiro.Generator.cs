@@ -15,8 +15,9 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = false;
         }
 
-        private bool _startBios;
         private string _multitap;
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -28,7 +29,11 @@ namespace EmulatorLauncher
                 return null;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-            _startBios = SystemConfig.getOptBoolean("saturn_startbios");
+            bool startBios = SystemConfig.getOptBoolean("saturn_startbios");
+
+            if (fullscreen)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            _resolution = resolution;
 
             var commandArray = new List<string>();
 
@@ -68,7 +73,7 @@ namespace EmulatorLauncher
 
             commandArray.Add("-a");                 // autostart
 
-            if (!_startBios)
+            if (!startBios)
             {
                 commandArray.Add("-i");
                 commandArray.Add("\"" + rom + "\"");
@@ -141,6 +146,23 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            bezel?.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
         }
 
         /*private void ConfigureGun(string path, IniFile ini)
