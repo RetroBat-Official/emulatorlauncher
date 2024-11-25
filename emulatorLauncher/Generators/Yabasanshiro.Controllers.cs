@@ -4,6 +4,9 @@ using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using System.Globalization;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common;
+using System.IO;
 
 namespace EmulatorLauncher
 {
@@ -78,23 +81,87 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            string port = GetControllerPort(playerindex);
+            string controllerId = GetControllerId(playerindex);
+            string cType = "2";
+
+            // Special mapping for saturn-like controllers in json file
+            string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
+            bool needSatActivationSwitch = false;
+            bool sat_pad = Program.SystemConfig["saturn_pad_yaba"] == "1" || Program.SystemConfig["saturn_pad_yaba"] == "2";
+
+            string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+            if (File.Exists(saturnjson))
+            {
+                try
+                {
+                    var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
+
+                    if (saturnControllers != null)
+                    {
+                        MegadriveController saturnGamepad = MegadriveController.GetMDController("yabasanshiro", guid, saturnControllers);
+
+                        if (saturnGamepad != null)
+                        {
+                            if (saturnGamepad.ControllerInfo != null)
+                            {
+                                if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needSatActivationSwitch && !sat_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific Saturn mapping needs to be activated for this controller.");
+                                    goto BypassSATControllers;
+                                }
+                            }
+
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+
+                            if (saturnGamepad.Mapping != null)
+                            {
+                                string input = saturnGamepad.Mapping["buttons"];
+                                if (Program.SystemConfig["saturn_pad_yaba"] == "2" && saturnGamepad.Mapping["buttons_anal"] != null)
+                                    input = saturnGamepad.Mapping["buttons_anal"];
+
+                                // write mapping here
+                                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", cType);
+                                
+                                foreach (var button in saturnGamepad.Mapping)
+                                    ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\" + button.Key, button.Value);
+
+                                SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+
+                                return;
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[INFO] Missing mapping for Saturn Gamepad, falling back to standard mapping.");
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                }
+                catch { }
+            }
+
+            BypassSATControllers:
+
+            bool isXInput = ctrl.IsXInputDevice;
+
             int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
 
             string padlayout = "lr_yz";
             if (SystemConfig.isOptSet("yaba_padlayout") && !string.IsNullOrEmpty(SystemConfig["yaba_padlayout"]))
                 padlayout = SystemConfig["yaba_padlayout"];
 
-            string port = GetControllerPort(playerindex);
-            string controllerId = GetControllerId(playerindex);
-            string cType = "2";
-
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", cType);
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\0", GetInputKeyName(ctrl, InputKey.up, index));
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\1", GetInputKeyName(ctrl, InputKey.right, index));
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\2", GetInputKeyName(ctrl, InputKey.down, index));
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\3", GetInputKeyName(ctrl, InputKey.left, index));
-            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\4", GetInputKeyName(ctrl, InputKey.r2, index));
-            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\5", GetInputKeyName(ctrl, InputKey.l2, index));
+            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\4", GetInputKeyName(ctrl, InputKey.r2, index, true));
+            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\5", GetInputKeyName(ctrl, InputKey.l2, index, true));
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\6", GetInputKeyName(ctrl, InputKey.start, index));
 
             if (padlayout == "lr_xz")
@@ -293,7 +360,7 @@ namespace EmulatorLauncher
             { 12, "6" },
         };
 
-        private static string GetInputKeyName(Controller c, InputKey key, int index)
+        private static string GetInputKeyName(Controller c, InputKey key, int index, bool trigger = false)
         {
             Int64 pid;
             string ret = "";
@@ -312,11 +379,17 @@ namespace EmulatorLauncher
                 {
                     pid = input.Id;
 
-                    if (input.Value > 0)
-                        ret = ((index << 18) + 0x110000 + pid).ToString();
+                    if (trigger)
+                    {
+                        ret = ((index << 18) + 32768 + pid).ToString();
+                    }
                     else
-                        ret = ((index << 18) + 0x100000 + pid).ToString();
-                    
+                    {
+                        if (input.Value > 0)
+                            ret = ((index << 18) + 0x110000 + pid).ToString();
+                        else
+                            ret = ((index << 18) + 0x100000 + pid).ToString();
+                    }
                     return ret;
                 }
 
