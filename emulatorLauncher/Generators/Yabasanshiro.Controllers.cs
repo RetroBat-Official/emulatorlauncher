@@ -72,6 +72,8 @@ namespace EmulatorLauncher
         }
 
 
+        private static List<string> digitalKeys = new List<string> { "0", "1", "2", "3" };
+        private static List<string> analKeys = new List<string> { "anal_0", "anal_1", "anal_2", "anal_3" };
         private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerindex)
         {
             if (ctrl == null)
@@ -84,6 +86,7 @@ namespace EmulatorLauncher
             string port = GetControllerPort(playerindex);
             string controllerId = GetControllerId(playerindex);
             string cType = "2";
+            int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
 
             // Special mapping for saturn-like controllers in json file
             string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
@@ -119,15 +122,30 @@ namespace EmulatorLauncher
 
                             if (saturnGamepad.Mapping != null)
                             {
-                                string input = saturnGamepad.Mapping["buttons"];
-                                if (Program.SystemConfig["saturn_pad_yaba"] == "2" && saturnGamepad.Mapping["buttons_anal"] != null)
-                                    input = saturnGamepad.Mapping["buttons_anal"];
+                                bool inputAnal = Program.SystemConfig["saturn_pad_yaba"] == "2";
 
                                 // write mapping here
                                 ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", cType);
-                                
+
                                 foreach (var button in saturnGamepad.Mapping)
-                                    ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\" + button.Key, button.Value);
+                                {
+                                    if (inputAnal && digitalKeys.Contains(button.Key))
+                                        continue;
+                                    else if (!inputAnal && analKeys.Contains(button.Key))
+                                        continue;
+
+                                    long.TryParse(button.Value, out long code);
+
+                                    string key = button.Key;
+                                    if (button.Key.StartsWith("anal_"))
+                                        key = button.Key.Substring(5, 1);
+
+                                    if (code >= 0)
+                                    {
+                                        code = (index << 18) + code;
+                                        ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\" + key, code.ToString());
+                                    }
+                                }
 
                                 SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
 
@@ -149,7 +167,7 @@ namespace EmulatorLauncher
 
             bool isXInput = ctrl.IsXInputDevice;
 
-            int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
+            
 
             string padlayout = "lr_yz";
             if (SystemConfig.isOptSet("yaba_padlayout") && !string.IsNullOrEmpty(SystemConfig["yaba_padlayout"]))
