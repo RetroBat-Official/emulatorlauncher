@@ -62,17 +62,24 @@ namespace EmulatorLauncher
 
             var commandArray = new List<string>
             {
-                "\"" + rom + "\""
+                "\"" + rom + "\"",
+                "--no-gui"
             };
-            
+
             if (fullscreen)
-            {
-                commandArray.Add("--no-gui");
                 commandArray.Add("--fullscreen");
+
+            string configFilePath = Path.Combine(path, "config.yml");
+
+            bool useCustomConfig = SystemConfig.getOptBoolean("rpcs3_custom_config");
+            if (!useCustomConfig)
+            {
+                commandArray.Add("--config");
+                commandArray.Add("\"" + configFilePath + "\"");
             }
 
             string args = string.Join(" ", commandArray);
-            
+
             // If game was uncompressed, say we are going to launch, so the deletion will not be silent
             ValidateUncompressedGame();
             
