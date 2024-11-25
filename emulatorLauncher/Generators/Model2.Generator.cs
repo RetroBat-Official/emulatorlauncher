@@ -80,11 +80,11 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            if (fullscreen)
-            {
-                if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution, emulator))
-                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-            }
+            if (!fullscreen)
+                SystemConfig["bezel"] = "none";
+
+            if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x86, system, rom, path, resolution, emulator))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _dinput = false;
             if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
@@ -111,6 +111,10 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
+                    // rompath
+                    string rompath = "..\\..\\roms\\model2";
+                    ini.WriteValue("RomDirs", "Dir1", rompath);
+
                     ini.WriteValue("Renderer", "FullMode", "4");
 
                     if (fullscreen)
