@@ -21,6 +21,7 @@ namespace EmulatorLauncher
                 return;
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for RPCS3");
+            DefineActiveControllerProfile(path);
 
             SimpleLogger.Instance.Info("[GENERATOR] Configuring controllers.");
 
@@ -31,7 +32,8 @@ namespace EmulatorLauncher
                 Directory.CreateDirectory(folder);
 
             // Check if config file already exists or not and create it if not
-            string controllerSettings = Path.Combine(folder, "Default.yml");
+            string controllerSettings = Path.Combine(folder, "Retrobat.yml");
+            
 
             var yml = YmlFile.Load(controllerSettings);
 
@@ -880,6 +882,21 @@ namespace EmulatorLauncher
                 case 0x40000105: return "Media Play";
             }
             return "\"\"";
+        }
+
+        private void DefineActiveControllerProfile(string path)
+        {
+            string activeConfigFile = Path.Combine(path, "config", "input_configs", "active_input_configurations.yml");
+
+            if (!File.Exists(activeConfigFile))
+                return;
+
+            var yml = YmlFile.Load(activeConfigFile);
+            var activeConfig = yml.GetOrCreateContainer("Active Configurations");
+            
+            activeConfig["global"] = "Retrobat";
+
+            yml.Save(activeConfigFile);
         }
     }
 }

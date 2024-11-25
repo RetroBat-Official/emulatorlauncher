@@ -462,6 +462,9 @@ namespace EmulatorLauncher
                             case "melonds":
                                 ret = "nds_melonds";
                                 break;
+                            case "noods":
+                                ret = "nds_noods";
+                                break;
                         }
                         break;
                     case "melonds":
