@@ -160,6 +160,7 @@ namespace EmulatorLauncher.Libretro
                 { "nekop2", "Neko Project II" },
                 { "neocd", "NeoCD" },
                 { "nestopia", "Nestopia" },
+                { "noods", "Noods" },
                 { "np2kai", "Neko Project II Kai" },
                 { "nxengine", "NXEngine" },
                 { "o2em", "O2EM" },
@@ -362,6 +363,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
+            ConfigureNoods(retroarchConfig, coreSettings, system, core);
             ConfigureNp2kai(retroarchConfig, coreSettings, system, core);
             ConfigureO2em(retroarchConfig, coreSettings, system, core);
             ConfigureOpenLara(retroarchConfig, coreSettings, system, core);
@@ -3268,6 +3270,27 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["nestopia_zapper_device"] = "lightgun";
             SetupLightGuns(retroarchConfig, "262", core, 2);
+        }
+
+        private void ConfigureNoods(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "noods")
+                return;
+
+            BindFeature(coreSettings, "noods_screenArrangement", "noods_screenArrangement", "Automatic");
+            BindFeature(coreSettings, "noods_screenSizing", "noods_screenSizing", "Even");
+            BindFeature(coreSettings, "noods_screenRotation", "noods_screenRotation", "Normal");
+            BindFeature(coreSettings, "noods_screenGap", "noods_screenGap", "None");
+            BindBoolFeature(coreSettings, "noods_fpsLimiter", "noods_fpsLimiter", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "noods_highRes3D", "noods_highRes3D", "enabled", "disabled");
+            BindFeature(coreSettings, "noods_screenFilter", "noods_screenFilter", "Nearest");
+            BindFeature(coreSettings, "noods_dsiMode", "noods_dsiMode", "disabled");
+            BindBoolFeature(coreSettings, "noods_directBoot", "noods_directBoot", "disabled", "enabled");
+            BindBoolFeatureOn(coreSettings, "noods_touchCursor", "noods_touchCursor", "enabled", "disabled");
+            BindFeature(coreSettings, "noods_touchMode", "noods_touchMode", "Auto");
+            BindFeature(coreSettings, "noods_micInputMode", "noods_micInputMode", "Silence");
+            BindFeature(coreSettings, "noods_micButtonMode", "noods_micButtonMode", "Toggle");
+            BindFeature(coreSettings, "noods_swapScreenMode", "noods_swapScreenMode", "Toggle");
         }
 
         private void ConfigureNp2kai(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

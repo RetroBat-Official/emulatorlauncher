@@ -453,7 +453,15 @@ namespace EmulatorLauncher
                                 else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && (Program.SystemConfig["melonds_screen_layout"] == "Top Only" || Program.SystemConfig["melonds_screen_layout"] == "Bottom Only"))
                                     return "nds_single_screen";
                                 break;
-                        }
+                            case "noods":
+                                if (Program.SystemConfig.isOptSet("noods_screenArrangement") && Program.SystemConfig["noods_screenArrangement"] == "Horizontal")
+                                    return "nds_side_by_side";
+                                else if (Program.SystemConfig.isOptSet("noods_screenArrangement") && Program.SystemConfig["noods_screenArrangement"] == "Vertical")
+                                    return "nds";
+                                else if (Program.SystemConfig.isOptSet("noods_screenArrangement") && Program.SystemConfig["noods_screenArrangement"] == "Single Screen")
+                                    return "nds_single_screen";
+                                break;
+                            }
                         break;
                     }
                 }
