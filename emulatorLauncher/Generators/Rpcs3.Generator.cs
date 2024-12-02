@@ -5,6 +5,8 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher
 {
@@ -43,7 +45,7 @@ namespace EmulatorLauncher
             else if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
-                string[] lines = File.ReadAllLines(romPath);
+                string[] lines = File.ReadAllLines(rom);
 
                 if (lines == null || lines.Length == 0)
                     throw new ApplicationException("Unable to find any path in the m3u.");
@@ -60,6 +62,20 @@ namespace EmulatorLauncher
                     rom = Path.Combine(romPath, rom.Substring(2));
                 else if (rom.StartsWith("\\") || rom.StartsWith("/"))
                     rom = Path.Combine(savesPath, rom.Substring(1));
+                else if (rom.StartsWith("GAMEID"))
+                {
+                    int colonIndex = rom.IndexOf(':');
+                    if (colonIndex != -1)
+                    {
+                        string gameID = rom.Substring(colonIndex + 1);
+                        rom = "%RPCS3_GAMEID%:" + gameID;
+                    }
+                    else
+                    {
+                        string gameID = rom.Substring(6).Trim();
+                        rom = "%RPCS3_GAMEID%:" + gameID;
+                    }
+                }
             }
 
             // Fullscreen
