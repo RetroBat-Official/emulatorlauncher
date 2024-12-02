@@ -40,12 +40,14 @@ namespace EmulatorLauncher
 
             if (system == "wii")
             {
+                // Guns
                 if (Program.SystemConfig.getOptBoolean("use_guns"))
                 {
                     GenerateControllerConfig_wiilightgun(path, "WiimoteNew.ini", "Wiimote");
                     return true;
                 }
 
+                // Emulated wiimotes
                 else if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"))
                 {
                     GenerateControllerConfig_emulatedwiimotes(path);
@@ -53,16 +55,20 @@ namespace EmulatorLauncher
                     return true;
                 }
 
+                // use real wiimote as emulated
                 else if (Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] != "0" && Program.SystemConfig["emulatedwiimotes"] != "1")
                 {
                     GenerateControllerConfig_realEmulatedwiimotes(path, "WiimoteNew.ini", "Wiimote");
                     return true;
                 }
+
+                // Real wiimotes (default)
                 else
                 {
                     GenerateControllerConfig_realwiimotes(path, "WiimoteNew.ini", "Wiimote");
                 }
 
+                // Additionnaly : configure gamecube pad (except if wii_gamecube is forced to OFF)
                 if (Program.SystemConfig.isOptSet("wii_gamecube") && Program.SystemConfig["wii_gamecube"] == "0")
                     RemoveControllerConfig_gamecube(path, "Dolphin.ini");
 

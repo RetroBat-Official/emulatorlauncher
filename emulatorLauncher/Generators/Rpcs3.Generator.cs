@@ -5,6 +5,8 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.EmulationStation;
+using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher
 {
@@ -43,7 +45,12 @@ namespace EmulatorLauncher
             else if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
-                rom = File.ReadAllText(rom);
+                string[] lines = File.ReadAllLines(rom);
+
+                if (lines == null || lines.Length == 0)
+                    throw new ApplicationException("Unable to find any path in the m3u.");
+
+                rom = lines[0];
 
                 if (rom.StartsWith("EMULATORPATH"))
                     rom = Path.Combine(path, rom.Substring(13));
@@ -55,12 +62,26 @@ namespace EmulatorLauncher
                     rom = Path.Combine(romPath, rom.Substring(2));
                 else if (rom.StartsWith("\\") || rom.StartsWith("/"))
                     rom = Path.Combine(savesPath, rom.Substring(1));
+                else if (rom.StartsWith("GAMEID"))
+                {
+                    int colonIndex = rom.IndexOf(':');
+                    if (colonIndex != -1)
+                    {
+                        string gameID = rom.Substring(colonIndex + 1);
+                        rom = "%RPCS3_GAMEID%:" + gameID;
+                    }
+                    else
+                    {
+                        string gameID = rom.Substring(6).Trim();
+                        rom = "%RPCS3_GAMEID%:" + gameID;
+                    }
+                }
             }
 
             // Fullscreen
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            var commandArray = new List<string>
+            List<string> commandArray = new List<string>
             {
                 "\"" + rom + "\"",
                 "--no-gui"
@@ -139,13 +160,13 @@ namespace EmulatorLauncher
 
         public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
         {
-            foreach (var px in Process.GetProcessesByName("rpcs3"))
+            foreach (Process px in Process.GetProcessesByName("rpcs3"))
             {
                 try { px.Kill(); }
                 catch { }
             }
 
-            var process = Process.Start(path);
+            Process process = Process.Start(path);
             process.WaitForExit();
 
             // In some cases, the process seems to be launched again by the main one
@@ -164,7 +185,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[GENERATOR] Writing to GuiConfigs\\CurrentSettings.ini file.");
 
             string guiSettings = Path.Combine(path, "GuiConfigs", "CurrentSettings.ini");
-            using (var ini = new IniFile(guiSettings))
+            using (IniFile ini = new IniFile(guiSettings))
             {
                 ini.WriteValue("main_window", "confirmationBoxExitGame", "false");
                 ini.WriteValue("main_window", "infoBoxEnabledInstallPUP", "false");
@@ -191,7 +212,7 @@ namespace EmulatorLauncher
         {
             SimpleLogger.Instance.Info("[GENERATOR] Writing to vfs.yml file.");
 
-            var yml = YmlFile.Load(Path.Combine(path, "config", "vfs.yml"));
+            YmlFile yml = YmlFile.Load(Path.Combine(path, "config", "vfs.yml"));
 
             string hdd0Path = Path.Combine(savesPath, "dev_hdd0");
             if (!Directory.Exists(hdd0Path))
@@ -214,9 +235,9 @@ namespace EmulatorLauncher
         {
             SimpleLogger.Instance.Info("[GENERATOR] Writing to config.yml file.");
 
-            var yml = YmlFile.Load(Path.Combine(path, "config.yml"));
+            YmlFile yml = YmlFile.Load(Path.Combine(path, "config.yml"));
             // Initialize IO settings
-            var io = yml.GetOrCreateContainer("Input/Output");
+            YmlContainer io = yml.GetOrCreateContainer("Input/Output");
             BindFeature(io, "Keyboard", "rpcs3_keyboard", "\"Null\"");
             BindFeature(io, "Mouse", "rpcs3_mouse", "\"Null\"");
             BindFeature(io, "Move", "rpcs3_move", "\"Null\"");
@@ -236,7 +257,7 @@ namespace EmulatorLauncher
             }
 
             // Handle Core part of yml file
-            var core = yml.GetOrCreateContainer("Core");
+            YmlContainer core = yml.GetOrCreateContainer("Core");
             BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)");
             BindBoolFeatureOn(core, "LLVM Precompilation", "lvmprecomp", "true", "false");
             BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)");
@@ -249,7 +270,7 @@ namespace EmulatorLauncher
             BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
 
             // Handle Video part of yml file
-            var video = yml.GetOrCreateContainer("Video");
+            YmlContainer video = yml.GetOrCreateContainer("Video");
             BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
             video["Resolution"] = "1280x720";
             BindFeatureSlider(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
@@ -294,12 +315,12 @@ namespace EmulatorLauncher
             }
 
             // Handle Vulkan part of yml file
-            var vulkan = video.GetOrCreateContainer("Vulkan");
+            YmlContainer vulkan = video.GetOrCreateContainer("Vulkan");
             BindBoolFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "true", "false");
             BindFeature(vulkan, "Exclusive Fullscreen Mode", "rpcs3_fullscreen_mode", "Automatic");
 
             // Handle Performance Overlay part of yml file
-            var performance = video.GetOrCreateContainer("Performance Overlay");
+            YmlContainer performance = video.GetOrCreateContainer("Performance Overlay");
             if (SystemConfig.isOptSet("performance_overlay") && (SystemConfig["performance_overlay"] == "detailed"))
             {
                 performance["Enabled"] = "true";
@@ -320,7 +341,7 @@ namespace EmulatorLauncher
             }
 
             // Handle Audio part of yml file
-            var audio = yml.GetOrCreateContainer("Audio");
+            YmlContainer audio = yml.GetOrCreateContainer("Audio");
             BindFeature(audio, "Renderer", "audiobackend", "Cubeb");
             BindFeature(audio, "Audio Format", "audiochannels", "Stereo");
             BindBoolFeatureOn(audio, "Enable Buffering", "audio_buffering", "true", "false");
@@ -346,12 +367,12 @@ namespace EmulatorLauncher
             }
 
             // Handle System part of yml file
-            var system_region = yml.GetOrCreateContainer("System");
+            YmlContainer system_region = yml.GetOrCreateContainer("System");
             BindFeature(system_region, "License Area", "ps3_region", "SCEE");
             BindFeature(system_region, "Language", "ps3_language", GetDefaultPS3Language());
 
             // Handle Miscellaneous part of yml file
-            var misc = yml.GetOrCreateContainer("Miscellaneous");
+            YmlContainer misc = yml.GetOrCreateContainer("Miscellaneous");
             misc["Start games in fullscreen mode"] = fullscreen ? "true" : "false";
             BindBoolFeatureOn(misc, "Show trophy popups", "show_trophy", "true", "false");
             misc["Automatically start games after boot"] = "true";
