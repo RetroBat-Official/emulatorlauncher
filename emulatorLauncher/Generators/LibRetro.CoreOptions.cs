@@ -116,6 +116,7 @@ namespace EmulatorLauncher.Libretro
                 { "kronos", "Kronos" },
                 { "lowresnx", "LowRes NX" },
                 { "lutro", "Lutro" },
+                { "m2000", "M2000" },
                 { "mame2000", "MAME 2000" },
                 { "mame2003", "MAME 2003 (0.78)" },
                 { "mame2003_midway", "MAME 2003 Midway" },
@@ -340,6 +341,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureHatari(retroarchConfig, coreSettings, system, core);
             ConfigureHatariB(retroarchConfig, coreSettings, system, core);
             ConfigureKronos(retroarchConfig, coreSettings, system, core);
+            ConfigureM2000(retroarchConfig, coreSettings, system, core);
             ConfigureMame(retroarchConfig, coreSettings, system, core);
             ConfigureMame2000(retroarchConfig, coreSettings, system, core);
             ConfigureMame2003(retroarchConfig, coreSettings, system, core);
@@ -2113,6 +2115,14 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["kronos_multitap_port1"] = "disabled";
                 coreSettings["kronos_multitap_port2"] = "disabled";
             }
+        }
+
+        private void ConfigureM2000(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "m2000")
+                return;
+
+            BindFeature(coreSettings, "m2000_keyboard_mapping", "m2000_keyboard_mapping", "symbolic");
         }
 
         private void ConfigureMame(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
