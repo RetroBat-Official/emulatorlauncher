@@ -412,12 +412,13 @@ namespace EmulatorLauncher
                 {
                     case "melonds":
                         if (Program.SystemConfig.isOptSet("melonds_screen_sizing") && (Program.SystemConfig["melonds_screen_sizing"] == "4" || Program.SystemConfig["melonds_screen_sizing"] == "5"))
-                            return "nds_single_screen";
+                            return "nds_melonds_single_screen";
                         else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && Program.SystemConfig["melonds_screen_layout"] == "2")
-                            return "nds_side_by_side";
+                            return "nds_melonds_side_by_side";
                         else if (Program.SystemConfig.isOptSet("melonds_screen_layout") && Program.SystemConfig["melonds_screen_layout"] == "3")
-                            return "nds_hybrid";
-                        break;
+                            return "nds_melonds_hybrid";
+                        else
+                            return "nds_melonds";
                     case "bizhawk":
                         if (Program.SystemConfig.isOptSet("bizhawk_melonds_layout") && Program.SystemConfig["bizhawk_melonds_layout"] == "2")
                             return "nds_side_by_side";

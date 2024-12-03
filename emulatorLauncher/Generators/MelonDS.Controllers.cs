@@ -3,6 +3,7 @@ using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
@@ -28,6 +29,8 @@ namespace EmulatorLauncher
                 WriteKeyboardMapping(ini, ctrl);
             else
                 WriteJoystickMapping(ini, ctrl);
+
+            WriteKeyboardHotkeys(ini);
         }
 
         /// <summary>
@@ -41,37 +44,40 @@ namespace EmulatorLauncher
             if (ctrl == null || ctrl.Config == null)
                 return;
 
+            foreach (string x in hotkeys)
+                ini.WriteValue("Instance0.Joystick", x, "-1");
+
             int index = (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index);
 
-            ini.WriteValue("", "JoystickID", index.ToString());
-            ini.WriteValue("", "Joy_A", GetInputKeyName(ctrl, InputKey.b));
-            ini.WriteValue("", "Joy_B", GetInputKeyName(ctrl, InputKey.a));
-            ini.WriteValue("", "Joy_Select", GetInputKeyName(ctrl, InputKey.select));
-            ini.WriteValue("", "Joy_Start", GetInputKeyName(ctrl, InputKey.start));
+            ini.WriteValue("Instance0", "JoystickID", index.ToString());
+            ini.WriteValue("Instance0.Joystick", "A", GetInputKeyName(ctrl, InputKey.b));
+            ini.WriteValue("Instance0.Joystick", "B", GetInputKeyName(ctrl, InputKey.a));
+            ini.WriteValue("Instance0.Joystick", "Select", GetInputKeyName(ctrl, InputKey.select));
+            ini.WriteValue("Instance0.Joystick", "Start", GetInputKeyName(ctrl, InputKey.start));
             
             if (SystemConfig.isOptSet("melonds_leftstick") && SystemConfig.getOptBoolean("melonds_leftstick"))
             {
-                ini.WriteValue("", "Joy_Right", GetInputKeyName(ctrl, InputKey.leftanalogright));
-                ini.WriteValue("", "Joy_Left", GetInputKeyName(ctrl, InputKey.leftanalogleft));
-                ini.WriteValue("", "Joy_Up", GetInputKeyName(ctrl, InputKey.leftanalogup));
-                ini.WriteValue("", "Joy_Down", GetInputKeyName(ctrl, InputKey.leftanalogdown));
+                ini.WriteValue("Instance0.Joystick", "Right", GetInputKeyName(ctrl, InputKey.leftanalogright));
+                ini.WriteValue("Instance0.Joystick", "Left", GetInputKeyName(ctrl, InputKey.leftanalogleft));
+                ini.WriteValue("Instance0.Joystick", "Up", GetInputKeyName(ctrl, InputKey.leftanalogup));
+                ini.WriteValue("Instance0.Joystick", "Down", GetInputKeyName(ctrl, InputKey.leftanalogdown));
             }
             else
             {
-                ini.WriteValue("", "Joy_Right", GetInputKeyName(ctrl, InputKey.right));
-                ini.WriteValue("", "Joy_Left", GetInputKeyName(ctrl, InputKey.left));
-                ini.WriteValue("", "Joy_Up", GetInputKeyName(ctrl, InputKey.up));
-                ini.WriteValue("", "Joy_Down", GetInputKeyName(ctrl, InputKey.down));
+                ini.WriteValue("Instance0.Joystick", "Right", GetInputKeyName(ctrl, InputKey.right));
+                ini.WriteValue("Instance0.Joystick", "Left", GetInputKeyName(ctrl, InputKey.left));
+                ini.WriteValue("Instance0.Joystick", "Up", GetInputKeyName(ctrl, InputKey.up));
+                ini.WriteValue("Instance0.Joystick", "Down", GetInputKeyName(ctrl, InputKey.down));
             }
 
-            ini.WriteValue("", "Joy_R", GetInputKeyName(ctrl, InputKey.pagedown));
-            ini.WriteValue("", "Joy_L", GetInputKeyName(ctrl, InputKey.pageup));
-            ini.WriteValue("", "Joy_X", GetInputKeyName(ctrl, InputKey.x));
-            ini.WriteValue("", "Joy_Y", GetInputKeyName(ctrl, InputKey.y));
+            ini.WriteValue("Instance0.Joystick", "R", GetInputKeyName(ctrl, InputKey.pagedown));
+            ini.WriteValue("Instance0.Joystick", "L", GetInputKeyName(ctrl, InputKey.pageup));
+            ini.WriteValue("Instance0.Joystick", "X", GetInputKeyName(ctrl, InputKey.x));
+            ini.WriteValue("Instance0.Joystick", "Y", GetInputKeyName(ctrl, InputKey.y));
 
-            ini.WriteValue("", "HKJoy_Lid", GetInputKeyName(ctrl, InputKey.l3));
-            ini.WriteValue("", "HKJoy_Mic", GetInputKeyName(ctrl, InputKey.l2));
-            ini.WriteValue("", "HKJoy_SwapScreens", GetInputKeyName(ctrl, InputKey.r2));
+            ini.WriteValue("Instance0.Joystick", "HK_Lid", GetInputKeyName(ctrl, InputKey.l3));
+            ini.WriteValue("Instance0.Joystick", "HK_Mic", GetInputKeyName(ctrl, InputKey.l2));
+            ini.WriteValue("Instance0.Joystick", "HK_SwapScreens", GetInputKeyName(ctrl, InputKey.r2));
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
@@ -129,21 +135,51 @@ namespace EmulatorLauncher
             {
                 var a = keyboard[k];
                 if (a != null)
-                    ini.WriteValue("", v, SdlToQTCode(a.Id));
+                    ini.WriteValue("Instance0.Keyboard", v, SdlToQTCode(a.Id));
             };
 
-            WriteKeyboardMapping("Key_A", InputKey.b);
-            WriteKeyboardMapping("Key_B", InputKey.a);
-            WriteKeyboardMapping("Key_Select", InputKey.select);
-            WriteKeyboardMapping("Key_Start", InputKey.start);
-            WriteKeyboardMapping("Key_Right", InputKey.right);
-            WriteKeyboardMapping("Key_Left", InputKey.left);
-            WriteKeyboardMapping("Key_Up", InputKey.up);
-            WriteKeyboardMapping("Key_Down", InputKey.down);
-            WriteKeyboardMapping("Key_R", InputKey.pagedown);
-            WriteKeyboardMapping("Key_L", InputKey.pageup);
-            WriteKeyboardMapping("Key_X", InputKey.x);
-            WriteKeyboardMapping("Key_Y", InputKey.y);
+            WriteKeyboardMapping("A", InputKey.b);
+            WriteKeyboardMapping("B", InputKey.a);
+            WriteKeyboardMapping("Select", InputKey.select);
+            WriteKeyboardMapping("Start", InputKey.start);
+            WriteKeyboardMapping("Right", InputKey.right);
+            WriteKeyboardMapping("Left", InputKey.left);
+            WriteKeyboardMapping("Up", InputKey.up);
+            WriteKeyboardMapping("Down", InputKey.down);
+            WriteKeyboardMapping("R", InputKey.pagedown);
+            WriteKeyboardMapping("L", InputKey.pageup);
+            WriteKeyboardMapping("X", InputKey.x);
+            WriteKeyboardMapping("Y", InputKey.y);
+        }
+
+        private void WriteKeyboardHotkeys(IniFile ini)
+        {
+            foreach (string x in hotkeys)
+                ini.WriteValue("Instance0.Keyboard", x, "-1");
+
+            ini.WriteValue("Instance0.Keyboard", "HK_Pause", "16777273");
+
+            if (SystemConfig.isOptSet("fastforward_toggle") && SystemConfig.getOptBoolean("fastforward_toggle"))
+            {
+                ini.WriteValue("Instance0.Keyboard", "HK_FastForwardToggle", "16777275");
+                ini.WriteValue("Instance0.Keyboard", "HK_FastForward", "-1");
+            }
+            else
+            {
+                ini.WriteValue("Instance0.Keyboard", "HK_FastForward", "16777275");
+                ini.WriteValue("Instance0.Keyboard", "HK_FastForwardToggle", "-1");
+            }
+
+            if (SystemConfig.isOptSet("slowmo_toggle") && SystemConfig.getOptBoolean("slowmo_toggle"))
+            {
+                ini.WriteValue("Instance0.Keyboard", "HK_SlowMoToggle", "16777274");
+                ini.WriteValue("Instance0.Keyboard", "HK_SlowMo", "-1");
+            }
+            else
+            {
+                ini.WriteValue("Instance0.Keyboard", "HK_SlowMo", "16777274");
+                ini.WriteValue("Instance0.Keyboard", "HK_SlowMoToggle", "-1");
+            }
         }
 
         private static string SdlToQTCode(long sdlCode)
@@ -287,5 +323,27 @@ namespace EmulatorLauncher
             }
             return "-1";
         }
+
+        private static List<string> hotkeys = new List<string>
+        {
+            "HK_Lid",
+            "HK_FrameStep",
+            "HK_SolarSensorIncrease",
+            "HK_FullscreenToggle",
+            "HK_SlowMo",
+            "HK_SlowMoToggle",
+            "HK_Pause",
+            "HK_FastForwardToggle",
+            "HK_Mic",
+            "HK_FastForward",
+            "HK_FrameLimitToggle",
+            "HK_SwapScreens",
+            "HK_SwapScreenEmphasis",
+            "HK_Reset",
+            "HK_PowerButton",
+            "HK_VolumeDown",
+            "HK_VolumeUp",
+            "HK_SolarSensorDecrease"
+        };
     }
 }
