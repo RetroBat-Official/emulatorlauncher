@@ -6,7 +6,6 @@ using System.Xml.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.FileFormats;
-using System;
 
 namespace EmulatorLauncher
 {
@@ -20,6 +19,8 @@ namespace EmulatorLauncher
         private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
         private string _sdl2dll;
         private bool _cemu21;
+        private bool _gameProfileRename = false;
+        private string _gameProfilePath;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -74,6 +75,29 @@ namespace EmulatorLauncher
 
             //settings
             SetupConfiguration(path, rom, fullscreen);
+
+            // Try and rename gameprofiles folder to not mess with RetroBat
+            try
+            {
+                _gameProfilePath = Path.Combine(portablePath, "gameProfiles");
+                if (Directory.Exists(_gameProfilePath))
+                {
+                    try
+                    {
+                        Directory.Move(_gameProfilePath, _gameProfilePath + ".old");
+                        _gameProfileRename = true;
+                        SimpleLogger.Instance.Info("[GENERATOR] Renaming temporarely gameprofiles folder.");
+                    }
+                    catch 
+                    {
+                        SimpleLogger.Instance.Info("[GENERATOR] Impossible to rename gameprofiles folder, RetroBat options might not work.");
+                    }
+                }
+            } 
+            catch 
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] Impossible to rename gameprofiles folder, RetroBat options might not work.");
+            }
 
             //controller configuration
             CreateControllerConfiguration(path);
@@ -288,6 +312,35 @@ namespace EmulatorLauncher
             var paths = gamePaths.Elements("Entry").Select(e => e.Value).Where(e => !string.IsNullOrEmpty(e)).Select(e => Path.GetFullPath(e)).ToList();
             if (!paths.Contains(romPath))
                 gamePaths.Add(new XElement("Entry", romPath));
+        }
+
+        public override void Cleanup()
+        {
+            base.Cleanup();
+
+            try
+            {
+                if (_gameProfileRename)
+                {
+                    string oldPath = _gameProfilePath + ".old";
+                    if (Directory.Exists(_gameProfilePath))
+                    {
+                        try { Directory.Delete(_gameProfilePath, true); }
+                        catch { }
+                    }
+                    
+                    if (Directory.Exists(oldPath) && !Directory.Exists(_gameProfilePath))
+                    {
+                        try 
+                        { 
+                            Directory.Move(oldPath, _gameProfilePath);
+                            SimpleLogger.Instance.Info("[GENERATOR] Resetting gameprofiles folder.");
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch { }
         }
     }
 }
