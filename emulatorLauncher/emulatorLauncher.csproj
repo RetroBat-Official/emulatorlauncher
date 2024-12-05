@@ -404,6 +404,7 @@
     <Compile Include="Generators\Uae.Generator.cs" />
     <Compile Include="Generators\vita3k.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
+    <Compile Include="Generators\WinArcadia.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
     <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\Xm6pro.Generator.cs" />

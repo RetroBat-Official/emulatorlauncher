@@ -115,7 +115,8 @@ namespace EmulatorLauncher
             { new Installer("capriceforever", "capriceforever", "Caprice64.exe") },
             { new Installer("shadps4", "shadps4", "shadPS4.exe") },
             { new Installer("openjazz", "openjazz", "OpenJazz.exe") },
-            { new Installer("yabasanshiro", "yabasanshiro", "yabasanshiro.exe") }
+            { new Installer("yabasanshiro", "yabasanshiro", "yabasanshiro.exe") },
+            { new Installer("winarcadia", "winarcadia", "WinArcadia.exe") }
         };
 
         // Some emulators do not set correctly version in executable and require specific treatment !
