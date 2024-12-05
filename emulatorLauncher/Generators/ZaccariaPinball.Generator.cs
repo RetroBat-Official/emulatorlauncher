@@ -23,12 +23,12 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-
-            List<string> commandArray = new List<string>();
-
             string path = null;
             string exe = null;
             _corename = core;
+            _exename = "ZaccariaPinball";
+
+            List<string> commandArray = new List<string>();
 
             if (core == "steam")
             {
@@ -74,8 +74,7 @@ namespace EmulatorLauncher
                 if (!File.Exists(exe))
                     return null;
             }
-            _exename = "ZaccariaPinball";
-
+            
             commandArray.Add("-skipmenu");
 
             string table = "\"" + Path.GetFileNameWithoutExtension(rom) + "\"";

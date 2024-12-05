@@ -128,6 +128,7 @@ namespace EmulatorLauncher
             return "";
         }
 
+        #region dictionaries
         private static readonly Dictionary<string, string> esToDinput = new Dictionary<string, string>()
         {
             { "a", "a" },
@@ -163,5 +164,6 @@ namespace EmulatorLauncher
         };
 
         private static readonly List<string> triggerList = new List<string>() { "righttrigger", "lefttrigger" };
+        #endregion
     }
 }

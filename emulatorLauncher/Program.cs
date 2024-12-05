@@ -994,7 +994,6 @@ namespace EmulatorLauncher
             catch { }
         }
 
-
         public static void RegisterShellExtensions()
         {
             try

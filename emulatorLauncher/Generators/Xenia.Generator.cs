@@ -37,8 +37,10 @@ namespace EmulatorLauncher
 
             if (!File.Exists(exe))
                 return null;
-			
-			string romdir = Path.GetDirectoryName(rom);
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            string romdir = Path.GetDirectoryName(rom);
 			
 			if (Path.GetExtension(rom).ToLower() == ".m3u" || Path.GetExtension(rom).ToLower() == ".xbox360")
             {
@@ -47,8 +49,6 @@ namespace EmulatorLauncher
                 rom = Path.Combine(romdir, rom.Substring(1));
                 SimpleLogger.Instance.Info("[INFO] path to rom : " + (rom != null ? rom : "null"));
             }
-
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             SetupConfiguration(path);
 
@@ -67,41 +67,6 @@ namespace EmulatorLauncher
                 Arguments = args,
                 WorkingDirectory = path,
             };
-        }
-
-        private string GetXboxLangFromEnvironment()
-        {
-            var availableLanguages = new Dictionary<string, string>()
-            {
-                { "en", "1" },
-                { "jp", "2" },
-                { "ja", "2" },
-                { "de", "3" },
-                { "fr", "4" },
-                { "es", "5" },
-                { "it", "6" },
-                { "ko", "7" },
-                { "zh", "8" },
-                { "pt", "9" },
-                { "pl", "11" },
-                { "ru", "12" },
-                { "sv", "13" },
-                { "tr", "14" },
-                { "nl", "16" }
-            };
-
-            // Special case for Taiwanese which is zh_TW
-            if (SystemConfig["Language"] == "zh_TW")
-                return "17";
-
-            string lang = GetCurrentLanguage();
-            if (!string.IsNullOrEmpty(lang))
-            {
-                if (availableLanguages.TryGetValue(lang, out string ret))
-                    return ret;
-            }
-
-            return "1";
         }
 
         //Setup toml configuration file (using AppendValue because config file is very sensitive to values that do not exist and both emulators are still under heavy development)
@@ -320,5 +285,40 @@ namespace EmulatorLauncher
             }
             catch { }
          }
+
+        private string GetXboxLangFromEnvironment()
+        {
+            var availableLanguages = new Dictionary<string, string>()
+            {
+                { "en", "1" },
+                { "jp", "2" },
+                { "ja", "2" },
+                { "de", "3" },
+                { "fr", "4" },
+                { "es", "5" },
+                { "it", "6" },
+                { "ko", "7" },
+                { "zh", "8" },
+                { "pt", "9" },
+                { "pl", "11" },
+                { "ru", "12" },
+                { "sv", "13" },
+                { "tr", "14" },
+                { "nl", "16" }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "17";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                if (availableLanguages.TryGetValue(lang, out string ret))
+                    return ret;
+            }
+
+            return "1";
+        }
     }
 }

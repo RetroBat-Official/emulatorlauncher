@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using System.Linq;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -17,11 +18,18 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("zinc");
 
             string exe = Path.Combine(path, "ZiNc.exe");
             if (!File.Exists(exe))
                 return null;
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            SetupConfiguration(path, rom);
+            SetupRendererCfg(path, rom, resolution, fullscreen);
 
             List<string> commandArray = new List<string>();
 
@@ -35,12 +43,7 @@ namespace EmulatorLauncher
             if (romNumber != 0)
                 commandArray.Add(romNumber.ToString());
             else
-                return null;
-
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-
-            SetupConfiguration(path, rom);
-            SetupRendererCfg(path, rom, resolution, fullscreen);
+                throw new ApplicationException("Game name not known, read wiki to see full list of compatible games.");
 
             // Add config path command line
             string cfgFile = "--use-config-file=" + "\"" + Path.Combine(path, "zinc.cfg") + "\"";
@@ -128,6 +131,7 @@ namespace EmulatorLauncher
             cfgFile.Save(cfg, false);
         }
 
+        #region gameDictionaries
         static Dictionary<string, int> zincGameNumber = new Dictionary<string, int>()
         {
             { "starglad",   1 },
@@ -277,5 +281,6 @@ namespace EmulatorLauncher
             { 70, "70 Monster Farm Jump (JP)_controller.cfg" },
             { 71, "71 Heaven's Gate_controller.cfg" }
         };
+        #endregion
     }
 }

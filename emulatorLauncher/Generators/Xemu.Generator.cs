@@ -38,6 +38,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             //Applying bezels
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
@@ -108,14 +110,11 @@ namespace EmulatorLauncher
 
                 // Save to new TOML format
                 SetupTOMLConfiguration(path, system, eepromPath, hddPath, bootRom);
-                
             }
             catch { }
 
             // Command line arguments
             List<string> commandArray = new List<string>();
-
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             if (IsEmulationStationWindowed(out Rectangle emulationStationBounds, true) && !SystemConfig.getOptBoolean("forcefullscreen"))
             {
@@ -144,45 +143,6 @@ namespace EmulatorLauncher
                 Arguments = args,
                 WorkingDirectory = path,
             };
-        }
-
-        /// <summary>
-        /// Add KILL XEMU to padtokey (hotkey + START).
-        /// </summary> 
-        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
-        {
-            return PadToKey.AddOrUpdateKeyMapping(mapping, "xemu", InputKey.hotkey | InputKey.start, "(%{CLOSE})");
-        }
-
-        /// <summary>
-        /// Get XBOX language to write to eeprom, value from features or default language of ES.
-        /// </summary>
-        private int GetXboxLangFromEnvironment()
-        {
-            SimpleLogger.Instance.Info("[Generator] Getting Language from RetroBat language.");
-
-            var availableLanguages = new Dictionary<string, int>()
-            {
-                { "en", 1 },
-                { "jp", 2 },
-                { "ja", 2 },
-                { "de", 3 },
-                { "fr", 4 },
-                { "es", 5 },
-                { "it", 6 },
-                { "ko", 7 },
-                { "zh", 8 },
-                { "pt", 9 }
-            };
-
-            var lang = GetCurrentLanguage();
-            if (!string.IsNullOrEmpty(lang))
-            {
-                if (availableLanguages.TryGetValue(lang, out int ret))
-                    return ret;
-            }
-
-            return 1;
         }
 
         /// <summary>
@@ -283,6 +243,37 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
+        /// Get XBOX language to write to eeprom, value from features or default language of ES.
+        /// </summary>
+        private int GetXboxLangFromEnvironment()
+        {
+            SimpleLogger.Instance.Info("[Generator] Getting Language from RetroBat language.");
+
+            var availableLanguages = new Dictionary<string, int>()
+            {
+                { "en", 1 },
+                { "jp", 2 },
+                { "ja", 2 },
+                { "de", 3 },
+                { "fr", 4 },
+                { "es", 5 },
+                { "it", 6 },
+                { "ko", 7 },
+                { "zh", 8 },
+                { "pt", 9 }
+            };
+
+            var lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                if (availableLanguages.TryGetValue(lang, out int ret))
+                    return ret;
+            }
+
+            return 1;
+        }
+
+        /// <summary>
         /// Write data to XboX eeprom (language).
         /// </summary>
         /// <param name="path"></param>
@@ -347,6 +338,14 @@ namespace EmulatorLauncher
             }
 
             return high + low;
+        }
+
+        /// <summary>
+        /// Add KILL XEMU to padtokey (hotkey + START).
+        /// </summary> 
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "xemu", InputKey.hotkey | InputKey.start, "(%{CLOSE})");
         }
 
         public override int RunAndWait(ProcessStartInfo path)

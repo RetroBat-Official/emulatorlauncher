@@ -75,6 +75,104 @@ namespace EmulatorLauncher
                 ConfigureJoystick(controller, ini);
         }
 
+        private static void ConfigureKeyboard(Controller controller, IniFile ini)
+        {
+            if (controller == null)
+                return;
+
+            InputConfig keyboard = controller.Config;
+            if (keyboard == null)
+                return;
+
+            // player_0_type=1 Pro controller
+            // player_0_type=1 Dual joycon
+            // player_0_type=2 Left joycon
+            // player_0_type=3 Right joycon
+            // player_0_type=4 Handheld
+            // player_0_type=5 Gamecube controller
+
+            int playerTypeId = 0;
+
+            string player = "player_" + (controller.PlayerIndex - 1) + "_";
+
+            string playerType = player + "type";
+            if (Program.Features.IsSupported(playerType) && Program.SystemConfig.isOptSet(playerType))
+            {
+                string id = Program.SystemConfig[playerType];
+                if (!string.IsNullOrEmpty(id))
+                    playerTypeId = id.ToInteger();
+            }
+
+            ini.WriteValue("Controls", player + "type" + "\\default", playerTypeId == 0 ? "true" : "false");
+            ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
+            ini.WriteValue("Controls", player + "connected" + "\\default", "true");
+            ini.WriteValue("Controls", player + "connected", "true");
+            ini.WriteValue("Controls", player + "vibration_enabled" + "\\default", "true");
+            ini.WriteValue("Controls", player + "vibration_enabled", "true");
+            ini.WriteValue("Controls", player + "left_vibration_device" + "\\default", "true");
+            ini.WriteValue("Controls", player + "right_vibration_device" + "\\default", "true");
+            ini.WriteValue("Controls", "enable_accurate_vibrations" + "\\default", "true");
+            ini.WriteValue("Controls", "enable_accurate_vibrations", "false");
+            ini.WriteValue("Controls", player + "vibration_strength" + "\\default", "true");
+            ini.WriteValue("Controls", player + "vibration_strength", "100");
+            ini.WriteValue("Controls", player + "button_a\\default", "true");
+            ini.WriteValue("Controls", player + "button_a", "\"" + "engine:keyboard,code:67,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_b\\default", "true");
+            ini.WriteValue("Controls", player + "button_b", "\"" + "engine:keyboard,code:88,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_x\\default", "true");
+            ini.WriteValue("Controls", player + "button_x", "\"" + "engine:keyboard,code:86,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_y\\default", "true");
+            ini.WriteValue("Controls", player + "button_y", "\"" + "engine:keyboard,code:90,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_lstick\\default", "true");
+            ini.WriteValue("Controls", player + "button_lstick", "\"" + "engine:keyboard,code:70,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_rstick\\default", "true");
+            ini.WriteValue("Controls", player + "button_rstick", "\"" + "engine:keyboard,code:71,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_l\\default", "true");
+            ini.WriteValue("Controls", player + "button_l", "\"" + "engine:keyboard,code:81,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_r\\default", "true");
+            ini.WriteValue("Controls", player + "button_r", "\"" + "engine:keyboard,code:69,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_zl\\default", "true");
+            ini.WriteValue("Controls", player + "button_zl", "\"" + "engine:keyboard,code:82,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_zr\\default", "true");
+            ini.WriteValue("Controls", player + "button_zr", "\"" + "engine:keyboard,code:84,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_plus\\default", "true");
+            ini.WriteValue("Controls", player + "button_plus", "\"" + "engine:keyboard,code:77,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_minus\\default", "true");
+            ini.WriteValue("Controls", player + "button_minus", "\"" + "engine:keyboard,code:78,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_dleft\\default", "true");
+            ini.WriteValue("Controls", player + "button_dleft", "\"" + "engine:keyboard,code:16777234,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_dup\\default", "true");
+            ini.WriteValue("Controls", player + "button_dup", "\"" + "engine:keyboard,code:16777235,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_dright\\default", "true");
+            ini.WriteValue("Controls", player + "button_dright", "\"" + "engine:keyboard,code:16777236,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_ddown\\default", "true");
+            ini.WriteValue("Controls", player + "button_ddown", "\"" + "engine:keyboard,code:16777237,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_sl\\default", "true");
+            ini.WriteValue("Controls", player + "button_sl", "\"" + "engine:keyboard,code:81,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_sr\\default", "true");
+            ini.WriteValue("Controls", player + "button_sr", "\"" + "engine:keyboard,code:69,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_slleft\\default", "true");
+            ini.WriteValue("Controls", player + "button_slleft", "\"" + "engine:keyboard,code:81,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_srleft\\default", "true");
+            ini.WriteValue("Controls", player + "button_srleft", "\"" + "engine:keyboard,code:69,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_slright\\default", "true");
+            ini.WriteValue("Controls", player + "button_slright", "\"" + "engine:keyboard,code:81,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_srright\\default", "true");
+            ini.WriteValue("Controls", player + "button_srright", "\"" + "engine:keyboard,code:69,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_home\\default", "true");
+            ini.WriteValue("Controls", player + "button_home", "\"" + "engine:keyboard,code:0,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "button_screenshot\\default", "true");
+            ini.WriteValue("Controls", player + "button_screenshot", "\"" + "engine:keyboard,code:0,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "lstick\\default", "false");
+            ini.WriteValue("Controls", player + "lstick", "\"" + "engine:analog_from_button,up:engine$0keyboard$1code$087$1toggle$00,left:engine$0keyboard$1code$065$1toggle$00,modifier:engine$0keyboard$1code$016777248$1toggle$00,down:engine$0keyboard$1code$083$1toggle$00,right:engine$0keyboard$1code$068$1toggle$00" + "\"");
+            ini.WriteValue("Controls", player + "rstick\\default", "false");
+            ini.WriteValue("Controls", player + "rstick", "\"" + "engine:mouse,axis_x:0,axis_y:1,threshold:0.500000,range:1.000000,deadzone:0.000000" + "\"");
+            ini.WriteValue("Controls", player + "motionleft\\default", "true");
+            ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:keyboard,code:55,toggle:0" + "\"");
+            ini.WriteValue("Controls", player + "motionright\\default", "true");
+            ini.WriteValue("Controls", player + "motionright", "\"" + "engine:keyboard,code:56,toggle:0" + "\"");
+        }
+
         private void ConfigureJoystick(Controller controller, IniFile ini)
         {
             if (controller == null)
@@ -275,6 +373,17 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
+        private static void WriteShortcuts(IniFile ini)
+        {
+            // exit yuzu with SELECT+START
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq", "Minus+Plus");
+
+            // Pause with SELECT+EAST
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "Minus+A");
+        }
+
         private string FromInput(Controller controller, Input input, string guid, int index)
         {
             if (input == null)
@@ -340,141 +449,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void ConfigureKeyboard(Controller controller, IniFile ini)
-        {
-            if (controller == null)
-                return;
-
-            InputConfig keyboard = controller.Config;
-            if (keyboard == null)
-                return;
-
-            // player_0_type=1 Pro controller
-            // player_0_type=1 Dual joycon
-            // player_0_type=2 Left joycon
-            // player_0_type=3 Right joycon
-            // player_0_type=4 Handheld
-            // player_0_type=5 Gamecube controller
-
-            int playerTypeId = 0;
-
-            string player = "player_" + (controller.PlayerIndex - 1) + "_";
-
-            string playerType = player + "type";
-            if (Program.Features.IsSupported(playerType) && Program.SystemConfig.isOptSet(playerType))
-            {
-                string id = Program.SystemConfig[playerType];
-                if (!string.IsNullOrEmpty(id))
-                    playerTypeId = id.ToInteger();
-            }
-
-            ini.WriteValue("Controls", player + "type" + "\\default", playerTypeId == 0 ? "true" : "false");
-            ini.WriteValue("Controls", player + "type", playerTypeId.ToString());
-            ini.WriteValue("Controls", player + "connected" + "\\default", "true");
-            ini.WriteValue("Controls", player + "connected", "true");
-            ini.WriteValue("Controls", player + "vibration_enabled" + "\\default", "true");
-            ini.WriteValue("Controls", player + "vibration_enabled", "true");
-            ini.WriteValue("Controls", player + "left_vibration_device" + "\\default", "true");
-            ini.WriteValue("Controls", player + "right_vibration_device" + "\\default", "true");
-            ini.WriteValue("Controls", "enable_accurate_vibrations" + "\\default", "true");
-            ini.WriteValue("Controls", "enable_accurate_vibrations", "false");
-            ini.WriteValue("Controls", player + "vibration_strength" + "\\default", "true");
-            ini.WriteValue("Controls", player + "vibration_strength", "100");
-            ini.WriteValue("Controls", player + "button_a\\default", "true");
-            ini.WriteValue("Controls", player + "button_a", "\"" + "engine:keyboard,code:67,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_b\\default", "true");
-            ini.WriteValue("Controls", player + "button_b", "\"" + "engine:keyboard,code:88,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_x\\default", "true");
-            ini.WriteValue("Controls", player + "button_x", "\"" + "engine:keyboard,code:86,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_y\\default", "true");
-            ini.WriteValue("Controls", player + "button_y", "\"" + "engine:keyboard,code:90,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_lstick\\default", "true");
-            ini.WriteValue("Controls", player + "button_lstick", "\"" + "engine:keyboard,code:70,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_rstick\\default", "true");
-            ini.WriteValue("Controls", player + "button_rstick", "\"" + "engine:keyboard,code:71,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_l\\default", "true");
-            ini.WriteValue("Controls", player + "button_l", "\"" + "engine:keyboard,code:81,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_r\\default", "true");
-            ini.WriteValue("Controls", player + "button_r", "\"" + "engine:keyboard,code:69,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_zl\\default", "true");
-            ini.WriteValue("Controls", player + "button_zl", "\"" + "engine:keyboard,code:82,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_zr\\default", "true");
-            ini.WriteValue("Controls", player + "button_zr", "\"" + "engine:keyboard,code:84,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_plus\\default", "true");
-            ini.WriteValue("Controls", player + "button_plus", "\"" + "engine:keyboard,code:77,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_minus\\default", "true");
-            ini.WriteValue("Controls", player + "button_minus", "\"" + "engine:keyboard,code:78,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_dleft\\default", "true");
-            ini.WriteValue("Controls", player + "button_dleft", "\"" + "engine:keyboard,code:16777234,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_dup\\default", "true");
-            ini.WriteValue("Controls", player + "button_dup", "\"" + "engine:keyboard,code:16777235,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_dright\\default", "true");
-            ini.WriteValue("Controls", player + "button_dright", "\"" + "engine:keyboard,code:16777236,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_ddown\\default", "true");
-            ini.WriteValue("Controls", player + "button_ddown", "\"" + "engine:keyboard,code:16777237,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_sl\\default", "true");
-            ini.WriteValue("Controls", player + "button_sl", "\"" + "engine:keyboard,code:81,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_sr\\default", "true");
-            ini.WriteValue("Controls", player + "button_sr", "\"" + "engine:keyboard,code:69,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_slleft\\default", "true");
-            ini.WriteValue("Controls", player + "button_slleft", "\"" + "engine:keyboard,code:81,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_srleft\\default", "true");
-            ini.WriteValue("Controls", player + "button_srleft", "\"" + "engine:keyboard,code:69,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_slright\\default", "true");
-            ini.WriteValue("Controls", player + "button_slright", "\"" + "engine:keyboard,code:81,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_srright\\default", "true");
-            ini.WriteValue("Controls", player + "button_srright", "\"" + "engine:keyboard,code:69,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_home\\default", "true");
-            ini.WriteValue("Controls", player + "button_home", "\"" + "engine:keyboard,code:0,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "button_screenshot\\default", "true");
-            ini.WriteValue("Controls", player + "button_screenshot", "\"" + "engine:keyboard,code:0,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "lstick\\default", "false");
-            ini.WriteValue("Controls", player + "lstick", "\"" + "engine:analog_from_button,up:engine$0keyboard$1code$087$1toggle$00,left:engine$0keyboard$1code$065$1toggle$00,modifier:engine$0keyboard$1code$016777248$1toggle$00,down:engine$0keyboard$1code$083$1toggle$00,right:engine$0keyboard$1code$068$1toggle$00" + "\"");
-            ini.WriteValue("Controls", player + "rstick\\default", "false");
-            ini.WriteValue("Controls", player + "rstick", "\"" + "engine:mouse,axis_x:0,axis_y:1,threshold:0.500000,range:1.000000,deadzone:0.000000" + "\"");
-            ini.WriteValue("Controls", player + "motionleft\\default", "true");
-            ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:keyboard,code:55,toggle:0" + "\"");
-            ini.WriteValue("Controls", player + "motionright\\default", "true");
-            ini.WriteValue("Controls", player + "motionright", "\"" + "engine:keyboard,code:56,toggle:0" + "\"");
-        }
-
-        private static void WriteShortcuts(IniFile ini)
-        {
-            // exit yuzu with SELECT+START
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20yuzu\\Controller_KeySeq", "Minus+Plus");
-
-            // Pause with SELECT+EAST
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "Minus+A");
-        }
-
-        /*static readonly Dictionary<string, string> DefKeys = new Dictionary<string, string>()
-        {
-            { "button_a", "engine:keyboard,code:67,toggle:0" },
-            { "button_b","engine:keyboard,code:88,toggle:0" },
-            { "button_x","engine:keyboard,code:86,toggle:0" },
-            { "button_y","engine:keyboard,code:90,toggle:0" },
-            { "button_lstick","engine:keyboard,code:70,toggle:0" },
-            { "button_rstick","engine:keyboard,code:71,toggle:0" },
-            { "button_l","engine:keyboard,code:81,toggle:0" },
-            { "button_r","engine:keyboard,code:69,toggle:0" },
-            { "button_zl","engine:keyboard,code:82,toggle:0" },
-            { "button_zr","engine:keyboard,code:84,toggle:0" },
-            { "button_plus","engine:keyboard,code:77,toggle:0" },
-            { "button_minus","engine:keyboard,code:78,toggle:0" },
-            { "button_dleft","engine:keyboard,code:16777234,toggle:0" },
-            { "button_dup","engine:keyboard,code:16777235,toggle:0" },
-            { "button_dright","engine:keyboard,code:16777236,toggle:0" },
-            { "button_ddown","engine:keyboard,code:16777237,toggle:0" },
-            { "button_sl","engine:keyboard,code:81,toggle:0" },
-            { "button_sr","engine:keyboard,code:69,toggle:0" },
-            { "button_home","engine:keyboard,code:0,toggle:0" },
-            { "button_screenshot","engine:keyboard,code:0,toggle:0" },
-            { "lstick","engine:analog_from_button,up:engine$0keyboard$1code$087$1toggle$00,left:engine$0keyboard$1code$065$1toggle$00,modifier:engine$0keyboard$1code$016777248$1toggle$00,down:engine$0keyboard$1code$083$1toggle$00,right:engine$0keyboard$1code$068$1toggle$00,modifier_scale:0.500000" },
-            { "rstick","engine:analog_from_button,up:engine$0keyboard$1code$073$1toggle$00,left:engine$0keyboard$1code$074$1toggle$00,modifier:engine$0keyboard$1code$00$1toggle$00,down:engine$0keyboard$1code$075$1toggle$00,right:engine$0keyboard$1code$076$1toggle$00,modifier_scale:0.500000" }
-        };*/
-
+        #region dictionaries
         static readonly InputKeyMapping Mapping = new InputKeyMapping()
         {
             { InputKey.select,          "button_minus" },
@@ -508,5 +483,32 @@ namespace EmulatorLauncher
             { InputKey.y,               "button_x" },
             { InputKey.x,               "button_y" },
         };
+
+        /*static readonly Dictionary<string, string> DefKeys = new Dictionary<string, string>()
+        {
+            { "button_a", "engine:keyboard,code:67,toggle:0" },
+            { "button_b","engine:keyboard,code:88,toggle:0" },
+            { "button_x","engine:keyboard,code:86,toggle:0" },
+            { "button_y","engine:keyboard,code:90,toggle:0" },
+            { "button_lstick","engine:keyboard,code:70,toggle:0" },
+            { "button_rstick","engine:keyboard,code:71,toggle:0" },
+            { "button_l","engine:keyboard,code:81,toggle:0" },
+            { "button_r","engine:keyboard,code:69,toggle:0" },
+            { "button_zl","engine:keyboard,code:82,toggle:0" },
+            { "button_zr","engine:keyboard,code:84,toggle:0" },
+            { "button_plus","engine:keyboard,code:77,toggle:0" },
+            { "button_minus","engine:keyboard,code:78,toggle:0" },
+            { "button_dleft","engine:keyboard,code:16777234,toggle:0" },
+            { "button_dup","engine:keyboard,code:16777235,toggle:0" },
+            { "button_dright","engine:keyboard,code:16777236,toggle:0" },
+            { "button_ddown","engine:keyboard,code:16777237,toggle:0" },
+            { "button_sl","engine:keyboard,code:81,toggle:0" },
+            { "button_sr","engine:keyboard,code:69,toggle:0" },
+            { "button_home","engine:keyboard,code:0,toggle:0" },
+            { "button_screenshot","engine:keyboard,code:0,toggle:0" },
+            { "lstick","engine:analog_from_button,up:engine$0keyboard$1code$087$1toggle$00,left:engine$0keyboard$1code$065$1toggle$00,modifier:engine$0keyboard$1code$016777248$1toggle$00,down:engine$0keyboard$1code$083$1toggle$00,right:engine$0keyboard$1code$068$1toggle$00,modifier_scale:0.500000" },
+            { "rstick","engine:analog_from_button,up:engine$0keyboard$1code$073$1toggle$00,left:engine$0keyboard$1code$074$1toggle$00,modifier:engine$0keyboard$1code$00$1toggle$00,down:engine$0keyboard$1code$075$1toggle$00,right:engine$0keyboard$1code$076$1toggle$00,modifier_scale:0.500000" }
+        };*/
+        #endregion
     }
 }

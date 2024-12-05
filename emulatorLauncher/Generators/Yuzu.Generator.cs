@@ -12,9 +12,14 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
-        
+
+        private string _gamedirsIniPath;
+        private string _gamedirsSize;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath(emulator.Replace("-", " "));
             if (string.IsNullOrEmpty(path) && emulator.Contains("-"))
                 path = AppConfig.GetFullPath(emulator);
@@ -46,62 +51,6 @@ namespace EmulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args,
             };
-        }
-
-        private string GetDefaultswitchLanguage()
-        {
-            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
-            {
-                { "jp", "0" },
-                { "ja", "0" },
-                { "en", "1" },
-                { "fr", "2" },
-                { "de", "3" },
-                { "it", "4" },
-                { "es", "5" },
-                { "zh", "6" },
-                { "ko", "7" },
-                { "nl", "8" },
-                { "pt", "9" },
-                { "ru", "10" },
-                { "tw", "11" }
-            };
-
-            // Special cases
-            if (SystemConfig["Language"] == "zh_TW")
-                return "11";
-            if (SystemConfig["Language"] == "pt_BR")
-                return "17";
-            if (SystemConfig["Language"] == "en_GB")
-                return "12";
-            if (SystemConfig["Language"] == "es_MX")
-                return "14";
-
-            string lang = GetCurrentLanguage();
-            if (!string.IsNullOrEmpty(lang))
-            {
-                if (availableLanguages.TryGetValue(lang, out string ret))
-                    return ret;
-            }
-
-            return "1";
-        }
-
-        private string _gamedirsIniPath;
-        private string _gamedirsSize;
-
-        public override void Cleanup()
-        {
-            base.Cleanup();
-
-            // Restore value for Paths\\gamedirs\\size
-            // As it's faster to launch a yuzu game when there's no folder set            
-
-            if (string.IsNullOrEmpty(_gamedirsIniPath) || string.IsNullOrEmpty(_gamedirsSize))
-                return;
-
-            using (var ini = new IniFile(_gamedirsIniPath))                
-                ini.WriteValue("UI", "Paths\\gamedirs\\size", _gamedirsSize);
         }
 
         private void SetupConfigurationYuzu(string path, string rom, bool fullscreen)
@@ -158,14 +107,12 @@ namespace EmulatorLauncher
                     ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
                 }*/
 
-                //language
                 ini.WriteValue("System", "language_index\\default", "false");
                 if (SystemConfig.isOptSet("yuzu_language") && !string.IsNullOrEmpty(SystemConfig["yuzu_language"]))
                     ini.WriteValue("System", "language_index", SystemConfig["yuzu_language"]);
                 else
                     ini.WriteValue("System", "language_index", GetDefaultswitchLanguage());
 
-                //region
                 if (SystemConfig.isOptSet("yuzu_region_value") && !string.IsNullOrEmpty(SystemConfig["yuzu_region_value"]) && SystemConfig["yuzu_region_value"] != "1")
                 {
                     ini.WriteValue("System", "region_index\\default", "false");
@@ -177,7 +124,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("System", "region_index", "1");
                 }
 
-                //Discord
                 if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                 {
                     ini.WriteValue("UI", "enable_discord_presence\\default", "true");
@@ -189,15 +135,11 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "enable_discord_presence", "false");
                 }
 
-                //launch in fullscreen
                 ini.WriteValue("UI", "fullscreen\\default", fullscreen ? "false" : "true");
                 ini.WriteValue("UI", "fullscreen", fullscreen ? "true" : "false");
-
-                //Hide mouse when inactive
                 ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
                 ini.WriteValue("UI", "hideInactiveMouse", "true");
 
-                // Controller applet
                 if (SystemConfig.isOptSet("yuzu_controller_applet") && !SystemConfig.getOptBoolean("yuzu_controller_applet"))
                 {
                     ini.WriteValue("UI", "disableControllerApplet\\default", "true");
@@ -209,7 +151,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "disableControllerApplet", "true");
                 }
 
-                //docked mode
                 if (SystemConfig.isOptSet("yuzu_undock") && SystemConfig.getOptBoolean("yuzu_undock"))
                 {
                     ini.WriteValue("System", "use_docked_mode\\default", "false");
@@ -221,18 +162,14 @@ namespace EmulatorLauncher
                     ini.WriteValue("System", "use_docked_mode", "1");
                 }
 
-                //disable telemetry
                 ini.WriteValue("WebService", "enable_telemetry\\default", "false");
                 ini.WriteValue("WebService", "enable_telemetry", "false");
-
-                //remove exit confirmation
                 ini.WriteValue("UI", "confirmStop\\default", "false");
                 ini.WriteValue("UI", "confirmStop", "2");
 
-                //get path for roms
                 string romPath = Path.GetDirectoryName(rom);
-                ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\","/"));
-                
+                ini.WriteValue("UI", "Paths\\gamedirs\\4\\path", romPath.Replace("\\", "/"));
+
                 // Set gamedirs count to 4
                 var gameDirsSize = ini.GetValue("UI", "Paths\\gamedirs\\size");
                 if (gameDirsSize.ToInteger() != 4)
@@ -242,7 +179,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "Paths\\gamedirs\\size", "4");
                 }
 
-                //screenshots path
                 string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/yuzu";
                 if (!Directory.Exists(screenshotpath)) try { Directory.CreateDirectory(screenshotpath); }
                     catch { }
@@ -253,35 +189,17 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "Screenshots\\screenshot_path", screenshotpath);
                 }
 
-                // Audio output
                 BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "auto");
-                BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");
-
-                // Video drivers                
+                BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");            
                 BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
-
-                // resolution_setup
                 BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "2");
-
-                // Aspect ratio
                 BindQtIniFeature(ini, "Renderer", "aspect_ratio", "yuzu_ratio", "0");
-
-                // Anisotropic filtering
                 BindQtIniFeature(ini, "Renderer", "max_anisotropy", "yuzu_anisotropy", "0");
-
-                // Vsync
                 BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
-
-                // anti_aliasing
                 BindQtIniFeature(ini, "Renderer", "anti_aliasing", "anti_aliasing", "0");
-
-                // scaling_filter
                 BindQtIniFeature(ini, "Renderer", "scaling_filter", "scaling_filter", "1");
-
-                // GPU accuracy
                 BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "1");
-
-                // Asynchronous shaders compilation (hack)
+                
                 if (SystemConfig.isOptSet("use_asynchronous_shaders") && !SystemConfig.getOptBoolean("use_asynchronous_shaders"))
                 {
                     ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "true");
@@ -293,18 +211,52 @@ namespace EmulatorLauncher
                     ini.WriteValue("Renderer", "use_asynchronous_shaders", "true");
                 }
 
-                // ASTC Compression (non compressed by default, use medium for videocards with 6GB of VRAM and low for 2-4GB VRAM)
                 BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
-
-                //Core options
                 BindQtBoolIniFeature(ini, "Core", "use_multi_core", "yuzu_multicore", "true", "false", "true");
                 BindQtIniFeature(ini, "Core", "memory_layout_mode", "yuzu_memory", "0");
-
-                // CPU accuracy (auto except if the user chooses otherwise)
                 BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
 
                 CreateControllerConfiguration(ini);
             }
+        }
+
+        private string GetDefaultswitchLanguage()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "0" },
+                { "ja", "0" },
+                { "en", "1" },
+                { "fr", "2" },
+                { "de", "3" },
+                { "it", "4" },
+                { "es", "5" },
+                { "zh", "6" },
+                { "ko", "7" },
+                { "nl", "8" },
+                { "pt", "9" },
+                { "ru", "10" },
+                { "tw", "11" }
+            };
+
+            // Special cases
+            if (SystemConfig["Language"] == "zh_TW")
+                return "11";
+            if (SystemConfig["Language"] == "pt_BR")
+                return "17";
+            if (SystemConfig["Language"] == "en_GB")
+                return "12";
+            if (SystemConfig["Language"] == "es_MX")
+                return "14";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                if (availableLanguages.TryGetValue(lang, out string ret))
+                    return ret;
+            }
+
+            return "1";
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -316,6 +268,20 @@ namespace EmulatorLauncher
                 return 0;
             
             return exitCode;
+        }
+
+        public override void Cleanup()
+        {
+            base.Cleanup();
+
+            // Restore value for Paths\\gamedirs\\size
+            // As it's faster to launch a yuzu game when there's no folder set            
+
+            if (string.IsNullOrEmpty(_gamedirsIniPath) || string.IsNullOrEmpty(_gamedirsSize))
+                return;
+
+            using (var ini = new IniFile(_gamedirsIniPath))
+                ini.WriteValue("UI", "Paths\\gamedirs\\size", _gamedirsSize);
         }
     }
 }

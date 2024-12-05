@@ -20,6 +20,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("zesarux");
 
             string exe = Path.Combine(path, "zesarux.exe");
@@ -27,8 +29,6 @@ namespace EmulatorLauncher
                 return null;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-
-            string configFile = Path.Combine(path, ".zesaruxrc");
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
             {
@@ -57,6 +57,7 @@ namespace EmulatorLauncher
             }
 
             // Configure cfg file
+            string configFile = Path.Combine(path, ".zesaruxrc");
             SetupConfig(configFile, system);
 
             // Command line arguments
