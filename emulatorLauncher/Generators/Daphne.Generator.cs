@@ -253,30 +253,63 @@ namespace EmulatorLauncher
             UpdateCommandline(commandArray);       
             
             // The folder may have a file with the game name and .commands with extra arguments to run the game.
-            if (_executableName == "daphne" && File.Exists(commandsFile))
+            if (File.Exists(commandsFile))
             {
                 string[] file = File.ReadAllText(commandsFile).Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < file.Length; i++)
                 {
                     string s = file[i];
 
-                    if (s == "singe" && commandArray[0] != "singe")
+                    if (_executableName == "daphne")
                     {
-                        commandArray[0] = "singe";
-                        continue;
+                        if (s == "singe" && commandArray[0] != "singe")
+                        {
+                            commandArray[0] = "singe";
+                            continue;
+                        }
+
+                        if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" ||
+                            s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse" || s == "-ignore_aspect_ratio")
+                            continue;
+
+                        if (s == "-x" || s == "-y" || s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" || s == "-datadir")
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        commandArray.Add(s);
                     }
-
-                    if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" || 
-                        s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse")
-                        continue;
-
-                    if (s == "-x" || s == "-y" || s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" || s == "-datadir")
+                    
+                    else if (_executableName == "hypseus")
                     {
-                        i++;
-                        continue;
-                    }
+                        if (s == "singe" && commandArray[0] != "singe")
+                        {
+                            commandArray[0] = "singe";
+                            continue;
+                        }
 
-                    commandArray.Add(s);
+                        if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" ||
+                            s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse" || s == "force_aspect_ratio" || 
+                            s == "-ignore_aspect_ratio" || s == " - novsync" || s == "-nolinear_scale" || s == "-nocrosshair")
+                            continue;
+
+                        if (s == "-x" || s == "-y" || s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" ||
+                            s == "-datadir" || s == "-scalefactor")
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        if (s == "-sinden")
+                        {
+                            i++;
+                            i++;
+                            continue;
+                        }
+
+                        commandArray.Add(s);
+                    }
                 }
             }
 
