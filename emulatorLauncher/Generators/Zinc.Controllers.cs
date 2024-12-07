@@ -304,6 +304,34 @@ namespace EmulatorLauncher
             return "null";
         }
 
+        private static string GetInputKeyName(Controller c, InputKey key, string joy)
+        {
+            Int64 pid;
+
+            var input = c.GetDirectInputMapping(key);
+            if (input == null)
+                return "null";
+
+            long nb = input.Id + 1;
+
+            if (input.Type == "button")
+                return (joy + "b" + nb.ToString());
+
+            if (input.Type == "hat")
+            {
+                pid = input.Value;
+                switch (pid)
+                {
+                    case 1: return (joy + "up");
+                    case 2: return (joy + "right");
+                    case 4: return (joy + "down");
+                    case 8: return (joy + "left");
+                }
+            }
+            return "null";
+        }
+
+        #region dictionaries
         private static readonly Dictionary<string, string> esToDinput = new Dictionary<string, string>()
         {
             { "a", "a" },
@@ -337,32 +365,6 @@ namespace EmulatorLauncher
             { "lefttrigger", "leftstick" },
             { "righttrigger", "rightstick" },
         };
-
-        private static string GetInputKeyName(Controller c, InputKey key, string joy)
-        {
-            Int64 pid;
-
-            var input = c.GetDirectInputMapping(key);
-            if (input == null)
-                return "null";
-
-            long nb = input.Id + 1;
-
-            if (input.Type == "button")
-                return (joy + "b" + nb.ToString());
-
-            if (input.Type == "hat")
-            {
-                pid = input.Value;
-                switch (pid)
-                {
-                    case 1: return (joy + "up");
-                    case 2: return (joy + "right");
-                    case 4: return (joy + "down");
-                    case 8: return (joy + "left");
-                }
-            }
-            return "null";
-        }
+        #endregion
     }
 }

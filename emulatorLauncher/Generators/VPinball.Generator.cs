@@ -211,138 +211,6 @@ namespace EmulatorLauncher
             catch { }
         }
 
-
-        class DirectB2sData
-        {
-            public static DirectB2sData FromFile(string file)
-            {
-                if (!File.Exists(file))
-                    return null;
-
-
-                XmlDocument document = new XmlDocument();
-                document.Load(file);
-
-                XmlElement element = (XmlElement)document.SelectSingleNode("DirectB2SData");
-                if (element == null)
-                    return null;
-
-                var bulbs = new List<Bulb>();
-
-                foreach (XmlElement bulb in element.SelectNodes("Illumination/Bulb"))
-                {
-                    if (!bulb.HasAttribute("Parent") || bulb.GetAttribute("Parent") != "Backglass")
-                        continue;
-
-                    try
-                    {
-                        Bulb item = new Bulb
-                        {
-                            ID = bulb.GetAttribute("ID").ToInteger(),
-                            LightColor = bulb.GetAttribute("LightColor"),
-                            LocX = bulb.GetAttribute("LocX").ToInteger(),
-                            LocY = bulb.GetAttribute("LocY").ToInteger(),
-                            Width = bulb.GetAttribute("Width").ToInteger(),
-                            Height = bulb.GetAttribute("Height").ToInteger(),
-                            Visible = bulb.GetAttribute("Visible") == "1",
-                            IsImageSnippit = bulb.GetAttribute("IsImageSnippit") == "1",
-                            Image = Misc.Base64ToImage(bulb.GetAttribute("Image"))
-                        };
-
-                        if (item.Visible && item.Image != null)
-                            bulbs.Add(item);
-                    }
-                    catch { }
-                }
-
-
-                XmlElement element13 = (XmlElement)element.SelectSingleNode("Images/BackglassImage");
-                if (element13 != null)
-                {
-                    try
-                    {
-                        var image = Misc.Base64ToImage(element13.Attributes["Value"].InnerText);
-                        if (image != null)
-                        {
-                            return new DirectB2sData()
-                            {
-                                Bulbs = bulbs.ToArray(),
-                                Image = image,
-                            };
-                        }
-                    }
-                    catch { }
-                }
-
-                return null;                
-            }
-
-            public Image RenderBackglass(int index = 0)
-            {
-                var bitmap = new Bitmap(Image);
-
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    foreach (var bulb in Bulbs)
-                    {
-                        if (bulb.IsImageSnippit)
-                            continue;
-
-                        if (index == 0 && (bulb.ID & 1) == 0)
-                            continue;
-
-                        if (index == 1 && (bulb.ID & 1) == 1)
-                            continue;
-
-                        if (index == 3)
-                            continue;
-
-                        Color lightColor = Color.White;
-                        var split = bulb.LightColor.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (split.Length == 3)
-                            lightColor = Color.FromArgb(split[0].ToInteger(), split[1].ToInteger(), split[2].ToInteger());
-
-                        using (ImageAttributes imageAttrs = new ImageAttributes())
-                        {
-                            var colorMatrix = new ColorMatrix(new float[][]
-                                    {
-                                        new float[] { lightColor.R / 255f, 0, 0, 0, 0 },
-                                        new float[] { 0, lightColor.G / 255f, 0, 0, 0 },
-                                        new float[] { 0, 0, lightColor.B / 255f, 0, 0 },
-                                        new float[] { 0, 0, 0, 1, 0 },
-                                        new float[] { 0, 0, 0, 0, 1 }
-                                    });
-
-                            imageAttrs.SetColorMatrix(colorMatrix);
-
-                            Rectangle dest = new Rectangle(bulb.LocX, bulb.LocY, bulb.Width, bulb.Height);
-                            g.DrawImage(bulb.Image, dest, 0, 0, bulb.Image.Width, bulb.Image.Height, GraphicsUnit.Pixel, imageAttrs, null, IntPtr.Zero);
-                        }
-                    }
-                }
-
-                return bitmap;
-            }
-
-            public Bulb[] Bulbs { get; private set; }
-            public Image Image { get; private set; }
-
-            public class Bulb
-            {
-                public int ID { get; set; }
-
-                public string LightColor { get; set; }
-                public int LocX { get; set; }
-                public int LocY { get; set; }
-                public int Width { get; set; }
-                public int Height { get; set; }
-                public bool Visible { get; set; }
-                public bool IsImageSnippit { get; set; }
-
-                public Image Image { get; set; }                
-            }
-        }
-
         private static LoadingForm ShowSplash(string rom)
         {
             if (rom == null)
@@ -382,8 +250,6 @@ namespace EmulatorLauncher
 
             return null;
         }
-
-      
 
         private static bool FileUrlValueExists(object value)
         {
@@ -976,6 +842,137 @@ namespace EmulatorLauncher
                 return;
 
             regKeyc.SetValue(name, value);
+        }
+
+        class DirectB2sData
+        {
+            public static DirectB2sData FromFile(string file)
+            {
+                if (!File.Exists(file))
+                    return null;
+
+
+                XmlDocument document = new XmlDocument();
+                document.Load(file);
+
+                XmlElement element = (XmlElement)document.SelectSingleNode("DirectB2SData");
+                if (element == null)
+                    return null;
+
+                var bulbs = new List<Bulb>();
+
+                foreach (XmlElement bulb in element.SelectNodes("Illumination/Bulb"))
+                {
+                    if (!bulb.HasAttribute("Parent") || bulb.GetAttribute("Parent") != "Backglass")
+                        continue;
+
+                    try
+                    {
+                        Bulb item = new Bulb
+                        {
+                            ID = bulb.GetAttribute("ID").ToInteger(),
+                            LightColor = bulb.GetAttribute("LightColor"),
+                            LocX = bulb.GetAttribute("LocX").ToInteger(),
+                            LocY = bulb.GetAttribute("LocY").ToInteger(),
+                            Width = bulb.GetAttribute("Width").ToInteger(),
+                            Height = bulb.GetAttribute("Height").ToInteger(),
+                            Visible = bulb.GetAttribute("Visible") == "1",
+                            IsImageSnippit = bulb.GetAttribute("IsImageSnippit") == "1",
+                            Image = Misc.Base64ToImage(bulb.GetAttribute("Image"))
+                        };
+
+                        if (item.Visible && item.Image != null)
+                            bulbs.Add(item);
+                    }
+                    catch { }
+                }
+
+
+                XmlElement element13 = (XmlElement)element.SelectSingleNode("Images/BackglassImage");
+                if (element13 != null)
+                {
+                    try
+                    {
+                        var image = Misc.Base64ToImage(element13.Attributes["Value"].InnerText);
+                        if (image != null)
+                        {
+                            return new DirectB2sData()
+                            {
+                                Bulbs = bulbs.ToArray(),
+                                Image = image,
+                            };
+                        }
+                    }
+                    catch { }
+                }
+
+                return null;
+            }
+
+            public Image RenderBackglass(int index = 0)
+            {
+                var bitmap = new Bitmap(Image);
+
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    foreach (var bulb in Bulbs)
+                    {
+                        if (bulb.IsImageSnippit)
+                            continue;
+
+                        if (index == 0 && (bulb.ID & 1) == 0)
+                            continue;
+
+                        if (index == 1 && (bulb.ID & 1) == 1)
+                            continue;
+
+                        if (index == 3)
+                            continue;
+
+                        Color lightColor = Color.White;
+                        var split = bulb.LightColor.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (split.Length == 3)
+                            lightColor = Color.FromArgb(split[0].ToInteger(), split[1].ToInteger(), split[2].ToInteger());
+
+                        using (ImageAttributes imageAttrs = new ImageAttributes())
+                        {
+                            var colorMatrix = new ColorMatrix(new float[][]
+                                    {
+                                        new float[] { lightColor.R / 255f, 0, 0, 0, 0 },
+                                        new float[] { 0, lightColor.G / 255f, 0, 0, 0 },
+                                        new float[] { 0, 0, lightColor.B / 255f, 0, 0 },
+                                        new float[] { 0, 0, 0, 1, 0 },
+                                        new float[] { 0, 0, 0, 0, 1 }
+                                    });
+
+                            imageAttrs.SetColorMatrix(colorMatrix);
+
+                            Rectangle dest = new Rectangle(bulb.LocX, bulb.LocY, bulb.Width, bulb.Height);
+                            g.DrawImage(bulb.Image, dest, 0, 0, bulb.Image.Width, bulb.Image.Height, GraphicsUnit.Pixel, imageAttrs, null, IntPtr.Zero);
+                        }
+                    }
+                }
+
+                return bitmap;
+            }
+
+            public Bulb[] Bulbs { get; private set; }
+            public Image Image { get; private set; }
+
+            public class Bulb
+            {
+                public int ID { get; set; }
+
+                public string LightColor { get; set; }
+                public int LocX { get; set; }
+                public int LocY { get; set; }
+                public int Width { get; set; }
+                public int Height { get; set; }
+                public bool Visible { get; set; }
+                public bool IsImageSnippit { get; set; }
+
+                public Image Image { get; set; }
+            }
         }
     }
 }

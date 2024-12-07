@@ -13,9 +13,9 @@ namespace EmulatorLauncher
     partial class YabasanshiroGenerator
     {
         /// <summary>
-        /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
+        /// Cf. N/A
         /// </summary>
-        /// <param name="pcsx2ini"></param>
+        /// <param name="ini"></param>
         /*private void UpdateSdlControllersWithHints(IniFile ini)
         {
             var hints = new List<string>();
@@ -71,9 +71,37 @@ namespace EmulatorLauncher
                 ConfigureJoystick(ini, controller, playerindex);
         }
 
+        private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, int playerindex)
+        {
+            if (keyboard == null)
+                return;
 
-        private static List<string> digitalKeys = new List<string> { "0", "1", "2", "3" };
-        private static List<string> analKeys = new List<string> { "anal_0", "anal_1", "anal_2", "anal_3" };
+            string port = GetControllerPort(playerindex);
+            string controllerId = GetControllerId(playerindex);
+
+            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", "2");
+
+            bool azerty = false;
+            List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+            if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId))
+                azerty = true;
+
+            if (azerty)
+            {
+                foreach (KeyValuePair<string, string> pair in AzertyLayout)
+                {
+                    ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\2" + "\\Key\\" + pair.Key, pair.Value);
+                }
+            }
+            else
+            {
+                foreach (KeyValuePair<string, string> pair in keyboardMapping)
+                {
+                    ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\2" + "\\Key\\" + pair.Key, pair.Value);
+                }
+            }
+        }
+
         private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerindex)
         {
             if (ctrl == null)
@@ -201,6 +229,91 @@ namespace EmulatorLauncher
             }
         }
 
+        private static string GetInputKeyName(Controller c, InputKey key, int index, bool trigger = false)
+        {
+            Int64 pid;
+            string ret = "";
+
+            var input = c.Config[key];
+            if (input != null)
+            {
+                if (input.Type == "button")
+                {
+                    pid = input.Id + 1;
+                    ret = ((index << 18) + pid).ToString();
+                    return ret;
+                }
+
+                if (input.Type == "axis")
+                {
+                    pid = input.Id;
+
+                    if (trigger)
+                    {
+                        ret = ((index << 18) + 32768 + pid).ToString();
+                    }
+                    else
+                    {
+                        if (input.Value > 0)
+                            ret = ((index << 18) + 0x110000 + pid).ToString();
+                        else
+                            ret = ((index << 18) + 0x100000 + pid).ToString();
+                    }
+                    return ret;
+                }
+
+                if (input.Type == "hat")
+                {
+                    pid = input.Value;
+                    ret = ((index << 18) + 0x200000 + (pid << 4)).ToString();
+                    return ret;
+                }
+            }
+            return ret;
+        }
+
+        private void ResetHotkeysToDefault(IniFile ini)
+        {
+            ini.WriteValue("0.9.11", "Shortcuts\\%26Quitter", "Esc");
+            ini.WriteValue("0.9.11", "Shortcuts\\%26Pause", "F10");
+            ini.WriteValue("0.9.11", "Shortcuts\\Copie%20d%27Ec%26ran", "F8");
+            ini.WriteValue("0.9.11", "Shortcuts\\%26Plein%20Ecran", "F11");
+            ini.WriteValue("0.9.11", "Shortcuts\\S%26auvegarder%20un%20Etat", "F6");
+            ini.WriteValue("0.9.11", "Shortcuts\\%26Charger%20un%20Etat", "F7");
+        }
+
+        private string GetControllerPort(int playerindex)
+        {
+            if (_multitap == "both")
+                return multitap_ports[playerindex];
+
+            if (_multitap == "1")
+                return multitap_port1[playerindex];
+
+            if (_multitap == "2")
+                return multitap_port2[playerindex];
+
+            if (playerindex == 1)
+                return "1";
+
+            if (playerindex == 2)
+                return "2";
+
+            return "1";
+        }
+
+        private string GetControllerId(int playerindex)
+        {
+            if (playerindex < 13)
+                return multitap_id[playerindex];
+
+            return "1";
+        }
+
+        #region dictionaries
+        private static List<string> digitalKeys = new List<string> { "0", "1", "2", "3" };
+        private static List<string> analKeys = new List<string> { "anal_0", "anal_1", "anal_2", "anal_3" };
+
         static readonly Dictionary<string, InputKey> lr_yz_profile = new Dictionary<string, InputKey>
         {
             { "7", InputKey.y },
@@ -230,37 +343,6 @@ namespace EmulatorLauncher
             { "11", InputKey.x },
             { "12", InputKey.pagedown },
         };
-
-        private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, int playerindex)
-        {
-            if (keyboard == null)
-                return;
-
-            string port = GetControllerPort(playerindex);
-            string controllerId = GetControllerId(playerindex);
-
-            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", "2");
-
-            bool azerty = false;
-            List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
-            if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId))
-                azerty = true;
-
-            if (azerty)
-            {
-                foreach (KeyValuePair<string, string> pair in AzertyLayout)
-                {
-                    ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\2" + "\\Key\\" + pair.Key, pair.Value);
-                }
-            }
-            else
-            {
-                foreach (KeyValuePair<string, string> pair in keyboardMapping)
-                {
-                    ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\2" + "\\Key\\" + pair.Key, pair.Value);
-                }
-            }
-        }
 
         static readonly Dictionary<string, string> keyboardMapping = new Dictionary<string, string>
         {
@@ -295,34 +377,6 @@ namespace EmulatorLauncher
             { "11", "83" },                 // S
             { "12", "68" },                 // D
         };
-
-        private string GetControllerPort(int playerindex)
-        {
-            if (_multitap == "both")
-                return multitap_ports[playerindex];
-
-            if (_multitap == "1")
-                return multitap_port1[playerindex];
-
-            if (_multitap == "2")
-                return multitap_port2[playerindex];
-
-            if (playerindex == 1)
-                return "1";
-
-            if (playerindex == 2)
-                return "2";
-
-            return "1";
-        }
-
-        private string GetControllerId(int playerindex)
-        {
-            if (playerindex < 13)
-                return multitap_id[playerindex];
-
-            return "1";
-        }
 
         static readonly Dictionary<int, string> multitap_port1 = new Dictionary<int, string>
         {
@@ -377,58 +431,6 @@ namespace EmulatorLauncher
             { 11, "5" },
             { 12, "6" },
         };
-
-        private static string GetInputKeyName(Controller c, InputKey key, int index, bool trigger = false)
-        {
-            Int64 pid;
-            string ret = "";
-
-            var input = c.Config[key];
-            if (input != null)
-            {
-                if (input.Type == "button")
-                {
-                    pid = input.Id + 1;
-                    ret = ((index << 18) + pid).ToString();
-                    return ret;
-                }
-
-                if (input.Type == "axis")
-                {
-                    pid = input.Id;
-
-                    if (trigger)
-                    {
-                        ret = ((index << 18) + 32768 + pid).ToString();
-                    }
-                    else
-                    {
-                        if (input.Value > 0)
-                            ret = ((index << 18) + 0x110000 + pid).ToString();
-                        else
-                            ret = ((index << 18) + 0x100000 + pid).ToString();
-                    }
-                    return ret;
-                }
-
-                if (input.Type == "hat")
-                {
-                    pid = input.Value;
-                    ret = ((index << 18) + 0x200000 + (pid << 4)).ToString();
-                    return ret;
-                }
-            }
-            return ret;
-        }
-
-        private void ResetHotkeysToDefault(IniFile ini)
-        {
-            ini.WriteValue("0.9.11", "Shortcuts\\%26Quitter", "Esc");
-            ini.WriteValue("0.9.11", "Shortcuts\\%26Pause", "F10");
-            ini.WriteValue("0.9.11", "Shortcuts\\Copie%20d%27Ec%26ran", "F8");
-            ini.WriteValue("0.9.11", "Shortcuts\\%26Plein%20Ecran", "F11");
-            ini.WriteValue("0.9.11", "Shortcuts\\S%26auvegarder%20un%20Etat", "F6");
-            ini.WriteValue("0.9.11", "Shortcuts\\%26Charger%20un%20Etat", "F7");
-        }
+        #endregion
     }
 }

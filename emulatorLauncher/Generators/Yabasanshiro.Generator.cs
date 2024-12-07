@@ -21,6 +21,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
             string path = AppConfig.GetFullPath("yabasanshiro");
 
             string exe = Path.Combine(path, "yabasanshiro.exe");
@@ -33,9 +35,8 @@ namespace EmulatorLauncher
 
             if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            
             _resolution = resolution;
-
-            var commandArray = new List<string>();
 
             // Manage .m3u files
             if (Path.GetExtension(rom).ToLower() == ".m3u")
@@ -67,6 +68,8 @@ namespace EmulatorLauncher
             }
 
             SetupConfig(path, system, exe, rom, resolution, fullscreen);
+
+            var commandArray = new List<string>();
 
             if (fullscreen)
                 commandArray.Add("-f");
@@ -115,7 +118,6 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("0.9.11", "Memory\\Path", bkram.Replace("\\", "/"));
 
-                    // Bios
                     string bios = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
                     if (File.Exists(bios))
                         ini.WriteValue("0.9.11", "General\\Bios", bios.Replace("\\", "/"));

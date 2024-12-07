@@ -23,6 +23,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             if (!GetVita3kPrefPath(path))
                 _prefPath = Path.Combine(AppConfig.GetFullPath("saves"), "psvita", "vita3k");
 
@@ -52,10 +54,7 @@ namespace EmulatorLauncher
                 gameID = rom.Substring(rom.IndexOf('[') + 1, rom.IndexOf(']') - rom.IndexOf('[') - 1);
             }
 
-            //Define command-line arguments
             List<string> commandArray = new List<string>();
-
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             //-w, -f is used to avoid vita3k regenerating the config file as it is very fussy with it !
             //-c to specify the configfile to use
@@ -93,56 +92,6 @@ namespace EmulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args,                
             };
-        }
-
-        /// <summary>
-        /// UI - console language
-        /// Japanese = 0
-        /// English = 1
-        /// French = 2
-        /// Spain = 3
-        /// German = 4
-        /// Italian = 5
-        /// Dutch = 6
-        /// Portuguese = 7
-        /// Russian = 8
-        /// Korean = 9
-        /// Chinese = 10
-        /// Taiwanese = 11
-        /// Polish = 16
-        /// </summary>
-        /// <returns></returns>
-        private string GetDefaultvitaLanguage()
-        {
-            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
-            {
-                { "jp", "0" },
-                { "ja", "0" },
-                { "en", "1" },
-                { "fr", "2" },
-                { "es", "3" },
-                { "de", "4" },
-                { "it", "5" },
-                { "nl", "6" },
-                { "pt", "7" },
-                { "ru", "8" },
-                { "ko", "9" },
-                { "zh", "10" },
-                { "pl", "16" }
-            };
-
-            // Special case for Taiwanese which is zh_TW
-            if (SystemConfig["Language"] == "zh_TW")
-                return "11";
-
-            string lang = GetCurrentLanguage();
-            if (!string.IsNullOrEmpty(lang))
-            {
-                if (availableLanguages.TryGetValue(lang, out string ret))
-                    return ret;
-            }
-
-            return "1";
         }
 
         //Configure config.yml file
@@ -226,10 +175,59 @@ namespace EmulatorLauncher
                 lleModules.Elements.Clear();
             }
             //else don't touch the modules container
-                
-
+            
             //save config file
             yml.Save();
+        }
+
+        /// <summary>
+        /// UI - console language
+        /// Japanese = 0
+        /// English = 1
+        /// French = 2
+        /// Spain = 3
+        /// German = 4
+        /// Italian = 5
+        /// Dutch = 6
+        /// Portuguese = 7
+        /// Russian = 8
+        /// Korean = 9
+        /// Chinese = 10
+        /// Taiwanese = 11
+        /// Polish = 16
+        /// </summary>
+        /// <returns></returns>
+        private string GetDefaultvitaLanguage()
+        {
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
+                { "jp", "0" },
+                { "ja", "0" },
+                { "en", "1" },
+                { "fr", "2" },
+                { "es", "3" },
+                { "de", "4" },
+                { "it", "5" },
+                { "nl", "6" },
+                { "pt", "7" },
+                { "ru", "8" },
+                { "ko", "9" },
+                { "zh", "10" },
+                { "pl", "16" }
+            };
+
+            // Special case for Taiwanese which is zh_TW
+            if (SystemConfig["Language"] == "zh_TW")
+                return "11";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang))
+            {
+                if (availableLanguages.TryGetValue(lang, out string ret))
+                    return ret;
+            }
+
+            return "1";
         }
 
         private bool GetVita3kPrefPath(string path)
