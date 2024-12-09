@@ -19,6 +19,12 @@ namespace EmulatorLauncher
             ConfigureAtari7800(coreSyncSettings, core);
             ConfigureJaguar(coreSyncSettings, core);
 
+            // INTV
+            Configureintv(coreSyncSettings, core);
+
+            // channelF
+            ConfigurechannelF(coreSyncSettings, core);
+
             // NES
             ConfigureQuickNES(coreSyncSettings, core);
             ConfigureNesHawk(json, coreSyncSettings, core, system);
@@ -152,6 +158,45 @@ namespace EmulatorLauncher
             jaguarSync["P2Active"] = "true";
 
             BindBoolFeature(jaguarSync, "NTSC", "bizhawk_jaguar_forcePAL", "false", "true");
+        }
+
+        private void Configureintv(DynamicJson coreSyncSettings, string core)
+        {
+            if (core != "IntelliHawk")
+                return;
+
+            var intvSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Intellivision.Intellivision");
+            intvSync["$type"] = "BizHawk.Emulation.Cores.Intellivision.Intellivision+IntvSyncSettings, BizHawk.Emulation.Cores";
+
+            if (Program.SystemConfig.isOptSet("bizhawk_intv_padtype") && !string.IsNullOrEmpty(Program.SystemConfig["bizhawk_intv_padtype"]))
+            {
+                intvSync["_port1"] = Program.SystemConfig["bizhawk_intv_padtype"];
+                intvSync["_port2"] = Program.SystemConfig["bizhawk_intv_padtype"];
+            }
+            else
+            {
+                intvSync["_port1"] = "Standard (Analog Disc)";
+                intvSync["_port2"] = "Standard (Analog Disc)";
+            }
+        }
+
+        private void ConfigurechannelF(DynamicJson coreSyncSettings, string core)
+        {
+            if (core != "ChannelFHawk")
+                return;
+
+            var channelfSync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Consoles.ChannelF.ChannelF");
+            channelfSync["$type"] = "BizHawk.Emulation.Cores.Consoles.ChannelF.ChannelF+ChannelFSyncSettings, BizHawk.Emulation.Cores";
+
+            if (Program.SystemConfig.isOptSet("bizhawk_channelf_region") && !string.IsNullOrEmpty(Program.SystemConfig["bizhawk_channelf_region"]))
+                channelfSync["Region"] = Program.SystemConfig["bizhawk_channelf_region"];
+            else
+                channelfSync["Region"] = "0";
+
+            if (Program.SystemConfig.isOptSet("bizhawk_channelf_version") && !string.IsNullOrEmpty(Program.SystemConfig["bizhawk_channelf_version"]))
+                channelfSync["Version"] = Program.SystemConfig["bizhawk_channelf_version"];
+            else
+                channelfSync["Version"] = "0";
         }
 
         private void ConfigureQuickNES(DynamicJson coreSyncSettings, string core)

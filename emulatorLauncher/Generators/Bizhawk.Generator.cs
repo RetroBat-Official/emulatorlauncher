@@ -18,7 +18,7 @@ namespace EmulatorLauncher
 
         private static readonly List<string> preferredRomExtensions = new List<string>() { ".bin", ".cue", ".img", ".iso", ".rom" };
         private static readonly List<string> zipSystems = new List<string>() { "3ds", "psx", "saturn", "n64", "n64dd", "pcenginecd", "jaguarcd", "vectrex", "odyssey2", "uzebox" };
-        private static List<string> _mdSystems = new List<string>() { "genesis", "mega32x", "megacd", "megadrive", "sega32x", "segacd" };
+        private static readonly List<string> _mdSystems = new List<string>() { "genesis", "mega32x", "megacd", "megadrive", "sega32x", "segacd" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -413,6 +413,20 @@ namespace EmulatorLauncher
                     firmware["A78+Bios_NTSC"] = ntscBios;
             }
 
+            if (system == "channelf")
+            {
+                // ChannelF firmware
+                string sl131253 = Path.Combine(AppConfig.GetFullPath("bios"), "sl131253.bin");
+                if (File.Exists(sl131253))
+                    firmware["ChannelF+ChannelF_sl131253"] = sl131253;
+                string sl131254 = Path.Combine(AppConfig.GetFullPath("bios"), "sl131254.bin");
+                if (File.Exists(sl131254))
+                    firmware["ChannelF+ChannelF_sl131254"] = sl131254;
+                string sl90025 = Path.Combine(AppConfig.GetFullPath("bios"), "sl90025.bin");
+                if (File.Exists(sl90025))
+                    firmware["ChannelF+ChannelF_sl90025"] = sl90025;
+            }
+
             if (system == "colecovision")
             {
                 // Colecovision firmware
@@ -449,6 +463,17 @@ namespace EmulatorLauncher
                 string gbcBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "gbc_bios.bin");
                 if (File.Exists(gbcBiosPath))
                     firmware["GBC+World"] = gbcBiosPath;
+            }
+
+            if (system == "intellivision")
+            {
+                // Intellivision firmware
+                string eromBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "exec.bin");
+                if (File.Exists(eromBiosPath))
+                    firmware["INTV+EROM"] = eromBiosPath;
+                string gromBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "grom.bin");
+                if (File.Exists(gromBiosPath))
+                    firmware["INTV+GROM"] = gromBiosPath;
             }
 
             if (system == "lynx")
