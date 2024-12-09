@@ -22,6 +22,7 @@ namespace EmulatorLauncher
             { "AppleII", 1 },
             { "Ares64", 4 },
             { "BSNES", 8 },
+            { "ChannelFHawk", 2 },
             { "Coleco", 2 },
             { "Cygne", 1 },
             { "Encore", 1 },
@@ -31,6 +32,7 @@ namespace EmulatorLauncher
             { "Genplus-gx", 8 },
             { "Handy", 1 },
             { "HyperNyma", 5 },
+            { "IntelliHawk", 2 },
             { "Jaguar", 2 },
             { "Lynx", 1 },
             { "mGBA", 1 },
@@ -132,7 +134,6 @@ namespace EmulatorLauncher
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
 
-
             // Define mapping to use
             InputKeyMapping mapping = mappingToUse[system];
 
@@ -161,6 +162,14 @@ namespace EmulatorLauncher
 
             // Perform mapping
             int playerIndex = controller.PlayerIndex;
+            if (Features.IsSupported("bizhawk_swapcontrols") && Program.SystemConfig.getOptBoolean("bizhawk_swapcontrols"))
+            {
+                if (controller.PlayerIndex == 1)
+                    playerIndex = 2;
+                else if (controller.PlayerIndex == 2)
+                    playerIndex = 1;
+            }
+
             int index = controller.SdlController != null ? controller.SdlController.Index + 1 : controller.DeviceIndex + 1;
             string guid = controller.Guid.ToString().ToLowerInvariant();
             bool isDInput = false;
@@ -308,7 +317,7 @@ namespace EmulatorLauncher
             BypassMDControllers:
 
             // Special treatment for Saturn controllers
-            MegadriveController saturnGamepad = null;
+            MegadriveController saturnGamepad;
             bool saturnControllerFound = false;
             bool needSATActivationSwitch = false;
             bool sat_pad = Program.SystemConfig.getOptBoolean("saturn_pad");
@@ -420,6 +429,34 @@ namespace EmulatorLauncher
                 {
                     controllerConfig["BW"] = "";
                     controllerConfig["Pause"] = "";
+                }
+            }
+
+            if (system == "channelf")
+            {
+                controllerConfig["TIME"] = isDInput? "J" + index + " " + GetDInputKeyName(controller, InputKey.l3) : "X" + index + " " + GetXInputKeyName(controller, InputKey.l3);
+                controllerConfig["MODE"] = isDInput ? "J" + index + " " + GetDInputKeyName(controller, InputKey.r3) : "X" + index + " " + GetXInputKeyName(controller, InputKey.r3);
+                controllerConfig["HOLD"] = isDInput ? "J" + index + " " + GetDInputKeyName(controller, InputKey.select) : "X" + index + " " + GetXInputKeyName(controller, InputKey.select);
+                controllerConfig["START"] = isDInput ? "J" + index + " " + GetDInputKeyName(controller, InputKey.start) : "X" + index + " " + GetXInputKeyName(controller, InputKey.start);
+                controllerConfig["RESET"] = "Backspace";
+
+                if (!isDInput)
+                {
+                    if (!string.IsNullOrEmpty(GetXInputKeyName(controller, InputKey.leftanalogup)))
+                    {
+                        controllerConfig["P" + playerIndex + " Forward"] += ", " + "X" + playerIndex + " " + GetXInputKeyName(controller, InputKey.leftanalogup);
+                        controllerConfig["P" + playerIndex + " Back"] += ", " + "X" + playerIndex + " " + GetXInputKeyName(controller, InputKey.leftanalogdown);
+                        controllerConfig["P" + playerIndex + " Left"] += ", " + "X" + playerIndex + " " + GetXInputKeyName(controller, InputKey.leftanalogleft);
+                        controllerConfig["P" + playerIndex + " Right"] += ", " + "X" + playerIndex + " " + GetXInputKeyName(controller, InputKey.leftanalogright);
+                    }
+
+                    if (!string.IsNullOrEmpty(GetXInputKeyName(controller, InputKey.rightanalogup)))
+                    {
+                        controllerConfig["P" + playerIndex + " CCW"] += ", " + "X" + playerIndex + " " + GetXInputKeyName(controller, InputKey.rightanalogleft);
+                        controllerConfig["P" + playerIndex + " CW"] += ", " + "X" + playerIndex + " " + GetXInputKeyName(controller, InputKey.rightanalogright);
+                        controllerConfig["P" + playerIndex + " Pull"] += ", " + "X" + playerIndex + " " + GetXInputKeyName(controller, InputKey.rightanalogup);
+                        controllerConfig["P" + playerIndex + " Push"] += ", " + "X" + playerIndex + " " + GetXInputKeyName(controller, InputKey.rightanalogdown);
+                    }
                 }
             }
 
@@ -651,6 +688,35 @@ namespace EmulatorLauncher
                 controllerConfig["Tilt"] = "WMouse R";
             }
 
+            if (system == "intellivision")
+            {
+                var discx = analogConfig.GetOrCreateContainer("P" + playerIndex + " Disc X");
+                var discy = analogConfig.GetOrCreateContainer("P" + playerIndex + " Disc Y");
+
+                discx["Value"] = "X" + index + " LeftThumbX Axis";
+                discx.SetObject("Mult", 1.0);
+                discx.SetObject("Deadzone", deadzone);
+
+                discy["Value"] = "X" + index + " LeftThumbY Axis";
+                discy.SetObject("Mult", 1.0);
+                discy.SetObject("Deadzone", deadzone);
+
+                if (Program.SystemConfig.getOptBoolean("bizhawk_intv_swapcontrols"))
+                {
+                    var discx1 = analogConfig.GetOrCreateContainer("P1 Disc X");
+                    var discy1 = analogConfig.GetOrCreateContainer("P1 Disc Y");
+                    discx1["Value"] = "";
+                    discy1["Value"] = "";
+                }
+                else
+                {
+                    var discx2 = analogConfig.GetOrCreateContainer("P2 Disc X");
+                    var discy2 = analogConfig.GetOrCreateContainer("P2 Disc Y");
+                    discx2["Value"] = "";
+                    discy2["Value"] = "";
+                }
+            }
+
             if (system == "nds")
             {
                 var xAxis = analogConfig.GetOrCreateContainer("Touch X");
@@ -815,6 +881,54 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (system == "channelf")
+            {
+                controllerConfig["TIME"] = "T";
+                controllerConfig["MODE"] = "M";
+                controllerConfig["HOLD"] = "Space";
+                controllerConfig["START"] = "Enter";
+                controllerConfig["RESET"] = "Backspace";
+
+                if (Program.SystemConfig.getOptBoolean("bizhawk_swapcontrols"))
+                {
+                    controllerConfig["P1 Forward"] = "Keypad8";
+                    controllerConfig["P1 Back"] = "Keypad2";
+                    controllerConfig["P1 Left"] = "Keypad4";
+                    controllerConfig["P1 Right"] = "Keypad6";
+                    controllerConfig["P1 CCW"] = "Left";
+                    controllerConfig["P1 CW"] = "Right";
+                    controllerConfig["P1 Pull"] = "Up";
+                    controllerConfig["P1 Push"] = "Down";
+                    controllerConfig["P2 Forward"] = "W";
+                    controllerConfig["P2 Back"] = "S";
+                    controllerConfig["P2 Left"] = "A";
+                    controllerConfig["P2 Right"] = "D";
+                    controllerConfig["P2 CCW"] = "J";
+                    controllerConfig["P2 CW"] = "L";
+                    controllerConfig["P2 Pull"] = "I";
+                    controllerConfig["P2 Push"] = "K";
+                }
+                else
+                {
+                    controllerConfig["P1 Forward"] = "W";
+                    controllerConfig["P1 Back"] = "S";
+                    controllerConfig["P1 Left"] = "A";
+                    controllerConfig["P1 Right"] = "D";
+                    controllerConfig["P1 CCW"] = "J";
+                    controllerConfig["P1 CW"] = "L";
+                    controllerConfig["P1 Pull"] = "I";
+                    controllerConfig["P1 Push"] = "K";
+                    controllerConfig["P2 Forward"] = "Keypad8";
+                    controllerConfig["P2 Back"] = "Keypad2";
+                    controllerConfig["P2 Left"] = "Keypad4";
+                    controllerConfig["P2 Right"] = "Keypad6";
+                    controllerConfig["P2 CCW"] = "Left";
+                    controllerConfig["P2 CW"] = "Right";
+                    controllerConfig["P2 Pull"] = "Up";
+                    controllerConfig["P2 Push"] = "Down";
+                }
+            }
+
             if (system == "colecovision")
             {
                 controllerConfig["P1 Key 0"] = "Number0";
@@ -831,6 +945,72 @@ namespace EmulatorLauncher
                 controllerConfig["P1 Pound"] = "Plus";
                 controllerConfig["P2 Star"] = "";
                 controllerConfig["P2 Pound"] = "";
+            }
+
+            if (system == "intellivision")
+            {
+                if (Program.SystemConfig.getOptBoolean("bizhawk_swapcontrols"))
+                {
+                    controllerConfig["P2 Key 0"] = "Number0";
+                    controllerConfig["P2 Key 1"] = "Number1";
+                    controllerConfig["P2 Key 2"] = "Number2";
+                    controllerConfig["P2 Key 3"] = "Number3";
+                    controllerConfig["P2 Key 4"] = "Number4";
+                    controllerConfig["P2 Key 5"] = "Number5";
+                    controllerConfig["P2 Key 6"] = "Number6";
+                    controllerConfig["P2 Key 7"] = "Number7";
+                    controllerConfig["P2 Key 8"] = "Number8";
+                    controllerConfig["P2 Key 9"] = "Number9";
+                    controllerConfig["P2 Enter"] = "Enter";
+                    controllerConfig["P2 Clear"] = "Backspace";
+
+                    var discx = analogConfig.GetOrCreateContainer("P2 Disc X");
+                    var discy = analogConfig.GetOrCreateContainer("P2 Disc Y");
+
+                    discx["Value"] = "WMouse X";
+                    discx.SetObject("Mult", 1.0);
+                    discx.SetObject("Deadzone", 0.0);
+
+                    discy["Value"] = "WMouse Y";
+                    discy.SetObject("Mult", 1.0);
+                    discy.SetObject("Deadzone", 0.0);
+
+                    var discx1 = analogConfig.GetOrCreateContainer("P1 Disc X");
+                    var discy1 = analogConfig.GetOrCreateContainer("P1 Disc Y");
+                    discx1["Value"] = "";
+                    discy1["Value"] = "";
+                }
+                else
+                {
+                    controllerConfig["P1 Key 0"] = "Number0";
+                    controllerConfig["P1 Key 1"] = "Number1";
+                    controllerConfig["P1 Key 2"] = "Number2";
+                    controllerConfig["P1 Key 3"] = "Number3";
+                    controllerConfig["P1 Key 4"] = "Number4";
+                    controllerConfig["P1 Key 5"] = "Number5";
+                    controllerConfig["P1 Key 6"] = "Number6";
+                    controllerConfig["P1 Key 7"] = "Number7";
+                    controllerConfig["P1 Key 8"] = "Number8";
+                    controllerConfig["P1 Key 9"] = "Number9";
+                    controllerConfig["P1 Enter"] = "Enter";
+                    controllerConfig["P1 Clear"] = "Backspace";
+
+                    var discx = analogConfig.GetOrCreateContainer("P1 Disc X");
+                    var discy = analogConfig.GetOrCreateContainer("P1 Disc Y");
+
+                    discx["Value"] = "WMouse X";
+                    discx.SetObject("Mult", 1.0);
+                    discx.SetObject("Deadzone", 0.0);
+
+                    discy["Value"] = "WMouse Y";
+                    discy.SetObject("Mult", 1.0);
+                    discy.SetObject("Deadzone", 0.0);
+
+                    var discx2 = analogConfig.GetOrCreateContainer("P2 Disc X");
+                    var discy2 = analogConfig.GetOrCreateContainer("P2 Disc Y");
+                    discx2["Value"] = "";
+                    discy2["Value"] = "";
+                }
             }
 
             if (system == "jaguar")
@@ -974,6 +1154,18 @@ namespace EmulatorLauncher
             { InputKey.a,               "Button" }
         };
 
+        private static readonly InputKeyMapping channelfMapping = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Forward"},
+            { InputKey.down,                "Back"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.y,                   "CCW" },
+            { InputKey.b,                   "CW" },
+            { InputKey.x,                   "Pull" },
+            { InputKey.a,                   "Push" }
+        };
+
         private static readonly InputKeyMapping colecoMapping = new InputKeyMapping()
         {
             { InputKey.up,                  "Up"},
@@ -1109,6 +1301,29 @@ namespace EmulatorLauncher
             { InputKey.a,               "B1" },
             { InputKey.b,               "B2" },
             { InputKey.start,           "Start" }
+        };
+
+        private static readonly InputKeyMapping intvMapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "L" },
+            { InputKey.b,               "R" },
+            { InputKey.start,           "Enter" },
+            { InputKey.select,          "Clear" },
+            { InputKey.y,               "Top" },
+            { InputKey.x,               "Key 0" },
+            { InputKey.pageup,          "Key 1" },
+            { InputKey.rightanalogup,   "Key 2" },
+            { InputKey.pagedown,        "Key 3" },
+            { InputKey.rightanalogleft, "Key 4" },
+            { InputKey.r3,              "Key 5" },
+            { InputKey.rightanalogright,"Key 6" },
+            { InputKey.l2,              "Key 7" },
+            { InputKey.rightanalogdown, "Key 8" },
+            { InputKey.r2,              "Key 9" },
         };
 
         private static readonly InputKeyMapping jaguarMapping = new InputKeyMapping()
@@ -1826,10 +2041,12 @@ namespace EmulatorLauncher
             { "atari2600", "Atari 2600 Basic Controller" },
             { "atari7800", "Atari 7800 Basic Controller" },
             { "c64", "Commodore 64 Controller" },
+            { "channelf", "ChannelF Controller" },
             { "colecovision", "ColecoVision Basic Controller" },
             { "gamegear", "GG Controller" },
             { "gb", "Gameboy Controller" },
             { "gba", "GBA Controller" },
+            { "intellivision", "Intellivision Controller" },
             { "jaguar", "Jaguar Controller" },
             { "jaguarcd", "Jaguar Controller" },
             { "lynx", "Lynx Controller" },
@@ -1864,11 +2081,13 @@ namespace EmulatorLauncher
             { "3ds", n3dsMapping },
             { "atari2600", atariMapping },
             { "atari7800", atariMapping },
+            { "channelf", channelfMapping },
             { "colecovision", colecoMapping },
             { "gamegear", ggMapping },
             { "gb", gbMapping },
             { "gba", gbaMapping },
             { "gbc", gbMapping },
+            { "intellivision", intvMapping },
             { "jaguar", jaguarMapping },
             { "jaguarcd", jaguarMapping },
             { "lynx", lynxMapping },
