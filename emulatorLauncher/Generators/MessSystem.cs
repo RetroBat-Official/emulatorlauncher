@@ -834,13 +834,15 @@ namespace EmulatorLauncher
             }
 
             // Autostart computer games where applicable
-            // User autostart if autorun file exists
+            // Use autostart if autorun file exists
             var romname = Path.GetFileNameWithoutExtension(rom);
             string autorunFile = Path.Combine(Path.GetDirectoryName(rom), romname + ".autorun");
             string bootCommand = null;
             string bootDelay = "3";
             var romMedia = this.GetRomType(rom);
             string hashfile = null;
+            int startIndex = romname.IndexOf('[');
+            int endIndex = romname.IndexOf(']');
 
             if (SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
                 hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", SystemConfig["force_softlist"] + ".xml");
@@ -850,6 +852,7 @@ namespace EmulatorLauncher
                 hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", romMedia  + ".xml");
             }
 
+            // autorun file exists
             if (File.Exists(autorunFile))
             {
                 if (File.ReadAllLines(autorunFile) != null)
@@ -881,7 +884,7 @@ namespace EmulatorLauncher
 
                     if (commandElement != null)
                     {
-                        
+
                         string command = commandElement.Attribute("value").Value + "\\n";
                         if (romMedia == "bbc_cass")
                         {
@@ -946,6 +949,18 @@ namespace EmulatorLauncher
                     commandArray.Add("*CAT\\n\\n\\n\\n\\n\\n\\n*RUN!BOOT\\n");*/
                 }
             }
+            // Use command between brackets if specified
+            else if (SystemConfig.getOptBoolean("mess_hashboot") && startIndex != -1 && endIndex != -1 && startIndex < endIndex)
+            {
+                string textInsideBrackets = romname.Substring(startIndex + 1, endIndex - startIndex - 1);
+
+                if (system == "bbcmicro")
+                {
+                    bootDelay = "3";
+                    bootCommand = "chain\\\"" + textInsideBrackets + "\\\"\\n";
+                }
+            }
+
             else
             {
                 var autoRunCommand = SystemConfig.isOptSet("altromtype") ? GetAutoBootForRomType(SystemConfig["altromtype"]) : GetAutoBoot(rom);
@@ -963,7 +978,7 @@ namespace EmulatorLauncher
             {
                 if (standalone)
                 {
-                    if (SystemConfig.isOptSet("noread_ini") && SystemConfig["noread_ini"] == "0" && File.Exists(inipath))
+                    if (!SystemConfig.isOptSet("noread_ini") || SystemConfig["noread_ini"] != "0")
                     {
                         var ini = MameIniFile.FromFile(inipath);
                         {
@@ -982,7 +997,7 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    if (SystemConfig.isOptSet("mame_read_config") && SystemConfig.getOptBoolean("mame_read_config") && File.Exists(inipath))
+                    if (!SystemConfig.isOptSet("mame_read_config") || SystemConfig["mame_read_config"] != "1")
                     {
                         var ini = MameIniFile.FromFile(inipath);
                         {

@@ -8,6 +8,9 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibretroControllers
     {
+        // Used to automatically map special controllers like N64, saturn, megadrive
+        // The mapping is forced from json file located in retrobat\system\resources\inputmapping
+
         private static bool performSpecialMapping(out Dictionary<string, string> inputConfig, string system, Controller controller, ConfigFile retroconfig)
         {
             inputConfig = new Dictionary<string, string>();

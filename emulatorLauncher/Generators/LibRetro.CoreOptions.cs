@@ -23,6 +23,7 @@ namespace EmulatorLauncher.Libretro
                 { "advanced_tests", "Advanced Test" },
                 { "arduous", "Arduous" },
                 { "atari800", "Atari800" },
+                { "b2", "B2" },
                 { "bk", "bk" },
                 { "blastem", "BlastEm" },
                 { "bluemsx", "blueMSX" },
@@ -303,6 +304,7 @@ namespace EmulatorLauncher.Libretro
             Configure81(retroarchConfig, coreSettings, system, core);
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
+            ConfigureB2(retroarchConfig, coreSettings, system, core);
             ConfigureBoom3(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
@@ -655,6 +657,14 @@ namespace EmulatorLauncher.Libretro
             }
 
             atariCfg.Save(Path.Combine(RetroarchPath, ".atari800.cfg"), false);
+        }
+
+        private void ConfigureB2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "b2")
+                return;
+
+            BindFeature(coreSettings, "b2_model", "b2_model", "B/Acorn 1770");
         }
 
         private void ConfigureBoom3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
