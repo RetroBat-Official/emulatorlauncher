@@ -115,6 +115,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("General", "FirstRun", "False");
                     ini.WriteValue("Control", "AllowMappingCombos", "True");
 
+                    BindBoolIniFeature(ini, "General", "EnableCheats", "ppsspp_cheats", "True", "False");
+
                     // Make it complex for the user to run another game using the UI ( related to the way the savestates monitor works )
                     ini.WriteValue("General", "CurrentDirectory", Path.Combine(AppConfig.GetFullPath("roms"), "psp").Replace("\\", "/"));
                     ini.ClearSection("Recent");

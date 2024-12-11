@@ -5,6 +5,7 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -17,6 +18,8 @@ namespace EmulatorLauncher
 
         private bool _startBios;
         private string _multitap;
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -29,6 +32,11 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             _startBios = SystemConfig.getOptBoolean("saturn_startbios");
+
+            if (fullscreen)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+
+            _resolution = resolution;
 
             var commandArray = new List<string>();
 
@@ -69,7 +77,7 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + rom + "\"");
             }
             
-            commandArray.Add("-a");                 // autostart
+            //commandArray.Add("-a");                 // autostart
             if (fullscreen)
                 commandArray.Add("-f");
 
@@ -119,7 +127,6 @@ namespace EmulatorLauncher
                     {
                         { "General\\SaveStates", Path.Combine(AppConfig.GetFullPath("saves"), system, "kronos", "sstates") },
                         { "General\\ScreenshotsDirectory", Path.Combine(AppConfig.GetFullPath("screenshots"), "kronos") },
-                        { "Memory\\Path", Path.Combine(AppConfig.GetFullPath("saves"), system,  "kronos", "bkram.bin") }
                     };
                     
                     foreach (KeyValuePair<string, string> pair in userPath)
@@ -129,6 +136,15 @@ namespace EmulatorLauncher
                         if (!string.IsNullOrEmpty(pair.Value) && Directory.Exists(pair.Value))
                             ini.WriteValue("1.0", pair.Key, pair.Value.Replace("\\", "/"));
                     }
+
+                    // bkram
+                    string bkramPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "kronos");
+                    if (!Directory.Exists(bkramPath)) try { Directory.CreateDirectory(bkramPath); }
+                        catch { }
+
+                    string bkram = Path.Combine(bkramPath, "bkram.bin");
+
+                    ini.WriteValue("1.0", "Memory\\Path", bkram.Replace("\\", "/"));
 
                     // Bios
                     string bios = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
@@ -157,9 +173,9 @@ namespace EmulatorLauncher
                     
                     // Features
                     ini.WriteValue("1.0", "General\\CdRom", "1");
-                    ini.AppendValue("1.0", "General\\CdRomISO", rom.Replace("\\", "/"));
+                    ini.AppendValue("1.0", "General\\CdRomISO", null);
                     ini.WriteValue("1.0", "View\\Toolbar", "1");
-                    ini.WriteValue("1.0", "General\\EnableEmulatedBios", "false");
+                    BindBoolIniFeature(ini, "1.0", "General\\EnableEmulatedBios", "kronos_hle_bios", "true", "false");
                     ini.WriteValue("1.0", "Video\\VideoCore", "2");
                     ini.WriteValue("1.0", "Video\\OSDCore", "3");
                     ini.WriteValue("1.0", "Advanced\\SH2Interpreter", "8");
@@ -205,6 +221,44 @@ namespace EmulatorLauncher
             ini.WriteValue("1.0", "Input\\Port\\" + gunport + "\\Id\\1\\Controller\\37\\Key\\25", gunInvert ? "2147483650" : "2147483649");
             ini.WriteValue("1.0", "Input\\Port\\" + gunport + "\\Id\\1\\Controller\\37\\Key\\27", gunInvert ? "2147483649" : "2147483650");
             ini.WriteValue("1.0", "Input\\GunMouseSensitivity", "100");
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            var process = Process.Start(path);
+
+            while (process != null)
+            {
+                if (process.WaitForExit(50))
+                {
+                    process = null;
+                    break;
+                }
+
+                //get emulator window and send F1 to start the game
+                var hWnd = User32.FindHwnd(process.Id);
+                if (hWnd == IntPtr.Zero)
+                    continue;
+                System.Threading.Thread.Sleep(500);
+
+                SendKeys.SendWait("{F1}");
+
+                break;
+            }
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+            if (process != null)
+                process.WaitForExit();
+            if (bezel != null)
+                bezel.Dispose();
+
+            process.WaitForExit();
+            int exitCode = process.ExitCode;
+
+            return exitCode;
         }
     }
 }

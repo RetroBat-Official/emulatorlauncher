@@ -7,6 +7,11 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
+        // Used to get user specific remap files from inputmapping yml file
+        // Used to managed Retroarch remaps and align controls between several cores (Retrobat default remaps)
+        // Used for options to invert buttons, etc.
+
+
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb", "gb-msu" };
         static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds", "mastersystem" };
         static readonly List<string> systemMegadrive = new List<string>() { "genesis", "megadrive", "megadrive-msu", "sega32x", "segacd" };

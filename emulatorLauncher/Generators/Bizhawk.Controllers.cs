@@ -11,6 +11,19 @@ namespace EmulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {
+        /* When adding new Bizhawk core/system:
+         * - Fill inputPortNb (check in bizhawk number of controllers for the system - don't forget multitaps)
+         * - Fill systemController dictionnary (with the name of the controller found in config.ini)
+         * - Fill mappingToUse dictionnary and add a default mapping (check config.ini)
+         * - If only 1 player fill systemMonoPlayer list (this is used to remove P1 for controls)
+         * - If system is a computer, fill computersystem list
+         * - Configure both keyboard and joystick (use standard bizhawk mappings if necessary)
+         * - It's possible to map multiple buttons/keys to a single target button (separated by ", " : example channelf)
+         * - If there are buttons on the console (without P1 for example : they need to be configured in the joystick "Specifics" region)
+         * - Analog controls need to be specified in the specific analog section
+         * - Bizhawk treats all gamepads as XInput except the gamepads not known by SDL (these are treated as dinput)
+        */
+
         private static readonly List<string> systemMonoPlayer = new List<string>() { "3ds", "apple2", "gb", "gbc", "gba", "lynx", "nds" };
         private static readonly List<string> computersystem = new List<string>() { "apple2" };
 

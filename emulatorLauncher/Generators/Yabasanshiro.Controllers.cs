@@ -193,19 +193,26 @@ namespace EmulatorLauncher
 
             BypassSATControllers:
 
-            bool isXInput = ctrl.IsXInputDevice;
-
-            
-
             string padlayout = "lr_yz";
             if (SystemConfig.isOptSet("yaba_padlayout") && !string.IsNullOrEmpty(SystemConfig["yaba_padlayout"]))
                 padlayout = SystemConfig["yaba_padlayout"];
 
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", cType);
-            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\0", GetInputKeyName(ctrl, InputKey.up, index));
-            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\1", GetInputKeyName(ctrl, InputKey.right, index));
-            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\2", GetInputKeyName(ctrl, InputKey.down, index));
-            ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\3", GetInputKeyName(ctrl, InputKey.left, index));
+
+            if (SystemConfig.isOptSet("yaba_leftstick") && SystemConfig.getOptBoolean("yaba_leftstick"))
+            {
+                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\0", GetInputKeyName(ctrl, InputKey.leftanalogup, index));
+                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\1", GetInputKeyName(ctrl, InputKey.leftanalogright, index));
+                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\2", GetInputKeyName(ctrl, InputKey.leftanalogdown, index));
+                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\3", GetInputKeyName(ctrl, InputKey.leftanalogleft, index));
+            }
+            else
+            {
+                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\0", GetInputKeyName(ctrl, InputKey.up, index));
+                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\1", GetInputKeyName(ctrl, InputKey.right, index));
+                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\2", GetInputKeyName(ctrl, InputKey.down, index));
+                ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\3", GetInputKeyName(ctrl, InputKey.left, index));
+            }
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\4", GetInputKeyName(ctrl, InputKey.r2, index, true));
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\5", GetInputKeyName(ctrl, InputKey.l2, index, true));
             ini.WriteValue("0.9.11", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\6", GetInputKeyName(ctrl, InputKey.start, index));
@@ -231,6 +238,7 @@ namespace EmulatorLauncher
 
         private static string GetInputKeyName(Controller c, InputKey key, int index, bool trigger = false)
         {
+            key = key.GetRevertedAxis(out bool revertAxis);
             Int64 pid;
             string ret = "";
 
@@ -254,10 +262,10 @@ namespace EmulatorLauncher
                     }
                     else
                     {
-                        if (input.Value > 0)
-                            ret = ((index << 18) + 0x110000 + pid).ToString();
-                        else
+                        if (input.Value > 0 || revertAxis)
                             ret = ((index << 18) + 0x100000 + pid).ToString();
+                        else
+                            ret = ((index << 18) + 0x110000 + pid).ToString();
                     }
                     return ret;
                 }

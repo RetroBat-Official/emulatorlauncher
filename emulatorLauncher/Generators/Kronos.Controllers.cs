@@ -5,6 +5,8 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using System.Globalization;
 using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common;
+using System.IO;
 
 namespace EmulatorLauncher
 {
@@ -79,23 +81,113 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            string port = GetControllerPort(playerindex);
+            string controllerId = GetControllerId(playerindex);
+            string cType = "2";
             int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
+            bool isXinput = ctrl.IsXInputDevice;
+
+            // Special mapping for saturn-like controllers in json file
+            string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
+            bool needSatActivationSwitch = false;
+            bool sat_pad = Program.SystemConfig["saturn_pad_kronos"] == "1" || Program.SystemConfig["saturn_pad_kronos"] == "2";
+
+            string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+            if (File.Exists(saturnjson))
+            {
+                try
+                {
+                    var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
+
+                    if (saturnControllers != null)
+                    {
+                        MegadriveController saturnGamepad = MegadriveController.GetMDController("kronos", guid, saturnControllers);
+
+                        if (saturnGamepad != null)
+                        {
+                            if (saturnGamepad.ControllerInfo != null)
+                            {
+                                if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needSatActivationSwitch && !sat_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific Saturn mapping needs to be activated for this controller.");
+                                    goto BypassSATControllers;
+                                }
+                            }
+
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+
+                            if (saturnGamepad.Mapping != null)
+                            {
+                                bool inputAnal = Program.SystemConfig["saturn_pad_kronos"] == "2";
+
+                                // write mapping here
+                                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", cType);
+
+                                foreach (var button in saturnGamepad.Mapping)
+                                {
+                                    if (inputAnal && digitalKeys.Contains(button.Key))
+                                        continue;
+                                    else if (!inputAnal && analKeys.Contains(button.Key))
+                                        continue;
+
+                                    long.TryParse(button.Value, out long code);
+
+                                    string key = button.Key;
+                                    if (button.Key.StartsWith("anal_"))
+                                        key = button.Key.Substring(5, 1);
+
+                                    if (code >= 0)
+                                    {
+                                        code = (index << 18) + code;
+                                        ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\" + key, code.ToString());
+                                    }
+                                }
+
+                                SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+
+                                return;
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[INFO] Missing mapping for Saturn Gamepad, falling back to standard mapping.");
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                }
+                catch { }
+            }
+
+            BypassSATControllers:
 
             string padlayout = "lr_yz";
             if (SystemConfig.isOptSet("kronos_padlayout") && !string.IsNullOrEmpty(SystemConfig["kronos_padlayout"]))
                 padlayout = SystemConfig["kronos_padlayout"];
 
-            string port = GetControllerPort(playerindex);
-            string controllerId = GetControllerId(playerindex);
-            string cType = "2";
-
             ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", cType);
-            ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\0", GetInputKeyName(ctrl, InputKey.up, index));
-            ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\1", GetInputKeyName(ctrl, InputKey.right, index));
-            ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\2", GetInputKeyName(ctrl, InputKey.down, index));
-            ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\3", GetInputKeyName(ctrl, InputKey.left, index));
-            ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\4", GetInputKeyName(ctrl, InputKey.r2, index));
-            ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\5", GetInputKeyName(ctrl, InputKey.l2, index));
+
+            if (SystemConfig.isOptSet("yaba_leftstick") && SystemConfig.getOptBoolean("yaba_leftstick"))
+            {
+                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\0", GetInputKeyName(ctrl, InputKey.leftanalogup, index));
+                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\1", GetInputKeyName(ctrl, InputKey.leftanalogright, index));
+                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\2", GetInputKeyName(ctrl, InputKey.leftanalogdown, index));
+                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\3", GetInputKeyName(ctrl, InputKey.leftanalogleft, index));
+            }
+            else
+            {
+                
+                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\0", GetInputKeyName(ctrl, InputKey.up, index));
+                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\1", GetInputKeyName(ctrl, InputKey.right, index));
+                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\2", GetInputKeyName(ctrl, InputKey.down, index));
+                ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\3", GetInputKeyName(ctrl, InputKey.left, index));
+            }
+
+            ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\4", GetInputKeyName(ctrl, InputKey.r2, index, isXinput));
+            ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\5", GetInputKeyName(ctrl, InputKey.l2, index, isXinput));
             ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\6", GetInputKeyName(ctrl, InputKey.start, index));
 
             if (padlayout == "lr_xz")
@@ -116,36 +208,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\" + pair.Key, GetInputKeyName(ctrl, pair.Value, index));
             }
         }
-
-        static readonly Dictionary<string, InputKey> lr_yz_profile = new Dictionary<string, InputKey>
-        {
-            { "7", InputKey.y },
-            { "8", InputKey.a },
-            { "9", InputKey.b },
-            { "10", InputKey.x },
-            { "11", InputKey.pageup },
-            { "12", InputKey.pagedown },
-        };
-
-        static readonly Dictionary<string, InputKey> lr_zc_profile = new Dictionary<string, InputKey>
-        {
-            { "7", InputKey.a },
-            { "8", InputKey.b },
-            { "9", InputKey.pagedown },
-            { "10", InputKey.y },
-            { "11", InputKey.x },
-            { "12", InputKey.pageup },
-        };
-
-        static readonly Dictionary<string, InputKey> lr_xz_profile = new Dictionary<string, InputKey>
-        {
-            { "7", InputKey.y },
-            { "8", InputKey.a },
-            { "9", InputKey.b },
-            { "10", InputKey.pageup },
-            { "11", InputKey.x },
-            { "12", InputKey.pagedown },
-        };
 
         private void ConfigureKeyboard(IniFile ini, InputConfig keyboard, int playerindex)
         {
@@ -177,6 +239,120 @@ namespace EmulatorLauncher
                 }
             }
         }
+
+        private static string GetInputKeyName(Controller c, InputKey key, int index, bool isXinput = false)
+        {
+            key = key.GetRevertedAxis(out bool revertAxis);
+            Int64 pid;
+            string ret = "";
+
+            var input = c.Config[key];
+
+            if (input != null)
+            {
+                if (input.Type == "button")
+                {
+                    pid = input.Id + 1;
+                    ret = ((index << 18) + pid).ToString();
+                    return ret;
+                }
+
+                if (input.Type == "axis")
+                {
+                    pid = input.Id;
+
+                    if (isXinput && input.Id == 4)
+                        pid = 2;
+
+                    if (input.Value > 0 || revertAxis)
+                        ret = ((index << 18) + 0x110000 + pid).ToString();
+                    else
+                        ret = ((index << 18) + 0x100000 + pid).ToString();
+
+                    return ret;
+                }
+
+                if (input.Type == "hat")
+                {
+                    pid = input.Value;
+                    ret = ((index << 18) + 0x200000 + (pid << 4)).ToString();
+                    return ret;
+                }
+            }
+            return ret;
+        }
+
+        private void ResetHotkeysToDefault(IniFile ini)
+        {
+            ini.WriteValue("1.0", "Shortcuts\\%26Quitter", "Esc");
+            ini.WriteValue("1.0", "Shortcuts\\L%26ancer", "F1");
+            ini.WriteValue("1.0", "Shortcuts\\%26Pause", "F2");
+            ini.WriteValue("1.0", "Shortcuts\\Sc%26reenshot", "F8");
+            ini.WriteValue("1.0", "Shortcuts\\%26Plein%20Ecran", "F11");
+            ini.WriteValue("1.0", "Shortcuts\\S%26auvegarder%20un%20Etat", "F6");
+            ini.WriteValue("1.0", "Shortcuts\\%26Charger%20un%20Etat", "F7");
+        }
+
+        private string GetControllerPort(int playerindex)
+        {
+            if (_multitap == "both")
+                return multitap_ports[playerindex];
+
+            if (_multitap == "1")
+                return multitap_port1[playerindex];
+
+            if (_multitap == "2")
+                return multitap_port2[playerindex];
+
+            if (playerindex == 1)
+                return "1";
+
+            if (playerindex == 2)
+                return "2";
+
+            return "1";
+        }
+
+        private string GetControllerId(int playerindex)
+        {
+            if (playerindex < 13)
+                return multitap_id[playerindex];
+
+            return "1";
+        }
+
+        private static List<string> digitalKeys = new List<string> { "0", "1", "2", "3" };
+        private static List<string> analKeys = new List<string> { "anal_0", "anal_1", "anal_2", "anal_3" };
+
+        static readonly Dictionary<string, InputKey> lr_yz_profile = new Dictionary<string, InputKey>
+        {
+            { "7", InputKey.y },
+            { "8", InputKey.a },
+            { "9", InputKey.b },
+            { "10", InputKey.x },
+            { "11", InputKey.pageup },
+            { "12", InputKey.pagedown },
+        };
+
+        static readonly Dictionary<string, InputKey> lr_zc_profile = new Dictionary<string, InputKey>
+        {
+            { "7", InputKey.a },
+            { "8", InputKey.b },
+            { "9", InputKey.pagedown },
+            { "10", InputKey.y },
+            { "11", InputKey.x },
+            { "12", InputKey.pageup },
+        };
+
+        static readonly Dictionary<string, InputKey> lr_xz_profile = new Dictionary<string, InputKey>
+        {
+            { "7", InputKey.y },
+            { "8", InputKey.a },
+            { "9", InputKey.b },
+            { "10", InputKey.pageup },
+            { "11", InputKey.x },
+            { "12", InputKey.pagedown },
+        };
 
         static readonly Dictionary<string, string> keyboardMapping = new Dictionary<string, string>
         {
@@ -211,34 +387,6 @@ namespace EmulatorLauncher
             { "11", "83" },                 // S
             { "12", "68" },                 // D
         };
-
-        private string GetControllerPort(int playerindex)
-        {
-            if (_multitap == "both")
-                return multitap_ports[playerindex];
-
-            if (_multitap == "1")
-                return multitap_port1[playerindex];
-
-            if (_multitap == "2")
-                return multitap_port2[playerindex];
-
-            if (playerindex == 1)
-                return "1";
-
-            if (playerindex == 2)
-                return "2";
-
-            return "1";
-        }
-
-        private string GetControllerId(int playerindex)
-        {
-            if (playerindex < 13)
-                return multitap_id[playerindex];
-
-            return "1";
-        }
 
         static readonly Dictionary<int, string> multitap_port1 = new Dictionary<int, string>
         {
@@ -293,50 +441,5 @@ namespace EmulatorLauncher
             { 11, "5" },
             { 12, "6" },
         };
-
-        private static string GetInputKeyName(Controller c, InputKey key, int index)
-        {
-            Int64 pid;
-            string ret = "";
-
-            var input = c.Config[key];
-            if (input != null)
-            {
-                if (input.Type == "button")
-                {
-                    pid = input.Id + 1;
-                    ret = ((index << 18) + pid).ToString();
-                    return ret;
-                }
-
-                if (input.Type == "axis")
-                {
-                    pid = input.Id;
-
-                    if (input.Value > 0)
-                        ret = ((index << 18) + 0x110000 + pid).ToString();
-                    else
-                        ret = ((index << 18) + 0x100000 + pid).ToString();
-                    
-                    return ret;
-                }
-
-                if (input.Type == "hat")
-                {
-                    pid = input.Value;
-                    ret = ((index << 18) + 0x200000 + (pid << 4)).ToString();
-                    return ret;
-                }
-            }
-            return ret;
-        }
-
-        private void ResetHotkeysToDefault(IniFile ini)
-        {
-            ini.WriteValue("1.0", "Shortcuts\\%26Quitter", "Ctrl+Q");
-            ini.WriteValue("1.0", "Shortcuts\\%26Pause", "F1");
-            ini.WriteValue("1.0", "Shortcuts\\Sc%26reenshot", "Ctrl+P");
-            ini.WriteValue("1.0", "Shortcuts\\%26Plein%20Ecran", "Alt+Return");
-        }
     }
 }

@@ -133,7 +133,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("0.9.11", "Advanced\\SH2Interpreter", "3");
                     ini.WriteValue("0.9.11", "Cartridge\\Type", "6");
                     BindIniFeature(ini, "0.9.11", "Video\\VideoCore", "yaba_videocore", "1");
-                    BindBoolIniFeature(ini, "0.9.11", "General\\EnableEmulatedBios", "yaba_hle_bios", "true", "false");
+                    BindBoolIniFeature(ini, "0.9.11", "General\\EnableEmulatedBios", "yabasanshiro_force_hle_bios", "true", "false");
                     BindBoolIniFeature(ini, "0.9.11", "General\\ShowFPS", "yaba_fps", "true", "false");
                     BindBoolIniFeature(ini, "0.9.11", "General\\EnableFrameSkipLimiter", "yaba_frameskip", "true", "false");
                     BindIniFeature(ini, "0.9.11", "Video\\AspectRatio", "yaba_ratio", "0");

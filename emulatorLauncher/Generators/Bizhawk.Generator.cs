@@ -10,6 +10,15 @@ namespace EmulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {
+        /* To add new Bizhawk core/system:
+         * - Fill bizHawkSystems dictionary (check config.ini)
+         * - Fill bizHawkShortSystems dictionary (check config.ini)
+         * - if a firmware is required add in SetupFirmwares
+         * - if bizhawk has multiple cores for a system, fill bizhawkPreferredCore dictionary (check config.ini)
+         * - Add setup of core options if any options exists
+         * - Check Controllers.cs for the controller part
+        */
+
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private string _path;
