@@ -3770,8 +3770,25 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             coreSettings["ppsspp_auto_frameskip"] = "disabled";
-            coreSettings["ppsspp_frameskip"] = "disabled";
-            coreSettings["ppsspp_frameskiptype"] = "Number of frames";
+            if (SystemConfig.isOptSet("ppsspp_frameskip") && !string.IsNullOrEmpty(SystemConfig["ppsspp_frameskip"]) && SystemConfig["ppsspp_frameskip"].ToIntegerString() != "0")
+                coreSettings["ppsspp_frameskip"] = SystemConfig["ppsspp_frameskip"].ToIntegerString();
+            else
+                coreSettings["ppsspp_frameskip"] = "disabled";
+
+            if (SystemConfig.isOptSet("ppsspp_frameskiptype") && !string.IsNullOrEmpty(SystemConfig["ppsspp_frameskiptype"]))
+            {
+                if (SystemConfig["ppsspp_frameskiptype"] == "auto")
+                {
+                    coreSettings["ppsspp_frameskip"] = "1";
+                    coreSettings["ppsspp_frameskiptype"] = "Number of frames";
+                    coreSettings["ppsspp_auto_frameskip"] = "enabled";
+                }
+                else
+                    coreSettings["ppsspp_frameskiptype"] = SystemConfig["ppsspp_frameskiptype"];
+            }
+            else
+                coreSettings["ppsspp_frameskiptype"] = "Number of frames";
+
             coreSettings["ppsspp_locked_cpu_speed"] = "disabled";
 
             if ((Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore")) || !SystemConfig.getOptBoolean("ppsspp_cheats"))
