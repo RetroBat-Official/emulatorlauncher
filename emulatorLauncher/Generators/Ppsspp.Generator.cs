@@ -67,8 +67,8 @@ namespace EmulatorLauncher
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             WriteInstalledFile(path, memPath);
-            SetupConfig(memPath, fullscreen);
-            CreateControllerConfiguration(path, memPath);
+            SetupConfig(memPath, rom, fullscreen);
+            CreateControllerConfiguration(memPath);
 
             var commandArray = new List<string>();
             //commandArray.Add("--escape-exit");
@@ -91,7 +91,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfig(string memPath, bool fullscreen = true)
+        private void SetupConfig(string memPath, string rom, bool fullscreen = true)
         {
             string iniFile = Path.Combine(memPath, "SYSTEM", "ppsspp.ini");
             bool cheevosEnable = Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements");
@@ -114,6 +114,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("General", "CheckForNewVersion", "False");
                     ini.WriteValue("General", "FirstRun", "False");
                     ini.WriteValue("Control", "AllowMappingCombos", "True");
+                    ini.WriteValue("General", "MemStickInserted", "True");
 
                     BindBoolIniFeature(ini, "General", "EnableCheats", "ppsspp_cheats", "True", "False");
 
@@ -124,13 +125,13 @@ namespace EmulatorLauncher
                     // Retroachievements
                     if (cheevosEnable)
                     {
-                        ini.WriteValue("Achievements", "AchievementsUserName", SystemConfig["retroachievements.username"]);
                         ini.WriteValue("Achievements", "AchievementsEnable", "True");
-                        ini.WriteValue("Achievements", "AchievementsEncoreMode", "False");
-                        ini.WriteValue("Achievements", "AchievementsUnofficial", "False");
-                        ini.WriteValue("Achievements", "AchievementsSoundEffects", "True");
-                        ini.WriteValue("Achievements", "AchievementsLogBadMemReads", "False");
                         ini.WriteValue("Achievements", "AchievementsChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "True" : "False");
+                        ini.WriteValue("Achievements", "AchievementsEncoreMode", "False");
+                        //ini.WriteValue("Achievements", "AchievementsUnofficial", "False");
+                        ini.WriteValue("Achievements", "AchievementsLogBadMemReads", "False");
+                        ini.WriteValue("Achievements", "AchievementsUserName", SystemConfig["retroachievements.username"]);
+                        ini.WriteValue("Achievements", "AchievementsSoundEffects", "True");
                     }
                     else
                     {
@@ -177,15 +178,25 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Graphics", "MultiSampleLevel", "0");
 
-                    BindBoolIniFeatureOn(ini, "Graphics", "VSyncInterval", "ppsspp_vsync", "True", "False");
+                    BindBoolIniFeatureOn(ini, "Graphics", "VSync", "ppsspp_vsync", "True", "False");
 
+                    ini.WriteValue("Graphics", "AutoFrameSkip", "False");
                     if (SystemConfig.isOptSet("ppsspp_frame_skipping") && !string.IsNullOrEmpty(SystemConfig["ppsspp_frame_skipping"]))
                         ini.WriteValue("Graphics", "FrameSkip", SystemConfig["ppsspp_frame_skipping"].ToIntegerString());
                     else
                         ini.WriteValue("Graphics", "FrameSkip", "0");
 
                     if (SystemConfig.isOptSet("ppsspp_frameskip_type") && !string.IsNullOrEmpty(SystemConfig["ppsspp_frameskip_type"]))
-                        ini.WriteValue("Graphics", "FrameSkipType", SystemConfig["ppsspp_frameskip_type"]);
+                    {
+                        if (SystemConfig["ppsspp_frameskip_type"] == "auto")
+                        {
+                            ini.WriteValue("Graphics", "FrameSkip", "1");
+                            ini.WriteValue("Graphics", "FrameSkipType", "0");
+                            ini.WriteValue("Graphics", "AutoFrameSkip", "True");
+                        }
+                        else
+                            ini.WriteValue("Graphics", "FrameSkipType", SystemConfig["ppsspp_frameskip_type"]);
+                    }
                     else
                         ini.WriteValue("Graphics", "FrameSkipType", "0");
 
@@ -264,12 +275,29 @@ namespace EmulatorLauncher
 
                     // Discord
                     if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
-                        ini.WriteValue("General", "DiscordPresence", "True");
+                        ini.WriteValue("General", "DiscordRichPresence", "True");
                     else
-                        ini.WriteValue("General", "DiscordPresence", "False");
+                        ini.WriteValue("General", "DiscordRichPresence", "False");
 
                     // Shader Set
-                    if (SystemConfig.isOptSet("ppsspp_shader") && !string.IsNullOrEmpty(SystemConfig["ppsspp_shader"]))
+                    string shaderFile = Path.Combine(Path.GetFullPath(rom), Path.GetFileNameWithoutExtension(rom) + ".shaderlist");
+                    if (File.Exists(shaderFile))
+                    {
+                        string[] shaders = File.ReadAllLines(shaderFile);
+                        if (shaders.Length > 0)
+                        {
+                            int i = 1;
+                            foreach (string sh in shaders)
+                            {
+                                if (!string.IsNullOrEmpty(sh))
+                                {
+                                    ini.WriteValue("PostShaderList", "PostShader" + i, sh);
+                                    i++;
+                                }
+                            }
+                        }
+                    }
+                    else if (SystemConfig.isOptSet("ppsspp_shader") && !string.IsNullOrEmpty(SystemConfig["ppsspp_shader"]))
                         ini.WriteValue("PostShaderList", "PostShader1", SystemConfig["ppsspp_shader"]);
                     else if (Features.IsSupported("ppsspp_shader"))
                         ini.ClearSection("PostShaderList");
