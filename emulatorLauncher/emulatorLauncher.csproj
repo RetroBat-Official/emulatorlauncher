@@ -139,6 +139,10 @@
     <Compile Include="Generators\Citra.Controllers.cs">
       <DependentUpon>Citra.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Citron.Generator.cs" />
+    <Compile Include="Generators\Citron.Controllers.cs">
+      <DependentUpon>Citron.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Cxbx.Generator.cs" />
     <Compile Include="Generators\Cxbx.Controllers.cs">
       <DependentUpon>Cxbx.Generator.cs</DependentUpon>

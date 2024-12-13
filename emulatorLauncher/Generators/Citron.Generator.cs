@@ -6,9 +6,9 @@ using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
-    partial class YuzuGenerator : Generator
+    partial class CitronGenerator : Generator
     {
-        public YuzuGenerator()
+        public CitronGenerator()
         {
             DependsOnDesktopResolution = true;
         }
@@ -20,17 +20,15 @@ namespace EmulatorLauncher
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
-            string path = AppConfig.GetFullPath(emulator.Replace("-", " "));
-            if (string.IsNullOrEmpty(path) && emulator.Contains("-"))
-                path = AppConfig.GetFullPath(emulator);
+            string path = AppConfig.GetFullPath(emulator);
 
-            string exe = Path.Combine(path, "yuzu.exe");
+            string exe = Path.Combine(path, "citron.exe");
             if (!File.Exists(exe))
                 return null;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            SetupConfigurationYuzu(path, rom, fullscreen);
+            SetupConfigurationCitron(path, rom, fullscreen);
 
             var commandArray = new List<string>();
 
@@ -50,7 +48,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfigurationYuzu(string path, string rom, bool fullscreen)
+        private void SetupConfigurationCitron(string path, string rom, bool fullscreen)
         {
             if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
@@ -105,17 +103,17 @@ namespace EmulatorLauncher
                 }*/
 
                 ini.WriteValue("System", "language_index\\default", "false");
-                if (SystemConfig.isOptSet("yuzu_language") && !string.IsNullOrEmpty(SystemConfig["yuzu_language"]))
-                    ini.WriteValue("System", "language_index", SystemConfig["yuzu_language"]);
+                if (SystemConfig.isOptSet("citron_language") && !string.IsNullOrEmpty(SystemConfig["citron_language"]))
+                    ini.WriteValue("System", "language_index", SystemConfig["citron_language"]);
                 else
                     ini.WriteValue("System", "language_index", GetDefaultswitchLanguage());
 
-                if (SystemConfig.isOptSet("yuzu_region_value") && !string.IsNullOrEmpty(SystemConfig["yuzu_region_value"]) && SystemConfig["yuzu_region_value"] != "1")
+                if (SystemConfig.isOptSet("citron_region_value") && !string.IsNullOrEmpty(SystemConfig["citron_region_value"]) && SystemConfig["citron_region_value"] != "1")
                 {
                     ini.WriteValue("System", "region_index\\default", "false");
-                    ini.WriteValue("System", "region_index", SystemConfig["yuzu_region_value"]);
+                    ini.WriteValue("System", "region_index", SystemConfig["citron_region_value"]);
                 }
-                else if (Features.IsSupported("yuzu_region_value"))
+                else if (Features.IsSupported("citron_region_value"))
                 {
                     ini.WriteValue("System", "region_index\\default", "true");
                     ini.WriteValue("System", "region_index", "1");
@@ -137,29 +135,29 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
                 ini.WriteValue("UI", "hideInactiveMouse", "true");
 
-                if (SystemConfig.isOptSet("yuzu_controller_applet") && !SystemConfig.getOptBoolean("yuzu_controller_applet"))
+                if (SystemConfig.isOptSet("citron_controller_applet") && !SystemConfig.getOptBoolean("citron_controller_applet"))
                 {
                     ini.WriteValue("UI", "disableControllerApplet\\default", "true");
                     ini.WriteValue("UI", "disableControllerApplet", "false");
                 }
-                else if (Features.IsSupported("yuzu_controller_applet"))
+                else if (Features.IsSupported("citron_controller_applet"))
                 {
                     ini.WriteValue("UI", "disableControllerApplet\\default", "false");
                     ini.WriteValue("UI", "disableControllerApplet", "true");
                 }
 
-                if (SystemConfig.isOptSet("yuzu_undock") && SystemConfig.getOptBoolean("yuzu_undock"))
+                if (SystemConfig.isOptSet("citron_undock") && SystemConfig.getOptBoolean("citron_undock"))
                 {
                     ini.WriteValue("System", "use_docked_mode\\default", "false");
                     ini.WriteValue("System", "use_docked_mode", "0");
                 }
-                else if (Features.IsSupported("yuzu_undock"))
+                else if (Features.IsSupported("citron_undock"))
                 {
                     ini.WriteValue("System", "use_docked_mode\\default", "true");
                     ini.WriteValue("System", "use_docked_mode", "1");
                 }
 
-                ini.WriteValue("WebService", "enable_telemetry\\default", "false");
+                ini.WriteValue("WebService", "enable_telemetry\\default", "true");
                 ini.WriteValue("WebService", "enable_telemetry", "false");
                 ini.WriteValue("UI", "confirmStop\\default", "false");
                 ini.WriteValue("UI", "confirmStop", "2");
@@ -176,7 +174,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "Paths\\gamedirs\\size", "4");
                 }
 
-                string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/yuzu";
+                string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/citron";
                 if (!Directory.Exists(screenshotpath)) try { Directory.CreateDirectory(screenshotpath); }
                     catch { }
                 if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
@@ -190,8 +188,8 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");            
                 BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
                 BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "2");
-                BindQtIniFeature(ini, "Renderer", "aspect_ratio", "yuzu_ratio", "0");
-                BindQtIniFeature(ini, "Renderer", "max_anisotropy", "yuzu_anisotropy", "0");
+                BindQtIniFeature(ini, "Renderer", "aspect_ratio", "citron_ratio", "0");
+                BindQtIniFeature(ini, "Renderer", "max_anisotropy", "citron_anisotropy", "0");
                 BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
                 BindQtIniFeature(ini, "Renderer", "anti_aliasing", "anti_aliasing", "0");
                 BindQtIniFeature(ini, "Renderer", "scaling_filter", "scaling_filter", "1");
@@ -209,8 +207,8 @@ namespace EmulatorLauncher
                 }
 
                 BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
-                BindQtBoolIniFeature(ini, "Core", "use_multi_core", "yuzu_multicore", "true", "false", "true");
-                BindQtIniFeature(ini, "Core", "memory_layout_mode", "yuzu_memory", "0");
+                BindQtBoolIniFeature(ini, "Core", "use_multi_core", "citron_multicore", "true", "false", "true");
+                BindQtIniFeature(ini, "Core", "memory_layout_mode", "citron_memory", "0");
                 BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
 
                 CreateControllerConfiguration(ini);
@@ -260,7 +258,7 @@ namespace EmulatorLauncher
         {
             int exitCode = base.RunAndWait(path);
 
-            // Yuzu always returns 0xc0000005 ( null pointer !? )
+            // Citron always returns 0xc0000005 ( null pointer !? )
             if (exitCode == unchecked((int)0xc0000005))
                 return 0;
             
@@ -272,7 +270,7 @@ namespace EmulatorLauncher
             base.Cleanup();
 
             // Restore value for Paths\\gamedirs\\size
-            // As it's faster to launch a yuzu game when there's no folder set            
+            // As it's faster to launch a citron game when there's no folder set            
 
             if (string.IsNullOrEmpty(_gamedirsIniPath) || string.IsNullOrEmpty(_gamedirsSize))
                 return;

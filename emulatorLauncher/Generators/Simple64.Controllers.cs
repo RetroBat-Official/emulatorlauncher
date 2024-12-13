@@ -65,6 +65,17 @@ namespace EmulatorLauncher
                 return;
 
             string devicename = joy.DeviceName;
+
+            // override devicename
+            string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+            if (File.Exists(newNamePath))
+            {
+                string newName = SdlJoystickGuid.GetNameFromFile(newNamePath, controller.Guid, "simple64");
+
+                if (newName != null)
+                    devicename = newName;
+            }
+
             int index = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex;
             bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
             bool zAsRightTrigger = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick_zl");
@@ -113,6 +124,9 @@ namespace EmulatorLauncher
                                     SimpleLogger.Instance.Info("[Controller] Specific n64 mapping needs to be activated for this controller.");
                                     goto BypassSPecialControllers;
                                 }
+
+                                if (n64Gamepad.ControllerInfo.ContainsKey("deviceName") && !string.IsNullOrEmpty(n64Gamepad.ControllerInfo["deviceName"]))
+                                    devicename = n64Gamepad.ControllerInfo["deviceName"];
                             }
 
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);

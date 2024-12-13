@@ -55,6 +55,7 @@ namespace EmulatorLauncher
             { "chihiro", () => new CxbxGenerator() },
             { "citra", () => new CitraGenerator() },
             { "citra-canary", () => new CitraGenerator() },
+            { "citron", () => new CitronGenerator() },
             { "cxbx", () => new CxbxGenerator() },
             { "daphne", () => new DaphneGenerator() },
             { "demul", () => new DemulGenerator() },

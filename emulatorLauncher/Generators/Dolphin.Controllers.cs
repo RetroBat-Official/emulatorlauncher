@@ -757,10 +757,13 @@ namespace EmulatorLauncher
                         deviceName = pad.Name;
 
                         string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-                        string newName = SdlJoystickGuid.GetNameFromFile(newNamePath, pad.Guid, "dolphin");
+                        if (File.Exists(newNamePath))
+                        {
+                            string newName = SdlJoystickGuid.GetNameFromFile(newNamePath, pad.Guid, "dolphin");
 
-                        if (newName != null)
-                            deviceName = newName;
+                            if (newName != null)
+                                deviceName = newName;
+                        }
                     }
 
                     if (double_pads.ContainsKey(tech + "/" + deviceName))
