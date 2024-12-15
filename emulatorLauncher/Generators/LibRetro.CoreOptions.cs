@@ -4668,7 +4668,7 @@ namespace EmulatorLauncher.Libretro
 
         private void ConfigureVitaquake2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "vitaquake2")
+            if (core != "vitaquake2" && core != "vitaquake2-rogue" && core != "vitaquake2-xatrix" && core != "vitaquake2-zaero")
                 return;
 
             // Video settings
