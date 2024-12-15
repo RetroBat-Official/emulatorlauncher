@@ -129,6 +129,24 @@ namespace EmulatorLauncher.Libretro
                     core = "boom3_xp";
                 rom = Path.Combine(Path.GetDirectoryName(rom), pakSubPath);
             }
+            else if (core == "vitaquake2")
+            {
+                string pakPath = Path.GetDirectoryName(rom);
+                int index = pakPath.IndexOf("vitaquake2");
+                if (index != -1)
+                {
+                    string endOfPakPath = pakPath.Substring(index + 10);
+                    if (endOfPakPath.StartsWith("\\"))
+                        endOfPakPath = endOfPakPath.Substring(1);
+
+                    if (endOfPakPath.Contains("rogue"))
+                        core = "vitaquake2-rogue";
+                    else if (endOfPakPath.Contains("xatrix"))
+                        core = "vitaquake2-xatrix";
+                    else if (endOfPakPath.Contains("zaero"))
+                        core = "vitaquake2-zaero";
+                }
+            }
 
             // Exit if no core is provided
             if (string.IsNullOrEmpty(core))
