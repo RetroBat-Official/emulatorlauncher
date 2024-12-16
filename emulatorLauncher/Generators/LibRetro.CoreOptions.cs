@@ -21,6 +21,7 @@ namespace EmulatorLauncher.Libretro
                 { "81", "EightyOne" },
                 { "a5200", "a5200" },
                 { "advanced_tests", "Advanced Test" },
+                { "ardens", "Ardens" },
                 { "arduous", "Arduous" },
                 { "atari800", "Atari800" },
                 { "b2", "B2" },
@@ -1131,6 +1132,20 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "DoubleCherryGB")
                 return;
+
+            BindFeature(coreSettings, "dcgb_audio_output", "dcgb_audio_output", "Game Boy #1");
+            BindFeature(coreSettings, "dcgbt_gblink_device", "dcgbt_gblink_device", "4-player adapter");
+            BindFeature(coreSettings, "dcgb_screen_placement", "dcgb_screen_placement", "splitscreen");
+
+            if (system == "gb2players" || system == "gbc2players")
+                BindFeature(coreSettings, "dcgb_emulated_gameboys", "dcgb_emulated_gameboys", "2");
+            else
+                BindFeature(coreSettings, "dcgb_emulated_gameboys", "dcgb_emulated_gameboys", "1");
+
+            if (system == "gb2players" || system == "gbc2players")
+                BindBoolFeatureOn(coreSettings, "dcgb_gblink_enable", "dcgb_gblink_enable", "enabled", "disabled");
+            else
+                BindBoolFeature(coreSettings, "dcgb_gblink_enable", "dcgb_gblink_enable", "enabled", "disabled");
         }
 
         private void Configureecwolf(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
