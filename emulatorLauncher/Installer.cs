@@ -36,6 +36,7 @@ namespace EmulatorLauncher
             { new Installer("citra", "citra", "citra-qt.exe") },
             { new Installer("citra-canary", "citra-canary", "citra-qt.exe") },
             { new Installer("citron", "citron", "citron.exe") },
+            { new Installer("corsixth", "corsixth", "CorsixTH.exe") },
             { new Installer("cxbx", new string[] { "cxbx-reloaded", "cxbx-r" }, "cxbx.exe") },
             { new Installer("daphne") },
             { new Installer("demul") },

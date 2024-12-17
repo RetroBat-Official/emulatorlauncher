@@ -21,6 +21,7 @@ namespace EmulatorLauncher
             // Keep alphabetical order
 
             Configurecgenius(commandArray, rom);
+            Configurecorsixth(commandArray, rom);
             ConfigureOpenGoal(commandArray, rom);
             ConfigureOpenJazz(commandArray, rom);
             ConfigureSOH(rom, exe);
@@ -105,6 +106,119 @@ namespace EmulatorLauncher
                 relativeGamePath = relativeGamePath.Remove(index, 1);
 
             commandArray.Add("dir=" + "\"" + relativeGamePath + "\"");
+        }
+
+        private void Configurecorsixth(List<string> commandArray, string rom)
+        {
+            if (_emulator != "corsixth")
+                return;
+
+            string cfgFile = Path.Combine(_path, "config.txt");
+            if (!File.Exists(cfgFile))
+            {
+                try { 
+                    File.WriteAllText(cfgFile, corsixth_config);
+                    System.Threading.Thread.Sleep(100);
+                }
+                catch { }
+            }
+            string hotkeyFile = Path.Combine(_path, "hotkeys.txt");
+            if (!File.Exists(hotkeyFile))
+            {
+                try { 
+                    File.WriteAllText(hotkeyFile, corsixth_hotkeys);
+                    System.Threading.Thread.Sleep(100);
+                }
+                catch { }
+            }
+
+            using (var ini = IniFile.FromFile(cfgFile, IniOptions.UseSpaces | IniOptions.KeepEmptyLines))
+            {
+                try
+                {
+                    // Paths
+                    ini.WriteValue("", "theme_hospital_install", "[[" + rom + "]]");
+                    
+                    string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "corsixth");
+                    if (!Directory.Exists(savesPath))
+                    {
+                        try { Directory.CreateDirectory(savesPath); }
+                        catch { }
+                    }
+                    ini.WriteValue("", "savegames", "[[" + savesPath + "]]");
+
+                    string screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "corsixth");
+                    if (!Directory.Exists(screenshotsPath))
+                    {
+                        try { Directory.CreateDirectory(screenshotsPath); }
+                        catch { }
+                    }
+                    ini.WriteValue("", "screenshots", "[[" + screenshotsPath + "]]");
+
+                    //Video
+                    ini.WriteValue("", "fullscreen", _fullscreen ? "true" : "false");
+
+                    /// Game resolution
+                    string gameWidth = Screen.PrimaryScreen.Bounds.Width.ToString();
+                    string gameHeight = Screen.PrimaryScreen.Bounds.Height.ToString();
+
+                    if (_resolution != null)
+                    {
+                        gameWidth = _resolution.Width.ToString();
+                        gameHeight = _resolution.Height.ToString();
+                    }
+
+                    else if (SystemConfig.isOptSet("th_resolution") && !string.IsNullOrEmpty(SystemConfig["th_resolution"]))
+                    {
+                        string[] gameRes = SystemConfig["th_resolution"].Split('x');
+                        gameWidth = gameRes[0];
+                        gameHeight = gameRes[1];
+                    }
+
+                    int width = gameWidth.ToInteger();
+                    int height = gameHeight.ToInteger();
+
+                    if (height > 0)
+                    {
+                        float ratio = (float)width / height;
+
+                        if (ratio > 1.4f)
+                            _nobezels = true;
+                    }
+
+                    ini.WriteValue("", "width", gameWidth);
+                    ini.WriteValue("", "height", gameHeight);
+
+                    ini.WriteValue("", "check_for_updates", "false");
+                    BindBoolIniFeatureOn(ini, "", "capture_mouse", "th_capture_mouse", "true", "false");
+                    if (SystemConfig.isOptSet("th_language") && !string.IsNullOrEmpty(SystemConfig["th_language"]))
+                        ini.WriteValue("", "language", "[[" + SystemConfig["th_language"] + "]]");
+                    else
+                        ini.WriteValue("", "language", "[[English]]");
+
+                    ini.Save();
+                }
+                catch
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Error opening config.txt config file.");
+                }
+            }
+
+            // Controls
+            using (var iniHk = IniFile.FromFile(hotkeyFile, IniOptions.UseSpaces | IniOptions.KeepEmptyLines))
+            {
+                try
+                {
+                    iniHk.WriteValue("", "global_exitApp", "{[[alt]],[[f4]]}");
+                    iniHk.Save();
+                }
+                catch
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Error opening hotkeys.txt config file.");
+                }
+            }
+            commandArray.Add("--config-file=" + "\"" + cfgFile + "\"");
+            commandArray.Add("--hotkeys-file=" + "\"" + hotkeyFile + "\"");
         }
 
         private void ConfigureOpenGoal(List<string> commandArray, string rom)
