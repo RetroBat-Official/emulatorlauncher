@@ -337,6 +337,9 @@
     <Compile Include="Generators\PortsLauncher.Controllers.cs">
       <DependentUpon>PortsLauncher.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\PortsLauncher.Templates.cs">
+      <DependentUpon>PortsLauncher.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Ppsspp.Generator.cs" />
     <Compile Include="Generators\Ppsspp.Controllers.cs">
       <DependentUpon>Ppsspp.Generator.cs</DependentUpon>

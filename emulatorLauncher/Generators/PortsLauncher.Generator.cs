@@ -17,6 +17,9 @@ namespace EmulatorLauncher
     partial class SohGenerator : PortsLauncherGenerator
     { public SohGenerator() { _exeName = "soh.exe"; DependsOnDesktopResolution = true; } }
 
+    partial class CorsixTHGenerator : PortsLauncherGenerator
+    { public CorsixTHGenerator() { _exeName = "CorsixTH.exe"; DependsOnDesktopResolution = true; } }
+
     partial class PortsLauncherGenerator : Generator
     {
         private ScreenResolution _resolution;
@@ -26,10 +29,12 @@ namespace EmulatorLauncher
         protected string _exeName;
         private string _romPath;
         private bool _fullscreen;
+        private bool _nobezels;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _nobezels = false;
 
             // Specific cases to override emulator
             if (rom.Contains("soniccd") || SystemConfig.getOptBoolean("sonicretro_sonicCD"))
@@ -49,9 +54,18 @@ namespace EmulatorLauncher
                 return null;
 
             _romPath = Path.GetDirectoryName(rom);
+            _resolution = resolution;
+
+            // Copy existing saves from retrobat\saves to the emulator folder
+            CopySavesToEmulator();
+
+            // Initiate command array to pass it to the configuration part, do not add command line arguments here, add them in the port configuration part
+            List<string> commandArray = new List<string>();
+
+            ConfigurePort(commandArray, rom, exe);
 
             // Setting up bezels, can be with or without reshade based on Dictionary
-            if (systemBezels.ContainsKey(emulator) && systemBezels[emulator] != "no" && _fullscreen)
+            if (systemBezels.ContainsKey(emulator) && systemBezels[emulator] != "no" && _fullscreen && !_nobezels)
             {
                 string bezelType = systemBezels[emulator];
 
@@ -65,16 +79,6 @@ namespace EmulatorLauncher
                         break;
                 }
             }
-
-            _resolution = resolution;
-
-            // Copy existing saves from retrobat\saves to the emulator folder
-            CopySavesToEmulator();
-
-            // Initiate command array to pass it to the configuration part, do not add command line arguments here, add them in the port configuration part
-            List<string> commandArray = new List<string>();
-
-            ConfigurePort(commandArray, rom, exe);
 
             string args = null;
             if (commandArray.Count > 0)
@@ -90,19 +94,21 @@ namespace EmulatorLauncher
 
         private readonly Dictionary<string, string> exeDictionnary = new Dictionary<string, string>
         {
+            { "cgenius", "CGenius.exe"},
+            { "corsixth", "CorsixTH.exe"},
+            { "opengoal", "gk.exe"},
+            { "openjazz", "OpenJazz.exe"},
+            { "soh", "soh.exe"},
             { "sonic3air", "Sonic3AIR.exe"},
             { "sonicmania", "RSDKv5U_x64.exe"},
             { "sonicretro", "RSDKv4_64.exe"},
-            { "sonicretrocd", "RSDKv3_64.exe"},
-            { "opengoal", "gk.exe"},
-            { "openjazz", "OpenJazz.exe"},
-            { "cgenius", "CGenius.exe"},
-            { "soh", "soh.exe"}
+            { "sonicretrocd", "RSDKv3_64.exe"}
         };
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
         {
             { "cgenius", "yes"},
+            { "corsixth", "yes"},
             { "sonic3air", "no"},
             { "sonicmania", "no"},
             { "sonicretro", "no"},

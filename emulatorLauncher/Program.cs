@@ -56,6 +56,7 @@ namespace EmulatorLauncher
             { "citra", () => new CitraGenerator() },
             { "citra-canary", () => new CitraGenerator() },
             { "citron", () => new CitronGenerator() },
+            { "corsixth", () => new CorsixTHGenerator() },
             { "cxbx", () => new CxbxGenerator() },
             { "daphne", () => new DaphneGenerator() },
             { "demul", () => new DemulGenerator() },
