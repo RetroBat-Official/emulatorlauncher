@@ -12,8 +12,33 @@ namespace EmulatorLauncher
 {
     partial class PortsLauncherGenerator : Generator
     {
-        #region cgenius
+        #region cdogs
+        private void ConfigureCDogsControls(DynamicJson settings)
+        {
+            if (_emulator != "cdogs")
+                return;
 
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            var input = settings.GetOrCreateContainer("Input");
+            var player1 = input.GetOrCreateContainer("PlayerCodes0");
+            var player2 = input.GetOrCreateContainer("PlayerCodes1");
+
+            // Set config based on number of pads
+            int controllerCount = Controllers.Where(c => !c.IsKeyboard).Count();
+            //Controller c1 = null;
+            //Controller c2 = null;
+
+            foreach (var s in cdogsKeyboard1)
+                player1[s.Key] = s.Value;
+
+            foreach (var s in cdogsKeyboard2)
+                player2[s.Key] = s.Value;
+        }
+        #endregion
+
+        #region cgenius
         private void ConfigureCGeniusControls(IniFile ini)
         {
             if (_emulator != "cgenius")
@@ -590,6 +615,31 @@ namespace EmulatorLauncher
         /// <summary>
         /// Dictionaries and mappings can be added below if necessary, keep alphabetical order and name it with port name
         /// </summary>
+        
+        private static Dictionary<string, string> cdogsKeyboard1 = new Dictionary<string, string>()
+        {
+            { "left", "80" },
+            { "right", "79" },
+            { "up", "82" },
+            { "down", "81" },
+            { "button1", "44" },
+            { "button2", "29" },
+            { "grenade", "22" },
+            { "map", "4" }
+        };
+
+        private static Dictionary<string, string> cdogsKeyboard2 = new Dictionary<string, string>()
+        {
+            { "left", "92" },
+            { "right", "94" },
+            { "up", "96" },
+            { "down", "90" },
+            { "button1", "88" },
+            { "button2", "99" },
+            { "grenade", "91" },
+            { "map", "98" }
+        };
+
         private InputKeyMapping cgeniusMapping = new InputKeyMapping
         {
             { InputKey.select,      "Back" },

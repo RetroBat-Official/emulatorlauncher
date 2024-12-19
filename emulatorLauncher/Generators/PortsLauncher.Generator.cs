@@ -2,7 +2,6 @@
 using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -11,6 +10,9 @@ namespace EmulatorLauncher
 
     partial class OpenGoalGenerator : PortsLauncherGenerator
     { public OpenGoalGenerator() { _exeName = "gk.exe"; DependsOnDesktopResolution = true; } }
+
+    partial class CDogsGenerator : PortsLauncherGenerator
+    { public CDogsGenerator() { _exeName = "bin\\cdogs-sdl.exe"; DependsOnDesktopResolution = true; } }
 
     partial class CGeniusGenerator : PortsLauncherGenerator
     { public CGeniusGenerator() { _exeName = "CGenius.exe"; DependsOnDesktopResolution = true; } }
@@ -32,6 +34,7 @@ namespace EmulatorLauncher
         private string _path;
         protected string _exeName;
         private string _romPath;
+        private string _workingPath = null;
         private bool _fullscreen;
         private bool _nobezels;
         private bool _useReshade = false;
@@ -49,6 +52,11 @@ namespace EmulatorLauncher
 
             // Get emulator path, emulator must match the name in es_systems
             _path = AppConfig.GetFullPath(emulator);
+            if (emulator == "cdogs")
+            {
+                _path = Path.Combine(_path, "bin");
+                _workingPath = _path + "\\";
+            }
             if (!Directory.Exists(_path))
                 return null;
 
@@ -98,13 +106,14 @@ namespace EmulatorLauncher
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                WorkingDirectory = _path,
+                WorkingDirectory = _workingPath?? _path,
                 Arguments = args,
             };
         }
 
         private readonly Dictionary<string, string> exeDictionnary = new Dictionary<string, string>
         {
+            { "cdogs", "cdogs-sdl.exe"},
             { "cgenius", "CGenius.exe"},
             { "corsixth", "CorsixTH.exe"},
             { "dhewm3", "dhewm3.exe"},
@@ -119,6 +128,7 @@ namespace EmulatorLauncher
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
         {
+            { "cdogs", "no"},
             { "cgenius", "yes"},
             { "corsixth", "yes"},
             { "dhewm3", "reshade"},

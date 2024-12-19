@@ -30,6 +30,7 @@ namespace EmulatorLauncher
             { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },
             { new Installer("capriceforever", "capriceforever", "Caprice64.exe") },
+            { new Installer("cdogs", new string[] { "cdogs", "cdogs/bin" }, "cdogs-sdl.exe") },
             { new Installer("cemu", "cemu", "Cemu.exe") },
             { new Installer("cgenius", "cgenius", "CGenius.exe") },
             { new Installer("chihiro", new string[] { "cxbx-reloaded", "cxbx-r" }, "cxbx.exe") },

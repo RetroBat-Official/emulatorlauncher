@@ -21,6 +21,7 @@ namespace EmulatorLauncher
             // If the port allows controller configuration, create the controller configuration method in PortsLauncher.Controller.cs and call it from the port configuration method
             // Keep alphabetical order
 
+            ConfigureCDogs(commandArray, rom);
             Configurecgenius(commandArray, rom);
             Configurecorsixth(commandArray, rom);
             Configuredhewm3(commandArray, rom);
@@ -33,6 +34,55 @@ namespace EmulatorLauncher
         }
 
         #region ports
+        private void ConfigureCDogs(List<string> commandArray, string rom)
+        {
+            if (_emulator != "cdogs")
+                return;
+
+            // Write environment variable
+            string envConfigPath = AppConfig.GetFullPath(_emulator) + "\\";
+            Environment.SetEnvironmentVariable("CDOGS_CONFIG_DIR", envConfigPath, EnvironmentVariableTarget.User);
+
+            string configPath = Path.Combine(AppConfig.GetFullPath(_emulator), "C-Dogs SDL");
+            if (!Directory.Exists(configPath))
+                try { Directory.CreateDirectory(configPath); } catch { }
+
+            // Create settings file if not existing
+            string configJSON = Path.Combine(configPath, "options.cnf");
+            if (!File.Exists(configJSON))
+            {
+                try
+                {
+                    File.WriteAllText(configJSON, cdogs_config);
+                    System.Threading.Thread.Sleep(100);
+                }
+                catch { }
+            }
+
+            // Settings file update
+            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
+            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
+            
+            var settings = DynamicJson.Load(configJSON);
+            var graphics = settings.GetOrCreateContainer("Graphics");
+            var jsoninterface = settings.GetOrCreateContainer("Interface");
+            
+            graphics["Fullscreen"] = _fullscreen? "true" : "false";
+            graphics["WindowWidth"] = width.ToString();
+            graphics["WindowHeight"] = height.ToString();
+            BindBoolFeatureOn(graphics, "ShowHUD", "cdogs_hud", "true", "false");
+            BindFeature(graphics, "ScaleMode", "cdogs_scalemode", "Nearest neighbor");
+            BindBoolFeatureOn(graphics, "Shadows", "cdogs_shadows", "true", "false");
+
+            BindBoolFeature(jsoninterface, "ShowFPS", "cdogs_fps", "true", "false");
+            BindBoolFeature(jsoninterface, "ShowTime", "cdogs_time", "true", "false");
+            BindBoolFeatureOn(jsoninterface, "ShowHUDMap", "cdogs_hudmap", "true", "false");
+            BindFeature(jsoninterface, "Splitscreen", "cdogs_splitscreen", "Never");
+
+            ConfigureCDogsControls(settings);
+
+            settings.Save();
+        }
         private void Configurecgenius(List<string> commandArray, string rom)
         {
             if (_emulator != "cgenius")
@@ -567,7 +617,6 @@ namespace EmulatorLauncher
             JObject window;
             JObject fs;
             string settingsFile = Path.Combine(_path, "shipofharkinian.json");
-            //var json = DynamicJson.Load(Path.Combine(_path, "shipofharkinian.json"));
             if (File.Exists(settingsFile))
             {
                 string jsonString = File.ReadAllText(settingsFile);
