@@ -735,6 +735,17 @@ namespace EmulatorLauncher
                 BindBoolIniFeatureOn(ini, "EmuCore", "EnableWideScreenPatches", "widescreen_patch", "true", "false");
                 BindBoolIniFeatureOn(ini, "EmuCore", "EnableNoInterlacingPatches", "interlacing_patch", "true", "false");
 
+                // Write patches section (new pcsx2 versions does not have option to enable globally anymore
+                ini.SetOptions(IniOptions.UseSpaces | IniOptions.AllowDuplicateValues);
+                ini.ClearSection("Patches");
+                
+                if (SystemConfig.getOptBoolean("interlacing_patch") || !SystemConfig.isOptSet("interlacing_patch"))
+                    ini.AppendValue("Patches", "Enable", "No-Interlacing");
+                if (SystemConfig.getOptBoolean("widescreen_patch") || !SystemConfig.isOptSet("widescreen_patch"))
+                    ini.AppendValue("Patches", "Enable", "Widescreen 16:9");
+                
+                ini.SetOptions(IniOptions.UseSpaces);
+
                 // Emucore/Speedhacks
                 BindBoolIniFeatureOn(ini, "EmuCore/Speedhacks", "vuThread", "pcsx2_vuthread", "true", "false");
 
