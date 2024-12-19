@@ -70,6 +70,11 @@ namespace EmulatorLauncher
 
             string playerSection = "player" + ctrl.PlayerIndex.ToString();
 
+            // Force index through feature
+            string indexOption = "zinc_p" + ctrl.PlayerIndex + "_forceindex";
+            if (SystemConfig.isOptSet(indexOption) && !string.IsNullOrEmpty(SystemConfig[indexOption]))
+                index = SystemConfig[indexOption].ToInteger();
+
             string joy = "j" + index.ToString();
 
             if (controller != null)

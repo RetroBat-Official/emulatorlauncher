@@ -12,8 +12,33 @@ namespace EmulatorLauncher
 {
     partial class PortsLauncherGenerator : Generator
     {
-        #region cgenius
+        #region cdogs
+        private void ConfigureCDogsControls(DynamicJson settings)
+        {
+            if (_emulator != "cdogs")
+                return;
 
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            var input = settings.GetOrCreateContainer("Input");
+            var player1 = input.GetOrCreateContainer("PlayerCodes0");
+            var player2 = input.GetOrCreateContainer("PlayerCodes1");
+
+            // Set config based on number of pads
+            int controllerCount = Controllers.Where(c => !c.IsKeyboard).Count();
+            //Controller c1 = null;
+            //Controller c2 = null;
+
+            foreach (var s in cdogsKeyboard1)
+                player1[s.Key] = s.Value;
+
+            foreach (var s in cdogsKeyboard2)
+                player2[s.Key] = s.Value;
+        }
+        #endregion
+
+        #region cgenius
         private void ConfigureCGeniusControls(IniFile ini)
         {
             if (_emulator != "cgenius")
@@ -118,6 +143,75 @@ namespace EmulatorLauncher
                 BindBoolIniFeatureOn(ini, "input" + padIndex, "ImpossiblePogo", "cgenius_ImpossiblePogo", "true", "false");
                 BindBoolIniFeature(ini, "input" + padIndex, "AutoFire", "cgenius_AutoFire", "true", "false");
             }
+        }
+        #endregion
+
+        #region dhewm3
+        private void ConfigureDhewm3Controls(List<Dhewm3ConfigChange> changes)
+        {
+            if (_emulator != "dhewm3")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            // Keyboard defaults
+            changes.Add(new Dhewm3ConfigChange("bind", "TAB", "_impulse19"));
+            changes.Add(new Dhewm3ConfigChange("bind", "ENTER", "_button2"));
+            changes.Add(new Dhewm3ConfigChange("bind", "ESCAPE", "togglemenu"));
+            changes.Add(new Dhewm3ConfigChange("bind", "SPACE", "_moveup"));
+            changes.Add(new Dhewm3ConfigChange("bind", "/", "_impulse14"));
+            changes.Add(new Dhewm3ConfigChange("bind", "0", "_impulse27"));
+            changes.Add(new Dhewm3ConfigChange("bind", "1", "_impulse1"));
+            changes.Add(new Dhewm3ConfigChange("bind", "2", "_impulse3"));
+            changes.Add(new Dhewm3ConfigChange("bind", "3", "_impulse4"));
+            changes.Add(new Dhewm3ConfigChange("bind", "4", "_impulse6"));
+            changes.Add(new Dhewm3ConfigChange("bind", "5", "_impulse7"));
+            changes.Add(new Dhewm3ConfigChange("bind", "6", "_impulse8"));
+            changes.Add(new Dhewm3ConfigChange("bind", "7", "_impulse9"));
+            changes.Add(new Dhewm3ConfigChange("bind", "8", "_impulse10"));
+            changes.Add(new Dhewm3ConfigChange("bind", "9", "_impulse11"));
+            changes.Add(new Dhewm3ConfigChange("bind", "[", "_impulse15"));
+            changes.Add(new Dhewm3ConfigChange("bind", "\\", "_mlook"));
+            changes.Add(new Dhewm3ConfigChange("bind", "]", "_impulse14"));
+            changes.Add(new Dhewm3ConfigChange("bind", "a", "_moveleft"));
+            changes.Add(new Dhewm3ConfigChange("bind", "c", "_movedown"));
+            changes.Add(new Dhewm3ConfigChange("bind", "d", "_moveright"));
+            changes.Add(new Dhewm3ConfigChange("bind", "f", "_impulse0"));
+            changes.Add(new Dhewm3ConfigChange("bind", "q", "_impulse12"));
+            changes.Add(new Dhewm3ConfigChange("bind", "r", "_impulse13"));
+            changes.Add(new Dhewm3ConfigChange("bind", "s", "_back"));
+            changes.Add(new Dhewm3ConfigChange("bind", "t", "clientMessageMode"));
+            changes.Add(new Dhewm3ConfigChange("bind", "w", "_forward"));
+            changes.Add(new Dhewm3ConfigChange("bind", "y", "clientMessageMode 1"));
+            changes.Add(new Dhewm3ConfigChange("bind", "z", "_zoom"));
+            changes.Add(new Dhewm3ConfigChange("bind", "BACKSPACE", "clientDropWeapon"));
+            changes.Add(new Dhewm3ConfigChange("bind", "PAUSE", "pause"));
+            changes.Add(new Dhewm3ConfigChange("bind", "UPARROW", "_forward"));
+            changes.Add(new Dhewm3ConfigChange("bind", "DOWNARROW", "_back"));
+            changes.Add(new Dhewm3ConfigChange("bind", "LEFTARROW", "_moveLeft"));
+            changes.Add(new Dhewm3ConfigChange("bind", "RIGHTARROW", "_moveright"));
+            changes.Add(new Dhewm3ConfigChange("bind", "ALT", "_strafe"));
+            changes.Add(new Dhewm3ConfigChange("bind", "CTRL", "_attack"));
+            changes.Add(new Dhewm3ConfigChange("bind", "SHIFT", "_speed"));
+            changes.Add(new Dhewm3ConfigChange("bind", "DEL", "_lookdown"));
+            changes.Add(new Dhewm3ConfigChange("bind", "PGDN", "_lookup"));
+            changes.Add(new Dhewm3ConfigChange("bind", "END", "_impulse18"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F1", "_impulse28"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F2", "_impulse29"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F3", "_impulse17"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F5", "savegame quick"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F6", "_impulse20"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F7", "_impulse22"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F9", "loadgame quick"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F10", "dhewm3Settings"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F12", "screenshot"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE1", "_attack"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE2", "_moveup"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE3", "_zoom"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F10", "_impulse14"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MWHEELDOWN", "_impulse15"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MWHEELUP", "dhewm3Settings"));
         }
         #endregion
 
@@ -521,6 +615,31 @@ namespace EmulatorLauncher
         /// <summary>
         /// Dictionaries and mappings can be added below if necessary, keep alphabetical order and name it with port name
         /// </summary>
+        
+        private static Dictionary<string, string> cdogsKeyboard1 = new Dictionary<string, string>()
+        {
+            { "left", "80" },
+            { "right", "79" },
+            { "up", "82" },
+            { "down", "81" },
+            { "button1", "44" },
+            { "button2", "29" },
+            { "grenade", "22" },
+            { "map", "4" }
+        };
+
+        private static Dictionary<string, string> cdogsKeyboard2 = new Dictionary<string, string>()
+        {
+            { "left", "92" },
+            { "right", "94" },
+            { "up", "96" },
+            { "down", "90" },
+            { "button1", "88" },
+            { "button2", "99" },
+            { "grenade", "91" },
+            { "map", "98" }
+        };
+
         private InputKeyMapping cgeniusMapping = new InputKeyMapping
         {
             { InputKey.select,      "Back" },

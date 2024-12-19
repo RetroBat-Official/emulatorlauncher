@@ -25,6 +25,11 @@ namespace EmulatorLauncher.Common.FileFormats
             return new IniFile(path, options);
         }
 
+        public void SetOptions(IniOptions options)
+        {
+            _options = options;
+        }
+
         public IniFile(string path, IniOptions options = (IniOptions) 0)
         {
             _options = options;
