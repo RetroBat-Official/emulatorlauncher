@@ -2,6 +2,7 @@
 using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -20,6 +21,9 @@ namespace EmulatorLauncher
     partial class CorsixTHGenerator : PortsLauncherGenerator
     { public CorsixTHGenerator() { _exeName = "CorsixTH.exe"; DependsOnDesktopResolution = true; } }
 
+    partial class Dhewm3Generator : PortsLauncherGenerator
+    { public Dhewm3Generator() { _exeName = "dhewm3.exe"; DependsOnDesktopResolution = false; } }
+
     partial class PortsLauncherGenerator : Generator
     {
         private ScreenResolution _resolution;
@@ -30,6 +34,7 @@ namespace EmulatorLauncher
         private string _romPath;
         private bool _fullscreen;
         private bool _nobezels;
+        private bool _useReshade = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -72,7 +77,13 @@ namespace EmulatorLauncher
                 switch (bezelType)
                 {
                     case "reshade":
-                        ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, _path, resolution, emulator);   // TO BE DONE LATER
+                        if (!reshadePlatform.ContainsKey(emulator) || !reshadeType.ContainsKey(emulator))
+                            break;
+                        ReshadePlatform RSplatform = reshadePlatform[emulator];
+                        ReshadeBezelType RStype = reshadeType[emulator];
+                       
+                        ReshadeManager.Setup(RStype, RSplatform, system, rom, _path, resolution, emulator);
+                        _useReshade = true;
                         break;
                     default:
                         _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
@@ -96,6 +107,7 @@ namespace EmulatorLauncher
         {
             { "cgenius", "CGenius.exe"},
             { "corsixth", "CorsixTH.exe"},
+            { "dhewm3", "dhewm3.exe"},
             { "opengoal", "gk.exe"},
             { "openjazz", "OpenJazz.exe"},
             { "soh", "soh.exe"},
@@ -109,6 +121,7 @@ namespace EmulatorLauncher
         {
             { "cgenius", "yes"},
             { "corsixth", "yes"},
+            { "dhewm3", "reshade"},
             { "sonic3air", "no"},
             { "sonicmania", "no"},
             { "sonicretro", "no"},
@@ -119,8 +132,14 @@ namespace EmulatorLauncher
         };
 
         // Dictionaries to use if a port uses Reshade to specify platform and type
-        private readonly Dictionary<string, ReshadeBezelType> reshadeType = new Dictionary<string, ReshadeBezelType>();
-        private readonly Dictionary<string, ReshadePlatform> reshadePlatform = new Dictionary<string, ReshadePlatform>();
+        private readonly Dictionary<string, ReshadeBezelType> reshadeType = new Dictionary<string, ReshadeBezelType>()
+        {
+            { "dhewm3", ReshadeBezelType.opengl }
+        };
+        private readonly Dictionary<string, ReshadePlatform> reshadePlatform = new Dictionary<string, ReshadePlatform>()
+        {
+            { "dhewm3", ReshadePlatform.x86 }
+        };
 
         // RunAnd Wait override
         // Used so far to dispose bezels
@@ -134,6 +153,15 @@ namespace EmulatorLauncher
             int ret = base.RunAndWait(path);
 
             bezel?.Dispose();
+
+            if (_useReshade)
+            {
+                if (reshadeType.ContainsKey(_emulator))
+                {
+                    ReshadeBezelType RStype = reshadeType[_emulator];
+                    ReshadeManager.UninstallReshader(RStype, _path);
+                }
+            }
 
             if (ret == 1)
                 return 0;

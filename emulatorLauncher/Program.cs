@@ -62,6 +62,7 @@ namespace EmulatorLauncher
             { "demul", () => new DemulGenerator() },
             { "demul-old", () => new DemulGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() },
+            { "dhewm3", () => new Dhewm3Generator() },
             { "dolphin", () => new DolphinGenerator() },
             { "dosbox", () => new DosBoxGenerator() },
             { "duckstation", () => new DuckstationGenerator() },

@@ -42,6 +42,7 @@ namespace EmulatorLauncher
             { new Installer("demul") },
             { new Installer("demul-old", "demul-old", "demul.exe") },
             { new Installer("devilutionx", "devilutionx", "devilutionx.exe") },
+            { new Installer("dhewm3", "dhewm3", "dhewm3.exe") },
             { new Installer("dolphin", "dolphin-emu", "Dolphin.exe") },
             { new Installer("dosbox") },
             { new Installer("duckstation", new string[] { "duckstation"}, new string[] { "duckstation-qt-x64-ReleaseLTCG.exe" }) },

@@ -9,6 +9,7 @@ using EmulatorLauncher.Common.FileFormats;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace EmulatorLauncher
 {
@@ -22,6 +23,7 @@ namespace EmulatorLauncher
 
             Configurecgenius(commandArray, rom);
             Configurecorsixth(commandArray, rom);
+            Configuredhewm3(commandArray, rom);
             ConfigureOpenGoal(commandArray, rom);
             ConfigureOpenJazz(commandArray, rom);
             ConfigureSOH(rom, exe);
@@ -219,6 +221,105 @@ namespace EmulatorLauncher
             }
             commandArray.Add("--config-file=" + "\"" + cfgFile + "\"");
             commandArray.Add("--hotkeys-file=" + "\"" + hotkeyFile + "\"");
+        }
+
+        private void Configuredhewm3(List<string> commandArray, string rom)
+        {
+            if (_emulator != "dhewm3")
+                return;
+
+            bool d3xp = false;
+            string cfgPath = _path;
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "doom3", "dhewm3");
+            if (!Directory.Exists(savesPath))
+                try { Directory.CreateDirectory(savesPath); } catch { }
+
+            commandArray.Add("+set");
+            commandArray.Add("fs_basepath");
+            commandArray.Add("\"" + _romPath + "\"");
+            commandArray.Add("+set");
+            commandArray.Add("fs_configpath");
+            commandArray.Add(cfgPath);
+            commandArray.Add("+set");
+            commandArray.Add("fs_savepath");
+            commandArray.Add(savesPath);
+
+            if (_fullscreen)
+            {
+                commandArray.Add("+set");
+                commandArray.Add("r_fullscreen");
+                commandArray.Add("1");
+            }
+            else
+            {
+                commandArray.Add("+set");
+                commandArray.Add("r_fullscreen");
+                commandArray.Add("0");
+            }
+
+            if (_resolution != null)
+            {
+                commandArray.Add("+set");
+                commandArray.Add("r_fullscreenDesktop");
+                commandArray.Add("0");
+            }
+            else
+            {
+                commandArray.Add("+set");
+                commandArray.Add("r_fullscreenDesktop");
+                commandArray.Add("1");
+            }
+
+            string[] pakFile = File.ReadAllLines(rom);
+            string pakSubPath = pakFile[0];
+            if (pakSubPath.StartsWith("d3xp"))
+            {
+                d3xp = true;
+                commandArray.Add("+set");
+                commandArray.Add("fs_game");
+                commandArray.Add("d3xp");
+            }
+
+            var changes = new List<Dhewm3ConfigChange>();
+            string cfgFile = d3xp ? Path.Combine(_path, "d3xp", "dhewm.cfg") : Path.Combine(_path, "base", "dhewm.cfg");
+
+            if (SystemConfig.isOptSet("dhewm3_resolution") && !string.IsNullOrEmpty(SystemConfig["dhewm3_resolution"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_mode", SystemConfig["dhewm3_resolution"]));
+
+            if (!SystemConfig.isOptSet("dhewm3_vsync") || SystemConfig.getOptBoolean("dhewm3_vsync"))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_swapInterval", "1"));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "r_swapInterval", "0"));
+            
+            if (SystemConfig.isOptSet("dhewm3_quality") && !string.IsNullOrEmpty(SystemConfig["dhewm3_quality"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "com_machineSpec", SystemConfig["dhewm3_quality"]));
+
+            if (SystemConfig.isOptSet("dhewm3_antialiasing") && !string.IsNullOrEmpty(SystemConfig["dhewm3_antialiasing"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_multiSamples", SystemConfig["dhewm3_antialiasing"]));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "r_multiSamples", "0"));
+
+            if (SystemConfig.isOptSet("dhewm3_sound") && !string.IsNullOrEmpty(SystemConfig["dhewm3_sound"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "s_numberOfSpeakers", SystemConfig["dhewm3_sound"]));
+
+            if (SystemConfig.isOptSet("dhewm3_eax") && SystemConfig.getOptBoolean("dhewm3_eax"))
+                changes.Add(new Dhewm3ConfigChange("seta", "s_useEAXReverb", "1"));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "s_useEAXReverb", "0"));
+
+            if (SystemConfig.isOptSet("dhewm3_playerName") && !string.IsNullOrEmpty(SystemConfig["dhewm3_playerName"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "ui_name", SystemConfig["dhewm3_playerName"]));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "ui_name", "RetroBat"));
+
+            if (SystemConfig.isOptSet("dhewm3_hideHUD") && SystemConfig.getOptBoolean("dhewm3_hideHUD"))
+                changes.Add(new Dhewm3ConfigChange("seta", "g_showHud", "0"));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "g_showHud", "1"));
+
+            ConfigureDhewm3Controls(changes);
+
+            ConfigEditor.ChangeConfigValues(cfgFile, changes);
         }
 
         private void ConfigureOpenGoal(List<string> commandArray, string rom)
@@ -822,4 +923,62 @@ namespace EmulatorLauncher
 
         #endregion
     }
+
+    #region dhew3 config class
+    class Dhewm3ConfigChange
+    {
+        public string Type { get; set; }
+        public string Key { get; set; }
+        public string NewValue { get; set; }
+
+        public Dhewm3ConfigChange(string type, string key, string newValue)
+        {
+            Type = type;
+            Key = key;
+            NewValue = newValue;
+        }
+    }
+
+    class ConfigEditor
+    {
+        public static void ChangeConfigValues(string filePath, List<Dhewm3ConfigChange> changes)
+        {
+            if (!File.Exists(filePath))
+                return;
+
+            // Read all lines from the file
+            string[] lines = File.ReadAllLines(filePath);
+            bool[] foundFlags = new bool[changes.Count];
+
+            // Make changes in memory
+            for (int i = 0; i < lines.Length; i++)
+            {
+                for (int j = 0; j < changes.Count; j++)
+                {
+                    string pattern = $@"^{Regex.Escape(changes[j].Type)}\s+{Regex.Escape(changes[j].Key)}\s+""(.*?)""";
+                    if (Regex.IsMatch(lines[i], pattern))
+                    {
+                        lines[i] = $"{changes[j].Type} {changes[j].Key} \"{changes[j].NewValue}\"";
+                        foundFlags[j] = true;
+                    }
+                }
+            }
+
+            // Append any missing keys to the file
+            using (StreamWriter writer = File.AppendText(filePath))
+            {
+                for (int j = 0; j < changes.Count; j++)
+                {
+                    if (!foundFlags[j])
+                    {
+                        writer.WriteLine($"{changes[j].Type} {changes[j].Key} \"{changes[j].NewValue}\"");
+                    }
+                }
+            }
+
+            // Write all updated lines back to the file
+            File.WriteAllLines(filePath, lines);
+        }
+    }
+    #endregion
 }
