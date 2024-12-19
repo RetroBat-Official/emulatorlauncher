@@ -199,6 +199,11 @@ namespace EmulatorLauncher
                     joy = "JOYCODE_" + hIndex + "_";
                 }
 
+                // Override index through option
+                string indexOption = "mame_p" + controller.PlayerIndex + "_forceindex";
+                if (SystemConfig.isOptSet(indexOption) && !string.IsNullOrEmpty(SystemConfig[indexOption]))
+                    joy = "JOYCODE_" + SystemConfig[indexOption] + "_";
+
                 // Get dinput mapping information
                 if (!isXinput)
                 {

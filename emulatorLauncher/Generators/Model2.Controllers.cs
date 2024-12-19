@@ -215,6 +215,12 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Override index with force index option
+            if (SystemConfig.isOptSet("m2_forcep1index") && !string.IsNullOrEmpty(SystemConfig["m2_forcep1index"]))
+                j1index = SystemConfig["m2_forcep1index"].ToInteger();
+            if (SystemConfig.isOptSet("m2_forcep2index") && !string.IsNullOrEmpty(SystemConfig["m2_forcep2index"]))
+                j2index = SystemConfig["m2_forcep2index"].ToInteger();
+
             // Write end of binary file for service buttons, test buttons and keyboard buttons for stats display
             WriteServiceBytes(bytes, j1index, c1, tech1, vendor1, serviceByte[parentRom], ctrl1);
             WriteStatsBytes(bytes, serviceByte[parentRom] + 8);
