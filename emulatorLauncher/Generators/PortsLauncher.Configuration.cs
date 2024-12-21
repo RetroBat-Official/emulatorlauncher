@@ -370,6 +370,14 @@ namespace EmulatorLauncher
             ConfigureDhewm3Controls(changes);
 
             ConfigEditor.ChangeConfigValues(cfgFile, changes);
+
+            // Cleanup if disabled autoconfigure
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                string[] lines = File.ReadAllLines(cfgFile);
+                lines = lines.Where(line => !line.StartsWith("bind \"JOY")).ToArray();
+                File.WriteAllLines(cfgFile, lines);
+            }
         }
 
         private void ConfigureOpenGoal(List<string> commandArray, string rom)
