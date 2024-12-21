@@ -89,7 +89,7 @@ namespace EmulatorLauncher
                             break;
                         ReshadePlatform RSplatform = reshadePlatform[emulator];
                         ReshadeBezelType RStype = reshadeType[emulator];
-                       
+                        SimpleLogger.Instance.Info("[INFO] Setting up Reshade");
                         ReshadeManager.Setup(RStype, RSplatform, system, rom, _path, resolution, emulator);
                         _useReshade = true;
                         break;

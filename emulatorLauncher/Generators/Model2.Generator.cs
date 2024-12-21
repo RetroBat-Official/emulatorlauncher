@@ -197,7 +197,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Input", "XInput", "0");
             }
 
-            else if (Program.SystemConfig.isOptSet("m2_joystick_autoconfig") && Program.SystemConfig["m2_joystick_autoconfig"] == "template")
+            if (Program.SystemConfig.isOptSet("m2_joystick_autoconfig") && Program.SystemConfig["m2_joystick_autoconfig"] == "template")
             {
                 string inputCFGpath = Path.Combine(path, "CFG");
                 if (!Directory.Exists(inputCFGpath)) try { Directory.CreateDirectory(inputCFGpath); }

@@ -64,6 +64,7 @@ namespace EmulatorLauncher.Libretro
                 { "dosbox_svn_ce", "DOSBox-SVN CE" },
                 { "dosbox_svn", "DOSBox-SVN" },
                 { "DoubleCherryGB", "Doublecherrygb" },
+                { "doukutsu_rs", "Doukutsu Rs" },
                 { "duckstation", "DuckStation" },
                 { "easyrpg", "EasyRPG Player" },
                 { "ecwolf", "ECWolf" },
@@ -318,6 +319,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureDolphin(retroarchConfig, coreSettings, system, core);
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
             ConfigureDoublecherrygb(retroarchConfig, coreSettings, system, core);
+            ConfigureDRS(retroarchConfig, coreSettings, system, core);
             Configureecwolf(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFake08(retroarchConfig, coreSettings, system, core);
@@ -1148,6 +1150,14 @@ namespace EmulatorLauncher.Libretro
                 BindBoolFeature(coreSettings, "dcgb_gblink_enable", "dcgb_gblink_enable", "enabled", "disabled");
         }
 
+        private void ConfigureDRS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "doukutsu_rs")
+                return;
+
+            BindFeature(coreSettings, "d-rs_internal_upscale_factor", "drs_internal_upscale_factor", "2x (CS+, default)");
+            BindBoolFeature(coreSettings, "d-rs_show_fps", "drs_show_fps", "enabled", "disabled");
+        }
         private void Configureecwolf(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "ecwolf")

@@ -26,7 +26,7 @@ namespace EmulatorLauncher
             var player2 = input.GetOrCreateContainer("PlayerCodes1");
 
             // Set config based on number of pads
-            int controllerCount = Controllers.Where(c => !c.IsKeyboard).Count();
+            //int controllerCount = Controllers.Where(c => !c.IsKeyboard).Count();
             //Controller c1 = null;
             //Controller c2 = null;
 
@@ -187,6 +187,7 @@ namespace EmulatorLauncher
             changes.Add(new Dhewm3ConfigChange("bind", "z", "_zoom"));
             changes.Add(new Dhewm3ConfigChange("bind", "BACKSPACE", "clientDropWeapon"));
             changes.Add(new Dhewm3ConfigChange("bind", "PAUSE", "pause"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F11", "pause"));
             changes.Add(new Dhewm3ConfigChange("bind", "UPARROW", "_forward"));
             changes.Add(new Dhewm3ConfigChange("bind", "DOWNARROW", "_back"));
             changes.Add(new Dhewm3ConfigChange("bind", "LEFTARROW", "_moveLeft"));
@@ -209,9 +210,33 @@ namespace EmulatorLauncher
             changes.Add(new Dhewm3ConfigChange("bind", "MOUSE1", "_attack"));
             changes.Add(new Dhewm3ConfigChange("bind", "MOUSE2", "_moveup"));
             changes.Add(new Dhewm3ConfigChange("bind", "MOUSE3", "_zoom"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F10", "_impulse14"));
             changes.Add(new Dhewm3ConfigChange("bind", "MWHEELDOWN", "_impulse15"));
-            changes.Add(new Dhewm3ConfigChange("bind", "MWHEELUP", "dhewm3Settings"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MWHEELUP", "_impulse14"));
+
+            int controllerCount = Controllers.Where(c => !c.IsKeyboard).Count();
+            if (controllerCount > 0)
+            {
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_SOUTH", "_moveUp"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_EAST", "_moveDown"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_WEST", "_speed"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_NORTH", "_zoom"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_LSHOULDER", "_impulse13"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_RSHOULDER", "_attack"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_UP", "_forward"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_DOWN", "_back"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_LEFT", "_moveLeft"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_RIGHT", "_moveRight"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_UP", "_forward"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_DOWN", "_back"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_LEFT", "_moveLeft"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_RIGHT", "_moveRight"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_UP", "_lookUp"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_DOWN", "_lookDown"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_LEFT", "_left"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_RIGHT", "_right"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER1", "_impulse15"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER2", "_impulse14"));
+            }
         }
         #endregion
 
