@@ -88,8 +88,8 @@ namespace EmulatorLauncher
                 saturnTroller["P" + playerIndex + " Start"] = "WMouse M";
 
                 var saturnAnalog = analogtrollers.GetOrCreateContainer(systemController[system]);
-                var p1X = saturnAnalog.GetOrCreateContainer("P2 X Axis");
-                var p1Y = saturnAnalog.GetOrCreateContainer("P2 Y Axis");
+                var p1X = saturnAnalog.GetOrCreateContainer("P1 X Axis");
+                var p1Y = saturnAnalog.GetOrCreateContainer("P1 Y Axis");
 
                 p1X["Value"] = "WMouse X";
                 p1X.SetObject("Mult", 1.0);

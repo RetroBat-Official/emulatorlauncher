@@ -277,6 +277,7 @@ namespace EmulatorLauncher
 
         private void WriteKBHotkeys(IniFileJGenesis ini)
         {
+            ini.DeleteSection("[[input.hotkeys.mapping_1.exit]]");
 
             foreach (var hotkey in hotkeys)
             {
@@ -425,7 +426,7 @@ namespace EmulatorLauncher
 
         static readonly Dictionary<string, string> hotkeys = new Dictionary<string, string>()
         {
-            { "quit", "Escape" },
+            { "exit", "Escape" },
             { "toggle_fullscreen", "Tab" },
             { "save_state", "F1" },
             { "load_state", "F2" },
