@@ -96,6 +96,8 @@ namespace EmulatorLauncher
         {
             using (IniFile ini = new IniFile(iniPath))
             {
+                BindIniFeature(ini, "scummvm", "rotation_mode", "scumm_rotation", "0");
+
                 if (Features.IsSupported("gfx_mode") && SystemConfig.isOptSet("gfx_mode"))
                     ini.WriteValue("scummvm", "gfx_mode", SystemConfig["gfx_mode"]);
                 else

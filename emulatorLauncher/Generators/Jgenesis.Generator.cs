@@ -125,6 +125,8 @@ namespace EmulatorLauncher
                 if (!Directory.Exists(savesPath))
                     try { Directory.CreateDirectory(savesPath); } catch { }
 
+                ini.DeleteSection("game_boy");
+
                 ini.WriteValue("common", "save_path", "\"Custom\"");
 
                 ini.WriteValue("common", "custom_save_path", "'" + savesPath + "'");
