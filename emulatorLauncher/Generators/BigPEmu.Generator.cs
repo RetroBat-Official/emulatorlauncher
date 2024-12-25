@@ -173,25 +173,8 @@ namespace EmulatorLauncher
 
                 BindFeature(video, "MSAAPref", "bigpemu_antialiasing", "0");
                 BindFeature(video, "ScreenFilter", "smooth", "0");
-
-                if (_bezelFileInfo == null && SystemConfig.isOptSet("bigpemu_ratio") && !string.IsNullOrEmpty(SystemConfig["bigpemu_ratio"]))
-                {
-                    if (SystemConfig["bigpemu_ratio"] == "stretch")                 // Stretch only if bezels are empty and ratio = STRETCH
-                    {
-                        video["ScreenScaling"] = "6";
-                    }
-                    else
-                    {
-                        video["ScreenScaling"] = "0";                       // else do not stretch and apply selected ratio
-                        video["ScreenAspect"] = SystemConfig["bigpemu_ratio"];
-                    }
-
-                }
-                else                                                        // set aspect ratio to 4/3 and no stretch (this is the standard case but also with bezels)
-                {
-                    video["ScreenScaling"] = "0";
-                    video["ScreenAspect"] = "2";
-                }
+                BindFeature(video, "ScreenAspect", "bigpemu_ratio", "2");
+                BindFeature(video, "ScreenScaling", "bigpemu_scaling", "1");
 
                 // Allow use of internal effects if shaders are set to none
                 if (SystemConfig["shaderset"] == "none" && SystemConfig.isOptSet("bigpemu_shader") && !string.IsNullOrEmpty(SystemConfig["bigpemu_shader"]))

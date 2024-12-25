@@ -66,6 +66,7 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
             }
 
+            pcsx2ini.WriteValue("InputSources", "SDLRawInput", "true");
             if (_forceDInput)
             {
                 pcsx2ini.WriteValue("InputSources", "DInput", "true");
