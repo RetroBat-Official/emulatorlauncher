@@ -219,6 +219,11 @@ namespace EmulatorLauncher
             if (_useSdl)
             {
                 guid = ctrl.GetSdlGuid(SdlVersion.SDL2_30, true);
+
+                string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.Guid, "bigpemu");
+                if (newGuid != null)
+                    guid = newGuid.ToUpperInvariant();
             }
 
             // Define Device section
