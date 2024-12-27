@@ -84,9 +84,11 @@ namespace EmulatorLauncher
             List<string> commandArray = new List<string>
             {
                 "\"" + rom + "\"",
-                "--no-gui"
             };
 
+            if (!SystemConfig.getOptBoolean("rpcs3_gui"))
+                commandArray.Add("--no-gui");
+            
             if (fullscreen)
                 commandArray.Add("--fullscreen");
 
