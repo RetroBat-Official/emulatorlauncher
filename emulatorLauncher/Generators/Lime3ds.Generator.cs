@@ -309,7 +309,10 @@ namespace EmulatorLauncher
 
             var toSet = new byte[] { (byte)langId };
             for (int i = 0; i < toSet.Length; i++)
+            {
                 bytes[128] = toSet[i];
+                bytes[272] = toSet[i];
+            }
 
             File.WriteAllBytes(path, bytes);
         }

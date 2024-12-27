@@ -95,12 +95,12 @@ namespace EmulatorLauncher
                 ini.WriteValue("ControlMapping", "An.Right", AnRight);
 
                 // Shortcuts(hotkeys)
-                ini.WriteValue("ControlMapping", "Rewind", "1-131,20-109:20-21,21:109-21:21,22:109-22:21,23:109-23:21");            // SELECT + LEFT
-                ini.WriteValue("ControlMapping", "Fast-forward", "1-132,20-109:20-22,21:109-21:22,22:109-22:22,23:109-23:22");      // SELECT + RIGHT
-                ini.WriteValue("ControlMapping", "Load State", "1-134,20-109:20-100,21:109-21:100,22:109-22:100,23:109-23:100");    // SELECT + NORTH
-                ini.WriteValue("ControlMapping", "Save State", "1-133,20-109:20-99,21:109-21:99,22:109-22:99,23:109-23:99");        // SELECT + WEST
-                ini.WriteValue("ControlMapping", "Pause", "1-140,20-109:20-97,21:109-21:97,22:109-22:97,23:109-23:97");             // SELECT + EAST
-                ini.WriteValue("ControlMapping", "Screenshot", "1-138,20-109:20-103,21:109-21:103,22:109-22:103,23:109-23:103");    // SELECT + RightShoulder
+                ini.WriteValue("ControlMapping", "Rewind", "1-131,20-109:20-21,21-109:21-21,22-109:22-21,23-109:23-21");            // SELECT + LEFT
+                ini.WriteValue("ControlMapping", "Fast-forward", "1-132,20-109:20-22,21-109:21-22,22-109:22-22,23-109:23-22");      // SELECT + RIGHT
+                ini.WriteValue("ControlMapping", "Load State", "1-134,20-109:20-100,21-109:21-100,22-109:22-100,23-109:23-100");    // SELECT + NORTH
+                ini.WriteValue("ControlMapping", "Save State", "1-133,20-109:20-99,21-109:21-99,22-109:22-99,23-109:23-99");        // SELECT + WEST
+                ini.WriteValue("ControlMapping", "Pause", "1-140,20-109:20-97,21-109:21-97,22-109:22-97,23-109:23-97");             // SELECT + EAST
+                ini.WriteValue("ControlMapping", "Screenshot", "1-138,20-109:20-103,21-109:21-103,22-109:22-103,23-109:23-103");    // SELECT + RightShoulder
 
                 if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
                 {
@@ -109,8 +109,8 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    ini.WriteValue("ControlMapping", "Previous Slot", "1-135,20-109:20-19,21:109-21:19,22:109-22:19,23:109-23:19"); // SELECT + UP
-                    ini.WriteValue("ControlMapping", "Next Slot", "1-136,20-109:20-20,21:109-21:20,22:109-22:20,23:109-23:20");     // SELECT + DOWN
+                    ini.WriteValue("ControlMapping", "Previous Slot", "1-135,20-109:20-19,21-109:21-19,22-109:22-19,23-109:23-19"); // SELECT + UP
+                    ini.WriteValue("ControlMapping", "Next Slot", "1-136,20-109:20-20,21-109:21-20,22-109:22-20,23-109:23-20");     // SELECT + DOWN
                 }
             }
 

@@ -288,7 +288,6 @@ namespace EmulatorLauncher
             ini.WriteValue("1.0", "Shortcuts\\L%26ancer", "F1");
             ini.WriteValue("1.0", "Shortcuts\\%26Pause", "F2");
             ini.WriteValue("1.0", "Shortcuts\\Sc%26reenshot", "F8");
-            ini.WriteValue("1.0", "Shortcuts\\%26Plein%20Ecran", "F11");
             ini.WriteValue("1.0", "Shortcuts\\S%26auvegarder%20un%20Etat", "F6");
             ini.WriteValue("1.0", "Shortcuts\\%26Charger%20un%20Etat", "F7");
         }
