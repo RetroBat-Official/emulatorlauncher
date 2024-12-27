@@ -285,9 +285,9 @@ namespace EmulatorLauncher
             ini.WriteValue("0.9.11", "Shortcuts\\%26Quitter", "Esc");
             ini.WriteValue("0.9.11", "Shortcuts\\%26Pause", "F10");
             ini.WriteValue("0.9.11", "Shortcuts\\Copie%20d%27Ec%26ran", "F8");
-            ini.WriteValue("0.9.11", "Shortcuts\\%26Plein%20Ecran", "F11");
             ini.WriteValue("0.9.11", "Shortcuts\\S%26auvegarder%20un%20Etat", "F6");
             ini.WriteValue("0.9.11", "Shortcuts\\%26Charger%20un%20Etat", "F7");
+            ini.WriteValue("0.9.11", "Shortcuts\\L%26ancer", "F1");
         }
 
         private string GetControllerPort(int playerindex)
