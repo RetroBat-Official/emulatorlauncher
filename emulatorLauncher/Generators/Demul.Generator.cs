@@ -41,6 +41,10 @@ namespace EmulatorLauncher
 
             string demulCore = GetDemulCore(emulator, core, system);
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            if (!fullscreen)
+                SystemConfig["forceNoBezel"] = "true";
+
             // Allow fake decorations if ratio is set to 4/3, otherwise disable bezels
             if (SystemConfig.isOptSet("demul_ratio") && SystemConfig["demul_ratio"] != "1")
                 SystemConfig["bezel"] = "none";
@@ -293,6 +297,12 @@ namespace EmulatorLauncher
 
             if (process != null)
             {
+                if (!_isUsingReshader)
+                {
+                    System.Threading.Thread.Sleep(2000);
+                    SendKeys.SendWait("%~");
+                }
+
                 process.WaitForExit();
 
                 bezel?.Dispose();

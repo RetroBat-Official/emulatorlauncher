@@ -20,12 +20,15 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             // settings (xml configuration)
             SetupJsonConfiguration(path, system, rom);
 
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            if (fullscreen)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            
 
             // command line parameters
             var commandArray = new List<string>
