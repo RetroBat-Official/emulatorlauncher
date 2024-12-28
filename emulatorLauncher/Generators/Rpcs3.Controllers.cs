@@ -382,31 +382,32 @@ namespace EmulatorLauncher
 
             else if (tech == "SDL")
             {
-                config["Left Stick Left"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1left);    //LS X-
-                config["Left Stick Down"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1down);    //LS Y-
-                config["Left Stick Right"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1right);  //LS X+
-                config["Left Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1up);        //LS Y+
-                config["Right Stick Left"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2left);   //RS X-
-                config["Right Stick Down"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2down);   //LS Y-
-                config["Right Stick Right"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2right); //LS X+
-                config["Right Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2up);       //LS Y+
-                config["Start"] = GetInputKeyNameSDL(ctrl, InputKey.start);                      //Start
-                config["Select"] = GetInputKeyNameSDL(ctrl, InputKey.select);                    //Back
+                bool isXinput = ctrl.IsXInputDevice;
+                config["Left Stick Left"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1left, isXinput);    //LS X-
+                config["Left Stick Down"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1down, isXinput);    //LS Y-
+                config["Left Stick Right"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1right, isXinput);  //LS X+
+                config["Left Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick1up, isXinput);        //LS Y+
+                config["Right Stick Left"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2left, isXinput);   //RS X-
+                config["Right Stick Down"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2down, isXinput);   //LS Y-
+                config["Right Stick Right"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2right, isXinput); //LS X+
+                config["Right Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2up, isXinput);       //LS Y+
+                config["Start"] = GetInputKeyNameSDL(ctrl, InputKey.start, isXinput);                      //Start
+                config["Select"] = GetInputKeyNameSDL(ctrl, InputKey.select, isXinput);                    //Back
                 config["PS Button"] = "Guide";                                                   //Guide
-                config["Square"] = GetInputKeyNameSDL(ctrl, InputKey.x);                         //X (or Y on nintendo)
-                config["Cross"] = GetInputKeyNameSDL(ctrl, InputKey.a);                          //A (or B on nintendo)
-                config["Circle"] = GetInputKeyNameSDL(ctrl, InputKey.b);                         //B (or A on nintendo)
-                config["Triangle"] = GetInputKeyNameSDL(ctrl, InputKey.y);                       //Y (or X on nintendo)
-                config["Left"] = GetInputKeyNameSDL(ctrl, InputKey.left);                        //Left
-                config["Down"] = GetInputKeyNameSDL(ctrl, InputKey.down);                        //Down
-                config["Right"] = GetInputKeyNameSDL(ctrl, InputKey.right);                      //Right
-                config["Up"] = GetInputKeyNameSDL(ctrl, InputKey.up);                            //Up
-                config["R1"] = GetInputKeyNameSDL(ctrl, InputKey.r1);                            //RB
-                config["R2"] = GetInputKeyNameSDL(ctrl, InputKey.r2);                            //RT
-                config["R3"] = GetInputKeyNameSDL(ctrl, InputKey.r3);                            //RS
-                config["L1"] = GetInputKeyNameSDL(ctrl, InputKey.l1);                            //LB
-                config["L2"] = GetInputKeyNameSDL(ctrl, InputKey.l2);                            //LT
-                config["L3"] = GetInputKeyNameSDL(ctrl, InputKey.l3);                            //LS
+                config["Square"] = GetInputKeyNameSDL(ctrl, InputKey.x, isXinput);                         //X (or Y on nintendo)
+                config["Cross"] = GetInputKeyNameSDL(ctrl, InputKey.a, isXinput);                          //A (or B on nintendo)
+                config["Circle"] = GetInputKeyNameSDL(ctrl, InputKey.b, isXinput);                         //B (or A on nintendo)
+                config["Triangle"] = GetInputKeyNameSDL(ctrl, InputKey.y, isXinput);                       //Y (or X on nintendo)
+                config["Left"] = GetInputKeyNameSDL(ctrl, InputKey.left, isXinput);                        //Left
+                config["Down"] = GetInputKeyNameSDL(ctrl, InputKey.down, isXinput);                        //Down
+                config["Right"] = GetInputKeyNameSDL(ctrl, InputKey.right, isXinput);                      //Right
+                config["Up"] = GetInputKeyNameSDL(ctrl, InputKey.up, isXinput);                            //Up
+                config["R1"] = GetInputKeyNameSDL(ctrl, InputKey.pagedown, isXinput);                            //RB
+                config["R2"] = GetInputKeyNameSDL(ctrl, InputKey.r2, isXinput);                            //RT
+                config["R3"] = GetInputKeyNameSDL(ctrl, InputKey.r3, isXinput);                            //RS
+                config["L1"] = GetInputKeyNameSDL(ctrl, InputKey.pageup, isXinput);                            //LB
+                config["L2"] = GetInputKeyNameSDL(ctrl, InputKey.l2, isXinput);                            //LT
+                config["L3"] = GetInputKeyNameSDL(ctrl, InputKey.l3, isXinput);                            //LS
             }
             
             //motion controls
@@ -435,13 +436,13 @@ namespace EmulatorLauncher
             config["Left Stick Multiplier"] = "100";
             config["Right Stick Multiplier"] = "100";
             
-            if (tech == "XInput")
+            if (tech == "XInput" || ctrl.IsXInputDevice)
                 config["Left Stick Deadzone"] = "7849";
             else if (tech == "DS3" || tech == "DS4" || tech == "DualSense")
                 config["Left Stick Deadzone"] = "40";
             else
                 config["Left Stick Deadzone"] = "50";
-            if (tech == "XInput")
+            if (tech == "XInput" || ctrl.IsXInputDevice)
                 config["Right Stick Deadzone"] = "8689";
             else if (tech == "DS3" || tech == "DS4" || tech == "DualSense")
                 config["Right Stick Deadzone"] = "40";
@@ -457,11 +458,11 @@ namespace EmulatorLauncher
             else
                 config["Right Stick Anti-Deadzone"] = "0";
 
-            if (tech == "XInput")
+            if (tech == "XInput" || ctrl.IsXInputDevice)
                 config["Left Trigger Threshold"] = "30";
             else
                 config["Left Trigger Threshold"] = "0";
-            if (tech == "XInput")
+            if (tech == "XInput" || ctrl.IsXInputDevice)
                 config["Right Trigger Threshold"] = "30";
             else
                 config["Right Trigger Threshold"] = "0";
@@ -648,7 +649,7 @@ namespace EmulatorLauncher
                 return "\"\"";
         }
 
-        private static string GetInputKeyNameSDL(Controller c, InputKey key)
+        private static string GetInputKeyNameSDL(Controller c, InputKey key, bool xInput)
         {
             Int64 pid;
 
@@ -666,17 +667,62 @@ namespace EmulatorLauncher
                     pid = input.Id;
                     switch (pid)
                     {
-                        case 0: return revertbuttons ? "A" : "B";
-                        case 1: return revertbuttons ? "B" : "A";
-                        case 2: return revertbuttons ? "Y" : "X";
-                        case 3: return revertbuttons ? "X" : "Y";
-                        case 4: return "Back";
-                        case 5: return "Guide";
-                        case 6: return "Start";
-                        case 7: return "LS";
-                        case 8: return "RS";
-                        case 9: return "LB";
-                        case 10: return "RB";
+                        case 0: 
+                            if (xInput)
+                                return revertbuttons ? "B" : "A";
+                            else
+                                return revertbuttons ? "A" : "B";
+
+                        case 1:
+                            if (xInput)
+                                return revertbuttons ? "A" : "B";
+                            else
+                                return revertbuttons ? "B" : "A";
+                        case 2:
+                            if (xInput)
+                                return revertbuttons ? "X" : "Y";
+                            else
+                                return revertbuttons ? "Y" : "X";
+                        case 3:
+                            if (xInput)
+                                return revertbuttons ? "Y" : "X";
+                            else
+                                return revertbuttons ? "X" : "Y";
+                        case 4:
+                            if (xInput)
+                                return "LB";
+                            else
+                                return "Back";
+                        case 5:
+                            if (xInput)
+                                return "RB";
+                            else
+                                return "Guide";
+                        case 6:
+                            if (xInput)
+                                return "Back";
+                            else
+                                return "Start";
+                        case 7:
+                            if (xInput)
+                                return "Start";
+                            else
+                                return "LS";
+                        case 8:
+                            if (xInput)
+                                return "LS";
+                            else
+                                return "RS";
+                        case 9:
+                            if (xInput)
+                                return "RS";
+                            else
+                                return "LB";
+                        case 10:
+                            if (xInput)
+                                return "Guide";
+                            else
+                                return "RB";
                         case 11: return "Up";
                         case 12: return "Down";
                         case 13: return "Left";
