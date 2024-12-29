@@ -207,6 +207,17 @@ namespace EmulatorLauncher
                     ini.WriteValue("GSFrame", "lockMouseInFullscreen", "true");
 
                 ini.WriteValue("GSFrame", "disableMouse", "true");
+
+                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                {
+                    int index = SystemConfig["MonitorIndex"].ToInteger();
+
+                    if (index != -1)
+                    {
+                        index = index - 1;
+                        ini.WriteValue("GSFrame", "screen", index.ToString());
+                    }
+                }
             }
         }
 

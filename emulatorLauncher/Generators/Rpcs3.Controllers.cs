@@ -437,22 +437,24 @@ namespace EmulatorLauncher
             config["Right Stick Multiplier"] = "100";
             
             if (tech == "XInput" || ctrl.IsXInputDevice)
-                config["Left Stick Deadzone"] = "7849";
+                config["Left Stick Deadzone"] = "7700";
             else if (tech == "DS3" || tech == "DS4" || tech == "DualSense")
                 config["Left Stick Deadzone"] = "40";
             else
-                config["Left Stick Deadzone"] = "50";
+                config["Left Stick Deadzone"] = "7700";
+            
             if (tech == "XInput" || ctrl.IsXInputDevice)
-                config["Right Stick Deadzone"] = "8689";
+                config["Right Stick Deadzone"] = "7700";
             else if (tech == "DS3" || tech == "DS4" || tech == "DualSense")
                 config["Right Stick Deadzone"] = "40";
             else
-                config["Right Stick Deadzone"] = "50";
+                config["Right Stick Deadzone"] = "7700";
 
             if (tech == "DualSense" || tech == "DS4")
                 config["Left Stick Anti-Deadzone"] = "33";
             else
                 config["Left Stick Anti-Deadzone"] = "0";
+            
             if (tech == "DualSense" || tech == "DS4")
                 config["Right Stick Anti-Deadzone"] = "33";
             else
