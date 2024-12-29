@@ -80,6 +80,16 @@ namespace EmulatorLauncher
             int playerIndex = ctrl.PlayerIndex - 1;
             int startIndex = gamepadByteIndex + 16 + (playerIndex * 148);
             int ctrlIndex = ctrl.DirectInput != null ? ctrl.DirectInput.DeviceIndex : ctrl.DeviceIndex;
+
+            string forceIndex = "magicengine_p" + ctrl.PlayerIndex + "_forceindex";
+            if (SystemConfig.isOptSet(forceIndex) && !string.IsNullOrEmpty(SystemConfig[forceIndex]))
+            {
+                ctrlIndex = SystemConfig[forceIndex].ToInteger();
+            }
+
+            if (playerIndex == 0 && ctrlIndex > 0)
+                startIndex = startIndex + 16;
+
             int buttonStart = startIndex + 4;
 
             if (!File.Exists(gamecontrollerDB))

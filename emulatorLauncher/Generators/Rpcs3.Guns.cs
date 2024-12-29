@@ -28,10 +28,6 @@ namespace EmulatorLauncher
 
                 BindBoolFeature(io, "Show move cursor", "rpcs3_mouse_cursor", "true", "false");
             }
-            if (Program.SystemConfig["rpcs3_guns"] == "1")
-                io["GunCon3 emulated controller"] = "1 controller";
-            else if (Program.SystemConfig["rpcs3_guns"] == "2")
-                io["GunCon3 emulated controller"] = "2 controllers";
         }
     }
 }
