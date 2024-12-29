@@ -671,8 +671,12 @@ namespace EmulatorLauncher
             if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
             {
                 json["SkipRATelemetryWarning"] = "true";
-                json["RAUsername"] = SystemConfig["retroachievements.username"];
-                json["RAToken"] = SystemConfig["retroachievements.token"];
+                
+                if (string.IsNullOrEmpty(json["RAUsername"]))
+                    json["RAUsername"] = SystemConfig["retroachievements.username"];
+                if (string.IsNullOrEmpty(json["RAToken"]))
+                    json["RAToken"] = SystemConfig["retroachievements.token"];
+                
                 json["RACheevosActive"] = "true";
                 json["RALBoardsActive"] = SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false";
                 json["RARichPresenceActive"] = SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false";
