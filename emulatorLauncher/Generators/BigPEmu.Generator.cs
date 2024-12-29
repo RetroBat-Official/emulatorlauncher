@@ -161,8 +161,8 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    video.Remove("DisplayWidth");
-                    video.Remove("DisplayHeight");
+                    video["DisplayWidth"] = (ScreenResolution.CurrentResolution.Width).ToString();
+                    video["DisplayHeight"] = (ScreenResolution.CurrentResolution.Height).ToString();
                 }
 
                 if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
@@ -174,7 +174,7 @@ namespace EmulatorLauncher
                 BindFeature(video, "MSAAPref", "bigpemu_antialiasing", "0");
                 BindFeature(video, "ScreenFilter", "smooth", "0");
                 BindFeature(video, "ScreenAspect", "bigpemu_ratio", "2");
-                BindFeature(video, "ScreenScaling", "bigpemu_scaling", "1");
+                BindFeature(video, "ScreenScaling", "bigpemu_scaling", "5");
 
                 // Allow use of internal effects if shaders are set to none
                 if (SystemConfig["shaderset"] == "none" && SystemConfig.isOptSet("bigpemu_shader") && !string.IsNullOrEmpty(SystemConfig["bigpemu_shader"]))
