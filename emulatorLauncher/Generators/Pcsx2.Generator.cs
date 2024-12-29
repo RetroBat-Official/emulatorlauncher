@@ -680,7 +680,7 @@ namespace EmulatorLauncher
                     if (newSaveStates)
                     {
                         // Keep the original folder, we'll listen to it, and inject in our custom folder
-                        ini.WriteValue("Folders", "Savestates ", "sstates");
+                        ini.WriteValue("Folders", "SaveStates ", "sstates");
 
                         _saveStatesWatcher = new Pcsx2SaveStatesMonitor(rom, Path.Combine(path, "sstates"), savesPath);
                         _saveStatesWatcher.PrepareEmulatorRepository();
@@ -688,7 +688,7 @@ namespace EmulatorLauncher
                     else
                     {
                         FileTools.TryCreateDirectory(savesPath);
-                        ini.WriteValue("Folders", "Savestates ", savesPath);
+                        ini.WriteValue("Folders", "SaveStates ", savesPath);
                     }
                 }
 
