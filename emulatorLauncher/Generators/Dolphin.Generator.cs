@@ -238,6 +238,8 @@ namespace EmulatorLauncher
                         }
                     }
 
+                    BindBoolIniFeatureOn(ini, "Hacks", "XFBToTextureEnable", "dolphin_xfbtotexture", "True", "False");
+
                     // Store EFB Copies
                     if (Features.IsSupported("EFBCopies"))
                     {
