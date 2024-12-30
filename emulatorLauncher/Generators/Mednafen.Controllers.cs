@@ -6,8 +6,6 @@ using System.Globalization;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
-using ValveKeyValue;
-using System.Diagnostics.Eventing.Reader;
 
 namespace EmulatorLauncher
 {
@@ -34,7 +32,7 @@ namespace EmulatorLauncher
             { "ss", "gamepad" },
             { "wswan", "gamepad" }
         };
-        
+
         static readonly Dictionary<string, int> inputPortNb = new Dictionary<string, int>()
         {
             { "apple2", 2 },
@@ -103,7 +101,7 @@ namespace EmulatorLauncher
                 return;
 
             int nbAxis = controller.NbAxes;
-            int nbHats = controller.NbHats;
+            bool hatfix = hatFix.Contains(controller.ProductID);
             bool mdSpecialPad = false;
             bool mdSpecialPadHK = false;
             bool saturnSpecialPad = false;
@@ -115,7 +113,7 @@ namespace EmulatorLauncher
             // Fetch information in retrobat/system/tools/gamecontrollerdb.txt file
             SdlToDirectInput dinputCtrl = null;
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            
+
             if (!File.Exists(gamecontrollerDB))
             {
                 SimpleLogger.Instance.Info("[INFO] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
@@ -177,7 +175,7 @@ namespace EmulatorLauncher
                 if (portNumber == 1)
                 {
                     cfg[mednafenCore + ".input.port" + portNumber] = gunType;
-                    
+
                     foreach (var entry in gunMapping)
                         cfg[mednafenCore + ".input.port" + portNumber + "." + gunType + "." + entry.Key] = entry.Value;
 
@@ -217,7 +215,7 @@ namespace EmulatorLauncher
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
                 string mdjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
-                
+
                 if (File.Exists(mdjson))
                 {
                     try
@@ -263,7 +261,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            BypassMDControllers:
+        BypassMDControllers:
 
             // Search for saturn specific controllers
             bool needSatActivationSwitch = false;
@@ -319,7 +317,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            BypassSATControllers:
+        BypassSATControllers:
 
             // Else continue
             string deviceID = "0x" + controller.DirectInput.ProductGuid.ToString().Replace("-", "");
@@ -523,7 +521,7 @@ namespace EmulatorLauncher
                         string value = buttonMapping[joyButton];
 
                         if (dinput)
-                            cfg[mednafenCore + ".input.port" + 2 + ".atari." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                            cfg[mednafenCore + ".input.port" + 2 + ".atari." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                         else
                             cfg[mednafenCore + ".input.port" + 2 + ".atari." + entry.Key] = "joystick " + deviceID + " " + value;
                     }
@@ -540,7 +538,7 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     if (dinput)
-                        cfg["lynx.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                        cfg["lynx.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                     else
                         cfg["lynx.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
@@ -554,7 +552,7 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     if (dinput)
-                        cfg["gba.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                        cfg["gba.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                     else
                         cfg["gba.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
@@ -568,7 +566,7 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     if (dinput)
-                        cfg["gb.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                        cfg["gb.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                     else
                         cfg["gb.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
@@ -579,7 +577,7 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     if (dinput)
-                        cfg["gb.input.tilt.tilt." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                        cfg["gb.input.tilt.tilt." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                     else
                         cfg["gb.input.tilt.tilt." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
@@ -593,7 +591,7 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     if (dinput)
-                        cfg["gg.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                        cfg["gg.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                     else
                         cfg["gg.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
@@ -607,7 +605,7 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     if (dinput)
-                        cfg["ngp.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                        cfg["ngp.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                     else
                         cfg["ngp.input.builtin.gamepad." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
@@ -623,7 +621,7 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     if (dinput)
-                        cfg["wswan.input.builtin." + padType + "." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                        cfg["wswan.input.builtin." + padType + "." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                     else
                         cfg["wswan.input.builtin." + padType + "." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
@@ -648,7 +646,7 @@ namespace EmulatorLauncher
                     string value = buttonMapping[joyButton];
 
                     if (dinput)
-                        cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, nbHats);
+                        cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + entry.Key] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, value, nbAxis, hatfix);
                     else
                         cfg[mednafenCore + ".input.port" + playerIndex + "." + padType + "." + entry.Key] = "joystick " + deviceID + " " + value;
                 }
@@ -658,9 +656,9 @@ namespace EmulatorLauncher
             {
                 if (dinput)
                 {
-                    cfg["command.insert_coin"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats);
-                    cfg["ss.input.builtin.builtin.stv_test"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r3], nbAxis, nbHats);
-                    cfg["ss.input.builtin.builtin.stv_service"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.l3], nbAxis, nbHats);
+                    cfg["command.insert_coin"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix);
+                    cfg["ss.input.builtin.builtin.stv_test"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r3], nbAxis, hatfix);
+                    cfg["ss.input.builtin.builtin.stv_service"] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.l3], nbAxis, hatfix);
                 }
                 else
                 {
@@ -676,17 +674,17 @@ namespace EmulatorLauncher
             {
                 if (dinput)
                 {
-                    cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.x], nbAxis, nbHats);
-                    cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.y], nbAxis, nbHats);
-                    cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.down], nbAxis, nbHats);
-                    cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.up], nbAxis, nbHats);
-                    cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.a], nbAxis, nbHats);
-                    cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r2], nbAxis, nbHats);
-                    cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r3], nbAxis, nbHats);
-                    cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.right], nbAxis, nbHats);
-                    cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.left], nbAxis, nbHats);
-                    cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.b], nbAxis, nbHats);
-                    cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, nbHats) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.start], nbAxis, nbHats);
+                    cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.x], nbAxis, hatfix);
+                    cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.y], nbAxis, hatfix);
+                    cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.down], nbAxis, hatfix);
+                    cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.up], nbAxis, hatfix);
+                    cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.a], nbAxis, hatfix);
+                    cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r2], nbAxis, hatfix);
+                    cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r3], nbAxis, hatfix);
+                    cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.right], nbAxis, hatfix);
+                    cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.left], nbAxis, hatfix);
+                    cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.b], nbAxis, hatfix);
+                    cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.start], nbAxis, hatfix);
                 }
                 else
                 {
@@ -730,8 +728,8 @@ namespace EmulatorLauncher
                         keycode = azertyLayoutMapping[keycode];
 
                     int mednafenKey = mednafenKeyCodes[keycode];
-                    
-                    cfg[u + ".input.port" + v + "." + w + "." + x ] = "keyboard 0x0 " + mednafenKey;
+
+                    cfg[u + ".input.port" + v + "." + w + "." + x] = "keyboard 0x0 " + mednafenKey;
                 }
             };
 
@@ -796,7 +794,7 @@ namespace EmulatorLauncher
             }
 
             if (mednafenCore == "apple2")
-                    cfg[mednafenCore + ".input.port" + 2] = "paddle";
+                cfg[mednafenCore + ".input.port" + 2] = "paddle";
 
             else if (mednafenCore == "lynx")
             {
@@ -1472,7 +1470,7 @@ namespace EmulatorLauncher
         #endregion
 
         #region Mapping link
-        static readonly Dictionary<string, Dictionary<string, InputKey> > mappingToUse = new Dictionary<string, Dictionary<string, InputKey>>()
+        static readonly Dictionary<string, Dictionary<string, InputKey>> mappingToUse = new Dictionary<string, Dictionary<string, InputKey>>()
         {
             { "apple2_gamepad", apple2gamepad },
             { "apple2_joystick", apple2joystick },
@@ -1851,7 +1849,7 @@ namespace EmulatorLauncher
             { "ss", 12 }
         };
 
-        private string GetDinputMapping(SdlToDirectInput c, string buttonkey, int nbAxis, int nbHats)
+        private string GetDinputMapping(SdlToDirectInput c, string buttonkey, int nbAxis, bool hatfix)
         {
             if (c == null)
                 return "";
@@ -1895,22 +1893,22 @@ namespace EmulatorLauncher
                 switch (hatID)
                 {
                     case 1:
-                        if (nbHats == 0 && nbAxis > 1)
+                        if (hatfix)
                             return "abs_" + (nbAxis - 1) + "-";
                         else
                             return "abs_" + (nbAxis + 1) + "-";
                     case 2:
-                        if (nbHats == 0 && nbAxis > 1)
+                        if (hatfix)
                             return "abs_" + (nbAxis - 2) + "+";
                         else
                             return "abs_" + nbAxis + "+";
                     case 4:
-                        if (nbHats == 0 && nbAxis > 1)
+                        if (hatfix)
                             return "abs_" + (nbAxis - 1) + "+";
                         else
                             return "abs_" + (nbAxis + 1) + "+";
                     case 8:
-                        if (nbHats == 0 && nbAxis > 1)
+                        if (hatfix)
                             return "abs_" + (nbAxis - 2) + "-";
                         else
                             return "abs_" + nbAxis + "-";
@@ -2059,5 +2057,10 @@ namespace EmulatorLauncher
             }
             return newMapping;
         }
+
+        private static readonly List<USB_PRODUCT> hatFix = new List<USB_PRODUCT>
+        {
+            USB_PRODUCT.NINTENDO_SWITCH_PRO
+        };
     }
 }

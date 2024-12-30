@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using Newtonsoft.Json;
 
 namespace EmulatorLauncher
 {
@@ -14,29 +16,41 @@ namespace EmulatorLauncher
         }
 
         private bool _canary = false;
+        private bool _xeniaManagerConfig = false;
+        private string _xeniaManagerConfigFile = null;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
-            string folderName = (emulator == "xenia-canary" || core == "xenia-canary") ? "xenia-canary" : "xenia";
+            string folderName = emulator;
 
             string path = AppConfig.GetFullPath(folderName);
-            if (string.IsNullOrEmpty(path))
-                path = AppConfig.GetFullPath("xenia");
+            if (folderName == "xenia-manager")
+                path = Path.Combine(path, "Emulators", "Xenia Canary");
 
-            string exe = Path.Combine(path, "xenia.exe");
-            if (!File.Exists(exe))
+            string exeName = null;
+            switch (emulator)
             {
-                _canary = true;
-                exe = Path.Combine(path, "xenia-canary.exe");
-
-                if (!File.Exists(exe))
-                    exe = Path.Combine(path, "xenia_canary.exe");
+                case "xenia":
+                    exeName = "xenia.exe";
+                    break;
+                case "xenia-canary":
+                    exeName = "xenia_canary.exe";
+                    break;
+                case "xenia-manager":
+                    exeName = "xenia_canary.exe";
+                    break;
             }
 
+            string exe = Path.Combine(path, exeName);
             if (!File.Exists(exe))
                 return null;
+
+            if (useXeniaManagerConfig(AppConfig.GetFullPath(folderName), rom))
+            {
+                _xeniaManagerConfig = true;
+            }
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -50,12 +64,20 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] path to rom : " + (rom != null ? rom : "null"));
             }
 
-            SetupConfiguration(path);
+            if (!_xeniaManagerConfig)
+                SetupConfiguration(path, emulator);
 
             var commandArray = new List<string>();
 
             if (fullscreen)
                 commandArray.Add("--fullscreen");
+
+            if (_xeniaManagerConfig)
+            {
+                SimpleLogger.Instance.Info("[INFO] Using Xenia Manager Configuration file, RetroBat will not append configuration.");
+                commandArray.Add("--config");
+                commandArray.Add("\"" + _xeniaManagerConfigFile + "\"");
+            }
 
             commandArray.Add("\"" + rom + "\"");
 
@@ -70,7 +92,7 @@ namespace EmulatorLauncher
         }
 
         //Setup toml configuration file (using AppendValue because config file is very sensitive to values that do not exist and both emulators are still under heavy development)
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, string emulator)
         {
             if (SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
@@ -79,7 +101,11 @@ namespace EmulatorLauncher
 
             try
             {
-                using (IniFile ini = new IniFile(Path.Combine(path, _canary ? "xenia-canary.config.toml" : "xenia.config.toml"), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
+                string iniFile = "xenia-canary.config.toml";
+                if (emulator == "xenia")
+                    iniFile = "xenia.config.toml";
+                
+                using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
                     //APU section
                     string audio_driver = "\"" + SystemConfig["apu"] + "\"";
@@ -320,5 +346,111 @@ namespace EmulatorLauncher
 
             return "1";
         }
+
+        private bool useXeniaManagerConfig(string path, string rom)
+        {
+            string gameFile = Directory.GetFiles(path, "games.json", SearchOption.AllDirectories).FirstOrDefault();
+
+            if (!File.Exists(gameFile))
+                return false;
+
+            SimpleLogger.Instance.Info("[INFO] Searching if game config file exists.");
+
+            string json = File.ReadAllText(gameFile);
+            List<XeniaManagerGame> games = JsonConvert.DeserializeObject<List<XeniaManagerGame>>(json);
+            string searchLocation = Path.GetFileName(rom);
+
+            XeniaManagerGame foundGame = games.Find(game => game.FileLocations.GameLocation.EndsWith(searchLocation));
+
+            if (foundGame == null)
+                return false;
+
+            string cfgFile = foundGame.FileLocations.ConfigLocation;
+
+            if (cfgFile == null)
+                return false;
+            
+            if (!File.Exists(cfgFile))
+                return false;
+
+            _xeniaManagerConfigFile = cfgFile;
+            SimpleLogger.Instance.Info("[INFO] Using config file: " + cfgFile);
+            return true;
+        }
+    }
+
+    public class XeniaManagerArtwork
+    {
+        [JsonProperty("background")]
+        public string Background { get; set; }
+
+        [JsonProperty("boxart")]
+        public string Boxart { get; set; }
+
+        [JsonProperty("icon")]
+        public string Icon { get; set; }
+    }
+
+    public class XeniaManagerArtworkCache
+    {
+        [JsonProperty("background")]
+        public string Background { get; set; }
+
+        [JsonProperty("boxart")]
+        public string Boxart { get; set; }
+
+        [JsonProperty("icon")]
+        public string Icon { get; set; }
+    }
+
+    public class XeniaManagerFileLocations
+    {
+        [JsonProperty("game_location")]
+        public string GameLocation { get; set; }
+
+        [JsonProperty("patch_location")]
+        public string PatchLocation { get; set; }
+
+        [JsonProperty("config_location")]
+        public string ConfigLocation { get; set; }
+
+        [JsonProperty("emulator_executable_location")]
+        public string EmulatorExecutableLocation { get; set; }
+    }
+
+    public class XeniaManagerGame
+    {
+        [JsonProperty("title")]
+        public string Title { get; set; }
+
+        [JsonProperty("game_id")]
+        public string GameId { get; set; }
+
+        [JsonProperty("alternative_id")]
+        public List<string> AlternativeId { get; set; }
+
+        [JsonProperty("media_id")]
+        public string MediaId { get; set; }
+
+        [JsonProperty("emulator_version")]
+        public string EmulatorVersion { get; set; }
+
+        [JsonProperty("playtime")]
+        public double? Playtime { get; set; }
+
+        [JsonProperty("gamecompatibility_url")]
+        public string GameCompatibilityUrl { get; set; }
+
+        [JsonProperty("compatibility_rating")]
+        public string CompatibilityRating { get; set; }
+
+        [JsonProperty("artwork")]
+        public XeniaManagerArtwork Artwork { get; set; }
+
+        [JsonProperty("artwork_cache")]
+        public XeniaManagerArtworkCache ArtworkCache { get; set; }
+
+        [JsonProperty("file_locations")]
+        public XeniaManagerFileLocations FileLocations { get; set; }
     }
 }
