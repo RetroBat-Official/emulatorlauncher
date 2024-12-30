@@ -119,6 +119,7 @@ namespace EmulatorLauncher
             { new Installer("xemu", "xemu") },
             { new Installer("xenia", "xenia", "xenia.exe") },
             { new Installer("xenia-canary", "xenia-canary", "xenia_canary.exe" ) },
+            { new Installer("xenia-manager", "xenia-manager", "XeniaManager.DesktopApp.exe") },
             { new Installer("xm6pro", "xm6pro", "XM6.exe") },
             { new Installer("yabasanshiro", "yabasanshiro", "yabasanshiro.exe") },
             { new Installer("yuzu", "yuzu", "yuzu.exe") },
