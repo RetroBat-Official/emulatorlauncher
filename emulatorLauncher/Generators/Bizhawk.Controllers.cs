@@ -107,6 +107,7 @@ namespace EmulatorLauncher
             for (int i = 1; i < 11; i++)
             {
                 hotkeyBindings["Save State " + i] = "Ctrl+F" + i;
+                hotkeyBindings["Load State " + i] = "Shift+F" + i;
             }
             hotkeyBindings["Rewind"] = "F1";
             hotkeyBindings["Fast Forward"] = "F2";

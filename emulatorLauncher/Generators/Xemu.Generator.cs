@@ -108,7 +108,7 @@ namespace EmulatorLauncher
                         bootRom = Path.Combine(AppConfig.GetFullPath("bios"), "mcpx_1.0.bin");
                 }
 
-                // Save to new TOML format
+                // Settings
                 SetupTOMLConfiguration(path, system, eepromPath, hddPath, bootRom);
             }
             catch { }
@@ -184,6 +184,12 @@ namespace EmulatorLauncher
                     }
                 }
 
+                // Renderer
+                if (SystemConfig.isOptSet("xemu_renderer") && !string.IsNullOrEmpty(SystemConfig["xemu_renderer"]))
+                    ini.WriteValue("display", "renderer", "'" + SystemConfig["xemu_renderer"] + "'");
+                else if (Features.IsSupported("xemu_renderer"))
+                    ini.Remove("display", "renderer");
+
                 // Resolution
                 BindIniFeatureSlider(ini, "display.quality", "surface_scale", "render_scale", "1");
 
@@ -205,11 +211,16 @@ namespace EmulatorLauncher
                     ini.WriteValue("display.ui", "show_menubar", "false");
 
 
-                // Memory (64 or 128)
+                // sys options
                 if (SystemConfig.isOptSet("system_memory") && !string.IsNullOrEmpty(SystemConfig["system_memory"]))
                     ini.WriteValue("sys", "mem_limit", "'" + SystemConfig["system_memory"] + "'");
                 else
                     ini.WriteValue("sys", "mem_limit", "'128'");
+
+                if (SystemConfig.isOptSet("xemu_avpack") && !string.IsNullOrEmpty(SystemConfig["xemu_avpack"]))
+                    ini.WriteValue("sys", "avpack", "'" + SystemConfig["xemu_avpack"] + "'");
+                else
+                    ini.WriteValue("sys", "avpack", "'HDTV'");
 
                 // Vsync
                 BindBoolIniFeatureOn(ini, "display.window", "vsync", "vsync", "true", "false");
@@ -236,6 +247,9 @@ namespace EmulatorLauncher
 
                 // dvd_path by command line is enough and in newer versions, if put in toml, it brakes the loading
                 //ini.WriteValue("sys.files", "dvd_path", "'" + rom + "'");
+
+                //audio
+                BindBoolIniFeature(ini, "audio", "use_dsp", "xemu_dsp", "true", "false");
             }
 
             // Write xbox bios settings in eeprom.bin file
