@@ -703,7 +703,10 @@ namespace EmulatorLauncher.Libretro
 
                 retroarchConfig["savestate_directory"] = saveStatePath;
                 retroarchConfig["savestate_thumbnail_enable"] = "true";
-                retroarchConfig["savestates_in_content_dir"] = "false";                
+                retroarchConfig["savestates_in_content_dir"] = "false";
+                retroarchConfig["sort_savestates_enable"] = "false";
+                retroarchConfig["sort_savestates_by_content_enable"] = "false";
+
             }
 
             if (SystemConfig.isOptSet("incrementalsavestates") && !SystemConfig.getOptBoolean("incrementalsavestates"))

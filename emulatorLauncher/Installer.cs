@@ -107,6 +107,7 @@ namespace EmulatorLauncher
             { new Installer("sonicretro", "sonicretro", "RSDKv4_64.exe") },
             { new Installer("sonicretrocd", "sonicretrocd", "RSDKv3_64.exe") },
             { new Installer("ssf", "ssf", "SSF.exe") },
+            { new Installer("starship", "starship", "Starship.exe") },
             { new Installer("stella", "stella", "Stella.exe") },
             { new Installer("supermodel") },
             { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") },

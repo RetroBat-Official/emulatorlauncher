@@ -25,6 +25,9 @@ namespace EmulatorLauncher
     partial class SohGenerator : PortsLauncherGenerator
     { public SohGenerator() { _exeName = "soh.exe"; DependsOnDesktopResolution = true; } }
 
+    partial class StarshipGenerator : PortsLauncherGenerator
+    { public StarshipGenerator() { _exeName = "Starship.exe"; DependsOnDesktopResolution = true; } }
+
     partial class CorsixTHGenerator : PortsLauncherGenerator
     { public CorsixTHGenerator() { _exeName = "CorsixTH.exe"; DependsOnDesktopResolution = true; } }
 
@@ -84,6 +87,14 @@ namespace EmulatorLauncher
                             _exeName = "pd.x86_64.exe";
                             break;
                     }
+                }
+                else
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+                    if (rom.Contains("eur"))
+                        _exeName = "pd.pal.x86_64.exe";
+                    else if (rom.Contains("jap") || rom.Contains("jp"))
+                        _exeName = "pd.jpn.x86_64.exe";
                 }
             }
             
@@ -149,7 +160,8 @@ namespace EmulatorLauncher
             { "sonic3air", "Sonic3AIR.exe"},
             { "sonicmania", "RSDKv5U_x64.exe"},
             { "sonicretro", "RSDKv4_64.exe"},
-            { "sonicretrocd", "RSDKv3_64.exe"}
+            { "sonicretrocd", "RSDKv3_64.exe"},
+            { "starship", "Starship.exe"}
         };
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
@@ -165,7 +177,8 @@ namespace EmulatorLauncher
             { "sonicretrocd", "no"},
             { "opengoal", "yes"},
             { "openjazz", "no"},
-            { "soh", "yes"}
+            { "soh", "yes"},
+            { "starship", "yes"}
         };
 
         // Dictionaries to use if a port uses Reshade to specify platform and type

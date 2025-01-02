@@ -32,6 +32,7 @@ namespace EmulatorLauncher
             ConfigureSonic3air(rom, exe);
             ConfigureSonicMania(rom, exe);
             ConfigureSonicRetro(rom, exe);
+            ConfigureStarship(rom, exe);
         }
 
         #region ports
@@ -1039,6 +1040,219 @@ namespace EmulatorLauncher
             }
         }
 
+        private void ConfigureStarship(string rom, string exe)
+        {
+            if (_emulator != "starship")
+                return;
+
+            var otrFiles = Directory.GetFiles(_path, "*.otr");
+            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("starship.otr", StringComparison.OrdinalIgnoreCase));
+
+            if (!gameOtrFiles.Any())
+            {
+                string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
+                try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to Starship folder."); }
+
+                string otrExtractExe = Path.Combine(_path, "generate_otr.bat");
+                var starshipExtract = new ProcessStartInfo()
+                {
+                    FileName = otrExtractExe,
+                    WorkingDirectory = _path
+                };
+
+                using (Process process = new Process())
+                {
+                    process.StartInfo = starshipExtract;
+                    process.Start();
+                    process.WaitForExit();
+                    if (process.ExitCode == 0)
+                    {
+                        SimpleLogger.Instance.Info("[INFO] OTR extracted succesfully.");
+                    }
+                    else
+                    {
+                        SimpleLogger.Instance.Error("[INFO] There was a problem extracting OTR data.");
+                    }
+                }
+            }
+
+            // Settings
+            JObject jsonObj;
+            JObject cvars;
+            JObject advancedRes;
+            JObject intScale;
+            JObject window;
+            JObject backend;
+            JObject fs;
+            
+            string settingsFile = Path.Combine(_path, "starship.cfg.json");
+            if (File.Exists(settingsFile))
+            {
+                string jsonString = File.ReadAllText(settingsFile);
+                try { jsonObj = JObject.Parse(jsonString); } catch { jsonObj = new JObject(); }
+            }
+            else
+                jsonObj = new JObject();
+
+            if (jsonObj["CVars"] == null)
+            {
+                cvars = new JObject();
+                jsonObj["CVars"] = cvars;
+            }
+            else
+                cvars = (JObject)jsonObj["CVars"];
+
+            if (cvars["gAdvancedResolution"] == null)
+            {
+                advancedRes = new JObject();
+                cvars["gAdvancedResolution"] = advancedRes;
+            }
+            else
+                advancedRes = (JObject)cvars["gAdvancedResolution"];
+
+            if (advancedRes["IntegerScale"] == null)
+            {
+                intScale = new JObject();
+                advancedRes["IntegerScale"] = intScale;
+            }
+            else
+                intScale = (JObject)advancedRes["IntegerScale"];
+
+            if (jsonObj["Window"] == null)
+            {
+                window = new JObject();
+                jsonObj["Window"] = window;
+            }
+            else
+                window = (JObject)jsonObj["Window"];
+
+            if (window["Backend"] == null)
+            {
+                backend = new JObject();
+                window["Backend"] = backend;
+            }
+            else
+                backend = (JObject)window["Backend"];
+
+            if (window["Fullscreen"] == null)
+            {
+                fs = new JObject();
+                window["Fullscreen"] = fs;
+            }
+            else
+                fs = (JObject)window["Fullscreen"];
+
+            // Aspect ratio
+            if (SystemConfig.isOptSet("starship_ratio") && !string.IsNullOrEmpty(SystemConfig["starship_ratio"]))
+            {
+                string starshipRatio = SystemConfig["starship_ratio"];
+                switch (starshipRatio)
+                {
+                    case "off":
+                        advancedRes["AspectRatioX"] = 0.0;
+                        advancedRes["AspectRatioY"] = 0.0;
+                        break;
+                    case "native":
+                        advancedRes["AspectRatioX"] = 4.0;
+                        advancedRes["AspectRatioY"] = 3.0;
+                        break;
+                    case "widescreen":
+                        advancedRes["AspectRatioX"] = 16.0;
+                        advancedRes["AspectRatioY"] = 9.0;
+                        break;
+                    case "3ds":
+                        advancedRes["AspectRatioX"] = 5.0;
+                        advancedRes["AspectRatioY"] = 3.0;
+                        break;
+                    case "16:10":
+                        advancedRes["AspectRatioX"] = 16.0;
+                        advancedRes["AspectRatioY"] = 10.0;
+                        break;
+                    case "ultrawide":
+                        advancedRes["AspectRatioX"] = 21.0;
+                        advancedRes["AspectRatioY"] = 9.0;
+                        break;
+                }
+            }
+            else
+            {
+                advancedRes["AspectRatioX"] = 0.0;
+                advancedRes["AspectRatioY"] = 0.0;
+            }
+
+            advancedRes["Enabled"] = 1;
+
+            if (SystemConfig.isOptSet("integerscale") && SystemConfig.getOptBoolean("integerscale"))
+            {
+                intScale["Factor"] = 0;
+                intScale["FitAutomatically"] = 1;
+                intScale["NeverExceedBounds"] = 1;
+                advancedRes["PixelPerfectMode"] = 1;
+            }
+            else
+            {
+                intScale["Factor"] = 0;
+                intScale["FitAutomatically"] = 0;
+                intScale["NeverExceedBounds"] = 1;
+                advancedRes["PixelPerfectMode"] = 0;
+            }
+
+            BindFeatureInt(advancedRes, "VerticalPixelCount", "starship_resolution", "720");
+
+            advancedRes["VerticalResolutionToggle"] = 1;
+
+            cvars["gAdvancedResolutionEditorEnabled"] = 0;
+            cvars["gControlNav"] = 1;
+
+            //ConfigureStarshipControls(controllers);
+
+            cvars["gEnableMultiViewports"] = 1;
+            cvars["gInternalResolution"] = 1.0;
+
+            if (SystemConfig.isOptSet("starship_fps") && !string.IsNullOrEmpty(SystemConfig["starship_fps"]))
+            {
+                int starshipFPS = SystemConfig["starship_fps"].ToInteger();
+                cvars["gInterpolationFPS"] = starshipFPS;
+                cvars["gMatchRefreshRate"] = 0;
+            }
+            else
+            {
+                cvars["gInterpolationFPS"] = 60;
+                cvars["gMatchRefreshRate"] = 1;
+            }
+
+            BindFeatureSliderInt(cvars, "gMSAAValue", "starship_msaa", "1");
+            cvars["gOpenMenuBar"] = 1;
+            cvars["gSdlWindowedFullscreen"] = 1;
+            BindFeatureInt(cvars, "gTextureFilter", "starship_texturefilter", "1");
+            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "starship_vsync", "1", "0");
+            BindFeature(window, "AudioBackend", "starship_audioapi", "wasapi");
+
+            if (SystemConfig.isOptSet("starship_renderer") && !string.IsNullOrEmpty(SystemConfig["starship_renderer"]))
+            {
+                string starshipRenderer = SystemConfig["starship_renderer"];
+                switch (starshipRenderer) 
+                {
+                    case "OpenGL":
+                        backend["Id"] = 1;
+                        backend["Name"] = "OpenGL";
+                        break;
+                    case "DirectX":
+                        backend["Id"] = 0;
+                        backend["Name"] = "DirectX";
+                        break;
+                }
+            }
+            else
+            {
+                backend["Id"] = 1;
+                backend["Name"] = "OpenGL";
+            }
+
+            fs["Enabled"] = _fullscreen ? true : false;
+
+            File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
+        }
         #endregion
     }
 
