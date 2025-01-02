@@ -321,11 +321,6 @@ namespace EmulatorLauncher
                     bytes[76] = (byte)0x05;
                     bytes[77] = (byte)0x00;
                 }
-
-                bytes[80] = (byte)0x3B;
-                bytes[81] = (byte)0x00;
-                bytes[84] = (byte)0x3C;
-                bytes[85] = (byte)0x00;
             }
             #endregion
 
@@ -600,10 +595,12 @@ namespace EmulatorLauncher
                         bytes[19] = 0x00;
 
                     bytes[20] = dinput1 ? GetInputCode(InputKey.r2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x07;  // Accelerate (R2)
+                    if (vendor1 == "nintendo")
+                        bytes[21] = 0x11;
                     if (axisBytes.Contains(bytes[20]))
                         bytes[23] = 0xFF;
                     else
-                        bytes[23] = 0x00;
+                        bytes[23] = 0x00;                    
 
                     bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;  // Brake (L2)
                     if (axisBytes.Contains(bytes[24]))
@@ -890,13 +887,20 @@ namespace EmulatorLauncher
                         bytes[31] = 0xFF;
                     else
                         bytes[31] = 0x00;
+                    
+                    // Disable analog triggers for Nintendo
+                    if (vendor1 == "nintendo")
+                    {
+                        bytes[28] = bytes[29] = bytes[30] = bytes[31] = 0xFF;
+                    }
+                    
                     bytes[32] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
                     bytes[36] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                     bytes[40] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
                     bytes[64] = (byte)0x01;
                     bytes[65] = (byte)0x01;
-                    bytes[66] = (byte)0x01;
+                    bytes[66] = vendor1 == "nintendo" ? (byte)0x00 : (byte)0x01;
                 }
 
                 else if (parentRom == "skisuprg")
@@ -1216,13 +1220,24 @@ namespace EmulatorLauncher
         private static byte GetInputCode(InputKey key, Controller c, string tech, string brand, SdlToDirectInput ctrl ,bool globalAxis = false, bool trigger = false, bool digital = false)
         {
             key = key.GetRevertedAxis(out bool revertAxis);
-            
+
             string esName = (c.Config[key].Name).ToString();
+
+            // Nintendo has no analog triggers : use right stick
+            if (brand == "nintendo")
+            {
+                if (trigger && !digital)
+                {
+                    if (key == InputKey.r2 || key == InputKey.l2)
+                        return 0x05;
+                }
+            }
 
             if (esName == null || !esToDinput.ContainsKey(esName))
                 return 0x00;
 
             string dinputName = esToDinput[esName];
+            
             if (dinputName == null)
                 return 0x00;
 
