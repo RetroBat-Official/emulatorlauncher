@@ -85,6 +85,14 @@ namespace EmulatorLauncher
                             break;
                     }
                 }
+                else
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+                    if (rom.Contains("eur"))
+                        _exeName = "pd.pal.x86_64.exe";
+                    else if (rom.Contains("jap") || rom.Contains("jp"))
+                        _exeName = "pd.jpn.x86_64.exe";
+                }
             }
             
             string exe = Path.Combine(_path, _exeName);
