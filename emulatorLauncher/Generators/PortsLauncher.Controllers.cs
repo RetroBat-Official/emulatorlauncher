@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using Newtonsoft.Json.Linq;
+using System.Windows.Controls;
 
 namespace EmulatorLauncher
 {
@@ -236,6 +237,113 @@ namespace EmulatorLauncher
                 changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_RIGHT", "_right"));
                 changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER1", "_impulse15"));
                 changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER2", "_impulse14"));
+            }
+        }
+        #endregion
+
+        #region pdark
+        private void ConfigurePDarkControls(IniFile ini)
+        {
+            if (_emulator != "pdark")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            ini.WriteValue("Input", "FirstGamepadNum", "0");
+
+            for (int i = 1; i < 5; i++)
+            {
+                string gameSection = "Game.Player" + i;
+                ini.WriteValue(gameSection, "ExtendedControls", "1");
+
+                string inputSection = "Input.Player" + i;
+
+                if (SystemConfig.isOptSet("pdark_rumble") && !string.IsNullOrEmpty(SystemConfig["pdark_rumble"]))
+                    ini.WriteValue(inputSection, "RumbleScale", SystemConfig["pdark_rumble"]);
+                else
+                    ini.WriteValue(inputSection, "RumbleScale", "0.500000");
+
+                ini.WriteValue(inputSection, "LStickDeadzoneX", "4096");
+                ini.WriteValue(inputSection, "LStickDeadzoneY", "4096");
+                ini.WriteValue(inputSection, "RStickDeadzoneX", "4096");
+                ini.WriteValue(inputSection, "RStickDeadzoneY", "6144");
+                ini.WriteValue(inputSection, "LStickScaleX", "1.000000");
+                ini.WriteValue(inputSection, "LStickScaleY", "1.000000");
+                ini.WriteValue(inputSection, "RStickScaleX", "1.000000");
+                ini.WriteValue(inputSection, "RStickScaleY", "1.000000");
+                ini.WriteValue(inputSection, "StickCButtons", "0");
+                ini.WriteValue(inputSection, "SwapSticks", "1");
+                ini.WriteValue(inputSection, "ControllerIndex", "-1");
+
+                string bindingSection = "Input.Player" + i + ".Binds";
+                foreach (string key in pdarkMapping)
+                {
+                    ini.WriteValue(bindingSection, key, "NONE");
+                }
+            }
+
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
+                ConfigurePDarkInput(ini, controller, controller.PlayerIndex);
+        }
+
+        private void ConfigurePDarkInput(IniFile ini, Controller ctrl, int playerIndex)
+        {
+            if (ctrl == null || ctrl.Config == null)
+                return;
+
+            int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
+
+            string joyIndex = "JOY" + playerIndex.ToString();
+            string inputSection = "Input.Player" + playerIndex;
+            string bindingSection = "Input.Player" + playerIndex + ".Binds";
+
+            ini.WriteValue(inputSection, "ControllerIndex", index.ToString());
+
+            if (playerIndex == 1)
+            {
+                ini.WriteValue(bindingSection, "R_CBUTTONS", "D, JOY1_DPAD_RIGHT");
+                ini.WriteValue(bindingSection, "L_CBUTTONS", "A, JOY1_DPAD_LEFT");
+                ini.WriteValue(bindingSection, "D_CBUTTONS", "S, JOY1_DPAD_DOWN");
+                ini.WriteValue(bindingSection, "U_CBUTTONS", "W, JOY1_DPAD_UP");
+                ini.WriteValue(bindingSection, "R_TRIG", "MOUSE_RIGHT, Z, JOY1_LTRIGGER");
+                ini.WriteValue(bindingSection, "L_TRIG", "F, X, JOY1_RSHOULDER");
+                ini.WriteValue(bindingSection, "X_BUTTON", "R, JOY1_X");
+                ini.WriteValue(bindingSection, "Y_BUTTON", "MOUSE_WHEEL_DN, JOY1_Y");
+                ini.WriteValue(bindingSection, "L_JPAD", "MOUSE_WHEEL_UP, JOY1_B");
+                ini.WriteValue(bindingSection, "D_JPAD", "Q, MOUSE_MIDDLE, JOY1_LSHOULDER");
+                ini.WriteValue(bindingSection, "START_BUTTON", "RETURN, TAB, JOY1_START");
+                ini.WriteValue(bindingSection, "Z_TRIG", "MOUSE_LEFT, SPACE, JOY1_RTRIGGER");
+                ini.WriteValue(bindingSection, "B_BUTTON", "E");
+                ini.WriteValue(bindingSection, "A_BUTTON", "JOY1_A");
+                ini.WriteValue(bindingSection, "STICK_XNEG", "LEFT");
+                ini.WriteValue(bindingSection, "STICK_XPOS", "RIGHT");
+                ini.WriteValue(bindingSection, "STICK_YNEG", "DOWN");
+                ini.WriteValue(bindingSection, "STICK_YPOS", "UP");
+                ini.WriteValue(bindingSection, "ACCEPT_BUTTON", "JOY1_A");
+                ini.WriteValue(bindingSection, "CANCEL_BUTTON", "JOY1_B");
+                ini.WriteValue(bindingSection, "CK_2000", "LEFT_CTRL");
+                ini.WriteValue(bindingSection, "CK_4000", "LEFT_SHIFT");
+                ini.WriteValue(bindingSection, "CK_8000", "JOY1_LSTICK");
+            }
+            else
+            {
+                ini.WriteValue(bindingSection, "R_CBUTTONS", joyIndex + "_DPAD_RIGHT");
+                ini.WriteValue(bindingSection, "L_CBUTTONS", joyIndex + "_DPAD_LEFT");
+                ini.WriteValue(bindingSection, "D_CBUTTONS", joyIndex + "_DPAD_DOWN");
+                ini.WriteValue(bindingSection, "U_CBUTTONS", joyIndex + "_DPAD_UP");
+                ini.WriteValue(bindingSection, "R_TRIG", joyIndex + "_LTRIGGER");
+                ini.WriteValue(bindingSection, "L_TRIG", joyIndex + "_RSHOULDER");
+                ini.WriteValue(bindingSection, "X_BUTTON", joyIndex + "_X");
+                ini.WriteValue(bindingSection, "Y_BUTTON", joyIndex + "_Y");
+                ini.WriteValue(bindingSection, "L_JPAD", joyIndex + "_B");
+                ini.WriteValue(bindingSection, "D_JPAD", joyIndex + "_LSHOULDER");
+                ini.WriteValue(bindingSection, "START_BUTTON", joyIndex + "_START");
+                ini.WriteValue(bindingSection, "Z_TRIG", joyIndex + "_RTRIGGER");
+                ini.WriteValue(bindingSection, "A_BUTTON", joyIndex + "_A");
+                ini.WriteValue(bindingSection, "ACCEPT_BUTTON", joyIndex + "_A");
+                ini.WriteValue(bindingSection, "CANCEL_BUTTON", joyIndex + "_B");
+                ini.WriteValue(bindingSection, "CK_8000", joyIndex + "_LSTICK");
             }
         }
         #endregion
@@ -680,6 +788,11 @@ namespace EmulatorLauncher
             { InputKey.pageup,      "Status" },
             { InputKey.up,          "Up" }
         };
+
+        private List<string> pdarkMapping = new List<string>
+        { "R_CBUTTONS", "L_CBUTTONS", "D_CBUTTONS", "U_CBUTTONS", "R_TRIG", "L_TRIG", "X_BUTTON", "Y_BUTTON", "R_JPAD", "L_JPAD", "D_JPAD", "U_JPAD", "START_BUTTON",
+        "Z_TRIG", "B_BUTTON", "A_BUTTON", "STICK_XNEG", "STICK_XPOS", "STICK_YNEG", "STICK_YPOS", "ACCEPT_BUTTON", "CANCEL_BUTTON", "CK_0040",
+        "CK_0080", "CK_0100", "CK_0200", "CK_0400", "CK_0800", "CK_1000", "CK_2000", "CK_4000", "CK_8000" };
 
         private Dictionary<int, InputKey> sohMapping = new Dictionary<int, InputKey>()
         {

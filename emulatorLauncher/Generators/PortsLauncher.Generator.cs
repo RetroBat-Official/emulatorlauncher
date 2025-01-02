@@ -2,6 +2,8 @@
 using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
 
 namespace EmulatorLauncher
 {
@@ -16,6 +18,9 @@ namespace EmulatorLauncher
 
     partial class CGeniusGenerator : PortsLauncherGenerator
     { public CGeniusGenerator() { _exeName = "CGenius.exe"; DependsOnDesktopResolution = true; } }
+
+    partial class PDarkGenerator : PortsLauncherGenerator
+    { public PDarkGenerator() { DependsOnDesktopResolution = false; } }
 
     partial class SohGenerator : PortsLauncherGenerator
     { public SohGenerator() { _exeName = "soh.exe"; DependsOnDesktopResolution = true; } }
@@ -60,8 +65,28 @@ namespace EmulatorLauncher
             if (!Directory.Exists(_path))
                 return null;
 
-            // Get exe name for the port, using a dictionary
+            // Get exe name for the port, using a dictionary (or specific method for pdark)
             _exeName = exeDictionnary[emulator];
+            if (emulator == "pdark")
+            {
+                if (SystemConfig.isOptSet("pdark_region") && !string.IsNullOrEmpty(SystemConfig["pdark_region"]))
+                {
+                    string pdarkRegion = SystemConfig["pdark_region"];
+                    switch (pdarkRegion)
+                    {
+                        case "EUR":
+                            _exeName = "pd.pal.x86_64.exe";
+                            break;
+                        case "JPN":
+                            _exeName = "pd.jpn.x86_64.exe";
+                            break;
+                        case "USA":
+                            _exeName = "pd.x86_64.exe";
+                            break;
+                    }
+                }
+            }
+            
             string exe = Path.Combine(_path, _exeName);
             if (!File.Exists(exe))
                 return null;
@@ -119,6 +144,7 @@ namespace EmulatorLauncher
             { "dhewm3", "dhewm3.exe"},
             { "opengoal", "gk.exe"},
             { "openjazz", "OpenJazz.exe"},
+            { "pdark", "pd.x86_64.exe"},
             { "soh", "soh.exe"},
             { "sonic3air", "Sonic3AIR.exe"},
             { "sonicmania", "RSDKv5U_x64.exe"},
@@ -132,6 +158,7 @@ namespace EmulatorLauncher
             { "cgenius", "yes"},
             { "corsixth", "yes"},
             { "dhewm3", "reshade"},
+            { "pdark", "yes"},
             { "sonic3air", "no"},
             { "sonicmania", "no"},
             { "sonicretro", "no"},
@@ -150,6 +177,18 @@ namespace EmulatorLauncher
         {
             { "dhewm3", ReshadePlatform.x86 }
         };
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_emulator == "pdark")
+            {
+                string exe = Path.GetFileNameWithoutExtension(_exeName);
+                return mapping = PadToKey.AddOrUpdateKeyMapping(mapping, exe, InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+            }
+
+            else
+                return mapping;
+        }
 
         // RunAnd Wait override
         // Used so far to dispose bezels

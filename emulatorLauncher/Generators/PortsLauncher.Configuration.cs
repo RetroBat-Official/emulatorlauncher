@@ -27,6 +27,7 @@ namespace EmulatorLauncher
             Configuredhewm3(commandArray, rom);
             ConfigureOpenGoal(commandArray, rom);
             ConfigureOpenJazz(commandArray, rom);
+            ConfigurePDark(commandArray, rom);
             ConfigureSOH(rom, exe);
             ConfigureSonic3air(rom, exe);
             ConfigureSonicMania(rom, exe);
@@ -602,6 +603,66 @@ namespace EmulatorLauncher
             }
 
             File.WriteAllBytes(configFile, configBytes);
+        }
+
+        private void ConfigurePDark(List<string> commandArray, string rom)
+        {
+            if (_emulator != "pdark")
+                return;
+
+            string targetRom = Path.Combine(_path, "data", "pd.ntsc-final.z64");
+            if (SystemConfig.isOptSet("pdark_region") && !string.IsNullOrEmpty(SystemConfig["pdark_region"]))
+            {
+                string pdarkRegion = SystemConfig["pdark_region"];
+                switch (pdarkRegion)
+                {
+                    case "EUR":
+                        targetRom = Path.Combine(_path, "data", "pd.pal-final.z64");
+                        break;
+                    case "JPN":
+                        targetRom = Path.Combine(_path, "data", "pd.jpn-final.z64");
+                        break;
+                    case "USA":
+                        targetRom = Path.Combine(_path, "data", "pd.ntsc-final.z64");
+                        break;
+                }
+            }
+
+            if (!File.Exists(targetRom))
+            {
+                try { File.Copy(rom, targetRom, true); }
+                catch { }
+            }
+
+            string cfgFile = Path.Combine(_path, "pd.ini");
+            using (var ini = IniFile.FromFile(cfgFile))
+            {
+                try
+                {
+                    ini.WriteValue("video", "DefaultFullscreen", _fullscreen ? "1" : "0");
+                    ini.WriteValue("video", "DefaultMaximize", "1");
+
+                    if (_resolution != null)
+                    {
+                        ini.WriteValue("video", "ExclusiveFullscreen", "1");
+                        ini.WriteValue("video", "DefaultWidth", _resolution.Width.ToString());
+                        ini.WriteValue("video", "DefaultHeight", _resolution.Height.ToString());
+                    }
+                    else
+                    {
+                        ini.WriteValue("video", "ExclusiveFullscreen", "0");
+                        ini.WriteValue("video", "DefaultWidth", ScreenResolution.CurrentResolution.Width.ToString());
+                        ini.WriteValue("video", "DefaultHeight", ScreenResolution.CurrentResolution.Height.ToString());
+                    }
+
+                    BindBoolIniFeatureOn(ini, "video", "VSync", "pdark_vsync", "1", "0");
+                    BindBoolIniFeatureOn(ini, "video", "DetailTextures", "pdark_detailtexture", "1", "0");
+                    BindIniFeature(ini, "video", "TextureFilter", "pdark_texturefilter", "1");
+
+                    ConfigurePDarkControls(ini);
+                }
+                catch { }
+            }
         }
 
         private void ConfigureSOH(string rom, string exe)
