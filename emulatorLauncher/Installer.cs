@@ -81,6 +81,7 @@ namespace EmulatorLauncher
             { new Installer("oricutron") },
             { new Installer("pcsx2", "pcsx2", "pcsx2-qt.exe") },
             { new Installer("pcsx2-16", "pcsx2-16", "pcsx2.exe") },
+            { new Installer("pdark", "pdark", "pd.x86_64.exe") },
             { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") },
             { new Installer("play", "play", "Play.exe") },
             { new Installer("ppsspp", "ppsspp", "PPSSPPWindows64.exe") },
