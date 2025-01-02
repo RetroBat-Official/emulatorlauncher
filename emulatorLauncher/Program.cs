@@ -140,6 +140,7 @@ namespace EmulatorLauncher
             { "sonicretro", () => new PortsLauncherGenerator() },
             { "sonicretrocd", () => new PortsLauncherGenerator() },
             { "ssf", () => new SSFGenerator() },
+            { "starship", () => new StarshipGenerator() },
             { "stella", () => new StellaGenerator() },
             { "sudachi", () => new SudachiGenerator() },
             { "supermodel", () => new Model3Generator() },
