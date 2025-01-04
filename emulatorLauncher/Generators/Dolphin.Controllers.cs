@@ -713,6 +713,7 @@ namespace EmulatorLauncher
                 foreach (var pad in Program.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                 {
                     bool xinputAsSdl = false;
+                    bool isNintendo = pad.VendorID == USB_VENDOR.NINTENDO;
                     string gcpad = anyDefKey + pad.PlayerIndex;
                     ini.ClearSection(gcpad);
 
@@ -795,18 +796,70 @@ namespace EmulatorLauncher
                     bool revertXY = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
                     bool rumble = !Program.SystemConfig.isOptSet("input_rumble") || Program.SystemConfig.getOptBoolean("input_rumble");
 
+                    if (isNintendo)
+                    {
+                        string tempMapA = anyMapping[InputKey.a];
+                        string tempMapB = anyMapping[InputKey.b];
+                        string tempMapX = anyMapping[InputKey.x];
+                        string tempMapY = anyMapping[InputKey.y];
+
+                        anyMapping[InputKey.a] = tempMapB;
+                        anyMapping[InputKey.b] = tempMapA;
+                        anyMapping[InputKey.x] = tempMapY;
+                        anyMapping[InputKey.y] = tempMapX;
+                    }
+
                     foreach (var x in anyMapping)
                     {
                         string value = x.Value;
 
                         if (xboxLayout && reversedButtons.ContainsKey(x.Key))
+                        {
                             value = reversedButtons[x.Key];
+                            if (isNintendo)
+                            {
+                                if (value == "Buttons/B")
+                                    value = "Buttons/A";
+                                else if (value == "Buttons/A")
+                                    value = "Buttons/B";
+                                else if (value == "Buttons/X")
+                                    value = "Buttons/Y";
+                                else if (value == "Buttons/Y")
+                                    value = "Buttons/X";
+                            }
+                        }
 
                         if (revertXY && reversedButtonsXY.ContainsKey(x.Key))
+                        {
                             value = reversedButtonsXY[x.Key];
+                            if (isNintendo)
+                            {
+                                if (value == "Buttons/B")
+                                    value = "Buttons/A";
+                                else if (value == "Buttons/A")
+                                    value = "Buttons/B";
+                                else if (value == "Buttons/X")
+                                    value = "Buttons/Y";
+                                else if (value == "Buttons/Y")
+                                    value = "Buttons/X";
+                            }
+                        }
 
                         if (positional && reversedButtonsRotate.ContainsKey(x.Key))
+                        {
                             value = reversedButtonsRotate[x.Key];
+                            if (isNintendo)
+                            {
+                                if (value == "Buttons/B")
+                                    value = "Buttons/Y";
+                                else if (value == "Buttons/A")
+                                    value = "Buttons/X";
+                                else if (value == "Buttons/X")
+                                    value = "Buttons/A";
+                                else if (value == "Buttons/Y")
+                                    value = "Buttons/B";
+                            }
+                        }
 
                         if (triforce && Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4")
                         {

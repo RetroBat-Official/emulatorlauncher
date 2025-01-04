@@ -44,6 +44,10 @@ namespace EmulatorLauncher
 
             var commandArray = new List<string>();
 
+            if (SystemConfig.getOptBoolean("shadps4_gui"))
+                commandArray.Add("-s");
+
+            commandArray.Add("-g");
             commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
@@ -66,9 +70,9 @@ namespace EmulatorLauncher
             string settingsFile = Path.Combine(path, "user", "config.toml");
             string romPath = Path.GetDirectoryName(rom);
             if (Path.GetExtension(romPath).ToLower() == ".ps4")
-                romPath = Directory.GetParent(romPath).FullName.Replace("\\", "\\\\");
+                romPath = Directory.GetParent(romPath).FullName.Replace("\\", "/");
             else if (Path.GetExtension(romPath).ToLower() == ".m3u")
-                romPath = romPath.Replace("\\", "\\\\");
+                romPath = romPath.Replace("\\", "/");
 
             using (IniFile toml = new IniFile(settingsFile, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
             {
@@ -96,9 +100,22 @@ namespace EmulatorLauncher
                 toml.WriteValue("Settings", "consoleLanguage", ps4Lang);
 
                 // GUI section
-                toml.WriteValue("GUI", "installDir", "\"" + romPath + "\"");
+                string currentDirs = toml.GetValue("GUI", "installDirs");
+                
+                if (currentDirs == null || currentDirs == "[]")
+                    toml.WriteValue("GUI", "installDirs", "[\"" + romPath + "\"]");
+                else
+                {
+                    currentDirs = currentDirs.Substring(1, currentDirs.Length - 2);
+                    string[] dirs = currentDirs.Split(new char[] { ',' });
+                    List<string> newDirs = dirs.Select(dir => dir.TrimStart()).ToList();
+                    newDirs = newDirs.Where(s => !string.IsNullOrEmpty(s)).ToList();
 
-                // LLE section
+                    if (newDirs.Count > 0 && !newDirs.Contains("\"" + romPath + "\""))
+                        newDirs.Add("\"" + romPath + "\"");
+                    string finalDirList = string.Join(", ", newDirs);
+                    toml.WriteValue("GUI", "installDirs", "[" + finalDirList + "]");
+                }
             }
         }
 

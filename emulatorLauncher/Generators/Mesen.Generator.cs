@@ -99,7 +99,7 @@ namespace EmulatorLauncher
 
             BindBoolFeatureOn(preference, "AutoLoadPatches", "mesen_patches", "true", "false");
             BindBoolFeature(preference, "EnableRewind", "rewind", "true", "false");
-            BindBoolFeature(preference, "DisableOsd", "mesen_osd", "false", "true");
+            BindBoolFeatureOn(preference, "DisableOsd", "mesen_osd", "false", "true");
             BindBoolFeature(preference, "ShowGameTimer", "mesen_timecounter", "true", "false");
             BindBoolFeature(preference, "ShowFps", "mesen_fps", "true", "false");
 
