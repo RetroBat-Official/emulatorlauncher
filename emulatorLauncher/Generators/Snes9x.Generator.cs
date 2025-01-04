@@ -115,10 +115,11 @@ namespace EmulatorLauncher
 				ini.WriteValue(@"Display\Win", "Fullscreen:EmulateFullscreen", fullscreen ? "TRUE" : "FALSE");
 				ini.WriteValue(@"Display\Win", "Window:Maximized", "TRUE");
 				ini.WriteValue(@"Display\Win", "BlendHiRes", "TRUE");
+				BindBoolIniFeature(ini, "Settings\\Win", "RewindBufferSize", "rewind", "15", "0");
 
-				// Bilinear filtering
+                // Bilinear filtering
 
-				if (SystemConfig.isOptSet("snes9x_bilinear") && SystemConfig.getOptBoolean("snes9x_bilinear"))
+                if (SystemConfig.isOptSet("snes9x_bilinear") && SystemConfig.getOptBoolean("snes9x_bilinear"))
 					ini.WriteValue(@"Display\Win", "Stretch:BilinearFilter", "TRUE");
 				else
 					ini.WriteValue(@"Display\Win", "Stretch:BilinearFilter", "FALSE");

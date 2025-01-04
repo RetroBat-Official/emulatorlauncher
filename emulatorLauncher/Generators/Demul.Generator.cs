@@ -118,6 +118,12 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("files", "romsPathsCount", romsPaths.Count.ToString());
 
+                    var savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "dreamcast", system, "nvram");
+                    if (!Directory.Exists(savesPath))
+                        try { Directory.CreateDirectory(savesPath); } catch { }
+
+                    ini.WriteValue("files", "nvram", savesPath);
+
                     // Plugins
                     ini.WriteValue("plugins", "directory", @".\plugins\");
 

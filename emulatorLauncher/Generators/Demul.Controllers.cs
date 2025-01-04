@@ -36,6 +36,12 @@ namespace EmulatorLauncher
 
                     foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                         ConfigureInput(controller, ctrlIni, ini, system);
+
+                    // Hotkeys
+                    ctrlIni.WriteValue("GLOBAL0", "SAVESTATE", "87");
+                    ctrlIni.WriteValue("GLOBAL0", "LOADSTATE", "88");
+                    ctrlIni.WriteValue("GLOBAL0", "NEXTSTATE", "68");
+                    ctrlIni.WriteValue("GLOBAL0", "PREVSTATE", "67");
                 }
                 catch { }
             }

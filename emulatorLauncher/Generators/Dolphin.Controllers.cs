@@ -796,24 +796,22 @@ namespace EmulatorLauncher
                     bool revertXY = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
                     bool rumble = !Program.SystemConfig.isOptSet("input_rumble") || Program.SystemConfig.getOptBoolean("input_rumble");
 
+                    if (isNintendo)
+                    {
+                        string tempMapA = anyMapping[InputKey.a];
+                        string tempMapB = anyMapping[InputKey.b];
+                        string tempMapX = anyMapping[InputKey.x];
+                        string tempMapY = anyMapping[InputKey.y];
+
+                        anyMapping[InputKey.a] = tempMapB;
+                        anyMapping[InputKey.b] = tempMapA;
+                        anyMapping[InputKey.x] = tempMapY;
+                        anyMapping[InputKey.y] = tempMapX;
+                    }
+
                     foreach (var x in anyMapping)
                     {
                         string value = x.Value;
-
-                        if (anyMapping == gamecubeMapping)
-                        {
-                            if (isNintendo)
-                            {
-                                if (value == "Buttons/B")
-                                    value = "Buttons/A";
-                                else if (value == "Buttons/A")
-                                    value = "Buttons/B";
-                                else if (value == "Buttons/X")
-                                    value = "Buttons/Y";
-                                else if (value == "Buttons/Y")
-                                    value = "Buttons/X";
-                            }
-                        }
 
                         if (xboxLayout && reversedButtons.ContainsKey(x.Key))
                         {

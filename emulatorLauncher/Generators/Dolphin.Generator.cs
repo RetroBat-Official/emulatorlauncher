@@ -103,6 +103,10 @@ namespace EmulatorLauncher
             }
 
             string saveState = "";
+            string runBatch = "-b ";
+            if (SystemConfig.getOptBoolean("dolphin_gui"))
+                runBatch = "";
+
             if (File.Exists(SystemConfig["state_file"]))
                 saveState = " --save_state=\"" + Path.GetFullPath(SystemConfig["state_file"]) + "\"";
 
@@ -110,14 +114,14 @@ namespace EmulatorLauncher
                 return new ProcessStartInfo()
                 {
                     FileName = exe,
-                    Arguments = "-b -n 0000000100000002",
+                    Arguments = runBatch + "-n 0000000100000002",
                     WorkingDirectory = path,
                 };
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = "-b -e \"" + rom + "\"" + saveState,
+                Arguments = runBatch + "-e \"" + rom + "\"" + saveState,
                 WorkingDirectory = path,
                 WindowStyle = (_bezelFileInfo == null ? ProcessWindowStyle.Normal : ProcessWindowStyle.Maximized)
             };
@@ -622,11 +626,11 @@ namespace EmulatorLauncher
                                 ini.WriteValue("Core", "SIDevice" + i, "0");
                         }
                     }
-                    
+
                     // Disable auto updates
                     string updateTrack = ini.GetValue("AutoUpdate", "UpdateTrack");
                     if (updateTrack != "")
-                        ini.WriteValue("AutoUpdate", "UpdateTrack", "\" \"");
+                        ini.WriteValue("AutoUpdate", "UpdateTrack", "''");
 
                     // Set defaultISO when running the Wii Menu
                     if (_runWiiMenu)
