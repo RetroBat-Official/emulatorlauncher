@@ -61,7 +61,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Mednafen");
 
-            Dictionary<string, int> double_pads = new Dictionary<string, int>();
+            Dictionary<Controller, string> double_pads = new Dictionary<Controller, string>();
 
             // First, set all controllers to none
             if (mednafenCore != "lynx" && mednafenCore != "sms" && mednafenCore != "wswan" && mednafenCore != "gb" && mednafenCore != "gba" && mednafenCore != "ngp" && mednafenCore != "gg")
@@ -69,14 +69,38 @@ namespace EmulatorLauncher
 
             // Define maximum pads accepted by mednafen core
             int maxPad = inputPortNb[mednafenCore];
-
+          
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
             {
-                ConfigureInput(controller, cfg, mednafenCore, double_pads, system);
+                string deviceID = "";
+                
+                if (controller.DirectInput != null)
+                    deviceID = "0x" + controller.DirectInput.ProductGuid.ToString().Replace("-", "");
+                else
+                    deviceID = "";
+
+                if (controller.IsXInputDevice)
+                {
+                    string idSection = "0000";
+                    short wButtons = controller.XInput.Wbuttons;
+                    idSection = ((ushort)(wButtons < 0 ? 65536 + wButtons : wButtons)).ToString("X4").ToLowerInvariant();
+
+                    deviceID = "0x000000000000000000010004" + idSection + "0000";
+                }
+
+                string newDeviceIDPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                string newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.Guid, "mednafen");
+                if (newDeviceID != null)
+                    deviceID = newDeviceID;
+
+                double_pads.Add(controller, deviceID);
             }
+
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
+                ConfigureInput(controller, cfg, mednafenCore, double_pads, system);
         }
 
-        private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<string, int> double_pads, string system)
+        private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<Controller, string> double_pads, string system)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -88,7 +112,7 @@ namespace EmulatorLauncher
         }
 
         #region joystick
-        private void ConfigureJoystick(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<string, int> double_pads, string system)
+        private void ConfigureJoystick(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<Controller, string> double_pads, string system)
         {
             if (controller == null)
                 return;
@@ -317,28 +341,46 @@ namespace EmulatorLauncher
                 }
             }
 
-        BypassSATControllers:
+            BypassSATControllers:
 
             // Else continue
-            string deviceID = "0x" + controller.DirectInput.ProductGuid.ToString().Replace("-", "");
+            string deviceID = "";
+            
+            if (controller.DirectInput != null)
+                deviceID = "0x" + controller.DirectInput.ProductGuid.ToString().Replace("-", "");
+            else
+                deviceID = "";
 
             if (controller.IsXInputDevice)
-                deviceID = "0x000000000000000000010004f3ff0000";
+            {
+                string idSection = "0000";
+                short wButtons = controller.XInput.Wbuttons;
+                idSection = ((ushort)(wButtons < 0 ? 65536 + wButtons : wButtons)).ToString("X4").ToLowerInvariant();
+
+                deviceID = "0x000000000000000000010004" + idSection + "0000";
+            }
 
             string newDeviceIDPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
             string newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.Guid, "mednafen");
             if (newDeviceID != null)
                 deviceID = newDeviceID;
 
-            int nsamepad = 0;
-            if (double_pads.ContainsKey(deviceID))
-                nsamepad = double_pads[deviceID];
-            else
-                nsamepad = 0;
+            int nsamePad = 0;
+            var valueCounts = new Dictionary<string, int>();
 
-            if (nsamepad > 0)
+            foreach (var pair in double_pads)
             {
-                int dinputIndex = this.Controllers.Where(i => i.DirectInput.ProductGuid == controller.DirectInput.ProductGuid).OrderBy(c => c.PlayerIndex).ToList().IndexOf(controller);
+                if (valueCounts.ContainsKey(pair.Value))
+                    valueCounts[pair.Value]++;
+                else
+                    valueCounts[pair.Value] = 1;
+            }
+            nsamePad = valueCounts[deviceID];
+
+            if (nsamePad > 0)
+            {
+                var cList = double_pads.Where(i => i.Value == deviceID).OrderBy(c => c.Key.DirectInput.DeviceIndex).ToList();
+                int dinputIndex = cList.FindIndex(kvp => kvp.Key.Equals(controller));
 
                 char lastChar = deviceID[deviceID.Length - 1];
                 int lastInt = Convert.ToInt32(lastChar.ToString(), 16);
@@ -346,8 +388,6 @@ namespace EmulatorLauncher
                 string newLastChar = lastInt.ToString("X");
                 deviceID = deviceID.Substring(0, deviceID.Length - 1) + newLastChar;
             }
-
-            double_pads[deviceID] = nsamepad + 1;
 
             if (mappingToUse.ContainsKey(mapping))
                 newmapping = mappingToUse[mapping];
