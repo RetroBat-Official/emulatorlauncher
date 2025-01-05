@@ -522,6 +522,9 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (system == "psx" && !isDInput)
+                controllerConfig["P" + playerIndex + " Analog"] = "X" + index + " Guide";
+
             if (system == "tic80")
             {
                 controllerConfig["Mouse Left Click"] = "WMouse L";
