@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -291,10 +292,10 @@ namespace EmulatorLauncher
             commandArray.Add("\"" + _romPath + "\"");
             commandArray.Add("+set");
             commandArray.Add("fs_configpath");
-            commandArray.Add(cfgPath);
+            commandArray.Add("\"" + cfgPath + "\"");
             commandArray.Add("+set");
             commandArray.Add("fs_savepath");
-            commandArray.Add(savesPath);
+            commandArray.Add("\"" + savesPath + "\"");
 
             if (_fullscreen)
             {
@@ -323,17 +324,28 @@ namespace EmulatorLauncher
             }
 
             string[] pakFile = File.ReadAllLines(rom);
-            string pakSubPath = pakFile[0];
-            if (pakSubPath.StartsWith("d3xp"))
+            if (pakFile.Length < 1)
             {
-                d3xp = true;
-                commandArray.Add("+set");
-                commandArray.Add("fs_game");
-                commandArray.Add("d3xp");
+                throw new ApplicationException("Empty game file.");
+            }
+
+            string pakSubPath = pakFile[0];
+            string game = pakSubPath.Split('\\')[0];
+
+            commandArray.Add("+set");
+            commandArray.Add("fs_game");
+            commandArray.Add(game);
+
+            if (pakFile.Length > 1)
+            {
+                for (int i = 1; i < pakFile.Length; i++)
+                {
+                    commandArray.Add(pakFile[i]);
+                }
             }
 
             var changes = new List<Dhewm3ConfigChange>();
-            string cfgFile = d3xp ? Path.Combine(_path, "d3xp", "dhewm.cfg") : Path.Combine(_path, "base", "dhewm.cfg");
+            string cfgFile = Path.Combine(_path, game, "dhewm.cfg");
 
             if (SystemConfig.isOptSet("dhewm3_resolution") && !string.IsNullOrEmpty(SystemConfig["dhewm3_resolution"]))
                 changes.Add(new Dhewm3ConfigChange("seta", "r_mode", SystemConfig["dhewm3_resolution"]));

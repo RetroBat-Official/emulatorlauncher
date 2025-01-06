@@ -672,11 +672,15 @@ namespace EmulatorLauncher
             {
                 json["SkipRATelemetryWarning"] = "true";
                 
-                if (string.IsNullOrEmpty(json["RAUsername"]))
-                    json["RAUsername"] = SystemConfig["retroachievements.username"];
-                if (string.IsNullOrEmpty(json["RAToken"]))
-                    json["RAToken"] = SystemConfig["retroachievements.token"];
-                
+                json["RAUsername"] = SystemConfig["retroachievements.username"];
+
+                string unencryptedToken = SystemConfig["retroachievements.token"];
+                if (!string.IsNullOrEmpty(unencryptedToken))
+                {
+                    string encryptedToken = EncryptStrings.EncryptString(unencryptedToken);
+                    json["RAToken"] = encryptedToken;
+                }
+
                 json["RACheevosActive"] = "true";
                 json["RALBoardsActive"] = SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false";
                 json["RARichPresenceActive"] = SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false";

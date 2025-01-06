@@ -80,6 +80,7 @@
     <Compile Include="FileFormats\MultiDiskImageFile.cs" />
     <Compile Include="FileFormats\SimpleBml.cs" />
     <Compile Include="FileFormats\SimpleYml.cs" />
+    <Compile Include="FileFormats\StringEncryption.cs" />
     <Compile Include="FileFormats\XmlDeserializer.cs" />
     <Compile Include="FileFormats\XmlExtensions.cs" />
     <Compile Include="FileTools.cs" />
