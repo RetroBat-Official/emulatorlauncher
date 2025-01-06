@@ -407,6 +407,9 @@
     <Compile Include="Generators\TeknoParrot.Controllers.cs">
       <DependentUpon>TeknoParrot.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\TeknoParrot.Guns.cs">
+      <DependentUpon>TeknoParrot.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Tsugaru.Generator.cs" />
     <Compile Include="Generators\Uae.Generator.cs" />
     <Compile Include="Generators\vita3k.Generator.cs" />
