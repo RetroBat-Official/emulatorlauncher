@@ -1331,46 +1331,25 @@ namespace EmulatorLauncher
                 ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "F1");
                 ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "@(Shift+F1)");
 
-                if (tech == "XInput")
+                if (c1.Config.Type != "keyboard")
                 {
                     if (xinputAsSdl)
                         ini.WriteValue("Hotkeys", "Device", "SDL" + "/" + _p1sdlindex + "/" + deviceName);
                     else
                         ini.WriteValue("Hotkeys", "Device", tech + "/" + xIndex + "/" + deviceName);
-                    ini.WriteValue("Hotkeys", "General/Toggle Pause", "Back&`Button B`");
-                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "Back&`Button A`");
-                    ini.WriteValue("Hotkeys", "General/Exit", "Back&Start");
+                    ini.WriteValue("Hotkeys", "General/Toggle Pause", c1.IsXInputDevice? "@(Back+`Button B`)" : "@(Back+`Button E`)");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", c1.IsXInputDevice ? "@(Back+`Button A`)" : "@(Back+`Button S`)");
+                    ini.WriteValue("Hotkeys", "General/Exit", "@(Back+Start)");
 
                     // SaveStates
-                    ini.WriteValue("Hotkeys", "General/Take Screenshot", "@(Back+`Button X`)"); // Use Same value as SaveState....
-                    ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", "@(Back+`Button X`)");
-                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "@(Back+`Button Y`)");
+                    ini.WriteValue("Hotkeys", "General/Take Screenshot", c1.IsXInputDevice ? "@(Back+`Button X`)" : "@(Back+`Button W`)"); // Use Same value as SaveState....
+                    ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", c1.IsXInputDevice ? "@(Back+`Button X`)" : "@(Back+`Button W`)");
+                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", c1.IsXInputDevice ? "@(Back+`Button Y`)" : "@(Back+`Button N`)");
                     ini.WriteValue("Hotkeys", "Other State Hotkeys/Increase Selected State Slot", "@(Back+`Pad N`)");
                     ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "@(Back+`Pad S`)");
 
-                    ini.WriteValue("Hotkeys", "General/Eject Disc", "Back&`Shoulder L`");
-                    ini.WriteValue("Hotkeys", "General/Change Disc", "Back&`Shoulder R`");
-                }
-                else if (tech == "SDL")
-                {
-                    bool revert = c1.VendorID == USB_VENDOR.NINTENDO;
-                    ini.WriteValue("Hotkeys", "Device", tech + "/" + _p1sdlindex + "/" + deviceName);
-                    ini.WriteValue("Hotkeys", "General/Toggle Pause", revert ? "`Button 4`&`Button 0`" : "`Button 4`&`Button 1`");
-                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", revert ? "`Button 4`&`Button 1`" : "`Button 4`&`Button 0`");
-
-                    ini.WriteValue("Hotkeys", "General/Exit", "`Button 4`&`Button 6`");
-
-                    var save = (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.y) ?? "");
-                    ini.WriteValue("Hotkeys", "General/Take Screenshot", save); // Use Same value as SaveState....
-                    ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", save);
-                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.x) ?? ""));
-
-                    // Save State/Save to Selected Slot = @(`Button 6`+`Button 2`)
-
-                    ini.WriteValue("Hotkeys", "General/Take Screenshot", "`Button 4`&`Full Axis 5+`");
-
-                    ini.WriteValue("Hotkeys", "General/Eject Disc", "`Button 4`&`Button 9`");
-                    ini.WriteValue("Hotkeys", "General/Change Disc", "`Button 4`&`Button 10`");
+                    ini.WriteValue("Hotkeys", "Emulation Speed/Decrease Emulation Speed", "@(Back+`Shoulder L`)");
+                    ini.WriteValue("Hotkeys", "Emulation Speed/Increase Emulation Speed", "@(Back+`Shoulder R`)");
                 }
                 else        // Keyboard
                 {
@@ -1379,8 +1358,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "@(Alt+RETURN)");
                     ini.WriteValue("Hotkeys", "General/Exit", "ESCAPE");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "`F9`");
-                    ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt&E");
-                    ini.WriteValue("Hotkeys", "General/Change Disc", "Alt&S");
+                    ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt+E");
+                    ini.WriteValue("Hotkeys", "General/Change Disc", "Alt+S");
                 }
             }
         }

@@ -284,9 +284,9 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Hacks", "FastTextureSampling", "manual_texture_sampling", "False", "True");
                     BindBoolIniFeature(ini, "Settings", "WaitForShadersBeforeStarting", "WaitForShadersBeforeStarting", "True", "False");
                     BindIniFeature(ini, "Settings", "ShaderCompilationMode", "ShaderCompilationMode", "2");
-                    BindIniFeature(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False");
+                    BindBoolIniFeature(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False", "True");
                     BindBoolIniFeatureOn(ini, "Hacks", "EFBScaledCopy", "EFBScaledCopy", "True", "False");
-                    BindBoolIniFeatureOn(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True", "False");
+                    BindBoolIniFeature(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True", "False");
                     BindIniFeature(ini, "Enhancements", "MaxAnisotropy", "anisotropic_filtering", "0");
                     BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "True", "False");
                     BindBoolIniFeature(ini, "Settings", "Crop", "dolphin_crop", "True", "False");

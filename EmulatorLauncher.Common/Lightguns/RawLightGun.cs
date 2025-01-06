@@ -57,7 +57,7 @@ namespace EmulatorLauncher.Common.Lightguns
                 if (sindenDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.SindenLightgun;
 
-                string[] gun4irDeviceIds = new string[] { "VID_2341&PID_8042", "VID_2341&PID_8043", "VID_2341&PID_8044", "VID_2341&PID_8045" };
+                string[] gun4irDeviceIds = new string[] { "VID_2341&PID_8042", "VID_2341&PID_8043", "VID_2341&PID_8044", "VID_2341&PID_8045", "VID_2341&PID_8046", "VID_2341&PID_8047" };
                 if (gun4irDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.Gun4Ir;
 
@@ -65,13 +65,25 @@ namespace EmulatorLauncher.Common.Lightguns
                 if (mayFlashWiimoteIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.MayFlashWiimote;
 
-                string[] retroShooterIds = new string[] { "VID_0483&PID_5750", "VID_0483&PID_5751" };
+                string[] retroShooterIds = new string[] { "VID_0483&PID_5750", "VID_0483&PID_5751", "VID_0483&PID_5752", "VID_0483&PID_5753" };
                 if (retroShooterIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.RetroShooter;
 
-                string[] blamconDeviceIds = new string[] { "VID_3673&PID_0101", "VID_3673&PID_0102", "VID_3673&PID_0103", "VID_3673&PID_0104" };
-                if (gun4irDeviceIds.Any(d => devicePath.Contains(d)))
+                string[] blamconDeviceIds = new string[] { "VID_3673&PID_0100", "VID_3673&PID_0101", "VID_3673&PID_0102", "VID_3673&PID_0103", "VID_3673&PID_0104" };
+                if (blamconDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.Blamcon;
+
+                string[] aimtrackDeviceIds = new string[] { "VID_D209&PID_1601", "VID_D209&PID_1602", "VID_D209&PID_1603" };
+                if (aimtrackDeviceIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.Aimtrak;
+
+                string[] aeLightgunDeviceIds = new string[] { "VID_2341&PID_8037", "VID_2341&PID_8038" };
+                if (aeLightgunDeviceIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.AELightgun;
+
+                string[] xenasDeviceIds = new string[] { "VID_023f30_PID&71ff", "VID_023f30_PID&72ff", "VID_023f30_PID&73ff", "VID_023f30_PID&74ff" };
+                if (xenasDeviceIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.Xenas;
             }
 
             return RawLighGunType.Mouse;
@@ -110,26 +122,32 @@ namespace EmulatorLauncher.Common.Lightguns
                 case RawLighGunType.Gun4Ir:
                     if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8042"))
                         return 10;
-                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8043"))
-                        return 11;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8044"))
+                        return 11;
+                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8046"))
                         return 12;
-                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8045"))
+                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8043"))
                         return 13;
+                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8045"))
+                        return 14;
+                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8047"))
+                        return 15;
                     else
-                        return 14 + Index;
+                        return 16 + Index;
 
                 case RawLighGunType.Blamcon:
-                    if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0101"))
+                    if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0100"))
                         return 30;
-                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0102"))
+                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0101"))
                         return 31;
-                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0103"))
+                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0102"))
                         return 32;
-                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0104"))
+                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0103"))
                         return 33;
+                    else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0104"))
+                        return 34;
                     else
-                        return 34 + Index;
+                        return 35 + Index;
 
                 case RawLighGunType.SindenLightgun:
                     if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F01"))
@@ -143,13 +161,37 @@ namespace EmulatorLauncher.Common.Lightguns
                     else
                         return 55 + Index;
 
+                case RawLighGunType.AELightgun:
+                    if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8037"))
+                        return 70;
+                    else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8038"))
+                        return 71;
+                    else
+                        return 72 + Index;
+
                 case RawLighGunType.RetroShooter:
                     if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5750"))
-                        return 100;
+                        return 90;
                     else if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5751"))
-                        return 101;
+                        return 91;
+                    else if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5752"))
+                        return 92;
+                    else if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5753"))
+                        return 93;
                     else
-                        return 102 + Index;
+                        return 94 + Index;
+
+                case RawLighGunType.Xenas:
+                    if (DevicePath != null && DevicePath.Contains("VID_023f30_PID&71ff"))
+                        return 110;
+                    else if (DevicePath != null && DevicePath.Contains("VID_023f30_PID&72ff"))
+                        return 111;
+                    else if (DevicePath != null && DevicePath.Contains("VID_023f30_PID&73ff"))
+                        return 112;
+                    else if (DevicePath != null && DevicePath.Contains("VID_023f30_PID&74ff"))
+                        return 113;
+                    else
+                        return 114 + Index;
 
                 case RawLighGunType.MayFlashWiimote:
                     return 200 + Index;
@@ -179,8 +221,11 @@ namespace EmulatorLauncher.Common.Lightguns
         SindenLightgun,
         MayFlashWiimote, // Using mode 1
         Gun4Ir,
+        AELightgun,
         RetroShooter,
         Blamcon,
+        Aimtrak,
+        Xenas,
         Mouse
     }
 }
