@@ -7,6 +7,9 @@ using System.Windows.Documents;
 using System.Collections.Generic;
 using EmulatorLauncher.Common.FileFormats;
 using System;
+using System.Runtime.CompilerServices;
+using EmulatorLauncher.Common;
+using System.Runtime.Remoting.Messaging;
 
 namespace EmulatorLauncher
 {
@@ -17,7 +20,53 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            bool xInput = Program.Controllers.All(c => c.Config != null && c.IsXInputDevice);
+            int padNr = Program.Controllers.Where(c => !c.IsKeyboard).Count();
+
+            if (padNr < 1)  // If no controller, return
+                return;
+
+            int playerNumber = 1;
+            List<Controller> TPControllers = new List<Controller>();
+
+            // List controllers
+            Controller c1 = Program.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
+            SimpleLogger.Instance.Info("[INFO] Controller for player 1 identified as " + c1.DevicePath.ToString());
+            TPControllers.Add(c1);
+            
+            Controller c2 = null;
+            Controller c3 = null;
+            Controller c4 = null;
+            Controller c5 = null;
+            Controller c6 = null;
+
+            if (padNr > 5)
+            {
+                c6 = Program.Controllers.Where(c => c.PlayerIndex == 6).FirstOrDefault();
+                TPControllers.Add(c6);
+            }
+            if (padNr > 4)
+            {
+                c5 = Program.Controllers.Where(c => c.PlayerIndex == 5).FirstOrDefault();
+                TPControllers.Add(c5);
+            }
+            if (padNr > 3)
+            {
+                c4 = Program.Controllers.Where(c => c.PlayerIndex == 4).FirstOrDefault();
+                TPControllers.Add(c4);
+            }
+            if (padNr > 2)
+            {
+                c3 = Program.Controllers.Where(c => c.PlayerIndex == 3).FirstOrDefault();
+                TPControllers.Add(c3);
+            }
+            if (padNr > 1)
+            {
+                c2 = Program.Controllers.Where(c => c.PlayerIndex == 2).FirstOrDefault();
+                TPControllers.Add(c2);
+            }
+
+            // Manage input driver
+            bool xInput = c1.IsXInputDevice;
             YmlContainer game = null;
             string tpGameName = Path.GetFileNameWithoutExtension(userProfile.FileName).ToLowerInvariant();
 
@@ -48,69 +97,145 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            
+            if (inputAPI.FieldValue == "XInput" && c1.IsXInputDevice)
+                SimpleLogger.Instance.Info("[INFO] Controller for player 1 has XInput index " + c1.XInput.DeviceIndex.ToString());
 
-            foreach (var c in Program.Controllers)
+            // Look for number of players based on string search in userprofile file (Px, Player x)
+            if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P6") || j.ButtonName.Contains("Player 6")))
+                playerNumber = 6;
+            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P5") || j.ButtonName.Contains("Player 5")))
+                playerNumber = 5;
+            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P4") || j.ButtonName.Contains("Player 4")))
+                playerNumber = 4;
+            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P3") || j.ButtonName.Contains("Player 3")))
+                playerNumber = 3;
+            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P2") || j.ButtonName.Contains("Player 2")))
+                playerNumber = 2;
+
+            SimpleLogger.Instance.Info("[INFO] Game identified for " + playerNumber + " player");
+
+            // Search mapping in yml file
+            Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
+            string tpMappingyml = null;
+            var buttonMap = new Dictionary<string, string>();
+            string gameName = null;
+            
+            foreach (var path in mappingPaths)
+            {
+                string result = path
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "inputmapping");
+
+                tpMappingyml = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
+
+                if (File.Exists(tpMappingyml))
+                    break;
+            }
+
+            if (File.Exists(tpMappingyml))
+            {
+                YmlFile ymlFile = YmlFile.Load(tpMappingyml);
+                game = ymlFile.Elements.Where(g => g.Name == tpGameName).FirstOrDefault() as YmlContainer;
+                if (game != null)
+                {
+                    gameName = game.Name;
+                    foreach (var buttonEntry in game.Elements)
+                    {
+                        YmlElement button = buttonEntry as YmlElement;
+                        if (button.Name == "Players")
+                        {
+                            playerNumber = button.Value.ToInteger();
+                        }
+
+                        else if (button != null && button.Name != "Players")
+                        {
+                            buttonMap.Add(button.Name, button.Value);
+                        }
+                    }
+
+                    gameMapping.Add(gameName, buttonMap);
+                    SimpleLogger.Instance.Info("[INFO] Performing mapping based on teknoparrot.yml file");
+                }
+            }
+
+            foreach (var c in TPControllers.OrderBy(i => i.PlayerIndex).Take(playerNumber))
             {
                 if (c.Config == null || c.Config.Type == "key")
                     continue;
-                
-                Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
-                string tpMappingyml = null;
-                
-                foreach (var path in mappingPaths)
+
+                if (game != null)
                 {
-                    string result = path
-                        .Replace("{systempath}", "system")
-                        .Replace("{userpath}", "inputmapping");
-
-                    tpMappingyml = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
-
-                    if (File.Exists(tpMappingyml))
-                        break;
-                }
-
-                if (File.Exists(tpMappingyml))
-                {
-                    YmlFile ymlFile = YmlFile.Load(tpMappingyml);
-                    game = ymlFile.Elements.Where(g => g.Name == tpGameName).FirstOrDefault() as YmlContainer;
-                    if (game != null)
+                    if (buttonMap.Count > 0)
                     {
-                        var buttonMap = new Dictionary<string, string>();
-                        var gameName = game.Name;
-                        foreach (var buttonEntry in game.Elements)
+                        foreach (var button in buttonMap)
                         {
-                            YmlElement button = buttonEntry as YmlElement;
-                            if (button != null)
-                            {
-                                buttonMap.Add(button.Name, button.Value);
-                            }
-                        }
+                            InputKey input;
+                            if (button.Value == null)
+                                continue;
 
-                        gameMapping.Add(gameName, buttonMap);
+                            string key = button.Key;
+                            string value = button.Value;
+                            bool enumExists = Enum.TryParse(key, out InputMapping inputEnum);
+                            JoystickButtons xmlPlace = null;
+                            if (enumExists)
+                                xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum);
+                            if (xmlPlace == null)
+                                continue;
 
-                        if (buttonMap.Count > 0)
-                        {
-                            foreach (var button in buttonMap)
+                            switch (c.PlayerIndex)
                             {
-                                InputKey key;
-                                if (button.Value != null)
-                                {
-                                    string value = button.Value;
-                                    if (ymlButtonMapping.ContainsKey(value))
+                                case 1:
                                     {
-                                        key = ymlButtonMapping[value];
-                                        if (Enum.TryParse(button.Key, out InputMapping inputEnum))
-                                        {
-                                            switch (inputAPI.FieldValue)
-                                            {
-                                                case "XInput":
-                                                    ImportXInputButton(userProfile, c, key, "no", inputEnum);
-                                                    break;
-                                                case "DirectInput":
-                                                    ImportDirectInputButton(userProfile, c, key, inputEnum);
-                                                    break;
-                                            }
-                                        }
+                                        if (P1exclude.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                                case 2:
+                                    {
+                                        if (!P2include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                                case 3:
+                                    {
+                                        if (!P3include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                                case 4:
+                                    {
+                                        if (!P4include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                                case 5:
+                                    {
+                                        if (!P5include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                                case 6:
+                                    {
+                                        if (!P6include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                            }
+                            
+                            if (ymlButtonMapping.ContainsKey(value))
+                            {
+                                input = ymlButtonMapping[value];
+                                if (enumExists)
+                                {
+                                    switch (inputAPI.FieldValue)
+                                    {
+                                        case "XInput":
+                                            ImportXInputButton(userProfile, c, input, "no", inputEnum);
+                                            break;
+                                        case "DirectInput":
+                                            ImportDirectInputButton(userProfile, c, input, inputEnum);
+                                            break;
                                     }
                                 }
                             }
@@ -234,9 +359,8 @@ namespace EmulatorLauncher
                         ImportDirectInputButton(userProfile, c, InputKey.r3, InputMapping.JvsTwoP1Button6, InputMapping.P1Button6);
 
                     }
+                    break;
                 }
-
-                break;
             }
         }
 
@@ -289,8 +413,9 @@ namespace EmulatorLauncher
                     start.XInputButton.ButtonCode = 0;
 
                     string bindName = GetXInputName(key, ctl, reverseAxis);
-                    start.BindNameXi = "Input Device 0 " + bindName;
-                    start.BindName = "Input Device 0 " + bindName;
+                    string deviceNumber = ctl.XInput != null ? ctl.XInput.DeviceIndex.ToString() : ctl.DeviceIndex.ToString();
+                    start.BindNameXi = "Input Device " + deviceNumber + " " + bindName.Replace("zzz", deviceNumber);
+                    start.BindName = "Input Device " + deviceNumber + " " + bindName.Replace("zzz", deviceNumber);
 
                     switch (ctl.GetXInputMapping(key, reverseAxis))
                     {
@@ -353,8 +478,9 @@ namespace EmulatorLauncher
                         start.XInputButton.ButtonCode = (short)button;
 
                         string bindName = GetXInputName(key, ctl, reverseAxis);
-                        start.BindNameXi = "Input Device 0 " + bindName;
-                        start.BindName = "Input Device 0 " + bindName;
+                        string deviceNumber = ctl.XInput != null ? ctl.XInput.DeviceIndex.ToString() : ctl.DeviceIndex.ToString();
+                        start.BindNameXi = "Input Device " + deviceNumber + " " + bindName;
+                        start.BindName = "Input Device " + deviceNumber + " " + bindName;
                     }
                 }
             }
@@ -498,20 +624,20 @@ namespace EmulatorLauncher
                         {
                             case 0:
                                 if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
-                                    return "LeftThumbInput Device 0 X+";
-                                else return "LeftThumbInput Device 0 X-";
+                                    return "LeftThumbInput Device zzz X+";
+                                else return "LeftThumbInput Device zzz X-";
                             case 1:
                                 if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
-                                    return "LeftThumbInput Device 0 Y-";
-                                else return "LeftThumbInput Device 0 Y+";
+                                    return "LeftThumbInput Device zzz Y-";
+                                else return "LeftThumbInput Device zzz Y+";
                             case 2:
                                 if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
-                                    return "RightThumbInput Device 0 X+";
-                                else return "RightThumbInput Device 0 X-";
+                                    return "RightThumbInput Device zzz X+";
+                                else return "RightThumbInput Device zzz X-";
                             case 3:
                                 if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
-                                    return "RightThumbInput Device 0 Y-";
-                                else return "RightThumbInput Device 0 Y+";
+                                    return "RightThumbInput Device zzz Y-";
+                                else return "RightThumbInput Device zzz Y+";
                             case 4:
                                 return "LeftTrigger";
                             case 5:
@@ -588,8 +714,12 @@ namespace EmulatorLauncher
             return "UNKNOWN";
         }
 
-        private List<InputMapping> SelectButton = new List<InputMapping> { InputMapping.JvsTwoCoin1, InputMapping.Coin1, InputMapping.JvsTwoCoin2, InputMapping.Coin2 };
-        private List<InputMapping> StartButton = new List<InputMapping> { InputMapping.JvsTwoP1ButtonStart, InputMapping.JvsTwoP2ButtonStart, InputMapping.P1ButtonStart, InputMapping.P2ButtonStart };
+        private static readonly List<string> P1exclude = new List<string> { "P2", "Player 2", "P3", "Player 3", "P4", "Player 4", "P5", "Player 5", "P6", "Player 6" };
+        private static readonly List<string> P2include = new List<string> { "P2", "Player 2" };
+        private static readonly List<string> P3include = new List<string> { "P3", "Player 3" };
+        private static readonly List<string> P4include = new List<string> { "P4", "Player 4" };
+        private static readonly List<string> P5include = new List<string> { "P5", "Player 5" };
+        private static readonly List<string> P6include = new List<string> { "P6", "Player 6" };
     }
 
     static class Exts
