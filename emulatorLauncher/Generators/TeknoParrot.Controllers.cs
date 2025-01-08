@@ -20,10 +20,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            /*
             if (ConfigureTPGuns(userProfile))
                 return;
-            */
 
             int padNr = Program.Controllers.Where(c => !c.IsKeyboard).Count();
 
