@@ -46,6 +46,16 @@ namespace EmulatorLauncher.Common.FileFormats
             {
                 string line = lines[i];
 
+                // Remove comments
+                int commentIndex = line.IndexOf('#');
+                if (commentIndex >= 0)
+                {
+                    // Keep the portion before the '#' only if not inside a quoted string
+                    var inQuotes = line.Take(commentIndex).Count(c => c == '"') % 2 != 0;
+                    if (!inQuotes)
+                        line = line.Substring(0, commentIndex);
+                }
+
                 if (string.IsNullOrEmpty(line))
                     continue;
 

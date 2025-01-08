@@ -6,6 +6,8 @@ using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using System.Collections.Generic;
+using EmulatorLauncher.Common.Lightguns;
+using System.Management;
 
 namespace EmulatorLauncher
 {
@@ -13,13 +15,55 @@ namespace EmulatorLauncher
     {
         private static bool ConfigureTPGuns(GameProfile userProfile)
         {
-            if (!Program.SystemConfig.getOptBoolean("use_gun"))
+            if (!Program.SystemConfig.getOptBoolean("use_guns"))
                 return false;
 
             if (!userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("Gun") || j.ButtonName.Contains("GUN")))
                 return false;
 
             SimpleLogger.Instance.Info("[GUNS] Configuring Gun.");
+
+            bool useOneGun = Program.SystemConfig.getOptBoolean("one_gun");
+            bool multigun = false;
+            int gunCount = RawLightgun.GetUsableLightGunCount();
+            var guns = RawLightgun.GetRawLightguns();
+            var hidDevices = RawInputDevice.GetRawInputDevices();
+            var mouseHIDInfo = hidDevices.Where(t => t.Type == RawInputDeviceType.Mouse).ToList();
+
+            if (gunCount < 1)
+                return false;
+
+            Dictionary<ManagementObject, string> mouseList = new Dictionary<ManagementObject, string>();
+
+            int i = 0;
+            foreach (var gun in guns)
+            {
+                var mouse = mouseHIDInfo.Where(h => h.DevicePath == gun.DevicePath).FirstOrDefault();
+                SimpleLogger.Instance.Info("[GUNS] Identified gun with name: " + gun.Name != null ? gun.Name : "NONAME");
+                SimpleLogger.Instance.Info("[GUNS] Identified mouse with Manufacturer: " + mouse.Manufacturer != null ? mouse.Manufacturer : "NOMANUFACTURER");
+                SimpleLogger.Instance.Info("[GUNS] Identified mouse with name: " + mouse.Name != null ? mouse.Name : "NONAME");
+                SimpleLogger.Instance.Info("[GUNS] Identified mouse with vendorID: " + mouse.VendorId != null ? mouse.VendorId.ToString() : "NOVENDORID");
+                
+                string cleanPath = "";
+
+                string devicepathHID1 = gun.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
+                SimpleLogger.Instance.Info("[GUNS] Identified gun with path: " + devicepathHID1);
+
+                if (devicepathHID1.Length > 39)
+                    cleanPath = devicepathHID1.Substring(0, devicepathHID1.Length - 39);
+                SimpleLogger.Instance.Info("[GUNS] Identified gun with clean path: " + cleanPath);
+
+                string query = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath + "'").Replace("\\", "\\\\");
+                ManagementObjectSearcher moSearch1 = new ManagementObjectSearcher(query);
+                ManagementObjectCollection moCollection1 = moSearch1.Get();
+                foreach (ManagementObject mo in moCollection1.Cast<ManagementObject>())
+                {
+                    string desc1 = mo["Description"].ToString();
+                    mouseList.Add(mo, desc1);
+                    SimpleLogger.Instance.Info("[GUNS] Identified gun with name: " + desc1);
+                }
+                i++;
+            }
 
             // Variables
             int playerNumber = 1;

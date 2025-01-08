@@ -20,10 +20,8 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            /*
             if (ConfigureTPGuns(userProfile))
                 return;
-            */
 
             int padNr = Program.Controllers.Where(c => !c.IsKeyboard).Count();
 
@@ -240,6 +238,11 @@ namespace EmulatorLauncher
                             
                             if (ymlButtonMapping.ContainsKey(value))
                             {
+                                if (inputAPI.FieldValue == "DirectInput")
+                                {
+                                    ymlButtonMapping["north"] = InputKey.y;
+                                    ymlButtonMapping["west"] = InputKey.x;
+                                }
                                 input = ymlButtonMapping[value];
                                 if (enumExists)
                                 {
