@@ -238,7 +238,8 @@ namespace TeknoParrotUi.Common
         AnalogJoystickReverse,
         KeyboardWheelHalfValue, //Not needed anymore but removing this will delete user profile for everyone!!
         Minimum,
-        Maximum
+        Maximum,
+        AnalogJoystickY
     }
 
     public enum RawMouseButton
