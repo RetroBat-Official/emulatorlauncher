@@ -240,6 +240,11 @@ namespace EmulatorLauncher
                             
                             if (ymlButtonMapping.ContainsKey(value))
                             {
+                                if (inputAPI.FieldValue == "DirectInput")
+                                {
+                                    ymlButtonMapping["north"] = InputKey.y;
+                                    ymlButtonMapping["west"] = InputKey.x;
+                                }
                                 input = ymlButtonMapping[value];
                                 if (enumExists)
                                 {

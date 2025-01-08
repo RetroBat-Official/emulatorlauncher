@@ -688,8 +688,8 @@ namespace EmulatorLauncher.Common.Joysticks
         RIGHTSHOULDER = 512,
         A = 4096,
         B = 8192,
-        X = 32768,
-        Y = 16384,
+        Y = 32768,
+        X = 16384,
     }
 
     public enum XINPUT_DEVSUBTYPE
