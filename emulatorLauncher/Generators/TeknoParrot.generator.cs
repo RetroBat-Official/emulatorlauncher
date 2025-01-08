@@ -207,7 +207,7 @@ namespace EmulatorLauncher
             
             if (userProfile.GamePath == null || !File.Exists(userProfile.GamePath))
             {
-                if (userProfile.ExecutableName.Contains(";"))
+                if (userProfile.ExecutableName != null && userProfile.ExecutableName.Contains(";"))
                 {
                     var split = userProfile.ExecutableName.Split(';');
                     if (split.Length > 1)

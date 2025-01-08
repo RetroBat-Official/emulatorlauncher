@@ -20,6 +20,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Check if Gun configuration is required.");
             if (ConfigureTPGuns(userProfile))
                 return;
 
@@ -27,6 +28,18 @@ namespace EmulatorLauncher
 
             if (padNr < 1)  // If no controller, return
                 return;
+
+            // Cleanup
+            foreach (var joyButton in userProfile.JoystickButtons)
+            {
+                joyButton.BindName = null;
+                joyButton.BindNameDi = null;
+                joyButton.BindNameRi = null;
+                joyButton.BindNameXi = null;
+                joyButton.DirectInputButton = null;
+                joyButton.XInputButton = null;
+                joyButton.RawInputButton = null;
+            }
 
             int playerNumber = 1;
             List<Controller> TPControllers = new List<Controller>();
