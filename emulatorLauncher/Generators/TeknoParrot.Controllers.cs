@@ -20,6 +20,11 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            /*
+            if (ConfigureTPGuns(userProfile))
+                return;
+            */
+
             int padNr = Program.Controllers.Where(c => !c.IsKeyboard).Count();
 
             if (padNr < 1)  // If no controller, return
@@ -193,30 +198,40 @@ namespace EmulatorLauncher
                                     }
                                 case 2:
                                     {
+                                        if (xmlPlace.ButtonName == "Coin 2" || xmlPlace.ButtonName == "Coin Chute 2" || xmlPlace.ButtonName == "Coin2")
+                                            break;
                                         if (!P2include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
                                             continue;
                                         break;
                                     }
                                 case 3:
                                     {
+                                        if (xmlPlace.ButtonName == "Coin 3" || xmlPlace.ButtonName == "Coin Chute 3" || xmlPlace.ButtonName == "Coin3")
+                                            break;
                                         if (!P3include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
                                             continue;
                                         break;
                                     }
                                 case 4:
                                     {
+                                        if (xmlPlace.ButtonName == "Coin 4" || xmlPlace.ButtonName == "Coin Chute 4" || xmlPlace.ButtonName == "Coin4")
+                                            break;
                                         if (!P4include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
                                             continue;
                                         break;
                                     }
                                 case 5:
                                     {
+                                        if (xmlPlace.ButtonName == "Coin 5" || xmlPlace.ButtonName == "Coin Chute 5" || xmlPlace.ButtonName == "Coin5")
+                                            break;
                                         if (!P5include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
                                             continue;
                                         break;
                                     }
                                 case 6:
                                     {
+                                        if (xmlPlace.ButtonName == "Coin 6" || xmlPlace.ButtonName == "Coin Chute 6" || xmlPlace.ButtonName == "Coin6")
+                                            break;
                                         if (!P6include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
                                             continue;
                                         break;
@@ -397,6 +412,7 @@ namespace EmulatorLauncher
             if (start != null && c[key] != null)
             {
                 start.XInputButton = new XInputButton();
+                int deviceNumber = ctl.XInput != null ? ctl.XInput.DeviceIndex : ctl.DeviceIndex;
 
                 if (c[key].Type == "axis")
                 {
@@ -407,15 +423,14 @@ namespace EmulatorLauncher
                     start.XInputButton.IsAxisMinus = false;
                     start.XInputButton.IsLeftTrigger = false;
                     start.XInputButton.IsRightTrigger = false;
-                    start.XInputButton.XInputIndex = 0;
+                    start.XInputButton.XInputIndex = deviceNumber;
                     start.XInputButton.ButtonIndex = 0;
                     start.XInputButton.IsButton = false;
                     start.XInputButton.ButtonCode = 0;
 
                     string bindName = GetXInputName(key, ctl, reverseAxis);
-                    string deviceNumber = ctl.XInput != null ? ctl.XInput.DeviceIndex.ToString() : ctl.DeviceIndex.ToString();
-                    start.BindNameXi = "Input Device " + deviceNumber + " " + bindName.Replace("zzz", deviceNumber);
-                    start.BindName = "Input Device " + deviceNumber + " " + bindName.Replace("zzz", deviceNumber);
+                    start.BindNameXi = "Input Device " + deviceNumber + " " + bindName.Replace("zzz", deviceNumber.ToString());
+                    start.BindName = "Input Device " + deviceNumber + " " + bindName.Replace("zzz", deviceNumber.ToString());
 
                     switch (ctl.GetXInputMapping(key, reverseAxis))
                     {
@@ -472,15 +487,14 @@ namespace EmulatorLauncher
                         start.XInputButton.IsAxisMinus = false;
                         start.XInputButton.IsLeftTrigger = false;
                         start.XInputButton.IsRightTrigger = false;
-                        start.XInputButton.XInputIndex = 0;
+                        start.XInputButton.XInputIndex = deviceNumber;
                         start.XInputButton.ButtonIndex = 0;
                         start.XInputButton.IsButton = true;
                         start.XInputButton.ButtonCode = (short)button;
 
                         string bindName = GetXInputName(key, ctl, reverseAxis);
-                        string deviceNumber = ctl.XInput != null ? ctl.XInput.DeviceIndex.ToString() : ctl.DeviceIndex.ToString();
-                        start.BindNameXi = "Input Device " + deviceNumber + " " + bindName;
-                        start.BindName = "Input Device " + deviceNumber + " " + bindName;
+                        start.BindNameXi = "Input Device " + deviceNumber.ToString() + " " + bindName;
+                        start.BindName = "Input Device " + deviceNumber.ToString() + " " + bindName;
                     }
                 }
             }

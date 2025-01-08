@@ -166,6 +166,7 @@ namespace EmulatorLauncher
 
         private string _exename;
         private GameProfile _gameProfile;
+        private static bool _gunGame;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -296,6 +297,8 @@ namespace EmulatorLauncher
                 apm3id.FieldValue = SystemConfig["apm3id"].ToUpperInvariant();
             else if (apm3id != null)
                 apm3id.FieldValue = string.Empty;
+
+            _gunGame = userProfile.GunGame;
 
             ConfigureControllers(userProfile);
 
@@ -471,6 +474,7 @@ namespace EmulatorLauncher
 
             foreach (var file in Directory.GetFiles(Path.Combine(path, "GameProfiles")))
             {
+                SimpleLogger.Instance.Info("[WARNING] Game Profile not found, trying to deserialize all profile files: " + Path.GetFileNameWithoutExtension(file));
                 var profile = JoystickHelper.DeSerializeGameProfile(file, false);
                 if (profile == null)
                     continue;
