@@ -22,7 +22,7 @@ namespace EmulatorLauncher
 {
     partial class TeknoParrotGenerator : Generator
     {
-        static Dictionary<string, string> executables = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
         {                        
             { "Batman",                          @"Batman\ZeusSP\sdaemon.exe" },
             { "BBCF",                            @"Blazblue - Central Fiction\game.exe" },
@@ -166,7 +166,6 @@ namespace EmulatorLauncher
 
         private string _exename;
         private GameProfile _gameProfile;
-        private static bool _gunGame;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -313,8 +312,6 @@ namespace EmulatorLauncher
             else if (apm3id != null)
                 apm3id.FieldValue = string.Empty;
 
-            _gunGame = userProfile.GunGame;
-
             ConfigureControllers(userProfile);
 
             JoystickHelper.SerializeGameProfile(userProfile, userProfilePath);
@@ -326,8 +323,10 @@ namespace EmulatorLauncher
             
             _gameProfile = userProfile;
 
-            List<string> commandArray = new List<string>();
-            commandArray.Add("--profile=" + profileName);
+            List<string> commandArray = new List<string>
+            {
+                "--profile=" + profileName
+            };
 
             if (!SystemConfig.isOptSet("tp_minimize") || SystemConfig.getOptBoolean("tp_minimize"))
                 commandArray.Add("--startMinimized");
@@ -346,12 +345,9 @@ namespace EmulatorLauncher
         {
             string parrotData = Path.Combine(path, "ParrotData.xml");
 
-            ParrotData data = null;
-            XElement xdoc = null;
-
             if (File.Exists(parrotData))
             {
-                xdoc = XElement.Load(parrotData);
+                XElement xdoc = XElement.Load(parrotData);
 
                 xdoc.SetElementValue("SilentMode", true);
                 xdoc.SetElementValue("ConfirmExit", false);
@@ -381,7 +377,7 @@ namespace EmulatorLauncher
 
             else
             {
-                data = new ParrotData();
+                ParrotData data = new ParrotData();
 
                 if (!data.SilentMode || data.ConfirmExit)
                 {
@@ -659,17 +655,6 @@ namespace EmulatorLauncher
             }
         }
 
-        private int GetParentProcess(int Id)
-        {
-            int parentPid = 0;
-            using (ManagementObject mo = new ManagementObject("win32_process.handle='" + Id.ToString() + "'"))
-            {
-                mo.Get();
-                parentPid = Convert.ToInt32(mo["ParentProcessId"]);
-            }
-            return parentPid;
-        }
-
         private static string FindExecutable(string path, string profileName)
         {
             if (!executables.ContainsKey(profileName))
@@ -682,7 +667,7 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private static string FindBestExecutable(string path, string executableName, bool childs = true)
+        private static string FindBestExecutable(string path, string executableName)
         {
             try
             {
