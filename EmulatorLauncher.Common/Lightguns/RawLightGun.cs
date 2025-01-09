@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher.Common.Lightguns
 {
@@ -98,7 +99,16 @@ namespace EmulatorLauncher.Common.Lightguns
             int index = 0;
             foreach (var device in RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.Mouse))
             {
-                 mouseNames.Add(new RawLightgun() { Name = device.Name, DevicePath = device.DevicePath, Index = index, Type = ExtractRawLighGunType(device.DevicePath) });
+                 mouseNames.Add(new RawLightgun() 
+                 { 
+                     Name = device.Name, 
+                     Manufacturer = device.Manufacturer, 
+                     DevicePath = device.DevicePath, 
+                     Index = index,
+                     VendorId = device.VendorId,
+                     ProductId = device.ProductId,
+                     Type = ExtractRawLighGunType(device.DevicePath) 
+                 });
                  index++;
             }
 
@@ -112,7 +122,10 @@ namespace EmulatorLauncher.Common.Lightguns
 
         public int Index { get; set; }
         public string Name { get; set; }
+        public string Manufacturer { get; set; }
         public string DevicePath { get; set; }
+        public USB_VENDOR VendorId { get; set; }
+        public USB_PRODUCT ProductId { get; set; }
         public RawLighGunType Type { get; private set; }
 
         private int GetGunPriority()
