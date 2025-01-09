@@ -118,16 +118,7 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] Controller for player 1 has XInput index " + c1.XInput.DeviceIndex.ToString());
 
             // Look for number of players based on string search in userprofile file (Px, Player x)
-            if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P6") || j.ButtonName.Contains("Player 6")))
-                playerNumber = 6;
-            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P5") || j.ButtonName.Contains("Player 5")))
-                playerNumber = 5;
-            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P4") || j.ButtonName.Contains("Player 4")))
-                playerNumber = 4;
-            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P3") || j.ButtonName.Contains("Player 3")))
-                playerNumber = 3;
-            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P2") || j.ButtonName.Contains("Player 2")))
-                playerNumber = 2;
+            playerNumber = GetNumberOfPlayers(userProfile);
 
             SimpleLogger.Instance.Info("[INFO] Game identified for " + playerNumber + " player");
 
@@ -162,9 +153,15 @@ namespace EmulatorLauncher
                         if (button.Name == "Players")
                         {
                             playerNumber = button.Value.ToInteger();
+                            continue;
                         }
 
-                        else if (button != null && button.Name != "Players")
+                        else if (button.Name.StartsWith("mouse"))
+                        {
+                            continue;
+                        }
+
+                        else if (button != null)
                         {
                             buttonMap.Add(button.Name, button.Value);
                         }
@@ -192,6 +189,9 @@ namespace EmulatorLauncher
 
                             string key = button.Key;
                             string value = button.Value;
+                            if (value.StartsWith("kb_") || value.StartsWith("mouse"))
+                                continue;
+
                             bool enumExists = Enum.TryParse(key, out InputMapping inputEnum);
                             JoystickButtons xmlPlace = null;
                             if (enumExists)
@@ -201,33 +201,11 @@ namespace EmulatorLauncher
 
                             switch (c.PlayerIndex)
                             {
-                                case 1:
+                                case 6:
                                     {
-                                        if (P1exclude.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
-                                            continue;
-                                        break;
-                                    }
-                                case 2:
-                                    {
-                                        if (xmlPlace.ButtonName == "Coin 2" || xmlPlace.ButtonName == "Coin Chute 2" || xmlPlace.ButtonName == "Coin2")
+                                        if (xmlPlace.ButtonName == "Coin 6" || xmlPlace.ButtonName == "Coin Chute 6" || xmlPlace.ButtonName == "Coin6")
                                             break;
-                                        if (!P2include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
-                                            continue;
-                                        break;
-                                    }
-                                case 3:
-                                    {
-                                        if (xmlPlace.ButtonName == "Coin 3" || xmlPlace.ButtonName == "Coin Chute 3" || xmlPlace.ButtonName == "Coin3")
-                                            break;
-                                        if (!P3include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
-                                            continue;
-                                        break;
-                                    }
-                                case 4:
-                                    {
-                                        if (xmlPlace.ButtonName == "Coin 4" || xmlPlace.ButtonName == "Coin Chute 4" || xmlPlace.ButtonName == "Coin4")
-                                            break;
-                                        if (!P4include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                        if (!P6include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
                                             continue;
                                         break;
                                     }
@@ -239,11 +217,33 @@ namespace EmulatorLauncher
                                             continue;
                                         break;
                                     }
-                                case 6:
+                                case 4:
                                     {
-                                        if (xmlPlace.ButtonName == "Coin 6" || xmlPlace.ButtonName == "Coin Chute 6" || xmlPlace.ButtonName == "Coin6")
+                                        if (xmlPlace.ButtonName == "Coin 4" || xmlPlace.ButtonName == "Coin Chute 4" || xmlPlace.ButtonName == "Coin4")
                                             break;
-                                        if (!P6include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                        if (!P4include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                                case 3:
+                                    {
+                                        if (xmlPlace.ButtonName == "Coin 3" || xmlPlace.ButtonName == "Coin Chute 3" || xmlPlace.ButtonName == "Coin3")
+                                            break;
+                                        if (!P3include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                                case 2:
+                                    {
+                                        if (xmlPlace.ButtonName == "Coin 2" || xmlPlace.ButtonName == "Coin Chute 2" || xmlPlace.ButtonName == "Coin2" || xmlPlace.ButtonName == "Service 2")
+                                            break;
+                                        if (!P2include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                            continue;
+                                        break;
+                                    }
+                                case 1:
+                                    {
+                                        if (P1exclude.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
                                             continue;
                                         break;
                                     }
@@ -573,7 +573,7 @@ namespace EmulatorLauncher
             }
         }
 
-        static string[] mappingPaths =
+        static readonly string[] mappingPaths =
         {            
             // User specific
             "{userpath}\\teknoparrot.yml",
@@ -582,7 +582,7 @@ namespace EmulatorLauncher
             "{systempath}\\resources\\inputmapping\\teknoparrot.yml",
         };
 
-        private static Dictionary<string, InputKey> ymlButtonMapping = new Dictionary<string, InputKey>()
+        private readonly static Dictionary<string, InputKey> ymlButtonMapping = new Dictionary<string, InputKey>()
         {
             { "r3", InputKey.righttrigger },
             { "l3", InputKey.lefttrigger },
@@ -744,7 +744,32 @@ namespace EmulatorLauncher
             return "UNKNOWN";
         }
 
-        private static readonly List<string> P1exclude = new List<string> { "P2", "Player 2", "P3", "Player 3", "P4", "Player 4", "P5", "Player 5", "P6", "Player 6" };
+        private static int GetNumberOfPlayers(GameProfile userProfile)
+        {
+            // Look for number of players based on string search in userprofile file (Px, Player x)
+            if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P6") || j.ButtonName.Contains("Player 6")))
+                return 6;
+            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P5") || j.ButtonName.Contains("Player 5")))
+                return 5;
+            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P4") || j.ButtonName.Contains("Player 4")))
+                return 4;
+            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P3") || j.ButtonName.Contains("Player 3")))
+                return 3;
+            else if (userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("P2") || j.ButtonName.Contains("Player 2")))
+                return 2;
+            else
+                return 1;
+        }
+
+        private static readonly List<string> P1exclude = new List<string> 
+        { 
+            "P2", "Player 2", "P3", "Player 3", "P4", "Player 4", "P5", "Player 5", "P6", "Player 6", 
+            "Coin 2", "Coin Chute 2", "Coin2", "Service 2",
+            "Coin 3", "Coin Chute 3", "Coin3",
+            "Coin 4", "Coin Chute 4", "Coin4",
+            "Coin 5", "Coin Chute 5", "Coin5",
+            "Coin 6", "Coin Chute 6", "Coin6"
+        };
         private static readonly List<string> P2include = new List<string> { "P2", "Player 2" };
         private static readonly List<string> P3include = new List<string> { "P3", "Player 3" };
         private static readonly List<string> P4include = new List<string> { "P4", "Player 4" };

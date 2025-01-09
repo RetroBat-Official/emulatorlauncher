@@ -12,6 +12,8 @@ namespace EmulatorLauncher.Common
         public string Name { get; private set; }
         public string Manufacturer { get; set; }
 
+        public string FriendlyName { get; set; }
+
         public RawInputDeviceType Type { get; private set; }
         public IntPtr Handle { get; private set; }
 

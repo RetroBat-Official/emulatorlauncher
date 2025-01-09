@@ -230,13 +230,28 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (userProfile.GamePath == null && userProfile.ExecutableName == "game")
+                string tempPath = userProfile.GamePath;
+                if (string.IsNullOrEmpty(tempPath) && userProfile.ExecutableName == "game")
                 {
                     userProfile.GamePath = File.Exists(Path.Combine(rom, "game")) ? Path.Combine(rom, "game") : null;
                 }
 
-                if (userProfile.GamePath == null)
+                tempPath = userProfile.GamePath;
+                if (string.IsNullOrEmpty(tempPath) && userProfile.ExecutableName != null)
                     userProfile.GamePath = FindBestExecutable(rom, userProfile.ExecutableName);
+                else if (string.IsNullOrEmpty(tempPath) && userProfile.ExecutableName == null)
+                {
+                    if (executables.ContainsKey(Path.GetFileNameWithoutExtension(userProfile.FileName)))
+                    {
+                        try
+                        {
+                            string tempExe = Path.GetFileName(executables[Path.GetFileNameWithoutExtension(userProfile.FileName)]);
+                            if (tempExe != null)
+                                userProfile.GamePath = FindBestExecutable(rom, tempExe);
+                        }
+                        catch { }
+                    }
+                }
 
                 if (userProfile.GamePath == null)
                 {
