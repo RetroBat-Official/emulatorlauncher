@@ -15,6 +15,7 @@ namespace TeknoParrotUi.Common
     [XmlRoot("GameProfile")]
     public class GameProfile
     {
+        public string ProfileName { get; set; }
         public string GameName { get; set; }
         public string GameGenre { get; set; }
         public string GamePath { get; set; }

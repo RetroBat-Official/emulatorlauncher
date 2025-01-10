@@ -19,6 +19,7 @@ namespace EmulatorLauncher
                 return;
 
             SimpleLogger.Instance.Info("[INFO] Check if Gun configuration is required.");
+
             if (ConfigureTPGuns(userProfile))
                 return;
 

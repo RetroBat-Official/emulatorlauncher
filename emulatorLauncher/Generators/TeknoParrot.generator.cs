@@ -198,6 +198,8 @@ namespace EmulatorLauncher
                 userProfile = JoystickHelper.DeSerializeGameProfile(userProfilePath, true);
             }
 
+            userProfile.ProfileName = Path.GetFileNameWithoutExtension(userProfilePath);
+
             if (userProfile == null)
             {
                 SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable create userprofile for " + rom);
