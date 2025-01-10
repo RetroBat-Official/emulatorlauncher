@@ -46,79 +46,41 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[GUNS] Found " + gunCount + " usable guns.");
 
-            if (gunCount > 3)
-            {
-                gun1 = guns[0];
-                gun2 = guns[1];
-                gun3 = guns[2];
-                gun4 = guns[3];
-            }
-            else if (gunCount > 2)
-            {
-                gun1 = guns[0];
-                gun2 = guns[1];
-                gun3 = guns[2];
-            }
+            // Gun indexes
+            gun1 = SetGun(guns, gunCount, 1);
+            gun2 = SetGun(guns, gunCount, 2);
+            gun3 = SetGun(guns, gunCount, 3);
+            gun4 = SetGun(guns, gunCount, 4);
 
-            else if (gunCount > 1)
-            {
-                gun1 = guns[0];
-                gun2 = guns[1];
-            }
-            else
-            {
-                gun1 = guns[0];
-            }
-
-            if (Program.SystemConfig.isOptSet("tp_gunindex1") && !string.IsNullOrEmpty(Program.SystemConfig["tp_gunindex1"]))
-            {
-                int index = Program.SystemConfig["tp_gunindex1"].ToInteger();
-                if (guns.Length > index)
-                    gun1 = guns[Program.SystemConfig["tp_gunindex1"].ToInteger()];
-                else
-                    SimpleLogger.Instance.Info("[GUNS] Cannot override index for Gun 1");
-            }
-            if (Program.SystemConfig.isOptSet("tp_gunindex2") && !string.IsNullOrEmpty(Program.SystemConfig["tp_gunindex2"]))
-            {
-                int index = Program.SystemConfig["tp_gunindex2"].ToInteger();
-                if (guns.Length > index)
-                    gun2 = guns[Program.SystemConfig["tp_gunindex2"].ToInteger()];
-                else
-                    SimpleLogger.Instance.Info("[GUNS] Cannot override index for Gun 2");
-            }
-            if (Program.SystemConfig.isOptSet("tp_gunindex3") && !string.IsNullOrEmpty(Program.SystemConfig["tp_gunindex3"]))
-            {
-                int index = Program.SystemConfig["tp_gunindex3"].ToInteger();
-                if (guns.Length > index)
-                    gun3 = guns[Program.SystemConfig["tp_gunindex3"].ToInteger()];
-                else
-                    SimpleLogger.Instance.Info("[GUNS] Cannot override index for Gun 3");
-            }
-            if (Program.SystemConfig.isOptSet("tp_gunindex4") && !string.IsNullOrEmpty(Program.SystemConfig["tp_gunindex4"]))
-            {
-                int index = Program.SystemConfig["tp_gunindex4"].ToInteger();
-                if (guns.Length > index)
-                    gun4 = guns[Program.SystemConfig["tp_gunindex4"].ToInteger()];
-                else
-                    SimpleLogger.Instance.Info("[GUNS] Cannot override index for Gun 4");
-            }
+            if (GunIndexOverride(guns, 1, out int newIndex1))
+                gun1 = guns[newIndex1];
+            if (GunIndexOverride(guns, 2, out int newIndex2))
+                gun2 = guns[newIndex2];
+            if (GunIndexOverride(guns, 3, out int newIndex3))
+                gun3 = guns[newIndex3];
+            if (GunIndexOverride(guns, 4, out int newIndex4))
+                gun4 = guns[newIndex4];
 
             // logs
             if (gun1 != null)
                 SimpleLogger.Instance.Info("[GUNS] Gun 1: " + gun1.DevicePath.ToString());
             if (gun2 != null)
-                SimpleLogger.Instance.Info("[GUNS] Gun 1: " + gun2.DevicePath.ToString());
+                SimpleLogger.Instance.Info("[GUNS] Gun 2: " + gun2.DevicePath.ToString());
             if (gun3 != null)
-                SimpleLogger.Instance.Info("[GUNS] Gun 1: " + gun3.DevicePath.ToString());
+                SimpleLogger.Instance.Info("[GUNS] Gun 3: " + gun3.DevicePath.ToString());
             if (gun4 != null)
-                SimpleLogger.Instance.Info("[GUNS] Gun 1: " + gun4.DevicePath.ToString());
+                SimpleLogger.Instance.Info("[GUNS] Gun 4: " + gun4.DevicePath.ToString());
 
 
             // Get keyboards
             var hidDevices = RawInputDevice.GetRawInputDevices();
             var keyboards = hidDevices.Where(t => t.Type == RawInputDeviceType.Keyboard).OrderBy(u => u.DevicePath).ToList();
             if (keyboards.Count > 0)
+            {
+                int kbCount = keyboards.Count;
+                SimpleLogger.Instance.Info("[GUNS] Found " + kbCount + " usable keyboards.");
                 keyboard = keyboards[0];
+            }
 
             // Define alternative keyboard to use in case multiple keyboards
             if (keyboards.Count > 1 && Program.SystemConfig.isOptSet("tp_kbindex") && !string.IsNullOrEmpty(Program.SystemConfig["tp_kbindex"]))
@@ -132,6 +94,7 @@ namespace EmulatorLauncher
             }
 
             // Fetch name of keyboard to add in TP userprofile !
+            int kbs = 1;
             foreach (var k in keyboards)
             {
                 string cleanPath = "";
@@ -152,10 +115,11 @@ namespace EmulatorLauncher
                         string manuf = mo["Manufacturer"].ToString();
                         k.FriendlyName = desc1;
                         k.Manufacturer = manuf;
-                        SimpleLogger.Instance.Info("[GUNS] Identified gun with name: " + desc1);
+                        SimpleLogger.Instance.Info("[GUNS] Identified keyboard " + kbs + " with name: " + desc1);
                     }
                 }
-                catch { SimpleLogger.Instance.Info("[GUNS] Cannot get friendly name for Keyboard."); }
+                catch { SimpleLogger.Instance.Info("[GUNS] Cannot get friendly name for Keyboard " + kbs); }
+                kbs++;
             }
 
             if (keyboard != null && keyboard.FriendlyName != null)
@@ -174,30 +138,23 @@ namespace EmulatorLauncher
             }
 
             // Variables
+            bool configOK = false;
             YmlContainer game = null;
             Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
-            string tpMappingyml = null;
+            string tpMappingyml = Controller.GetSystemYmlMappingFile("teknoparrot", "", "teknoparrot", mappingPaths);
             var buttonMap = new Dictionary<string, string>();
             string gameName = null;
             string tpGameName = Path.GetFileNameWithoutExtension(userProfile.FileName).ToLowerInvariant();
 
-            // Search mapping in yml file and build buttonMap dictionnary
-            foreach (var path in mappingPaths)
-            {
-                string result = path
-                    .Replace("{systempath}", "system")
-                    .Replace("{userpath}", "inputmapping");
-
-                tpMappingyml = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
-
-                if (File.Exists(tpMappingyml))
-                    break;
-            }
-
-            if (File.Exists(tpMappingyml))
+            if (tpMappingyml != null && File.Exists(tpMappingyml))
             {
                 YmlFile ymlFile = YmlFile.Load(tpMappingyml);
-                game = ymlFile.Elements.Where(g => g.Name == tpGameName).FirstOrDefault() as YmlContainer;
+                string gunGameName = tpGameName + "_gun";
+                game = ymlFile.Elements.Where(g => g.Name == gunGameName).FirstOrDefault() as YmlContainer;
+                
+                if (game == null)
+                    game = ymlFile.Elements.Where(g => g.Name == tpGameName).FirstOrDefault() as YmlContainer;
+                
                 if (game != null)
                 {
                     gameName = game.Name;
@@ -537,10 +494,10 @@ namespace EmulatorLauncher
                                     gunID = WiimoteID;
 
                                     string mouseButton = button.Key.ToLowerInvariant();
-                                    if (mouseButton == "mouseleft") mouseButton = "LeftButton";
-                                    else if (mouseButton == "mouseright") mouseButton = "RightButton";
+                                    if (mouseButton.StartsWith("mouseleft")) mouseButton = "LeftButton";
+                                    else if (mouseButton.StartsWith("mouseright")) mouseButton = "RightButton";
 
-                                    if (mouseButton == "mousemiddle")
+                                    if (mouseButton.StartsWith("mousemiddle"))
                                     {
                                         mouseButton = "Return";
 
@@ -571,11 +528,11 @@ namespace EmulatorLauncher
                                 else
                                 {
                                     string mouseButton = button.Key.ToLowerInvariant();
-                                    if (mouseButton == "mouseleft") mouseButton = "LeftButton";
-                                    else if (mouseButton == "mousemiddle") mouseButton = "MiddleButton";
-                                    else if (mouseButton == "mouseright") mouseButton = "RightButton";
-                                    else if (mouseButton == "mousebutton4") mouseButton = "Button4";
-                                    else if (mouseButton == "mousebutton5") mouseButton = "Button5";
+                                    if (mouseButton.StartsWith("mouseleft")) mouseButton = "LeftButton";
+                                    else if (mouseButton.StartsWith("mousemiddle")) mouseButton = "MiddleButton";
+                                    else if (mouseButton.StartsWith("mouseright")) mouseButton = "RightButton";
+                                    else if (mouseButton.StartsWith("mousebutton4")) mouseButton = "Button4";
+                                    else if (mouseButton.StartsWith("mousebutton5")) mouseButton = "Button5";
 
                                     xmlPlace.RawInputButton = new RawInputButton
                                     {
@@ -633,10 +590,9 @@ namespace EmulatorLauncher
                     if (inputAPI.FieldOptions != null && inputAPI.FieldOptions.Any(f => f == "RawInput"))
                         inputAPI.FieldValue = "RawInput";
                 }
-                return true;
             }
 
-            return false;
+            return true;
         }
 
         private readonly static List<string> Numbers = new List<string>
@@ -667,6 +623,61 @@ namespace EmulatorLauncher
             catch { return null; }
 
             return null;
+        }
+
+        private static RawLightgun SetGun(RawLightgun[] guns, int gunCount, int number)
+        {
+            if (gunCount > 3)
+            {
+                switch (number)
+                {
+                    case 1: return guns[0];
+                    case 2: return guns[1];
+                    case 3: return guns[2];
+                    case 4: return guns[3];
+                }
+            }
+            else if (gunCount > 2)
+            {
+                switch (number)
+                {
+                    case 1: return guns[0];
+                    case 2: return guns[1];
+                    case 3: return guns[2];
+                }
+            }
+
+            else if (gunCount > 1)
+            {
+                switch (number)
+                {
+                    case 1: return guns[0];
+                    case 2: return guns[1];
+                }
+            }
+            else
+            {
+                return guns[0];
+            }
+            return null;
+        }
+
+        private static bool GunIndexOverride(RawLightgun[] guns, int index, out int newIndex)
+        {
+            newIndex = -1;
+            string gunindex = "tp_gunindex" + index;
+            if (Program.SystemConfig.isOptSet(gunindex) && !string.IsNullOrEmpty(Program.SystemConfig[gunindex]))
+            {
+                newIndex = Program.SystemConfig[gunindex].ToInteger();
+                if (guns.Length > newIndex)
+                    return true;
+                else
+                {
+                    SimpleLogger.Instance.Info("[GUNS] Cannot override index for Gun " + index);
+                    return false;
+                }
+            }
+            return false;
         }
     }
 }
