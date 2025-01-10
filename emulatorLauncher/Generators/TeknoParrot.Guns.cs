@@ -8,6 +8,7 @@ using EmulatorLauncher.Common.Lightguns;
 using System.Management;
 using System;
 using Keys = System.Windows.Forms.Keys;
+using System.Windows.Input;
 
 namespace EmulatorLauncher
 {
@@ -268,6 +269,8 @@ namespace EmulatorLauncher
 
             for (int i = 1; i <= playerNumber; i++)
             {
+                string gunID = null;
+                // Define gun for the player
                 var iGun = gun1;
                 if (i == 2)
                 {
@@ -291,10 +294,12 @@ namespace EmulatorLauncher
                         iGun = gun4;
                 }
 
+                // Variables
                 string gunPath = iGun.DevicePath;
                 string kbName;
                 string kbSuffix;
 
+                // Add manufacturer and name in some cases
                 if (iGun.Manufacturer == null || iGun.Manufacturer == "")
                     iGun.Manufacturer = "Unknown Manufacturer";
                 else
@@ -310,7 +315,7 @@ namespace EmulatorLauncher
                     kbName = keyboard.FriendlyName;
                     kbSuffix = keyboard.Manufacturer;
                 }
-               
+
                 if (game != null)
                 {
                     if (buttonMap.Count > 0)
@@ -333,10 +338,12 @@ namespace EmulatorLauncher
                                     kbName = keyboard.FriendlyName;
                                     kbSuffix = keyboard.Manufacturer;
 
-                                    xmlPlace.RawInputButton = new RawInputButton();
-                                    xmlPlace.RawInputButton.DevicePath = keyboard.DevicePath.ToString();
-                                    xmlPlace.RawInputButton.DeviceType = RawDeviceType.Keyboard;
-                                    xmlPlace.RawInputButton.MouseButton = RawMouseButton.None;
+                                    xmlPlace.RawInputButton = new RawInputButton
+                                    {
+                                        DevicePath = keyboard.DevicePath.ToString(),
+                                        DeviceType = RawDeviceType.Keyboard,
+                                        MouseButton = RawMouseButton.None
+                                    };
 
                                     string kbkey = button.Value.Split('_')[1];
                                     if (Numbers.Contains(kbkey))
@@ -344,7 +351,81 @@ namespace EmulatorLauncher
 
                                     if (Enum.TryParse(kbkey, true, out Keys key))
                                         xmlPlace.RawInputButton.KeyboardKey = key;
-                                    xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + key.ToString();
+
+                                    string kbNameOverride = null;
+                                    string deviceToOverride = "keyboard" + i;
+                                    string overridePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                                    string newName = GetDescriptionFromFile(overridePath, deviceToOverride);
+                                    if (newName != null)
+                                        kbNameOverride = newName;
+
+                                    if (kbNameOverride != null)
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = kbNameOverride + " " + key.ToString();
+                                    else
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + key.ToString();
+                                }
+                                else if (iGun.Type == RawLighGunType.MayFlashWiimote)
+                                {
+                                    bool enumExists = Enum.TryParse(button.Key, out InputMapping inputEnum);
+                                    if (enumExists)
+                                        xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
+                                    if (xmlPlace == null)
+                                        continue;
+
+                                    // Find keyboard associated to lightgun
+                                    int startIndex = iGun.DevicePath.IndexOf("VID");
+                                    if (startIndex >= 0)
+                                    {
+                                        int endIndex = iGun.DevicePath.IndexOf('#', startIndex);
+                                        if (endIndex == -1) continue;
+                                        if (iGun.DevicePath.Contains("MI_"))
+                                        {
+                                            endIndex = iGun.DevicePath.IndexOf("MI_", startIndex);
+                                            if (endIndex == -1) continue;
+                                            endIndex += 5;
+                                        }
+                                        string searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex);
+
+                                        if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
+                                            keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
+                                        else
+                                        {
+                                            searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex - 5);
+                                            if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
+                                                keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
+                                        }
+                                    }
+                                    // Get Keyboard ID
+                                    int firstIndex = iGun.DevicePath.IndexOf('#');
+                                    int secondIndex = iGun.DevicePath.IndexOf('#', firstIndex + 1);
+                                    secondIndex += 3;
+                                    int lastIndex = iGun.DevicePath.IndexOf('&', secondIndex + 1);
+                                    
+                                    kbName = iGun.DevicePath.Substring(secondIndex, lastIndex - secondIndex).ToUpperInvariant();
+                                    kbSuffix = "Mayflash DolphinBar";
+                                    string wiiButton = button.Value;
+
+                                    if (wiiButton != "kb_1" && wiiButton != "kb_5")
+                                        continue;
+
+                                    xmlPlace.RawInputButton = new RawInputButton
+                                    {
+                                        DevicePath = "null",
+                                        DeviceType = RawDeviceType.Keyboard,
+                                        MouseButton = RawMouseButton.None
+                                    };
+
+                                    switch (wiiButton)
+                                    {
+                                        case "kb_1":
+                                            xmlPlace.RawInputButton.KeyboardKey = Keys.VolumeDown;
+                                            xmlPlace.BindName = xmlPlace.BindNameRi = "Unknown Device VolumeDown";
+                                            break;
+                                        case "kb_5":
+                                            xmlPlace.RawInputButton.KeyboardKey = Keys.VolumeUp;
+                                            xmlPlace.BindName = xmlPlace.BindNameRi = "Unknown Device VolumeUp";
+                                            break;
+                                    }
                                 }
                                 else
                                 {
@@ -358,11 +439,18 @@ namespace EmulatorLauncher
                                         {
                                             endIndex = iGun.DevicePath.IndexOf("MI_", startIndex);
                                             if (endIndex == -1) continue;
-                                            endIndex = endIndex + 5;
+                                            endIndex += 5;
                                         }
                                         string searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex);
 
-                                        keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
+                                        if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
+                                            keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
+                                        else
+                                        {
+                                            searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex - 5);
+                                            if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
+                                                keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
+                                        }
                                     }
 
                                     bool enumExists = Enum.TryParse(button.Key, out InputMapping inputEnum);
@@ -374,10 +462,12 @@ namespace EmulatorLauncher
                                     kbName = iGun.Name;
                                     kbSuffix = iGun.Manufacturer;
 
-                                    xmlPlace.RawInputButton = new RawInputButton();
-                                    xmlPlace.RawInputButton.DevicePath = keyboard.DevicePath.ToString();
-                                    xmlPlace.RawInputButton.DeviceType = RawDeviceType.Keyboard;
-                                    xmlPlace.RawInputButton.MouseButton = RawMouseButton.None;
+                                    xmlPlace.RawInputButton = new RawInputButton
+                                    {
+                                        DevicePath = keyboard.DevicePath.ToString(),
+                                        DeviceType = RawDeviceType.Keyboard,
+                                        MouseButton = RawMouseButton.None
+                                    };
 
                                     string kbkey = button.Value.Split('_')[1];
                                     if (Numbers.Contains(kbkey))
@@ -385,34 +475,140 @@ namespace EmulatorLauncher
 
                                     if (Enum.TryParse(kbkey, true, out Keys key))
                                         xmlPlace.RawInputButton.KeyboardKey = key;
-                                    xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + key.ToString();
+
+                                    string kbNameOverride = null;
+                                    string deviceToOverride = "Lightgunkeyboard" + i;
+                                    string overridePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                                    string newName = GetDescriptionFromFile(overridePath, deviceToOverride);
+                                    if (newName != null)
+                                        kbNameOverride = newName;
+
+                                    if (kbNameOverride != null)
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = kbNameOverride + " " + key.ToString();
+                                    else
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + key.ToString();
                                 }
                             }
                             else if (button.Key.StartsWith("mouse"))
                             {
-                                bool enumExists = Enum.TryParse(button.Value, out InputMapping inputEnum);
-                                if (enumExists)
-                                    xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
-                                if (xmlPlace == null)
-                                    continue;
+                                if (iGun.Type == RawLighGunType.MayFlashWiimote)
+                                {
+                                    // Find keyboard associated to lightgun
+                                    int gunstartIndex = iGun.DevicePath.IndexOf("VID");
+                                    if (gunstartIndex >= 0)
+                                    {
+                                        int gunendIndex = iGun.DevicePath.IndexOf('#', gunstartIndex);
+                                        if (gunendIndex == -1) continue;
+                                        if (iGun.DevicePath.Contains("MI_"))
+                                        {
+                                            gunendIndex = iGun.DevicePath.IndexOf("MI_", gunstartIndex);
+                                            if (gunendIndex == -1) continue;
+                                            gunendIndex += 5;
+                                        }
+                                        string searchPath = iGun.DevicePath.Substring(gunstartIndex, gunendIndex - gunstartIndex);
 
-                                string mouseButton = button.Key.ToLowerInvariant();
-                                if (mouseButton == "mouseleft") mouseButton = "LeftButton";
-                                else if (mouseButton == "mousemiddle") mouseButton = "MiddleButton";
-                                else if (mouseButton == "mouseright") mouseButton = "RightButton";
-                                else if (mouseButton == "mousebutton4") mouseButton = "Button4";
-                                else if (mouseButton == "mousebutton5") mouseButton = "Button5";
+                                        if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
+                                            keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
+                                        else
+                                        {
+                                            searchPath = iGun.DevicePath.Substring(gunstartIndex, gunendIndex - gunstartIndex - 5);
+                                            if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
+                                                keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
+                                        }
+                                    }
 
-                                xmlPlace.RawInputButton = new RawInputButton();
-                                xmlPlace.RawInputButton.DevicePath = iGun.DevicePath.ToString();
-                                xmlPlace.RawInputButton.DeviceType = RawDeviceType.Mouse;
-                                
-                                if (Enum.TryParse(mouseButton, true, out RawMouseButton mbtn))
-                                    xmlPlace.RawInputButton.MouseButton = mbtn;
-                                
-                                xmlPlace.RawInputButton.KeyboardKey = Keys.None;
+                                    // Get Keyboard ID
+                                    int kbfirstIndex = keyboard.DevicePath.IndexOf('#');
+                                    int kbsecondIndex = keyboard.DevicePath.IndexOf('#', kbfirstIndex + 1);
+                                    kbsecondIndex += 3;
+                                    int kblastIndex = keyboard.DevicePath.IndexOf('&', kbsecondIndex + 1);
 
-                                xmlPlace.BindName = xmlPlace.BindNameRi = iGun.Manufacturer + " " + iGun.Name + " " + mouseButton;
+                                    kbName = keyboard.DevicePath.Substring(kbsecondIndex, kblastIndex - kbsecondIndex).ToUpperInvariant();
+
+                                    // Get wiimote ID
+                                    int mousefirstIndex = iGun.DevicePath.IndexOf('#');
+                                    int mouse2index = iGun.DevicePath.IndexOf('#', mousefirstIndex + 1);
+                                    mouse2index += 3;
+                                    int endIndex = iGun.DevicePath.IndexOf('&', mouse2index + 1);
+                                    string WiimoteID = iGun.DevicePath.Substring(mouse2index, endIndex - mouse2index).ToUpperInvariant();
+                                    gunID = WiimoteID;
+
+                                    bool enumExists = Enum.TryParse(button.Value, out InputMapping inputEnum);
+                                    if (enumExists)
+                                        xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
+                                    if (xmlPlace == null)
+                                        continue;
+
+                                    string mouseButton = button.Key.ToLowerInvariant();
+                                    if (mouseButton == "mouseleft") mouseButton = "LeftButton";
+                                    else if (mouseButton == "mouseright") mouseButton = "RightButton";
+
+                                    if (mouseButton == "mousemiddle")
+                                    {
+                                        mouseButton = "Return";
+                                        
+                                        xmlPlace.RawInputButton = new RawInputButton
+                                        {
+                                            DevicePath = keyboard.DevicePath.ToString(),
+                                            DeviceType = RawDeviceType.Keyboard,
+                                            MouseButton = RawMouseButton.None,
+                                            KeyboardKey = Keys.Return,
+                                        };
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = "Mayflash DolphinBar " + kbName + " Return";
+                                    }
+                                    else
+                                    {
+                                        xmlPlace.RawInputButton = new RawInputButton
+                                        {
+                                            DevicePath = iGun.DevicePath.ToString(),
+                                            DeviceType = RawDeviceType.Mouse,
+                                        };
+                                        if (Enum.TryParse(mouseButton, true, out RawMouseButton mbtn))
+                                            xmlPlace.RawInputButton.MouseButton = mbtn;
+
+                                        xmlPlace.RawInputButton.KeyboardKey = Keys.None;
+
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = "Mayflash DolphinBar" + " " + WiimoteID + " " + mouseButton;
+                                    }
+                                }
+                                else
+                                {
+                                    bool enumExists = Enum.TryParse(button.Value, out InputMapping inputEnum);
+                                    if (enumExists)
+                                        xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
+                                    if (xmlPlace == null)
+                                        continue;
+
+                                    string mouseButton = button.Key.ToLowerInvariant();
+                                    if (mouseButton == "mouseleft") mouseButton = "LeftButton";
+                                    else if (mouseButton == "mousemiddle") mouseButton = "MiddleButton";
+                                    else if (mouseButton == "mouseright") mouseButton = "RightButton";
+                                    else if (mouseButton == "mousebutton4") mouseButton = "Button4";
+                                    else if (mouseButton == "mousebutton5") mouseButton = "Button5";
+
+                                    xmlPlace.RawInputButton = new RawInputButton
+                                    {
+                                        DevicePath = iGun.DevicePath.ToString(),
+                                        DeviceType = RawDeviceType.Mouse
+                                    };
+
+                                    if (Enum.TryParse(mouseButton, true, out RawMouseButton mbtn))
+                                        xmlPlace.RawInputButton.MouseButton = mbtn;
+
+                                    xmlPlace.RawInputButton.KeyboardKey = Keys.None;
+
+                                    string mouseNameOverride = null;
+                                    string deviceToOverride = "mouse" + i;
+                                    string overridePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                                    string newName = GetDescriptionFromFile(overridePath, deviceToOverride);
+                                    if (newName != null)
+                                        mouseNameOverride = newName;
+
+                                    if (mouseNameOverride != null)
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = mouseNameOverride + " " + mouseButton;
+                                    else
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = iGun.Manufacturer + " " + iGun.Name + " " + mouseButton;
+                                }
                             }
                         }
                     }
@@ -426,20 +622,60 @@ namespace EmulatorLauncher
                 if (lgEnumExists)
                 {
                     xmlLightgun = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnumLG && !j.HideWithRawInput);
-                    xmlLightgun.RawInputButton = new RawInputButton();
-                    xmlLightgun.RawInputButton.DevicePath = iGun.DevicePath.ToString();
-                    xmlLightgun.RawInputButton.DeviceType = RawDeviceType.Mouse;
-
-                    xmlLightgun.RawInputButton.KeyboardKey = Keys.None;
-
-                    xmlLightgun.BindName = xmlLightgun.BindNameRi = iGun.Manufacturer + " " + iGun.Name;
+                    xmlLightgun.RawInputButton = new RawInputButton
+                    {
+                        DevicePath = iGun.DevicePath.ToString(),
+                        DeviceType = RawDeviceType.Mouse,
+                        KeyboardKey = Keys.None
+                    };
+                    if (iGun.Type == RawLighGunType.MayFlashWiimote && gunID != null)
+                    {
+                        xmlLightgun.BindName = xmlLightgun.BindNameRi = "Mayflash DolphinBar" + " " + gunID;
+                    }
+                    else
+                        xmlLightgun.BindName = xmlLightgun.BindNameRi = iGun.Manufacturer + " " + iGun.Name;
                 }
+
+                var inputAPI = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Input API");
+                if (inputAPI != null)
+                {
+                    if (inputAPI.FieldOptions != null && inputAPI.FieldOptions.Any(f => f == "RawInput"))
+                        inputAPI.FieldValue = "RawInput";
+                }
+                return true;
             }
 
             return false;
         }
 
-        private static List<string> Numbers = new List<string>
+        private readonly static List<string> Numbers = new List<string>
         { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+
+        private static string GetDescriptionFromFile(string path, string device)
+        {
+            if (!File.Exists(path))
+                return null;
+
+            try
+            {
+                var yml = YmlFile.Load(path);
+                if (yml != null)
+                {
+                    var deviceInfo = yml.GetContainer("teknoparrotdevicenames");
+                    if (deviceInfo != null)
+                    {
+                        string outputName = deviceInfo[device];
+                        if (!string.IsNullOrEmpty(outputName))
+                        {
+                            SimpleLogger.Instance.Info("[GUNS] Device override: " + outputName.ToLowerInvariant());
+                            return outputName;
+                        }
+                    }
+                }
+            }
+            catch { return null; }
+
+            return null;
+        }
     }
 }

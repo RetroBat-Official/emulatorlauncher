@@ -3,11 +3,9 @@ using System.IO;
 using TeknoParrotUi.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
-using System.Windows.Documents;
 using System.Collections.Generic;
 using EmulatorLauncher.Common.FileFormats;
 using System;
-using System.Runtime.CompilerServices;
 using EmulatorLauncher.Common;
 using System.Runtime.Remoting.Messaging;
 
@@ -21,6 +19,7 @@ namespace EmulatorLauncher
                 return;
 
             SimpleLogger.Instance.Info("[INFO] Check if Gun configuration is required.");
+
             if (ConfigureTPGuns(userProfile))
                 return;
 
@@ -429,6 +428,9 @@ namespace EmulatorLauncher
             {
                 start.XInputButton = new XInputButton();
                 int deviceNumber = ctl.XInput != null ? ctl.XInput.DeviceIndex : ctl.DeviceIndex;
+                string indexoverride = "tp_padindex" + ctl.PlayerIndex;
+                if (Program.SystemConfig.isOptSet(indexoverride) && !string.IsNullOrEmpty(Program.SystemConfig[indexoverride]))
+                    deviceNumber = Program.SystemConfig[indexoverride].ToInteger();
 
                 if (c[key].Type == "axis")
                 {
