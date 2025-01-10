@@ -772,9 +772,9 @@ namespace EmulatorLauncher
             "Coin 5", "Coin Chute 5", "Coin5",
             "Coin 6", "Coin Chute 6", "Coin6"
         };
-        private static readonly List<string> P2include = new List<string> { "P2", "Player 2" };
-        private static readonly List<string> P3include = new List<string> { "P3", "Player 3" };
-        private static readonly List<string> P4include = new List<string> { "P4", "Player 4" };
+        private static readonly List<string> P2include = new List<string> { "P2", "Player 2", "Coin 2", "Coin Chute 2", "Coin2" };
+        private static readonly List<string> P3include = new List<string> { "P3", "Player 3", "Coin 3", "Coin Chute 3", "Coin3" };
+        private static readonly List<string> P4include = new List<string> { "P4", "Player 4", "Coin 4", "Coin Chute 4", "Coin4" };
         private static readonly List<string> P5include = new List<string> { "P5", "Player 5" };
         private static readonly List<string> P6include = new List<string> { "P6", "Player 6" };
     }

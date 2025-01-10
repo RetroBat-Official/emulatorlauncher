@@ -325,16 +325,31 @@ namespace EmulatorLauncher
                             JoystickButtons xmlPlace = null;
                             if (button.Value == null || button.Value == "" || button.Key == "Players")
                                 continue;
-                            else if (button.Value.StartsWith("kb_") && keyboard != null)
+
+                            bool enumExists;
+                            enumExists = Enum.TryParse(button.Key, out InputMapping inputEnum);
+                            
+                            if (button.Key.StartsWith("mouse"))
+                                enumExists = Enum.TryParse(button.Value, out inputEnum);
+                            
+                            if (enumExists)
+                                xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
+                            if (xmlPlace == null)
+                                continue;
+
+                            if (i == 1 && P1exclude.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                continue;
+                            else if (i == 2 && !P2include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                continue;
+                            else if (i == 3 && !P3include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                continue;
+                            else if (i == 4 && !P4include.Any(v => xmlPlace.ButtonName.ToLowerInvariant().Contains(v.ToLowerInvariant())))
+                                continue;
+
+                            if (button.Value.StartsWith("kb_") && keyboard != null)
                             {
                                 if (iGun.Type == RawLighGunType.Mouse)
                                 {
-                                    bool enumExists = Enum.TryParse(button.Key, out InputMapping inputEnum);
-                                    if (enumExists)
-                                        xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
-                                    if (xmlPlace == null)
-                                        continue;
-
                                     kbName = keyboard.FriendlyName;
                                     kbSuffix = keyboard.Manufacturer;
 
@@ -366,13 +381,7 @@ namespace EmulatorLauncher
                                 }
                                 else if (iGun.Type == RawLighGunType.MayFlashWiimote)
                                 {
-                                    bool enumExists = Enum.TryParse(button.Key, out InputMapping inputEnum);
-                                    if (enumExists)
-                                        xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
-                                    if (xmlPlace == null)
-                                        continue;
-
-                                    // Find keyboard associated to lightgun
+                                     // Find keyboard associated to lightgun
                                     int startIndex = iGun.DevicePath.IndexOf("VID");
                                     if (startIndex >= 0)
                                     {
@@ -400,7 +409,7 @@ namespace EmulatorLauncher
                                     int secondIndex = iGun.DevicePath.IndexOf('#', firstIndex + 1);
                                     secondIndex += 3;
                                     int lastIndex = iGun.DevicePath.IndexOf('&', secondIndex + 1);
-                                    
+
                                     kbName = iGun.DevicePath.Substring(secondIndex, lastIndex - secondIndex).ToUpperInvariant();
                                     kbSuffix = "Mayflash DolphinBar";
                                     string wiiButton = button.Value;
@@ -452,12 +461,6 @@ namespace EmulatorLauncher
                                                 keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
                                         }
                                     }
-
-                                    bool enumExists = Enum.TryParse(button.Key, out InputMapping inputEnum);
-                                    if (enumExists)
-                                        xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
-                                    if (xmlPlace == null)
-                                        continue;
 
                                     kbName = iGun.Name;
                                     kbSuffix = iGun.Manufacturer;
@@ -533,12 +536,6 @@ namespace EmulatorLauncher
                                     string WiimoteID = iGun.DevicePath.Substring(mouse2index, endIndex - mouse2index).ToUpperInvariant();
                                     gunID = WiimoteID;
 
-                                    bool enumExists = Enum.TryParse(button.Value, out InputMapping inputEnum);
-                                    if (enumExists)
-                                        xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
-                                    if (xmlPlace == null)
-                                        continue;
-
                                     string mouseButton = button.Key.ToLowerInvariant();
                                     if (mouseButton == "mouseleft") mouseButton = "LeftButton";
                                     else if (mouseButton == "mouseright") mouseButton = "RightButton";
@@ -546,7 +543,7 @@ namespace EmulatorLauncher
                                     if (mouseButton == "mousemiddle")
                                     {
                                         mouseButton = "Return";
-                                        
+
                                         xmlPlace.RawInputButton = new RawInputButton
                                         {
                                             DevicePath = keyboard.DevicePath.ToString(),
@@ -573,12 +570,6 @@ namespace EmulatorLauncher
                                 }
                                 else
                                 {
-                                    bool enumExists = Enum.TryParse(button.Value, out InputMapping inputEnum);
-                                    if (enumExists)
-                                        xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnum && !j.HideWithRawInput);
-                                    if (xmlPlace == null)
-                                        continue;
-
                                     string mouseButton = button.Key.ToLowerInvariant();
                                     if (mouseButton == "mouseleft") mouseButton = "LeftButton";
                                     else if (mouseButton == "mousemiddle") mouseButton = "MiddleButton";
