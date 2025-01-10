@@ -123,26 +123,19 @@ namespace EmulatorLauncher
 
             // Search mapping in yml file
             Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
-            string tpMappingyml = null;
+            string tpMappingyml = Controller.GetSystemYmlMappingFile("teknoparrot", "", "teknoparrot", mappingPaths);
             var buttonMap = new Dictionary<string, string>();
             string gameName = null;
-            
-            foreach (var path in mappingPaths)
-            {
-                string result = path
-                    .Replace("{systempath}", "system")
-                    .Replace("{userpath}", "inputmapping");
 
-                tpMappingyml = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
-
-                if (File.Exists(tpMappingyml))
-                    break;
-            }
-
-            if (File.Exists(tpMappingyml))
+            if (tpMappingyml != null && File.Exists(tpMappingyml))
             {
                 YmlFile ymlFile = YmlFile.Load(tpMappingyml);
-                game = ymlFile.Elements.Where(g => g.Name == tpGameName).FirstOrDefault() as YmlContainer;
+                string padGameName = tpGameName + "_pad";
+                game = ymlFile.Elements.Where(g => g.Name == padGameName).FirstOrDefault() as YmlContainer;
+                
+                if (game == null)
+                    game = ymlFile.Elements.Where(g => g.Name == tpGameName).FirstOrDefault() as YmlContainer;
+                
                 if (game != null)
                 {
                     gameName = game.Name;

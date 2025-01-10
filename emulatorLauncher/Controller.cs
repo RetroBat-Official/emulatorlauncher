@@ -469,6 +469,24 @@ namespace EmulatorLauncher
 
             return input;
         }
+
+        public static string GetSystemYmlMappingFile(string emulator, string core, string system, string[] mappingPaths)
+        {
+            string ret = null;
+
+            foreach (var path in mappingPaths)
+            {
+                string result = path
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "inputmapping");
+
+                ret = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
+
+                if (File.Exists(ret))
+                    return ret;
+            }
+            return null;
+        }
     }
 
     static class InputExtensions

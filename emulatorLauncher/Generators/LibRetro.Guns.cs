@@ -58,6 +58,8 @@ namespace EmulatorLauncher.Libretro
                 multigun = true;
             }
 
+            SimpleLogger.Instance.Info("[LightGun] Perform generic lightgun configuration.");
+
             // Single player - assign buttons of joystick linked with playerIndex to gun buttons
             if (!multigun)
             {
@@ -222,6 +224,8 @@ namespace EmulatorLauncher.Libretro
             if (!SystemConfig.getOptBoolean("use_guns"))
                 return;
 
+            SimpleLogger.Instance.Info("[LightGun] Perform standard lightgun buttons configuration.");
+
             var keyb = Controllers.Where(c => c.Name == "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
             if (keyb != null)
             {
@@ -277,6 +281,8 @@ namespace EmulatorLauncher.Libretro
             var guns = RawLightgun.GetRawLightguns();
             if (guns.Length == 0)
                 return;
+
+            SimpleLogger.Instance.Info("[LightGun] Perform core specific lightgun configuration for: " + core);
 
             // If option in ES is forced to use one gun, only one gun will be configured on the playerIndex defined for the core
             if (!multigun)
