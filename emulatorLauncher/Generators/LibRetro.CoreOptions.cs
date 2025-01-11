@@ -2508,9 +2508,9 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "pce_h_overscan", "pce_h_overscan", "auto");
             BindFeature(coreSettings, "pce_adpcmextraprec", "pce_adpcmextraprec", "12-bit");
-            BindFeatureSlider(coreSettings, "pce_adpcmvolume", "pcecdvolume", "100");
-            BindFeatureSlider(coreSettings, "pce_cddavolume", "pcecdvolume", "100");
-            BindFeatureSlider(coreSettings, "pce_cdpsgvolume", "pcecdvolume", "100");
+            BindFeatureSlider(coreSettings, "pce_adpcmvolume", "pceadpcvolume", "100");
+            BindFeatureSlider(coreSettings, "pce_cddavolume", "pcecddavolume", "100");
+            BindFeatureSlider(coreSettings, "pce_cdpsgvolume", "pcecdpsvolume", "100");
 
             // Controls
             BindBoolFeature(retroarchConfig, "pce_multitap", "pce_multitap", "enabled", "disabled");
@@ -2539,6 +2539,9 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindBoolFeature(coreSettings, "pce_fast_nospritelimit", "pce_fast_nospritelimit", "enabled", "disabled");
+            BindFeatureSlider(coreSettings, "pce_fast_adpcmvolume", "pceadpcvolume", "100");
+            BindFeatureSlider(coreSettings, "pce_fast_cddavolume", "pcecddavolume", "100");
+            BindFeatureSlider(coreSettings, "pce_fast_cdpsgvolume", "pcecdpsvolume", "100");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
@@ -2748,6 +2751,10 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "mednafen_supergrafx")
                 return;
+
+            BindFeatureSlider(coreSettings, "sgx_adpcmvolume", "sgxadpcvolume", "100");
+            BindFeatureSlider(coreSettings, "sgx_cddavolume", "sgxcddavolume", "100");
+            BindFeatureSlider(coreSettings, "sgx_cdpsgvolume", "sgxcdpsvolume", "100");
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "supergrafx_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "supergrafx_controller2", "1");
