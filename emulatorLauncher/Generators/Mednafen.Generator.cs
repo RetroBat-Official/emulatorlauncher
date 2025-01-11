@@ -294,6 +294,9 @@ namespace EmulatorLauncher
             if (mednafenCore != "pce")
                 return;
 
+            BindMednafenFeatureSlider(cfg, "pceadpcvolume", "pce.adpcmvolume", "100");
+            BindMednafenFeatureSlider(cfg, "pcecddavolume", "pce.cddavolume", "100");
+            BindMednafenFeatureSlider(cfg, "pcecdpsvolume", "pce.cdpsgvolume", "100");
             BindMednafenBoolFeature(cfg, "mednafen_pce_multitap", mednafenCore + ".input.multitap", "1", "0");
         }
 
