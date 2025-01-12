@@ -23,7 +23,10 @@ namespace EmulatorLauncher
 
             CleanupInputFile(bytes);
 
-            if (Program.Controllers.Count > 1)
+            if (SystemConfig.isOptSet("use_guns") && shooters.Contains(parentRom))
+                ConfigureModel2Guns(ini, bytes, parentRom);
+
+            else if (Program.Controllers.Count > 1)
             {
                 var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
@@ -1204,16 +1207,27 @@ namespace EmulatorLauncher
                 bytes[4] = (byte)0xD0;      // down
                 bytes[8] = (byte)0xCB;      // left
                 bytes[12] = (byte)0xCD;     // right
-                bytes[16] = (byte)0x39;     // space
-                bytes[20] = (byte)0x2A;     // left maj
-                bytes[24] = (byte)0x1D;     // left ctrl
-                bytes[28] = (byte)0x38;     // left ALT
+                bytes[16] = (byte)0x11;     // Z
+                bytes[20] = (byte)0x2D;     // X
+                bytes[24] = (byte)0x1C;     // Return
+                bytes[28] = (byte)0x2F;     // V
                 bytes[32] = (byte)0x02;     // 1
-                bytes[36] = (byte)0x04;     // 3
+                bytes[36] = (byte)0x06;     // 5
+                bytes[40] = (byte)0xC8;     // up
+                bytes[44] = (byte)0xD0;     // down
+                bytes[48] = (byte)0xCB;     // left
+                bytes[52] = (byte)0xCD;     // right
+                bytes[56] = (byte)0x2A;     // maj
+                bytes[60] = (byte)0x1D;     // CTRL
+                bytes[64] = (byte)0x38;     // ALT
+                bytes[68] = (byte)0x39;     // SPACE
                 bytes[72] = (byte)0x03;     // 2
-                bytes[76] = (byte)0x05;     // 4
+                bytes[76] = (byte)0x07;     // 6
                 bytes[80] = (byte)0x3B;     // F1
                 bytes[84] = (byte)0x3C;     // F2
+                bytes[88] = (byte)0x42;     // F8
+                bytes[92] = (byte)0x41;     // F7
+                bytes[96] = (byte)0x40;     // F6
             }
         }
 

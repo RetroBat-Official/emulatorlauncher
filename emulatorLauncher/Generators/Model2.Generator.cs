@@ -18,6 +18,7 @@ namespace EmulatorLauncher
         private string _destFile;
         private string _destParent;
         private string _path;
+        private string _rom;
 
         public Model2Generator()
         {
@@ -90,6 +91,8 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("m2_joystick_driver") && SystemConfig["m2_joystick_driver"] == "dinput")
                 _dinput = true;
 
+            _rom = Path.GetFileNameWithoutExtension(rom);
+
             SetupConfig(path, resolution, rom, fullscreen);
             SetupLUAScript(path, rom);
 
@@ -126,6 +129,9 @@ namespace EmulatorLauncher
                         ini.WriteValue("Renderer", "WideScreenWindow", "1");
                     else
                         ini.WriteValue("Renderer", "WideScreenWindow", "0");
+
+                    if (SystemConfig.isOptSet("m2_widescreen") && SystemConfig.getOptBoolean("m2_widescreen"))
+                        ini.WriteValue("Renderer", "WideScreenWindow", "1");
 
                     ini.WriteValue("Renderer", "FullScreenWidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
                     ini.WriteValue("Renderer", "FullScreenHeight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
@@ -252,6 +258,9 @@ namespace EmulatorLauncher
 
         public override void Cleanup()
         {
+            if (_demulshooter)
+                Demulshooter.KillDemulShooter();
+
             if (_destFile != null && File.Exists(_destFile))
                 File.Delete(_destFile);
 
