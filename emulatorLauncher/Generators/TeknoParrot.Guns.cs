@@ -8,7 +8,6 @@ using EmulatorLauncher.Common.Lightguns;
 using System.Management;
 using System;
 using Keys = System.Windows.Forms.Keys;
-using System.Windows.Input;
 
 namespace EmulatorLauncher
 {
@@ -325,7 +324,7 @@ namespace EmulatorLauncher
                                         xmlPlace.RawInputButton.KeyboardKey = key;
 
                                     string kbNameOverride = null;
-                                    string deviceToOverride = "keyboard" + i;
+                                    string deviceToOverride = GetVIDPID(keyboard.DevicePath);
                                     string overridePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                                     string newName = GetDescriptionFromFile(overridePath, deviceToOverride);
                                     if (newName != null)
@@ -338,40 +337,20 @@ namespace EmulatorLauncher
                                 }
                                 else if (iGun.Type == RawLighGunType.MayFlashWiimote)
                                 {
-                                     // Find keyboard associated to lightgun
-                                    int startIndex = iGun.DevicePath.IndexOf("VID");
-                                    if (startIndex >= 0)
-                                    {
-                                        int endIndex = iGun.DevicePath.IndexOf('#', startIndex);
-                                        if (endIndex == -1) continue;
-                                        if (iGun.DevicePath.Contains("MI_"))
-                                        {
-                                            endIndex = iGun.DevicePath.IndexOf("MI_", startIndex);
-                                            if (endIndex == -1) continue;
-                                            endIndex += 5;
-                                        }
-                                        string searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex);
+                                    // Find keyboard associated to lightgun
+                                    keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
 
-                                        if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
-                                            keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
-                                        else
-                                        {
-                                            searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex - 5);
-                                            if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
-                                                keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
-                                        }
-                                    }
                                     // Get Keyboard ID
-                                    int firstIndex = iGun.DevicePath.IndexOf('#');
-                                    int secondIndex = iGun.DevicePath.IndexOf('#', firstIndex + 1);
+                                    int firstIndex = keyboard.DevicePath.IndexOf('#');
+                                    int secondIndex = keyboard.DevicePath.IndexOf('#', firstIndex + 1);
                                     secondIndex += 3;
-                                    int lastIndex = iGun.DevicePath.IndexOf('&', secondIndex + 1);
+                                    int lastIndex = keyboard.DevicePath.IndexOf('&', secondIndex + 1);
 
-                                    kbName = iGun.DevicePath.Substring(secondIndex, lastIndex - secondIndex).ToUpperInvariant();
+                                    kbName = keyboard.DevicePath.Substring(secondIndex, lastIndex - secondIndex).ToUpperInvariant();
                                     kbSuffix = "Mayflash DolphinBar";
                                     string wiiButton = button.Value;
 
-                                    if (wiiButton != "kb_1" && wiiButton != "kb_5")
+                                    if (!WiiKBKeys.Contains(wiiButton))
                                         continue;
 
                                     xmlPlace.RawInputButton = new RawInputButton
@@ -384,12 +363,29 @@ namespace EmulatorLauncher
                                     switch (wiiButton)
                                     {
                                         case "kb_1":
-                                            xmlPlace.RawInputButton.KeyboardKey = Keys.VolumeDown;
-                                            xmlPlace.BindName = xmlPlace.BindNameRi = "Unknown Device VolumeDown";
+                                        case "kb_2":
+                                        case "kb_3":
+                                        case "kb_4":
+                                            xmlPlace.RawInputButton.KeyboardKey = Keys.Up;
+                                            xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " Up";
                                             break;
                                         case "kb_5":
-                                            xmlPlace.RawInputButton.KeyboardKey = Keys.VolumeUp;
-                                            xmlPlace.BindName = xmlPlace.BindNameRi = "Unknown Device VolumeUp";
+                                        case "kb_6":
+                                        case "kb_7":
+                                        case "kb_8":
+                                            xmlPlace.RawInputButton.KeyboardKey = Keys.Down;
+                                            xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " Down";
+                                            break;
+                                        default:
+                                            string kbkey = button.Value.Split('_')[1];
+                                            if (Numbers.Contains(kbkey))
+                                                kbkey = "D" + kbkey;
+
+                                            if (Enum.TryParse(kbkey, true, out Keys key))
+                                                xmlPlace.RawInputButton.KeyboardKey = key;
+
+                                            xmlPlace.RawInputButton.KeyboardKey = key;
+                                            xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + kbkey;
                                             break;
                                     }
                                 }
@@ -437,7 +433,7 @@ namespace EmulatorLauncher
                                         xmlPlace.RawInputButton.KeyboardKey = key;
 
                                     string kbNameOverride = null;
-                                    string deviceToOverride = "Lightgunkeyboard" + i;
+                                    string deviceToOverride = GetVIDPID(keyboard.DevicePath);
                                     string overridePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                                     string newName = GetDescriptionFromFile(overridePath, deviceToOverride);
                                     if (newName != null)
@@ -453,29 +449,17 @@ namespace EmulatorLauncher
                             {
                                 if (iGun.Type == RawLighGunType.MayFlashWiimote)
                                 {
-                                    // Find keyboard associated to lightgun
-                                    int gunstartIndex = iGun.DevicePath.IndexOf("VID");
-                                    if (gunstartIndex >= 0)
+                                    string mouseButton = button.Key.ToLowerInvariant();
+                                    if (Program.SystemConfig.getOptBoolean("gun_invert"))
                                     {
-                                        int gunendIndex = iGun.DevicePath.IndexOf('#', gunstartIndex);
-                                        if (gunendIndex == -1) continue;
-                                        if (iGun.DevicePath.Contains("MI_"))
-                                        {
-                                            gunendIndex = iGun.DevicePath.IndexOf("MI_", gunstartIndex);
-                                            if (gunendIndex == -1) continue;
-                                            gunendIndex += 5;
-                                        }
-                                        string searchPath = iGun.DevicePath.Substring(gunstartIndex, gunendIndex - gunstartIndex);
-
-                                        if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
-                                            keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
-                                        else
-                                        {
-                                            searchPath = iGun.DevicePath.Substring(gunstartIndex, gunendIndex - gunstartIndex - 5);
-                                            if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
-                                                keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
-                                        }
+                                        if (mouseButton == "mouseleft")
+                                            mouseButton = "mouseright";
+                                        else if (mouseButton == "mouseright")
+                                            mouseButton = "mouseleft";
                                     }
+                                    
+                                    // Find keyboard associated to lightgun
+                                    keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
 
                                     // Get Keyboard ID
                                     int kbfirstIndex = keyboard.DevicePath.IndexOf('#');
@@ -493,7 +477,6 @@ namespace EmulatorLauncher
                                     string WiimoteID = iGun.DevicePath.Substring(mouse2index, endIndex - mouse2index).ToUpperInvariant();
                                     gunID = WiimoteID;
 
-                                    string mouseButton = button.Key.ToLowerInvariant();
                                     if (mouseButton.StartsWith("mouseleft")) mouseButton = "LeftButton";
                                     else if (mouseButton.StartsWith("mouseright")) mouseButton = "RightButton";
 
@@ -546,7 +529,7 @@ namespace EmulatorLauncher
                                     xmlPlace.RawInputButton.KeyboardKey = Keys.None;
 
                                     string mouseNameOverride = null;
-                                    string deviceToOverride = "mouse" + i;
+                                    string deviceToOverride = GetVIDPID(iGun.DevicePath);
                                     string overridePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                                     string newName = GetDescriptionFromFile(overridePath, deviceToOverride);
                                     if (newName != null)
@@ -597,6 +580,9 @@ namespace EmulatorLauncher
 
         private readonly static List<string> Numbers = new List<string>
         { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+
+        private readonly static List<string> WiiKBKeys = new List<string>
+        { "kb_1", "kb_2", "kb_3", "kb_4", "kb_5", "kb_6", "kb_7", "kb_8", "kb_Up", "kb_Down", "kb_Left", "kb_Right" };
 
         private static string GetDescriptionFromFile(string path, string device)
         {
@@ -678,6 +664,104 @@ namespace EmulatorLauncher
                 }
             }
             return false;
+        }
+
+        private static string GetVIDPID(string path)
+        {
+            bool acpi = false;
+            int vidIndex = path.IndexOf("VID");
+            if (vidIndex < 0)
+            {
+                vidIndex = path.IndexOf("ACPI") + 5;
+                if (vidIndex < 0)
+                    return "";
+                else
+                    acpi = true;
+            }
+
+            if (vidIndex < 0)
+                return "";
+            
+            int pidIndex = path.IndexOf("PID");
+            if (pidIndex < 0 & acpi)
+                pidIndex = path.IndexOf("#", vidIndex + 5);
+            if (pidIndex < 0)
+                return "";
+
+            int endindex = acpi ? path.IndexOf("#", pidIndex) : path.IndexOf("&", pidIndex);
+            if (endindex < 0)
+                return path.Substring(vidIndex, path.Length - vidIndex);
+            else
+                return path.Substring(vidIndex, endindex - vidIndex);
+        }
+
+        private static string GetWiimoteVIDPID(string devicePath)
+        {
+            try
+            {
+                // Split the path by '#'
+                string[] parts = devicePath.Split('#');
+                if (parts.Length < 3)
+                    return null;
+
+                // The second part contains VID and PID (ignore the MI_ part)
+                string[] vidPidParts = parts[1].Split('&');
+                string vidPid = $"{vidPidParts[0]}&{vidPidParts[1]}"; // Only take VID and PID
+
+                // The third part contains the character after the second #
+                string partAfterSecondHash = parts[2];
+                char characterAfterSecondHash = partAfterSecondHash[0]; // First character
+
+                return vidPid;
+            }
+            catch
+            {
+                return null; // Return null on error
+            }
+        }
+
+        private static string GetWiimoteAssociationChar(string devicePath)
+        {
+            try
+            {
+                // Split the path by '#'
+                string[] parts = devicePath.Split('#');
+                if (parts.Length < 3)
+                    return "";
+
+                // The third part contains the character after the second #
+                string partAfterSecondHash = parts[2];
+                char characterAfterSecondHash = partAfterSecondHash[0]; // First character
+
+                return characterAfterSecondHash.ToString();
+            }
+            catch
+            {
+                return ""; // Return null on error
+            }
+        }
+
+        private static RawInputDevice FindAssociatedKeyboard(string gunPath, List<RawInputDevice> keyboards, RawInputDevice keyboard)
+        {
+            string mouseVIDPID = GetWiimoteVIDPID(gunPath);
+            string mouseChar = GetWiimoteAssociationChar(gunPath);
+            string toSearch = mouseVIDPID + "_" + mouseChar;
+
+            foreach (var kb in keyboards)
+            {
+                string kbVIDPID = GetWiimoteVIDPID(kb.DevicePath);
+                string kbChar = GetWiimoteAssociationChar(kb.DevicePath);
+
+                if (kbVIDPID != null && kbChar != null)
+                {
+                    string toFind = kbVIDPID + "_" + kbChar;
+                    if (toSearch.ToLowerInvariant() == toFind.ToLowerInvariant())
+                    {
+                        return kb; // Return the matching keyboard
+                    }
+                }
+            }
+            return keyboard; // No match found
         }
     }
 }
