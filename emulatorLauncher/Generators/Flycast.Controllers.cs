@@ -32,8 +32,13 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Flycast");
 
+            ini.ClearSection("input");
+
             // Reset controller attribution
+            ini.WriteValue("input", "MouseSensitivity", "100");
             ini.WriteValue("input", "RawInput", "no");
+            ini.WriteValue("input", "VirtualGamepadTransparency", "37");
+            ini.WriteValue("input", "VirtualGamepadVibration", "20");
             ini.WriteValue("input", "maple_sdl_keyboard", "0");
             ini.WriteValue("input", "maple_sdl_mouse", "0");
             ini.WriteValue("config", "rend.CrossHairColor1", "0");
@@ -44,7 +49,6 @@ namespace EmulatorLauncher
                 ini.WriteValue("input", "device" + i, "0");
                 ini.WriteValue("input", "device" + i + ".1" , "1");
                 ini.WriteValue("input", "device" + i + ".2", "10");
-                ini.Remove("input", "maple_sdl_joystick_" + (i-1));
             }
             
             string mappingPath = Path.Combine(path, "mappings");
@@ -64,7 +68,7 @@ namespace EmulatorLauncher
                     ConfigureInput(ini, controller, mappingPath, system, double_pads, nsamepad);
 
                 if (guns)
-                    ConfigureFlycastGuns(ini, mappingPath);
+                    ConfigureFlycastGuns(ini, mappingPath, system);
             }
         }
 
@@ -368,7 +372,6 @@ namespace EmulatorLauncher
 
                 if (_isArcade)
                 {
-                    Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
                     string flycastMapping = null;
 
                     foreach (var path in mappingPaths)
@@ -405,13 +408,11 @@ namespace EmulatorLauncher
 
                             foreach (var buttonEntry in game.Elements)
                             {
-                                YmlElement button = buttonEntry as YmlElement;
-                                if (button != null)
+                                if (buttonEntry is YmlElement button)
                                 {
                                     buttonMap.Add(button.Name, button.Value);
                                 }
                             }
-                            gameMapping.Add(gameName, buttonMap);
 
                             if (buttonMap.Count > 0)
                             {
@@ -946,7 +947,7 @@ namespace EmulatorLauncher
             { "leftanalogdown", InputKey.down },
         };
 
-        static string[] mappingPaths =
+        static readonly string[] mappingPaths =
         {            
             // User specific
             "{userpath}\\flycast_Arcade.yml",

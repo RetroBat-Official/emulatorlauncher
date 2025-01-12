@@ -224,49 +224,41 @@ namespace EmulatorLauncher.Libretro
             if (!SystemConfig.getOptBoolean("use_guns"))
                 return;
 
-            SimpleLogger.Instance.Info("[LightGun] Perform standard lightgun buttons configuration.");
+            SimpleLogger.Instance.Info("[LightGun] Perform standard lightgun buttons configuration for keyboard.");
 
-            var keyb = Controllers.Where(c => c.Name == "Keyboard" && c.Config != null && c.Config.Input != null).Select(c => c.Config).FirstOrDefault();
-            if (keyb != null)
+            switch (playerIndex)
             {
-                var start = keyb.Input.FirstOrDefault(i => i.Name == InputKey.start);
-                retroarchConfig["input_player" + playerIndex + "_gun_start"] = start == null ? "nul" : LibretroControllers.GetConfigValue(start);
-
-                var select = keyb.Input.FirstOrDefault(i => i.Name == InputKey.select);
-                retroarchConfig["input_player" + playerIndex + "_gun_select"] = select == null ? "nul" : LibretroControllers.GetConfigValue(select);
-
-                var aux_a = keyb.Input.FirstOrDefault(i => i.Name == InputKey.b);
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = aux_a == null ? "nul" : LibretroControllers.GetConfigValue(aux_a);
-
-                var aux_b = keyb.Input.FirstOrDefault(i => i.Name == InputKey.a);
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = aux_b == null ? "nul" : LibretroControllers.GetConfigValue(aux_b);
-
-                var aux_c = keyb.Input.FirstOrDefault(i => i.Name == InputKey.y);
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_c"] = aux_c == null ? "nul" : LibretroControllers.GetConfigValue(aux_c);
-
-                var dpad_up = keyb.Input.FirstOrDefault(i => i.Name == InputKey.up);
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = dpad_up == null ? "nul" : LibretroControllers.GetConfigValue(dpad_up);
-
-                var dpad_down = keyb.Input.FirstOrDefault(i => i.Name == InputKey.down);
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = dpad_down == null ? "nul" : LibretroControllers.GetConfigValue(dpad_down);
-
-                var dpad_left = keyb.Input.FirstOrDefault(i => i.Name == InputKey.left);
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_left"] = dpad_left == null ? "nul" : LibretroControllers.GetConfigValue(dpad_left);
-
-                var dpad_right = keyb.Input.FirstOrDefault(i => i.Name == InputKey.right);
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_right"] = dpad_right == null ? "nul" : LibretroControllers.GetConfigValue(dpad_right);
-            }
-            else
-            {
-                retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
-                retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = "w";
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = "x";
-                retroarchConfig["input_player" + playerIndex + "_gun_aux_c"] = "s";
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = "up";
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = "down";
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_left"] = "left";
-                retroarchConfig["input_player" + playerIndex + "_gun_dpad_right"] = "right";
+                case 1:
+                    retroarchConfig["input_player" + playerIndex + "_start"] = "num1";
+                    retroarchConfig["input_player" + playerIndex + "_select"] = "num5";
+                    retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
+                    retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
+                    retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = "w";
+                    retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = "x";
+                    retroarchConfig["input_player" + playerIndex + "_gun_aux_c"] = "s";
+                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = "up";
+                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = "down";
+                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_left"] = "left";
+                    retroarchConfig["input_player" + playerIndex + "_gun_dpad_right"] = "right";
+                    break;
+                case 2:
+                    retroarchConfig["input_player" + playerIndex + "_start"] = "num2";
+                    retroarchConfig["input_player" + playerIndex + "_select"] = "num6";
+                    retroarchConfig["input_player" + playerIndex + "_gun_start"] = "num2";
+                    retroarchConfig["input_player" + playerIndex + "_gun_select"] = "num6";
+                    break;
+                case 3:
+                    retroarchConfig["input_player" + playerIndex + "_start"] = "num3";
+                    retroarchConfig["input_player" + playerIndex + "_select"] = "num7";
+                    retroarchConfig["input_player" + playerIndex + "_gun_start"] = "num3";
+                    retroarchConfig["input_player" + playerIndex + "_gun_select"] = "num7";
+                    break;
+                case 4:
+                    retroarchConfig["input_player" + playerIndex + "_start"] = "num4";
+                    retroarchConfig["input_player" + playerIndex + "_select"] = "num8";
+                    retroarchConfig["input_player" + playerIndex + "_gun_start"] = "num4";
+                    retroarchConfig["input_player" + playerIndex + "_gun_select"] = "num8";
+                    break;
             }
         }
 
@@ -311,7 +303,9 @@ namespace EmulatorLauncher.Libretro
                 // For first player (or player 2 if playerindex is 2 and player 1 has a gamepad), we set keyboard keys to auxiliary gun buttons
                 if (playerIndex == 1 || ctrl != null)
                 {
-                    // Start always set to enter and backspace
+                    // Start always set to 1 and select to 5
+                    retroarchConfig["input_player" + playerIndex + "_start"] = "num1";
+                    retroarchConfig["input_player" + playerIndex + "_select"] = "num5";
                     retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
                     retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
 
@@ -390,8 +384,8 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["input_player3_r2"] = "nul";
                     retroarchConfig["input_player3_r3"] = "nul";
                     retroarchConfig["input_player3_right"] = "nul";
-                    retroarchConfig["input_player3_select"] = "nul";
-                    retroarchConfig["input_player3_start"] = "nul";
+                    retroarchConfig["input_player3_select"] = "num7";
+                    retroarchConfig["input_player3_start"] = "num3";
                     retroarchConfig["input_player3_up"] = "nul";
                 }
             }
@@ -429,6 +423,8 @@ namespace EmulatorLauncher.Libretro
 
                     if (i == 1)
                     {
+                        retroarchConfig["input_player" + i + "_start"] = "num1";
+                        retroarchConfig["input_player" + i + "_select"] = "num5";
                         retroarchConfig["input_player" + i + "_gun_start"] = "enter";
                         retroarchConfig["input_player" + i + "_gun_select"] = "backspace";
                         retroarchConfig["input_player" + i + "_gun_dpad_up"] = "up";
@@ -463,6 +459,27 @@ namespace EmulatorLauncher.Libretro
                                 retroarchConfig["input_player1_gun_aux_b"] = "s";
                             }
                         }
+                    }
+                    else if (i == 2)
+                    {
+                        retroarchConfig["input_player" + i + "_start"] = "num2";
+                        retroarchConfig["input_player" + i + "_select"] = "num6";
+                        retroarchConfig["input_player" + i + "_gun_start"] = "num2";
+                        retroarchConfig["input_player" + i + "_gun_select"] = "num6";
+                    }
+                    else if (i == 3)
+                    {
+                        retroarchConfig["input_player" + i + "_start"] = "num3";
+                        retroarchConfig["input_player" + i + "_select"] = "num7";
+                        retroarchConfig["input_player" + i + "_gun_start"] = "num3";
+                        retroarchConfig["input_player" + i + "_gun_select"] = "num7";
+                    }
+                    else if (i == 4)
+                    {
+                        retroarchConfig["input_player" + i + "_start"] = "num4";
+                        retroarchConfig["input_player" + i + "_select"] = "num8";
+                        retroarchConfig["input_player" + i + "_gun_start"] = "num4";
+                        retroarchConfig["input_player" + i + "_gun_select"] = "num8";
                     }
                 }
             }
