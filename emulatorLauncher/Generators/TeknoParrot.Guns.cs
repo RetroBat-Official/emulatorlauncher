@@ -355,7 +355,7 @@ namespace EmulatorLauncher
 
                                     xmlPlace.RawInputButton = new RawInputButton
                                     {
-                                        DevicePath = "null",
+                                        DevicePath = keyboard.DevicePath.ToString(),
                                         DeviceType = RawDeviceType.Keyboard,
                                         MouseButton = RawMouseButton.None
                                     };
