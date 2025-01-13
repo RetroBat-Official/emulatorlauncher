@@ -77,6 +77,41 @@ namespace EmulatorLauncher
             if (_demulshooter)
                 Demulshooter.StartDemulshooter("m2emulator", "model2", _rom, gun1, gun2);
 
+            // Crosshairs
+            string crosshairCfgPath = Path.Combine(_path, "artwork", "crosshairs");
+            if (!Directory.Exists(crosshairCfgPath)) { try { Directory.CreateDirectory(crosshairCfgPath); } catch { } }
+            string crosshairCfgFile = Path.Combine(_path, "artwork", "crosshairs", Path.GetFileNameWithoutExtension(_rom) + ".cfg");
+
+            if (_demulshooter && SystemConfig.isOptSet("m2_crosshair") && !string.IsNullOrEmpty(SystemConfig["m2_crosshair"]) && CrossGames.Contains(Path.GetFileNameWithoutExtension(_rom)))
+            {
+                ini.WriteValue("Renderer", "DrawCross", "0");
+
+                using (StreamWriter writer = new StreamWriter(crosshairCfgFile, true))
+                {
+                    if (SystemConfig["m2_crosshair"] != "0")
+                    {
+                        writer.WriteLine("1");
+                        writer.WriteLine("1");
+                        writer.WriteLine("0");
+                    }
+                    else
+                    {
+                        writer.WriteLine(SystemConfig["m2_crosshair"]);
+                        writer.WriteLine(SystemConfig["m2_crosshair"]);
+                        writer.WriteLine("1");
+                    }
+                }
+            }
+            else
+            {
+                using (StreamWriter writer = new StreamWriter(crosshairCfgFile, true))
+                {
+                    writer.WriteLine("1");
+                    writer.WriteLine("1");
+                    writer.WriteLine("0");
+                }
+            }
+
             // Player index bytes
             bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = 0x00;
             bytes[41] = bytes[45] = bytes[49] = bytes[53] = bytes[57] = bytes[61] = bytes[65] = bytes[69] = bytes[73] = bytes[77] = bytes[81] = bytes[85] = 0x00;
@@ -127,5 +162,8 @@ namespace EmulatorLauncher
             bytes[92] = (byte)0x41;     // F7
             bytes[96] = (byte)0x40;     // F6
         }
+
+        private static readonly List<string> CrossGames = new List<string>()
+        { "hotd", "vcop", "vcop2" };
     }
 }

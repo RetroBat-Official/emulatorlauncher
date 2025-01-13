@@ -267,6 +267,11 @@ namespace EmulatorLauncher
                         bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
                     }
+                    else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMappingPlus[bytes[i]];
+                        bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
+                    }
                 }
 
                 if (c2 != null && !c2.IsKeyboard)
@@ -286,6 +291,11 @@ namespace EmulatorLauncher
                         {
                             bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
+                        }
+                        else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMappingPlus[bytes[i]];
+                            bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
                         }
                     }
                 }
@@ -314,6 +324,11 @@ namespace EmulatorLauncher
                         {
                             bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
+                        }
+                        else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMappingPlus[bytes[i]];
+                            bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
                         }
                     }
                 }
@@ -475,6 +490,11 @@ namespace EmulatorLauncher
                     {
                         bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
+                    else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMappingPlus[bytes[i]];
+                        bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
                     }
                 }
 
@@ -652,6 +672,11 @@ namespace EmulatorLauncher
                         bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
                     }
+                    else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMappingPlus[bytes[i]];
+                        bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
+                    }
                 }
             }
             #endregion
@@ -701,6 +726,11 @@ namespace EmulatorLauncher
                         bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
                     }
+                    else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMappingPlus[bytes[i]];
+                        bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
+                    }
                 }
 
                 // Player 2
@@ -743,6 +773,11 @@ namespace EmulatorLauncher
                         {
                             bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j2index + 16);
+                        }
+                        else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMappingPlus[bytes[i]];
+                            bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
                         }
                     }
                 }
@@ -802,6 +837,11 @@ namespace EmulatorLauncher
                         bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
                     }
+                    else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMappingPlus[bytes[i]];
+                        bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
+                    }
                 }
 
                 // Player 2
@@ -850,6 +890,11 @@ namespace EmulatorLauncher
                         {
                             bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j2index + 16);
+                        }
+                        else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMappingPlus[bytes[i]];
+                            bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
                         }
                     }
                 }
@@ -989,6 +1034,11 @@ namespace EmulatorLauncher
                         bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
                     }
+                    else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMappingPlus[bytes[i]];
+                        bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
+                    }
                 }
             }
             #endregion
@@ -1038,6 +1088,11 @@ namespace EmulatorLauncher
                         bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
                     }
+                    else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMappingPlus[bytes[i]];
+                        bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
+                    }
                 }
             }
 
@@ -1056,6 +1111,11 @@ namespace EmulatorLauncher
                     {
                         bytes[i] = highButtonMapping[bytes[i]];
                         bytes[i + 1] = Convert.ToByte(j1index + 16);
+                    }
+                    else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                    {
+                        bytes[i] = highButtonMappingPlus[bytes[i]];
+                        bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
                     }
                 }
 
@@ -1090,6 +1150,11 @@ namespace EmulatorLauncher
                             bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
                         }
+                        else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMappingPlus[bytes[i]];
+                            bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
+                        }
                     }
 
                     if (c2 != null)
@@ -1117,6 +1182,11 @@ namespace EmulatorLauncher
                             {
                                 bytes[i] = highButtonMapping[bytes[i]];
                                 bytes[i + 1] = Convert.ToByte(j2index + 16);
+                            }
+                            else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                            {
+                                bytes[i] = highButtonMappingPlus[bytes[i]];
+                                bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
                             }
                         }
                     }
@@ -1157,6 +1227,11 @@ namespace EmulatorLauncher
                             bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
                         }
+                        else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMappingPlus[bytes[i]];
+                            bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
+                        }
                     }
                 }
                 else if (parentRom == "von")
@@ -1179,6 +1254,11 @@ namespace EmulatorLauncher
                         {
                             bytes[i] = highButtonMapping[bytes[i]];
                             bytes[i + 1] = Convert.ToByte(j1index + 16);
+                        }
+                        else if (highButtonMappingPlus.ContainsKey(bytes[i]))
+                        {
+                            bytes[i] = highButtonMappingPlus[bytes[i]];
+                            bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
                         }
                     }
                 }
@@ -1267,7 +1347,7 @@ namespace EmulatorLauncher
                 {
                     switch (buttonID)
                     {
-                        case 16: return 0x09;
+                        case 16: return 0xF4;
                         case 17: return 0x15;
                         case 18: return 0x25;
                         case 19: return 0x35;
@@ -1283,6 +1363,22 @@ namespace EmulatorLauncher
                         case 29: return 0xD5;
                         case 30: return 0xE5;
                         case 31: return 0xF5;
+                        case 32: return 0xF6;
+                        case 33: return 0x17;
+                        case 34: return 0x27;
+                        case 35: return 0x37;
+                        case 36: return 0x47;
+                        case 37: return 0x57;
+                        case 38: return 0x67;
+                        case 39: return 0x77;
+                        case 40: return 0x87;
+                        case 41: return 0x97;
+                        case 42: return 0xA7;
+                        case 43: return 0xB7;
+                        case 44: return 0xC7;
+                        case 45: return 0xD7;
+                        case 46: return 0xE7;
+                        case 47: return 0xF7;
                     };
                 }
                 else return (byte)(0x10 * buttonID);
@@ -1404,7 +1500,7 @@ namespace EmulatorLauncher
                 {
                     switch (buttonID)
                     {
-                        case 16: return 0xF9;
+                        case 16: return 0xF4;
                         case 17: return 0x15;
                         case 18: return 0x25;
                         case 19: return 0x35;
@@ -1420,6 +1516,22 @@ namespace EmulatorLauncher
                         case 29: return 0xD5;
                         case 30: return 0xE5;
                         case 31: return 0xF5;
+                        case 32: return 0xF6;
+                        case 33: return 0x17;
+                        case 34: return 0x27;
+                        case 35: return 0x37;
+                        case 36: return 0x47;
+                        case 37: return 0x57;
+                        case 38: return 0x67;
+                        case 39: return 0x77;
+                        case 40: return 0x87;
+                        case 41: return 0x97;
+                        case 42: return 0xA7;
+                        case 43: return 0xB7;
+                        case 44: return 0xC7;
+                        case 45: return 0xD7;
+                        case 46: return 0xE7;
+                        case 47: return 0xF7;
                     };
                 }
                 else
@@ -1462,6 +1574,11 @@ namespace EmulatorLauncher
 
                     if (value.StartsWith("-a") || value.StartsWith("+a"))
                         axisID = value.Substring(2).ToInteger();
+
+                    if (axisID == 2 || axisID == 3 || axisID == 4)
+                        axisID ++;
+                    else if (axisID == 5)
+                        axisID = 2;
 
                     ret = Convert.ToByte(axisID);
                 }
@@ -1582,7 +1699,7 @@ namespace EmulatorLauncher
 
         private static readonly Dictionary<byte, byte> highButtonMapping = new Dictionary<byte, byte>()
         {
-            { 0xF9, 0x00 },
+            { 0xF4, 0x00 },
             { 0x15, 0x10 },
             { 0x25, 0x20 },
             { 0x35, 0x30 },
@@ -1598,6 +1715,26 @@ namespace EmulatorLauncher
             { 0xD5, 0xD0 },
             { 0xE5, 0xE0 },
             { 0xF5, 0xF0 },
+        };
+
+        private static readonly Dictionary<byte, byte> highButtonMappingPlus = new Dictionary<byte, byte>()
+        {
+            { 0xF6, 0x00 },
+            { 0x17, 0x10 },
+            { 0x27, 0x20 },
+            { 0x37, 0x30 },
+            { 0x47, 0x40 },
+            { 0x57, 0x50 },
+            { 0x67, 0x60 },
+            { 0x77, 0x70 },
+            { 0x87, 0x80 },
+            { 0x97, 0x90 },
+            { 0xA7, 0xA0 },
+            { 0xB7, 0xB0 },
+            { 0xC7, 0xC0 },
+            { 0xD7, 0xD0 },
+            { 0xE7, 0xE0 },
+            { 0xF7, 0xF0 },
         };
 
         private void CleanupInputFile(byte[] bytes)
