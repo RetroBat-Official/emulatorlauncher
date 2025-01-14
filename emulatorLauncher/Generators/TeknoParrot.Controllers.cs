@@ -139,7 +139,8 @@ namespace EmulatorLauncher
                 if (game != null)
                 {
                     gameName = game.Name;
-                    foreach (var buttonEntry in game.Elements)
+
+                    foreach (var buttonEntry in game.Elements.Where(t => t.GetType().Name == "YmlElement"))
                     {
                         YmlElement button = buttonEntry as YmlElement;
                         if (button.Name == "Players")

@@ -27,6 +27,7 @@ namespace EmulatorLauncher
             // Variables
             bool useOneGun = Program.SystemConfig.getOptBoolean("one_gun");
             bool useKb = Program.SystemConfig.getOptBoolean("tp_gunkeyboard");
+            bool st_kb = Program.SystemConfig["tp_gunkeyboard"] == "2";
             RawInputDevice keyboard = null;
             
             // Number of players
@@ -344,8 +345,13 @@ namespace EmulatorLauncher
                                 }
                                 else if (iGun.Type == RawLighGunType.MayFlashWiimote)
                                 {
+                                    bool ts_nogun = false;
+                                    if (st_kb && (button.Key.ToLowerInvariant().Contains("service") || button.Key.ToLowerInvariant().Contains("test")))
+                                        ts_nogun = true;
+
                                     // Find keyboard associated to lightgun
-                                    keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
+                                    if (!useKb && !ts_nogun)
+                                        keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
 
                                     // Get Keyboard ID
                                     int firstIndex = keyboard.DevicePath.IndexOf('#');
@@ -398,9 +404,13 @@ namespace EmulatorLauncher
                                 }
                                 else
                                 {
+                                    bool ts_nogun = false;
+                                    if (st_kb && (button.Key.ToLowerInvariant().Contains("service") || button.Key.ToLowerInvariant().Contains("test")))
+                                        ts_nogun = true;
+
                                     // Find keyboard associated to lightgun
                                     int startIndex = iGun.DevicePath.IndexOf("VID");
-                                    if (startIndex >= 0)
+                                    if (startIndex >= 0 && !useKb)
                                     {
                                         int endIndex = iGun.DevicePath.IndexOf('#', startIndex);
                                         if (endIndex == -1) continue;
@@ -422,8 +432,16 @@ namespace EmulatorLauncher
                                         }
                                     }
 
-                                    kbName = iGun.Name;
-                                    kbSuffix = iGun.Manufacturer;
+                                    if (useKb || ts_nogun)
+                                    {
+                                        kbName = keyboard.Name;
+                                        kbSuffix = keyboard.Manufacturer;
+                                    }
+                                    else
+                                    {
+                                        kbName = iGun.Name;
+                                        kbSuffix = iGun.Manufacturer;
+                                    }
 
                                     xmlPlace.RawInputButton = new RawInputButton
                                     {
