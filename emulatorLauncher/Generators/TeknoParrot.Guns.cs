@@ -147,7 +147,7 @@ namespace EmulatorLauncher
 
             if (tpMappingyml != null && File.Exists(tpMappingyml))
             {
-                SimpleLogger.Instance.Warning("[GUNS] mapping file found, searching game mapping.");
+                SimpleLogger.Instance.Info("[GUNS] mapping file found, searching game mapping.");
 
                 YmlFile ymlFile = YmlFile.Load(tpMappingyml);
                 string gunGameName = tpGameName + "_gun";
@@ -158,7 +158,7 @@ namespace EmulatorLauncher
                 
                 if (game != null)
                 {
-                    SimpleLogger.Instance.Warning("[GUNS] mapping found for the game, retrieving buttons.");
+                    SimpleLogger.Instance.Info("[GUNS] mapping found for the game, retrieving buttons.");
                     gameName = game.Name;
                     foreach (var buttonEntry in game.Elements.Where(t => t.GetType().Name == "YmlElement"))
                     {
