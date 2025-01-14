@@ -147,6 +147,8 @@ namespace EmulatorLauncher
 
             if (tpMappingyml != null && File.Exists(tpMappingyml))
             {
+                SimpleLogger.Instance.Warning("[GUNS] mapping file found, searching game mapping.");
+
                 YmlFile ymlFile = YmlFile.Load(tpMappingyml);
                 string gunGameName = tpGameName + "_gun";
                 game = ymlFile.Elements.Where(g => g.Name == gunGameName).FirstOrDefault() as YmlContainer;
@@ -156,10 +158,15 @@ namespace EmulatorLauncher
                 
                 if (game != null)
                 {
+                    SimpleLogger.Instance.Warning("[GUNS] mapping found for the game, retrieving buttons.");
                     gameName = game.Name;
-                    foreach (var buttonEntry in game.Elements)
+                    foreach (var buttonEntry in game.Elements.Where(t => t.GetType().Name == "YmlElement"))
                     {
                         YmlElement button = buttonEntry as YmlElement;
+
+                        if (button.Value == null)
+                            continue;
+
                         if (button.Name == "Players")
                         {
                             playerNumber = button.Value.ToInteger();
@@ -449,15 +456,9 @@ namespace EmulatorLauncher
                             {
                                 if (iGun.Type == RawLighGunType.MayFlashWiimote)
                                 {
+                                    bool gunInvert = Program.SystemConfig.getOptBoolean("gun_invert");
                                     string mouseButton = button.Key.ToLowerInvariant();
-                                    if (Program.SystemConfig.getOptBoolean("gun_invert"))
-                                    {
-                                        if (mouseButton == "mouseleft")
-                                            mouseButton = "mouseright";
-                                        else if (mouseButton == "mouseright")
-                                            mouseButton = "mouseleft";
-                                    }
-                                    
+                                   
                                     // Find keyboard associated to lightgun
                                     keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
 
@@ -477,8 +478,10 @@ namespace EmulatorLauncher
                                     string WiimoteID = iGun.DevicePath.Substring(mouse2index, endIndex - mouse2index).ToUpperInvariant();
                                     gunID = WiimoteID;
 
-                                    if (mouseButton.StartsWith("mouseleft")) mouseButton = "LeftButton";
-                                    else if (mouseButton.StartsWith("mouseright")) mouseButton = "RightButton";
+                                    if (mouseButton.StartsWith("mouseleft")) 
+                                        mouseButton = gunInvert ? "RightButton" : "LeftButton";
+                                    else if (mouseButton.StartsWith("mouseright")) 
+                                        mouseButton = gunInvert ? "LeftButton" : "RightButton";
 
                                     if (mouseButton.StartsWith("mousemiddle"))
                                     {
@@ -643,7 +646,10 @@ namespace EmulatorLauncher
             }
             else
             {
-                return guns[0];
+                switch (number)
+                {
+                    case 1: return guns[0];
+                }
             }
             return null;
         }
