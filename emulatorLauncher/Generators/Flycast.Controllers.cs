@@ -60,7 +60,7 @@ namespace EmulatorLauncher
             int nsamepad = 0;
 
             if (useWheel)
-                ConfigureFlycastWheels(ini, mappingPath, system);
+                ConfigureFlycastWheels(ini, mappingPath);
 
             else
             {

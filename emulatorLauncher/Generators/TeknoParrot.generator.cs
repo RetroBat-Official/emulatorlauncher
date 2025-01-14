@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
@@ -14,14 +13,16 @@ using EmulatorLauncher.VPinballLauncher;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
-using System.Runtime.InteropServices;
 using System.Xml.Linq;
-using System.Runtime.InteropServices.ComTypes;
+using System.Windows.Input;
 
 namespace EmulatorLauncher
 {
     partial class TeknoParrotGenerator : Generator
     {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
         {                        
             { "Batman",                          @"Batman\ZeusSP\sdaemon.exe" },
@@ -205,7 +206,7 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable create userprofile for " + rom);
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to create userprofile" };
             }
-            
+
             if (userProfile.GamePath == null || !File.Exists(userProfile.GamePath))
             {
                 if (userProfile.ExecutableName != null && userProfile.ExecutableName.Contains(";"))
@@ -214,7 +215,7 @@ namespace EmulatorLauncher
                     if (split.Length > 1)
                         userProfile.ExecutableName = split[0];
                 }
-                
+
                 userProfile.GamePath = FindExecutable(rom, Path.GetFileNameWithoutExtension(userProfile.FileName));
 
                 if (userProfile.ExecutableName == "game")
@@ -276,11 +277,33 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Manage fullscreen
             var windowed = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Windowed");
-            if (windowed != null && SystemConfig.isOptSet("tp_nofs") && SystemConfig.getOptBoolean("tp_nofs"))
+            if (windowed != null && SystemConfig.isOptSet("tp_fsmode") && (SystemConfig["tp_fsmode"] == "1" || SystemConfig["tp_fsmode"] == "2"))
                 windowed.FieldValue = "1";
             else if (windowed != null)
                 windowed.FieldValue = "0";
+
+            var displaymode = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "DisplayMode");
+            if (SystemConfig.isOptSet("tp_fsmode") && !string.IsNullOrEmpty(SystemConfig["tp_fsmode"]))
+            {
+                string fs_mode = SystemConfig["tp_fsmode"];
+                switch (fs_mode)
+                {
+                    case "0":
+                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Windowed"))
+                            displaymode.FieldValue = "Windowed";
+                        break;
+                    case "1":
+                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Fullscreen Windowed"))
+                            displaymode.FieldValue = "Fullscreen Windowed";
+                        break;
+                    case "2":
+                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Fullscreen"))
+                            displaymode.FieldValue = "Fullscreen";
+                        break;
+                }
+            }
 
             var hideCursor = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "HideCursor");
             if (hideCursor != null)
@@ -319,6 +342,21 @@ namespace EmulatorLauncher
             JoystickHelper.SerializeGameProfile(userProfile, userProfilePath);
 
             string profileName = Path.GetFileName(userProfile.FileName);
+
+            // Apply reshade bezels
+            string reshadePath;
+            ReshadeBezelType reshadeType = ReshadeBezelType.opengl;
+            ReshadePlatform reshadePlatform = EmulatorLauncher.ReshadePlatform.x86;
+
+            GetReshadeInfo(gameName, out reshadePath, out reshadeType, out reshadePlatform);
+            string reshadeExecutablePath = FindReshadeFolder(reshadePath, rom);
+            reshadePath = Path.GetDirectoryName(reshadeExecutablePath);
+
+            if (reshadePath != null)
+            {
+                if (!ReshadeManager.Setup(reshadeType, reshadePlatform, system, rom, reshadePath, resolution, emulator))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            }
 
             if (_exename == null)
                 _exename = Path.GetFileNameWithoutExtension(userProfile.GamePath);
@@ -711,8 +749,78 @@ namespace EmulatorLauncher
             return null;*/
         }
 
+        private bool GetReshadeInfo(string game, out string reshadePath, out ReshadeBezelType type, out ReshadePlatform platform)
+        {
+            reshadePath = null;
+            type = ReshadeBezelType.opengl;
+            platform = ReshadePlatform.x86;
+
+            Dictionary<string, Dictionary<string, string>> reshadeInfo = new Dictionary<string, Dictionary<string, string>>();
+            string reshadeInfoFile = Path.Combine(Program.AppConfig.GetFullPath("tools"), "teknoparrotReshade.yml");
+
+            try
+            {
+                var yml = YmlFile.Load(reshadeInfoFile);
+                if (yml != null)
+                {
+                    var gameReshade = yml.GetContainer(game);
+                    if (gameReshade != null)
+                    {
+                        foreach (var infoLine in gameReshade.Elements)
+                        {
+                            YmlElement info = infoLine as YmlElement;
+                            if (info.Name == "path")
+                            {
+                                reshadePath = info.Value;
+                                continue;
+                            }
+
+                            else if (info.Name == "platform")
+                            {
+                                bool platformExists = Enum.TryParse(info.Value, out platform);
+                            }
+
+                            else if (info.Name == "type")
+                            {
+                                bool typeExists = Enum.TryParse(info.Value, out type);
+                            }
+                        }
+                        return true;
+                    }
+                    else return false;
+                }
+                else return false;
+            }
+            catch { return false; }
+        }
+
+        private string FindReshadeFolder(string executable, string rom)
+        {
+            string ret = null;
+
+            switch (executable)
+            {
+                case "tp_budgie":
+                    ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "TeknoParrot");
+                    break;
+                case "elf_budgie":
+                    ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "ElfLdr2");
+                    break;
+                default:
+                    ret = Directory.GetFiles(rom, executable, SearchOption.AllDirectories).FirstOrDefault();
+                    break;
+            }
+
+            return ret;
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
             if (path.FileName == "WARNING")
             {
                 using (LoadingForm frm = new LoadingForm())
@@ -734,6 +842,8 @@ namespace EmulatorLauncher
 
             int ret = base.RunAndWait(path);
 
+            bezel?.Dispose();
+
             KillProcessTree("TeknoParrotUI");
             KillProcessTree(_exename);
 
@@ -751,7 +861,6 @@ namespace EmulatorLauncher
 
             return 0;
         }
-        
     }
 
     public class ParrotData

@@ -4,6 +4,7 @@ LogitechG29:
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: Axis7~
   Brake: Axis8~
@@ -30,6 +31,7 @@ LogitechDrivingForceGT:
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: Axis7~
   Brake: Axis8~
@@ -56,6 +58,7 @@ LogitechG923PS:
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: Axis7~
   Brake: Axis8~
@@ -76,12 +79,13 @@ LogitechG923PS:
   R1: Button25
   R2: Button27
   R3: Button31
-ThrustmasterT300RS:
+ThrustmasterT300RSPS3:
   WheelGuid: 030000004f0400006eb6000000000000
   SDLDeviceName: Thrustmaster T300RS Racing Wheel
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: Axis8~
   Brake: Axis7~
@@ -102,3 +106,30 @@ ThrustmasterT300RS:
   R1: Button22
   R2: Button29
   R3: Button32
+MozaR5:
+  WheelGuid: 030000006e3400000400000000000000
+  SDLDeviceName: MOZA R5 Baseêê_
+  Pcsx2_Type: 2
+  Forcefeedback: true
+  Invertedaxis: true
+  PositiveTriggers: true
+  Range: nul
+  Throttle: Axis8~
+  Brake: Axis11~
+  Clutch: nul
+  Steer: Axis6
+  Start: Button56
+  Select: Button58
+  Dpad: Hat0
+  Gearup: rightshoulder
+  Geardown: leftshoulder
+  South: Button21
+  East: Button22
+  North: Button24
+  West: Button23
+  L1: Button33
+  L2: Button39
+  L3: Button41
+  R1: Button34
+  R2: Button52
+  R3: Button54
