@@ -108,7 +108,6 @@ namespace EmulatorLauncher
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
             bool invertedWheelAxis = false;
             bool useShoulders = SystemConfig.getOptBoolean("m2_racingshoulder");
-            WheelMappingInfo wheelmapping = null;
             string wheelGuid = "nul";
             List<Wheel> usableWheels = new List<Wheel>();
             Wheel wheel = null;
@@ -135,6 +134,9 @@ namespace EmulatorLauncher
             wheelNb = usableWheels.Count;
             SimpleLogger.Instance.Info("[WHEELS] Found " + wheelNb + " usable wheels.");
 
+            YmlFile ymlFile = null;
+            YmlContainer wheelMapping = null;
+            Dictionary<string, string> wheelbuttonMap = new Dictionary<string, string>();
             if (useWheel)
             {
                 string wheeltype = "default";
@@ -149,30 +151,55 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[WHEELS] Wheeltype identified : " + wheeltype);
 
                     // Get mapping in yml file
-                    try {
-                        if (!WheelMappingInfo.InstanceW.TryGetValue(wheeltype, out wheelmapping))
-                            WheelMappingInfo.InstanceW.TryGetValue("default", out wheelmapping);
-                        SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
+                    
+                    string model2WheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "model2_wheels.yml");
+                    if (File.Exists(model2WheelMapping))
+                    {
+                        ymlFile = YmlFile.Load(model2WheelMapping);
+
+                        wheelMapping = ymlFile.Elements.Where(c => c.Name == wheeltype).FirstOrDefault() as YmlContainer;
+
+                        if (wheelMapping == null)
+                        {
+                            wheelMapping = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;
+                            if (wheelMapping == null)
+                            {
+                                SimpleLogger.Instance.Info("[WHEELS] No mapping exists for the wheel and model2 emulator in yml file.");
+                                return;
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[WHEELS] Using default wheel mapping in yml file.");
+                        }
+
+                        SimpleLogger.Instance.Info("[WHEELS] Retrieving wheel mapping from yml file.");
+
+                        foreach (var mapEntry in wheelMapping.Elements)
+                        {
+
+                            if (mapEntry is YmlElement button)
+                            {
+                                if (button.Value == null || button.Value == "nul")
+                                    continue;
+                                wheelbuttonMap.Add(button.Name, button.Value);
+                            }
+                        }
                     }
-                    catch { SimpleLogger.Instance.Info("[WHEELS] Problem getting wheel mapping in yml file."); }
+                    else
+                    {
+                        SimpleLogger.Instance.Info("[WHEELS] Mapping file for model2 does not exist.");
+                        return;
+                    }
 
-                    string[] wheelTechs = wheelmapping.Inputsystems.Split(',');
-                    wheelGuid = wheelmapping.WheelGuid;
-                    invertedWheelAxis = wheelmapping.Invertedaxis == "true";
-
-                    if (wheel != null)
+                    if (wheelbuttonMap != null && wheelbuttonMap.Count > 0)
                     {
                         j1index = wheelPadIndex + 1;
                         shifterID = j1index - 1;
 
-                        if (!wheelTechs.Contains("xinput"))
-                        {
-                            ini.WriteValue("Input", "XInput", "0");
-                            tech1 = "dinput";
-                            tech2 = "dinput";
-                            dinput1 = true;
-                            dinput2 = true;
-                        }
+                        ini.WriteValue("Input", "XInput", "0");
+                        tech1 = "dinput";
+                        tech2 = "dinput";
+                        dinput1 = true;
+                        dinput2 = true;
 
                         c1 = this.Controllers.FirstOrDefault(c => c.DeviceIndex == wheel.ControllerIndex);
 
@@ -182,10 +209,14 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[WHEELS] Wheel " + wheel.DevicePath.ToString() + " not found as Gamepad.");
 
                     // Set force feedback by default if wheel supports it
-                    if (wheelmapping.Forcefeedback == "true" && (SystemConfig.getOptBoolean("m2_force_feedback") || !SystemConfig.isOptSet("m2_force_feedback")))
+                    if (SystemConfig.getOptBoolean("m2_force_feedback") || !SystemConfig.isOptSet("m2_force_feedback"))
                         ini.WriteValue("Input", "EnableFF", "1");
                 }
             }
+
+            // Deported Shifter
+            if (wheelbuttonMap.ContainsKey("DeportedShifter") && wheelbuttonMap["DeportedShifter"] == "true")
+                deportedShifter = true;
 
             if (tech1 == "dinput" || tech2 == "dinput")
             {
@@ -207,6 +238,9 @@ namespace EmulatorLauncher
                     ctrl2 = gamecontrollerDB == null ? null : GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid2);
             }
 
+            if (wheelMapping == null)
+                useWheel = false;
+
             // Invert indexes option
             if (c2 != null && c2.Config != null && !_dinput)
             {
@@ -225,9 +259,9 @@ namespace EmulatorLauncher
                 j2index = SystemConfig["m2_forcep2index"].ToInteger();
 
             // Write end of binary file for service buttons, test buttons and keyboard buttons for stats display
-            WriteServiceBytes(bytes, j1index, c1, tech1, vendor1, serviceByte[parentRom], ctrl1);
+            WriteServiceBytes(bytes, j1index, c1, tech1, vendor1, serviceByte[parentRom], ctrl1, useWheel, wheelbuttonMap);
             WriteStatsBytes(bytes, serviceByte[parentRom] + 8);
-            
+
             // Per game category mapping
             #region  shooters
             if (shooters.Contains(parentRom))
@@ -347,69 +381,74 @@ namespace EmulatorLauncher
             {
                 bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = bytes[41] = bytes[45] = bytes[49] = Convert.ToByte(j1index);
 
-                if (useShoulders)
-                {
-                    bytes[0] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
-                    bytes[4] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
-                }
-                else
-                {
-                    bytes[0] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
-                    bytes[4] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
-                }
-                bytes[8] = dinput1 ? GetInputCode(InputKey.left, c1, tech1, vendor1, ctrl1) : (byte)0x00;
-                bytes[12] = dinput1 ? GetInputCode(InputKey.right, c1, tech1, vendor1, ctrl1) : (byte)0x01;
-
-                if (useWheel && wheelmapping != null)
+                if (useWheel && wheelbuttonMap.Count > 0)
                 {
                     SimpleLogger.Instance.Info("[WHEELS] Configuring wheel specific inputs.");
-                    bytes[16] = GetWheelInputCode(wheelmapping.Steer, wheel, ctrl1, invertedWheelAxis);  // Steering
-                    if (!invertedWheelAxis)
-                        bytes[17] = Convert.ToByte(j1index + 16);
-                    bytes[19] = 0xFF;
 
-                    bytes[20] = parentRom == "overrev" ? GetWheelInputCode(wheelmapping.Brake, wheel, ctrl1, invertedWheelAxis) : GetWheelInputCode(wheelmapping.Throttle, wheel, ctrl1, invertedWheelAxis);  // Accelerate (R2)
-                    if (parentRom != "sgt24h")
-                        bytes[21] = Convert.ToByte(j1index + 16);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Up", 0, j1index, shifterID, deportedShifter);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Down", 4, j1index, shifterID, deportedShifter);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Left", 8, j1index, shifterID, deportedShifter);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Right", 12, j1index, shifterID, deportedShifter);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Steer", 16, j1index, shifterID, deportedShifter);
 
-                    bytes[23] = 0xFF;
+                    if (parentRom == "overrev")
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Brake", 20, j1index, shifterID, deportedShifter, true);
+                    else if (parentRom != "sgt24h")
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Throttle", 20, j1index, shifterID, deportedShifter, true);
+                    else
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Throttle", 20, j1index, shifterID, deportedShifter, false);
 
-                    bytes[24] = parentRom == "overrev" ? GetWheelInputCode(wheelmapping.Throttle, wheel, ctrl1, invertedWheelAxis) : GetWheelInputCode(wheelmapping.Brake, wheel, ctrl1, invertedWheelAxis);  // Brake (L2)
-                    if (parentRom != "sgt24h")
-                        bytes[25] = Convert.ToByte(j1index + 16);
-
-                    bytes[27] = 0xFF;
+                    if (parentRom == "overrev")
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Throttle", 24, j1index, shifterID, deportedShifter, true);
+                    else if (parentRom != "sgt24h")
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Brake", 24, j1index, shifterID, deportedShifter, true);
+                    else
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Brake", 24, j1index, shifterID, deportedShifter, false);
 
                     if (parentRom != "manxtt" && parentRom != "manxttc" && parentRom != "motoraid")
                     {
-                        bytes[28] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;         // View
-                        bytes[32] = GetWheelInputCode(wheelmapping.Geardown, wheel, ctrl1, invertedWheelAxis);
-                        bytes[36] = GetWheelInputCode(wheelmapping.Gearup, wheel, ctrl1, invertedWheelAxis);
-                        bytes[40] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;         // View
-                        bytes[44] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
-                        bytes[48] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
+                        WriteWheelBytes(bytes, wheelbuttonMap, "East", 28, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "ShiftDown", 32, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "ShiftUp", 36, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "West", 40, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Start", 44, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Select", 48, j1index, shifterID, deportedShifter);
 
                         bytes[72] = (byte)0x01;
-                        bytes[73] = useShoulders ? (byte)0x00 : (byte)0x01;
-                        bytes[74] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[73] = (byte)0x01;
+                        bytes[74] = (byte)0x01;
                     }
                     else
                     {
-                        bytes[28] = GetWheelInputCode(wheelmapping.Gearup, wheel, ctrl1, invertedWheelAxis);    // Kick for motoraid, gear up for manxtt
-                        bytes[32] = GetWheelInputCode(wheelmapping.Geardown, wheel, ctrl1, invertedWheelAxis);  // Punch for motoraid, gear up for manxtt
-                        bytes[36] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
-                        bytes[40] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
+                        WriteWheelBytes(bytes, wheelbuttonMap, "ShiftUp", 28, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "ShiftDown", 32, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Start", 36, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Select", 40, j1index, shifterID, deportedShifter);
+
                         bytes[44] = (byte)0x00;
                         bytes[45] = (byte)0x00;
 
                         bytes[68] = (byte)0x01;
-                        bytes[69] = useShoulders ? (byte)0x00 : (byte)0x01;
-                        bytes[70] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[69] = (byte)0x01;
+                        bytes[70] = (byte)0x01;
                     }
                 }
 
                 else
                 {
+                    if (useShoulders)
+                    {
+                        bytes[0] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
+                        bytes[4] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
+                    }
+                    else
+                    {
+                        bytes[0] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
+                        bytes[4] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
+                    }
+                    bytes[8] = dinput1 ? GetInputCode(InputKey.left, c1, tech1, vendor1, ctrl1) : (byte)0x00;
+                    bytes[12] = dinput1 ? GetInputCode(InputKey.right, c1, tech1, vendor1, ctrl1) : (byte)0x01;
+
                     bytes[16] = dinput1 ? GetInputCode(InputKey.leftanalogleft, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;
                     if (axisBytes.Contains(bytes[16]))
                         bytes[19] = 0xFF;
@@ -484,7 +523,7 @@ namespace EmulatorLauncher
                     }
                 }
 
-                for (int i = 0; i < 49; i+=4)
+                for (int i = 0; i < 49; i += 4)
                 {
                     if (highButtonMapping.ContainsKey(bytes[i]))
                     {
@@ -506,23 +545,14 @@ namespace EmulatorLauncher
             {
                 bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = bytes[41] = bytes[45] = bytes[49] = bytes[53] = bytes[57] = Convert.ToByte(j1index);
 
-                if (useShoulders)
+                if (useWheel && wheelbuttonMap.Count > 0)
                 {
-                    bytes[0] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
-                    bytes[4] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
-                }
-                else
-                {
-                    bytes[0] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
-                    bytes[4] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
-                }
-                bytes[8] = dinput1 ? GetInputCode(InputKey.left, c1, tech1, vendor1, ctrl1) : (byte)0x00;
-                bytes[12] = dinput1 ? GetInputCode(InputKey.right, c1, tech1, vendor1, ctrl1) : (byte)0x01;
+                    SimpleLogger.Instance.Info("[WHEELS] Configuring wheel specific inputs.");
 
-                if (useWheel && wheelmapping != null)
-                {
-                    if (Wheel.shifterOtherDevice.Contains(wheel.Type))
-                        deportedShifter = true;
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Up", 0, j1index, shifterID, deportedShifter);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Down", 4, j1index, shifterID, deportedShifter);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Left", 8, j1index, shifterID, deportedShifter);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Right", 12, j1index, shifterID, deportedShifter);
 
                     if (SystemConfig.isOptSet("gearstick_deviceid") && !string.IsNullOrEmpty(SystemConfig["gearstick_deviceid"]))
                     {
@@ -533,84 +563,44 @@ namespace EmulatorLauncher
                     if (deportedShifter)
                         SimpleLogger.Instance.Info("[WHEELS] Deported shifter enabled for wheel " + usableWheels[0].Name + " with ID " + shifterID);
 
-                    SimpleLogger.Instance.Info("[WHEELS] Configuring wheel specific inputs.");
-                    bytes[16] = GetWheelInputCode(wheelmapping.Steer, wheel, ctrl1, invertedWheelAxis);  // Steering
-                    if (!invertedWheelAxis)
-                        bytes[17] = Convert.ToByte(j1index + 16);
-                    bytes[19] = 0xFF;
-
-                    bytes[20] = GetWheelInputCode(wheelmapping.Throttle, wheel, ctrl1, invertedWheelAxis);  // Accelerate (R2)
-                    bytes[21] = Convert.ToByte(j1index + 16);
-                    bytes[23] = 0xFF;
-
-                    bytes[24] = GetWheelInputCode(wheelmapping.Brake, wheel, ctrl1, invertedWheelAxis);  // Brake (L2)
-                    bytes[25] = Convert.ToByte(j1index + 16);
-                    bytes[27] = 0xFF;
+                    
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Steer", 16, j1index, shifterID, deportedShifter);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Throttle", 20, j1index, shifterID, deportedShifter, true);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Brake", 24, j1index, shifterID, deportedShifter, true);
 
                     if (SystemConfig.isOptSet("wheel_nogearstick") && SystemConfig.getOptBoolean("wheel_nogearstick"))
                     {
-                        bytes[28] = GetWheelInputCode(wheelmapping.DpadUp, wheel, ctrl1, invertedWheelAxis);
-                        bytes[32] = GetWheelInputCode(wheelmapping.DpadDown, wheel, ctrl1, invertedWheelAxis);
-                        bytes[36] = GetWheelInputCode(wheelmapping.DpadLeft, wheel, ctrl1, invertedWheelAxis);
-                        bytes[40] = GetWheelInputCode(wheelmapping.DpadRight, wheel, ctrl1, invertedWheelAxis);
-                    }
-
-                    else if (deportedShifter)
-                    {
-                        bytes[28] = GetWheelInputCode(wheelmapping.Gear1, wheel, ctrl1, invertedWheelAxis); // Gear 1
-                        if (highButtonMapping.ContainsKey(bytes[28]))
-                            bytes[29] = Convert.ToByte(shifterID + 16);
-                        else
-                            bytes[29] = Convert.ToByte(shifterID);
-                        
-                        bytes[32] = GetWheelInputCode(wheelmapping.Gear2, wheel, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[32]))
-                            bytes[33] = Convert.ToByte(shifterID + 16);
-                        else
-                            bytes[33] = Convert.ToByte(shifterID);
-
-                        bytes[36] = GetWheelInputCode(wheelmapping.Gear3, wheel, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[36]))
-                            bytes[37] = Convert.ToByte(shifterID + 16);
-                        else
-                            bytes[37] = Convert.ToByte(shifterID);
-
-                        bytes[40] = GetWheelInputCode(wheelmapping.Gear4, wheel, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[40]))
-                            bytes[41] = Convert.ToByte(shifterID + 16);
-                        else
-                            bytes[41] = Convert.ToByte(shifterID);
-
-                        bytes[44] = GetWheelInputCode(wheelmapping.Gear_reverse, wheel, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[44]))
-                            bytes[45] = Convert.ToByte(shifterID + 16);
-                        else
-                            bytes[45] = Convert.ToByte(shifterID);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Up", 28, j1index, shifterID, false);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Down", 32, j1index, shifterID, false);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Left", 36, j1index, shifterID, false);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Right", 40, j1index, shifterID, false);
                     }
 
                     else
                     {
-                        bytes[28] = GetWheelInputCode(wheelmapping.Gear1, wheel, ctrl1, invertedWheelAxis); // Gear 1
-                        if (highButtonMapping.ContainsKey(bytes[28]))
-                            bytes[29] = Convert.ToByte(j1index + 16);
-                        bytes[32] = GetWheelInputCode(wheelmapping.Gear2, wheel, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[32]))
-                            bytes[33] = Convert.ToByte(j1index + 16);
-                        bytes[36] = GetWheelInputCode(wheelmapping.Gear3, wheel, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[36]))
-                            bytes[37] = Convert.ToByte(j1index + 16);
-                        bytes[40] = GetWheelInputCode(wheelmapping.Gear4, wheel, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[40]))
-                            bytes[41] = Convert.ToByte(j1index + 16);
-
-                        bytes[44] = GetWheelInputCode(wheelmapping.Gear_reverse, wheel, ctrl1, invertedWheelAxis);
-                        if (highButtonMapping.ContainsKey(bytes[44]))
-                            bytes[45] = Convert.ToByte(j1index + 16);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Gear1", 28, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Gear2", 32, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Gear3", 36, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Gear4", 40, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "GearN", 44, j1index, shifterID, deportedShifter);
                     }
                 }
 
                 else
                 {
+                    if (useShoulders)
+                    {
+                        bytes[0] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
+                        bytes[4] = dinput1 ? GetInputCode(InputKey.pageup, c1, tech1, vendor1, ctrl1) : (byte)0x50;
+                    }
+                    else
+                    {
+                        bytes[0] = dinput1 ? GetInputCode(InputKey.up, c1, tech1, vendor1, ctrl1) : (byte)0x02;
+                        bytes[4] = dinput1 ? GetInputCode(InputKey.down, c1, tech1, vendor1, ctrl1) : (byte)0x03;
+                    }
+                    bytes[8] = dinput1 ? GetInputCode(InputKey.left, c1, tech1, vendor1, ctrl1) : (byte)0x00;
+                    bytes[12] = dinput1 ? GetInputCode(InputKey.right, c1, tech1, vendor1, ctrl1) : (byte)0x01;
+
                     bytes[16] = dinput1 ? GetInputCode(InputKey.leftanalogleft, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;  // Steering
                     if (axisBytes.Contains(bytes[16]))
                         bytes[19] = 0xFF;
@@ -623,7 +613,7 @@ namespace EmulatorLauncher
                     if (axisBytes.Contains(bytes[20]))
                         bytes[23] = 0xFF;
                     else
-                        bytes[23] = 0x00;                    
+                        bytes[23] = 0x00;
 
                     bytes[24] = dinput1 ? GetInputCode(InputKey.l2, c1, tech1, vendor1, ctrl1, false, true) : (byte)0x06;  // Brake (L2)
                     if (axisBytes.Contains(bytes[24]))
@@ -638,7 +628,7 @@ namespace EmulatorLauncher
 
                     bytes[44] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
                 }
-                
+
                 bytes[48] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
 
                 if (parentRom == "daytona")
@@ -935,13 +925,13 @@ namespace EmulatorLauncher
                         bytes[31] = 0xFF;
                     else
                         bytes[31] = 0x00;
-                    
+
                     // Disable analog triggers for Nintendo
                     if (vendor1 == "nintendo")
                     {
                         bytes[28] = bytes[29] = bytes[30] = bytes[31] = 0xFF;
                     }
-                    
+
                     bytes[32] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
                     bytes[36] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                     bytes[40] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
@@ -991,7 +981,7 @@ namespace EmulatorLauncher
                     bytes[12] = dinput1 ? GetInputCode(InputKey.joystick1right, c1, tech1, vendor1, ctrl1) : (byte)0x05;
                     bytes[16] = dinput1 ? GetInputCode(InputKey.joystick1left, c1, tech1, vendor1, ctrl1, true, false) : (byte)0x02;
                     bytes[17] = Convert.ToByte(j1index + 16);
-                    
+
                     if (axisBytes.Contains(bytes[16]))
                         bytes[19] = 0xFF;
                     else
@@ -1099,7 +1089,7 @@ namespace EmulatorLauncher
             else
             {
                 bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = bytes[41] = Convert.ToByte(j1index);
-                
+
                 bytes[0] = dinput1 ? GetInputCode(InputKey.joystick1up, c1, tech1, vendor1, ctrl1) : (byte)0x06;
                 bytes[4] = dinput1 ? GetInputCode(InputKey.joystick1down, c1, tech1, vendor1, ctrl1) : (byte)0x07;
                 bytes[8] = dinput1 ? GetInputCode(InputKey.joystick1left, c1, tech1, vendor1, ctrl1) : (byte)0x04;
@@ -1311,7 +1301,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static byte GetInputCode(InputKey key, Controller c, string tech, string brand, SdlToDirectInput ctrl ,bool globalAxis = false, bool trigger = false, bool digital = false)
+        private static byte GetInputCode(InputKey key, Controller c, string tech, string brand, SdlToDirectInput ctrl, bool globalAxis = false, bool trigger = false, bool digital = false)
         {
             key = key.GetRevertedAxis(out bool revertAxis);
 
@@ -1331,7 +1321,7 @@ namespace EmulatorLauncher
                 return 0x00;
 
             string dinputName = esToDinput[esName];
-            
+
             if (dinputName == null)
                 return 0x00;
 
@@ -1438,9 +1428,9 @@ namespace EmulatorLauncher
                 {
                     switch (axisID)
                     {
-                        case 0: 
+                        case 0:
                             return 0x00;
-                        case 1: 
+                        case 1:
                             return 0x01;
                         case 2:
                             if (brand == "microsoft") return 0x07;
@@ -1461,7 +1451,7 @@ namespace EmulatorLauncher
                 {
                     switch (axisID)
                     {
-                        case 0: 
+                        case 0:
                             if (revertAxis) return 0x01;
                             else return 0x00;
                         case 1:
@@ -1553,16 +1543,16 @@ namespace EmulatorLauncher
                     int hatID = value.Substring(3).ToInteger();
                     switch (hatID)
                     {
-                        case 1: 
+                        case 1:
                             ret = 0x0E;
                             break;
-                        case 2: 
+                        case 2:
                             ret = 0x0D;
                             break;
-                        case 4: 
+                        case 4:
                             ret = 0x0F;
                             break;
-                        case 8: 
+                        case 8:
                             ret = 0x0C;
                             break;
                     };
@@ -1576,7 +1566,7 @@ namespace EmulatorLauncher
                         axisID = value.Substring(2).ToInteger();
 
                     if (axisID == 2 || axisID == 3 || axisID == 4)
-                        axisID ++;
+                        axisID++;
                     else if (axisID == 5)
                         axisID = 2;
 
@@ -1584,11 +1574,11 @@ namespace EmulatorLauncher
                 }
             }
             SimpleLogger.Instance.Info("[WHEELS] Wheel input " + buttonKey + " mapped to hexkey " + ret.ToString());
-            
+
             return ret;
         }
 
-        private void WriteServiceBytes(byte[] bytes, int index, Controller c, string tech, string brand, int startByte, SdlToDirectInput ctrl)
+        private void WriteServiceBytes(byte[] bytes, int index, Controller c, string tech, string brand, int startByte, SdlToDirectInput ctrl, bool useWheel, Dictionary<string,string> wheelbuttonMap)
         {
             bool dinput = tech == "dinput";
 
@@ -1601,15 +1591,23 @@ namespace EmulatorLauncher
             }
             else
             {
-                bytes[startByte] = dinput ? GetInputCode(InputKey.l3, c, tech, brand, ctrl) : (byte)0x90;
-                bytes[startByte + 1] = (byte)index;
-                bytes[startByte + 4] = dinput ? GetInputCode(InputKey.r3, c, tech, brand, ctrl) : (byte)0xA0;
-                bytes[startByte + 5] = (byte)index;
+                if (!useWheel)
+                {
+                    bytes[startByte] = dinput ? GetInputCode(InputKey.l3, c, tech, brand, ctrl) : (byte)0x90;
+                    bytes[startByte + 1] = (byte)index;
+                    bytes[startByte + 4] = dinput ? GetInputCode(InputKey.r3, c, tech, brand, ctrl) : (byte)0xA0;
+                    bytes[startByte + 5] = (byte)index;
+                }
+                else
+                {
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Service", startByte, index, 0, false);
+                    WriteWheelBytes(bytes, wheelbuttonMap, "Test", startByte + 4, index, 0, false);
+                }
             }
         }
 
         static readonly Dictionary<string, int> serviceByte = new Dictionary<string, int>()
-        { 
+        {
             { "bel", 80 },
             { "daytona", 76 },
             { "desert", 72 },
@@ -1739,8 +1737,104 @@ namespace EmulatorLauncher
 
         private void CleanupInputFile(byte[] bytes)
         {
-            for (int i = 0; i < bytes.Length;  i++)
+            for (int i = 0; i < bytes.Length; i++)
                 bytes[i] = 0x00;
         }
+
+        private void WriteWheelBytes(byte[] bytes, Dictionary<string, string> mapping, string buttonkey, int startingbyte, int joyIndex, int shifterID, bool deportedShifter = false, bool forceinv = false)
+        {
+            if (mapping.ContainsKey(buttonkey) && !string.IsNullOrEmpty(mapping[buttonkey]))
+            {
+                if (!buttonkey.ToLowerInvariant().StartsWith("gear"))
+                {
+                    string value = mapping[buttonkey];
+                    if (value.ToLowerInvariant().StartsWith("button"))
+                    {
+                        value = value.Substring(6);
+                        try
+                        {
+                            int buttonID = value.ToInteger() + 1;
+                            int toConvert = buttonID * 16;
+                            byte lsb = (byte)(toConvert & 0xFF);
+                            byte msb = (byte)((toConvert >> 8) & 0xFF);
+
+                            bytes[startingbyte] = lsb;
+                            int multiplicator = (int)msb;
+
+                            bytes[startingbyte + 1] = Convert.ToByte(joyIndex + (16 * multiplicator));
+                            bytes[startingbyte + 2] = 0x00;
+                            bytes[startingbyte + 3] = 0x00;
+                        }
+                        catch { }
+                    }
+                    else if (value.ToLowerInvariant().StartsWith("axisinv") || (forceinv && value.ToLowerInvariant().StartsWith("axis")))
+                    {
+                        try
+                        {
+                            value = value.Substring(7);
+                            int buttonID = value.ToInteger();
+                            bytes[startingbyte] = (byte)buttonID;
+                            bytes[startingbyte + 1] = Convert.ToByte(joyIndex + 16);
+                            bytes[startingbyte + 2] = 0x00;
+                            bytes[startingbyte + 3] = 0xFF;
+                        }
+                        catch { }
+                    }
+                }
+
+                else
+                {
+                    string value = mapping[buttonkey];
+                    if (value.ToLowerInvariant().StartsWith("button"))
+                    {
+                        value = value.Substring(6);
+                        try
+                        {
+                            int buttonID = value.ToInteger() + 1;
+                            int toConvert = buttonID * 16;
+                            byte lsb = (byte)(toConvert & 0xFF);
+                            byte msb = (byte)((toConvert >> 8) & 0xFF);
+
+                            bytes[startingbyte] = lsb;
+                            int multiplicator = (int)msb;
+
+                            if (deportedShifter)
+                            {
+                                bytes[startingbyte + 1] = Convert.ToByte(shifterID + (16 * multiplicator));
+                                bytes[startingbyte + 2] = 0x00;
+                                bytes[startingbyte + 3] = 0x00;
+                            }
+                            else
+                            {
+                                bytes[startingbyte + 1] = Convert.ToByte(joyIndex + (16 * multiplicator));
+                                bytes[startingbyte + 2] = 0x00;
+                                bytes[startingbyte + 3] = 0x00;
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+
+        private static readonly Dictionary<string, byte> GetFirstByte = new Dictionary<string, byte>()
+        {
+            { "0", 0x00 },
+            { "1", 0x10 },
+            { "2", 0x20 },
+            { "3", 0x30 },
+            { "4", 0x40 },
+            { "5", 0x50 },
+            { "6", 0x60 },
+            { "7", 0x70 },
+            { "8", 0x80 },
+            { "9", 0x90 },
+            { "10", 0xA0 },
+            { "11", 0xB0 },
+            { "12", 0xC0 },
+            { "13", 0xD0 },
+            { "14", 0xE0 },
+            { "15", 0xF0 },
+        };
     }
 }
