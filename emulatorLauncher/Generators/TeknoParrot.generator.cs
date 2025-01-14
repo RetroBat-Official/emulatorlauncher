@@ -96,7 +96,7 @@ namespace EmulatorLauncher
             { "BorderBreakScramble",             @"Border Break Scramble\Border Break Scramble\nrs.exe" },
             { "CaladriusAC",                     @"CaladriusAC\SILVER_AMP_R_ROM.exe" },
             { "ChaseHQ2",                        @"Chase H.Q. 2\game.exe" },
-            { "DariusBurst",                     @"Daruis Brust Another Chronicle\GameFiles\game.exe" },
+            { "DariusBurst",                     @"Daruis Brust Another Chronicle\game.exe" },
             { "DoNotFallRunforYourDrink",        @"Do Not Fall Run For Your Drink\game.exe" },
             { "ElevatorAction",                  @"Elevator Action for NesicaxLive\game.exe" },
             { "EnEinsPerfektewelt",              @"En-Eins Perfektewelt\game.exe" },
