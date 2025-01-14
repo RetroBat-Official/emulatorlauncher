@@ -172,15 +172,13 @@ namespace EmulatorLauncher
             // Wheels
             int wheelNb = 0;
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
+            bool deportedShifter = false;
+            int shifterID = -1;
+
             if (useWheel)
                 SimpleLogger.Instance.Info("[WHEELS] Wheels enabled.");
 
-            bool invertedWheelAxis = false;
-            WheelMappingInfo wheelmapping = null;
-            string wheelGuid = "nul";
             List<Wheel> usableWheels = new List<Wheel>();
-            bool deportedShifter = false;
-            int shifterID = -1;
 
             foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
             {
@@ -205,6 +203,9 @@ namespace EmulatorLauncher
 
             wheelNb = usableWheels.Count;
             SimpleLogger.Instance.Info("[WHEELS] Found " + wheelNb + " usable wheels.");
+            YmlFile ymlFile = null;
+            YmlContainer wheelMapping = null;
+            Dictionary<string, string> wheelbuttonMap = new Dictionary<string, string>();
 
             if (useWheel)
             {
@@ -215,62 +216,66 @@ namespace EmulatorLauncher
                     usableWheels.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
 
                     var wheel = usableWheels[0];
-                    int wheelPadIndex = 1;
                     wheeltype = wheel.Type.ToString();
                     SimpleLogger.Instance.Info("[WHEELS] Wheeltype identified : " + wheeltype);
 
                     // Get mapping in yml file
-                    try
+                    
+                    string model3WheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "model3_wheels.yml");
+                    if (File.Exists(model3WheelMapping))
                     {
-                        if (!WheelMappingInfo.InstanceW.TryGetValue(wheeltype, out wheelmapping))
-                            WheelMappingInfo.InstanceW.TryGetValue("default", out wheelmapping);
-                        SimpleLogger.Instance.Info("[WHEELS] Using " + wheelmapping + " mapping to configure wheel.");
+                        ymlFile = YmlFile.Load(model3WheelMapping);
+
+                        wheelMapping = ymlFile.Elements.Where(c => c.Name == wheeltype).FirstOrDefault() as YmlContainer;
+
+                        if (wheelMapping == null)
+                        {
+                            wheelMapping = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;
+                            if (wheelMapping == null)
+                            {
+                                SimpleLogger.Instance.Info("[WHEELS] No mapping exists for the wheel and PCSX2 emulator in yml file.");
+                                return;
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[WHEELS] Using default wheel mapping in yml file.");
+                        }
+
+                        SimpleLogger.Instance.Info("[WHEELS] Retrieving wheel mapping from yml file.");
+
+                        foreach (var mapEntry in wheelMapping.Elements)
+                        {
+
+                            if (mapEntry is YmlElement button)
+                            {
+                                if (button.Value == null || button.Value == "nul")
+                                    continue;
+                                wheelbuttonMap.Add(button.Name, button.Value);
+                            }
+                        }
                     }
-                    catch 
+                    else
                     {
-                        SimpleLogger.Instance.Info("[WHEELS] Problem getting wheel mapping in yml file.");
+                        SimpleLogger.Instance.Info("[WHEELS] Mapping file for PCSX2 does not exist.");
+                        return;
                     }
 
-                    string[] wheelTechs = wheelmapping.Inputsystems.Split(',');
-                    wheelGuid = wheelmapping.WheelGuid;
-                    invertedWheelAxis = wheelmapping.Invertedaxis == "true";
-
-                    if (!wheelTechs.Any(c => c == tech))
-                    {
-                        tech = wheelTechs[0];
-                        SimpleLogger.Instance.Info("[WHEELS] Overriding emulator input driver : " + tech);
-                    }
+                    c1 = this.Controllers.FirstOrDefault(c => c.DeviceIndex == wheel.ControllerIndex);
+                    c2 = null;
 
                     if (wheel != null)
                     {
-                        switch (tech)
-                        {
-                            case "xinput":
-                                wheelPadIndex = wheel.XInputIndex;
-                                break;
-                            case "sdl":
-                                wheelPadIndex = wheel.SDLIndex;
-                                break;
-                            case "dinput":
-                                wheelPadIndex = wheel.DinputIndex;
-                                break;
-                            default:
-                                wheelPadIndex = wheel.ControllerIndex;
-                                break;
-                        }
+                        tech = "dinput";
+                        j1index = wheel.DinputIndex + 1;
 
-                        j1index = wheelPadIndex + 1;
-
-                        c1 = this.Controllers.FirstOrDefault(c => c.DeviceIndex == wheel.ControllerIndex);
-                        c2 = null;
-
-                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + wheelPadIndex);
+                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + j1index);
                     }
                     else
                         SimpleLogger.Instance.Info("[WHEELS] Wheel " + wheel.DevicePath.ToString() + " not found as Gamepad.");
 
                     // Set force feedback by default if wheel supports it
-                    if (wheelmapping.Forcefeedback == "true" && (!(SystemConfig.isOptSet("forceFeedback") && !SystemConfig.getOptBoolean("forceFeedback"))))
+                    if (SystemConfig.isOptSet("forceFeedback") && !SystemConfig.getOptBoolean("forceFeedback"))
+                        ini.WriteValue(" Global ", "ForceFeedback", "0");
+                    else
                         ini.WriteValue(" Global ", "ForceFeedback", "1");
                 }
             }
@@ -291,7 +296,6 @@ namespace EmulatorLauncher
                 j1index = SystemConfig["wheel_index"].ToInteger();
                 SimpleLogger.Instance.Info("[INFO] Forcing index of wheel/joystick to " + j1index.ToString());
             }
-            shifterID = j1index - 1;
 
             bool multiplayer = j2index != -1;
             bool enableServiceMenu = SystemConfig.isOptSet("m3_service") && SystemConfig.getOptBoolean("m3_service");
@@ -639,7 +643,6 @@ namespace EmulatorLauncher
             else if (tech == "dinput")
             {
                 string guid1 = (c1.Guid.ToString()).Substring(0, 24) + "00000000";
-                string wheelSdlGuid = wheelGuid != "nul" ? wheelGuid.Substring(0, 24) + "00000000" : "nul";
 
                 // set inputsystem
                 if (multigun)
@@ -652,7 +655,6 @@ namespace EmulatorLauncher
 
                 // Fetch information in retrobat/system/tools/gamecontrollerdb.txt file
                 SdlToDirectInput ctrl1 = null;
-                SdlToDirectInput sdlWheel = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
                 
                 if (!File.Exists(gamecontrollerDB))
@@ -664,23 +666,13 @@ namespace EmulatorLauncher
                 if (gamecontrollerDB != null)
                 {
                     SimpleLogger.Instance.Info("[INFO] Player 1. Fetching gamecontrollerdb.txt file with guid : " + guid1);
-                    SimpleLogger.Instance.Info("[INFO] Player 1 wheel. Fetching gamecontrollerdb.txt file with guid : " + wheelSdlGuid);
 
                     ctrl1 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1);
-                    sdlWheel = GameControllerDBParser.ParseByGuid(gamecontrollerDB, wheelSdlGuid);
 
                     if (ctrl1 == null)
                         SimpleLogger.Instance.Info("[INFO] Player 1. No controller found in gamecontrollerdb.txt file for guid : " + guid1);
                     else
                         SimpleLogger.Instance.Info("[INFO] Player 1: " + guid1 + " found in gamecontrollerDB file.");
-
-                    if (sdlWheel != null && useWheel)
-                    {
-                        ctrl1 = sdlWheel;
-                        SimpleLogger.Instance.Info("[INFO] Player 1 wheel : " + wheelSdlGuid + " found in gamecontrollerDB file.");
-                    }
-                    else
-                        SimpleLogger.Instance.Info("[WARNING] Wheel not found in gamecontrollerdb.txt file for guid : " + wheelSdlGuid);
                 }
 
                 if (ctrl1 != null)
@@ -688,10 +680,20 @@ namespace EmulatorLauncher
                     //common - start to start and select to input coins
                     //service menu and test menu can be accessed via L3 and R3 buttons if option is enabled
 
-                    ini.WriteValue(" Global ", "InputStart1", "\"KEY_1," + GetDinputMapping(j1index, ctrl1, "start") + "\"");
-                    ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3," + GetDinputMapping(j1index, ctrl1, "back") + "\"");
-                    ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_5," + GetDinputMapping(j1index, ctrl1, "leftstick") + "\"" : "\"KEY_5\"");
-                    ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_6," + GetDinputMapping(j1index, ctrl1, "rightstick") + "\"" : "\"KEY_6\"");
+                    if (!useWheel)
+                    {
+                        ini.WriteValue(" Global ", "InputStart1", "\"KEY_1," + GetDinputMapping(j1index, ctrl1, "start") + "\"");
+                        ini.WriteValue(" Global ", "InputCoin1", "\"KEY_5," + GetDinputMapping(j1index, ctrl1, "back") + "\"");
+                        ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_8," + GetDinputMapping(j1index, ctrl1, "leftstick") + "\"" : "\"KEY_8\"");
+                        ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_9," + GetDinputMapping(j1index, ctrl1, "rightstick") + "\"" : "\"KEY_9\"");
+                    }
+                    else
+                    {
+                        ini.WriteValue(" Global ", "InputStart1", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "Start") + "\"");
+                        ini.WriteValue(" Global ", "InputCoin1", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "Coin") + "\"");
+                        ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_8,JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "Service") + "\"" : "\"KEY_8\"");
+                        ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_9,JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "Test") + "\"" : "\"KEY_9\"");
+                    }
 
                     //4-way digital joysticks - directional stick
                     ini.WriteValue(" Global ", "InputJoyUp", "\"" + GetDinputMapping(j1index, ctrl1, "lefty", -1) + "," + GetDinputMapping(j1index, ctrl1, "dpup") + "\"");
@@ -718,8 +720,11 @@ namespace EmulatorLauncher
 
                     if (useWheel)
                     {
-                        if (Wheel.shifterOtherDevice.Contains(usableWheels[0].Type))
+                        if (wheelbuttonMap.ContainsKey("DeportedShifter") && wheelbuttonMap["DeportedShifter"] == "true")
+                        {
                             deportedShifter = true;
+                            shifterID = j1index - 1;
+                        }
 
                         if (SystemConfig.isOptSet("gearstick_deviceid") && !string.IsNullOrEmpty(SystemConfig["gearstick_deviceid"]))
                         {
@@ -731,60 +736,81 @@ namespace EmulatorLauncher
                             SimpleLogger.Instance.Info("[WHEELS] Deported shifter enabled for wheel " + usableWheels[0].Name + " with ID " + shifterID);
 
                         //Steering wheel - left analog stick horizontal axis
-                        ini.WriteValue(" Global ", "InputSteeringLeft", GetWheelMapping(wheelmapping.Steer, ctrl1, j1index, "left"));
-                        ini.WriteValue(" Global ", "InputSteeringRight", GetWheelMapping(wheelmapping.Steer, ctrl1, j1index, "right"));
-                        ini.WriteValue(" Global ", "InputSteering", GetWheelMapping(wheelmapping.Steer, ctrl1, j1index, "nul", invertedWheelAxis));
+                        ini.WriteValue(" Global ", "InputSteeringLeft", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputSteeringLeft") + "\"");
+                        ini.WriteValue(" Global ", "InputSteeringRight", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputSteeringRight") + "\"");
+                        ini.WriteValue(" Global ", "InputSteering", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputSteering") + "\"");
 
                         //Pedals - accelerate with R2, brake with L2
-                        ini.WriteValue(" Global ", "InputAccelerator", GetWheelMapping(wheelmapping.Throttle, ctrl1, j1index));
-                        ini.WriteValue(" Global ", "InputBrake", GetWheelMapping(wheelmapping.Brake, ctrl1, j1index));
+                        ini.WriteValue(" Global ", "InputAccelerator", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputAccelerator") + "\"");
+                        ini.WriteValue(" Global ", "InputBrake", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputBrake") + "\"");
 
                         //Up/down shifter manual transmission (all racers) - L1 gear down and R1 gear up
-                        ini.WriteValue(" Global ", "InputGearShiftUp", GetWheelMapping(wheelmapping.Gearup, ctrl1, j1index));
-                        ini.WriteValue(" Global ", "InputGearShiftDown", GetWheelMapping(wheelmapping.Geardown, ctrl1, j1index));
+                        if (wheelbuttonMap["InputGearShiftUp"].StartsWith("Shifter_"))
+                        {
+                            string buttonValue = "";
+                            string[] buttonValueSplit = wheelbuttonMap["InputGearShiftUp"].Split('_');
+                            if (buttonValueSplit.Length > 1)
+                                buttonValue = buttonValueSplit[1];
+
+                            ini.WriteValue(" Global ", "InputGearShiftUp", "\"JOY" + shifterID + "_" + buttonValue + "\"");
+                        }
+                        else
+                            ini.WriteValue(" Global ", "InputGearShiftUp", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputGearShiftUp") + "\"");
+                        
+                        if (wheelbuttonMap["InputGearShiftDown"].StartsWith("Shifter_"))
+                        {
+                            string buttonValue = "";
+                            string[] buttonValueSplit = wheelbuttonMap["InputGearShiftDown"].Split('_');
+                            if (buttonValueSplit.Length > 1)
+                                buttonValue = buttonValueSplit[1];
+
+                            ini.WriteValue(" Global ", "InputGearShiftDown", "\"JOY" + shifterID + "_" + buttonValue + "\"");
+                        }
+                        else
+                            ini.WriteValue(" Global ", "InputGearShiftDown", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputGearShiftDown") + "\"");
 
                         //4-Speed manual transmission (Daytona 2, Sega Rally 2, Scud Race) - manual gears with right stick (up for gear 1, down for gear 2, left for gear 3 and right for gear 4)
                         if (SystemConfig.getOptBoolean("wheel_nogearstick"))
                         {
-                            ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.DpadUp, ctrl1, j1index));
-                            ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.DpadDown, ctrl1, j1index));
-                            ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.DpadLeft, ctrl1, j1index));
-                            ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.DpadRight, ctrl1, j1index));
-                            ini.WriteValue(" Global ", "InputGearShiftN", "\"" + GetDinputMapping(j1index, ctrl1, "rightshoulder") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "Gear1") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "Gear2") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "Gear3") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "Gear4") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShiftN", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "GearN") + "\"");
                         }
 
                         else if (deportedShifter)
                         {
-                            ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, ctrl1, j1index, "nul", false, shifterID));
-                            ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, ctrl1, j1index, "nul", false, shifterID));
-                            ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, ctrl1, j1index, "nul", false, shifterID));
-                            ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, ctrl1, j1index, "nul", false, shifterID));
-                            ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, ctrl1, j1index, "nul", false, shifterID));
+                            ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + shifterID + "_" + GetWheelButton(wheelbuttonMap, "StickGear1") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + shifterID + "_" + GetWheelButton(wheelbuttonMap, "StickGear2") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + shifterID + "_" + GetWheelButton(wheelbuttonMap, "StickGear3") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + shifterID + "_" + GetWheelButton(wheelbuttonMap, "StickGear4") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShiftN", "\"JOY" + shifterID + "_" + GetWheelButton(wheelbuttonMap, "StickGearN") + "\"");
                         }
                         else
                         {
-                            ini.WriteValue(" Global ", "InputGearShift1", GetWheelMapping(wheelmapping.Gear1, ctrl1, j1index));
-                            ini.WriteValue(" Global ", "InputGearShift2", GetWheelMapping(wheelmapping.Gear2, ctrl1, j1index));
-                            ini.WriteValue(" Global ", "InputGearShift3", GetWheelMapping(wheelmapping.Gear3, ctrl1, j1index));
-                            ini.WriteValue(" Global ", "InputGearShift4", GetWheelMapping(wheelmapping.Gear4, ctrl1, j1index));
-                            ini.WriteValue(" Global ", "InputGearShiftN", GetWheelMapping(wheelmapping.Gear_reverse, ctrl1, j1index));
+                            ini.WriteValue(" Global ", "InputGearShift1", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "StickGear1") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift2", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "StickGear2") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift3", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "StickGear3") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShift4", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "StickGear4") + "\"");
+                            ini.WriteValue(" Global ", "InputGearShiftN", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "StickGearN") + "\"");
                         }
 
                         //VR4 view change buttons (Daytona 2, Le Mans 24, Scud Race) - the 4 buttons will be used to change view in the games listed
-                        ini.WriteValue(" Global ", "InputVR1", "\"" + GetDinputMapping(j1index, ctrl1, "y") + "\"");
-                        ini.WriteValue(" Global ", "InputVR2", "\"" + GetDinputMapping(j1index, ctrl1, "a") + "\"");
-                        ini.WriteValue(" Global ", "InputVR3", "\"" + GetDinputMapping(j1index, ctrl1, "x") + "\"");
-                        ini.WriteValue(" Global ", "InputVR4", "\"" + GetDinputMapping(j1index, ctrl1, "b") + "\"");
+                        ini.WriteValue(" Global ", "InputVR1", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputVR1") + "\"");
+                        ini.WriteValue(" Global ", "InputVR2", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputVR2") + "\"");
+                        ini.WriteValue(" Global ", "InputVR3", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputVR3") + "\"");
+                        ini.WriteValue(" Global ", "InputVR4", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputVR4") + "\"");
 
                         //Single view change button (Dirt Devils, ECA, Harley-Davidson, Sega Rally 2) - use north button to change view in these games
-                        ini.WriteValue(" Global ", "InputViewChange", "\"" + GetDinputMapping(j1index, ctrl1, "y") + "\"");
+                        ini.WriteValue(" Global ", "InputViewChange", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputViewChange") + "\"");
 
                         //Handbrake (Dirt Devils, Sega Rally 2) - south button to handbrake in these games
-                        ini.WriteValue(" Global ", "InputHandBrake", "\"" + GetDinputMapping(j1index, ctrl1, "a") + "\"");
+                        ini.WriteValue(" Global ", "InputHandBrake", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputHandBrake") + "\"");
 
                         //Harley-Davidson controls
-                        ini.WriteValue(" Global ", "InputRearBrake", GetWheelMapping(wheelmapping.Brake, ctrl1, j1index));
-                        ini.WriteValue(" Global ", "InputMusicSelect", "\"" + GetDinputMapping(j1index, ctrl1, "b") + "\"");
+                        ini.WriteValue(" Global ", "InputRearBrake", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputRearBrake") + "\"");
+                        ini.WriteValue(" Global ", "InputMusicSelect", "\"JOY" + j1index + "_" + GetWheelButton(wheelbuttonMap, "InputMusicSelect") + "\"");
                     }
                     else
                     {
@@ -1793,6 +1819,14 @@ namespace EmulatorLauncher
             }
             SimpleLogger.Instance.Info("[INFO] No mapping found for " + button + " in wheel database.");
             return "\"NONE\"";
+        }
+
+        private static string GetWheelButton(Dictionary<string, string> mapping, string buttonkey)
+        {
+            if (mapping.ContainsKey(buttonkey) && !string.IsNullOrEmpty(mapping[buttonkey]))
+                return mapping[buttonkey];
+            else
+                return "";
         }
     }
 }

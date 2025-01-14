@@ -205,7 +205,7 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable create userprofile for " + rom);
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to create userprofile" };
             }
-            
+
             if (userProfile.GamePath == null || !File.Exists(userProfile.GamePath))
             {
                 if (userProfile.ExecutableName != null && userProfile.ExecutableName.Contains(";"))
@@ -214,7 +214,7 @@ namespace EmulatorLauncher
                     if (split.Length > 1)
                         userProfile.ExecutableName = split[0];
                 }
-                
+
                 userProfile.GamePath = FindExecutable(rom, Path.GetFileNameWithoutExtension(userProfile.FileName));
 
                 if (userProfile.ExecutableName == "game")
@@ -276,11 +276,33 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Manage fullscreen
             var windowed = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Windowed");
-            if (windowed != null && SystemConfig.isOptSet("tp_nofs") && SystemConfig.getOptBoolean("tp_nofs"))
+            if (windowed != null && SystemConfig.isOptSet("tp_fsmode") && (SystemConfig["tp_fsmode"] == "1" || SystemConfig["tp_fsmode"] == "2"))
                 windowed.FieldValue = "1";
             else if (windowed != null)
                 windowed.FieldValue = "0";
+
+            var displaymode = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "DisplayMode");
+            if (SystemConfig.isOptSet("tp_fsmode") && !string.IsNullOrEmpty(SystemConfig["tp_fsmode"]))
+            {
+                string fs_mode = SystemConfig["tp_fsmode"];
+                switch (fs_mode)
+                {
+                    case "0":
+                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Windowed"))
+                            displaymode.FieldValue = "Windowed";
+                        break;
+                    case "1":
+                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Fullscreen Windowed"))
+                            displaymode.FieldValue = "Fullscreen Windowed";
+                        break;
+                    case "2":
+                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Fullscreen"))
+                            displaymode.FieldValue = "Fullscreen";
+                        break;
+                }
+            }
 
             var hideCursor = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "HideCursor");
             if (hideCursor != null)

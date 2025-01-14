@@ -4,6 +4,7 @@ LogitechG29:
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: throttle
   Brake: brake
@@ -28,6 +29,7 @@ LogitechDrivingForceGT:
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: throttle
   Brake: brake
@@ -46,36 +48,13 @@ LogitechDrivingForceGT:
   DpadDown: button_22
   DpadLeft: button_23
   DpadRight: button_24
-LogitechG29alt:
-  WheelGuid: 030000006d04000060c2000000000000
-  Inputsystems: dinput
-  Pcsx2_Type: 2
-  Forcefeedback: true
-  Invertedaxis: true
-  Range: nul
-  Throttle: throttle
-  Brake: brake
-  Clutch: clutch
-  Steer: leftx
-  Gearup: rightshoulder
-  Geardown: leftshoulder
-  Gear1: button_12
-  Gear2: button_13
-  Gear3: button_14
-  Gear4: button_15
-  Gear5: button_16
-  Gear6: button_17
-  Gear_reverse: button_18
-  DpadUp: button_25
-  DpadDown: button_26
-  DpadLeft: button_27
-  DpadRight: button_28
 LogitechG920:
   WheelGuid: 030000006d04000062c2000000000000
   Inputsystems: dinput
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: throttle
   Brake: brake
@@ -100,6 +79,7 @@ LogitechG923PS:
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: throttle
   Brake: brake
@@ -124,6 +104,7 @@ LogitechG923X:
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: throttle
   Brake: brake
@@ -142,12 +123,38 @@ LogitechG923X:
   DpadDown: button_26
   DpadLeft: button_27
   DpadRight: button_28
+MozaR5:
+  WheelGuid: 030000006e3400000400000000000000
+  Inputsystems: dinput
+  Pcsx2_Type: 2
+  Forcefeedback: true
+  Invertedaxis: true
+  PositiveTriggers: true
+  Range: nul
+  Throttle: throttle
+  Brake: brake
+  Clutch: nul
+  Steer: leftx
+  Gearup: rightshoulder
+  Geardown: leftshoulder
+  Gear1: nul
+  Gear2: nul
+  Gear3: nul
+  Gear4: nul
+  Gear5: nul
+  Gear6: nul
+  Gear_reverse: button_34
+  DpadUp: button_4
+  DpadDown: button_6
+  DpadLeft: button_7
+  DpadRight: button_5
 MicrosoftSideWinder:
   WheelGuid: 030000005e0400003400000000000000
   Inputsystems: dinput
   Pcsx2_Type: 0
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: throttle
   Brake: brake
@@ -166,12 +173,13 @@ MicrosoftSideWinder:
   DpadDown: nul
   DpadLeft: nul
   DpadRight: nul
-ThrustmasterT300RS:
+ThrustmasterT300RSPS3:
   WheelGuid: 030000004f0400006eb6000000000000
   Inputsystems: dinput
   Pcsx2_Type: 2
   Forcefeedback: true
   Invertedaxis: true
+  PositiveTriggers: false
   Range: nul
   Throttle: throttle
   Brake: brake
@@ -196,6 +204,7 @@ default:
   Pcsx2_Type: 0
   Forcefeedback: false
   Invertedaxis: false
+  PositiveTriggers: false
   Range: nul
   Throttle: righttrigger
   Brake: lefttrigger
