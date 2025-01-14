@@ -344,16 +344,16 @@ namespace EmulatorLauncher
             string profileName = Path.GetFileName(userProfile.FileName);
 
             // Apply reshade bezels
-            string reshadePath;
+            string reshadeExe;
             string reshadeExecutablePath;
             ReshadeBezelType reshadeType = ReshadeBezelType.opengl;
             ReshadePlatform reshadePlatform = EmulatorLauncher.ReshadePlatform.x86;
 
-            GetReshadeInfo(gameName, out reshadePath, out reshadeType, out reshadePlatform);
+            GetReshadeInfo(gameName, out reshadeExe, out reshadeType, out reshadePlatform);
 
-            if (reshadePath != null)
+            if (reshadeExe != null)
             {
-                reshadeExecutablePath = FindReshadeFolder(reshadePath, rom);
+                reshadeExecutablePath = FindReshadeFolder(reshadeExe, rom);
                 if (!ReshadeManager.Setup(reshadeType, reshadePlatform, system, rom, reshadeExecutablePath, resolution, emulator))
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
@@ -749,9 +749,9 @@ namespace EmulatorLauncher
             return null;*/
         }
 
-        private bool GetReshadeInfo(string game, out string reshadePath, out ReshadeBezelType type, out ReshadePlatform platform)
+        private bool GetReshadeInfo(string game, out string reshadeExe, out ReshadeBezelType type, out ReshadePlatform platform)
         {
-            reshadePath = null;
+            reshadeExe = null;
             type = ReshadeBezelType.opengl;
             platform = ReshadePlatform.x86;
 
@@ -771,7 +771,7 @@ namespace EmulatorLauncher
                             YmlElement info = infoLine as YmlElement;
                             if (info.Name == "path")
                             {
-                                reshadePath = info.Value;
+                                reshadeExe = info.Value;
                                 continue;
                             }
 
