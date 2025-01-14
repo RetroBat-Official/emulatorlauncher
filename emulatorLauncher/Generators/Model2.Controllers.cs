@@ -202,6 +202,7 @@ namespace EmulatorLauncher
                         dinput2 = true;
 
                         c1 = this.Controllers.FirstOrDefault(c => c.DeviceIndex == wheel.ControllerIndex);
+                        wheelGuid = c1.Guid;
 
                         SimpleLogger.Instance.Info("[WHEELS] Wheel index : " + wheelPadIndex);
                     }
@@ -584,6 +585,32 @@ namespace EmulatorLauncher
                         WriteWheelBytes(bytes, wheelbuttonMap, "Gear4", 40, j1index, shifterID, deportedShifter);
                         WriteWheelBytes(bytes, wheelbuttonMap, "GearN", 44, j1index, shifterID, deportedShifter);
                     }
+
+                    bytes[48] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
+
+                    if (parentRom == "daytona")
+                    {
+                        bytes[61] = bytes[65] = bytes[69] = Convert.ToByte(j1index);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "South", 52, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "North", 56, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "East", 60, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Start", 64, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Select", 68, j1index, shifterID, deportedShifter);
+                        
+                        bytes[96] = (byte)0x01;
+                        bytes[97] = (byte)0x01;
+                        bytes[98] = (byte)0x01;
+                    }
+
+                    else if (parentRom.StartsWith("srally"))
+                    {
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Start", 52, j1index, shifterID, deportedShifter);
+                        WriteWheelBytes(bytes, wheelbuttonMap, "Select", 56, j1index, shifterID, deportedShifter);
+
+                        bytes[84] = (byte)0x01;
+                        bytes[85] = (byte)0x01;
+                        bytes[86] = (byte)0x01;
+                    }
                 }
 
                 else
@@ -627,32 +654,32 @@ namespace EmulatorLauncher
                     bytes[40] = dinput1 ? GetInputCode(InputKey.joystick2right, c1, tech1, vendor1, ctrl1) : (byte)0x09;
 
                     bytes[44] = dinput1 ? GetInputCode(InputKey.pagedown, c1, tech1, vendor1, ctrl1) : (byte)0x60;
-                }
 
-                bytes[48] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
+                    bytes[48] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
 
-                if (parentRom == "daytona")
-                {
-                    bytes[61] = bytes[65] = bytes[69] = Convert.ToByte(j1index);
-                    bytes[52] = dinput1 ? GetInputCode(InputKey.a, c1, tech1, vendor1, ctrl1) : (byte)0x30;
-                    bytes[56] = dinput1 ? GetInputCode(InputKey.y, c1, tech1, vendor1, ctrl1) : (byte)0x10;
-                    bytes[60] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
-                    bytes[64] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
-                    bytes[68] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
+                    if (parentRom == "daytona")
+                    {
+                        bytes[61] = bytes[65] = bytes[69] = Convert.ToByte(j1index);
+                        bytes[52] = dinput1 ? GetInputCode(InputKey.a, c1, tech1, vendor1, ctrl1) : (byte)0x30;
+                        bytes[56] = dinput1 ? GetInputCode(InputKey.y, c1, tech1, vendor1, ctrl1) : (byte)0x10;
+                        bytes[60] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
+                        bytes[64] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
+                        bytes[68] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
-                    bytes[96] = (byte)0x01;
-                    bytes[97] = useShoulders ? (byte)0x00 : (byte)0x01;
-                    bytes[98] = useShoulders ? (byte)0x00 : (byte)0x01;
-                }
+                        bytes[96] = (byte)0x01;
+                        bytes[97] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[98] = useShoulders ? (byte)0x00 : (byte)0x01;
+                    }
 
-                else if (parentRom.StartsWith("srally"))
-                {
-                    bytes[52] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
-                    bytes[56] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
+                    else if (parentRom.StartsWith("srally"))
+                    {
+                        bytes[52] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
+                        bytes[56] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
 
-                    bytes[84] = (byte)0x01;
-                    bytes[85] = useShoulders ? (byte)0x00 : (byte)0x01;
-                    bytes[86] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[84] = (byte)0x01;
+                        bytes[85] = useShoulders ? (byte)0x00 : (byte)0x01;
+                        bytes[86] = useShoulders ? (byte)0x00 : (byte)0x01;
+                    }
                 }
 
                 for (int i = 0; i < 69; i += 4)
@@ -1767,7 +1794,7 @@ namespace EmulatorLauncher
                         }
                         catch { }
                     }
-                    else if (value.ToLowerInvariant().StartsWith("axisinv") || (forceinv && value.ToLowerInvariant().StartsWith("axis")))
+                    else if (value.ToLowerInvariant().StartsWith("axisinv"))
                     {
                         try
                         {
@@ -1777,6 +1804,38 @@ namespace EmulatorLauncher
                             bytes[startingbyte + 1] = Convert.ToByte(joyIndex + 16);
                             bytes[startingbyte + 2] = 0x00;
                             bytes[startingbyte + 3] = 0xFF;
+                        }
+                        catch { }
+                    }
+                    else if (value.ToLowerInvariant().StartsWith("axis"))
+                    {
+                        try
+                        {
+                            value = value.Substring(4);
+                            int buttonID = value.ToInteger();
+                            bytes[startingbyte] = (byte)buttonID;
+                            bytes[startingbyte + 1] = forceinv ? Convert.ToByte(joyIndex + 16) : Convert.ToByte(joyIndex);
+                            bytes[startingbyte + 2] = 0x00;
+                            bytes[startingbyte + 3] = 0xFF;
+                        }
+                        catch { }
+                    }
+                    else if (value.ToLowerInvariant().StartsWith("hat"))
+                    {
+                        try
+                        {
+                            if (value.ToLowerInvariant().EndsWith("up"))
+                                bytes[startingbyte] = 0x0E;
+                            else if(value.ToLowerInvariant().EndsWith("down"))
+                                bytes[startingbyte] = 0x0F;
+                            else if (value.ToLowerInvariant().EndsWith("left"))
+                                bytes[startingbyte] = 0x0C;
+                            else if (value.ToLowerInvariant().EndsWith("right"))
+                                bytes[startingbyte] = 0x0D;
+
+                            bytes[startingbyte + 1] = Convert.ToByte(joyIndex);
+                            bytes[startingbyte + 2] = 0x00;
+                            bytes[startingbyte + 3] = 0x00;
                         }
                         catch { }
                     }

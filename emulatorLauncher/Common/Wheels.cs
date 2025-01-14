@@ -198,7 +198,7 @@ namespace EmulatorLauncher
         Default = 100
     }
 
-    public class WheelMappingInfo
+    /*public class WheelMappingInfo
     {
         #region Factory
         public static Dictionary<string, WheelMappingInfo> InstanceW
@@ -306,5 +306,5 @@ namespace EmulatorLauncher
         public string R1 { get; set; }
         public string R2 { get; set; }
         public string R3 { get; set; }
-    }
+    }*/
 }
