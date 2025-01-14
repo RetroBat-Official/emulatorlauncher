@@ -354,8 +354,7 @@ namespace EmulatorLauncher
             if (reshadePath != null)
             {
                 reshadeExecutablePath = FindReshadeFolder(reshadePath, rom);
-                reshadePath = Path.GetDirectoryName(reshadeExecutablePath);
-                if (!ReshadeManager.Setup(reshadeType, reshadePlatform, system, rom, reshadePath, resolution, emulator))
+                if (!ReshadeManager.Setup(reshadeType, reshadePlatform, system, rom, reshadeExecutablePath, resolution, emulator))
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
 
