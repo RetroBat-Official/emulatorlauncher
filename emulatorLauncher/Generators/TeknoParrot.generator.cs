@@ -345,15 +345,16 @@ namespace EmulatorLauncher
 
             // Apply reshade bezels
             string reshadePath;
+            string reshadeExecutablePath;
             ReshadeBezelType reshadeType = ReshadeBezelType.opengl;
             ReshadePlatform reshadePlatform = EmulatorLauncher.ReshadePlatform.x86;
 
             GetReshadeInfo(gameName, out reshadePath, out reshadeType, out reshadePlatform);
-            string reshadeExecutablePath = FindReshadeFolder(reshadePath, rom);
-            reshadePath = Path.GetDirectoryName(reshadeExecutablePath);
 
             if (reshadePath != null)
             {
+                reshadeExecutablePath = FindReshadeFolder(reshadePath, rom);
+                reshadePath = Path.GetDirectoryName(reshadeExecutablePath);
                 if (!ReshadeManager.Setup(reshadeType, reshadePlatform, system, rom, reshadePath, resolution, emulator))
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
