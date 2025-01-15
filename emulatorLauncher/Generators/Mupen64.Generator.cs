@@ -205,15 +205,15 @@ namespace EmulatorLauncher
                     ini.WriteValue("Rosalie's Mupen GUI", "DiscordRpc", "False");
 
                 // N64DD bios paths
-                string IPLJap = Path.Combine(AppConfig.GetFullPath("Bios"), "Mupen64plus", "IPL_JAP.n64");
+                string IPLJap = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", "IPL_JAP.n64");
                 if (File.Exists(IPLJap))
                     ini.WriteValue("Rosalie's Mupen GUI Core 64DD", "64DD_JapaneseIPL", IPLJap.Replace("\\", "/"));
 
-                string IPLUSA = Path.Combine(AppConfig.GetFullPath("Bios"), "Mupen64plus", "IPL_USA.n64");
+                string IPLUSA = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", "IPL_USA.n64");
                 if (File.Exists(IPLUSA))
                     ini.WriteValue("Rosalie's Mupen GUI Core 64DD", "64DD_AmericanIPL", IPLUSA.Replace("\\", "/"));
 
-                string IPLDev = Path.Combine(AppConfig.GetFullPath("Bios"), "Mupen64plus", "IPL_DEV.n64");
+                string IPLDev = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", "IPL_DEV.n64");
                 if (File.Exists(IPLDev))
                     ini.WriteValue("Rosalie's Mupen GUI Core 64DD", "64DD_DevelopmentIPL", IPLDev.Replace("\\", "/"));
 
