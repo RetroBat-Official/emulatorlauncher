@@ -96,19 +96,19 @@ namespace EmulatorLauncher
                 string screenshotsDir = Path.Combine(AppConfig.GetFullPath("screenshots"), "project64");
                 if (!Directory.Exists(screenshotsDir))
                     try { Directory.CreateDirectory(screenshotsDir); } catch { }
-                ini.WriteValue("Snap Shot Directory", "Directory", screenshotsDir);
+                ini.WriteValue("Snap Shot Directory", "Directory", screenshotsDir + "\\");
                 ini.WriteValue("Snap Shot Directory", "Use Selected", "1");
 
                 string saveDir = Path.Combine(AppConfig.GetFullPath("saves"), system, "project64");
                 if (!Directory.Exists(saveDir))
                     try { Directory.CreateDirectory(saveDir); } catch { }
-                ini.WriteValue("Native Save Directory", "Directory", saveDir);
+                ini.WriteValue("Native Save Directory", "Directory", saveDir + "\\");
                 ini.WriteValue("Native Save Directory", "Use Selected", "1");
 
                 string stateDir = Path.Combine(AppConfig.GetFullPath("saves"), system, "project64", "sstates");
                 if (!Directory.Exists(stateDir))
                     try { Directory.CreateDirectory(stateDir); } catch { }
-                ini.WriteValue("Instant Save Directory", "Directory", stateDir);
+                ini.WriteValue("Instant Save Directory", "Directory", stateDir + "\\");
                 ini.WriteValue("Instant Save Directory", "Use Selected", "1");
 
                 ConfigureControllers(ini);
