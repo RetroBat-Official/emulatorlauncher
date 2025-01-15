@@ -80,6 +80,10 @@ namespace EmulatorLauncher
                     // Techniques
                     var techniques = (reShadePreset.GetValue(null, "Techniques") ?? "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(t => !knownTechniques.Contains(t)).ToList();
 
+                    if (emulator == "supermodel")
+                    {
+                        techniques = new List<string>();
+                    }
                     if (!string.IsNullOrEmpty(shaderFileName))
                     {
                         string shaderPath = Path.Combine(Program.AppConfig.GetFullPath("shaders"), "configs", Program.SystemConfig["shaderset"], shaderFileName);
@@ -90,7 +94,14 @@ namespace EmulatorLauncher
                             if (!File.Exists(destShader))
                                 File.Copy(shaderPath, destShader);
 
-                            techniques.Add(shaderName);
+                            int index = shaderName.IndexOf('@');
+
+                            if (index >= 0 && emulator == "supermodel")
+                            {
+                                techniques.Add(shaderName.Substring(0, index));
+                            }
+                            else
+                                techniques.Add(shaderName);
                         }
                     }
 
@@ -108,7 +119,13 @@ namespace EmulatorLauncher
 
                         File.WriteAllText(Path.Combine(effectSearchPaths, "Bezel.fx"), bezelFx);
 
-                        techniques.Add(bezelEffectName);
+                        int index = bezelEffectName.IndexOf('@');
+                        if (index >= 0 && emulator == "supermodel")
+                        {
+                            techniques.Add(bezelEffectName.Substring(0, index));
+                        }
+                        else
+                            techniques.Add(bezelEffectName);
 
                         if (techniques.Any(t => t.Contains("Border")))
                         {
@@ -177,7 +194,7 @@ namespace EmulatorLauncher
                     }
                     reShadePreset.WriteValue(null, "Techniques", string.Join(",", techniques.ToArray()));
 
-                    if (techniques.Contains("GeomCRT") || techniques.Contains("CRTGeom.fx"))
+                    if (techniques.Contains("GeomCRT") || techniques.Contains("CRTGeom.fx") || techniques.Contains("GeomCRT@CRTGeom.fx"))
                     {
                         float resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
 
@@ -190,16 +207,45 @@ namespace EmulatorLauncher
                     }
 
                     // TechniqueSorting
+                    
+
                     var techniqueSorting = (reShadePreset.GetValue(null, "TechniqueSorting") ?? "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(t => !knownTechniques.Contains(t)).ToList();
 
+                    if (emulator == "supermodel")
+                        techniqueSorting = new List<string>();
+
                     if (!string.IsNullOrEmpty(shaderFileName) && !string.IsNullOrEmpty(shaderName) && !shaderName.Contains("Border"))
+                    {
+                        if (emulator == "supermodel")
+                        {
+                            int index = shaderName.IndexOf('@');
+                            if (index >= 0)
+                                techniqueSorting.Add(shaderName.Substring(0, index));
+                        }
                         techniqueSorting.Add(shaderName);
+                    }
 
                     if (bezel != null)
+                    {
+                        if (emulator == "supermodel")
+                        {
+                            int index = bezelEffectName.IndexOf('@');
+                            if (index >= 0)
+                                techniqueSorting.Add(bezelEffectName.Substring(0, index));
+                        }
                         techniqueSorting.Add(bezelEffectName);
+                    }
 
                     if (shaderName.Contains("Border"))
+                    {
+                        if (emulator == "supermodel")
+                        {
+                            int index = shaderName.IndexOf('@');
+                            if (index >= 0)
+                                techniqueSorting.Add(shaderName.Substring(0, index));
+                        }
                         techniqueSorting.Add(shaderName);
+                    }
 
                     if (oldVersion)
                         reShadePreset.WriteValue(null, "TechniqueSorting", string.Join(",", techniqueSorting.ToArray()));
