@@ -162,6 +162,7 @@ namespace EmulatorLauncher
 
                         ini.WriteValue(" Global ", "WideScreen", wideScreen ? "1" : "0");
 
+                        BindIniFeatureSlider(ini, " Global ", "Crosshairs", "crosshairs", "1");
                         BindBoolIniFeatureOn(ini, " Global ", "Throttle", "throttle", "1", "0");          //throttle - default on
                         BindBoolIniFeatureOn(ini, " Global ", "New3DEngine", "new3Dengine", "1", "0");    //New3DEngine - setting to OFF will use legacy 3D engine, fixes OpenGL error on older GPUs
                         BindBoolIniFeature(ini, " Global ", "MultiThreaded", "m3_thread", "0", "1");
