@@ -29,6 +29,14 @@ namespace EmulatorLauncher
 
             var guns = RawLightgun.GetRawLightguns();
 
+            if (guns.Length < 1)
+                return;
+            else
+                SimpleLogger.Instance.Info("[GUNS] Found " + guns.Length + " usable guns.");
+
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                Guns.StartSindenSoftware();
+
             // Get mapping in yml file
             YmlContainer game = null;
             var buttonMap = new Dictionary<string, string>();

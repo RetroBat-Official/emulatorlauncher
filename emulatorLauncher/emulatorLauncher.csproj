@@ -95,6 +95,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Common\Generator.cs" />
+    <Compile Include="Common\Guns.cs" />
     <Compile Include="Common\SaveStatesWatcher.cs" />
     <Compile Include="Common\ScreenShotsWatcher.cs" />
     <Compile Include="Common\SystemDefaults.cs" />

@@ -30,7 +30,7 @@ namespace EmulatorLauncher
                 return false;
             }
 
-            FileInfo fileInfo = new FileInfo(InstallReshader(type, platform, path));
+            FileInfo fileInfo = new FileInfo(InstallReshader(type, platform, path, emulator));
             if (fileInfo == null || !fileInfo.Exists)
                 return false;
 
@@ -110,6 +110,14 @@ namespace EmulatorLauncher
 
                         techniques.Add(bezelEffectName);
 
+                        if (techniques.Any(t => t.Contains("Border")))
+                        {
+                            List<string> borderItems = techniques.Where(item => item.Contains("Border")).ToList();
+                            List<string> nonBorderItems = techniques.Where(item => !item.Contains("Border")).ToList();
+
+                            techniques = nonBorderItems.Concat(borderItems).ToList();
+                        }
+
                         float displayW = displayIsStretched ? 3f / 4f : 1.0f;
 
                         var bezelEffect = reShadePreset.GetOrCreateSection("Bezel.fx");
@@ -143,7 +151,30 @@ namespace EmulatorLauncher
                     }
                     else if (File.Exists(Path.Combine(effectSearchPaths, "Bezel.fx")))
                         File.Delete(Path.Combine(effectSearchPaths, "Bezel.fx"));
-                    
+
+                    if (emulator == "supermodel")
+                    {
+                        oldVersion = true;
+                        if (techniques.Contains("Border@border.fx"))
+                        {
+                            techniques.Remove("Border@border.fx");
+                            if (!techniques.Contains("Border"))
+                                techniques.Add("Border");
+
+                            reShadePreset.WriteValue("border.fx", "border_color", "255.000000,255.000000,255.000000");
+                            reShadePreset.WriteValue("border.fx", "border_ratio", "2.350000");
+                            reShadePreset.WriteValue("border.fx", "border_width", "15.000000,15.000000");
+                        }
+                        if (techniques.Contains("Bezel@Bezel.fx"))
+                        {
+                            techniques.Remove("Bezel@Bezel.fx");
+                            if (!techniques.Contains("Bezel"))
+                                techniques.Add("Bezel");
+
+                            reShadePreset.WriteValue("Bezel.fx", "border_color", "0.000000,0.000000");
+                            reShadePreset.WriteValue("Bezel.fx", "border_ratio", "93.333344,93.333344");
+                        }
+                    }
                     reShadePreset.WriteValue(null, "Techniques", string.Join(",", techniques.ToArray()));
 
                     if (techniques.Contains("GeomCRT") || techniques.Contains("CRTGeom.fx"))
@@ -161,11 +192,14 @@ namespace EmulatorLauncher
                     // TechniqueSorting
                     var techniqueSorting = (reShadePreset.GetValue(null, "TechniqueSorting") ?? "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(t => !knownTechniques.Contains(t)).ToList();
 
-                    if (!string.IsNullOrEmpty(shaderFileName) && !string.IsNullOrEmpty(shaderName))
+                    if (!string.IsNullOrEmpty(shaderFileName) && !string.IsNullOrEmpty(shaderName) && !shaderName.Contains("Border"))
                         techniqueSorting.Add(shaderName);
 
                     if (bezel != null)
                         techniqueSorting.Add(bezelEffectName);
+
+                    if (shaderName.Contains("Border"))
+                        techniqueSorting.Add(shaderName);
 
                     if (oldVersion)
                         reShadePreset.WriteValue(null, "TechniqueSorting", string.Join(",", techniqueSorting.ToArray()));
@@ -190,7 +224,7 @@ namespace EmulatorLauncher
             return ReshadePlatform.x86;
         }
 
-        private static string InstallReshader(ReshadeBezelType type, ReshadePlatform platform, string path)
+        private static string InstallReshader(ReshadeBezelType type, ReshadePlatform platform, string path, string emulator)
         {
             string dllName = Path.Combine(path, GetEnumDescription(type));
 
@@ -210,7 +244,18 @@ namespace EmulatorLauncher
                     Version version = new Version();
                     if (Version.TryParse(versionInfo.FileVersion, out version))
                     {
-                        if (version < ShippedVersion)
+                        if (emulator == "supermodel")
+                        {
+                            if (version == ShippedVersion)
+                            {
+                                try { File.Delete(dllName); }
+                                catch { }
+                                string superModelDll = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "templates", "supermodel", "opengl32.dll");
+                                if (File.Exists(superModelDll))
+                                    try { File.Copy(superModelDll, dllName); } catch { }
+                            }
+                        }
+                        else if (version < ShippedVersion && emulator != "supermodel")
                         {
                             try { File.Delete(dllName); }
                             catch { }
@@ -223,10 +268,18 @@ namespace EmulatorLauncher
             {
                 UninstallReshader(type, path);
 
-                if (platform == ReshadePlatform.x86)
-                    FileTools.ExtractGZipBytes(Properties.Resources.reshader_x86_gz, Path.Combine(path, dllName));
+                string superModelDll = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "templates", "supermodel", "opengl32.dll");
+                if (emulator == "supermodel" && File.Exists(superModelDll))
+                {
+                    try { File.Copy(superModelDll, dllName); } catch { }
+                }
                 else
-                    FileTools.ExtractGZipBytes(Properties.Resources.reshader_x64_gz, Path.Combine(path, dllName));
+                {
+                    if (platform == ReshadePlatform.x86)
+                        FileTools.ExtractGZipBytes(Properties.Resources.reshader_x86_gz, Path.Combine(path, dllName));
+                    else
+                        FileTools.ExtractGZipBytes(Properties.Resources.reshader_x64_gz, Path.Combine(path, dllName));
+                }
             }
 
             if (!File.Exists(Path.Combine(path, "ReShade.ini")))

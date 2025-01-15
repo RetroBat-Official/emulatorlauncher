@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using TeknoParrotUi.Common;
 using System.IO;
+using EmulatorLauncher;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using System.Collections.Generic;
@@ -36,6 +37,9 @@ namespace EmulatorLauncher
             // Get guns and guncount
             int gunCount = RawLightgun.GetUsableLightGunCount();
             var guns = RawLightgun.GetRawLightguns();
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                Guns.StartSindenSoftware();
+            
             RawLightgun gun1 = null;
             RawLightgun gun2 = null;
             RawLightgun gun3 = null;

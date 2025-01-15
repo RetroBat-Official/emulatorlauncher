@@ -151,6 +151,9 @@ namespace EmulatorLauncher
                 mouseIndex1 = (guns[0].Index + 1).ToString();
                 if (gunCount > 1 && guns.Length > 1)
                     mouseIndex2 = (guns[1].Index + 1).ToString();
+
+                if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                    Guns.StartSindenSoftware();
             }
 
             if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))
@@ -1430,6 +1433,9 @@ namespace EmulatorLauncher
                 mouseIndex1 = (guns[0].Index + 1).ToString();
                 if (gunCount > 1 && guns.Length > 1)
                     mouseIndex2 = (guns[1].Index + 1).ToString();
+
+                if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                    Guns.StartSindenSoftware();
             }
 
             if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))
