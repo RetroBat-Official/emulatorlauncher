@@ -207,15 +207,20 @@ namespace EmulatorLauncher
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to create userprofile" };
             }
 
+            bool multiExe = false;
             if (userProfile.GamePath == null || !File.Exists(userProfile.GamePath))
             {
                 if (userProfile.ExecutableName != null && userProfile.ExecutableName.Contains(";"))
                 {
                     var split = userProfile.ExecutableName.Split(';');
                     if (split.Length > 1)
+                    {
                         userProfile.ExecutableName = split[0];
+                        multiExe = true;
+                    }
                 }
 
+                RetryWithSecondExe:
                 userProfile.GamePath = FindExecutable(rom, Path.GetFileNameWithoutExtension(userProfile.FileName));
 
                 if (userProfile.ExecutableName == "game")
@@ -257,6 +262,15 @@ namespace EmulatorLauncher
 
                 if (userProfile.GamePath == null)
                 {
+                    if (multiExe)
+                    {
+                        var split = profile.ExecutableName.Split(';');
+                        if (split.Length > 1)
+                            userProfile.ExecutableName = split[1];
+
+                        goto RetryWithSecondExe;
+                    }
+
                     SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find Game executable for " + rom);
                     return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game executable" };
                 }
@@ -353,9 +367,22 @@ namespace EmulatorLauncher
 
             if (reshadeExe != null)
             {
-                reshadeExecutablePath = FindReshadeFolder(reshadeExe, rom);
-                if (!ReshadeManager.Setup(reshadeType, reshadePlatform, system, rom, reshadeExecutablePath, resolution, emulator))
-                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                if (reshadeExe.Contains(';'))
+                {
+                    string[] reshadeExes = reshadeExe.Split(';');
+                    reshadeExecutablePath = FindReshadeFolder(reshadeExes[0], rom);
+
+                    if (reshadeExes.Length > 1 && reshadeExecutablePath == null)
+                        reshadeExecutablePath = FindReshadeFolder(reshadeExes[1], rom);
+                }
+                else
+                    reshadeExecutablePath = FindReshadeFolder(reshadeExe, rom);
+
+                if (reshadeExecutablePath != null)
+                {
+                    if (!ReshadeManager.Setup(reshadeType, reshadePlatform, system, rom, reshadeExecutablePath, resolution, emulator))
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                }
             }
 
             if (_exename == null)

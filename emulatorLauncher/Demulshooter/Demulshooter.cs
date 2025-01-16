@@ -67,6 +67,30 @@ namespace EmulatorLauncher
                 if (gun4 != null)
                     ini.WriteValue("", "P4DeviceName", gun4.DevicePath);
 
+                if (Program.SystemConfig.isOptSet("model2_output") && !string.IsNullOrEmpty(Program.SystemConfig["model2_output"]))
+                {
+                    string outputType = Program.SystemConfig["model2_output"];
+                    ini.WriteValue("", "OutputEnabled", "True");
+
+                    switch (outputType)
+                    {
+                        case "win":
+                            ini.WriteValue("", "WM_OutputsEnabled", "True");
+                            ini.WriteValue("", "Net_OutputsEnabled", "False");
+                            break;
+                        case "net":
+                            ini.WriteValue("", "Net_OutputsEnabled", "True");
+                            ini.WriteValue("", "WM_OutputsEnabled", "False");
+                            break;
+                        case "both":
+                            ini.WriteValue("", "Net_OutputsEnabled", "True");
+                            ini.WriteValue("", "WM_OutputsEnabled", "True");
+                            break;
+                    }
+                }
+                else
+                    ini.WriteValue("", "OutputEnabled", "False");
+
                 ini.Save();
             }
             // Write code to start demulshooter
