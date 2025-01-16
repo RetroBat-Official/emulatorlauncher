@@ -31,19 +31,21 @@ namespace EmulatorLauncher.Common
                     if (emulator == "libretro" && si.Name == "shaderGL" && isOpenGL)
                         found = true;
                     else if (emulator == "libretro" && si.Name == "shader" && !isOpenGL)
-						found = true;
-					else if (!string.IsNullOrEmpty(emulator) && !string.IsNullOrEmpty(core) && si.Name == emulator + "." + core)
-						found = true;
-					else if (!string.IsNullOrEmpty(emulator) && si.Name == emulator)
-						found = true;
+                        found = true;
+                    else if (emulator == "libretro" && si.Name == "shader")
+                        found = true;
+                    else if (!string.IsNullOrEmpty(emulator) && !string.IsNullOrEmpty(core) && si.Name == emulator + "." + core)
+                        found = true;
+                    else if (!string.IsNullOrEmpty(emulator) && si.Name == emulator)
+                        found = true;
 
-					if (found)
-					{
-						if (si.Value != null && si.Value.Contains("disabled"))
-							found = false;
+                    if (found)
+                    {
+                        if (si.Value != null && si.Value.Contains("disabled"))
+                            found = false;
 
                         return si.Value;
-					}
+                    }
 				}				
             }
 

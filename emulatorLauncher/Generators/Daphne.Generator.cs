@@ -173,9 +173,12 @@ namespace EmulatorLauncher
                     });
 
                 if (RawLightgun.GetRawLightguns().Any(gun => gun.Type == RawLighGunType.SindenLightgun))
+                {
                     commandArray.AddRange(new string[] { "-sinden", "2", "w" });
+                    Guns.StartSindenSoftware();
+                }
 
-                string directoryName = Path.GetFileName(rom);
+                    string directoryName = Path.GetFileName(rom);
 
                 if (directoryName == "actionmax")
                     directoryName = Path.ChangeExtension(directoryName, ".daphne");

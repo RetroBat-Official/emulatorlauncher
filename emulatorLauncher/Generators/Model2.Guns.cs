@@ -28,7 +28,10 @@ namespace EmulatorLauncher
                 return;
             }
 
-            else if (guns.Length == 1)
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                Guns.StartSindenSoftware();
+
+            if (guns.Length == 1)
             {
                 gun1 = guns[0];
             }

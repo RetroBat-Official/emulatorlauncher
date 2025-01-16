@@ -34,11 +34,11 @@ namespace EmulatorLauncher.Common.Lightguns
         public static bool IsSindenLightGunConnected()
         {
             // Find Sinden software process (if software is not running , no need to check for the gun and no need to create the border)
-            var px = Process.GetProcessesByName("Lightgun").FirstOrDefault();
+            /*var px = Process.GetProcessesByName("Lightgun").FirstOrDefault();
             if (px == null)
                 return false;
 
-            /* When Sinden Lightgun app is running & Start is pressed, there's an ActiveMovie window in the process, with the class name "FilterGraphWindow" --- disabled for now but kept in case we need it later
+            When Sinden Lightgun app is running & Start is pressed, there's an ActiveMovie window in the process, with the class name "FilterGraphWindow" --- disabled for now but kept in case we need it later
             if (!User32.FindHwnds(px.Id, hWnd => User32.GetClassName(hWnd) == "FilterGraphWindow", false).Any())
                 return false;*/
 

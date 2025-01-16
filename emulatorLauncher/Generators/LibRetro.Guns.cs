@@ -50,6 +50,9 @@ namespace EmulatorLauncher.Libretro
             var guns = RawLightgun.GetRawLightguns();
             SimpleLogger.Instance.Info("[LightGun] Found " + gunCount + " usable guns.");
 
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                Guns.StartSindenSoftware();
+
             // Set multigun to true in some cases
             // Case 1 = multiple guns are connected, playerindex is 1 and user did not force 'one gun only'
             if (gunCount > 1 && guns.Length > 1 && playerIndex == 1 && !useOneGun)

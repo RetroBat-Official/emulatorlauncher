@@ -143,10 +143,19 @@ namespace EmulatorLauncher
                     }
                     else if (File.Exists(Path.Combine(effectSearchPaths, "Bezel.fx")))
                         File.Delete(Path.Combine(effectSearchPaths, "Bezel.fx"));
-                    
+
+                    // Sort techniques to put sinden border last
+                    if (techniques.Any(t => t.Contains("Border")))
+                    {
+                        var techniquesWithBorder = techniques.Where(t => t.Contains("Border")).ToList();
+                        var techniquesWithoutBorder = techniques.Where(t => !t.Contains("Border")).ToList();
+
+                        techniques = techniquesWithoutBorder.Concat(techniquesWithBorder).ToList();
+                    }
+
                     reShadePreset.WriteValue(null, "Techniques", string.Join(",", techniques.ToArray()));
 
-                    if (techniques.Contains("GeomCRT") || techniques.Contains("CRTGeom.fx"))
+                    if (techniques.Contains("GeomCRT") || techniques.Contains("CRTGeom.fx") || techniques.Contains("GeomCRT@CRTGeom.fx"))
                     {
                         float resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
 
@@ -161,11 +170,14 @@ namespace EmulatorLauncher
                     // TechniqueSorting
                     var techniqueSorting = (reShadePreset.GetValue(null, "TechniqueSorting") ?? "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(t => !knownTechniques.Contains(t)).ToList();
 
-                    if (!string.IsNullOrEmpty(shaderFileName) && !string.IsNullOrEmpty(shaderName))
+                    if (!string.IsNullOrEmpty(shaderFileName) && !string.IsNullOrEmpty(shaderName) && !shaderName.Contains("Border"))
                         techniqueSorting.Add(shaderName);
 
                     if (bezel != null)
                         techniqueSorting.Add(bezelEffectName);
+
+                    if (!string.IsNullOrEmpty(shaderFileName) && !string.IsNullOrEmpty(shaderName) && shaderName.Contains("Border"))
+                        techniqueSorting.Add(shaderName);
 
                     if (oldVersion)
                         reShadePreset.WriteValue(null, "TechniqueSorting", string.Join(",", techniqueSorting.ToArray()));

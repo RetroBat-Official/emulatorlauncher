@@ -1742,7 +1742,8 @@ namespace EmulatorLauncher.Libretro
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
         { 
-            { "flycast", "vulkan" }
+            { "flycast", "vulkan" },
+            { "melondsds", "glcore" }
         };
         static Dictionary<string, retro_language> Languages = new Dictionary<string, retro_language>()
         {

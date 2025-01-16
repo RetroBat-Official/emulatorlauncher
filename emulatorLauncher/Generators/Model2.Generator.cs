@@ -162,28 +162,6 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Input", "HoldGears", "m2_HoldGears", "1", "0");
                     BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "1", "0");
 
-                    // Gun indexes
-                    string mouse1Index = "0";
-                    string mouse2Index = "1";
-                    int gunCount = RawLightgun.GetUsableLightGunCount();
-                    var guns = RawLightgun.GetRawLightguns();
-
-                    if (gunCount > 0 && guns.Length > 0)
-                    {
-                        SimpleLogger.Instance.Info("[GUNS] Found " + gunCount.ToString() + " usable guns.");
-                        mouse1Index = guns[0].Index.ToString();
-                        if (gunCount > 1 && guns.Length > 1)
-                            mouse2Index = guns[1].Index.ToString();
-                    }
-
-                    if (SystemConfig.isOptSet("m2_rawinput_p1") && !string.IsNullOrEmpty(SystemConfig["m2_rawinput_p1"]))
-                        mouse1Index = SystemConfig["m2_rawinput_p1"];
-                    if (SystemConfig.isOptSet("m2_rawinput_p2") && !string.IsNullOrEmpty(SystemConfig["m2_rawinput_p2"]))
-                        mouse2Index = SystemConfig["m2_rawinput_p2"];
-
-                    ini.WriteValue("Input", "RawDevP1", mouse1Index);
-                    ini.WriteValue("Input", "RawDevP2", mouse2Index);
-
                     if (SystemConfig.isOptSet("m2_deadzone") && !string.IsNullOrEmpty(SystemConfig["m2_deadzone"]))
                     {
                         string deadzone = SystemConfig["m2_deadzone"].ToIntegerString() + "00";
