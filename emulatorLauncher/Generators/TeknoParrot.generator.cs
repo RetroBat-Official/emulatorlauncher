@@ -178,6 +178,7 @@ namespace EmulatorLauncher
             rom = this.TryUnZipGameIfNeeded(system, rom);
 
             string gameName = Path.GetFileNameWithoutExtension(rom);
+            SimpleLogger.Instance.Info("[INFO] Game name : " + gameName);
 
             GameProfile profile = FindGameProfile(path, rom, gameName);
             if (profile == null)
@@ -190,11 +191,16 @@ namespace EmulatorLauncher
 
             GameProfile userProfile = null;
 
+            SimpleLogger.Instance.Info("[INFO] Checking if userprofile exists.");
             var userProfilePath = Path.Combine(Path.Combine(path, "UserProfiles", Path.GetFileName(profile.FileName)));
             if (File.Exists(userProfilePath))
+            {
+                SimpleLogger.Instance.Info("[INFO] UserProfile already exists.");
                 userProfile = JoystickHelper.DeSerializeGameProfile(userProfilePath, true);
+            }
             else
             {
+                SimpleLogger.Instance.Info("[INFO] Generating user profile.");
                 JoystickHelper.SerializeGameProfile(profile, userProfilePath);
                 userProfile = JoystickHelper.DeSerializeGameProfile(userProfilePath, true);
             }
@@ -210,6 +216,7 @@ namespace EmulatorLauncher
             bool multiExe = false;
             if (userProfile.GamePath == null || !File.Exists(userProfile.GamePath))
             {
+                SimpleLogger.Instance.Info("[INFO] Searching for Game executable.");
                 if (userProfile.ExecutableName != null && userProfile.ExecutableName.Contains(";"))
                 {
                     var split = userProfile.ExecutableName.Split(';');
@@ -268,6 +275,8 @@ namespace EmulatorLauncher
                         if (split.Length > 1)
                             userProfile.ExecutableName = split[1];
 
+                        SimpleLogger.Instance.Info("[INFO] Searching for Game executable with second executable.");
+
                         goto RetryWithSecondExe;
                     }
 
@@ -299,7 +308,7 @@ namespace EmulatorLauncher
                 windowed.FieldValue = "0";
 
             var displaymode = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "DisplayMode");
-            if (SystemConfig.isOptSet("tp_fsmode") && !string.IsNullOrEmpty(SystemConfig["tp_fsmode"]))
+            if (displaymode != null && SystemConfig.isOptSet("tp_fsmode") && !string.IsNullOrEmpty(SystemConfig["tp_fsmode"]))
             {
                 string fs_mode = SystemConfig["tp_fsmode"];
                 switch (fs_mode)
@@ -414,6 +423,8 @@ namespace EmulatorLauncher
 
             if (File.Exists(parrotData))
             {
+                SimpleLogger.Instance.Info("[INFO] Setting up ParrotData.xml");
+
                 XElement xdoc = XElement.Load(parrotData);
 
                 xdoc.SetElementValue("SilentMode", true);
@@ -724,6 +735,7 @@ namespace EmulatorLauncher
 
         private static string FindExecutable(string path, string profileName)
         {
+            SimpleLogger.Instance.Info("[INFO] Searching in internal Database.");
             if (!executables.ContainsKey(profileName))
                 return null;
 
@@ -736,6 +748,7 @@ namespace EmulatorLauncher
 
         private static string FindBestExecutable(string path, string executableName)
         {
+            SimpleLogger.Instance.Info("[INFO] Searching more widely.");
             try
             {
                 // Search for the file in the current directory and all subdirectories
