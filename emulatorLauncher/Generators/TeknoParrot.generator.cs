@@ -24,145 +24,142 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
 
         static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
-        {                        
+        {
+            { "2Spicy",                          @"Too Spicy\elf\apacheM_HD.elf" },
+            { "abc",                             @"Afterburner Climax\abc 1080p" },
+            { "AkaiKatanaShinNesica",            @"Akai Katana Shin for NesicaxLive\Game.exe" },
+            { "AliensExtermination",             @"Aliens Extermination\aliens\DATA\aliens dehasped.exe" },
+            { "AquapazzaAquaplusDreamMatch",     @"Aquapazza Aquaplus Dream Match for NesicaxLive\Game.exe" },
+            { "ArcadeLove",                      @"Arcade Love with Pengo\gl.exe" },
+            { "ArcanaHeart2Nesica",              @"Arcana Heart 2 for NesicaxLive\Game.exe" },
             { "Batman",                          @"Batman\ZeusSP\sdaemon.exe" },
+            { "BattleGear4",                     @"Battle Gear 4\game.exe" },
+            { "BattleGear4Tuned",                @"Battle Gear 4 Tuned\game.exe" },
             { "BBCF",                            @"Blazblue - Central Fiction\game.exe" },
             { "BBCP",                            @"Blazblue Chronophantasma\Game.exe" },
+            { "BBBHome",                         @"Big Buck Hunter Pro Home\game" },
+            { "BladeArcus",                      @"Blade Arcus from Shining\Game\mxWritePrerenderedFrames.exe" },
+            { "BladeStrangers",                  @"Blade Strangers\Game\himekaku.exe" },
             { "BlazBlueContinuumShift2",         @"Blazblue Continuum Shift II\game.exe" },
+            { "BorderBreakScramble",             @"Border Break Scramble\Border Break Scramble\nrs.exe" },
+            { "CaladriusAC",                     @"CaladriusAC\SILVER_AMP_R_ROM.exe" },
             { "CC",                              @"Chaos Code\game.exe" },
             { "ChaosCodeNSOC103",                @"Chaos Code - New Sign of Catastrophe for NesicaxLive\game.exe" },
+            { "ChaseHQ2",                        @"Chase H.Q. 2\game.exe" },
             { "CrimzonClover",                   @"Crimzon Clover for NesicaxLive\Game.exe" },
+            { "DariusBurst",                     @"Daruis Brust Another Chronicle\game.exe" },
             { "Daytona3",                        @"Daytona 3\Daytona\Daytona.exe" },
             { "DirtyDrivin",                     @"Dirty Drivin\sdaemon.exe" },
             { "DOA5",                            @"Dead or Alive 5\DOA5A.exe" },
+            { "DoNotFallRunforYourDrink",        @"Do Not Fall Run For Your Drink\game.exe" },
+            { "ElevatorAction",                  @"Elevator Action for NesicaxLive\game.exe" },
+            { "EnEinsPerfektewelt",              @"En-Eins Perfektewelt\game.exe" },
             { "FightingClimax",                  @"FightingClimax\RingGame.exe" },
             { "FightingClimaxIgnition",          @"Fighting Climax Ignition [SDCS]\Game\RingGame.exe" },
+            { "FNF",                             @"Fast and Furious\sdaemon.exe" },
+            { "FNFDrift",                        @"Fast and Furious the  Drift\rawart\sdaemon.exe" },
+            { "FNFSB",                           @"Fast and Furious Superbikes\sdaemon.exe" },
             { "FNFSB2",                          @"Super Bikes 2 - Raw Thrills\rawart\sdaemon.exe" },
+            { "FNFSC",                           @"Fast and Furious Supercars\sdaemon.exe" },
             { "FR",                              @"Ford Racing\fordracing.exe" },
             { "GG",                              @"Sega Golden Gun\exe\RingGunR_RingWide.exe" },
             { "GGXrd",                           @"Guilty Gear Xrd Rev 2\Binaries\Win32\GuiltyGearXrd.exe" },
             { "GGXrdSIGN",                       @"Guilty Gear Xrd Sign (RingEdge 2)\Binaries\Win32\GuiltyGearXrd.exe" },
+            { "GGXX",                            @"Guilty Gear XX\GGXXACP_RE2.exe" },
             { "GHA",                             @"Guitar Hero Arcade EDITION\GHA.exe" },
+            { "Goketsuji",                       @"Goketsuji Ichizoku - Senzo Kuyou for NesicaxLive\game.exe" },
+            { "GRID",                            @"Race Driver - GRID\Sega\Grid\GRID.exe" },
+            { "GtiClub3",                        @"gticlub3 - ok\gti3.exe" },
             { "H2Overdrive",                     @"H2Overdrive\sdaemon.exe" },
             { "Homura",                          @"Homura (Type X)\Game.exe" },
             { "HOTD4",                           @"hotd4 (lindbergh)\disk0\elf\hod4M.elf" },
+            { "HOTD4SP",                         @"House of The Dead 4: Special\disk0\hod4-sp\elf\hod4M.elf" },
+            { "HOTDEX",                          @"House of The Dead EX\disk0\elf\hodexRI.elf" },
             { "HyperStreetFighterII",            @"Hyper Street Fighter II - The Anniversary Edition for NesicaxLive\game.exe" },
+            { "ID4Exp",                          @"Id4exp\disk0\id4.elf" },
+            { "ID4Jap",                          @"Id4\id4\disk0\id4.elf" },
+            { "ID5",                             @"Initial D 5 Export\id5.elf" },
             { "ID6",                             @"Initial D arcade stage 6 AA\id6_dump_.exe" },
             { "ID7",                             @"Initial D arcade stage 7 AAX\InitialD7_GLW_RE_SBYD_dumped_.exe" },
             { "ID8",                             @"Initial D Arcade Stage 8 Infinity\InitialD8_GLW_RE_SBZZ_redumped_.exe" },
             { "Ikaruga",                         @"Ikaruga for NesicaxLive\game.exe" },
+            { "JurassicPark",                    @"Jurassic Park Arcade\Game" },
+            { "JusticeLeague",                   @"Justice League - Heroes United\JLA.exe" },
+            { "KingofFightersSkyStage",          @"KOF SkyStage\Game.exe" },
+            { "KingofFightersXII",               @"King of Fighters XII\game.exe" },
+            { "KingofFightersXIII",              @"King of Fighters XIII\game.exe" },
+            { "KingofFightersXIIIClimax",        @"King of Fighters XIII Climax\game.exe" },
+            { "KingofFightersXIIIClimaxNesica",  @"King of Fighters XIII Climax for NesicaxLive\game.exe" },
+            { "KingofFighters98UltimateMatchFinalEditionNesica", @"The King of Fighters '98 Ultimate Match Final Edition for NesicaxLive\game.exe" },
+            { "KingofFightersMaximumImpactRegulationA", @"King of Fighters Maximum Impact Regulation A\game.exe" },
+            { "KODrive",                         @"K.O. Drive\exe\M-DriveR_RingWide.exe" },
+            { "Koihime",                         @"Koihime\Game\koi_systemAPM.exe" },
             { "LGI",                             @"Sega Lets Go Island\LGI_RingW_F_safe.exe" },
+            { "LGI3D",                           @"Sega Lets Go Island 3D\LGI.exe" },
+            { "LGJ",                             @"lets go jungle\disk0\lgj1920" },
+            { "LGJS - Copie",                    @"Lets Go Jungle Special\lgjsp_app" },
+            { "LGJS",                            @"Lets Go Jungle Special\lgjsp_app" },
+            { "LGS",                             @"Let's Go Safari\GameSampR_RingWide.exe" },
             { "LuigisMansion",                   @"Luigi's Mansion Arcade\exe\x64\VACUUM.exe" },
             { "MB",                              @"Melty Blood Actress Again Current Code\MBAA.exe" },
+            { "MeltyBloodRE2",                   @"Melty Blood AACC\Game\MBAA_RWMasterBuild.exe" },
             { "MKDX",                            @"Mario kart dx\MK_AGP3_FINAL.exe" },
             { "MS",                              @"Sonic Storm aka Mach Storm\src\game\ACE7_WIN\ACE7_WIN_10.exe" },
             { "OG",                              @"Operation G.H.O.S.T\gs2.exe" },
             { "or2spdlx",                        @"Outrun 2 SP SDX\Jennifer\Jennifer" },
             { "Persona4U",                       @"Persona 4 - The Ultimax Ultra Suplex Hold\game.exe" },
+            { "PhantomBreaker",                  @"Phantom Breaker Another Code\Game\pbac_ringedge2.exe" },
+            { "PokkenTournament",                @"Pokemon\ferrum_app.exe" },
+            { "PowerInstinctV",                  @"Goketsuji Ichizoku - Matsuri Senzo Kuyo\game.exe" },
+            { "PPQ",                             @"puyoquest\bin\Pj24App.exe" },
             { "PuzzleBobble",                    @"Puzzle Bobble for NesicaxLive\game.exe" },
             { "RaidenIIINesica",                 @"Raiden III for NesicaxLive\game.exe" },
             { "RaidenIV",                        @"Raiden IV (type x)\game.exe" },
             { "Rambo",                           @"Rambo (Lindbergh)\disk0\elf\ramboD.elf" },
             { "RastanSaga",                      @"Rastan Saga  for NesicaxLive\game.exe" },
             { "RumbleFish2Nesica",               @"Rumble Fish 2 for NesicaxLive\Release\game\Game.exe" },
+            { "R-Tuned",                         @"r-tuned\R-Tuned Ultimate Street Racing\dsr_HD" },
             { "SamuraiSpiritsSen",               @"Samurai Shodown - Edge of Destiny\game.exe" },
+            { "SchoolOfRagnarok",                @"School of Ragnarok\TieProduction\Binaries\Win64\TieProduction.exe" },
             { "SDR",                             @"Sega Dream Raiders\prg\game.exe" },
             { "segartv",                         @"Sega Race TV\drive.elf" },
-            { "ShiningForceCrossRaid",           @"Shining Force Cross Raid\project_f-ringedge-release.exe" },
-            { "SpicaAdventure",                  @"Spica Adventure\game.exe" },
-            { "SR3",                             @"Sega Rally 3 (Europa-R)\Rally\Rally.exe" },
-            { "SSASR",                           @"Sonic Sega All Stars Racing Arcade\game.exe" },
-            { "StarWars",                        @"Star Wars - Battle Pod\Launcher\RSLauncher.exe" },
-            { "StreetFighterIII3rdStrike",       @"Street Fighter III 3rd Strike - Fight for the Future\game.exe" },
-            { "StreetFighterZero3",              @"Street Fighter Zero 3 for NesicaxLive\game.exe" },
-            { "Transformers",                    @"transformers_final\exe\TF_Gun_R_Ring_dumped.exe" },
-            { "UDX",                             @"Under Defeat HD+\UDX_RINGEDGE.exe" },
-            { "VampireSavior",                   @"Vampire Savior - The Lord of Vampire for NesicaxLive\game.exe" },
-            { "VF5B",                            @"Virtua Fighter 5 Rev B\vf5" },
-            { "VF5C",                            @"Virtua Fighter 5 Rev C\vf5" },
-            { "VT3",                             @"Virtua Tennis 3\vt3_Lindbergh\vt3_Lindbergh_FULLHD" },
-            { "VT4",                             @"Virtua Tennis 4 (Ring Edge)\VT4_RING_r.exe" },            
-
-            //{ "2Spicy",                          @"Too Spicy\elf\apacheM_HD.elf" },
-            { "abc",                             @"Afterburner Climax\abc 1080p" },
-            { "AkaiKatanaShinNesica",            @"Akai Katana Shin for NesicaxLive\Game.exe" },
-            { "AquapazzaAquaplusDreamMatch",     @"Aquapazza Aquaplus Dream Match for NesicaxLive\Game.exe" },
-            { "ArcadeLove",                      @"Arcade Love with Pengo\gl.exe" },
-            { "ArcanaHeart2Nesica",              @"Arcana Heart 2 for NesicaxLive\Game.exe" },
-            { "BattleGear4",                     @"Battle Gear 4\game.exe" },
-            { "BattleGear4Tuned",                @"Battle Gear 4 Tuned\game.exe" },
-            { "BladeArcus",                      @"Blade Arcus from Shining\Game\mxWritePrerenderedFrames.exe" },
-            { "BladeStrangers",                  @"Blade Strangers\Game\himekaku.exe" },
-            { "BorderBreakScramble",             @"Border Break Scramble\Border Break Scramble\nrs.exe" },
-            { "CaladriusAC",                     @"CaladriusAC\SILVER_AMP_R_ROM.exe" },
-            { "ChaseHQ2",                        @"Chase H.Q. 2\game.exe" },
-            { "DariusBurst",                     @"Daruis Brust Another Chronicle\game.exe" },
-            { "DoNotFallRunforYourDrink",        @"Do Not Fall Run For Your Drink\game.exe" },
-            { "ElevatorAction",                  @"Elevator Action for NesicaxLive\game.exe" },
-            { "EnEinsPerfektewelt",              @"En-Eins Perfektewelt\game.exe" },
-            { "FNF",                             @"Fast and Furious\sdaemon.exe" },
-            { "FNFDrift",                        @"Fast and Furious the  Drift\rawart\sdaemon.exe" },
-            { "FNFSB",                           @"Fast and Furious Superbikes\sdaemon.exe" },
-            { "FNFSC",                           @"Fast and Furious Supercars\sdaemon.exe" },
-            { "GGXX",                            @"Guilty Gear XX\GGXXACP_RE2.exe" },
-            { "Goketsuji",                       @"Goketsuji Ichizoku - Senzo Kuyou for NesicaxLive\game.exe" },
-            { "GRID",                            @"Race Driver - GRID\Sega\Grid\GRID.exe" },
-            { "GtiClub3",                        @"gticlub3 - ok\gti3.exe" },
-            { "ID4Exp",                          @"Id4exp\disk0\id4.elf" },
-            { "ID4Jap",                          @"Id4\id4\disk0\id4.elf" },
-            { "ID5",                             @"Initial D 5 Export\id5.elf" },
-            { "JusticeLeague",                   @"Justice League - Heroes United\JLA.exe" },
-            { "KODrive",                         @"K.O. Drive\exe\M-DriveR_RingWide.exe" },
-            { "Koihime",                         @"Koihime\Game\koi_systemAPM.exe" },
-            { "LGI3D",                           @"Sega Lets Go Island 3D\LGI.exe" },
-            { "LGJ",                             @"lets go jungle\disk0\lgj1920" },
-            { "LGJS - Copie",                    @"Lets Go Jungle Special\lgjsp_app" },
-            { "LGJS",                            @"Lets Go Jungle Special\lgjsp_app" },
-            { "LGS",                             @"Let's Go Safari\GameSampR_RingWide.exe" },
-            { "MeltyBloodRE2",                   @"Melty Blood AACC\Game\MBAA_RWMasterBuild.exe" },
-            { "PhantomBreaker",                  @"Phantom Breaker Another Code\Game\pbac_ringedge2.exe" },
-            { "PokkenTournament",                @"Pokemon\ferrum_app.exe" },
-            { "PowerInstinctV",                  @"Goketsuji Ichizoku - Matsuri Senzo Kuyo\game.exe" },
-            { "PPQ",                             @"puyoquest\bin\Pj24App.exe" },
-            { "R-Tuned",                         @"r-tuned\R-Tuned Ultimate Street Racing\dsr_HD" },
-            { "SchoolOfRagnarok",                @"School of Ragnarok\TieProduction\Binaries\Win64\TieProduction.exe" },
             { "SenkoNoRondeDuo",                 @"Senko No Ronde - Duo - Dis-United Order\game.exe" },
             { "Shigami3",                        @"Shikigami No Shiro III\bin\game.exe" },
             { "ShiningForceCrossElysion",        @"Shining Force - Cross Elysion\project_f-ringedge-release.exe" },
+            { "ShiningForceCrossRaid",           @"Shining Force Cross Raid\project_f-ringedge-release.exe" },
             { "SnoCross",                        @"Winter X Games Snocross\sdaemon.exe" },
             { "SpaceInvaders",                   @"Space Invaders\Game.exe" },
+            { "SpicaAdventure",                  @"Spica Adventure\game.exe" },
+            { "SR3",                             @"Sega Rally 3 (Europa-R)\Rally\Rally.exe" },
             { "SRC",                             @"Sega racing\Sega_Racing_Classic_RingWide - ok\d1a.exe" },
+            { "SSASR",                           @"Sonic Sega All Stars Racing Arcade\game.exe" },
+            { "StarWars",                        @"Star Wars - Battle Pod\Launcher\RSLauncher.exe" },
             { "StraniaTheStellaMachina",         @"Strania The Stella Machina\game.exe" },
+            { "StreetFighterIII3rdStrike",       @"Street Fighter III 3rd Strike - Fight for the Future\game.exe" },
+            { "StreetFighterVTypeArcade",        @"Street Fighter V Type Arcade\game\WindowsNoEditor\StreetFighterV.exe" },
+            { "StreetFighterZero3",              @"Street Fighter Zero 3 for NesicaxLive\game.exe" },
+            { "SuperStreetFighterIVArcadeEdition", @"Super Street Fighter IV Arcade Edition\game.exe" },
             { "TaisenHotGimmick5",               @"Taisen Hot Gimmick 5\Game.exe" },
+            { "TargetTerrorGold",                @"Target Terror: Gold\game" },
+            { "Tekken7",                         @"Tekken 7 Fated Retribution\TekkenGame\Binaries\Win64\TekkenGame-Win64-Shipping.exe" },
+            { "Tekken7FR",                       @"Tekken7FR\TekkenGame\Binaries\Win64\TekkenGame-Win64-Shipping.exe" },
+            { "TetrisTheGrandMaster3TerrorInstinct", @"Tetris The Grand Master 3 Terror Instinct\Gamehd.exe" },
             { "Theatrhythm",                     @"Theatrhythm Final Fantasy All Star Carnival\game.exe" },
             { "TokyoCop",                        @"Tokyo Cop\home\joc2001\joc2001\Sources\gameport\linux\gameport" },
+            { "Transformers",                    @"transformers_final\exe\TF_Gun_R_Ring_dumped.exe" },
+            { "TransformersShadowsRising",       @"Transformers: Shadows Rising\Sega\Transformers2\Transformers2.exe" },
+            { "UDX",                             @"Under Defeat HD+\UDX_RINGEDGE.exe" },
             { "UltraStreetFighterIV",            @"Ultra Street Fighter 4 for NesicaxLive\game.exe"},
             { "UnderNightInBirthExeLatest",      @"Under Night In-Birth ExeLate[st]\Game\RingGame.exe" },
+            { "VampireSavior",                   @"Vampire Savior - The Lord of Vampire for NesicaxLive\game.exe" },
+            { "VF5B",                            @"Virtua Fighter 5 Rev B\vf5" },
+            { "VF5C",                            @"Virtua Fighter 5 Rev C\vf5" },
             { "VirtuaRLimit",                    @"Valve Limit R\launcher.exe" },
+            { "VT3",                             @"Virtua Tennis 3\vt3_Lindbergh\vt3_Lindbergh_FULLHD" },
+            { "VT4",                             @"Virtua Tennis 4 (Ring Edge)\VT4_RING_r.exe" },
             { "WackyRaces",                      @"Wacky Race\Launcher.exe" },
             { "WMMT5",                           @"Wangan Midnight Maximum Tune 5\wmn5r.exe" },
             { "YugiohDT6U",                      @"Yu\exe\game.exe" },
-            { "Tekken7",                         @"Tekken 7 Fated Retribution\TekkenGame\Binaries\Win64\TekkenGame-Win64-Shipping.exe" },
-            { "Tekken7FR",                       @"Tekken7FR\TekkenGame\Binaries\Win64\TekkenGame-Win64-Shipping.exe" },
-
-            { "KingofFightersSkyStage",          @"KOF SkyStage\Game.exe" },
-            { "KingofFightersXII",               @"King of Fighters XII\game.exe" },
-            { "KingofFightersXIII",              @"King of Fighters XIII\game.exe" },
-            { "KingofFightersXIIIClimax",        @"King of Fighters XIII Climax\game.exe" },
-            { "KingofFightersXIIIClimaxNesica",  @"King of Fighters XIII Climax for NesicaxLive\game.exe" },
-
-            { "SuperStreetFighterIVArcadeEdition", @"Super Street Fighter IV Arcade Edition\game.exe" },            
-            { "TetrisTheGrandMaster3TerrorInstinct", @"Tetris The Grand Master 3 Terror Instinct\Gamehd.exe" },
-            { "KingofFighters98UltimateMatchFinalEditionNesica", @"The King of Fighters '98 Ultimate Match Final Edition for NesicaxLive\game.exe" },
-            { "KingofFightersMaximumImpactRegulationA", @"King of Fighters Maximum Impact Regulation A\game.exe" },
-
-            { "BBBHome",                         @"Big Buck Hunter Pro Home\game" },
-            { "HOTDEX",                          @"House of The Dead EX\disk0\elf\hodexRI.elf" },
-            { "JurassicPark",                    @"Jurassic Park Arcade\Game" },
-            { "TargetTerrorGold",                @"Target Terror: Gold\game" },
-            { "HOTD4SP",                         @"House of The Dead 4: Special\disk0\hod4-sp\elf\hod4M.elf" },
-            { "TransformersShadowsRising",       @"Transformers: Shadows Rising\Sega\Transformers2\Transformers2.exe" },
-            { "AliensExtermination",             @"Aliens Extermination\aliens\DATA\aliens dehasped.exe" },
         };
 
         private string _exename;
@@ -280,8 +277,24 @@ namespace EmulatorLauncher
                         goto RetryWithSecondExe;
                     }
 
-                    SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find Game executable for " + rom);
-                    return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game executable" };
+                    // Final search in yml file used for reshade
+                    string ExecutableYml = null;
+                    try
+                    {
+                        if (GetYmlExeInfo(gameName, out ExecutableYml))
+                        {
+                            string exeFile = Directory.GetFiles(rom, ExecutableYml, SearchOption.AllDirectories).FirstOrDefault();
+                            if (exeFile != null)
+                                userProfile.GamePath = exeFile;
+                        }
+                    }
+                    catch { }
+
+                    if (userProfile.GamePath == null)
+                    {
+                        SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find Game executable for " + rom);
+                        return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game executable" };
+                    }
                 }
             }
 
@@ -795,7 +808,6 @@ namespace EmulatorLauncher
             type = ReshadeBezelType.opengl;
             platform = ReshadePlatform.x86;
 
-            Dictionary<string, Dictionary<string, string>> reshadeInfo = new Dictionary<string, Dictionary<string, string>>();
             string reshadeInfoFile = Path.Combine(Program.AppConfig.GetFullPath("tools"), "teknoparrotReshade.yml");
 
             try
@@ -823,6 +835,38 @@ namespace EmulatorLauncher
                             else if (info.Name == "type")
                             {
                                 bool typeExists = Enum.TryParse(info.Value, out type);
+                            }
+                        }
+                        return true;
+                    }
+                    else return false;
+                }
+                else return false;
+            }
+            catch { return false; }
+        }
+
+        private bool GetYmlExeInfo(string game, out string YmlExe)
+        {
+            YmlExe = null;
+
+            string ExeInfoFile = Path.Combine(Program.AppConfig.GetFullPath("tools"), "teknoparrotExecutables.yml");
+
+            try
+            {
+                var yml = YmlFile.Load(ExeInfoFile);
+                if (yml != null)
+                {
+                    var gameInfo = yml.GetContainer(game);
+                    if (gameInfo != null)
+                    {
+                        foreach (var infoLine in gameInfo.Elements)
+                        {
+                            YmlElement info = infoLine as YmlElement;
+                            if (info.Name == "executable")
+                            {
+                                YmlExe = info.Value;
+                                continue;
                             }
                         }
                         return true;
