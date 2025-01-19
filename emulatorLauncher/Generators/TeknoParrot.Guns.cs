@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using TeknoParrotUi.Common;
 using System.IO;
-using EmulatorLauncher;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using System.Collections.Generic;
@@ -14,7 +13,8 @@ namespace EmulatorLauncher
 {
     partial class TeknoParrotGenerator : Generator
     {
-        private static bool ConfigureTPGuns(GameProfile userProfile)
+        private static bool _demulshooter = false;
+        private static bool ConfigureTPGuns(GameProfile userProfile, string rom)
         {
             if (!Program.SystemConfig.getOptBoolean("use_guns"))
                 return false;
@@ -30,7 +30,8 @@ namespace EmulatorLauncher
             bool useKb = Program.SystemConfig.getOptBoolean("tp_gunkeyboard");
             bool st_kb = Program.SystemConfig["tp_gunkeyboard"] == "2";
             RawInputDevice keyboard = null;
-            
+            string tpGameName = Path.GetFileNameWithoutExtension(userProfile.FileName).ToLowerInvariant();
+
             // Number of players
             int playerNumber = GetNumberOfPlayers(userProfile);
 
@@ -75,6 +76,21 @@ namespace EmulatorLauncher
             if (gun4 != null)
                 SimpleLogger.Instance.Info("[GUNS] Gun 4: " + gun4.DevicePath.ToString());
 
+            // Demulshooter
+            _demulshooter = Program.SystemConfig.getOptBoolean("use_demulshooter");
+            if (_demulshooter)
+            {
+                string profileName = Path.GetFileNameWithoutExtension(userProfile.FileName);
+                SimpleLogger.Instance.Info("[GUNS] Checking game compatibility for: " + profileName);
+
+                if (Demulshooter.teknoParrotGames.ContainsKey(profileName))
+                {
+                    SimpleLogger.Instance.Info("[GUNS] Game is compatible with DemulShooter, disabling native controls.");
+                    Demulshooter.StartDemulshooter("teknoparrot", "teknoparrot", rom, gun1, gun2, gun3, gun4);
+                }
+                else
+                    SimpleLogger.Instance.Info("[GUNS] Game not found in DemulShooter compatibility list: " + profileName);
+            }
 
             // Get keyboards
             var hidDevices = RawInputDevice.GetRawInputDevices();
@@ -148,7 +164,7 @@ namespace EmulatorLauncher
             string tpMappingyml = Controller.GetSystemYmlMappingFile("teknoparrot", "", "teknoparrot", mappingPaths);
             var buttonMap = new Dictionary<string, string>();
             string gameName = null;
-            string tpGameName = Path.GetFileNameWithoutExtension(userProfile.FileName).ToLowerInvariant();
+            
 
             if (tpMappingyml != null && File.Exists(tpMappingyml))
             {
@@ -607,7 +623,7 @@ namespace EmulatorLauncher
         { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
         private readonly static List<string> WiiKBKeys = new List<string>
-        { "kb_1", "kb_2", "kb_3", "kb_4", "kb_5", "kb_6", "kb_7", "kb_8", "kb_Up", "kb_Down", "kb_Left", "kb_Right" };
+        { "kb_1", "kb_2", "kb_3", "kb_4", "kb_5", "kb_6", "kb_7", "kb_8", "kb_Up", "kb_Down", "kb_Left", "kb_Right", "kb_left", "kb_right", "kb_up", "kb_down" };
 
         private static string GetDescriptionFromFile(string path, string device)
         {

@@ -7,21 +7,22 @@ using System.Collections.Generic;
 using EmulatorLauncher.Common.FileFormats;
 using System;
 using EmulatorLauncher.Common;
-using System.Runtime.Remoting.Messaging;
 
 namespace EmulatorLauncher
 {
     partial class TeknoParrotGenerator : Generator
     {
-        private static void ConfigureControllers(GameProfile userProfile)
+        private static void ConfigureControllers(GameProfile userProfile, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
             SimpleLogger.Instance.Info("[INFO] Check if Gun configuration is required.");
 
-            if (ConfigureTPGuns(userProfile))
+            if (ConfigureTPGuns(userProfile, rom))
                 return;
+
+            SimpleLogger.Instance.Info("[INFO] Gun configuration not required, configuring controller.");
 
             int padNr = Program.Controllers.Where(c => !c.IsKeyboard).Count();
 
