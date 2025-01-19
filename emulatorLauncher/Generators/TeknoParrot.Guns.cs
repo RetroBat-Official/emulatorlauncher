@@ -607,7 +607,7 @@ namespace EmulatorLauncher
         { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
         private readonly static List<string> WiiKBKeys = new List<string>
-        { "kb_1", "kb_2", "kb_3", "kb_4", "kb_5", "kb_6", "kb_7", "kb_8", "kb_Up", "kb_Down", "kb_Left", "kb_Right" };
+        { "kb_1", "kb_2", "kb_3", "kb_4", "kb_5", "kb_6", "kb_7", "kb_8", "kb_Up", "kb_Down", "kb_Left", "kb_Right", "kb_left", "kb_right", "kb_up", "kb_down" };
 
         private static string GetDescriptionFromFile(string path, string device)
         {

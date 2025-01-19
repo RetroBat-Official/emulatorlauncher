@@ -89,9 +89,9 @@ namespace EmulatorLauncher
             {
                 ini.WriteValue("Renderer", "DrawCross", "0");
 
-                using (StreamWriter writer = new StreamWriter(crosshairCfgFile, true))
+                using (StreamWriter writer = new StreamWriter(crosshairCfgFile))
                 {
-                    if (SystemConfig["m2_crosshair"] != "0")
+                    if (SystemConfig["m2_crosshair"] == "0")
                     {
                         writer.WriteLine("1");
                         writer.WriteLine("1");
@@ -167,6 +167,6 @@ namespace EmulatorLauncher
         }
 
         private static readonly List<string> CrossGames = new List<string>()
-        { "hotd", "vcop", "vcop2" };
+        { "bel", "hotd", "vcop", "vcop2" };
     }
 }

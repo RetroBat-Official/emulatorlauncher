@@ -23,6 +23,8 @@ namespace EmulatorLauncher
             if (ConfigureTPGuns(userProfile))
                 return;
 
+            SimpleLogger.Instance.Info("[INFO] Gun configuration not required, configuring controller.");
+
             int padNr = Program.Controllers.Where(c => !c.IsKeyboard).Count();
 
             if (padNr < 1)  // If no controller, return

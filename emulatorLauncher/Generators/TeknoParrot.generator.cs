@@ -377,6 +377,8 @@ namespace EmulatorLauncher
 
             JoystickHelper.SerializeGameProfile(userProfile, userProfilePath);
 
+            Thread.Sleep(500);
+
             string profileName = Path.GetFileName(userProfile.FileName);
 
             // Apply reshade bezels
@@ -402,6 +404,7 @@ namespace EmulatorLauncher
 
                 if (reshadeExecutablePath != null)
                 {
+                    SimpleLogger.Instance.Info("[INFO] Applying Reshade.");
                     if (!ReshadeManager.Setup(reshadeType, reshadePlatform, system, rom, reshadeExecutablePath, resolution, emulator))
                         _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                 }
@@ -837,6 +840,7 @@ namespace EmulatorLauncher
                                 bool typeExists = Enum.TryParse(info.Value, out type);
                             }
                         }
+                        SimpleLogger.Instance.Info("[INFO] Information for Reshade is found.");
                         return true;
                     }
                     else return false;
@@ -881,6 +885,11 @@ namespace EmulatorLauncher
         private string FindReshadeFolder(string executable, string rom)
         {
             string ret = null;
+
+            if (executable == null)
+                return null;
+
+            SimpleLogger.Instance.Info("[INFO] Searching folder for Reshade based on : " + executable);
 
             switch (executable)
             {
