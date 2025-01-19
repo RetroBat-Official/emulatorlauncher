@@ -373,7 +373,7 @@ namespace EmulatorLauncher
             else if (apm3id != null)
                 apm3id.FieldValue = string.Empty;
 
-            ConfigureControllers(userProfile);
+            ConfigureControllers(userProfile, rom);
 
             JoystickHelper.SerializeGameProfile(userProfile, userProfilePath);
 
@@ -951,6 +951,9 @@ namespace EmulatorLauncher
             KillProcessTree("BudgieLoader");
             KillProcessTree("OpenParrotKonamiLoader");
             KillIDZ();
+
+            if (_demulshooter)
+                Demulshooter.KillDemulShooter();
 
             return 0;
         }
