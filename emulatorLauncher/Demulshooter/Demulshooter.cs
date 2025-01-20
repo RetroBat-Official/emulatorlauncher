@@ -265,7 +265,7 @@ namespace EmulatorLauncher
             { "PointBlankX", new TeknoParrotGame { XmlName = "PointBlankX", RomName = "pblankx", Architecture = "x32", Target = "es4", ExtraArgs = "-noinput" } },
 
             // coastal
-            { "wildwestshootout", new TeknoParrotGame { XmlName = "wildwestshootout", RomName = "wws", Architecture = "x32", Target = "coastal", ExtraArgs = "-noinput" } },
+            { "WildWestShootout", new TeknoParrotGame { XmlName = "WildWestShootout", RomName = "wws", Architecture = "x32", Target = "coastal", ExtraArgs = "-noinput" } },
 
             // gamewax
             { "Akuma", new TeknoParrotGame { XmlName = "Akuma", RomName = "akuma", Architecture = "x64", Target = "gamewax", ExtraArgs = "-noinput" } },
