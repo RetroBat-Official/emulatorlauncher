@@ -306,7 +306,7 @@ namespace EmulatorLauncher
             { "c_stick","down:code$075$1engine$0keyboard,engine:analog_from_button,left:code$074$1engine$0keyboard,modifier:code$068$1engine$0keyboard,modifier_scale:0.500000,right:code$076$1engine$0keyboard,up:code$073$1engine$0keyboard" }, 
         };*/
 
-        static readonly InputKeyMapping Mapping = new InputKeyMapping()
+        static InputKeyMapping Mapping = new InputKeyMapping()
         {
             { InputKey.b,               "button_a" },
             { InputKey.a,               "button_b" },
