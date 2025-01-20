@@ -77,6 +77,14 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", profile + "button_gpio14" + "\\default", "true");
             ini.WriteValue("Controls", profile + "button_gpio14", "\"" + "code:80,engine:keyboard" + "\"");
 
+            if (Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
+            {
+                Mapping[InputKey.b] = "button_b";
+                Mapping[InputKey.a] = "button_a";
+                Mapping[InputKey.x] = "button_y";
+                Mapping[InputKey.y] = "button_x";
+            }
+
             //Manage mapping of triggers ZL and ZR
             foreach (var map in Zmapping)
             {
@@ -166,24 +174,7 @@ namespace EmulatorLauncher
             string value = "";
 
             if (input.Type == "button")
-            { 
-                if (controller.IsXInputDevice && Program.SystemConfig.isOptSet("gamepadbuttons") && Program.SystemConfig.getOptBoolean("gamepadbuttons"))
-                {
-                    long newID = input.Id;
-                    if (input.Id == 0)
-                        newID = 1;
-                    else if (input.Id == 1)
-                        newID = 0;
-                    else if (input.Id == 2)
-                        newID = 3;
-                    else if (input.Id == 3)
-                        newID = 2;
-
-                    value = "button:" + newID + ",engine:sdl,guid:" + guid + ",port:0";
-                }
-                else
-                    value = "button:" + input.Id + ",engine:sdl,guid:" + guid + ",port:0";
-            }
+                value = "button:" + input.Id + ",engine:sdl,guid:" + guid + ",port:0";
             
             else if (input.Type == "hat")
                 value = "direction:" + input.Name.ToString() + ",engine:sdl,guid:" + guid + ",hat:0,port:0";
