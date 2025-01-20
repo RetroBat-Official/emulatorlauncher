@@ -131,8 +131,17 @@ namespace EmulatorLauncher
                 if (emulator == "teknoparrot")
                 {
                     string romName = Path.GetFileNameWithoutExtension(rom);
-                    if (teknoParrotGames.TryGetValue(romName, out var game) && !string.IsNullOrEmpty(game.ExtraArgs))
-                        commandArray.Add(game.ExtraArgs);
+                    if (teknoParrotGames.TryGetValue(romName, out var game))
+                    {
+                        if (!string.IsNullOrEmpty(game.ExtraArgs))
+                            commandArray.Add(game.ExtraArgs);
+
+                        // Add optional arguments based on configuration
+                        if (Program.SystemConfig.getOptBoolean("tp_nocrosshair"))
+                            commandArray.Add("-nocrosshair");
+                        if (Program.SystemConfig.getOptBoolean("tp_verbose"))
+                            commandArray.Add("-v");
+                    }
                 }
 
                 string args = string.Join(" ", commandArray);
@@ -245,45 +254,89 @@ namespace EmulatorLauncher
 
         internal static readonly Dictionary<string, TeknoParrotGame> teknoParrotGames = new Dictionary<string, TeknoParrotGame>
         {
+            // aagames
             { "RabbidsHollywood", new TeknoParrotGame { XmlName = "RabbidsHollywood", RomName = "rha", Architecture = "x64", Target = "aagames", ExtraArgs = "-noinput" } },
             { "TombRaider", new TeknoParrotGame { XmlName = "TombRaider", RomName = "tra", Architecture = "x64", Target = "aagames", ExtraArgs = "-noinput" } },
+            { "Drakons", new TeknoParrotGame { XmlName = "Drakons", RomName = "drk", Architecture = "x64", Target = "aagames", ExtraArgs = "-noinput" } },
+
+            // alls, es3, es4
             { "HOTDSD", new TeknoParrotGame { XmlName = "HOTDSD", RomName = "hodsd", Architecture = "x64", Target = "alls", ExtraArgs = "-noinput" } },
             { "TC5", new TeknoParrotGame { XmlName = "TC5", RomName = "tc5", Architecture = "x64", Target = "es3", ExtraArgs = "-noinput" } },
+            { "PointBlankX", new TeknoParrotGame { XmlName = "PointBlankX", RomName = "pblankx", Architecture = "x32", Target = "es4", ExtraArgs = "-noinput" } },
+
+            // coastal
+            { "wildwestshootout", new TeknoParrotGame { XmlName = "wildwestshootout", RomName = "wws", Architecture = "x32", Target = "coastal", ExtraArgs = "-noinput" } },
+
+            // gamewax
+            { "Akuma", new TeknoParrotGame { XmlName = "Akuma", RomName = "akuma", Architecture = "x64", Target = "gamewax", ExtraArgs = "-noinput" } },
+
+            // globalvr
             { "AliensExtermination", new TeknoParrotGame { XmlName = "AliensExtermination", RomName = "aliens", Architecture = "x32", Target = "globalvr", ExtraArgs = "-noinput" } },
             { "FarCryParadiseLost", new TeknoParrotGame { XmlName = "FarCryParadiseLost", RomName = "farcry", Architecture = "x32", Target = "globalvr", ExtraArgs = "" } },
             { "FearLand", new TeknoParrotGame { XmlName = "FearLand", RomName = "fearland", Architecture = "x32", Target = "globalvr", ExtraArgs = "-noinput" } },
+
+            // ice, konami
+            { "GhostBusters", new TeknoParrotGame { XmlName = "GhostBusters", RomName = "gbusters", Architecture = "x32", Target = "ice", ExtraArgs = "-noinput" } },
             { "WartranTroopers", new TeknoParrotGame { XmlName = "WartranTroopers", RomName = "wartran", Architecture = "x32", Target = "konami", ExtraArgs = "-noinput" } },
+            { "LethalEnforcers3", new TeknoParrotGame { XmlName = "LethalEnforcers3", RomName = "le3", Architecture = "x32", Target = "konami", ExtraArgs = "-noinput" } },
+            { "Castlevania", new TeknoParrotGame { XmlName = "Castlevania", RomName = "hcv", Architecture = "x32", Target = "konami", ExtraArgs = "-noinput" } },
+
+            // lindbergh
             { "2Spicy", new TeknoParrotGame { XmlName = "2Spicy", RomName = "2spicy", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
             { "HOTD4", new TeknoParrotGame { XmlName = "HOTD4", RomName = "hotd4", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
             { "HOTD4SP", new TeknoParrotGame { XmlName = "HOTD4SP", RomName = "hotd4sp", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
             { "LGJ", new TeknoParrotGame { XmlName = "LGJ", RomName = "lgj", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
             { "LGJS", new TeknoParrotGame { XmlName = "LGJS", RomName = "lgjsp", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
             { "Rambo", new TeknoParrotGame { XmlName = "Rambo", RomName = "rambo", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
+            { "GSEVO", new TeknoParrotGame { XmlName = "GSEVO", RomName = "gsquad", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
+            { "GSEVOELF2", new TeknoParrotGame { XmlName = "GSEVOELF2", RomName = "gsquad", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
+            { "HOTD4ELF2", new TeknoParrotGame { XmlName = "HOTD4ELF2", RomName = "hotd4", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
+            { "HOTD4SPELF2", new TeknoParrotGame { XmlName = "HOTD4SPELF2", RomName = "hotd4sp", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
+            { "HOTDEX", new TeknoParrotGame { XmlName = "HOTDEX", RomName = "hotdex", Architecture = "x32", Target = "lindbergh", ExtraArgs = "-noinput" } },
+
+            // ppmarket
+            { "PoliceTrainer2", new TeknoParrotGame { XmlName = "PoliceTrainer2", RomName = "policetr2", Architecture = "x32", Target = "ppmarket", ExtraArgs = "-noinput" } },
+
+            // rawthrill
             { "AliensArmageddon", new TeknoParrotGame { XmlName = "AliensArmageddon", RomName = "aa", Architecture = "x32", Target = "rawthrill", ExtraArgs = "-noinput" } },
+            { "JurassicPark", new TeknoParrotGame { XmlName = "JurassicPark", RomName = "jp", Architecture = "x32", Target = "rawthrill", ExtraArgs = "-noinput" } },
             { "Terminator", new TeknoParrotGame { XmlName = "Terminator", RomName = "ts", Architecture = "x32", Target = "rawthrill", ExtraArgs = "-noinput" } },
+            { "WalkingDead", new TeknoParrotGame { XmlName = "WalkingDead", RomName = "wd", Architecture = "x32", Target = "rawthrill", ExtraArgs = "-noinput" } },
+            { "TargetTerrorGold", new TeknoParrotGame { XmlName = "TargetTerrorGold", RomName = "ttg", Architecture = "x32", Target = "rawthrill", ExtraArgs = "-noinput" } },
+
+            // ringwide, ringedge2
             { "LGI", new TeknoParrotGame { XmlName = "LGI", RomName = "lgi", Architecture = "x32", Target = "ringwide", ExtraArgs = "-noinput" } },
             { "LGI3D", new TeknoParrotGame { XmlName = "LGI3D", RomName = "lgi3D", Architecture = "x32", Target = "ringwide", ExtraArgs = "-noinput" } },
             { "OG", new TeknoParrotGame { XmlName = "OG", RomName = "og", Architecture = "x32", Target = "ringwide", ExtraArgs = "-noinput" } },
             { "SDR", new TeknoParrotGame { XmlName = "SDR", RomName = "sdr", Architecture = "x32", Target = "ringwide", ExtraArgs = "-noinput" } },
             { "GG", new TeknoParrotGame { XmlName = "GG", RomName = "sgg", Architecture = "x32", Target = "ringwide", ExtraArgs = "-noinput" } },
             { "Transformers", new TeknoParrotGame { XmlName = "Transformers", RomName = "tha", Architecture = "x32", Target = "ringwide", ExtraArgs = "-noinput" } },
+            { "MedaruNoGunman", new TeknoParrotGame { XmlName = "MedaruNoGunman", RomName = "mng", Architecture = "x32", Target = "ringwide", ExtraArgs = "-noinput" } },
+            { "TransformersShadowsRising", new TeknoParrotGame { XmlName = "TransformersShadowsRising", RomName = "tsr", Architecture = "x32", Target = "ringedge2", ExtraArgs = "-noinput" } },
+
+            // seganu
             { "LuigisMansion", new TeknoParrotGame { XmlName = "LuigisMansion", RomName = "lma", Architecture = "x64", Target = "seganu", ExtraArgs = "-noinput" } },
+
+            // ttx
             { "BlockKing", new TeknoParrotGame { XmlName = "BlockKing", RomName = "bkbs", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
+            { "ByonByon", new TeknoParrotGame { XmlName = "ByonByon", RomName = "mgungun2", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
             { "EADP", new TeknoParrotGame { XmlName = "EADP", RomName = "eapd", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
-            { "SilentHill", new TeknoParrotGame { XmlName = "SilentHill", RomName = "sha", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
             { "GaiaAttack4", new TeknoParrotGame { XmlName = "GaiaAttack4", RomName = "gattack4", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
             { "GundamSpiritsOfZeon", new TeknoParrotGame { XmlName = "GundamSpiritsOfZeon", RomName = "gsoz", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
             { "GundamSpiritsOfZeon2p", new TeknoParrotGame { XmlName = "GundamSpiritsOfZeon2p", RomName = "gsoz2p", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
             { "HauntedMuseum", new TeknoParrotGame { XmlName = "HauntedMuseum", RomName = "hmuseum", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
             { "HauntedMuseumII", new TeknoParrotGame { XmlName = "HauntedMuseumII", RomName = "hmuseum2", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
-            { "ByonByon", new TeknoParrotGame { XmlName = "ByonByon", RomName = "mgungun2", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
+            { "MusicGunGun2", new TeknoParrotGame { XmlName = "MusicGunGun2", RomName = "mgungun2", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
+            { "SilentHill", new TeknoParrotGame { XmlName = "SilentHill", RomName = "sha", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } },
+
+            // unis
             { "ElevatorActionInvasion", new TeknoParrotGame { XmlName = "ElevatorActionInvasion", RomName = "eai", Architecture = "x64", Target = "unis", ExtraArgs = "-noinput" } },
-            { "JurassicPark", new TeknoParrotGame { XmlName = "JurassicPark", RomName = "jp", Architecture = "x32", Target = "rawthrill", ExtraArgs = "-noinput" } },
-            { "WalkingDead", new TeknoParrotGame { XmlName = "WalkingDead", RomName = "wd", Architecture = "x32", Target = "rawthrill", ExtraArgs = "-noinput" } },
-            { "TransformersShadowsRising", new TeknoParrotGame { XmlName = "TransformersShadowsRising", RomName = "tsr", Architecture = "x32", Target = "ringedge2", ExtraArgs = "-noinput" } },
-            { "PointBlankX", new TeknoParrotGame { XmlName = "PointBlankX", RomName = "pblankx", Architecture = "x32", Target = "es4", ExtraArgs = "-noinput" } },
-            { "GhostBusters", new TeknoParrotGame { XmlName = "GhostBusters", RomName = "gbusters", Architecture = "x32", Target = "ice", ExtraArgs = "-noinput -nocrosshair" } },
-            { "MusicGunGun2", new TeknoParrotGame { XmlName = "MusicGunGun2", RomName = "mgungun2", Architecture = "x32", Target = "ttx", ExtraArgs = "-noinput" } }
+            { "AfterDark2", new TeknoParrotGame { XmlName = "AfterDark2", RomName = "nha", Architecture = "x64", Target = "unis", ExtraArgs = "-noinput" } },
+            { "RaccoonRampage", new TeknoParrotGame { XmlName = "raccoonrampage", RomName = "racramp", Architecture = "x64", Target = "unis", ExtraArgs = "-noinput" } },
+
+            // windows (for try compatibility)
+            { "BugBusters", new TeknoParrotGame { XmlName = "BugBusters", RomName = "bugbust", Architecture = "x32", Target = "windows", ExtraArgs = "-noinput" } },
+            { "Friction", new TeknoParrotGame { XmlName = "Friction", RomName = "friction", Architecture = "x32", Target = "windows", ExtraArgs = "-noinput" } }
         };
     }
 }
