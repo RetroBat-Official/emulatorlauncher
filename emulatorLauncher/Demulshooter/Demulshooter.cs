@@ -33,10 +33,10 @@ namespace EmulatorLauncher
             return true;
         }
 
-        private readonly List<string> chihiroRoms = new List<string>
+        private static readonly List<string> chihiroRoms = new List<string>
         { "vcop3" };
 
-        private readonly List<string> demulRoms = new List<string>
+        private static readonly List<string> demulRoms = new List<string>
         {
             "braveff", "claychal", "confmiss", "deathcox", "deathcoxo", "hotd2", "hotd2o", "hotd2p", "lupinsho", "manicpnc", "mok",
             "ninjaslt", "ninjaslta", "ninjasltj", "ninjasltu", "pokasuka", "rangrmsn", "sprtshot", "xtrmhunt", "xtrmhnt2"
@@ -45,7 +45,7 @@ namespace EmulatorLauncher
         private readonly List<string> model2Roms = new List<string>
         { "bel", "gunblade", "hotd", "rchase2", "vcop", "vcop2" };
 
-        private readonly List<string> flycastRoms = new List<string>
+        private static readonly List<string> flycastRoms = new List<string>
         { "confmiss", "deathcox", "hotd2", "hotd2o", "hotd2p", "lupinsho", "mok", "ninjaslt", "ninjaslta", "ninjasltj", "ninjasltu" };
 
         private readonly List<string> rpcs3Roms = new List<string>
@@ -139,10 +139,17 @@ namespace EmulatorLauncher
                         // Add optional arguments based on configuration
                         if (Program.SystemConfig.getOptBoolean("tp_nocrosshair"))
                             commandArray.Add("-nocrosshair");
-                        if (Program.SystemConfig.getOptBoolean("tp_verbose"))
-                            commandArray.Add("-v");
                     }
                 }
+                else if (emulator == "demul")
+                {
+                    if (Program.SystemConfig.getOptBoolean("demul_noresize"))
+                        commandArray.Add("-noresize");
+                }
+
+                // Global verbose mode for all emulators
+                if (Program.SystemConfig.getOptBoolean("ds_verbose"))
+                    commandArray.Add("-v");
 
                 string args = string.Join(" ", commandArray);
 
@@ -205,7 +212,16 @@ namespace EmulatorLauncher
                 target = "model2";
                 ret = true;
             }
-
+            else if (emulator == "demul")
+            {
+                target = "demul07a";
+                ret = true;
+            }
+            else if (emulator == "flycast")
+            {
+                target = "flycast";
+                ret = true;
+            }
             else if (emulator == "teknoparrot")
             {
                 string romName = Path.GetFileNameWithoutExtension(rom);
@@ -229,7 +245,24 @@ namespace EmulatorLauncher
                 dsRom = Path.GetFileNameWithoutExtension(rom);
                 ret = true;
             }
-
+            else if (emulator == "demul")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom).ToLower();
+                if (demulRoms.Contains(romName) || chihiroRoms.Contains(romName))
+                {
+                    dsRom = romName;
+                    ret = true;
+                }
+            }
+            else if (emulator == "flycast")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom).ToLower();
+                if (flycastRoms.Contains(romName))
+                {
+                    dsRom = romName;
+                    ret = true;
+                }
+            }
             else if (emulator == "teknoparrot")
             {
                 string romName = Path.GetFileNameWithoutExtension(rom);
