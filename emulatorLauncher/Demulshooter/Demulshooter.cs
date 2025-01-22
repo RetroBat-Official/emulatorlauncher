@@ -53,6 +53,21 @@ namespace EmulatorLauncher
 
         public static void StartDemulshooter(string emulator, string system, string rom, RawLightgun gun1, RawLightgun gun2 = null, RawLightgun gun3 = null, RawLightgun gun4 = null)
         {
+            // Start MameHooker first if enabled
+            if (Program.SystemConfig.getOptBoolean("use_mamehooker"))
+            {
+                SimpleLogger.Instance.Info("[INFO] Starting MameHook before DemulShooter");
+                Process mameHookProcess = MameHooker.StartMameHooker();
+                
+                if (mameHookProcess != null)
+                {
+                    // Wait for MameHook to start
+                    SimpleLogger.Instance.Info("[INFO] Waiting for MameHook to initialize");
+                    mameHookProcess.WaitForInputIdle(2000); // Wait up to 2 seconds for the process to be ready
+                    System.Threading.Thread.Sleep(2000); // Additional wait to ensure full initialization
+                }
+            }
+
             string iniFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "demulshooter", "config.ini");
 
             using (var ini = new IniFile(iniFile, IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
