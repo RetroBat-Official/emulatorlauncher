@@ -53,8 +53,14 @@ namespace EmulatorLauncher
 
         public static void StartDemulshooter(string emulator, string system, string rom, RawLightgun gun1, RawLightgun gun2 = null, RawLightgun gun3 = null, RawLightgun gun4 = null)
         {
-            // Start MameHooker first if enabled
-            if (Program.SystemConfig.getOptBoolean("use_mamehooker"))
+            // Kill MameHook if option is not enabled
+            if (!Program.SystemConfig.isOptSet("use_mamehooker") || !Program.SystemConfig.getOptBoolean("use_mamehooker"))
+            {
+                SimpleLogger.Instance.Info("[INFO] MameHook option not enabled, killing any running instance");
+                MameHooker.KillMameHooker();
+            }
+            // Start MameHooker if enabled
+            else if (Program.SystemConfig.getOptBoolean("use_mamehooker"))
             {
                 SimpleLogger.Instance.Info("[INFO] Starting MameHook before DemulShooter");
                 Process mameHookProcess = MameHooker.StartMameHooker();

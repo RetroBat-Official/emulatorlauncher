@@ -14,8 +14,34 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
+        private void ConfigureMameHook()
+        {
+            // Kill MameHook if option is not enabled
+            if (!SystemConfig.isOptSet("use_mamehooker") || !SystemConfig.getOptBoolean("use_mamehooker"))
+            {
+                SimpleLogger.Instance.Info("[INFO] MameHook option not enabled, killing any running instance");
+                MameHooker.KillMameHooker();
+            }
+            // Start MameHook if enabled
+            else if (SystemConfig.getOptBoolean("use_mamehooker"))
+            {
+                SimpleLogger.Instance.Info("[INFO] Starting MameHook");
+                Process mameHookProcess = MameHooker.StartMameHooker();
+                
+                if (mameHookProcess != null)
+                {
+                    // Wait for MameHook to start
+                    SimpleLogger.Instance.Info("[INFO] Waiting for MameHook to initialize");
+                    mameHookProcess.WaitForInputIdle(2000); // Wait up to 2 seconds for the process to be ready
+                    System.Threading.Thread.Sleep(2000); // Additional wait to ensure full initialization
+                }
+            }
+        }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            ConfigureMameHook();
+
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
             string path = AppConfig.GetFullPath("supermodel");
