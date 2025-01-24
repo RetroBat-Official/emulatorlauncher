@@ -9,24 +9,14 @@ namespace EmulatorLauncher
 {
     partial class MameHooker
     {
-        public static class Model2
+        public static class ExeLauncher
         {
-            private static readonly HashSet<string> Model2Roms = new HashSet<string>
-            {
-                "bel",
-                "gunblade",
-                "hotd",
-                "rchase2",
-                "vcop",
-                "vcop2"                
-            };
-
-            public static bool ConfigureModel2(string romName)
+            public static bool ConfigureExeLauncher(string romName)
             {
                 // Check if this is a supported lightgun game
-                if (!Model2Roms.Contains(romName))
+                if (!Demulshooter.exeLauncherGames.ContainsKey(romName))
                 {
-                    SimpleLogger.Instance.Info("[INFO] Not a supported Model2 lightgun game, skipping configuration");
+                    SimpleLogger.Instance.Info("[INFO] Not a supported ExeLauncher lightgun game, skipping configuration");
                     return false;
                 }
 
@@ -48,11 +38,14 @@ namespace EmulatorLauncher
                     // Update default configuration files first
                     LightgunComPort.UpdateMameHookerConfig(mamehookPath, activePorts);
 
+                    // Get the RomName from the ExeLauncherGames dictionary
+                    string configRomName = Demulshooter.exeLauncherGames[romName].RomName;
+
                     // Look for game specific INI in MAME and SUPERMODEL folders
                     string[] folders = { "MAME", "SUPERMODEL" };
                     foreach (string folder in folders)
                     {
-                        string iniPath = Path.Combine(mamehookPath, "ini", folder, romName + ".ini");
+                        string iniPath = Path.Combine(mamehookPath, "ini", folder, configRomName + ".ini");
                         if (File.Exists(iniPath))
                         {
                             try
@@ -86,7 +79,7 @@ namespace EmulatorLauncher
                                 if (modified)
                                 {
                                     File.WriteAllLines(iniPath, lines);
-                                    SimpleLogger.Instance.Info($"[INFO] Updated {folder} INI file for {romName}");
+                                    SimpleLogger.Instance.Info($"[INFO] Updated {folder} INI file for {configRomName}");
                                 }
                             }
                             catch (Exception ex)

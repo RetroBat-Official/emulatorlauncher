@@ -168,5 +168,82 @@ namespace EmulatorLauncher.Common.Lightguns
                 }
             }
         }
+
+        private class LightgunInfo
+        {
+            public string ComPort { get; set; }
+            public string DeviceId { get; set; }
+            public bool IsGun4IR { get; set; }
+            public int PlayerIndex { get; set; }
+        }
+
+        public static List<string> GetOrderedComPorts(Dictionary<string, string> comPorts)
+        {
+            var lightguns = new List<LightgunInfo>();
+
+            // First, identify all lightguns and their types
+            foreach (var port in comPorts)
+            {
+                string deviceId = port.Key;
+                string comPort = port.Value;
+
+                if (deviceId.Contains("VID_2341"))  // Gun4IR
+                {
+                    lightguns.Add(new LightgunInfo 
+                    { 
+                        ComPort = comPort, 
+                        DeviceId = deviceId, 
+                        IsGun4IR = true,
+                        PlayerIndex = GetGun4IRIndex(deviceId)
+                    });
+                }
+                else if (deviceId.Contains("VID_0483"))  // RetroShooter
+                {
+                    lightguns.Add(new LightgunInfo 
+                    { 
+                        ComPort = comPort, 
+                        DeviceId = deviceId, 
+                        IsGun4IR = false,
+                        PlayerIndex = GetRetroShooterIndex(deviceId)
+                    });
+                }
+            }
+
+            // Sort lightguns: Gun4IR first, then RetroShooter, both by player index
+            var orderedPorts = lightguns
+                .OrderBy(g => !g.IsGun4IR)  // Gun4IR first
+                .ThenBy(g => g.PlayerIndex)  // Then by player index
+                .Select(g => g.ComPort)
+                .ToList();
+
+            SimpleLogger.Instance.Info("[INFO] Ordered COM ports for players:");
+            for (int i = 0; i < orderedPorts.Count; i++)
+            {
+                var gun = lightguns.First(g => g.ComPort == orderedPorts[i]);
+                SimpleLogger.Instance.Info($"[INFO] P{i + 1}: {orderedPorts[i]} ({(gun.IsGun4IR ? "Gun4IR" : "RetroShooter")})");
+            }
+
+            return orderedPorts;
+        }
+
+        private static int GetGun4IRIndex(string deviceId)
+        {
+            if (deviceId.Contains("PID_8042")) return 0;
+            if (deviceId.Contains("PID_8043")) return 1;
+            if (deviceId.Contains("PID_8044")) return 2;
+            if (deviceId.Contains("PID_8045")) return 3;
+            if (deviceId.Contains("PID_8046")) return 4;
+            if (deviceId.Contains("PID_8047")) return 5;
+            return 99; // Fallback for unknown PIDs
+        }
+
+        private static int GetRetroShooterIndex(string deviceId)
+        {
+            if (deviceId.Contains("PID_5750")) return 0;
+            if (deviceId.Contains("PID_5751")) return 1;
+            if (deviceId.Contains("PID_5752")) return 2;
+            if (deviceId.Contains("PID_5753")) return 3;
+            return 99; // Fallback for unknown PIDs
+        }
     }
 } 

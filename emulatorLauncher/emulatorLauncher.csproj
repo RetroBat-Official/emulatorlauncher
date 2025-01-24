@@ -106,6 +106,7 @@
     <Compile Include="MameHooker\MameHooker.Model2.cs" />
     <Compile Include="MameHooker\MameHooker.Model3.cs" />
     <Compile Include="MameHooker\MameHooker.Teknoparrot.cs" />
+    <Compile Include="MameHooker\MameHooker.ExeLauncher.cs" />
     <Compile Include="Generators\AmigaForever.Generator.cs" />
     <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />
@@ -187,6 +188,9 @@
       <DependentUpon>Eka2l1.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\ExeLauncher.Generator.cs" />
+    <Compile Include="Generators\ExeLauncher.Guns.cs">
+      <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\EpicLauncher.Generator.cs">
       <DependentUpon>ExeLauncher.Generator.cs</DependentUpon>
     </Compile>

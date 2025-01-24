@@ -35,31 +35,10 @@ namespace EmulatorLauncher
 
                 SimpleLogger.Instance.Info($"[INFO] MameHooker path: {mamehookPath}");
 
-                // Configure lightgun COM ports first
-                var lightguns = RawLightgun.GetRawLightguns()
-                    .Where(g => g.Type == RawLighGunType.Gun4Ir || g.Type == RawLighGunType.RetroShooter)
-                    .ToList();
-
-                SimpleLogger.Instance.Info("[INFO] Configuring lightgun COM ports");
+                // Configure lightgun COM ports
                 var comPorts = LightgunComPort.GetLightgunComPorts();
+                var activePorts = LightgunComPort.GetOrderedComPorts(comPorts);
 
-                var activePorts = new List<string>();
-
-                // Browse COM ports directly
-                foreach (var port in comPorts)
-                {
-                    string deviceId = port.Key;
-                    string comPort = port.Value;
-
-                    // If it's a Gun4IR or RetroShooter, add the port
-                    if (deviceId.Contains("VID_2341") || deviceId.Contains("VID_0483"))
-                    {
-                        SimpleLogger.Instance.Info($"[INFO] Adding {comPort} for device {deviceId}");
-                        activePorts.Add(comPort);
-                    }
-                }
-
-                // Update MameHooker config with COM ports before starting MameHook
                 if (activePorts.Any())
                 {
                     // Update default configuration files first

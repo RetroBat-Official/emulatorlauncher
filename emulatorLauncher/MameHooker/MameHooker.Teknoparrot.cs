@@ -31,21 +31,7 @@ namespace EmulatorLauncher
 
                 // Configure lightgun COM ports
                 var comPorts = LightgunComPort.GetLightgunComPorts();
-                var activePorts = new List<string>();
-
-                // Browse COM ports directly
-                foreach (var port in comPorts)
-                {
-                    string deviceId = port.Key;
-                    string comPort = port.Value;
-
-                    // If it's a Gun4IR or RetroShooter, add the port
-                    if (deviceId.Contains("VID_2341") || deviceId.Contains("VID_0483"))
-                    {
-                        SimpleLogger.Instance.Info($"[INFO] Adding {comPort} for device {deviceId}");
-                        activePorts.Add(comPort);
-                    }
-                }
+                var activePorts = LightgunComPort.GetOrderedComPorts(comPorts);
 
                 if (activePorts.Any())
                 {

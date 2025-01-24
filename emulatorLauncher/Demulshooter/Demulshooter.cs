@@ -26,7 +26,12 @@ namespace EmulatorLauncher
                 if (teknoParrotGames.TryGetValue(romName, out var game))
                     executable = game.Architecture == "x64" ? "DemulShooterX64.exe" : "DemulShooter.exe";
             }
-
+            else if (emulator == "exelauncher")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom);
+                if (exeLauncherGames.TryGetValue(romName, out var game))
+                    executable = game.Architecture == "x64" ? "DemulShooterX64.exe" : "DemulShooter.exe";
+            }
             else if (emulator == "flycast" || emulator == "rpcs3")
                 executable = "DemulShooterX64.exe";
 
@@ -74,6 +79,11 @@ namespace EmulatorLauncher
                 {
                     string romName = Path.GetFileNameWithoutExtension(rom);
                     MameHooker.Teknoparrot.ConfigureTeknoparrot(romName);
+                }
+                else if (emulator == "exelauncher")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    MameHooker.ExeLauncher.ConfigureExeLauncher(romName);
                 }
 
                 Process mameHookProcess = MameHooker.StartMameHooker();
@@ -265,6 +275,15 @@ namespace EmulatorLauncher
                     ret = true;
                 }
             }
+            else if (emulator == "exelauncher")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom);
+                if (exeLauncherGames.TryGetValue(romName, out var game))
+                {
+                    target = game.Target;
+                    ret = true;
+                }
+            }
 
             return ret;
         }
@@ -301,6 +320,15 @@ namespace EmulatorLauncher
             {
                 string romName = Path.GetFileNameWithoutExtension(rom);
                 if (teknoParrotGames.TryGetValue(romName, out var game))
+                {
+                    dsRom = game.RomName;
+                    ret = true;
+                }
+            }
+            else if (emulator == "exelauncher")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom);
+                if (exeLauncherGames.TryGetValue(romName, out var game))
                 {
                     dsRom = game.RomName;
                     ret = true;
@@ -404,6 +432,33 @@ namespace EmulatorLauncher
             // windows (for try compatibility)
             { "BugBusters", new TeknoParrotGame { XmlName = "BugBusters", RomName = "bugbust", Architecture = "x32", Target = "windows", ExtraArgs = "-noinput" } },
             { "Friction", new TeknoParrotGame { XmlName = "Friction", RomName = "friction", Architecture = "x32", Target = "windows", ExtraArgs = "-noinput" } }
+        };
+
+        internal class ExeLauncherGame
+        {
+            public string RomName { get; set; }
+            public string Architecture { get; set; }
+            public string Target { get; set; }
+        }
+
+        internal static readonly Dictionary<string, ExeLauncherGame> exeLauncherGames = new Dictionary<string, ExeLauncherGame>
+        {
+            { "Art Is Dead", new ExeLauncherGame { RomName = "artdead", Architecture = "x32", Target = "windows" } },
+            { "House of the Dead Overkill", new ExeLauncherGame { RomName = "hodo", Architecture = "x32", Target = "windows" } },
+            { "Reload", new ExeLauncherGame { RomName = "reload", Architecture = "x32", Target = "windows" } },
+            { "Wild West ShootOut", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "coastal" } },
+            { "Friction", new ExeLauncherGame { RomName = "friction", Architecture = "x32", Target = "windows" } },
+            { "Heavy Fire Afghanistan", new ExeLauncherGame { RomName = "hfa", Architecture = "x32", Target = "windows" } },
+            { "Heavy Fire Afghanistan 2P", new ExeLauncherGame { RomName = "hfa2p", Architecture = "x32", Target = "windows" } },
+            { "Heavy Fire Shaterred Spear", new ExeLauncherGame { RomName = "hfss", Architecture = "x32", Target = "windows" } },
+            { "Heavy Fire Shaterred Spear 2P", new ExeLauncherGame { RomName = "hfss2p", Architecture = "x32", Target = "windows" } },
+            { "Haunted Museum 2", new ExeLauncherGame { RomName = "hmuseum2", Architecture = "x32", Target = "ttx" } },
+            { "The House of the Dead 2", new ExeLauncherGame { RomName = "hod2pc", Architecture = "x32", Target = "windows" } },
+            { "The House of the Dead 3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } },
+            { "Night Hunter - After Dark Chapter II", new ExeLauncherGame { RomName = "nha", Architecture = "x64", Target = "unis" } },
+            { "The House of the Dead Remake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } },
+            { "Operation Wolf Returns First Mission", new ExeLauncherGame { RomName = "opwolfr", Architecture = "x64", Target = "windows" } },
+            { "DCOP", new ExeLauncherGame { RomName = "dcop", Architecture = "x64", Target = "windows" } }
         };
     }
 }
