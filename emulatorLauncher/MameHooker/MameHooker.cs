@@ -4,19 +4,29 @@ using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
-    public class MameHooker
+    public partial class MameHooker
     {
-        private static bool GetMameHookerExecutable(out string executable, out string path)
+        public static bool GetMameHookerExecutable(out string executable, out string path)
         {
             executable = "mamehook.exe";
             path = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "mamehooker");
 
+            SimpleLogger.Instance.Info($"[INFO] Checking MameHooker path: {path}");
+
             if (!Directory.Exists(path))
             {
-                SimpleLogger.Instance.Warning("[WARNING] MameHooker not available.");
+                SimpleLogger.Instance.Warning("[WARNING] MameHooker directory not found.");
                 return false;
             }
 
+            string exePath = Path.Combine(path, executable);
+            if (!File.Exists(exePath))
+            {
+                SimpleLogger.Instance.Warning($"[WARNING] MameHooker executable not found at: {exePath}");
+                return false;
+            }
+
+            SimpleLogger.Instance.Info("[INFO] MameHooker found successfully.");
             return true;
         }
 
@@ -34,20 +44,28 @@ namespace EmulatorLauncher
             {
                 string exe = Path.Combine(path, executable);
 
-                var p = new ProcessStartInfo()
+                try
                 {
-                    FileName = exe,
-                    WorkingDirectory = path,
-                };
+                    var p = new ProcessStartInfo()
+                    {
+                        FileName = exe,
+                        WorkingDirectory = path,
+                    };
 
-                Process process = new Process();
-                SimpleLogger.Instance.Info("[INFO] Running MameHook: " + exe);
-                process.StartInfo = p;
-                process.Start();
-                return process;
+                    Process process = new Process();
+                    SimpleLogger.Instance.Info("[INFO] Running MameHook: " + exe);
+                    process.StartInfo = p;
+                    process.Start();
+                    return process;
+                }
+                catch (System.Exception ex)
+                {
+                    SimpleLogger.Instance.Error($"[ERROR] Failed to start MameHook: {ex.Message}");
+                    return null;
+                }
             }
 
-            SimpleLogger.Instance.Warning("[WARNING] Failed to launch MameHook.");
+            SimpleLogger.Instance.Warning("[WARNING] Failed to launch MameHook - executable not found.");
             return null;
         }
 
@@ -56,6 +74,8 @@ namespace EmulatorLauncher
             Process[] processes = Process.GetProcessesByName("mamehook");
             if (processes.Length > 0)
             {
+                SimpleLogger.Instance.Info("[INFO] Attempting to gracefully terminate MameHooker...");
+                
                 // Wait 10 seconds to let the process terminate naturally
                 System.Threading.Thread.Sleep(10000);
 
@@ -65,8 +85,15 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[INFO] MameHooker is still running after timeout, force-killing it.");
                     foreach (Process process in processes)
                     {
-                        try { process.Kill(); }
-                        catch { SimpleLogger.Instance.Info("[WARNING] Failed to terminate MameHooker."); }
+                        try 
+                        { 
+                            process.Kill();
+                            SimpleLogger.Instance.Info("[INFO] MameHooker process terminated.");
+                        }
+                        catch (System.Exception ex) 
+                        { 
+                            SimpleLogger.Instance.Error($"[ERROR] Failed to terminate MameHooker: {ex.Message}"); 
+                        }
                     }
                 }
             }

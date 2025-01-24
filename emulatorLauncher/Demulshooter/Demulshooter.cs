@@ -63,6 +63,14 @@ namespace EmulatorLauncher
             else if (Program.SystemConfig.getOptBoolean("use_mamehooker"))
             {
                 SimpleLogger.Instance.Info("[INFO] Starting MameHook before DemulShooter");
+                
+                // Configure Model2 specific settings if needed
+                if (emulator == "m2emulator")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom).ToLower();
+                    MameHooker.Model2.ConfigureModel2(romName);
+                }
+
                 Process mameHookProcess = MameHooker.StartMameHooker();
                 
                 if (mameHookProcess != null)
