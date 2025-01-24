@@ -104,7 +104,8 @@
     <Compile Include="Demulshooter\Demulshooter.cs" />
     <Compile Include="MameHooker\MameHooker.cs" />
     <Compile Include="MameHooker\MameHooker.Model2.cs" />
-    <Compile Include="MameHooker\MameHooker.Model3.cs" /> 
+    <Compile Include="MameHooker\MameHooker.Model3.cs" />
+    <Compile Include="MameHooker\MameHooker.Teknoparrot.cs" />
     <Compile Include="Generators\AmigaForever.Generator.cs" />
     <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />
