@@ -38,13 +38,18 @@ namespace EmulatorLauncher
                     // Update default configuration files first
                     LightgunComPort.UpdateMameHookerConfig(mamehookPath, activePorts);
 
+                    // Get the RomName from the TeknoParrotGames dictionary
+                    string configRomName = Demulshooter.teknoParrotGames[romName].RomName;
+
                     // Look for game specific INI in MAME and SUPERMODEL folders
                     string[] folders = { "MAME", "SUPERMODEL" };
                     foreach (string folder in folders)
                     {
-                        string iniPath = Path.Combine(mamehookPath, "ini", folder, romName + ".ini");
+                        string iniPath = Path.Combine(mamehookPath, "ini", folder, configRomName + ".ini");
+                        SimpleLogger.Instance.Info($"[INFO] Looking for game-specific INI file: {iniPath}");
                         if (File.Exists(iniPath))
                         {
+                            SimpleLogger.Instance.Info($"[INFO] Found game-specific INI file: {iniPath}");
                             try
                             {
                                 string[] lines = File.ReadAllLines(iniPath);
