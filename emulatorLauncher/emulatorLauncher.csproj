@@ -107,6 +107,8 @@
     <Compile Include="MameHooker\MameHooker.Model3.cs" />
     <Compile Include="MameHooker\MameHooker.Teknoparrot.cs" />
     <Compile Include="MameHooker\MameHooker.ExeLauncher.cs" />
+    <Compile Include="MameHooker\MameHooker.Demul.cs" />
+    <Compile Include="MameHooker\MameHooker.Flycast.cs" />
     <Compile Include="Generators\AmigaForever.Generator.cs" />
     <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />

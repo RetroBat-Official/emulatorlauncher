@@ -85,6 +85,16 @@ namespace EmulatorLauncher
                     string romName = Path.GetFileNameWithoutExtension(rom);
                     MameHooker.ExeLauncher.ConfigureExeLauncher(romName);
                 }
+                else if (emulator == "demul")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    MameHooker.Demul.ConfigureDemul(romName);
+                }
+                else if (emulator == "flycast")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    MameHooker.Flycast.ConfigureFlycast(romName);
+                }
 
                 Process mameHookProcess = MameHooker.StartMameHooker();
                 
