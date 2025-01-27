@@ -18,8 +18,25 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            // Always kill any existing MameHook process at startup
+            SimpleLogger.Instance.Info("[INFO] Checking for existing MameHook process");
+            try
+            {
+                var existingProcess = Process.GetProcessesByName("mamehook").FirstOrDefault();
+                if (existingProcess != null)
+                {
+                    existingProcess.Kill();
+                    existingProcess.WaitForExit(1000);
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error($"[ERROR] Failed to stop existing MameHooker: {ex.Message}");
+            }
+
             bool hbmame = system == "hbmame";
 
+            // Get MAME executable path
             string path = AppConfig.GetFullPath("mame");
             if (string.IsNullOrEmpty(path) && Environment.Is64BitOperatingSystem)
                 path = AppConfig.GetFullPath("mame64");
@@ -42,6 +59,19 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            // Configure MameHooker first if enabled and wait for it to be ready
+            bool mamehookStarted = false;
+            if (SystemConfig.isOptSet("use_mamehooker") && SystemConfig.getOptBoolean("use_mamehooker"))
+            {
+                SimpleLogger.Instance.Info("[INFO] MameHooker option enabled for Mame64");
+                string romName = Path.GetFileNameWithoutExtension(rom).ToLower();
+                mamehookStarted = MameHooker.Mame64.ConfigureMame64(romName);
+                
+                if (!mamehookStarted)
+                    SimpleLogger.Instance.Warning("[WARNING] Failed to start MameHooker, continuing without it");
+            }
+
+            // Then configure MAME
             ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution, emulator);
             ConfigureUIini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
             ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
@@ -361,6 +391,13 @@ namespace EmulatorLauncher
                 string pluginJoin = string.Join<string>(",", pluginList);
                 retList.Add("-plugin");
                 retList.Add(pluginJoin);
+            }
+
+            // Output mode
+            if (SystemConfig.isOptSet("mame_output") && !string.IsNullOrEmpty(SystemConfig["mame_output"]))
+            {
+                retList.Add("-output");
+                retList.Add(SystemConfig["mame_output"]);
             }
 
             // DEVICES

@@ -83,6 +83,7 @@
     <Compile Include="FileFormats\StringEncryption.cs" />
     <Compile Include="FileFormats\XmlDeserializer.cs" />
     <Compile Include="FileFormats\XmlExtensions.cs" />
+    <Compile Include="FileFormats\MameHookerIni.cs" />
     <Compile Include="FileTools.cs" />
     <Compile Include="HighPerformancePowerScheme.cs" />
     <Compile Include="HtmlElement.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="Launchers\LauncherGameInfo.cs" />
     <Compile Include="Launchers\SteamLibrary.cs" />
     <Compile Include="Lightguns\RawLightGun.cs" />
+    <Compile Include="Lightguns\LightgunComPort.cs" />
     <Compile Include="Lightguns\SindenLightgunConfiguration.cs" />
     <Compile Include="OrderedDictionary.cs" />
     <Compile Include="ProcessExtensions.cs" />

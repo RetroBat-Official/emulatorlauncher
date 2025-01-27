@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
@@ -64,6 +65,9 @@ namespace EmulatorLauncher
 
             SetupGeneralConfig(path, rom, system, core, demulCore);
             SetupDx11Config(path, resolution);
+
+            // Configure DemulShooter if needed
+            ConfigureDemulGuns(system, rom);
 
             if (demulCore == "dc")
             {
@@ -324,6 +328,27 @@ namespace EmulatorLauncher
             ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path.WorkingDirectory);
 
             return -1;
+        }
+
+        private void ConfigureDemulGuns(string system, string rom)
+        {
+            // Get connected guns
+            var guns = RawLightgun.GetRawLightguns();
+
+            // If no guns connected or guns not enabled, return
+            if (guns.Length == 0 || !SystemConfig.getOptBoolean("use_guns"))
+                return;
+
+            // Get first gun
+            var gun1 = guns.Length > 0 ? guns[0] : null;
+            var gun2 = guns.Length > 1 ? guns[1] : null;
+
+            // If DemulShooter is enabled, configure it
+            if (SystemConfig.getOptBoolean("use_demulshooter"))
+            {
+                SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
+                Demulshooter.StartDemulshooter("demul", system, rom, gun1, gun2);
+            }
         }
     }
 }
