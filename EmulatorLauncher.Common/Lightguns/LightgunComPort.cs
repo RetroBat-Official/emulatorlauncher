@@ -5,6 +5,7 @@ using System.Management;
 using System.IO;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher.Common.Lightguns
 {
@@ -44,8 +45,8 @@ namespace EmulatorLauncher.Common.Lightguns
                         if (string.IsNullOrEmpty(comPort))
                             continue;
 
-                        // Check if this is a lightgun device
-                        var gunType = GetLightgunType(deviceId);
+                        // Check if this is a lightgun device using the new method
+                        var gunType = GetLightgunTypeFromRaw(deviceId);
                         if (gunType != null)
                         {
                             SimpleLogger.Instance.Info($"[INFO] Found {gunType} on {comPort} (DeviceID: {deviceId})");
@@ -65,22 +66,26 @@ namespace EmulatorLauncher.Common.Lightguns
             return comPorts;
         }
 
+        private static string GetLightgunTypeFromRaw(string deviceId)
+        {
+            var rawType = RawLightgun.ExtractRawLighGunType(deviceId);
+            switch (rawType)
+            {
+                case RawLighGunType.Gun4Ir:
+                    return "Gun4IR";
+                case RawLighGunType.RetroShooter:
+                    return "RetroShooter";
+                case RawLighGunType.Blamcon:
+                    return "Blamcon";
+                default:
+                    return null;
+            }
+        }
+
+        // Keep original method for compatibility
         private static string GetLightgunType(string deviceId)
         {
-            // Gun4IR
-            if (deviceId.Contains("VID_2341") && (
-                deviceId.Contains("PID_8042") || deviceId.Contains("PID_8043") ||
-                deviceId.Contains("PID_8044") || deviceId.Contains("PID_8045") ||
-                deviceId.Contains("PID_8046") || deviceId.Contains("PID_8047")))
-                return "Gun4IR";
-
-            // RetroShooter
-            if (deviceId.Contains("VID_0483") && (
-                deviceId.Contains("PID_5750") || deviceId.Contains("PID_5751") ||
-                deviceId.Contains("PID_5752") || deviceId.Contains("PID_5753")))
-                return "RetroShooter";
-
-            return null;
+            return GetLightgunTypeFromRaw(deviceId);
         }
 
         private static bool IsLightgunDevice(string deviceId)

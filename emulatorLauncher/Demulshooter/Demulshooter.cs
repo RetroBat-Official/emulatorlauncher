@@ -453,22 +453,22 @@ namespace EmulatorLauncher
 
         internal static readonly Dictionary<string, ExeLauncherGame> exeLauncherGames = new Dictionary<string, ExeLauncherGame>
         {
-            { "Art Is Dead", new ExeLauncherGame { RomName = "artdead", Architecture = "x32", Target = "windows" } },
-            { "House of the Dead Overkill", new ExeLauncherGame { RomName = "hodo", Architecture = "x32", Target = "windows" } },
-            { "Reload", new ExeLauncherGame { RomName = "reload", Architecture = "x32", Target = "windows" } },
-            { "Wild West ShootOut", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "coastal" } },
-            { "Friction", new ExeLauncherGame { RomName = "friction", Architecture = "x32", Target = "windows" } },
-            { "Heavy Fire Afghanistan", new ExeLauncherGame { RomName = "hfa", Architecture = "x32", Target = "windows" } },
-            { "Heavy Fire Afghanistan 2P", new ExeLauncherGame { RomName = "hfa2p", Architecture = "x32", Target = "windows" } },
-            { "Heavy Fire Shaterred Spear", new ExeLauncherGame { RomName = "hfss", Architecture = "x32", Target = "windows" } },
-            { "Heavy Fire Shaterred Spear 2P", new ExeLauncherGame { RomName = "hfss2p", Architecture = "x32", Target = "windows" } },
-            { "Haunted Museum 2", new ExeLauncherGame { RomName = "hmuseum2", Architecture = "x32", Target = "ttx" } },
-            { "The House of the Dead 2", new ExeLauncherGame { RomName = "hod2pc", Architecture = "x32", Target = "windows" } },
-            { "The House of the Dead 3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } },
-            { "Night Hunter - After Dark Chapter II", new ExeLauncherGame { RomName = "nha", Architecture = "x64", Target = "unis" } },
-            { "The House of the Dead Remake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } },
-            { "Operation Wolf Returns First Mission", new ExeLauncherGame { RomName = "opwolfr", Architecture = "x64", Target = "windows" } },
-            { "DCOP", new ExeLauncherGame { RomName = "dcop", Architecture = "x64", Target = "windows" } }
+            { "artisdead", new ExeLauncherGame { RomName = "artdead", Architecture = "x32", Target = "windows" } }, 
+            { "houseofthedeadoverkill", new ExeLauncherGame { RomName = "hodo", Architecture = "x32", Target = "windows" } }, 
+            { "reload", new ExeLauncherGame { RomName = "reload", Architecture = "x32", Target = "windows" } }, 
+            { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "coastal" } }, 
+            { "friction", new ExeLauncherGame { RomName = "friction", Architecture = "x32", Target = "windows" } }, 
+            { "heavyfireafghanistan", new ExeLauncherGame { RomName = "hfa", Architecture = "x32", Target = "windows" } }, 
+            { "heavyfireafghanistan2p", new ExeLauncherGame { RomName = "hfa2p", Architecture = "x32", Target = "windows" } }, 
+            { "heavyfireshaterredspear", new ExeLauncherGame { RomName = "hfss", Architecture = "x32", Target = "windows" } }, 
+            { "heavyfireshaterredspear2p", new ExeLauncherGame { RomName = "hfss2p", Architecture = "x32", Target = "windows" } }, 
+            { "hauntedmuseum2", new ExeLauncherGame { RomName = "hmuseum2", Architecture = "x32", Target = "ttx" } }, 
+            { "thehouseofthedead2", new ExeLauncherGame { RomName = "hod2pc", Architecture = "x32", Target = "windows" } }, 
+            { "thehouseofthedead3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } }, 
+            { "nighthunter-afterdarkchapterii", new ExeLauncherGame { RomName = "nha", Architecture = "x64", Target = "unis" } }, 
+            { "thehouseofthedeadrremake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } }, 
+            { "operationwolfreturnsfirstmission", new ExeLauncherGame { RomName = "opwolfr", Architecture = "x64", Target = "windows" } }, 
+            { "dcop", new ExeLauncherGame { RomName = "dcop", Architecture = "x64", Target = "windows" } }
         };
     }
 }
