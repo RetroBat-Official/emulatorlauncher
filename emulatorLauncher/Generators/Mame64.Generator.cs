@@ -392,14 +392,7 @@ namespace EmulatorLauncher
                 retList.Add("-plugin");
                 retList.Add(pluginJoin);
             }
-
-            // Output mode
-            if (SystemConfig.isOptSet("mame_output") && !string.IsNullOrEmpty(SystemConfig["mame_output"]))
-            {
-                retList.Add("-output");
-                retList.Add(SystemConfig["mame_output"]);
-            }
-
+            
             // DEVICES
             // Mouse
             if (SystemConfig.isOptSet("mame_mouse") && SystemConfig["mame_mouse"] == "none")
