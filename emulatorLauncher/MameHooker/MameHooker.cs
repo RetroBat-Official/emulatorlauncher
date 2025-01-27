@@ -1,25 +1,30 @@
+using System;
 using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
     public partial class MameHooker
     {
-        public static bool GetMameHookerExecutable(out string executable, out string path)
+        private static bool GetMameHookerExecutable(out string executable, out string mamehookPath)
         {
             executable = "mamehook.exe";
-            path = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "mamehooker");
+            mamehookPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "mamehooker");
 
-            SimpleLogger.Instance.Info($"[INFO] Checking MameHooker path: {path}");
+            // Always kill any existing MameHooker process first
+            KillMameHooker();
 
-            if (!Directory.Exists(path))
+            SimpleLogger.Instance.Info($"[INFO] Checking MameHooker path: {mamehookPath}");
+
+            if (!Directory.Exists(mamehookPath))
             {
                 SimpleLogger.Instance.Warning("[WARNING] MameHooker directory not found.");
                 return false;
             }
 
-            string exePath = Path.Combine(path, executable);
+            string exePath = Path.Combine(mamehookPath, executable);
             if (!File.Exists(exePath))
             {
                 SimpleLogger.Instance.Warning($"[WARNING] MameHooker executable not found at: {exePath}");
@@ -71,30 +76,19 @@ namespace EmulatorLauncher
 
         public static void KillMameHooker()
         {
-            Process[] processes = Process.GetProcessesByName("mamehook");
-            if (processes.Length > 0)
+            var existingProcess = Process.GetProcessesByName("mamehook").FirstOrDefault();
+            if (existingProcess != null)
             {
-                SimpleLogger.Instance.Info("[INFO] Attempting to gracefully terminate MameHooker...");
-                
-                // Wait 10 seconds to let the process terminate naturally
-                System.Threading.Thread.Sleep(10000);
-
-                processes = Process.GetProcessesByName("mamehook");
-                if (processes.Length > 0)
+                SimpleLogger.Instance.Info("[INFO] Found existing MameHooker process - stopping it");
+                try
                 {
-                    SimpleLogger.Instance.Info("[INFO] MameHooker is still running after timeout, force-killing it.");
-                    foreach (Process process in processes)
-                    {
-                        try 
-                        { 
-                            process.Kill();
-                            SimpleLogger.Instance.Info("[INFO] MameHooker process terminated.");
-                        }
-                        catch (System.Exception ex) 
-                        { 
-                            SimpleLogger.Instance.Error($"[ERROR] Failed to terminate MameHooker: {ex.Message}"); 
-                        }
-                    }
+                    existingProcess.Kill();
+                    existingProcess.WaitForExit(1000);
+                    SimpleLogger.Instance.Info("[INFO] MameHooker process terminated");
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error($"[ERROR] Failed to stop existing MameHooker: {ex.Message}");
                 }
             }
         }
