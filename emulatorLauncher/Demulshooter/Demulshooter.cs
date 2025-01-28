@@ -82,8 +82,7 @@ namespace EmulatorLauncher
                 }
                 else if (emulator == "exelauncher")
                 {
-                    string romName = Path.GetFileNameWithoutExtension(rom).Replace(" ", "").Replace("_", "").ToLowerInvariant();
-                    MameHooker.ExeLauncher.ConfigureExeLauncher(romName);
+                    MameHooker.ExeLauncher.ConfigureExeLauncher(rom);
                 }
                 else if (emulator == "demul")
                 {
