@@ -20,12 +20,14 @@ namespace EmulatorLauncher
                 return;
 
             string gameName = Path.GetFileNameWithoutExtension(rom).Replace(" ", "").Replace("_", "").ToLowerInvariant();
+            SimpleLogger.Instance.Info("[GUNS] Searching game compatibility with name " + gameName);
 
             // Check if the game is in the exeLauncherGames list (compatible games)
             if (!Demulshooter.exeLauncherGames.ContainsKey(gameName))
             {
                 gameName = Path.GetFileNameWithoutExtension(new DirectoryInfo(Path.GetDirectoryName(rom)).Name).Replace(" ", "").Replace("_", "").ToLowerInvariant();
-
+                SimpleLogger.Instance.Info("[GUNS] Searching game compatibility with name " + gameName);
+                
                 if (!Demulshooter.exeLauncherGames.ContainsKey(gameName))
                     return;
             }
