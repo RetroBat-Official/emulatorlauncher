@@ -116,8 +116,8 @@ namespace EmulatorLauncher
             { "VID_044F&PID_B669", WheelType.ThrustmasterTX },
             // VRS
             { "VID_0483&PID_A355", WheelType.VRSDirectForcePro },
-            // Test
-            { "VID_045E&PID_02FF", WheelType.LogitechG29 }
+            // PXN
+            { "VID_11FF&PID_0511", WheelType.PXNV9 }
         };
 
         public static List<WheelType> shifterOtherDevice = new List<WheelType>
@@ -195,6 +195,7 @@ namespace EmulatorLauncher
         ThrustmasterTSXV,
         MicrosoftSideWinder,
         VRSDirectForcePro,
+        PXNV9,
         Default = 100
     }
 
