@@ -20,7 +20,7 @@ namespace EmulatorLauncher
                 return false;
 
             // Return if game is definitely not a gun game !
-            if (!userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("Gun") || j.ButtonName.Contains("GUN")))
+            if (!userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("Gun") || j.ButtonName.Contains("GUN") || j.InputMappingString.ToLowerInvariant().Contains("lightgun")))
                 return false;
 
             SimpleLogger.Instance.Info("[GUNS] Configuring Gun(s).");
@@ -158,7 +158,6 @@ namespace EmulatorLauncher
             }
 
             // Variables
-            bool configOK = false;
             YmlContainer game = null;
             Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
             string tpMappingyml = Controller.GetSystemYmlMappingFile("teknoparrot", "", "teknoparrot", mappingPaths);
