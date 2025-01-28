@@ -7,6 +7,7 @@ using System.Threading;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.PadToKeyboard;
 using System.Xml.Linq;
 
@@ -320,6 +321,9 @@ namespace EmulatorLauncher
 
             // If game was uncompressed, say we are going to launch, so the deletion will not be silent
             ValidateUncompressedGame();
+
+            // Configure guns if needed
+            ConfigureExeLauncherGuns(system, rom);
 
             return ret;
         }

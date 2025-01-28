@@ -50,7 +50,7 @@ namespace EmulatorLauncher.Common.Lightguns
         #region Private methods
         private RawLightgun() { }
 
-        private static RawLighGunType ExtractRawLighGunType(string devicePath)
+        public static RawLighGunType ExtractRawLighGunType(string devicePath)
         {
             if (!string.IsNullOrEmpty(devicePath))
             {
