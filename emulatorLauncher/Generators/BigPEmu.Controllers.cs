@@ -218,12 +218,43 @@ namespace EmulatorLauncher
 
             if (_useSdl)
             {
+                Dictionary<string, int> double_pads = new Dictionary<string, int>();
+
+                foreach (var c in this.Controllers.OrderBy(j => j.DeviceIndex))
+                {
+                    if (c.SdlController != null)
+                    {
+                        string sdlGuid = c.Guid.ToString();
+                        if (double_pads.ContainsKey(sdlGuid))
+                            double_pads[sdlGuid] += 1;
+                        else
+                            double_pads[sdlGuid] = 0;
+                    }
+                }
+
+                int nsamePad = 0;
+                if (double_pads.ContainsKey(ctrl.Guid.ToString()) && double_pads[ctrl.Guid.ToString()] > 0)
+                {
+                    List<Controller> samePadList = this.Controllers.Where(c => c.Guid.ToString() == ctrl.Guid.ToString()).OrderBy(c => c.DeviceIndex).ToList();
+                    nsamePad = samePadList.IndexOf(ctrl);
+                }
+
                 guid = ctrl.GetSdlGuid(SdlVersion.SDL2_30, true);
 
                 string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                 string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.Guid, "bigpemu");
                 if (newGuid != null)
                     guid = newGuid.ToUpperInvariant();
+
+                if (nsamePad > 0)
+                {
+                    if (guid.Length > 21)
+                    {
+                        char[] chars = guid.ToCharArray();
+                        chars[21] = nsamePad.ToString()[0];
+                        guid = new string(chars).ToUpperInvariant();
+                    }
+                }
             }
 
             // Define Device section
