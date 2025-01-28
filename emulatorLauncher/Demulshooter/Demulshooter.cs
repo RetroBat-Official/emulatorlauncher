@@ -26,17 +26,22 @@ namespace EmulatorLauncher
                 if (teknoParrotGames.TryGetValue(romName, out var game))
                     executable = game.Architecture == "x64" ? "DemulShooterX64.exe" : "DemulShooter.exe";
             }
-
+            else if (emulator == "exelauncher")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom);
+                if (exeLauncherGames.TryGetValue(romName, out var game))
+                    executable = game.Architecture == "x64" ? "DemulShooterX64.exe" : "DemulShooter.exe";
+            }
             else if (emulator == "flycast" || emulator == "rpcs3")
                 executable = "DemulShooterX64.exe";
 
             return true;
         }
 
-        private readonly List<string> chihiroRoms = new List<string>
+        private static readonly List<string> chihiroRoms = new List<string>
         { "vcop3" };
 
-        private readonly List<string> demulRoms = new List<string>
+        private static readonly List<string> demulRoms = new List<string>
         {
             "braveff", "claychal", "confmiss", "deathcox", "deathcoxo", "hotd2", "hotd2o", "hotd2p", "lupinsho", "manicpnc", "mok",
             "ninjaslt", "ninjaslta", "ninjasltj", "ninjasltu", "pokasuka", "rangrmsn", "sprtshot", "xtrmhunt", "xtrmhnt2"
@@ -45,7 +50,7 @@ namespace EmulatorLauncher
         private readonly List<string> model2Roms = new List<string>
         { "bel", "gunblade", "hotd", "rchase2", "vcop", "vcop2" };
 
-        private readonly List<string> flycastRoms = new List<string>
+        private static readonly List<string> flycastRoms = new List<string>
         { "confmiss", "deathcox", "hotd2", "hotd2o", "hotd2p", "lupinsho", "mok", "ninjaslt", "ninjaslta", "ninjasltj", "ninjasltu" };
 
         private readonly List<string> rpcs3Roms = new List<string>
@@ -53,6 +58,55 @@ namespace EmulatorLauncher
 
         public static void StartDemulshooter(string emulator, string system, string rom, RawLightgun gun1, RawLightgun gun2 = null, RawLightgun gun3 = null, RawLightgun gun4 = null)
         {
+            // Kill MameHook if option is not enabled
+            if (!Program.SystemConfig.isOptSet("use_mamehooker") || !Program.SystemConfig.getOptBoolean("use_mamehooker"))
+            {
+                SimpleLogger.Instance.Info("[INFO] MameHook option not enabled, killing any running instance");
+                MameHooker.KillMameHooker();
+            }
+            // Start MameHooker if enabled
+            else if (Program.SystemConfig.getOptBoolean("use_mamehooker"))
+            {
+                SimpleLogger.Instance.Info("[INFO] Starting MameHook before DemulShooter");
+                
+                // Configure specific settings if needed
+                if (emulator == "m2emulator")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom).ToLower();
+                    MameHooker.Model2.ConfigureModel2(romName);
+                }
+                else if (emulator == "teknoparrot")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    MameHooker.Teknoparrot.ConfigureTeknoparrot(romName);
+                }
+                else if (emulator == "exelauncher")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    MameHooker.ExeLauncher.ConfigureExeLauncher(romName);
+                }
+                else if (emulator == "demul")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    MameHooker.Demul.ConfigureDemul(romName);
+                }
+                else if (emulator == "flycast")
+                {
+                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    MameHooker.Flycast.ConfigureFlycast(romName);
+                }
+
+                Process mameHookProcess = MameHooker.StartMameHooker();
+                
+                if (mameHookProcess != null)
+                {
+                    // Wait for MameHook to start
+                    SimpleLogger.Instance.Info("[INFO] Waiting for MameHook to initialize");
+                    mameHookProcess.WaitForInputIdle(2000); // Wait up to 2 seconds for the process to be ready
+                    System.Threading.Thread.Sleep(2000); // Additional wait to ensure full initialization
+                }
+            }
+
             string iniFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "demulshooter", "config.ini");
 
             using (var ini = new IniFile(iniFile, IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
@@ -139,10 +193,17 @@ namespace EmulatorLauncher
                         // Add optional arguments based on configuration
                         if (Program.SystemConfig.getOptBoolean("tp_nocrosshair"))
                             commandArray.Add("-nocrosshair");
-                        if (Program.SystemConfig.getOptBoolean("tp_verbose"))
-                            commandArray.Add("-v");
                     }
                 }
+                else if (emulator == "demul")
+                {
+                    if (Program.SystemConfig.getOptBoolean("demul_noresize"))
+                        commandArray.Add("-noresize");
+                }
+
+                // Global verbose mode for all emulators
+                if (Program.SystemConfig.getOptBoolean("ds_verbose"))
+                    commandArray.Add("-v");
 
                 string args = string.Join(" ", commandArray);
 
@@ -205,11 +266,29 @@ namespace EmulatorLauncher
                 target = "model2";
                 ret = true;
             }
-
+            else if (emulator == "demul")
+            {
+                target = "demul07a";
+                ret = true;
+            }
+            else if (emulator == "flycast")
+            {
+                target = "flycast";
+                ret = true;
+            }
             else if (emulator == "teknoparrot")
             {
                 string romName = Path.GetFileNameWithoutExtension(rom);
                 if (teknoParrotGames.TryGetValue(romName, out var game))
+                {
+                    target = game.Target;
+                    ret = true;
+                }
+            }
+            else if (emulator == "exelauncher")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom);
+                if (exeLauncherGames.TryGetValue(romName, out var game))
                 {
                     target = game.Target;
                     ret = true;
@@ -229,11 +308,37 @@ namespace EmulatorLauncher
                 dsRom = Path.GetFileNameWithoutExtension(rom);
                 ret = true;
             }
-
+            else if (emulator == "demul")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom).ToLower();
+                if (demulRoms.Contains(romName) || chihiroRoms.Contains(romName))
+                {
+                    dsRom = romName;
+                    ret = true;
+                }
+            }
+            else if (emulator == "flycast")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom).ToLower();
+                if (flycastRoms.Contains(romName))
+                {
+                    dsRom = romName;
+                    ret = true;
+                }
+            }
             else if (emulator == "teknoparrot")
             {
                 string romName = Path.GetFileNameWithoutExtension(rom);
                 if (teknoParrotGames.TryGetValue(romName, out var game))
+                {
+                    dsRom = game.RomName;
+                    ret = true;
+                }
+            }
+            else if (emulator == "exelauncher")
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom);
+                if (exeLauncherGames.TryGetValue(romName, out var game))
                 {
                     dsRom = game.RomName;
                     ret = true;
@@ -337,6 +442,33 @@ namespace EmulatorLauncher
             // windows (for try compatibility)
             { "BugBusters", new TeknoParrotGame { XmlName = "BugBusters", RomName = "bugbust", Architecture = "x32", Target = "windows", ExtraArgs = "-noinput" } },
             { "Friction", new TeknoParrotGame { XmlName = "Friction", RomName = "friction", Architecture = "x32", Target = "windows", ExtraArgs = "-noinput" } }
+        };
+
+        internal class ExeLauncherGame
+        {
+            public string RomName { get; set; }
+            public string Architecture { get; set; }
+            public string Target { get; set; }
+        }
+
+        internal static readonly Dictionary<string, ExeLauncherGame> exeLauncherGames = new Dictionary<string, ExeLauncherGame>
+        {
+            { "artisdead", new ExeLauncherGame { RomName = "artdead", Architecture = "x32", Target = "windows" } }, 
+            { "houseofthedeadoverkill", new ExeLauncherGame { RomName = "hodo", Architecture = "x32", Target = "windows" } }, 
+            { "reload", new ExeLauncherGame { RomName = "reload", Architecture = "x32", Target = "windows" } }, 
+            { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "coastal" } }, 
+            { "friction", new ExeLauncherGame { RomName = "friction", Architecture = "x32", Target = "windows" } }, 
+            { "heavyfireafghanistan", new ExeLauncherGame { RomName = "hfa", Architecture = "x32", Target = "windows" } }, 
+            { "heavyfireafghanistan2p", new ExeLauncherGame { RomName = "hfa2p", Architecture = "x32", Target = "windows" } }, 
+            { "heavyfireshaterredspear", new ExeLauncherGame { RomName = "hfss", Architecture = "x32", Target = "windows" } }, 
+            { "heavyfireshaterredspear2p", new ExeLauncherGame { RomName = "hfss2p", Architecture = "x32", Target = "windows" } }, 
+            { "hauntedmuseum2", new ExeLauncherGame { RomName = "hmuseum2", Architecture = "x32", Target = "ttx" } }, 
+            { "thehouseofthedead2", new ExeLauncherGame { RomName = "hod2pc", Architecture = "x32", Target = "windows" } }, 
+            { "thehouseofthedead3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } }, 
+            { "nighthunter-afterdarkchapterii", new ExeLauncherGame { RomName = "nha", Architecture = "x64", Target = "unis" } }, 
+            { "thehouseofthedeadrremake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } }, 
+            { "operationwolfreturnsfirstmission", new ExeLauncherGame { RomName = "opwolfr", Architecture = "x64", Target = "windows" } }, 
+            { "dcop", new ExeLauncherGame { RomName = "dcop", Architecture = "x64", Target = "windows" } }
         };
     }
 }

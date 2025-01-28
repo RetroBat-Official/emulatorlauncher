@@ -37,6 +37,16 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
                 Guns.StartSindenSoftware();
 
+            // If DemulShooter is enabled, configure it
+            if (SystemConfig.getOptBoolean("use_demulshooter"))
+            {
+                SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
+                var gun1 = guns.Length > 0 ? guns[0] : null;
+                var gun2 = guns.Length > 1 ? guns[1] : null;
+                Demulshooter.StartDemulshooter("flycast", system, _romName, gun1, gun2);
+                return;
+            }
+
             // Get mapping in yml file
             YmlContainer game = null;
             var buttonMap = new Dictionary<string, string>();
