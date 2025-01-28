@@ -7,7 +7,6 @@ using System.Threading;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.PadToKeyboard;
 using System.Xml.Linq;
 

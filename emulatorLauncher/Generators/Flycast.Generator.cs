@@ -336,6 +336,9 @@ namespace EmulatorLauncher
                 _saveStatesWatcher = null;
             }
 
+            if (_demulshooter)
+                Demulshooter.KillDemulShooter();
+
             base.Cleanup();
         }
 

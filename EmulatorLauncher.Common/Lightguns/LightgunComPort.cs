@@ -163,8 +163,12 @@ namespace EmulatorLauncher.Common.Lightguns
                     }
 
                     // Create or update the config file
-                    var ini = new MameHookerIni(configFile);
-                    ini.UpdateMameHookerConfig(comPorts);
+                    using (var ini = IniFile.FromFile(configFile, IniOptions.KeepEmptyValues))
+                    {
+                        UpdateMameHookerConfig(comPorts, ini);
+                        ini.Save();
+                    }
+
                     SimpleLogger.Instance.Info($"[INFO] Successfully updated config file: {configFile}");
                 }
                 catch (Exception ex)
@@ -249,6 +253,46 @@ namespace EmulatorLauncher.Common.Lightguns
             if (deviceId.Contains("PID_5752")) return 2;
             if (deviceId.Contains("PID_5753")) return 3;
             return 99; // Fallback for unknown PIDs
+        }
+
+        public static void UpdateMameHookerConfig(List<string> comPorts, IniFile ini)
+        {
+            if (comPorts == null || comPorts.Count == 0)
+                return;
+
+            SimpleLogger.Instance.Info($"[INFO] Updating MameHooker config with ports: {string.Join(", ", comPorts)}");
+
+            // Build MameStart line
+            string mameStart = "";
+            for (int p = 0; p < comPorts.Count && p < 4; p++)
+            {
+                string portNumber = comPorts[p].Replace("COM", "");
+                if (p > 0) mameStart += ", ";
+                mameStart += $"cmo {portNumber} baud=9600_parity=N_data=8_stop=1";
+            }
+            for (int p = 0; p < comPorts.Count && p < 4; p++)
+            {
+                string portNumber = comPorts[p].Replace("COM", "");
+                mameStart += $", cmw {portNumber} S6M1x2xM3x0xM8m0x";
+            }
+            ini.WriteValue("General", "MameStart", mameStart);
+            SimpleLogger.Instance.Info($"[INFO] Setting MameStart: {mameStart}");
+
+            // Build MameStop line
+            string mameStop = "";
+            for (int p = 0; p < comPorts.Count && p < 4; p++)
+            {
+                string portNumber = comPorts[p].Replace("COM", "");
+                if (p > 0) mameStop += ", ";
+                mameStop += $"cmw {portNumber} E";
+            }
+            for (int p = 0; p < comPorts.Count && p < 4; p++)
+            {
+                string portNumber = comPorts[p].Replace("COM", "");
+                mameStop += $", cmc {portNumber}";
+            }
+            ini.WriteValue("General", "MameStop", mameStop);
+            SimpleLogger.Instance.Info($"[INFO] Setting MameStop: {mameStop}");
         }
     }
 } 

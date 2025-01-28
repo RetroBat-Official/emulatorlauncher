@@ -64,7 +64,7 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("use_mamehooker") && SystemConfig.getOptBoolean("use_mamehooker"))
             {
                 SimpleLogger.Instance.Info("[INFO] MameHooker option enabled for Mame64");
-                string romName = Path.GetFileNameWithoutExtension(rom).ToLower();
+                string romName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
                 mamehookStarted = MameHooker.Mame64.ConfigureMame64(romName);
                 
                 if (!mamehookStarted)

@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
