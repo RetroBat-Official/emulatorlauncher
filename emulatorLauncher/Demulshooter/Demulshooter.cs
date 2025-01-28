@@ -28,7 +28,7 @@ namespace EmulatorLauncher
             }
             else if (emulator == "exelauncher")
             {
-                string romName = Path.GetFileNameWithoutExtension(rom);
+                string romName = Path.GetFileNameWithoutExtension(rom).Replace(" ", "").Replace("_", "").ToLowerInvariant();
                 if (exeLauncherGames.TryGetValue(romName, out var game))
                     executable = game.Architecture == "x64" ? "DemulShooterX64.exe" : "DemulShooter.exe";
             }
@@ -82,7 +82,7 @@ namespace EmulatorLauncher
                 }
                 else if (emulator == "exelauncher")
                 {
-                    string romName = Path.GetFileNameWithoutExtension(rom);
+                    string romName = Path.GetFileNameWithoutExtension(rom).Replace(" ", "").Replace("_", "").ToLowerInvariant();
                     MameHooker.ExeLauncher.ConfigureExeLauncher(romName);
                 }
                 else if (emulator == "demul")

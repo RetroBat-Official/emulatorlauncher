@@ -83,7 +83,6 @@
     <Compile Include="FileFormats\StringEncryption.cs" />
     <Compile Include="FileFormats\XmlDeserializer.cs" />
     <Compile Include="FileFormats\XmlExtensions.cs" />
-    <Compile Include="FileFormats\MameHookerIni.cs" />
     <Compile Include="FileTools.cs" />
     <Compile Include="HighPerformancePowerScheme.cs" />
     <Compile Include="HtmlElement.cs" />

@@ -5,13 +5,12 @@ using System.Management;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common;
-using System.Windows.Input;
-using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
     partial class FlycastGenerator
     {
+        private bool _demulshooter = false;
         private static readonly List<string> reloadWithButtonB = new List<string>
         { "confmiss", "hotd2", "hotd2e", "hotd2o", "hotd2p", "manicpnc", "mok", "otrigger", "tduno", "tduno2", "zunou", "claychal",
             "rangrmsn", "sprtshot", "waidrive", "xtrmhnt2", "xtrmhunt" };
@@ -40,9 +39,20 @@ namespace EmulatorLauncher
             // If DemulShooter is enabled, configure it
             if (SystemConfig.getOptBoolean("use_demulshooter"))
             {
+                _demulshooter = true;
                 SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
                 var gun1 = guns.Length > 0 ? guns[0] : null;
                 var gun2 = guns.Length > 1 ? guns[1] : null;
+
+                if (gunindexrevert)
+                {
+                    if (guns.Length > 1)
+                    {
+                        gun1 = guns[1];
+                        gun2 = guns[2];
+                    }
+                }
+
                 Demulshooter.StartDemulshooter("flycast", system, _romName, gun1, gun2);
                 return;
             }

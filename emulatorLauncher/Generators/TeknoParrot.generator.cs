@@ -14,7 +14,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using System.Xml.Linq;
-using System.Windows.Input;
 
 namespace EmulatorLauncher
 {

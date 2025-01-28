@@ -11,12 +11,15 @@ namespace EmulatorLauncher
 
         private void ConfigureExeLauncherGuns(string system, string rom)
         {
+            if (!SystemConfig.getOptBoolean("use_guns"))
+                return;
+
             // Get number of guns connected
             var guns = RawLightgun.GetRawLightguns();
             if (guns.Length == 0)
                 return;
 
-            string gameName = Path.GetFileNameWithoutExtension(rom);
+            string gameName = Path.GetFileNameWithoutExtension(rom).Replace(" ", "").Replace("_", "").ToLowerInvariant();
 
             // Check if the game is in the exeLauncherGames list (compatible games)
             if (!Demulshooter.exeLauncherGames.ContainsKey(gameName))
@@ -24,7 +27,7 @@ namespace EmulatorLauncher
 
             // Enable demulshooter if use_demulshooter is set to auto and there are multiple guns, or if it's explicitly set to true
             _demulshooter = (SystemConfig.isOptSet("use_demulshooter") && SystemConfig["use_demulshooter"] == "1") ||
-                           (SystemConfig.isOptSet("use_demulshooter") && SystemConfig["use_demulshooter"] == "auto" && guns.Length > 1);
+                           (!SystemConfig.isOptSet("use_demulshooter") && guns.Length > 1);
 
             if (!_demulshooter)
                 return;

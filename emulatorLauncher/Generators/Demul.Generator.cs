@@ -15,6 +15,7 @@ namespace EmulatorLauncher
         private bool _isUsingReshader = false;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private bool _demulshooter = false;
 
         public DemulGenerator()
         {
@@ -317,26 +318,29 @@ namespace EmulatorLauncher
 
                 bezel?.Dispose();
 
-                ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path.WorkingDirectory);
+                if (_demulshooter)
+                    Demulshooter.KillDemulShooter();
 
                 try { return process.ExitCode; }
                 catch { }
             }
 
             bezel?.Dispose();
-
-            ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path.WorkingDirectory);
+            
+            if (_demulshooter)
+                Demulshooter.KillDemulShooter();
 
             return -1;
         }
 
         private void ConfigureDemulGuns(string system, string rom)
         {
-            // Get connected guns
+            if (!SystemConfig.getOptBoolean("use_guns"))
+                return;
+
             var guns = RawLightgun.GetRawLightguns();
 
-            // If no guns connected or guns not enabled, return
-            if (guns.Length == 0 || !SystemConfig.getOptBoolean("use_guns"))
+            if (guns.Length == 0)
                 return;
 
             // Get first gun
@@ -346,6 +350,7 @@ namespace EmulatorLauncher
             // If DemulShooter is enabled, configure it
             if (SystemConfig.getOptBoolean("use_demulshooter"))
             {
+                _demulshooter = true;
                 SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
                 Demulshooter.StartDemulshooter("demul", system, rom, gun1, gun2);
             }
