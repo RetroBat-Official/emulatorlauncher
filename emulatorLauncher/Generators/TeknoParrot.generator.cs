@@ -899,10 +899,11 @@ namespace EmulatorLauncher
                     ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "ElfLdr2");
                     break;
                 default:
-                    ret = Directory.GetFiles(rom, executable, SearchOption.AllDirectories).FirstOrDefault();
+                    string exeLocation = Directory.GetFiles(rom, executable, SearchOption.AllDirectories).FirstOrDefault();
+                    if (exeLocation != null)
+                        ret = Path.GetDirectoryName(exeLocation);
                     break;
             }
-
             return ret;
         }
 
