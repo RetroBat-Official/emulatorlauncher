@@ -446,8 +446,6 @@ namespace EmulatorLauncher
             // Target: alls JConfig
             { "thehouseofthedeadscarletdawn", new ExeLauncherGame { RomName = "hodsd", Architecture = "x64", Target = "alls" } },
             // Target: coastal
-            { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "coastal" } }, 
-            // Target: coastal
             { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "coastal" } },
             // Target: es3
             { "transformershumanalliancetc5", new ExeLauncherGame { RomName = "tc5", Architecture = "x64", Target = "es3" } },
@@ -496,13 +494,13 @@ namespace EmulatorLauncher
             { "heavyfireafghanistan", new ExeLauncherGame { RomName = "hfa", Architecture = "x32", Target = "windows" } }, 
             { "heavyfireafghanistan2p", new ExeLauncherGame { RomName = "hfa2p", Architecture = "x32", Target = "windows" } }, 
             { "heavyfireshaterredspear", new ExeLauncherGame { RomName = "hfss", Architecture = "x32", Target = "windows" } }, 
-            { "heavyfireshaterredspear2p", new ExeLauncherGame { RomName = "hfss2p", Architecture = "x32", Target = "windows" } }, 
-            { "hauntedmuseum2", new ExeLauncherGame { RomName = "hmuseum2", Architecture = "x32", Target = "ttx" } }, 
+            { "heavyfireshaterredspear2p", new ExeLauncherGame { RomName = "hfss2p", Architecture = "x32", Target = "windows" } },
             { "thehouseofthedead2", new ExeLauncherGame { RomName = "hod2pc", Architecture = "x32", Target = "windows" } }, 
             { "thehouseofthedead3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } }, 
             { "thehouseofthedeadrremake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } }, 
             { "operationwolfreturnsfirstmission", new ExeLauncherGame { RomName = "opwolfr", Architecture = "x64", Target = "windows" } }, 
             { "dcop", new ExeLauncherGame { RomName = "dcop", Architecture = "x64", Target = "windows" } }
+            
         };
     }
 }
