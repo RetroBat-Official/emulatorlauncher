@@ -261,6 +261,36 @@
     ]
   },
 
+  "aquarius": {
+    "name": "Aquarius",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/aquarius.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/aquariusp.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/aquarius2.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/aquarius_ar.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/aquarius_cart.xml"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/aquarius_cass.xml"
+      }
+    ]
+  },
+  
   "arcadia": {
     "name": "Arcadia 2001",
     "biosFiles": [
@@ -1769,6 +1799,20 @@
     ]
   },
 
+  "vg5k": {
+    "name": "VG5000",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/vg5k.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/vg5k.xml"
+      }
+    ]
+  },
+  
   "vsmile": {
     "name": "V. Smile",
     "biosFiles": [
