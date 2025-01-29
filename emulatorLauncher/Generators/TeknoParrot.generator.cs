@@ -883,6 +883,8 @@ namespace EmulatorLauncher
 
         private string FindReshadeFolder(string executable, string rom)
         {
+            string ret = null;
+
             if (executable == null)
                 return null;
 
@@ -891,16 +893,17 @@ namespace EmulatorLauncher
             switch (executable)
             {
                 case "tp_budgie":
-                    return Path.Combine(AppConfig.GetFullPath("teknoparrot"), "TeknoParrot");
+                    ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "TeknoParrot");
+                    break;
                 case "elf_budgie":
-                    return Path.Combine(AppConfig.GetFullPath("teknoparrot"), "ElfLdr2");
+                    ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "ElfLdr2");
+                    break;
                 default:
-                    // Recursive search for executable in game folder
-                    var exeFiles = Directory.GetFiles(rom, executable, SearchOption.AllDirectories);
-                    if (exeFiles.Length > 0)
-                        return Path.GetDirectoryName(exeFiles[0]); // Returns folder containing the exe
-                    return null;
+                    ret = Directory.GetFiles(rom, executable, SearchOption.AllDirectories).FirstOrDefault();
+                    break;
             }
+
+            return ret;
         }
 
         public override int RunAndWait(ProcessStartInfo path)
