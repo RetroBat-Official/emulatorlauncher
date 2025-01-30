@@ -67,6 +67,7 @@ namespace EmulatorLauncher
             { new Installer("m2emulator", "m2emulator", "emulator_multicpu.exe") },
             { new Installer("magicengine", "magicengine", "pce.exe") },
             { new Installer("mame64", new string[] { "mame", "mame64" }, new string[] { "mame.exe", "mame64.exe", "mame32.exe" }) },
+            { new Installer("mandarine", "mandarine", "mandarine.exe") },
             { new Installer("mednafen", "mednafen") },
             { new Installer("melonds", "melonds", "melonDS.exe") },
             { new Installer("mesen") },

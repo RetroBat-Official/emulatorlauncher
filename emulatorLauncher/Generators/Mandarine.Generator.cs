@@ -9,14 +9,14 @@ using System.Linq;
 
 namespace EmulatorLauncher
 {
-    partial class CitraGenerator : Generator
+    partial class MandarineGenerator : Generator
     {
-        public CitraGenerator()
+        public MandarineGenerator()
         {
             DependsOnDesktopResolution = true;
         }
 
-        private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_30;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
@@ -28,7 +28,7 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            string exe = Path.Combine(path, "citra-qt.exe");
+            string exe = Path.Combine(path, "mandarine.exe");
             if (!File.Exists(exe))
                 return null;
 
@@ -46,7 +46,7 @@ namespace EmulatorLauncher
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
-            SetupConfigurationCitra(path, rom, fullscreen);
+            SetupConfigurationMandarine(path, rom, fullscreen);
 
             string[] extensions = new string[] { ".3ds", ".3dsx", ".elf", ".axf", ".cci", ".cxi", ".app" };
             if (Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs")
@@ -76,7 +76,6 @@ namespace EmulatorLauncher
             if (fullscreen)
                 commandArray.Add("-f");
             
-            commandArray.Add("-g");
             commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
@@ -89,11 +88,8 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfigurationCitra(string path, string rom, bool fullscreen = true)
+        private void SetupConfigurationMandarine(string path, string rom, bool fullscreen = true)
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string userconfigPath = Path.Combine(path, "user", "config");
             if (!Directory.Exists(userconfigPath))
                 Directory.CreateDirectory(userconfigPath);
@@ -101,7 +97,7 @@ namespace EmulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
-                SimpleLogger.Instance.Info("[Generator] Writing Citra configuration file: " + conf);
+                SimpleLogger.Instance.Info("[Generator] Writing Mandarine configuration file: " + conf);
 
                 // Define rom path
                 string romPath = Path.GetDirectoryName(rom);
@@ -134,7 +130,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Data%20Storage", "use_custom_storage\\default", "false");
                 ini.WriteValue("Data%20Storage", "use_custom_storage", "true");
 
-                string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "nand");
+                string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "mandarine", "nand");
                 if (!Directory.Exists(emuNandPath)) try { Directory.CreateDirectory(emuNandPath); }
                     catch { }
                 ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
@@ -145,13 +141,13 @@ namespace EmulatorLauncher
                 if (File.Exists(nandPath))
                     Write3DSnand(nandPath);
 
-                string sdmcPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "sdmc");
+                string sdmcPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "mandarine", "sdmc");
                 if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
                     catch { }
                 ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
                 ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
 
-                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "citra");
+                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "mandarine");
                 if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
                     catch { }
                 ini.WriteValue("UI", "Paths\\screenshotPath\\default", "false");
@@ -162,9 +158,6 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("UI", "confirmClose\\default", "false");
                 ini.WriteValue("UI", "confirmClose", "false");
-
-                ini.WriteValue("WebService", "enable_telemetry\\default", "false");
-                ini.WriteValue("WebService", "enable_telemetry", "false");
 
                 ini.WriteValue("UI", "firstStart\\default", "false");
                 ini.WriteValue("UI", "firstStart", "false");
@@ -185,12 +178,12 @@ namespace EmulatorLauncher
                     ini.WriteValue("Layout", "filter_mode", "false");
                 }
 
-                if (Features.IsSupported("citra_resolution_factor"))
+                if (Features.IsSupported("mandarine_resolution_factor"))
                 {
-                    if (SystemConfig.isOptSet("citra_resolution_factor"))
+                    if (SystemConfig.isOptSet("mandarine_resolution_factor"))
                     {
-                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["citra_resolution_factor"].Substring(0, 1) == "1" ? "true" : "false");
-                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["citra_resolution_factor"].Substring(0, 1));
+                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["mandarine_resolution_factor"].Substring(0, 1) == "1" ? "true" : "false");
+                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["mandarine_resolution_factor"].Substring(0, 1));
                     }
                     else
                     {
@@ -199,12 +192,12 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("citra_texture_filter"))
+                if (Features.IsSupported("mandarine_texture_filter"))
                 {
-                    if (SystemConfig.isOptSet("citra_texture_filter"))
+                    if (SystemConfig.isOptSet("mandarine_texture_filter"))
                     {
                         ini.WriteValue("Renderer", "texture_filter\\default", "false");
-                        ini.WriteValue("Renderer", "texture_filter", SystemConfig["citra_texture_filter"]);
+                        ini.WriteValue("Renderer", "texture_filter", SystemConfig["mandarine_texture_filter"]);
                     }
                     else
                     {
@@ -213,9 +206,9 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("citra_vsync"))
+                if (Features.IsSupported("mandarine_vsync"))
                 {
-                    if (SystemConfig.isOptSet("citra_vsync") && !SystemConfig.getOptBoolean("citra_vsync"))
+                    if (SystemConfig.isOptSet("mandarine_vsync") && !SystemConfig.getOptBoolean("mandarine_vsync"))
                     {
                         ini.WriteValue("Renderer", "use_vsync_new\\default", "false");
                         ini.WriteValue("Renderer", "use_vsync_new", "false");
@@ -227,13 +220,13 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("citraqt_layout_option"))
+                if (Features.IsSupported("mandarine_layout_option"))
                 {
-                    if (SystemConfig.isOptSet("citraqt_layout_option"))
+                    if (SystemConfig.isOptSet("mandarine_layout_option"))
                     {
                         ini.WriteValue("Layout", "layout_option\\default", "false");
-                        ini.WriteValue("Layout", "layout_option", SystemConfig["citraqt_layout_option"]);
-                        SimpleLogger.Instance.Info("[INFO] Setting layout option to : " + SystemConfig["citraqt_layout_option"]);
+                        ini.WriteValue("Layout", "layout_option", SystemConfig["mandarine_layout_option"]);
+                        SimpleLogger.Instance.Info("[INFO] Setting layout option to : " + SystemConfig["mandarine_layout_option"]);
                     }
                     else
                     {
@@ -242,9 +235,9 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("citra_swap_screen"))
+                if (Features.IsSupported("mandarine_swap_screen"))
                 {
-                    if (SystemConfig.isOptSet("citra_swap_screen") && SystemConfig.getOptBoolean("citra_swap_screen"))
+                    if (SystemConfig.isOptSet("mandarine_swap_screen") && SystemConfig.getOptBoolean("mandarine_swap_screen"))
                     {
                         ini.WriteValue("Layout", "swap_screen\\default", "false");
                         ini.WriteValue("Layout", "swap_screen", "true");
@@ -257,36 +250,36 @@ namespace EmulatorLauncher
                 }
 
                 // Define console region
-                if (SystemConfig.isOptSet("citra_region_value") && !string.IsNullOrEmpty(SystemConfig["citra_region_value"]) && SystemConfig["citra_region_value"] != "-1")
+                if (SystemConfig.isOptSet("mandarine_region_value") && !string.IsNullOrEmpty(SystemConfig["mandarine_region_value"]) && SystemConfig["mandarine_region_value"] != "-1")
                 {
                     ini.WriteValue("System", "region_value\\default", "false");
-                    ini.WriteValue("System", "region_value", SystemConfig["citra_region_value"]);
+                    ini.WriteValue("System", "region_value", SystemConfig["mandarine_region_value"]);
                 }
-                else if (Features.IsSupported("citra_region_value"))
+                else if (Features.IsSupported("mandarine_region_value"))
                 {
                     ini.WriteValue("System", "region_value\\default", "true");
                     ini.WriteValue("System", "region_value", "-1");
                 }
 
                 // Custom textures
-                if (SystemConfig.isOptSet("citra_custom_textures") && SystemConfig.getOptBoolean("citra_custom_textures"))
+                if (SystemConfig.isOptSet("mandarine_custom_textures") && SystemConfig.getOptBoolean("mandarine_custom_textures"))
                 {
                     ini.WriteValue("Utility", "custom_textures\\default", "false");
                     ini.WriteValue("Utility", "custom_textures", "true");
                     SimpleLogger.Instance.Info("[INFO] Custom textures enabled.");
                 }
-                else if (Features.IsSupported("citra_custom_textures"))
+                else if (Features.IsSupported("mandarine_custom_textures"))
                 {
                     ini.WriteValue("Utility", "custom_textures\\default", "true");
                     ini.WriteValue("Utility", "custom_textures", "false");
                 }
 
-                if (SystemConfig.isOptSet("citra_PreloadTextures") && SystemConfig.getOptBoolean("citra_PreloadTextures"))
+                if (SystemConfig.isOptSet("mandarine_PreloadTextures") && SystemConfig.getOptBoolean("mandarine_PreloadTextures"))
                 {
                     ini.WriteValue("Utility", "preload_textures\\default", "false");
                     ini.WriteValue("Utility", "preload_textures", "true");
                 }
-                else if (Features.IsSupported("citra_PreloadTextures"))
+                else if (Features.IsSupported("mandarine_PreloadTextures"))
                 {
                     ini.WriteValue("Utility", "preload_textures\\default", "true");
                     ini.WriteValue("Utility", "preload_textures", "false");

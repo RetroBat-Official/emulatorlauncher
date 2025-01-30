@@ -90,6 +90,7 @@ namespace EmulatorLauncher
             { "m2emulator", () => new Model2Generator() },
             { "magicengine", () => new MagicEngineGenerator() },
             { "mame64", () => new Mame64Generator() },
+            { "mandarine", () => new MandarineGenerator() },
             { "mednafen", () => new MednafenGenerator() },
             { "melonds", () => new MelonDSGenerator() },
             { "mesen", () => new MesenGenerator() },

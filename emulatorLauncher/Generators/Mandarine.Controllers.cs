@@ -8,14 +8,14 @@ using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
-    partial class CitraGenerator : Generator
+    partial class MandarineGenerator : Generator
     {
         private void CreateControllerConfiguration(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Citra");
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Mandarine");
 
             var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
@@ -35,11 +35,11 @@ namespace EmulatorLauncher
                 return;
 
             var guid = controller.GetSdlGuid(_sdlVersion, true);
-            var citraGuid = guid.ToString().ToLowerInvariant();
+            var mandarineGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "citra");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "mandarine");
             if (newGuid != null)
-                citraGuid = newGuid;
+                mandarineGuid = newGuid;
 
             //only 1 player so profile is fixed to 1
             ini.WriteValue("Controls", "profile\\default", "true");
@@ -62,7 +62,7 @@ namespace EmulatorLauncher
             {
                 string name = profile + map.Value;
 
-                string cvalue = FromInput(controller, cfg[map.Key], citraGuid);
+                string cvalue = FromInput(controller, cfg[map.Key], mandarineGuid);
 
                 if (string.IsNullOrEmpty(cvalue))
                 {
@@ -87,7 +87,7 @@ namespace EmulatorLauncher
             {
                 string name = profile + map.Value;
 
-                string cvalue = FromInput(controller, cfg[map.Key], citraGuid);
+                string cvalue = FromInput(controller, cfg[map.Key], mandarineGuid);
 
                 if (string.IsNullOrEmpty(cvalue))
                 {
@@ -108,8 +108,8 @@ namespace EmulatorLauncher
             //Manage sticks
             //left stick = circle pad
             //right stick = c-stick
-            ProcessStick(controller, profile, "circle_pad", ini, citraGuid);
-            ProcessStick(controller, profile, "c_stick", ini, citraGuid);
+            ProcessStick(controller, profile, "circle_pad", ini, mandarineGuid);
+            ProcessStick(controller, profile, "c_stick", ini, mandarineGuid);
             
             //motion
             if (SystemConfig.isOptSet("n3ds_motion") && !string.IsNullOrEmpty(SystemConfig["n3ds_motion"]))
@@ -126,7 +126,7 @@ namespace EmulatorLauncher
                         break;
                     case "sdl":
                         ini.WriteValue("Controls", profile + "motion_device" + "\\default", "false");
-                        ini.WriteValue("Controls", profile + "motion_device", "\"engine:sdl,guid:" + citraGuid + ",port:0\"");
+                        ini.WriteValue("Controls", profile + "motion_device", "\"engine:sdl,guid:" + mandarineGuid + ",port:0\"");
                         break;
                 }
             }
@@ -192,10 +192,10 @@ namespace EmulatorLauncher
 
             if (leftVal != null && topVal != null && leftVal.Type == topVal.Type && leftVal.Type == "axis")
             {
-                long citraleftval = leftVal.Id;
-                long citratopval = topVal.Id;
+                long mandarineleftval = leftVal.Id;
+                long mandarinetopval = topVal.Id;
 
-                string value = "axis_x:" + citraleftval + ",axis_y:" + citratopval + ",deadzone:0.100000,engine:sdl,guid:" + guid + ",port:0";
+                string value = "axis_x:" + mandarineleftval + ",axis_y:" + mandarinetopval + ",deadzone:0.100000,engine:sdl,guid:" + guid + ",port:0";
 
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "\"" + value + "\"");
