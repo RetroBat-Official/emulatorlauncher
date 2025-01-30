@@ -277,6 +277,10 @@
     <Compile Include="Generators\Mame64.Controllers.cs">
       <DependentUpon>Mame64.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Mandarine.Generator.cs" />
+    <Compile Include="Generators\Mandarine.Controllers.cs">
+      <DependentUpon>Mandarine.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Mednafen.Generator.cs" />
     <Compile Include="Generators\Mednafen.Controllers.cs">
       <DependentUpon>Mednafen.Generator.cs</DependentUpon>
