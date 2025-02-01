@@ -78,6 +78,12 @@ namespace EmulatorLauncher
             {
                 // General section
                 BindBoolIniFeature(toml, "General", "isPS4Pro", "shadps4_isps4pro", "true", "false");
+                BindBoolIniFeature(toml, "General", "enableDiscordRPC", "discord", "true", "false");
+                BindBoolIniFeatureOn(toml, "Input", "isMotionControlsEnabled", "shadps4_motion", "true", "false");
+
+                if (SystemConfig.isOptSet("shadps4_username") && !string.IsNullOrEmpty(SystemConfig["shadps4_username"]))
+                    toml.WriteValue("General", "userName", "\"" + SystemConfig["shadps4_username"] + "\"");
+
                 if (fullscreen)
                     toml.WriteValue("General", "Fullscreen", "true");
                 else
@@ -116,6 +122,11 @@ namespace EmulatorLauncher
                     string finalDirList = string.Join(", ", newDirs);
                     toml.WriteValue("GUI", "installDirs", "[" + finalDirList + "]");
                 }
+
+                string savePath = AppConfig.GetFullPath("saves");
+                string shadSavePath = Path.Combine(savePath, "ps4", "shadps4");
+                if (!Directory.Exists(savePath))
+                    try { Directory.CreateDirectory(savePath); } catch { }
             }
         }
 
