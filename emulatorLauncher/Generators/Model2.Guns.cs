@@ -25,17 +25,21 @@ namespace EmulatorLauncher
                 return;
             }
 
+            SimpleLogger.Instance.Info("[GUNS] Configuring guns for model2.");
+
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
                 Guns.StartSindenSoftware();
 
             if (guns.Length == 1)
             {
+                SimpleLogger.Instance.Info("[GUNS] Found 1 gun to configure.");
                 gun1 = guns[0];
             }
             else if (guns.Length > 1)
             {
                 gun1 = guns[0];
                 gun2 = guns[1];
+                SimpleLogger.Instance.Info("[GUNS] Found 2 guns to configure.");
             }
 
             if (SystemConfig.isOptSet("m2_rawinput_p1") && !string.IsNullOrEmpty(SystemConfig["m2_rawinput_p1"]))
@@ -48,6 +52,9 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue("Input", "RawDevP1", gun1.Index.ToString());
 
+            if (gun1.DevicePath != null)
+                SimpleLogger.Instance.Info("[GUNS] Gun 1 assigned to: " + gun1.DevicePath);
+
             if (gun2 != null)
             {
                 if (SystemConfig.isOptSet("m2_rawinput_p2") && !string.IsNullOrEmpty(SystemConfig["m2_rawinput_p2"]))
@@ -59,6 +66,9 @@ namespace EmulatorLauncher
                 }
                 else
                     ini.WriteValue("Input", "RawDevP2", gun2.Index.ToString());
+
+                if (gun2.DevicePath != null)
+                    SimpleLogger.Instance.Info("[GUNS] Gun 2 assigned to: " + gun2.DevicePath);
             }
 
             // Demulshooter
@@ -75,7 +85,10 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "1", "0");
 
             if (_demulshooter)
+            {
+                SimpleLogger.Instance.Info("[GUNS] Configuring DemulShooter for Model2.");
                 Demulshooter.StartDemulshooter("m2emulator", "model2", _rom, gun1, gun2);
+            }
 
             // Crosshairs
             string crosshairCfgPath = Path.Combine(_path, "artwork", "crosshairs");
@@ -84,6 +97,8 @@ namespace EmulatorLauncher
 
             if (_demulshooter && SystemConfig.isOptSet("m2_crosshair") && !string.IsNullOrEmpty(SystemConfig["m2_crosshair"]) && CrossGames.Contains(Path.GetFileNameWithoutExtension(_rom)))
             {
+                SimpleLogger.Instance.Info("[GUNS] Configuring DemulShooter Crosshairs for Model2.");
+
                 ini.WriteValue("Renderer", "DrawCross", "0");
 
                 using (StreamWriter writer = new StreamWriter(crosshairCfgFile))
@@ -111,6 +126,9 @@ namespace EmulatorLauncher
                     writer.WriteLine("0");
                 }
             }
+
+            if (parentRom != null)
+                SimpleLogger.Instance.Info("[GUNS] Configuring Model2 input file: " + parentRom + ".input");
 
             // Player index bytes
             bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = 0x00;
