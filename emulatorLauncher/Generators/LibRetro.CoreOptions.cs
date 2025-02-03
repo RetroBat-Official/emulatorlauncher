@@ -1693,6 +1693,8 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["input_player2_start"] = "";
             }
+
+            SetupWheels(retroarchConfig, "2049", "1", core);
         }
 
         private void ConfigureFrodo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

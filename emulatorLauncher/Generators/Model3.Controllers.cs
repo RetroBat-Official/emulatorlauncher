@@ -236,7 +236,7 @@ namespace EmulatorLauncher
                             wheelMapping = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;
                             if (wheelMapping == null)
                             {
-                                SimpleLogger.Instance.Info("[WHEELS] No mapping exists for the wheel and PCSX2 emulator in yml file.");
+                                SimpleLogger.Instance.Info("[WHEELS] No mapping exists for the wheel and Model3 emulator in yml file.");
                                 return;
                             }
                             else
@@ -258,7 +258,7 @@ namespace EmulatorLauncher
                     }
                     else
                     {
-                        SimpleLogger.Instance.Info("[WHEELS] Mapping file for PCSX2 does not exist.");
+                        SimpleLogger.Instance.Info("[WHEELS] Mapping file for Model3 does not exist.");
                         return;
                     }
 

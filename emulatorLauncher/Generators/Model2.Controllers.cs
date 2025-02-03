@@ -106,7 +106,6 @@ namespace EmulatorLauncher
             // Wheels
             int wheelNb = 0;
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
-            bool invertedWheelAxis = false;
             bool useShoulders = SystemConfig.getOptBoolean("m2_racingshoulder");
             string wheelGuid = "nul";
             List<Wheel> usableWheels = new List<Wheel>();

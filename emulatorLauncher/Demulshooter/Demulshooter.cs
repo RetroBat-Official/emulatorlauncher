@@ -61,13 +61,13 @@ namespace EmulatorLauncher
             // Kill MameHook if option is not enabled
             if (!Program.SystemConfig.isOptSet("use_mamehooker") || !Program.SystemConfig.getOptBoolean("use_mamehooker"))
             {
-                SimpleLogger.Instance.Info("[INFO] MameHook option not enabled, killing any running instance");
+                SimpleLogger.Instance.Info("[GUNS] MameHook option not enabled, killing any running instance");
                 MameHooker.KillMameHooker();
             }
             // Start MameHooker if enabled
             else if (Program.SystemConfig.getOptBoolean("use_mamehooker"))
             {
-                SimpleLogger.Instance.Info("[INFO] Starting MameHook before DemulShooter");
+                SimpleLogger.Instance.Info("[GUNS] Starting MameHook before DemulShooter");
                 
                 // Configure specific settings if needed
                 if (emulator == "m2emulator")
@@ -100,7 +100,7 @@ namespace EmulatorLauncher
                 if (mameHookProcess != null)
                 {
                     // Wait for MameHook to start
-                    SimpleLogger.Instance.Info("[INFO] Waiting for MameHook to initialize");
+                    SimpleLogger.Instance.Info("[GUNS] Waiting for MameHook to initialize");
                     mameHookProcess.WaitForInputIdle(2000); // Wait up to 2 seconds for the process to be ready
                     System.Threading.Thread.Sleep(2000); // Additional wait to ensure full initialization
                 }
@@ -108,6 +108,9 @@ namespace EmulatorLauncher
 
             string iniFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "demulshooter", "config.ini");
 
+            if (iniFile != null)
+                SimpleLogger.Instance.Info("[GUNS] Writing in DemulShooter ini file: " + iniFile);
+            
             using (var ini = new IniFile(iniFile, IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
                 for (int i = 1; i <= 5; i++)
@@ -131,6 +134,8 @@ namespace EmulatorLauncher
                 {
                     string outputType = Program.SystemConfig["ds_output"];
                     ini.WriteValue("", "OutputEnabled", "True");
+
+                    SimpleLogger.Instance.Info("[GUNS] Writing DemulShooter outputs.");
 
                     switch (outputType)
                     {
@@ -260,6 +265,8 @@ namespace EmulatorLauncher
             target = null;
             bool ret = false;
 
+            SimpleLogger.Instance.Info("[GUNS] Fetching Demulshooter -target argument.");
+
             if (emulator == "m2emulator")
             {
                 target = "model2";
@@ -301,6 +308,8 @@ namespace EmulatorLauncher
         {
             dsRom = null;
             bool ret = false;
+
+            SimpleLogger.Instance.Info("[GUNS] Fetching Demulshooter -rom argument.");
 
             if (emulator == "m2emulator")
             {

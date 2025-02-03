@@ -1,7 +1,5 @@
-﻿using System.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
@@ -40,6 +38,7 @@ namespace EmulatorLauncher
         public string ProductID { get; set; }
         public string DevicePath { get; set; }
         public WheelType Type { get; set; }
+        public Dictionary<string, string> ButtonMapping { get; set; }
 
         public int GetWheelPriority()
         {

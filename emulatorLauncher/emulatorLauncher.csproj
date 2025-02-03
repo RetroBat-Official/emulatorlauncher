@@ -261,6 +261,9 @@
     <Compile Include="Generators\LibRetro.InputRemap.cs">
       <DependentUpon>LibRetro.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\LibRetro.Wheels.cs">
+      <DependentUpon>LibRetro.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Lime3ds.Generator.cs" />
     <Compile Include="Generators\Lime3ds.Controllers.cs">
       <DependentUpon>Lime3ds.Generator.cs</DependentUpon>
