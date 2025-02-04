@@ -281,7 +281,6 @@ namespace EmulatorLauncher
             if (_emulator != "dhewm3")
                 return;
 
-            bool d3xp = false;
             string cfgPath = _path;
             string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "doom3", "dhewm3");
             if (!Directory.Exists(savesPath))
