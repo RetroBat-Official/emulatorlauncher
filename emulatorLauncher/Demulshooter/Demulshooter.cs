@@ -26,7 +26,7 @@ namespace EmulatorLauncher
                 if (teknoParrotGames.TryGetValue(romName, out var game))
                     executable = game.Architecture == "x64" ? "DemulShooterX64.exe" : "DemulShooter.exe";
             }
-            else if (emulator == "exelauncher")
+            else if (emulator == "exelauncher" || emulator == "windows")
             {
                 string romName = Path.GetFileNameWithoutExtension(rom).Replace(" ", "").Replace("_", "").ToLowerInvariant();
                 if (exeLauncherGames.TryGetValue(romName, out var game))
@@ -80,7 +80,7 @@ namespace EmulatorLauncher
                     string romName = Path.GetFileNameWithoutExtension(rom);
                     MameHooker.Teknoparrot.ConfigureTeknoparrot(romName);
                 }
-                else if (emulator == "exelauncher")
+                else if (emulator == "exelauncher" || emulator == "windows")
                 {
                     MameHooker.ExeLauncher.ConfigureExeLauncher(rom);
                 }
@@ -205,6 +205,11 @@ namespace EmulatorLauncher
                 {
                     if (Program.SystemConfig.getOptBoolean("demul_noresize"))
                         commandArray.Add("-noresize");
+                }
+                else if (emulator == "windows" || emulator == "exelauncher")
+                {
+                    if (Program.SystemConfig.getOptBoolean("ds_nocrosshair"))
+                        commandArray.Add("-nocrosshair");
                 }
 
                 // Global verbose mode for all emulators
