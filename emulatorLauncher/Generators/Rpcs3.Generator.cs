@@ -107,39 +107,36 @@ namespace EmulatorLauncher
             ValidateUncompressedGame();
             
             // Configuration
-            if (!SystemConfig.getOptBoolean("disableautoconfig"))
-            {
-                SetupGuiConfiguration(path);
-                SetupConfiguration(path, fullscreen);
-                SetupVFSConfiguration(path, savesPath);
-                CreateControllerConfiguration(path);
+            SetupGuiConfiguration(path);
+            SetupConfiguration(path, fullscreen);
+            SetupVFSConfiguration(path, savesPath);
+            CreateControllerConfiguration(path);
 
-                // Check if firmware is installed in emulator, if not and if firmware is available in \bios path then install it instead of running the game
-                string firmware = Path.Combine(path, "dev_flash", "vsh", "etc", "version.txt");
-                string biosPath = AppConfig.GetFullPath("bios");
-                string biosPs3 = Path.Combine(biosPath, "PS3UPDAT.PUP");
+            // Check if firmware is installed in emulator, if not and if firmware is available in \bios path then install it instead of running the game
+            string firmware = Path.Combine(path, "dev_flash", "vsh", "etc", "version.txt");
+            string biosPath = AppConfig.GetFullPath("bios");
+            string biosPs3 = Path.Combine(biosPath, "PS3UPDAT.PUP");
 
-                if (!File.Exists(firmware) && !File.Exists(biosPs3))
-                    throw new ApplicationException("PS3 firmware is not installed in rpcs3 emulator, either place it in \\bios folder, or launch the emulator and install the firware.");
+            if (!File.Exists(firmware) && !File.Exists(biosPs3))
+                throw new ApplicationException("PS3 firmware is not installed in rpcs3 emulator, either place it in \\bios folder, or launch the emulator and install the firware.");
             
-                else if (!File.Exists(firmware) && File.Exists(biosPs3))
+            else if (!File.Exists(firmware) && File.Exists(biosPs3))
+            {
+                SimpleLogger.Instance.Info("[INFO] Firmware not installed, launching RPCS3 with 'installfirmware' command.");
+                List<string> commandArrayfirmware = new List<string>
                 {
-                    SimpleLogger.Instance.Info("[INFO] Firmware not installed, launching RPCS3 with 'installfirmware' command.");
-                    List<string> commandArrayfirmware = new List<string>
-                    {
-                        "--installfw",
-                        biosPs3
-                    };
+                    "--installfw",
+                    biosPs3
+                };
                     
-                    string argsfirmware = string.Join(" ", commandArrayfirmware);
+                string argsfirmware = string.Join(" ", commandArrayfirmware);
 
-                    return new ProcessStartInfo()
-                    {
-                        FileName = exe,
-                        WorkingDirectory = path,
-                        Arguments = argsfirmware,
-                    };
-                }
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    WorkingDirectory = path,
+                    Arguments = argsfirmware,
+                };
             }
 
             if (Path.GetExtension(rom).ToLower() == ".lnk")
