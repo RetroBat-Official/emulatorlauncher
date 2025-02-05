@@ -13,6 +13,7 @@ using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using System.Drawing.Imaging;
+using Steam_Library_Manager.Framework;
 
 namespace EmulatorLauncher
 {
@@ -63,6 +64,11 @@ namespace EmulatorLauncher
             EnsureUltraDMDRegistered(path);
             EnsureBackglassServerRegistered(path);
             EnsureVPinMameRegistered(path);
+            EnsurePinupPlayerRegistered(path);
+            EnsurePinupDOFRegistered(path);
+            EnsurePupServerRegistered(path);
+            EnsurePupDMDControlRegistered(path);
+            WritePinUPPopperOptions(path);
 
             string romPath = Path.Combine(Path.GetDirectoryName(rom), "roms");
             if (!Directory.Exists(romPath))
@@ -401,6 +407,284 @@ namespace EmulatorLauncher
                 px.WaitForExit();
             }
             catch { }
+        }
+
+        private void EnsurePinupPlayerRegistered(string path)
+        {
+            string keyPath = @"TypeLib\{D50F2477-84E8-4CED-9409-3735CA67FDE3}\1.0\0\win32";
+            string PinupPlayerPath = Path.Combine(path, "PinUPSystem", "PinUpPlayer.exe");
+
+            try
+            {
+                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(keyPath))
+                {
+                    if (key != null)
+                    {
+                        string value = key.GetValue(null) as string;
+                        if (value != null)
+                        {
+                            if (value != PinupPlayerPath)
+                                RegisterPinupPlayer(PinupPlayerPath);
+                            else
+                                return;
+                        }
+                        else
+                            RegisterPinupPlayer(PinupPlayerPath);
+                    }
+                    else
+                        RegisterPinupPlayer(PinupPlayerPath);
+                }
+            }
+            catch
+            { }
+        }
+
+        private void RegisterPinupPlayer(string path)
+        {
+            if (!File.Exists(path))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] PinUpPlayer.exe not found.");
+                return;
+            }
+
+            try
+            {
+                SimpleLogger.Instance.Info("[Generator] Ensuring PinupPlayer is registered.");
+
+                Process px = new Process
+                {
+                    EnableRaisingEvents = true
+                };
+                px.StartInfo.Verb = "RunAs";
+                px.StartInfo.FileName = path;
+                px.StartInfo.Arguments = "/regserver";
+                px.StartInfo.UseShellExecute = true;
+                px.StartInfo.CreateNoWindow = true;
+                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                px.Start();
+                px.WaitForExit();
+            }
+            catch { }
+        }
+
+        private void EnsurePinupDOFRegistered(string path)
+        {
+            string keyPath = @"TypeLib\{02B4C318-12D3-48C6-AA69-CEE342FF9D15}\1.0\0\win32";
+            string PinupDOFPath = Path.Combine(path, "PinUPSystem", "PinUpDOF.exe");
+
+            try
+            {
+                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(keyPath))
+                {
+                    if (key != null)
+                    {
+                        string value = key.GetValue(null) as string;
+                        if (value != null)
+                        {
+                            if (value != PinupDOFPath)
+                                RegisterPinupDOF(PinupDOFPath);
+                            else
+                                return;
+                        }
+                        else
+                            RegisterPinupDOF(PinupDOFPath);
+                    }
+                    else
+                        RegisterPinupDOF(PinupDOFPath);
+                }
+            }
+            catch
+            { }
+        }
+
+        private void RegisterPinupDOF(string path)
+        {
+            if (!File.Exists(path))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] PinUpDOF.exe not found.");
+                return;
+            }
+
+            try
+            {
+                SimpleLogger.Instance.Info("[Generator] Ensuring PinUpDOF is registered.");
+
+                Process px = new Process
+                {
+                    EnableRaisingEvents = true
+                };
+                px.StartInfo.Verb = "RunAs";
+                px.StartInfo.FileName = path;
+                px.StartInfo.Arguments = "/regserver";
+                px.StartInfo.UseShellExecute = true;
+                px.StartInfo.CreateNoWindow = true;
+                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                px.Start();
+                px.WaitForExit();
+            }
+            catch { }
+        }
+
+        private void EnsurePupServerRegistered(string path)
+        {
+            string keyPath = @"TypeLib\{5EC048E8-EF55-40B8-902D-D6ECD1C8FF4E}\1.0\0\win32";
+            string PinupDOFPath = Path.Combine(path, "PinUPSystem", "PuPServer.exe");
+
+            try
+            {
+                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(keyPath))
+                {
+                    if (key != null)
+                    {
+                        string value = key.GetValue(null) as string;
+                        if (value != null)
+                        {
+                            if (value != PinupDOFPath)
+                                RegisterPupServer(PinupDOFPath);
+                            else
+                                return;
+                        }
+                        else
+                            RegisterPupServer(PinupDOFPath);
+                    }
+                    else
+                        RegisterPupServer(PinupDOFPath);
+                }
+            }
+            catch
+            { }
+        }
+
+        private void RegisterPupServer(string path)
+        {
+            if (!File.Exists(path))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] PuPServer.exe not found.");
+                return;
+            }
+
+            try
+            {
+                SimpleLogger.Instance.Info("[Generator] Ensuring PuPServer is registered.");
+
+                Process px = new Process
+                {
+                    EnableRaisingEvents = true
+                };
+                px.StartInfo.Verb = "RunAs";
+                px.StartInfo.FileName = path;
+                px.StartInfo.Arguments = "/regserver";
+                px.StartInfo.UseShellExecute = true;
+                px.StartInfo.CreateNoWindow = true;
+                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                px.Start();
+                px.WaitForExit();
+            }
+            catch { }
+        }
+
+        private void EnsurePupDMDControlRegistered(string path)
+        {
+            string keyPath = @"TypeLib\{5049E487-2802-46B0-A511-8B198B274E1B}\1.0\0\win32";
+            string PUPDMDControl = Path.Combine(path, "VPinMAME", "PUPDMDControl.exe");
+
+            try
+            {
+                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(keyPath))
+                {
+                    if (key != null)
+                    {
+                        string value = key.GetValue(null) as string;
+                        if (value != null)
+                        {
+                            if (value != PUPDMDControl)
+                                RegisterPupDMDControl(PUPDMDControl);
+                            else
+                                return;
+                        }
+                        else
+                            RegisterPupDMDControl(PUPDMDControl);
+                    }
+                    else
+                        RegisterPupDMDControl(PUPDMDControl);
+                }
+            }
+            catch
+            { }
+        }
+
+        private void RegisterPupDMDControl(string path)
+        {
+            if (!File.Exists(path))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] PUPDMDControl.exe not found.");
+                return;
+            }
+
+            try
+            {
+                SimpleLogger.Instance.Info("[Generator] Ensuring PUPDMDControl is registered.");
+
+                Process px = new Process
+                {
+                    EnableRaisingEvents = true
+                };
+                px.StartInfo.Verb = "RunAs";
+                px.StartInfo.FileName = path;
+                px.StartInfo.Arguments = "/regserver";
+                px.StartInfo.UseShellExecute = true;
+                px.StartInfo.CreateNoWindow = true;
+                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                px.Start();
+                px.WaitForExit();
+            }
+            catch { }
+        }
+
+        private void WritePinUPPopperOptions(string path)
+        {
+            string PopperPath = "PopperPath";
+            string VPINMamePath = "VPINMamePath";
+            string VPXPath = "VPXPath";
+
+            string targetPopperPath = Path.Combine(path, "PinUPSystem");
+            string targetVPINMamePath = Path.Combine(path, "VPinMAME");
+            string targetVPXPath = path;
+
+            try
+            {
+                var softwareKey = Registry.CurrentUser.OpenSubKey(@"Software\PinUPPopper\Settings", true);
+                {
+                    if (softwareKey != null)
+                    {
+                        string PopperPathvalue = softwareKey.GetValue(PopperPath) as string;
+
+                        if (PopperPathvalue != null)
+                        {
+                            if (PopperPathvalue != targetPopperPath)
+                                SetOption(softwareKey, "PopperPath", targetPopperPath);
+                        }
+
+                        string VPINMamePathvalue = softwareKey.GetValue(VPINMamePath) as string;
+
+                        if (VPINMamePathvalue != null)
+                        {
+                            if (VPINMamePathvalue != targetVPINMamePath)
+                                SetOption(softwareKey, "VPINMamePath", targetVPINMamePath);
+                        }
+
+                        string VPXPathvalue = softwareKey.GetValue(VPXPath) as string;
+
+                        if (VPXPathvalue != null)
+                        {
+                            if (VPXPathvalue != targetVPINMamePath)
+                                SetOption(softwareKey, "VPXPath", targetVPINMamePath);
+                        }
+                    }  
+                }
+            }
+            catch
+            { }
         }
 
         private static string GetRegAsmPath(RegistryViewEx view = RegistryViewEx.Registry32)

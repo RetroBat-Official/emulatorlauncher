@@ -647,7 +647,7 @@ namespace EmulatorLauncher
             }
 
             // rompath
-            commandArray.Add("-rompath");
+            commandArray.Add("-rp");
             if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig.GetFullPath("bios")))
             {
                 if (Directory.Exists(Path.Combine(bios, "mess")))
@@ -688,7 +688,7 @@ namespace EmulatorLauncher
                 commandArray.Add("-inipath");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "ini")));
 
-                commandArray.Add("-hashpath");
+                commandArray.Add("-hash");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "hash")));
 
                 if (!string.IsNullOrEmpty(AppConfig["screenshots"]) && Directory.Exists(AppConfig.GetFullPath("screenshots")))
