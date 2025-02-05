@@ -68,7 +68,7 @@ namespace EmulatorLauncher
             EnsurePinupDOFRegistered(path);
             EnsurePupServerRegistered(path);
             EnsurePupDMDControlRegistered(path);
-            WritePinUPPopperOptions(path);
+            //WritePinUPPopperOptions(path);
 
             string romPath = Path.Combine(Path.GetDirectoryName(rom), "roms");
             if (!Directory.Exists(romPath))
@@ -641,7 +641,7 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private void WritePinUPPopperOptions(string path)
+        /*private void WritePinUPPopperOptions(string path)
         {
             string PopperPath = "PopperPath";
             string VPINMamePath = "VPINMamePath";
@@ -685,7 +685,7 @@ namespace EmulatorLauncher
             }
             catch
             { }
-        }
+        }*/
 
         private static string GetRegAsmPath(RegistryViewEx view = RegistryViewEx.Registry32)
         {
