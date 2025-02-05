@@ -83,20 +83,18 @@ namespace EmulatorLauncher
             ScreenRes sr = ScreenRes.Load(Path.GetDirectoryName(rom));
             if (sr != null)
             {
-                if (Screen.AllScreens.Length == 1 || SystemInformation.TerminalServerSession)
-                    sr.Delete();
-                else
-                {
-                    sr.ScreenResX = resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width;
-                    sr.ScreenResY = resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height;
+                sr.ScreenResX = resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width;
+                sr.ScreenResY = resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height;
 
-                    Screen secondary = Screen.AllScreens.FirstOrDefault(s => !s.Primary);
+                Screen secondary = Screen.AllScreens.FirstOrDefault(s => !s.Primary);
+                if (secondary != null)
+                {
                     sr.Screen2ResX = secondary.Bounds.Width;
                     sr.Screen2ResY = secondary.Bounds.Height;
-                    sr.Monitor = 2;
-
-                    sr.Save();
                 }
+                sr.Monitor = Screen.AllScreens.Length == 1 ? 1 : 2;
+
+                sr.Save();
             }
 
             SetupOptions(path, romPath, resolution);
@@ -802,12 +800,10 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[Generator] Writing config to VPinballX.ini file.");
 
-                if (Screen.AllScreens.Length > 1 && (!SystemConfig.isOptSet("enableb2s") || SystemConfig.getOptBoolean("enableb2s")) && !SystemInformation.TerminalServerSession)
-                    ini.WriteValue("Controller", "ForceDisableB2S", "0");
-                else if (SystemConfig.getOptBoolean("enableb2s"))
-                    ini.WriteValue("Controller", "ForceDisableB2S", "0");
-                else
+                if (SystemConfig.isOptSet("enableb2s") && !SystemConfig.getOptBoolean("enableb2s"))
                     ini.WriteValue("Controller", "ForceDisableB2S", "1");
+                else
+                    ini.WriteValue("Controller", "ForceDisableB2S", "0");
 
                 if (string.IsNullOrEmpty(ini.GetValue("Controller", "DOFContactors")))
                 {
@@ -1044,9 +1040,9 @@ namespace EmulatorLauncher
 
                 DisableVPinMameLicenceDialogs(romPath, visualPinMame);
 
-                visualPinMame.CreateSubKey("default");
-                
                 var globalKey = visualPinMame.CreateSubKey("globals");
+                var defaultKey = visualPinMame.CreateSubKey("default");
+
                 if (globalKey != null)
                 {
                     string vPinMamePath = Path.Combine(path, "VPinMAME");
@@ -1076,6 +1072,44 @@ namespace EmulatorLauncher
                     SetOption(globalKey, "window", 1);
 
                     globalKey.Close();
+                }
+
+                if (defaultKey != null)
+                {
+                    if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
+                    {
+                        SetOption(defaultKey, "showpindmd", 1);
+                        SetOption(defaultKey, "showwindmd", 0);
+                    }
+                    else
+                    {
+                        SetOption(defaultKey, "showpindmd", 0);
+                        SetOption(defaultKey, "showwindmd", 1);
+                    }
+
+                    defaultKey.Close();
+                }
+
+                string[] romList = Directory.GetFiles(romPath, "*.zip").Select(r => Path.GetFileNameWithoutExtension(r)).Distinct().ToArray();
+                foreach (var rom in romList)
+                {
+                    var romKey = visualPinMame.OpenSubKey(rom, true);
+
+                    if (romKey == null)
+                        romKey = visualPinMame.CreateSubKey(rom);
+
+                    if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
+                    {
+                        SetOption(romKey, "showpindmd", 1);
+                        SetOption(romKey, "showwindmd", 0);
+                    }
+                    else
+                    {
+                        SetOption(romKey, "showpindmd", 0);
+                        SetOption(romKey, "showwindmd", 1);
+                    }
+
+                    romKey.Close();
                 }
             }
 
