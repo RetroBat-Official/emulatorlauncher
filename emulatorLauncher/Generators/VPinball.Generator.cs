@@ -157,6 +157,14 @@ namespace EmulatorLauncher
                     Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
                     foreach (Process ultraDMD in ultraDMDs)
                         ultraDMD.Kill();
+
+                    Process[] pupDisplays = Process.GetProcessesByName("PinUpDisplay");
+                    foreach (Process pupDisplay in pupDisplays)
+                        pupDisplay.Kill();
+
+                    Process[] pupPlayers = Process.GetProcessesByName("PinUpPlayer");
+                    foreach (Process pupPlayer in pupPlayers)
+                        pupPlayer.Kill();
                 }
                 catch { }
 
