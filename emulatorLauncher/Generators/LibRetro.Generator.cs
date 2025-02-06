@@ -509,6 +509,8 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["menu_framebuffer_opacity"] = "0.900000";
             retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["video_window_save_positions"] = "false";
+            retroarchConfig["video_viewport_bias_x"] = "0.000000";
+            retroarchConfig["video_viewport_bias_y"] = "0.000000";
             retroarchConfig["notification_show_autoconfig"] = "false";
             retroarchConfig["notification_show_config_override_load"] = "false";            
             retroarchConfig["notification_show_remap_load"] = "false";
@@ -979,6 +981,11 @@ namespace EmulatorLauncher.Libretro
                 _video_driver = "vulkan";
                 retroarchConfig["video_driver"] = "vulkan";
             }
+            else if (core == "pcsx2" && retroarchConfig["video_driver"] == "gl")
+            {
+                _video_driver = "glcore";
+                retroarchConfig["video_driver"] = "glcore";
+            }
 
             // Set default video driver per core
             if (!SystemConfig.isOptSet("video_driver") && defaultVideoDriver.ContainsKey(core))
@@ -986,6 +993,7 @@ namespace EmulatorLauncher.Libretro
                 _video_driver = defaultVideoDriver[core];
                 retroarchConfig["video_driver"] = defaultVideoDriver[core];
             }
+            
         }
 
         /// <summary>
@@ -1743,7 +1751,8 @@ namespace EmulatorLauncher.Libretro
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
         { 
             { "flycast", "vulkan" },
-            { "melondsds", "glcore" }
+            { "melondsds", "glcore" },
+            { "pcsx2", "glcore" }
         };
         static Dictionary<string, retro_language> Languages = new Dictionary<string, retro_language>()
         {
