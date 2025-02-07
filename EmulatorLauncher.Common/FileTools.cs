@@ -337,5 +337,33 @@ namespace EmulatorLauncher.Common
                 return "";
             }
         }
+
+        public static string GetShortcutTargetwsh(string shortcutFile)
+        {
+            if (!System.IO.File.Exists(shortcutFile))
+                throw new System.IO.FileNotFoundException("Shortcut file not found", shortcutFile);
+
+            // Create a Windows Script Host Shell object
+            dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
+            dynamic shortcut = shell.CreateShortcut(shortcutFile);
+            string targetPath = shortcut.TargetPath;
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
+            return targetPath;
+        }
+
+        public static string GetShortcutArgswsh(string shortcutFile)
+        {
+            if (!System.IO.File.Exists(shortcutFile))
+                throw new System.IO.FileNotFoundException("Shortcut file not found", shortcutFile);
+
+            // Create a Windows Script Host Shell object
+            dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
+            dynamic shortcut = shell.CreateShortcut(shortcutFile);
+            string args = shortcut.Arguments;
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
+            return args;
+        }
     }
 }

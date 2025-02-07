@@ -22,6 +22,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            string targetRom = "";
+
             if (Directory.Exists(rom))
             {
                 rom = Directory.GetFiles(rom, "eboot.bin", SearchOption.AllDirectories).FirstOrDefault();
@@ -36,6 +38,11 @@ namespace EmulatorLauncher
                 string romSubPath = File.ReadAllText(rom);
                 rom = Path.Combine(romPath, romSubPath);
             }
+            
+            else if (Path.GetExtension(rom).ToLower() == ".lnk")
+            {
+                targetRom = FileTools.GetShortcutArgswsh(rom);
+            }
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -47,8 +54,15 @@ namespace EmulatorLauncher
             if (SystemConfig.getOptBoolean("shadps4_gui"))
                 commandArray.Add("-s");
 
-            commandArray.Add("-g");
-            commandArray.Add("\"" + rom + "\"");
+            if (Path.GetExtension(rom).ToLower() == ".lnk")
+            {
+                commandArray.Add(targetRom);
+            }
+            else
+            {
+                commandArray.Add("-g");
+                commandArray.Add("\"" + rom + "\"");
+            }
 
             string args = string.Join(" ", commandArray);
 
