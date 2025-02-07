@@ -509,8 +509,8 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["menu_framebuffer_opacity"] = "0.900000";
             retroarchConfig["video_fullscreen"] = "true";
             retroarchConfig["video_window_save_positions"] = "false";
-            retroarchConfig["video_viewport_bias_x"] = "0.000000";
-            retroarchConfig["video_viewport_bias_y"] = "0.000000";
+            retroarchConfig.DisableAll("video_viewport_bias_x");
+            retroarchConfig.DisableAll("video_viewport_bias_y");
             retroarchConfig["notification_show_autoconfig"] = "false";
             retroarchConfig["notification_show_config_override_load"] = "false";            
             retroarchConfig["notification_show_remap_load"] = "false";
@@ -782,7 +782,13 @@ namespace EmulatorLauncher.Libretro
                 }
             }
             else if (core == "tgbdual" || system == "wii" || system == "fbneo")
+            {
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
+            }
+            else if (SystemConfig["shader"].Contains("Mega_Bezel"))
+            {
+                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("full").ToString();
+            }
             else
                 retroarchConfig["aspect_ratio_index"] = "";
             
@@ -897,7 +903,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureRunahead(system, core, retroarchConfig);
             ConfigureCoreOptions(retroarchConfig, system, core);
             ConfigureBezels(retroarchConfig, system, rom, resolution);
-            
+
             // Video driver
             ConfigureVideoDriver(core, retroarchConfig);
             ConfigureGPUIndex(retroarchConfig);
@@ -1552,6 +1558,9 @@ namespace EmulatorLauncher.Libretro
             fd.AppendLine("overlay0_full_screen = true");
             fd.AppendLine("overlay0_descs = 0");
             File.WriteAllText(overlay_cfg_file, fd.ToString());
+
+            retroarchConfig["video_viewport_bias_x"] = "0.000000";
+            retroarchConfig["video_viewport_bias_y"] = "0.000000";
         }
 
         private static Size GetImageSize(string file)

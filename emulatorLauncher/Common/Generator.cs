@@ -329,10 +329,7 @@ namespace EmulatorLauncher
 
                 return exitCode;
             }
-            catch 
-            { 
-
-            }
+            catch { }
 
             return -1;
         }
