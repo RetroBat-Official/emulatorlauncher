@@ -765,6 +765,8 @@ namespace EmulatorLauncher.Libretro
                 {
                     retroarchConfig["video_aspect_ratio_auto"] = "false";
                     retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString();
+                    retroarchConfig["video_viewport_bias_x"] = "0.000000";
+                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
                 }
                 else
                 {
@@ -1559,8 +1561,20 @@ namespace EmulatorLauncher.Libretro
             fd.AppendLine("overlay0_descs = 0");
             File.WriteAllText(overlay_cfg_file, fd.ToString());
 
-            retroarchConfig["video_viewport_bias_x"] = "0.000000";
-            retroarchConfig["video_viewport_bias_y"] = "0.000000";
+            bool bias = true;
+            if (retroarchConfig["aspect_ratio_index"] == ratioIndexes.IndexOf("custom").ToString())
+                bias = false;
+
+            if (bias)
+            {
+                retroarchConfig["video_viewport_bias_x"] = "0.500000";
+                retroarchConfig["video_viewport_bias_y"] = "0.500000";
+            }
+            else
+            {
+                retroarchConfig["video_viewport_bias_x"] = "0.000000";
+                retroarchConfig["video_viewport_bias_y"] = "0.000000";
+            }
         }
 
         private static Size GetImageSize(string file)
